@@ -13,13 +13,17 @@ pub struct McpSubprocessClient {
 
 impl McpSubprocessClient {
     /// Spawn the Python MCP server as a subprocess.
-    /// Uses 'uv run' or fallback 'python' depending on availability.
     pub async fn spawn(mcp_server_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let is_py_file = mcp_server_path.ends_with(".py");
 
-        let mut cmd = if is_py_file {
+        let mut cmd = if is_py_file && mcp_server_path.contains("blt_mcp") {
             let mut c = Command::new("uv");
-            c.arg("run").arg(mcp_server_path);
+            c.current_dir("..");
+            c.arg("run").arg("--no-sync").arg("-m").arg("blt_mcp.server");
+            c
+        } else if is_py_file {
+            let mut c = Command::new("uv");
+            c.arg("run").arg("--no-sync").arg(mcp_server_path);
             c
         } else {
             // E.g. running a compiled binary or specific executable command
@@ -29,7 +33,7 @@ impl McpSubprocessClient {
         let mut child = cmd
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(Stdio::inherit()) // Logs to CLI stderr so it doesn't pollute stdout JSON-RPC
+            .stderr(Stdio::null()) // Discard MCP logs so they don't corrupt the TUI buffer
             .spawn()?;
 
         let stdin = child.stdin.take().ok_or("Failed to grab stdin pipe")?;

@@ -12,6 +12,7 @@ mod tui;
 mod mock_data;
 mod api;
 mod mcp_client;
+mod scanner;
 
 use app::App;
 
@@ -64,8 +65,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 if let Some(contents) = resp.get("result").and_then(|r| r.get("contents")).and_then(|c| c.as_array()) {
                                     if let Some(content) = contents.first() {
                                         if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
-                                            if let Ok(live_issues) = serde_json::from_str::<Vec<crate::mock_data::Issue>>(text) {
-                                                app.issues = live_issues;
+                                            if let Ok(root) = serde_json::from_str::<serde_json::Value>(text) {
+                                                app.issues = crate::api::parse_issues_from_json(&root);
                                                 issues_loaded = true;
                                             }
                                         }
@@ -77,8 +78,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 if let Some(contents) = resp.get("result").and_then(|r| r.get("contents")).and_then(|c| c.as_array()) {
                                     if let Some(content) = contents.first() {
                                         if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
-                                            if let Ok(live_repos) = serde_json::from_str::<Vec<crate::mock_data::Repo>>(text) {
-                                                app.repos = live_repos;
+                                            if let Ok(root) = serde_json::from_str::<serde_json::Value>(text) {
+                                                app.repos = crate::api::parse_repos_from_json(&root);
                                                 repos_loaded = true;
                                             }
                                         }
@@ -86,11 +87,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 }
                             }
 
+                            // Attempt to read stats resource
+                            if let Ok(resp) = client.read_resource("blt://stats").await {
+                                if let Some(contents) = resp.get("result").and_then(|r| r.get("contents")).and_then(|c| c.as_array()) {
+                                    if let Some(content) = contents.first() {
+                                        if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
+                                            if let Ok(root) = serde_json::from_str::<serde_json::Value>(text) {
+                                                app.stats = crate::api::parse_stats_from_json(&root);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
                             if issues_loaded && repos_loaded {
+                                app.hunts.clear(); // Clear mock hunts since MCP doesn't load them yet
+                                app.leaderboard.clear(); // Clear mock leaderboard
+                                app.audit_logs.clear(); // Clear old offline session logs
+                                app.event_feed.clear(); // Clear old offline event feed
+                                app.stats = crate::mock_data::Stats { total_issues: 0, active_repos: 0, total_contributors: 0, bacon_points: 0 }; // Clear mock stats
+                                app.audit_logs.push("SUCCESS: Connected to live MCP server. Awaiting live events...".to_string());
                                 app.status_message = "MCP connection established successfully!".to_string();
                                 app.is_live = true;
+                                app.mcp_client = Some(std::sync::Arc::new(tokio::sync::Mutex::new(client)));
                                 println!("SUCCESS: Connected to MCP server and loaded live resources.");
                             } else {
+                                app.mcp_client = Some(std::sync::Arc::new(tokio::sync::Mutex::new(client)));
                                 app.status_message = "MCP connected, but failed to load resources. Mock fallback active.".to_string();
                                 println!("WARNING: Connected to MCP server, but failed to load resources. Mock fallback active.");
                             }
@@ -168,6 +190,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("Starting TUI session...");
+
+    // Spawn the security health scanner in the background
+    let scanner_sender = app.event_sender.clone();
+    tokio::spawn(async move {
+        let health = scanner::run_scan().await;
+        let _ = scanner_sender.send(app::AppEvent::ScanComplete { health });
+    });
 
     // Initialize terminal
     enable_raw_mode()?;

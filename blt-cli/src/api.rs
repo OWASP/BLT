@@ -1,35 +1,40 @@
 #![allow(dead_code)]
 use crate::mock_data::{self, Issue, Repo, Hunt, Stats};
 
-pub async fn get_issues(api_base: &str, offline: bool) -> Result<Vec<Issue>, Box<dyn std::error::Error>> {
-    if offline {
-        return Ok(mock_data::get_mock_issues());
-    }
-
-    let client = reqwest::Client::new();
-    let url = format!("{}/v2/bugs", api_base);
-    
-    let mut req = client.get(&url);
+pub fn get_api_key() -> Option<String> {
     if let Ok(api_key) = std::env::var("BLT_API_KEY") {
-        req = req.header("X-BLT-API-Key", api_key);
+        return Some(api_key);
     }
-
-    let resp = req.send().await?.error_for_status()?;
-    let root = resp.json::<serde_json::Value>().await?;
     
+    // Fallback to local credentials.json
+    let home = dirs::home_dir()?;
+    let creds_path = home.join(".blt-mcp").join("credentials.json");
+    if let Ok(content) = std::fs::read_to_string(creds_path) {
+        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
+            if let Some(key) = json.get("BLT_API_KEY").and_then(|k| k.as_str()) {
+                return Some(key.to_string());
+            }
+        }
+    }
+    None
+}
+
+pub fn parse_issues_from_json(root: &serde_json::Value) -> Vec<Issue> {
     let raw_arr = if let Some(data) = root.get("data") {
         data.as_array()
+    } else if let Some(bugs) = root.get("bugs") {
+        bugs.as_array()
     } else {
         root.as_array()
     };
 
     let Some(arr) = raw_arr else {
-        return Err("API response issues data was not an array".into());
+        return Vec::new();
     };
 
     let mut issues = Vec::new();
     for item in arr {
-        let id = match item.get("id") {
+        let id = match item.get("id").or_else(|| item.get("_id")) {
             Some(v) => {
                 if let Some(s) = v.as_str() {
                     s.to_string()
@@ -104,25 +109,34 @@ pub async fn get_issues(api_base: &str, offline: bool) -> Result<Vec<Issue>, Box
         });
     }
 
-    Ok(issues)
+    issues
 }
 
-pub async fn get_repos(api_base: &str, offline: bool) -> Result<Vec<Repo>, Box<dyn std::error::Error>> {
+pub async fn get_issues(api_base: &str, offline: bool) -> Result<Vec<Issue>, Box<dyn std::error::Error>> {
     if offline {
-        return Ok(mock_data::get_mock_repos());
+        return Ok(mock_data::get_mock_issues());
     }
 
     let client = reqwest::Client::new();
-    let url = format!("{}/v2/repos", api_base);
+    let url = format!("{}/v2/bugs", api_base);
     
     let mut req = client.get(&url);
-    if let Ok(api_key) = std::env::var("BLT_API_KEY") {
+    if let Some(api_key) = get_api_key() {
         req = req.header("X-BLT-API-Key", api_key);
     }
 
     let resp = req.send().await?.error_for_status()?;
     let root = resp.json::<serde_json::Value>().await?;
+    
+    let issues = parse_issues_from_json(&root);
+    if issues.is_empty() {
+        return Err("API response issues data was not an array or was empty".into());
+    }
 
+    Ok(issues)
+}
+
+pub fn parse_repos_from_json(root: &serde_json::Value) -> Vec<Repo> {
     let raw_arr = if let Some(data) = root.get("data") {
         data.as_array()
     } else {
@@ -130,12 +144,12 @@ pub async fn get_repos(api_base: &str, offline: bool) -> Result<Vec<Repo>, Box<d
     };
 
     let Some(arr) = raw_arr else {
-        return Ok(Vec::new());
+        return Vec::new();
     };
 
     let mut repos = Vec::new();
     for item in arr {
-        let id = match item.get("id") {
+        let id = match item.get("id").or_else(|| item.get("_id")) {
             Some(v) => {
                 if let Some(s) = v.as_str() {
                     s.to_string()
@@ -178,6 +192,27 @@ pub async fn get_repos(api_base: &str, offline: bool) -> Result<Vec<Repo>, Box<d
         });
     }
 
+    repos
+}
+
+pub async fn get_repos(api_base: &str, offline: bool) -> Result<Vec<Repo>, Box<dyn std::error::Error>> {
+    if offline {
+        return Ok(mock_data::get_mock_repos());
+    }
+
+    let client = reqwest::Client::new();
+    let url = format!("{}/v2/repos", api_base);
+    
+    let mut req = client.get(&url);
+    if let Some(api_key) = get_api_key() {
+        req = req.header("X-BLT-API-Key", api_key);
+    }
+
+    let resp = req.send().await?.error_for_status()?;
+    let root = resp.json::<serde_json::Value>().await?;
+
+    let repos = parse_repos_from_json(&root);
+
     Ok(repos)
 }
 
@@ -190,7 +225,7 @@ pub async fn get_hunts(api_base: &str, offline: bool) -> Result<Vec<Hunt>, Box<d
     let url = format!("{}/v2/hunts/active", api_base);
     
     let mut req = client.get(&url);
-    if let Ok(api_key) = std::env::var("BLT_API_KEY") {
+    if let Some(api_key) = get_api_key() {
         req = req.header("X-BLT-API-Key", api_key);
     }
 
@@ -242,23 +277,8 @@ pub async fn get_hunts(api_base: &str, offline: bool) -> Result<Vec<Hunt>, Box<d
     Ok(hunts)
 }
 
-pub async fn get_stats(api_base: &str, offline: bool) -> Result<Stats, Box<dyn std::error::Error>> {
-    if offline {
-        return Ok(mock_data::get_mock_stats());
-    }
-
-    let client = reqwest::Client::new();
-    let url = format!("{}/v2/stats", api_base);
-    
-    let mut req = client.get(&url);
-    if let Ok(api_key) = std::env::var("BLT_API_KEY") {
-        req = req.header("X-BLT-API-Key", api_key);
-    }
-
-    let resp = req.send().await?.error_for_status()?;
-    let root = resp.json::<serde_json::Value>().await?;
-
-    let data = root.get("data").unwrap_or(&root);
+pub fn parse_stats_from_json(root: &serde_json::Value) -> Stats {
+    let data = root.get("data").unwrap_or(root);
 
     let total_issues = data.get("bugs")
         .or_else(|| data.get("total_issues"))
@@ -279,12 +299,31 @@ pub async fn get_stats(api_base: &str, offline: bool) -> Result<Stats, Box<dyn s
         .and_then(|v| v.as_u64())
         .unwrap_or(0) as u32;
 
-    Ok(Stats {
+    Stats {
         total_issues,
         active_repos,
         total_contributors,
         bacon_points,
-    })
+    }
+}
+
+pub async fn get_stats(api_base: &str, offline: bool) -> Result<Stats, Box<dyn std::error::Error>> {
+    if offline {
+        return Ok(mock_data::get_mock_stats());
+    }
+
+    let client = reqwest::Client::new();
+    let url = format!("{}/v2/stats", api_base);
+    
+    let mut req = client.get(&url);
+    if let Some(api_key) = get_api_key() {
+        req = req.header("X-BLT-API-Key", api_key);
+    }
+
+    let resp = req.send().await?.error_for_status()?;
+    let root = resp.json::<serde_json::Value>().await?;
+
+    Ok(parse_stats_from_json(&root))
 }
 
 pub async fn submit_issue_triage(api_base: &str, issue_id: &str, offline: bool) -> Result<(), Box<dyn std::error::Error>> {
@@ -300,7 +339,7 @@ pub async fn submit_issue_triage(api_base: &str, issue_id: &str, offline: bool) 
     payload.insert("status", "In Review");
 
     let mut req = client.patch(&url).json(&payload);
-    if let Ok(api_key) = std::env::var("BLT_API_KEY") {
+    if let Some(api_key) = get_api_key() {
         req = req.header("X-BLT-API-Key", api_key);
     }
 
@@ -321,7 +360,7 @@ pub async fn add_comment(api_base: &str, issue_id: &str, text: &str, offline: bo
     payload.insert("text", text);
 
     let mut req = client.post(&url).json(&payload);
-    if let Ok(api_key) = std::env::var("BLT_API_KEY") {
+    if let Some(api_key) = get_api_key() {
         req = req.header("X-BLT-API-Key", api_key);
     }
 
@@ -345,7 +384,7 @@ pub async fn submit_issue(api_base: &str, title: &str, repo: &str, severity: &st
     payload.insert("description", description);
 
     let mut req = client.post(&url).json(&payload);
-    if let Ok(api_key) = std::env::var("BLT_API_KEY") {
+    if let Some(api_key) = get_api_key() {
         req = req.header("X-BLT-API-Key", api_key);
     }
 
@@ -363,7 +402,7 @@ pub async fn get_leaderboard(api_base: &str, offline: bool) -> Result<Vec<mock_d
     let url = format!("{}/v2/leaderboard", api_base);
     
     let mut req = client.get(&url);
-    if let Ok(api_key) = std::env::var("BLT_API_KEY") {
+    if let Some(api_key) = get_api_key() {
         req = req.header("X-BLT-API-Key", api_key);
     }
 
