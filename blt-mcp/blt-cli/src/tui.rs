@@ -86,6 +86,26 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
         return;
     }
 
+    // Konami code check
+    let konami_seq = [
+        KeyCode::Up, KeyCode::Up, KeyCode::Down, KeyCode::Down,
+        KeyCode::Left, KeyCode::Right, KeyCode::Left, KeyCode::Right,
+        KeyCode::Char('b'), KeyCode::Char('a')
+    ];
+    
+    if key.code == konami_seq[app.konami_index] || 
+       (key.code == KeyCode::Char('B') && konami_seq[app.konami_index] == KeyCode::Char('b')) || 
+       (key.code == KeyCode::Char('A') && konami_seq[app.konami_index] == KeyCode::Char('a')) {
+        app.konami_index += 1;
+        if app.konami_index == konami_seq.len() {
+            app.active_overlay = crate::app::ActiveOverlay::EasterEgg;
+            app.konami_index = 0;
+            return;
+        }
+    } else {
+        app.konami_index = 0;
+    }
+
     // Modal check redirects
     match app.active_overlay {
         crate::app::ActiveOverlay::Help => {
@@ -363,6 +383,24 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
             }
             return;
         }
+        crate::app::ActiveOverlay::AgentStatus => {
+            if key.code == KeyCode::Esc || key.code == KeyCode::Char('A') {
+                app.active_overlay = crate::app::ActiveOverlay::None;
+            }
+            return;
+        }
+        crate::app::ActiveOverlay::PromptPreview => {
+            if key.code == KeyCode::Esc || key.code == KeyCode::Char('P') {
+                app.active_overlay = crate::app::ActiveOverlay::None;
+            }
+            return;
+        }
+        crate::app::ActiveOverlay::EasterEgg => {
+            if key.code == KeyCode::Esc || key.code == KeyCode::Enter || key.code == KeyCode::Char(' ') {
+                app.active_overlay = crate::app::ActiveOverlay::None;
+            }
+            return;
+        }
         _ => {}
     }
 
@@ -438,6 +476,8 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
         KeyCode::Char('s') => {
             app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
         }
+        KeyCode::Char('A') => app.toggle_agent_status(),
+        KeyCode::Char('P') => app.toggle_prompt_preview(),
         KeyCode::Char('a') => {
             if app.active_tab == Tab::Issues && !app.issues.is_empty() {
                 app.active_overlay = crate::app::ActiveOverlay::AiTriage;
