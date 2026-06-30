@@ -15,7 +15,7 @@ def pytest_sessionfinish(session, exitstatus):
             cmd = [
                 str(mcp_vcr_bin), "verify",
                 str(snapshots_dir) + "/",
-                "--", sys.executable, "-m", "blt_mcp.server"
+                "--", "uv", "run", "-m", "blt_mcp.server"
             ]
             result = subprocess.run(cmd, capture_output=True, text=True)
             print(result.stdout)

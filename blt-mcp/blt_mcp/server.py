@@ -1,9 +1,11 @@
 import sys
 import logging
 import json
+import httpx
 from typing import Any, Dict, List, Optional
+from blt_mcp import server_base
+from blt_mcp.server_base import mcp, _fetch, logger
 
-from blt_mcp.server_base import mcp, _fetch, http_client, logger
 from blt_mcp.validation import StdinWrapper, InterceptingStdinBuffer
 from blt_mcp.tools import generate_ai_metadata, summarize_issue_context_impl
 
@@ -48,9 +50,8 @@ async def get_issue(issue_id: str) -> str:
 
 @mcp.tool()
 async def submit_issue(
-    title: str,
+    url: str,
     description: str,
-    repo_id: Optional[str] = None,
     labels: Optional[List[str]] = None,
     assignee: Optional[str] = None,
     confirmed: bool = False
@@ -59,9 +60,8 @@ async def submit_issue(
     Submit a new issue to OWASP BLT.
     
     Args:
-        title: The title of the issue.
+        url: The vulnerable URL being reported.
         description: A detailed description of the bug or vulnerability.
-        repo_id: The ID of the repository to submit to (e.g., 'BLT-MCP'). Use list_repos to find IDs.
         labels: Optional list of labels to apply to the issue (e.g., ['bug', 'security']).
         assignee: Optional username of the assignee for the issue.
         confirmed: Set to true to confirm execution of this write operation.
@@ -73,18 +73,12 @@ async def submit_issue(
     logger.info("Write operation 'submit_issue' confirmed. Proceeding to execution.")
     ai_metadata = generate_ai_metadata("submit_issue")
     
-    logger.info(f"Submitting issue: {title} to repo: {repo_id or 'default'}")
+    logger.info(f"Submitting issue for url: {url}")
+    
     payload = {
-        "title": title,
+        "url": url,
         "description": description,
-        "metadata": ai_metadata
     }
-    if repo_id is not None:
-        payload["repo_id"] = repo_id
-    if labels is not None:
-        payload["labels"] = labels
-    if assignee is not None:
-        payload["assignee"] = assignee
 
     headers = {
         "X-AI-Generated": "true",
@@ -93,14 +87,18 @@ async def submit_issue(
     }
 
     try:
-        response = await http_client.post("/bugs", json=payload, headers=headers)
+        response = await server_base.http_client.post("/bugs", json=payload, headers=headers)
         response.raise_for_status()
         try:
             issue_id = response.json().get('id', 'Unknown')
         except json.JSONDecodeError:
             issue_id = response.text or "Unknown"
             
-        return f"Successfully submitted issue: {title} (ID: {issue_id})"
+        return f"Successfully submitted issue for {url} (ID: {issue_id})"
+    except httpx.HTTPStatusError as e:
+        error_msg = f"API Error {e.response.status_code}: {e.response.text}"
+        logger.error(error_msg)
+        raise RuntimeError(error_msg) from e
     except Exception as e:
         logger.error(f"Failed to submit issue: {e}")
         raise RuntimeError(f"Failed to submit issue: {e}") from e
@@ -139,7 +137,7 @@ async def add_comment(
     }
     
     try:
-        response = await http_client.post(f"/bugs/{issue_id}/comments", json=payload, headers=headers)
+        response = await server_base.http_client.post(f"/bugs/{issue_id}/comments", json=payload, headers=headers)
         response.raise_for_status()
         return f"Successfully added comment to issue {issue_id}"
     except Exception as e:

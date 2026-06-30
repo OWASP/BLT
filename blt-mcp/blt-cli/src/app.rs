@@ -31,22 +31,20 @@ pub enum RunMode {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum FormField {
-    Title,
-    RepoId,
+    Url,
     Severity,
     Description,
 }
 
 impl Default for FormField {
     fn default() -> Self {
-        FormField::Title
+        FormField::Url
     }
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct VulnerabilityForm {
-    pub title: String,
-    pub repo_id: String,
+    pub url: String,
     pub severity: String,
     pub description: String,
     pub active_field: FormField,
@@ -62,12 +60,14 @@ pub enum ActiveOverlay {
     AiTriage,
     SearchInput,
     BulkTriageConfirm,
+    CommandPalette,
 }
 
 pub enum AppEvent {
     TriageConfirmed { issue_id: String, success: bool, message: String },
-    SubmitResult { success: bool, message: String },
+    SubmitResult { success: bool, message: String, issue: Option<crate::mock_data::Issue> },
     AiTriageResult { message: String },
+    ScanComplete { health: crate::scanner::SecurityHealth },
 }
 
 pub struct App {
@@ -97,6 +97,9 @@ pub struct App {
     pub status_message: String,
     pub auth_user: String,
     pub is_live: bool,
+    pub mcp_client: Option<std::sync::Arc<tokio::sync::Mutex<crate::mcp_client::McpSubprocessClient>>>,
+    pub security_health: Option<crate::scanner::SecurityHealth>,
+    pub command_input: String,
 }
 
 impl App {
@@ -156,6 +159,9 @@ impl App {
             status_message,
             auth_user,
             is_live: false,
+            mcp_client: None,
+            security_health: None,
+            command_input: String::new(),
         };
         app.load_session();
         app

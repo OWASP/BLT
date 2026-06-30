@@ -149,6 +149,16 @@ blt-mcp
 python -m blt_mcp.server
 ```
 
+### Using the Rust CLI (BLT-CLI)
+
+The project includes a high-performance terminal UI built in Rust. To run the CLI and connect it to your local Python MCP server:
+
+```bash
+# In your terminal
+cd blt-cli
+cargo run -- --mcp-path ../blt_mcp/server.py
+```
+
 ### Project Structure
 
 ```

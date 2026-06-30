@@ -44,3 +44,11 @@ htmlcov/
 
 # Logs
 *.log
+
+# VCR Local Sessions (Keep snapshots/ for CI golden tests)
+sessions/
+
+# TUI Local State
+blt_session.json
+
+target/
