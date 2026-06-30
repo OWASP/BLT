@@ -157,7 +157,21 @@ async def summarize_issue_context(issue_id: str) -> str:
 @mcp.prompt()
 def triage_vulnerability(description: str) -> str:
     """Create a prompt for triaging a vulnerability."""
-    return f"Please triage the following vulnerability: {description}. Assess severity and suggest next steps."
+    return f"""You are an expert security analyst assisting with OWASP BLT triage.
+Please analyze the following vulnerability description and provide a structured assessment:
+
+VULNERABILITY DESCRIPTION:
+{description}
+
+CONTEXT & GUIDELINES:
+1. Identify the vulnerability class (e.g. OWASP Top 10 like Injection, XSS, Broken Access Control).
+2. Assess the severity based on CVSS principles (Critical, High, Medium, Low). Consider:
+   - Exploitability (Attack Vector, Complexity, Privileges Required, User Interaction)
+   - Impact (Confidentiality, Integrity, Availability)
+3. Recommend immediate mitigation steps or a remediation plan.
+4. Suggest potential duplicate markers or related issues if common.
+
+Please format your response clearly, starting with a Severity Suggestion, followed by a brief Duplicate Check, and then your detailed Recommendation."""
 
 def main() -> None:
     """Entry point for the BLT-MCP server."""
