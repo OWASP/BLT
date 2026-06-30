@@ -52,6 +52,9 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         crate::app::ActiveOverlay::AiTriage => draw_ai_triage_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::BulkTriageConfirm => draw_bulk_triage_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::CommandPalette => draw_command_palette_modal(f, app, chunks[1]),
+        crate::app::ActiveOverlay::AgentStatus => draw_agent_status_modal(f, app, chunks[1]),
+        crate::app::ActiveOverlay::PromptPreview => draw_prompt_preview_modal(f, app, chunks[1]),
+        crate::app::ActiveOverlay::EasterEgg => draw_easter_egg_modal(f, chunks[1]),
         _ => {}
     }
 }
@@ -1027,7 +1030,70 @@ fn draw_command_palette_modal(f: &mut Frame, app: &App, rect: Rect) {
     
     f.render_widget(p, modal_area);
 }
+fn draw_agent_status_modal(f: &mut Frame, app: &App, rect: Rect) {
+    let modal_area = centered_rect(60, 40, rect);
+    f.render_widget(Clear, modal_area);
+    
+    let lines: Vec<Line> = app.agent_status_data.split('\n')
+        .map(|s| Line::from(Span::styled(s.to_string(), Style::default().fg(Color::Cyan))))
+        .collect();
 
+    let p = Paragraph::new(lines)
+        .block(Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Cyan))
+            .title(" MCP Agent Connection Status ")
+            .bg(SLATE_SURFACE))
+        .wrap(Wrap { trim: false });
+    
+    f.render_widget(p, modal_area);
+}
+
+fn draw_prompt_preview_modal(f: &mut Frame, app: &App, rect: Rect) {
+    let modal_area = centered_rect(70, 60, rect);
+    f.render_widget(Clear, modal_area);
+    
+    let lines: Vec<Line> = app.prompt_preview_data.split('\n')
+        .map(|s| Line::from(Span::styled(s.to_string(), Style::default().fg(TEXT_LIGHT))))
+        .collect();
+
+    let p = Paragraph::new(lines)
+        .block(Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Yellow))
+            .title(" AI Triage Prompt Preview ")
+            .bg(SLATE_SURFACE))
+        .wrap(Wrap { trim: false });
+    
+    f.render_widget(p, modal_area);
+}
+
+fn draw_easter_egg_modal(f: &mut Frame, rect: Rect) {
+    let modal_area = centered_rect(60, 50, rect);
+    f.render_widget(Clear, modal_area);
+    
+    let art = vec![
+        Line::from(Span::styled(r#"  _   _    _    ____ _  __   ____  _        _    _   _ _____ _____ "#, Style::default().fg(Color::Green))),
+        Line::from(Span::styled(r#" | | | |  / \  / ___| |/ /  |  _ \| |      / \  | \ | | ____|_   _|"#, Style::default().fg(Color::Green))),
+        Line::from(Span::styled(r#" | |_| | / _ \| |   | ' /   | |_) | |     / _ \ |  \| |  _|   | |  "#, Style::default().fg(Color::Green))),
+        Line::from(Span::styled(r#" |  _  |/ ___ \ |___| . \   |  __/| |___ / ___ \| |\  | |___  | |  "#, Style::default().fg(Color::Green))),
+        Line::from(Span::styled(r#" |_| |_/_/   \_\____|_|\_\  |_|   |_____/_/   \_\_| \_|_____| |_|  "#, Style::default().fg(Color::Green))),
+        Line::from(""),
+        Line::from(Span::styled("        * You found the Konami Code Easter Egg! *", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))),
+        Line::from(""),
+        Line::from(Span::styled("                 [ Press Any Key ]", Style::default().fg(Color::Gray))),
+    ];
+
+    let p = Paragraph::new(art)
+        .block(Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Green))
+            .bg(Color::Black))
+        .alignment(ratatui::layout::Alignment::Center)
+        .wrap(Wrap { trim: false });
+    
+    f.render_widget(p, modal_area);
+}
 #[cfg(test)]
 mod tests {
     use super::*;
