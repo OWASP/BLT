@@ -9,15 +9,15 @@ This script:
 4. Stores everything in ChromaDB
 """
 
-from pathlib import path
+from pathlib import Path
 import json
 from typing import List, Dict
 
-from sentence_transformers import sentence_transformer
+from sentence_transformers import SentenceTransformer
 import chromadb
 from tqdm import tqdm
 
-from src.rag.config import RAGConfig
+from src.advisory_engine.rag.config import RAGConfig
 
 
 def load_metadata(metadata_path: Path) -> Dict:
@@ -47,19 +47,23 @@ def section_aware_chunk(text: str, chunk_size: int = 400, overlap: int = 50) -> 
     chunks = []
     current_chunk = ""
 
-    for i, section in enumerate(sections):
-        if section.strip().startswith('#'): # This is a heading
-        if current_chunk.strip():
-            chunks.append(current_chunk.strip())
-        current_chunk = secton + "\n"
-    else:
-        current_chunk += section + "\n"
+    for section in sections:
+        section = section.strip()
+        if not section:
+            continue
 
-         # If chunk exceeds size, save it and keep overlap
-        if len(current_chunk.split()) > chunk_size:
-            chunks.append(current_chunk.strip())
-            words = current_chunk.split()
-            current_chunk = " ".join(words[-overlap:]) + "\n"
+        if section.strip().startswith('#'):  # This is a heading
+            if current_chunk.strip():
+                chunks.append(current_chunk.strip())
+            current_chunk = section + "\n"
+        else:
+            current_chunk += section + "\n"
+
+            # If chunk exceeds size, save it and keep overlap
+            if len(current_chunk.split()) > chunk_size:
+                chunks.append(current_chunk.strip())
+                words = current_chunk.split()
+                current_chunk = " ".join(words[-overlap:]) + "\n"
 
     if current_chunk.strip():
         chunks.append(current_chunk.strip())
@@ -81,7 +85,7 @@ def main():
     embedder = SentenceTransformer(config.EMBEDDING_MODEL)
 
     # Step 3: Initialize ChromaDB 
-    client = chromadb.PersistentClient(path=str(config.CHROMA_DB_DIR))
+    client = chromadb.PersistentClient(path=str(config.CHROMADB_DIR))
     collection = client.get_or_create_collection(
       name="owasp_knowledge_base",
       metadata={"hnsw:space": "cosine"}
@@ -89,21 +93,21 @@ def main():
 
     collection.delete(where={})  # Clear previous data
     total_chunks = 0
-     
+    
     # Step 4: Process each document
     for doc_info in tqdm(metadata.get('documents', []), desc="Processing documents"):
-        file_path = config.KNOWLEDGE_BASE_DIR / doc_info["filename"]
+        file_path = config.KNOWLEDGE_BASE / doc_info["filename"]
 
         if not file_path.exists():
             print(f"Warning: {file_path} not found. Skipping process.")
             continue
 
-         # Read and clean document
+        # Read and clean document
         text = file_path.read_text(encoding='utf-8')
         clean_text = clean_frontmatter(text)
 
         # Chunk the document
-        chunks = section_aware-chunk(
+        chunks = section_aware_chunk(
             clean_text,
             chunk_size=config.CHUNK_SIZE,
             overlap=config.CHUNK_OVERLAP
@@ -117,8 +121,8 @@ def main():
         ids = []
 
         for i, chunk in enumerate(chunks):
-            chunk_id = f"{dco_info['filename']}_{i:04d}"
-            metadats.append({
+            chunk_id = f"{doc_info['filename']}_{i:04d}"
+            metadatas.append({
                 "title": doc_info.get("title", ""),
                 "category": doc_info.get("category", ""),
                 "source_url": doc_info.get("source_url", ""),
@@ -139,9 +143,9 @@ def main():
         print(f" Done {doc_info['filename']}: {len(chunks)} chunks")
 
     print("\n Ingestion is completed sucessfully!!")
-    print(f"  Total documents processed: {len(metadata.get('documents' []))}")
+    print(f"  Total documents processed: {len(metadata.get('documents', []))}")
     print(f"  Total chunks stored: {total_chunks}")
-    print(f"  ChromaDB path: {config.CHROMA_DB_DIR}")
+    print(f"  ChromaDB path: {config.CHROMADB_DIR}")
 
 
 if __name__ == "__main__":

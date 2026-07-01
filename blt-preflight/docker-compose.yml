@@ -1,0 +1,70 @@
+# ---------------------------------------------------------------------------
+# BLT-Preflight – docker-compose.yml
+#
+# Usage:
+#   docker-compose up -d preflight-server          # advisory server only
+#   docker-compose --profile offline up -d         # + Ollama offline LLM
+#
+# The advisory server is reachable at http://localhost:8000
+# VS Code extension and pre-commit hook both point to this endpoint.
+# ---------------------------------------------------------------------------
+version: "3.9"
+
+services:
+
+  # ── Primary advisory server ──────────────────────────────────────────────
+  preflight-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blt-preflight-server
+    ports:
+      - "8000:8000"
+    environment:
+      PREFLIGHT_SERVER_PORT: "8000"
+      PREFLIGHT_DEBUG: "false"
+      CHROMA_PERSIST_DIR: "/app/chroma_index"
+      EMBEDDING_MODEL: "all-MiniLM-L6-v2"
+      # Primary LLM: Gemini Flash (set your key in .env or as a shell var)
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      # Fallback LLM A: GPT-4o-mini
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      # Fallback LLM B: Ollama (used automatically when server is unavailable
+      # or LL47\\'M_PROVIDER=ollama is set)
+      OLLAMA_BASE_URL: "http://ollama:11434"
+      LLM_PROVIDER: "${LLM_PROVIDER:-gemini}"
+    volumes:
+      # Persist the ChromaDB index across container restarts without rebuild
+      - chroma_data:/app/chroma_index
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  # ── Optional offline LLM sidecar (Ollama) ────────────────────────────────
+  # Activated with: docker-compose --profile offline up -d
+  # Keeps ALL inference on-premises for air-gapped / privacy-sensitive repos.
+  ollama:
+    image: ollama/ollama:latest
+    container_name: blt-preflight-ollama
+    profiles:
+      - offline
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    # Pull mistral:7b on first start so the advisory server can use it
+    entrypoint: >
+      sh -c "ollama serve &
+             sleep 5 &&
+             ollama pull mistral:7b &&
+             wait"
+    restart: unless-stopped
+
+# ── Named volumes ─────────────────────────────────────────────────────────────
+volumes:
+  chroma_data:
+  ollama_models:
