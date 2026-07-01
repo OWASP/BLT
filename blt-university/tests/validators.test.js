@@ -110,7 +110,7 @@ describe('lab fix validators', () => {
         const result = validateSqliFix(code, bypassConfig);
 
         expect(result.passed).toBe(true);
-        expect(checkResults(result)).toEqual([true, true, true, true]);
+        expect(checkResults(result)).toEqual([true, true, true, true, true]);
       });
     });
 
@@ -121,7 +121,7 @@ describe('lab fix validators', () => {
           const query = "SELECT * FROM users WHERE username = '" + username + "'";
           db.query(query);
         `,
-        expectedChecks: [false, false, false, false]
+        expectedChecks: [false, false, false, false, false]
       },
       {
         name: 'SQL variable assembled across statements',
@@ -130,7 +130,7 @@ describe('lab fix validators', () => {
           const query = baseQuery + userId;
           db.query(query);
         `,
-        expectedChecks: [false, false, false, false]
+        expectedChecks: [false, false, false, false, false]
       },
       {
         name: 'template literal interpolation',
@@ -138,7 +138,7 @@ describe('lab fix validators', () => {
           const query = \`SELECT * FROM profiles WHERE user_id = \${userId}\`;
           db.query(query);
         `,
-        expectedChecks: [false, false, false, false]
+        expectedChecks: [false, false, false, false, false]
       },
       {
         name: 'multiline template literal interpolation',
@@ -149,7 +149,7 @@ describe('lab fix validators', () => {
           \`;
           db.query(query);
         `,
-        expectedChecks: [false, false, false, false]
+        expectedChecks: [false, false, false, false, false]
       },
       {
         name: 'placeholders without bound values',
@@ -157,12 +157,17 @@ describe('lab fix validators', () => {
           const query = 'SELECT * FROM users WHERE username = ? AND password = ?';
           db.query(query);
         `,
-        expectedChecks: [true, true, false, true]
+        expectedChecks: [true, true, true, false, false]
       },
       {
         name: 'empty code submission',
         code: '',
-        expectedChecks: [true, false, false, true]
+        expectedChecks: [false, false, false, false, false]
+      },
+      {
+        name: 'garbage submission with placeholder-like tokens',
+        code: '??? db.query [username password]',
+        expectedChecks: [false, false, false, false, false]
       }
     ])('rejected unsafe pattern: $name', ({ code, expectedChecks }) => {
       it('fails closed with targeted check results', () => {
@@ -180,7 +185,7 @@ describe('lab fix validators', () => {
         const query = 'SELECT * FROM users WHERE id = ?';
         logger.info('loading user=' + userId);
         db.execute(query, [userId]);
-      `);
+      `, { vulnerable_parameters: ['user_id'] });
 
       expect(result.passed).toBe(true);
     });
@@ -191,7 +196,7 @@ describe('lab fix validators', () => {
         const query = 'SELECT * FROM log WHERE msg = "event;type" AND user_id = ?';
         logger.info('loading user=' + userId);
         db.execute(query, [userId]);
-      `);
+      `, { vulnerable_parameters: ['user_id'] });
 
       expect(result.passed).toBe(true);
     });
@@ -374,6 +379,117 @@ describe('lab fix validators', () => {
         expect(result.passed).toBe(false);
         expect(checkResults(result)).toEqual(expectedChecks);
       });
+    });
+  });
+
+  describe('additional security fix validators', () => {
+    describe.each([
+      ['validateSqliFix', { attack_payloads: ["' OR '1'='1"] }],
+      ['validateXssFix', { attack_payloads: ["<img src=x onerror=alert('XSS')>"] }],
+      ['validateCsrfFix'],
+      ['validateRedirectFix'],
+      ['validateCommandFix'],
+      ['validateUploadFix'],
+      ['validateSensitiveDataFix'],
+      ['validateSsrfFix'],
+      ['validateAuthFix'],
+      ['validateIdorFix']
+    ])('%s', (validatorName, config) => {
+      it('fails closed on garbage input', () => {
+        const validator = loadLabHelpers().helpers[validatorName];
+        const result = validator('not a meaningful security fix ???', config);
+
+        expect(result.passed).toBe(false);
+        expect(checkResults(result)).toEqual(result.checks.map(() => false));
+      });
+    });
+
+    it('accepts secure open redirect handling', () => {
+      const { validateRedirectFix } = loadLabHelpers().helpers;
+      const result = validateRedirectFix(`
+        const allowedPaths = ['/dashboard', '/settings'];
+        const parsed = new URL(req.query.next || '/dashboard', 'https://app.example');
+        if (parsed.protocol === 'javascript:' || parsed.protocol === 'data:' || req.query.next.startsWith('//')) reject();
+        const next = allowedPaths.includes(parsed.pathname) ? parsed.pathname : '/dashboard';
+        res.redirect(next);
+      `);
+
+      expect(result.passed).toBe(true);
+      expect(checkResults(result)).toEqual([true, true, true, true]);
+    });
+
+    it('rejects direct open redirects', () => {
+      const { validateRedirectFix } = loadLabHelpers().helpers;
+      const result = validateRedirectFix('res.redirect(req.query.next);');
+
+      expect(result.passed).toBe(false);
+    });
+
+    it('accepts safe command execution', () => {
+      const { validateCommandFix } = loadLabHelpers().helpers;
+      const result = validateCommandFix(`
+        if (!net.isIP(ip) || /[;&|\`$<>]/.test(ip)) throw new Error('Invalid IP');
+        spawn('ping', ['-c', '1', ip], { shell: false });
+      `);
+
+      expect(result.passed).toBe(true);
+    });
+
+    it('accepts layered file upload defenses', () => {
+      const { validateUploadFix } = loadLabHelpers().helpers;
+      const result = validateUploadFix(`
+        const allowedExtensions = ['.jpg', '.png'];
+        const detected = await fileTypeFromBuffer(req.file.buffer);
+        if (!allowedExtensions.includes(path.extname(req.file.originalname)) || !detected) reject();
+        const safeName = crypto.randomUUID() + '.jpg';
+        const destination = path.join(privateUploads, path.basename(safeName));
+        if (!destination.startsWith(privateUploads) || req.file.originalname.includes('..')) reject();
+      `);
+
+      expect(result.passed).toBe(true);
+    });
+
+    it('accepts sensitive data exposure defenses', () => {
+      const { validateSensitiveDataFix } = loadLabHelpers().helpers;
+      const result = validateSensitiveDataFix(`
+        const dbPassword = secretManager.getSecret('DB_PASSWORD');
+        logger.error(redact(error));
+        const safeError = sanitize(error);
+        const passwordHash = await argon2.hash(password);
+        requireAuthorization(req.user, 'admin');
+        res.status(500).send(mask(safeError));
+      `);
+
+      expect(result.passed).toBe(true);
+    });
+
+    it('accepts SSRF defenses', () => {
+      const { validateSsrfFix } = loadLabHelpers().helpers;
+      const result = validateSsrfFix(`
+        const allowedHosts = ['images.example.com'];
+        const parsed = new URL(inputUrl);
+        if (!allowedHosts.includes(parsed.hostname)) reject();
+        if (parsed.hostname === '169.254.169.254' || parsed.hostname === '127.0.0.1' || isPrivateIp(parsed.hostname)) reject();
+        const response = await fetch(parsed.href, { redirect: 'manual' });
+      `);
+
+      expect(result.passed).toBe(true);
+    });
+
+    it('accepts broken authentication defenses', () => {
+      const { validateAuthFix } = loadLabHelpers().helpers;
+      const result = validateAuthFix(`
+        const passwordHash = await argon2.hash(password);
+        requireMfa(user);
+        req.session.regenerate(() => createSession(user, { httpOnly: true, sameSite: 'Lax', secure: true }));
+        jwt.verify(token, publicKey, { algorithms: ['RS256'], expiresIn: '15m' });
+        if (claims.alg === 'none') reject();
+        const resetToken = crypto.randomBytes(32);
+        rateLimit(req.ip);
+        lockout(user.id);
+      `);
+
+      expect(result.passed).toBe(true);
     });
   });
 });
