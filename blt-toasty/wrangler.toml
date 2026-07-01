@@ -39,10 +39,16 @@ name = "toasty-backend-dev"
 # pattern = "api.toasty.example.com/*"
 # zone_name = "example.com"
 
+# D1 Databases for storage
+[[d1_databases]]
+binding = "DB"
+database_name = "toasty-db"
+database_id = "local-db-placeholder"
+
 # KV Namespaces for storage (if needed)
-# [[kv_namespaces]]
-# binding = "TOASTY_KV"
-# id = ""
+[[kv_namespaces]]
+binding = "TOASTY_KV"
+id = "local-kv-placeholder"
 
 # Durable Objects (if needed for stateful operations)
 # [[durable_objects.bindings]]
