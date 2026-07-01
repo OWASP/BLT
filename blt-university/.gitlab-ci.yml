@@ -1,6 +1,7 @@
 stages:
   - validate
   - build
+  - test
   - deploy
 
 variables:
@@ -39,6 +40,19 @@ build_site:
     paths:
       - public
     expire_in: 1 week
+
+test_js:
+  image: node:20
+  stage: test
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npm run test:js
 
 pages:
   image: alpine:3.20
