@@ -3,9 +3,9 @@ Projects handler for the BLT API.
 """
 
 from typing import Any, Dict
-from utils import json_response, error_response, paginated_response, parse_pagination_params
-from client import create_client
-
+from utils import json_response, error_response, paginated_response, parse_pagination_params, convert_d1_results
+from libs.db import get_db_safe
+import logging
 
 async def handle_projects(
     request: Any,
@@ -15,98 +15,132 @@ async def handle_projects(
     path: str
 ) -> Any:
     """
-    Handle project-related requests.
+    Handle project-related requests natively via D1 database.
     
     Endpoints:
         GET /projects - List projects with pagination
         GET /projects/{id} - Get a specific project
-        GET /projects/{id}/contributors - Get project contributors
+        GET /projects/{id}/contributors - Get contributors for a project
     """
-    client = create_client(env)
+    logger = logging.getLogger(__name__)
+    try: 
+        db = await get_db_safe(env)  
+    except Exception as e:
+        logger.error(f"Database connection error: {str(e)}")
+        return error_response(f"Database connection error: {str(e)}", status=500)
     
+    # Check if this is a request for project contributors
+    if path.endswith("/contributors") and "id" in path_params:
+        project_id = path_params["id"]
+        if not project_id.isdigit():
+            return error_response("Invalid project ID", status=400)
+            
+        page, per_page = parse_pagination_params(query_params)
+        
+        # Count total contributors
+        count_result = await db.prepare("SELECT COUNT(*) as total FROM contributors WHERE project_id = ?").bind(int(project_id)).first()
+        total = count_result.get('total', 0) if count_result and isinstance(count_result, dict) else (count_result.to_py().get('total', 0) if count_result and hasattr(count_result, 'to_py') else 0)
+        
+        # Get contributors
+        query = '''
+            SELECT c.id, c.user_id, c.score, c.created, u.username
+            FROM contributors c
+            LEFT JOIN users u ON c.user_id = u.id
+            WHERE c.project_id = ?
+            ORDER BY c.score DESC
+            LIMIT ? OFFSET ?
+        '''
+        result = await db.prepare(query).bind(int(project_id), per_page, (page - 1) * per_page).all()
+        data = convert_d1_results(result.results if hasattr(result, 'results') else [])
+        
+        return json_response({
+            "success": True,
+            "data": data,
+            "pagination": {
+                "page": page,
+                "per_page": per_page,
+                "count": len(data),
+                "total": total,
+                "total_pages": (total + per_page - 1) // per_page if total > 0 else 0
+            }
+        })
+        
     # Get specific project
     if "id" in path_params:
         project_id = path_params["id"]
         
-        # Validate ID is numeric
         if not project_id.isdigit():
             return error_response("Invalid project ID", status=400)
         
-        # Check if requesting contributors for project
-        if path.endswith("/contributors"):
-            result = await client.get_project(int(project_id))
-            
-            if result.get("error"):
-                return error_response(
-                    result.get("message", "Project not found"),
-                    status=result.get("status", 404)
-                )
-            
-            project_data = result.get("data", {})
-            contributors = project_data.get("contributors", [])
-            
-            return json_response({
-                "success": True,
-                "project_id": int(project_id),
-                "data": contributors,
-                "count": len(contributors)
-            })
+        result = await db.prepare('''
+            SELECT id, organization_id, name, description, status, created, modified 
+            FROM projects 
+            WHERE id = ?
+        ''').bind(int(project_id)).first()
         
-        # Get project details
-        result = await client.get_project(int(project_id))
-        
-        if result.get("error"):
-            return error_response(
-                result.get("message", "Project not found"),
-                status=result.get("status", 404)
-            )
-        
+        project_data = None
+        if result:
+            if hasattr(result, 'to_py'):
+                project_data = result.to_py()
+            elif isinstance(result, dict):
+                project_data = dict(result)
+                
+        if not project_data:
+            return error_response("Project not found", status=404)
+            
         return json_response({
             "success": True,
-            "data": result.get("data")
+            "data": project_data
         })
     
     # List projects with pagination
     page, per_page = parse_pagination_params(query_params)
-    search = query_params.get("search", query_params.get("q"))
+    organization_id = query_params.get("organization")
     
-    result = await client.get_projects(page=page, per_page=per_page, search=search)
+    where_sql = ""
+    bindings = []
+    if organization_id and organization_id.isdigit():
+        where_sql = " WHERE organization_id = ?"
+        bindings.append(int(organization_id))
     
-    if result.get("error"):
-        return error_response(
-            result.get("message", "Failed to fetch projects"),
-            status=result.get("status", 500)
-        )
+    # Count total
+    count_query = f"SELECT COUNT(*) as total FROM projects{where_sql}"
+    stmt = db.prepare(count_query)
+    if bindings:
+        stmt = stmt.bind(*bindings)
+    total_result = await stmt.first()
     
-    data = result.get("data", {})
+    total = 0
+    if total_result:
+        if hasattr(total_result, 'to_py'):
+            total = total_result.to_py().get('total', 0)
+        elif isinstance(total_result, dict):
+            total = total_result.get('total', 0)
+            
+    # Get projects
+    list_query = f'''
+        SELECT id, organization_id, name, description, status, created, modified 
+        FROM projects
+        {where_sql}
+        ORDER BY created DESC
+        LIMIT ? OFFSET ?
+    '''
     
-    # Handle the project list response format
-    if isinstance(data, dict) and "projects" in data:
-        return json_response({
-            "success": True,
-            "data": data.get("projects", []),
-            "count": data.get("count", len(data.get("projects", [])))
-        })
+    bindings.extend([per_page, (page - 1) * per_page])
+    stmt = db.prepare(list_query)
+    stmt = stmt.bind(*bindings)
+    result = await stmt.all()
     
-    # Handle paginated response
-    if isinstance(data, dict) and "results" in data:
-        return json_response({
-            "success": True,
-            "data": data.get("results", []),
-            "pagination": {
-                "page": page,
-                "per_page": per_page,
-                "count": len(data.get("results", [])),
-                "total": data.get("count"),
-                "next": data.get("next"),
-                "previous": data.get("previous")
-            }
-        })
-    
-    if isinstance(data, list):
-        return paginated_response(data, page=page, per_page=per_page)
+    data = convert_d1_results(result.results if hasattr(result, 'results') else [])
     
     return json_response({
         "success": True,
-        "data": data
+        "data": data,
+        "pagination": {
+            "page": page,
+            "per_page": per_page,
+            "count": len(data),
+            "total": total,
+            "total_pages": (total + per_page - 1) // per_page if total > 0 else 0
+        }
     })
