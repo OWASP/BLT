@@ -52,6 +52,7 @@ async def get_issue(issue_id: str) -> str:
 async def submit_issue(
     url: str,
     description: str,
+    severity: Optional[str] = None,
     labels: Optional[List[str]] = None,
     assignee: Optional[str] = None,
     confirmed: bool = False
@@ -62,6 +63,7 @@ async def submit_issue(
     Args:
         url: The vulnerable URL being reported.
         description: A detailed description of the bug or vulnerability.
+        severity: Severity level of the issue (e.g., 'low', 'medium', 'high', 'critical').
         labels: Optional list of labels to apply to the issue (e.g., ['bug', 'security']).
         assignee: Optional username of the assignee for the issue.
         confirmed: Set to true to confirm execution of this write operation.
@@ -79,6 +81,8 @@ async def submit_issue(
         "url": url,
         "description": description,
     }
+    if severity:
+        payload["severity"] = severity.lower()
 
     headers = {
         "X-AI-Generated": "true",

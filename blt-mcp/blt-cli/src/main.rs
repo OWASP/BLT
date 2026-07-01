@@ -9,7 +9,7 @@ use ratatui::{backend::CrosstermBackend, Terminal};
 mod app;
 mod ui;
 mod tui;
-mod mock_data;
+mod models;
 mod api;
 mod mcp_client;
 mod scanner;
@@ -20,11 +20,7 @@ use app::App;
 #[command(name = "blt-cli")]
 #[command(about = "OWASP BLT High-Velocity Terminal UI (TUI) & MCP Client", long_about = None)]
 struct Args {
-    /// Launch in offline mode using local mock database datasets
-    #[arg(short, long, default_value_t = false)]
-    offline: bool,
-
-    /// Explicit local path to launch the Python MCP server subprocess (e.g. "../blt_mcp/server.py")
+    /// Explicit local path to launch the Python MCP server subprocess (e.g. "uv run -m blt_mcp.server")
     #[arg(short, long)]
     mcp_path: Option<String>,
 
@@ -46,11 +42,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_base = std::env::var("BLT_API_BASE").unwrap_or(args.api_base);
 
     // Create App instance
-    let mut app = App::new(args.offline, mcp_path.clone(), api_base.clone());
+    let mut app = App::new(mcp_path.clone(), api_base.clone());
 
-    // If not offline, attempt to load live data
-    if !args.offline {
-        if let Some(ref mcp_srv) = mcp_path {
+    if let Some(ref mcp_srv) = mcp_path {
             println!("Connecting to local MCP subprocess: {} ...", mcp_srv);
             match mcp_client::McpSubprocessClient::spawn(mcp_srv).await {
                 Ok(mut client) => {
@@ -61,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             let mut repos_loaded = false;
 
                             // Attempt to read issues resource
-                            if let Ok(resp) = client.read_resource("blt://issues").await {
+                            if let Ok(resp) = client.read_resource("blt://v2/bugs").await {
                                 if let Some(contents) = resp.get("result").and_then(|r| r.get("contents")).and_then(|c| c.as_array()) {
                                     if let Some(content) = contents.first() {
                                         if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
@@ -74,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 }
                             }
                             // Attempt to read repos resource
-                            if let Ok(resp) = client.read_resource("blt://repos").await {
+                            if let Ok(resp) = client.read_resource("blt://v2/repos").await {
                                 if let Some(contents) = resp.get("result").and_then(|r| r.get("contents")).and_then(|c| c.as_array()) {
                                     if let Some(content) = contents.first() {
                                         if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
@@ -88,7 +82,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             }
 
                             // Attempt to read stats resource
-                            if let Ok(resp) = client.read_resource("blt://stats").await {
+                            if let Ok(resp) = client.read_resource("blt://v2/stats").await {
                                 if let Some(contents) = resp.get("result").and_then(|r| r.get("contents")).and_then(|c| c.as_array()) {
                                     if let Some(content) = contents.first() {
                                         if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
@@ -101,11 +95,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             }
 
                             if issues_loaded && repos_loaded {
-                                app.hunts.clear(); // Clear mock hunts since MCP doesn't load them yet
-                                app.leaderboard.clear(); // Clear mock leaderboard
-                                app.audit_logs.clear(); // Clear old offline session logs
-                                app.event_feed.clear(); // Clear old offline event feed
-                                app.stats = crate::mock_data::Stats { total_issues: 0, active_repos: 0, total_contributors: 0, bacon_points: 0 }; // Clear mock stats
                                 app.audit_logs.push("SUCCESS: Connected to live MCP server. Awaiting live events...".to_string());
                                 app.status_message = "MCP connection established successfully!".to_string();
                                 app.is_live = true;
@@ -113,19 +102,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 println!("SUCCESS: Connected to MCP server and loaded live resources.");
                             } else {
                                 app.mcp_client = Some(std::sync::Arc::new(tokio::sync::Mutex::new(client)));
-                                app.status_message = "MCP connected, but failed to load resources. Mock fallback active.".to_string();
-                                println!("WARNING: Connected to MCP server, but failed to load resources. Mock fallback active.");
+                                app.status_message = "MCP connected, but failed to load primary resources.".to_string();
+                                println!("WARNING: Connected to MCP server, but failed to load primary resources.");
                             }
                         }
                         Err(e) => {
-                            app.status_message = format!("MCP Init failed: {}. Mock fallback active.", e);
-                            println!("ERROR: MCP handshake/initialization failed: {}. Mock fallback active.", e);
+                            app.status_message = format!("MCP Init failed: {}", e);
+                            println!("ERROR: MCP handshake/initialization failed: {}", e);
                         }
                     }
                 }
                 Err(e) => {
-                    app.status_message = format!("MCP spawn failed: {}. Mock fallback active.", e);
-                    println!("ERROR: Failed to spawn MCP subprocess: {}. Mock fallback active.", e);
+                    app.status_message = format!("MCP spawn failed: {}", e);
+                    println!("ERROR: Failed to spawn MCP subprocess: {}", e);
                 }
             }
         } else {
@@ -134,7 +123,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             
             let mut any_success = false;
 
-            match api::get_issues(&api_base, false).await {
+            match api::get_issues(&api_base).await {
                 Ok(issues) => {
                     app.issues = issues;
                     any_success = true;
@@ -144,7 +133,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            match api::get_repos(&api_base, false).await {
+            match api::get_repos(&api_base).await {
                 Ok(repos) => {
                     if !repos.is_empty() {
                         app.repos = repos;
@@ -156,7 +145,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            match api::get_hunts(&api_base, false).await {
+            match api::get_hunts(&api_base).await {
                 Ok(hunts) => {
                     app.hunts = hunts;
                     any_success = true;
@@ -166,7 +155,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            match api::get_stats(&api_base, false).await {
+            match api::get_stats(&api_base).await {
                 Ok(stats) => {
                     app.stats = stats;
                     any_success = true;
@@ -181,13 +170,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 app.is_live = true;
                 println!("SUCCESS: Connected to API base successfully.");
             } else {
-                app.status_message = "API connection failed. Used offline mock datasets fallback.".to_string();
-                println!("ERROR: All API endpoints failed. Used offline mock datasets fallback.");
+                app.status_message = "API connection failed.".to_string();
+                println!("ERROR: All API endpoints failed to connect.");
             }
         }
-    } else {
-        println!("Starting in Offline Mode (using local mock datasets)...");
-    }
 
     println!("Starting TUI session...");
 
@@ -228,18 +214,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Error running BLT-CLI: {:?}", err);
     } else {
         println!("OWASP BLT TUI Session Closed.");
-        if args.offline {
-            println!("Status: Offline Mode (used local mock datasets).");
-        } else if let Some(ref srv) = mcp_path {
+        if let Some(ref srv) = mcp_path {
             if was_live {
                 println!("Status: Successfully connected to local MCP server at [{}].", srv);
             } else {
-                println!("Status: Failed to connect to local MCP server. Used offline mock datasets fallback.");
+                println!("Status: Failed to connect to local MCP server.");
             }
         } else if was_live {
             println!("Status: Successfully connected to live API base at [{}].", api_base);
         } else {
-            println!("Status: Failed to connect to API base at [{}]. Used offline mock datasets fallback.", api_base);
+            println!("Status: Failed to connect to API base at [{}].", api_base);
         }
     }
 

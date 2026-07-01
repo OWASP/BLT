@@ -14,21 +14,15 @@ pub struct McpSubprocessClient {
 impl McpSubprocessClient {
     /// Spawn the Python MCP server as a subprocess.
     pub async fn spawn(mcp_server_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        let is_py_file = mcp_server_path.ends_with(".py");
+        let parts: Vec<&str> = mcp_server_path.split_whitespace().collect();
+        if parts.is_empty() {
+            return Err("Empty MCP server path provided".into());
+        }
 
-        let mut cmd = if is_py_file && mcp_server_path.contains("blt_mcp") {
-            let mut c = Command::new("uv");
-            c.current_dir("..");
-            c.arg("run").arg("--no-sync").arg("-m").arg("blt_mcp.server");
-            c
-        } else if is_py_file {
-            let mut c = Command::new("uv");
-            c.arg("run").arg("--no-sync").arg(mcp_server_path);
-            c
-        } else {
-            // E.g. running a compiled binary or specific executable command
-            Command::new(mcp_server_path)
-        };
+        let mut cmd = Command::new(parts[0]);
+        for arg in &parts[1..] {
+            cmd.arg(arg);
+        }
 
         let mut child = cmd
             .stdin(Stdio::piped())

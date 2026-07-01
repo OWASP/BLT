@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::mock_data::{self, Issue, Repo, Hunt, Stats};
+use crate::models::{self, Issue, Repo, Hunt, Stats};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Tab {
@@ -24,9 +24,8 @@ impl Tab {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum RunMode {
-    Offline,
-    Standalone,
     Mcp,
+    Live,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -68,7 +67,8 @@ pub enum ActiveOverlay {
 
 pub enum AppEvent {
     TriageConfirmed { issue_id: String, success: bool, message: String },
-    SubmitResult { success: bool, message: String, issue: Option<crate::mock_data::Issue> },
+    SubmitResult { success: bool, message: String },
+    IssuesRefreshed { issues: Vec<crate::models::Issue>, total: u32 },
     AiTriageResult { message: String },
     ScanComplete { health: crate::scanner::SecurityHealth },
 }
@@ -85,7 +85,7 @@ pub struct App {
     pub should_quit: bool,
     pub active_overlay: ActiveOverlay,
     pub submit_form: VulnerabilityForm,
-    pub leaderboard: Vec<mock_data::LeaderboardEntry>,
+    pub leaderboard: Vec<models::LeaderboardEntry>,
     pub ai_triage_result: Option<String>,
     pub search_query: String,
     pub selected_issues: std::collections::HashSet<String>,
@@ -109,48 +109,38 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(offline: bool, mcp_path: Option<String>, api_base: String) -> Self {
-        let run_mode = if offline {
-            RunMode::Offline
-        } else if mcp_path.is_some() {
+    pub fn new(mcp_path: Option<String>, api_base: String) -> App {
+        let (event_sender, event_receiver) = tokio::sync::mpsc::unbounded_channel();
+        let run_mode = if mcp_path.is_some() {
             RunMode::Mcp
         } else {
-            RunMode::Standalone
+            RunMode::Live
         };
 
-        // Populate with mock data for offline testing by default
-        let issues = mock_data::get_mock_issues();
-        let repos = mock_data::get_mock_repos();
-        let hunts = mock_data::get_mock_hunts();
-        let stats = mock_data::get_mock_stats();
-
-        let auth_user = match run_mode {
-            RunMode::Offline => "NachiketRoy (Offline Mode)".to_string(),
-            RunMode::Mcp => "AI Agent (MCP Mode)".to_string(),
-            RunMode::Standalone => "NachiketRoy (OAuth 2.0)".to_string(),
+        let auth_user = if run_mode == RunMode::Mcp {
+            "Local User (MCP Mode)".to_string()
+        } else {
+            "Local User (REST)".to_string()
         };
 
         let status_message = match run_mode {
-            RunMode::Offline => "Initialized CLI in Offline Mode. Hit [h] for help.".to_string(),
             RunMode::Mcp => "Initialized CLI in MCP Host Mode. Spawning subprocess server...".to_string(),
-            RunMode::Standalone => format!("Connected directly to BLT API at {}", api_base),
+            RunMode::Live => format!("Connected directly to BLT API at {}", api_base),
         };
-
-        let (event_sender, event_receiver) = tokio::sync::mpsc::unbounded_channel();
 
         let mut app = App {
             active_tab: Tab::Issues,
-            issues,
-            repos,
-            hunts,
-            stats,
+            issues: Vec::new(),
+            repos: Vec::new(),
+            hunts: Vec::new(),
+            stats: Stats { total_issues: 0, active_repos: 0, total_contributors: 0, bacon_points: 0 },
             selected_issue_index: 0,
             selected_repo_index: 0,
             selected_hunt_index: 0,
             should_quit: false,
             active_overlay: ActiveOverlay::None,
             submit_form: VulnerabilityForm::default(),
-            leaderboard: mock_data::get_mock_leaderboard(),
+            leaderboard: Vec::new(),
             ai_triage_result: None,
             search_query: String::new(),
             selected_issues: std::collections::HashSet::new(),
@@ -169,7 +159,7 @@ impl App {
             security_health: None,
             command_input: String::new(),
             konami_index: 0,
-            agent_status_data: "Agent Status: Idle\nConnected: true\nUptime: 2m\nMemory: 24MB".to_string(),
+            agent_status_data: "Agent Status: Idle\nConnected: false\nUptime: 0m\nMemory: 0MB".to_string(),
             prompt_preview_data: "Loading prompt preview...".to_string(),
         };
         app.load_session();
@@ -280,7 +270,7 @@ impl App {
             self.active_overlay = ActiveOverlay::None;
         } else {
             self.active_overlay = ActiveOverlay::PromptPreview;
-            self.prompt_preview_data = "Mock Prompt Preview:\n\nPlease triage the following vulnerability: ...".to_string();
+            self.prompt_preview_data = "AI Prompt Preview will appear here once connected.".to_string();
         }
     }
 
@@ -311,14 +301,12 @@ impl App {
         let issue = &self.issues[self.selected_issue_index];
         let issue_id = issue.id.clone();
         let api_base = self.api_base.clone();
-        let run_mode = self.run_mode.clone();
         let sender = self.event_sender.clone();
         
         self.status_message = format!("Triaging Issue #{}...", issue_id);
 
         tokio::spawn(async move {
-            let offline = run_mode == RunMode::Offline;
-            let res = crate::api::submit_issue_triage(&api_base, &issue_id, offline).await;
+            let res = crate::api::submit_issue_triage(&api_base, &issue_id).await;
 
             let (success, message) = match res {
                 Ok(_) => (true, format!("SUCCESS: Triage for Issue #{} was submitted successfully.", issue_id)),
@@ -372,6 +360,10 @@ impl App {
         }
         let _ = std::fs::write("blt_export.log", out);
     }
+    
+    pub fn reset_data(&mut self) {
+        self.issues.clear();
+    }
 }
 
 #[cfg(test)]
@@ -380,14 +372,14 @@ mod tests {
 
     #[test]
     fn test_app_initialization() {
-        let app = App::new(true, None, "https://api.owaspblt.org".to_string());
+        let app = App::new(None, "https://api.owaspblt.org".to_string());
         assert_eq!(app.active_tab, Tab::Issues);
         assert_eq!(app.active_overlay, ActiveOverlay::None);
     }
 
     #[test]
     fn test_modal_toggles() {
-        let mut app = App::new(true, None, "https://api.owaspblt.org".to_string());
+        let mut app = App::new(None, "https://api.owaspblt.org".to_string());
         assert_eq!(app.active_overlay, ActiveOverlay::None);
 
         app.toggle_help();
@@ -398,7 +390,7 @@ mod tests {
 
     #[test]
     fn test_tab_navigation() {
-        let mut app = App::new(true, None, "".to_string());
+        let mut app = App::new(None, "".to_string());
         assert_eq!(app.active_tab, Tab::Issues);
         app.next_tab();
         assert_eq!(app.active_tab, Tab::Hunts);
@@ -410,8 +402,7 @@ mod tests {
 
     #[test]
     fn test_issue_selection() {
-        let mut app = App::new(true, None, "".to_string());
-        app.issues = crate::mock_data::get_mock_issues();
+        let mut app = App::new(None, "".to_string());
         let initial_len = app.issues.len();
         
         if initial_len > 1 {
