@@ -1,0 +1,404 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BLT University Lab Frontmatter",
+  "description": "Validates the current Markdown frontmatter format used by BLT University labs while leaving room for future lab and simulation types.",
+  "$comment": "This schema intentionally validates the repository's existing Jekyll frontmatter shape. Proposal metadata is optional until the current labs are migrated.",
+  "type": "object",
+  "required": [
+    "layout",
+    "title",
+    "description",
+    "difficulty",
+    "category",
+    "estimated_time",
+    "tasks"
+  ],
+  "properties": {
+    "layout": {
+      "description": "Jekyll layout used to render an interactive lab page.",
+      "type": "string",
+      "const": "lab"
+    },
+    "title": {
+      "description": "Human-readable lab title displayed on lab cards and lab pages.",
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "description": {
+      "description": "Short summary of the lab's topic and learner outcome.",
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "difficulty": {
+      "description": "Overall lab difficulty.",
+      "$ref": "#/$defs/difficulty"
+    },
+    "category": {
+      "description": "Broad content category shown in lab filters.",
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "estimated_time": {
+      "description": "Estimated completion time in minutes.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "tasks": {
+      "description": "Ordered list of theory, quiz, and simulation tasks.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/task"
+      }
+    },
+    "owasp_category": {
+      "description": "Optional OWASP Top 10 category for future recommendation and analytics features.",
+      "$ref": "#/$defs/owaspCategory"
+    },
+    "track": {
+      "description": "Optional proposal track metadata.",
+      "type": "string",
+      "enum": [
+        "professional",
+        "hygiene",
+        "both"
+      ]
+    },
+    "tags": {
+      "description": "Optional searchable tags.",
+      "$ref": "#/$defs/stringList"
+    },
+    "learning_objectives": {
+      "description": "Optional learner-facing objectives.",
+      "$ref": "#/$defs/stringList"
+    },
+    "success_criteria": {
+      "description": "Optional lab-level completion criteria.",
+      "$ref": "#/$defs/stringList"
+    },
+    "attack_payloads": {
+      "description": "Optional lab-level payload examples.",
+      "$ref": "#/$defs/stringList"
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "intermediate",
+        "advanced"
+      ]
+    },
+    "owaspCategory": {
+      "type": "string",
+      "enum": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10"
+      ]
+    },
+    "positiveInteger": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "stringList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/nonEmptyString"
+      }
+    },
+    "lineNumberList": {
+      "description": "One-based source line numbers used by identify/fix tasks.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/positiveInteger"
+      }
+    },
+    "mcq": {
+      "description": "Multiple-choice question format currently embedded in theory tasks.",
+      "type": "object",
+      "required": [
+        "question",
+        "options",
+        "answer"
+      ],
+      "properties": {
+        "question": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "answer": {
+          "description": "Current labs use letter answers such as A, B, C, or D.",
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": true
+    },
+    "explainOption": {
+      "type": "object",
+      "required": [
+        "id",
+        "label"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": true
+    },
+    "explain": {
+      "description": "Explanation checkpoint used by current simulation tasks.",
+      "type": "object",
+      "required": [
+        "question",
+        "options",
+        "answer"
+      ],
+      "properties": {
+        "question": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/explainOption"
+          }
+        },
+        "answer": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": true
+    },
+    "tableStructure": {
+      "description": "SQLi UNION labs currently model table names as keys and column lists as values.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/stringList"
+      }
+    },
+    "simulation": {
+      "description": "Simulation task configuration. Known fields are validated, and additional fields are allowed so new engines such as IDOR and Broken Authentication can be added without changing the base schema.",
+      "type": "object",
+      "required": [
+        "engine",
+        "type",
+        "scenario",
+        "target_url",
+        "vulnerable_parameters",
+        "success_payload",
+        "success_criteria",
+        "hints"
+      ],
+      "properties": {
+        "engine": {
+          "description": "Engine identifier, for example sqli-login, xss-dom, csrf-form, idor-basic, or broken-auth-session.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+        },
+        "type": {
+          "description": "Engine-specific simulation subtype.",
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "scenario": {
+          "description": "Scenario identifier consumed by the lab engine.",
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "target_url": {
+          "description": "Route or endpoint used by the simulated attack.",
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "vulnerable_code": {
+          "description": "Code shown to learners during identify and fix stages.",
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "vulnerable_lines": {
+          "$ref": "#/$defs/lineNumberList"
+        },
+        "explain": {
+          "$ref": "#/$defs/explain"
+        },
+        "expected_patterns": {
+          "description": "Named defensive patterns expected in learner fixes.",
+          "$ref": "#/$defs/stringList"
+        },
+        "forbidden_patterns": {
+          "description": "Optional patterns that should not appear in learner fixes.",
+          "$ref": "#/$defs/stringList"
+        },
+        "attack_payloads": {
+          "description": "Payloads learners can use to exploit the simulated vulnerability.",
+          "$ref": "#/$defs/stringList"
+        },
+        "vulnerable_parameters": {
+          "description": "Input names or request parameters controlled by the attacker.",
+          "$ref": "#/$defs/stringList"
+        },
+        "success_payload": {
+          "description": "Representative payload or exploit artifact that satisfies the simulation.",
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "success_criteria": {
+          "description": "Plain-language completion condition for the attack stage.",
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "difficulty": {
+          "description": "Optional per-simulation difficulty override.",
+          "$ref": "#/$defs/difficulty"
+        },
+        "fix_starter_code": {
+          "description": "Editable starting code for the fix stage.",
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "hints": {
+          "description": "Progressive hints displayed by the lab engine.",
+          "$ref": "#/$defs/stringList"
+        },
+        "table_structure": {
+          "$ref": "#/$defs/tableStructure"
+        },
+        "blocked_patterns": {
+          "$ref": "#/$defs/stringList"
+        },
+        "blind_type": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "target_data": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "expected_approach": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "database_type": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "time_function": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": true
+    },
+    "task": {
+      "description": "Current lab task format. Existing labs use name/description/order plus either content+mcq for theory or simulation config for interactive tasks.",
+      "type": "object",
+      "required": [
+        "name",
+        "description",
+        "type",
+        "order"
+      ],
+      "properties": {
+        "name": {
+          "description": "Task title displayed in the lab UI.",
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "description": {
+          "description": "Short task summary.",
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "type": {
+          "description": "Current labs use theory and simulation; mcq is included for upcoming standalone quiz tasks.",
+          "type": "string",
+          "enum": [
+            "theory",
+            "mcq",
+            "simulation"
+          ]
+        },
+        "order": {
+          "description": "One-based task ordering within the lab.",
+          "$ref": "#/$defs/positiveInteger"
+        },
+        "heading": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "content": {
+          "description": "Markdown lesson content for theory tasks.",
+          "type": "string"
+        },
+        "mcq": {
+          "$ref": "#/$defs/mcq"
+        },
+        "simulation": {
+          "$ref": "#/$defs/simulation"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "theory"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "content"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "mcq"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "mcq"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "simulation"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "simulation"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": true
+    }
+  }
+}
