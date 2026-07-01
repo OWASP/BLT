@@ -6,6 +6,14 @@ layout: default
 <script id="lab-data" type="application/json">{{ page.tasks | jsonify | replace: "</", "<\/" }}</script>
 
 {% assign lab_key = page.title | downcase %}
+{% assign lab_icon = nil %}
+{% if lab_key contains "server-side request forgery" %}{% assign lab_icon = "cloud-arrow-down" %}
+{% elsif lab_key contains "file upload" %}{% assign lab_icon = "upload-simple" %}
+{% elsif lab_key contains "sensitive data" %}{% assign lab_icon = "key" %}
+{% elsif lab_key contains "broken authentication" %}{% assign lab_icon = "lock-key" %}
+{% elsif lab_key contains "open redirect" %}{% assign lab_icon = "arrow-bend-up-right" %}
+{% elsif lab_key contains "command injection" %}{% assign lab_icon = "terminal-window" %}
+{% endif %}
 
 <article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
     <section class="bg-bltDark text-white pt-32 md:pt-36 pb-16 md:pb-20 relative overflow-hidden border-b border-white/5">
@@ -50,7 +58,13 @@ layout: default
                                 <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
                                 <span class="h-2 w-2 rounded-full bg-green-400"></span>
                             </div>
-                            {% if lab_key contains "request forgery" %}
+                            {% if lab_icon %}
+                            <div class="flex h-[155px] items-center justify-center p-4">
+                                <div class="flex h-24 w-24 items-center justify-center rounded-3xl border border-red-500/40 bg-red-950/30 text-bltRed shadow-2xl">
+                                    <i class="ph-bold ph-{{ lab_icon }} text-5xl"></i>
+                                </div>
+                            </div>
+                            {% elsif lab_key contains "request forgery" %}
                             <div class="p-4">
                                 <div class="mb-4 flex items-center justify-between">
                                     <div>
