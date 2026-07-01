@@ -13,14 +13,15 @@ layout: default
 {% elsif lab_key contains "broken authentication" %}{% assign lab_icon = "lock-key" %}
 {% elsif lab_key contains "open redirect" %}{% assign lab_icon = "arrow-bend-up-right" %}
 {% elsif lab_key contains "command injection" %}{% assign lab_icon = "terminal-window" %}
+{% elsif lab_key contains "object reference" %}{% assign lab_icon = "identification-card" %}
 {% endif %}
 
 <article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
     <section class="bg-bltDark text-white pt-32 md:pt-36 pb-16 md:pb-20 relative overflow-hidden border-b border-white/5">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.12),transparent_34%)]"></div>
 
-        <div class="max-w-7xl mx-auto px-6 relative z-10">
-            <div class="grid lg:grid-cols-[1fr_340px] gap-8 items-center">
+        <div class="mx-auto max-w-[104rem] px-5 sm:px-6 lg:px-8 xl:px-10 relative z-10">
+            <div class="grid lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-8 xl:gap-10 2xl:gap-12 items-center">
                 <div>
                     <div class="flex flex-wrap items-center gap-3 mb-5">
                         <span class="px-2.5 py-1 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">{{ page.category }}</span>
@@ -58,7 +59,23 @@ layout: default
                                 <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
                                 <span class="h-2 w-2 rounded-full bg-green-400"></span>
                             </div>
-                            {% if lab_icon %}
+                            {% if lab_key contains "object reference" %}
+                            <div class="p-4">
+                                <div class="mb-3 flex items-center justify-between">
+                                    <div>
+                                        <div class="mb-2 h-2 w-28 rounded-full bg-gray-700"></div>
+                                        <div class="h-2 w-16 rounded-full bg-gray-800"></div>
+                                    </div>
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-bltRed/90 text-white">
+                                        <i class="ph-bold ph-identification-card text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="rounded-xl border border-red-500/40 bg-red-950/25 p-3 font-mono text-[11px] leading-relaxed text-red-100">
+                                    <div>GET /profiles/42</div>
+                                    <div class="mt-2 text-white/60">current user: 17</div>
+                                </div>
+                            </div>
+                            {% elsif lab_icon %}
                             <div class="flex h-[155px] items-center justify-center p-4">
                                 <div class="flex h-24 w-24 items-center justify-center rounded-3xl border border-red-500/40 bg-red-950/30 text-bltRed shadow-2xl">
                                     <i class="ph-bold ph-{{ lab_icon }} text-5xl"></i>
@@ -117,8 +134,8 @@ layout: default
         </div>
     </section>
 
-    <main data-lab-root data-lab-id="{{ page.slug | default: page.title | slugify }}" class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-8 relative z-20 pb-24">
-        <div class="lg:col-span-8 min-w-0">
+    <main data-lab-root data-lab-id="{{ page.slug | default: page.title | slugify }}" class="mx-auto max-w-[104rem] px-5 sm:px-6 lg:px-8 xl:px-10 w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-8 xl:gap-10 2xl:gap-12 -mt-8 relative z-20 pb-24">
+        <div class="min-w-0">
             <div class="bg-white dark:bg-gray-900 p-5 md:p-8 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
                 {% for task in page.tasks %}
                 <section data-lab-task data-task-index="{{ forloop.index0 }}" class="{% unless forloop.first %}hidden{% endunless %}">
@@ -228,7 +245,7 @@ layout: default
             </div>
         </div>
 
-        <aside class="lg:col-span-4 min-w-0 space-y-6">
+        <aside class="min-w-0 space-y-6">
             <div class="bg-white dark:bg-gray-900 p-6 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800">
                 <h3 class="text-base font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
                     <i class="ph-bold ph-chart-line-up text-bltRed"></i>
