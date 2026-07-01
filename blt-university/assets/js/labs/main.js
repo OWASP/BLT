@@ -43,7 +43,7 @@
 
                 const currentIndex = orderedStates.indexOf(state);
                 const nextIndex = orderedStates.indexOf(nextState);
-                if (nextIndex >= currentIndex) {
+                if (nextIndex >= currentIndex && nextIndex <= currentIndex + 1) {
                     state = nextState;
                 }
 
@@ -66,7 +66,8 @@
         }
 
         try {
-            return JSON.parse(dataElement.textContent || '[]');
+            const parsed = JSON.parse(dataElement.textContent || '[]');
+            return Array.isArray(parsed) ? parsed : [];
         } catch (_error) {
             return [];
         }
@@ -102,9 +103,107 @@
             /\.(setString|setInt|bindValue|bindParam)\s*\(/i.test(code);
     }
 
+    function splitJavaScriptStatements(code) {
+        const statements = [];
+        let current = '';
+        let quote = null;
+        let escaped = false;
+
+        String(code || '').split('').forEach(character => {
+            current += character;
+
+            if (escaped) {
+                escaped = false;
+                return;
+            }
+
+            if (character === '\\') {
+                escaped = true;
+                return;
+            }
+
+            if (quote) {
+                if (character === quote) {
+                    quote = null;
+                }
+                return;
+            }
+
+            if (character === '\'' || character === '"' || character === '`') {
+                quote = character;
+                return;
+            }
+
+            if (character === ';') {
+                statements.push(current);
+                current = '';
+            }
+        });
+
+        if (current.trim()) {
+            statements.push(current);
+        }
+
+        return statements;
+    }
+
+    function hasUnquotedPlus(statement) {
+        let quote = null;
+        let escaped = false;
+
+        return String(statement || '').split('').some(character => {
+            if (escaped) {
+                escaped = false;
+                return false;
+            }
+
+            if (character === '\\') {
+                escaped = true;
+                return false;
+            }
+
+            if (quote) {
+                if (character === quote) {
+                    quote = null;
+                }
+                return false;
+            }
+
+            if (character === '\'' || character === '"' || character === '`') {
+                quote = character;
+                return false;
+            }
+
+            return character === '+';
+        });
+    }
+
+    function escapeRegex(value) {
+        return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
     function hasSqlConcatenation(code) {
-        return /select[\s\S]*\+/i.test(code) ||
-            /where[\s\S]*\$\{[^}]+}/i.test(code);
+        const statements = splitJavaScriptStatements(code);
+        const sqlVariables = new Set();
+
+        statements.forEach(statement => {
+            if (!/\b(select|insert|update|delete)\b/i.test(statement)) {
+                return;
+            }
+
+            const assignment = statement.match(/\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/);
+            if (assignment) {
+                sqlVariables.add(assignment[1]);
+            }
+        });
+
+        return statements.some(statement => {
+            const containsSqlVerb = /\b(select|insert|update|delete)\b/i.test(statement);
+            const referencesSqlVariable = [...sqlVariables].some(name => new RegExp(`\\b${escapeRegex(name)}\\b`).test(statement));
+            const usesDynamicInput = hasUnquotedPlus(statement) || /\$\{[^}]+}/.test(statement);
+
+            return (containsSqlVerb || referencesSqlVariable) && usesDynamicInput;
+        });
     }
 
     function loginBypassStillWorks(code, payloads = []) {
@@ -164,7 +263,7 @@
         const checks = [
             {
                 label: 'Untrusted input is not written with innerHTML or document.write',
-                passed: !usesUnsafeHtmlSink(code)
+                passed: !usesUnsafeHtmlSink(code) || encodesHtml(code)
             },
             {
                 label: 'Output uses a safe text sink or explicit HTML encoding',
@@ -191,6 +290,17 @@
         return /(validate|verify|check|compare)[\s\S]{0,40}csrf[_-]?token|csrf[_-]?token[\s\S]{0,40}(validate|verify|check|compare)/i.test(code);
     }
 
+    function verifiesCsrfBeforeStateChange(code) {
+        const validationIndex = code.search(/(validate|verify|check|compare)[\s\S]{0,40}csrf[_-]?token|csrf[_-]?token[\s\S]{0,40}(validate|verify|check|compare)/i);
+        const stateChangeIndex = code.search(/\b(update|delete|transfer|change|reset|create|save)[A-Za-z0-9_$]*\s*\(|\.\s*(perform|run|apply|execute)?(Update|Delete|Transfer|Change|Reset|Create|Save)[A-Za-z0-9_$]*\s*\(/i);
+
+        if (stateChangeIndex === -1) {
+            return validationIndex !== -1;
+        }
+
+        return validationIndex !== -1 && validationIndex < stateChangeIndex;
+    }
+
     function usesSameSiteCookie(code) {
         return /SameSite\s*=\s*(Strict|Lax)/i.test(code) ||
             /sameSite\s*:\s*['"]?(strict|lax)['"]?/i.test(code);
@@ -205,6 +315,10 @@
             {
                 label: 'Server verifies the submitted CSRF token before updating data',
                 passed: validatesCsrfToken(code)
+            },
+            {
+                label: 'CSRF token is verified before any state-changing action',
+                passed: verifiesCsrfBeforeStateChange(code)
             },
             {
                 label: 'Session cookie is hardened with SameSite protection',
@@ -279,11 +393,10 @@
     }
 
     function renderFeedback(element, message, type = 'error') {
-        element.className = `rounded-xl px-4 py-3 text-sm font-semibold ${
-            type === 'success'
+        element.className = `rounded-xl px-4 py-3 text-sm font-semibold ${type === 'success'
                 ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300'
                 : 'bg-red-50 text-bltRed dark:bg-red-900/20 dark:text-red-300'
-        }`;
+            }`;
         element.textContent = message;
     }
 
@@ -345,13 +458,12 @@
     }
 
     function stagePill(stateName, label, isActive, isDone, canVisit) {
-        return `<button type="button" data-stage-target="${stateName}" ${canVisit ? '' : 'disabled'} class="rounded-full px-4 py-1.5 text-xs font-bold transition ${
-            isDone
+        return `<button type="button" data-stage-target="${stateName}" ${canVisit ? '' : 'disabled'} class="rounded-full px-4 py-1.5 text-xs font-bold transition ${isDone
                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                 : isActive
                     ? 'border border-bltRed bg-red-50 text-bltRed dark:bg-red-900/20'
                     : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-300'
-        } ${canVisit ? 'hover:ring-2 hover:ring-bltRed/30 cursor-pointer' : 'cursor-not-allowed opacity-60'}">${label}</button>`;
+            } ${canVisit ? 'hover:ring-2 hover:ring-bltRed/30 cursor-pointer' : 'cursor-not-allowed opacity-60'}">${label}</button>`;
     }
 
     function renderShell(container, state, title, navigation, rerender) {
@@ -1004,6 +1116,22 @@
                 }
             });
         });
+    }
+
+    if (window.__BLT_LAB_TEST_MODE__ === true) {
+        window.__BLT_LAB_TESTING__ = {
+            SimulationStates,
+            createSimulationState,
+            getSimulationProgress,
+            getStoredSimulationProgress,
+            setSimulationProgress,
+            validateCsrfFix,
+            validateExplainAnswer,
+            validateLineSelection,
+            initializeLabSimulations,
+            validateSqliFix,
+            validateXssFix
+        };
     }
 
     if (document.readyState === 'loading') {
