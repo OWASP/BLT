@@ -113,6 +113,7 @@ def test_tool_call():
                 "name": "submit_issue",
                 "arguments": {
                     "url": "https://example.com/vuln",
+                    "title": "Test Vulnerability",
                     "description": "Testing tools/call protocol"
                 }
             }
@@ -165,7 +166,7 @@ def test_tool_schemas():
         assert "description" in properties
         assert "labels" in properties
         assert "assignee" in properties
-        assert submit_tool["inputSchema"]["required"] == ["url", "description"]
+        assert submit_tool["inputSchema"]["required"] == ["url", "title", "description"]
         
         # Verify add_comment schema (Issue #13)
         comment_tool = next(t for t in tools if t["name"] == "add_comment")
@@ -279,6 +280,7 @@ def test_tool_validation_errors():
                 "name": "submit_issue",
                 "arguments": {
                     "url": "https://example.com",
+                    "title": "Valid title",
                     "description": "Valid description",
                     "labels": 123
                 }
@@ -299,6 +301,7 @@ def test_tool_validation_errors():
                 "name": "submit_issue",
                 "arguments": {
                     "url": "https://example.com",
+                    "title": "Valid title",
                     "description": ""
                 }
             }
@@ -346,6 +349,7 @@ def test_tool_confirmation_flow():
                 "name": "submit_issue",
                 "arguments": {
                     "url": "https://example.com",
+                    "title": "Valid title",
                     "description": "Valid description"
                 }
             }

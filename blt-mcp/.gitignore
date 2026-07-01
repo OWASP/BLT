@@ -48,6 +48,9 @@ htmlcov/
 # VCR Local Sessions (Keep snapshots/ for CI golden tests)
 sessions/
 
+# Snapshot replay artifacts (intermediate files, not golden)
+snapshots/*-replay-*.yaml
+
 # TUI Local State
 blt_session.json
 

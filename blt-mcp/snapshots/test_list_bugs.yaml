@@ -40,14 +40,19 @@ messages:
   t: 1032
 - dir: s2c
   payload:
-    error:
-      code: 0
-      message: 'Error reading resource blt://v2/bugs: Failed to fetch v2 bugs: Client
-        error ''401 Unauthorized'' for url ''http://localhost:8787/v2/bugs''
-
-        For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401'
     id: NORM_ID_2
     jsonrpc: '2.0'
+    result:
+      contents:
+      - mimeType: text/plain
+        text: '{"success": true, "data": [{"id": 1, "url": "https://example.com",
+          "description": "*Submitted by AI Agent via BLT-MCP*\n\nTesting", "status":
+          "open", "verified": 0, "score": null, "views": 0, "created": "2026-07-01
+          10:33:58", "modified": "2026-07-01 10:33:58", "is_hidden": 0, "rewarded":
+          0, "cve_id": null, "cve_score": null, "domain": null, "domain_name": null,
+          "domain_url": null}], "pagination": {"page": 1, "per_page": 20, "count":
+          1, "total": 1, "total_pages": 1}}'
+        uri: blt://v2/bugs
   t: 1360
 meta:
   recorded_at: '2026-07-01T09:16:54.877017Z'

@@ -140,6 +140,7 @@ async def submit_issue(
     except httpx.HTTPStatusError as e:
         error_msg = f"API Error {e.response.status_code}: {e.response.text}"
         logger.error(error_msg)
+        return f"Error executing tool submit_issue: {error_msg}"
     except Exception as e:
         logger.error(f"Failed to submit issue: {e}")
         raise RuntimeError(f"Failed to submit issue: {e}") from e

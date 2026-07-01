@@ -19,6 +19,7 @@ messages:
     params:
       arguments:
         description: Found a SQL injection in the login endpoint.
+        title: SQL Injection in login endpoint
         url: blt://v2/bugs
       name: submit_issue
   t: 10

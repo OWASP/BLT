@@ -20,6 +20,7 @@ messages:
       arguments:
         confirmed: true
         description: Found a SQL injection in the login endpoint.
+        title: SQL Injection in login endpoint
         url: blt://v2/bugs
       name: submit_issue
   t: 10
@@ -48,10 +49,13 @@ messages:
     jsonrpc: '2.0'
     result:
       content:
-      - text: 'Error executing tool submit_issue: API Error 401: {"error": true, "message":
-          "Invalid API key", "status": 401}'
+      - text: 'Error executing tool submit_issue: API Error 400: {"error": true, "message":
+          "The following fields are not allowed: title", "status": 400}'
         type: text
-      isError: true
+      isError: false
+      structuredContent:
+        result: 'Error executing tool submit_issue: API Error 400: {"error": true,
+          "message": "The following fields are not allowed: title", "status": 400}'
   t: 1530
 meta:
   recorded_at: '2026-07-01T09:23:46.814977Z'
