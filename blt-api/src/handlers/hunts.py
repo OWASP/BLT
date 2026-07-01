@@ -88,6 +88,8 @@ async def handle_hunts(
         total = total_result.to_py().get('total', 0)
     elif total_result and isinstance(total_result, dict):
         total = total_result.get('total', 0)
+    elif total_result and hasattr(total_result, 'total'):
+        total = getattr(total_result, 'total')
     else:
         total = 0
         

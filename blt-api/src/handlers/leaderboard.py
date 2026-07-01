@@ -67,7 +67,24 @@ async def handle_leaderboard(
         result = await db.prepare(list_query).bind(date_str, date_str, per_page, (page - 1) * per_page).all()
             
         data = convert_d1_results(result.results if hasattr(result, 'results') else [])
-        
+
+        count_query = '''
+            SELECT COUNT(DISTINCT u.id) as total
+            FROM users u
+            JOIN bugs b ON u.id = b.user
+            WHERE b.created >= datetime(?, 'start of month')
+              AND b.created < datetime(?, 'start of month', '+1 month')
+        '''
+        total_result = await db.prepare(count_query).bind(date_str, date_str).first()
+        total = 0
+        if total_result:
+            if hasattr(total_result, 'to_py'):
+                total = total_result.to_py().get('total', 0)
+            elif isinstance(total_result, dict):
+                total = total_result.get('total', 0)
+            elif hasattr(total_result, 'total'):
+                total = getattr(total_result, 'total')
+
         return json_response({
             "success": True,
             "type": "monthly",
@@ -77,7 +94,9 @@ async def handle_leaderboard(
             "pagination": {
                 "page": page,
                 "per_page": per_page,
-                "count": len(data)
+                "count": len(data),
+                "total": total,
+                "total_pages": (total + per_page - 1) // per_page if total > 0 else 0
             }
         })
     
@@ -96,7 +115,23 @@ async def handle_leaderboard(
         
         result = await db.prepare(list_query).bind(per_page, (page - 1) * per_page).all()
         data = convert_d1_results(result.results if hasattr(result, 'results') else [])
-        
+
+        org_count_query = '''
+            SELECT COUNT(DISTINCT o.id) as total
+            FROM organization o
+            JOIN domains d ON o.id = d.organization
+            JOIN bugs b ON d.id = b.domain
+        '''
+        total_result = await db.prepare(org_count_query).first()
+        total = 0
+        if total_result:
+            if hasattr(total_result, 'to_py'):
+                total = total_result.to_py().get('total', 0)
+            elif isinstance(total_result, dict):
+                total = total_result.get('total', 0)
+            elif hasattr(total_result, 'total'):
+                total = getattr(total_result, 'total')
+
         return json_response({
             "success": True,
             "type": "organizations",
@@ -104,7 +139,9 @@ async def handle_leaderboard(
             "pagination": {
                 "page": page,
                 "per_page": per_page,
-                "count": len(data)
+                "count": len(data),
+                "total": total,
+                "total_pages": (total + per_page - 1) // per_page if total > 0 else 0
             }
         })
     

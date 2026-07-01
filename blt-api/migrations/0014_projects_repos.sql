@@ -3,7 +3,7 @@
 -- Projects table
 CREATE TABLE IF NOT EXISTS projects (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    organization_id INTEGER REFERENCES organizations(id) ON DELETE SET NULL,
+    organization_id INTEGER REFERENCES organization(id) ON DELETE SET NULL,
     name TEXT NOT NULL,
     description TEXT,
     status TEXT DEFAULT 'active',
@@ -22,7 +22,7 @@ CREATE INDEX IF NOT EXISTS idx_projects_org ON projects(organization_id);
 -- Repositories table
 CREATE TABLE IF NOT EXISTS repositories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    organization_id INTEGER REFERENCES organizations(id) ON DELETE SET NULL,
+    organization_id INTEGER REFERENCES organization(id) ON DELETE SET NULL,
     project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
     name TEXT NOT NULL,
     url TEXT NOT NULL,
@@ -58,3 +58,5 @@ END;
 
 CREATE INDEX IF NOT EXISTS idx_contributors_score ON contributors(score DESC);
 CREATE INDEX IF NOT EXISTS idx_contributors_user ON contributors(user_id);
+CREATE INDEX IF NOT EXISTS idx_contributors_project ON contributors(project_id);
+CREATE INDEX IF NOT EXISTS idx_contributors_repository ON contributors(repository_id);
