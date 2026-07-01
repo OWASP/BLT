@@ -1,0 +1,61 @@
+messages:
+- dir: c2s
+  payload:
+    id: 1
+    jsonrpc: '2.0'
+    method: initialize
+    params:
+      capabilities: {}
+      clientInfo:
+        name: test-client
+        version: 1.0.0
+      protocolVersion: '2024-11-05'
+  t: 0
+- dir: c2s
+  payload:
+    id: 2
+    jsonrpc: '2.0'
+    method: resources/read
+    params:
+      uri: blt://v2/bugs
+  t: 10
+- dir: s2c
+  payload:
+    id: NORM_ID_1
+    jsonrpc: '2.0'
+    result:
+      capabilities:
+        experimental: {}
+        prompts:
+          listChanged: false
+        resources:
+          listChanged: false
+          subscribe: false
+        tools:
+          listChanged: false
+      protocolVersion: '2024-11-05'
+      serverInfo:
+        name: blt-mcp
+        version: 1.27.1
+  t: 1032
+- dir: s2c
+  payload:
+    error:
+      code: 0
+      message: 'Error reading resource blt://v2/bugs: Failed to fetch v2 bugs: Client
+        error ''401 Unauthorized'' for url ''http://localhost:8787/v2/bugs''
+
+        For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401'
+    id: NORM_ID_2
+    jsonrpc: '2.0'
+  t: 1360
+meta:
+  recorded_at: '2026-07-01T09:16:54.877017Z'
+  schema_version: '1.0'
+  server_command:
+  - uv
+  - run
+  - -m
+  - blt_mcp.server
+  session_id: 00000001-replay-20260701T091654877017Z
+  version: 1
