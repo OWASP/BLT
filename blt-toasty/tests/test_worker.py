@@ -143,7 +143,6 @@ def test_review_request_validation():
     print("✓ Review request validation tests passed")
 
 
-
 def test_ai_endpoint_structure():
     """Test /test-ai endpoint structure and expected success payload."""
     mock_request = {"method": "GET", "url": "https://toasty.example.workers.dev/test-ai"}
@@ -217,7 +216,7 @@ def test_webhook_unauthorized_rejection():
 
     # Scenario: Signature mismatch (simulated)
     import hmac
-    import hashlib
+
     expected_token = "v1,abc"
     provided_token = "v1,def"
     tokens_match = hmac.compare_digest(expected_token, provided_token)
@@ -409,7 +408,6 @@ def test_webhook_response_payload():
     print("✓ Webhook response payload test passed")
 
 
-
 def mock_verify_hmac_signature(secret: str, webhook_id: str, timestamp: str, body: str, signature_header: str) -> bool:
     """
     Mock implementation of verify_hmac_signature for local testing without Pyodide/Web Crypto API.
@@ -421,18 +419,18 @@ def mock_verify_hmac_signature(secret: str, webhook_id: str, timestamp: str, bod
 
     if not secret or not signature_header or not signature_header.startswith("v1,"):
         return False
-        
+
     try:
         raw_key_str = secret.replace("whsec_", "")
         raw_key_bytes = base64.b64decode(raw_key_str)
-        
+
         message = f"{webhook_id}.{timestamp}.{body}"
-        message_bytes = message.encode('utf-8')
-        
+        message_bytes = message.encode("utf-8")
+
         signature = hmac.new(raw_key_bytes, message_bytes, hashlib.sha256).digest()
-        computed_signature = base64.b64encode(signature).decode('utf-8')
+        computed_signature = base64.b64encode(signature).decode("utf-8")
         expected_signature = f"v1,{computed_signature}"
-        
+
         return hmac.compare_digest(signature_header, expected_signature)
     except Exception:
         return False
@@ -441,26 +439,29 @@ def mock_verify_hmac_signature(secret: str, webhook_id: str, timestamp: str, bod
 def test_mock_verify_hmac_signature():
     """Test the Python mock of HMAC verification."""
     import base64
+
     # Create a dummy secret
     dummy_secret_bytes = b"my_super_secret_key"
     secret = f"whsec_{base64.b64encode(dummy_secret_bytes).decode('utf-8')}"
-    
+
     webhook_id = "12345"
     timestamp = "1620000000"
     body = '{"action":"open"}'
-    
+
     # Generate correct signature
     import hmac
     import hashlib
-    msg = f"{webhook_id}.{timestamp}.{body}".encode('utf-8')
+
+    msg = f"{webhook_id}.{timestamp}.{body}".encode("utf-8")
     sig = hmac.new(dummy_secret_bytes, msg, hashlib.sha256).digest()
     sig_header = f"v1,{base64.b64encode(sig).decode('utf-8')}"
-    
-    assert mock_verify_hmac_signature(secret, webhook_id, timestamp, body, sig_header), "Valid signature should pass"
-    assert not mock_verify_hmac_signature(secret, webhook_id, timestamp, body, "v1,invalid"), "Invalid signature should fail"
-    
-    print("✓ Mock verify_hmac_signature test passed")
 
+    assert mock_verify_hmac_signature(secret, webhook_id, timestamp, body, sig_header), "Valid signature should pass"
+    assert not mock_verify_hmac_signature(
+        secret, webhook_id, timestamp, body, "v1,invalid"
+    ), "Invalid signature should fail"
+
+    print("✓ Mock verify_hmac_signature test passed")
 
 
 def run_all_tests():
@@ -487,8 +488,6 @@ def run_all_tests():
         test_webhook_note_hook_normalization()
         test_webhook_response_payload()
         test_mock_verify_hmac_signature()
-
-
         print("\n" + "=" * 50)
         print("All tests passed! ✓")
         print("=" * 50)
