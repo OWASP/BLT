@@ -205,6 +205,9 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         self._handle_api()
 
+    def do_PATCH(self):
+        self._handle_api()
+
     def do_OPTIONS(self):
         self._handle_api()
 

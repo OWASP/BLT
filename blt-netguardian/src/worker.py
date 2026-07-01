@@ -29,6 +29,7 @@ from scanners.coordinator import ScannerCoordinator
 from scanners.autonomous_discovery import AutonomousDiscovery
 from scanners.contact_notifier import ContactNotifier
 from auth import AuthError
+from blt_api_client import check_blt_api_reachable, is_blt_api_configured
 from errors import IngestError, IngestErrorCode
 from findings_service import (
     convert_to_issue_for_request,
@@ -36,6 +37,7 @@ from findings_service import (
     findings_error_response,
     get_finding_for_request,
     list_findings_for_request,
+    update_finding_for_request,
 )
 from ingest_service import ingest_error_response, process_ingest
 from ingest_store import IngestStore
@@ -110,7 +112,7 @@ class BLTWorker:
             elif path == 'api/vulnerabilities':
                 response = await self.handle_vulnerabilities(request)
             elif path == 'api/health':
-                response = self.handle_api_health(request)
+                response = await self.handle_api_health(request)
             elif path == 'api/ingest':
                 response = await self.handle_ingest(request)
             elif path == 'api/findings' or path.startswith('api/findings/'):
@@ -543,14 +545,27 @@ class BLTWorker:
         except Exception as e:
             return self.internal_error_response('Failed to list tasks', e)
 
-    def handle_api_health(self, request):
-        """GET /api/health — NetGuardian liveness."""
+    async def handle_api_health(self, request):
+        """GET /api/health — NetGuardian liveness and integration status."""
         if request.method != 'GET':
             return self.json_response({'error': 'Method not allowed'}, status=405)
+        blt_configured = is_blt_api_configured(self.env)
+        blt_reachable = False
+        if blt_configured:
+            try:
+                blt_reachable = await check_blt_api_reachable(self.env)
+            except Exception:
+                blt_reachable = False
         return self.json_response({
             'status': 'ok',
             'component': 'netguardian',
             'ingest': 'ready',
+            'integrations': {
+                'blt_api': {
+                    'configured': blt_configured,
+                    'reachable': blt_reachable if blt_configured else None,
+                },
+            },
         })
 
     async def handle_ingest(self, request):
@@ -634,17 +649,32 @@ class BLTWorker:
                     query_params=self.get_query_params(request),
                 )
             elif len(parts) == 1:
-                if request.method != 'GET':
+                if request.method == 'GET':
+                    result = await get_finding_for_request(
+                        env=self.env,
+                        db=getattr(self.env, 'DB', None),
+                        headers=self.get_request_headers(request),
+                        finding_id=parts[0],
+                        new_id=lambda label: self.generate_id(
+                            f'{label}-{parts[0]}-{datetime.now(timezone.utc).isoformat()}'
+                        ),
+                    )
+                elif request.method == 'PATCH':
+                    body = await request.json()
+                    if not isinstance(body, dict):
+                        return self.json_response({'error': 'invalid_body'}, status=400)
+                    result = await update_finding_for_request(
+                        env=self.env,
+                        db=getattr(self.env, 'DB', None),
+                        headers=self.get_request_headers(request),
+                        finding_id=parts[0],
+                        body=body,
+                        new_id=lambda label: self.generate_id(
+                            f'{label}-{parts[0]}-{datetime.now(timezone.utc).isoformat()}'
+                        ),
+                    )
+                else:
                     return self.json_response({'error': 'Method not allowed'}, status=405)
-                result = await get_finding_for_request(
-                    env=self.env,
-                    db=getattr(self.env, 'DB', None),
-                    headers=self.get_request_headers(request),
-                    finding_id=parts[0],
-                    new_id=lambda label: self.generate_id(
-                        f'{label}-{parts[0]}-{datetime.now(timezone.utc).isoformat()}'
-                    ),
-                )
             elif len(parts) == 2 and parts[1] == 'convert-to-issue':
                 if request.method != 'POST':
                     return self.json_response({'error': 'Method not allowed'}, status=405)

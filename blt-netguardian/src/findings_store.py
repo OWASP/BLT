@@ -8,6 +8,7 @@ from typing import Any, Optional
 
 
 ALLOWED_SORT_FIELDS = frozenset({"updated_at", "created_at", "severity", "rule_id"})
+ALLOWED_STATUSES = frozenset({"open", "triaging", "converted", "snoozed", "wontfix"})
 CSV_COLUMNS = (
     "id",
     "rule_id",
@@ -30,6 +31,9 @@ class FindingsQuery:
     status: Optional[str] = None
     severity: Optional[str] = None
     cve_id: Optional[str] = None
+    created_from: Optional[int] = None
+    created_to: Optional[int] = None
+    triage_queue: bool = False
     limit: int = 50
     offset: int = 0
     sort: str = "updated_at"
@@ -52,6 +56,16 @@ class FindingsStore:
         if query.cve_id is not None:
             where.append("cve_id = ?")
             params.append(query.cve_id)
+        if query.created_from is not None:
+            where.append("created_at >= ?")
+            params.append(query.created_from)
+        if query.created_to is not None:
+            where.append("created_at <= ?")
+            params.append(query.created_to)
+        if query.triage_queue:
+            where.append("status = 'open'")
+            where.append("(blt_issue_id IS NULL OR blt_issue_id = '')")
+            where.append("severity IN ('critical', 'high')")
         return " AND ".join(where), params
 
     async def list_findings(self, query: FindingsQuery) -> tuple[list[dict], int]:
@@ -88,6 +102,9 @@ class FindingsStore:
             status=query.status,
             severity=query.severity,
             cve_id=query.cve_id,
+            created_from=query.created_from,
+            created_to=query.created_to,
+            triage_queue=query.triage_queue,
             limit=10_000,
             offset=0,
             sort=query.sort,
@@ -191,7 +208,7 @@ class FindingsStore:
         await self.db.prepare(
             """
             UPDATE findings
-            SET blt_issue_id = ?, updated_at = ?
+            SET blt_issue_id = ?, status = 'converted', updated_at = ?
             WHERE id = ? AND org_id = ?
             """
         ).bind(blt_issue_id, updated_at_unix, finding_id, org_id).run()
@@ -199,6 +216,29 @@ class FindingsStore:
             "SELECT blt_issue_id FROM findings WHERE id = ? AND org_id = ?"
         ).bind(finding_id, org_id).first()
         return row is not None and row.get("blt_issue_id") == blt_issue_id
+
+    async def update_finding_status(
+        self,
+        org_id: str,
+        finding_id: str,
+        status: str,
+        updated_at_unix: int,
+    ) -> bool:
+        if self.db is None:
+            raise RuntimeError("D1 not configured")
+        if status not in ALLOWED_STATUSES:
+            raise ValueError(f"invalid status: {status}")
+        await self.db.prepare(
+            """
+            UPDATE findings
+            SET status = ?, updated_at = ?
+            WHERE id = ? AND org_id = ?
+            """
+        ).bind(status, updated_at_unix, finding_id, org_id).run()
+        row = await self.db.prepare(
+            "SELECT status FROM findings WHERE id = ? AND org_id = ?"
+        ).bind(finding_id, org_id).first()
+        return row is not None and row.get("status") == status
 
     @staticmethod
     def _row_to_item(row: dict) -> dict:

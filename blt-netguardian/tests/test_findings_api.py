@@ -21,7 +21,7 @@ class FindingsPreparedStatement(FakePreparedStatement):
         rows = [row for row in rows if row["org_id"] == org_id]
         idx = 1
         sql = self.sql.lower()
-        if "status = ?" in sql:
+        if "status = ?" in sql and "update findings" not in sql:
             rows = [row for row in rows if row["status"] == params[idx]]
             idx += 1
         if "severity = ?" in sql:
@@ -30,6 +30,19 @@ class FindingsPreparedStatement(FakePreparedStatement):
         if "cve_id = ?" in sql:
             rows = [row for row in rows if row.get("cve_id") == params[idx]]
             idx += 1
+        if "created_at >= ?" in sql:
+            rows = [row for row in rows if row["created_at"] >= params[idx]]
+            idx += 1
+        if "created_at <= ?" in sql:
+            rows = [row for row in rows if row["created_at"] <= params[idx]]
+            idx += 1
+        if "severity in ('critical', 'high')" in sql:
+            rows = [
+                row for row in rows
+                if row["severity"] in ("critical", "high")
+                and row.get("status") == "open"
+                and not row.get("blt_issue_id")
+            ]
 
         sort_field = "updated_at"
         for candidate in ("updated_at", "created_at", "severity", "rule_id"):
@@ -40,10 +53,40 @@ class FindingsPreparedStatement(FakePreparedStatement):
         rows.sort(key=lambda row: row[sort_field], reverse=reverse)
         return rows
 
+    async def run(self):
+        self.db.run_calls.append((self.sql, self.params))
+        sql = self.sql.lower()
+        if "update findings" in sql and "set status" in sql:
+            status, updated_at, finding_id, org_id = self.params
+            for row in self.db.findings:
+                if row["id"] == finding_id and row["org_id"] == org_id:
+                    row["status"] = status
+                    row["updated_at"] = updated_at
+                    break
+        return {}
+
     async def first(self):
         self.db.first_calls.append((self.sql, self.params))
-        if "count(" in self.sql.lower():
+        sql = self.sql.lower()
+        if "count(" in sql:
             return {"total": len(self._matching_rows())}
+        if "from findings f" in sql and "join envelopes" in sql:
+            finding_id, org_id = self.params[0], self.params[1]
+            for row in self.db.findings:
+                if row["id"] == finding_id and row["org_id"] == org_id:
+                    detail = dict(row)
+                    detail.setdefault("payload_json", "{}")
+                    detail.setdefault("sender_id", "scanner-1")
+                    detail.setdefault("kid", "k1")
+                    detail.setdefault("envelope_received_at", row.get("created_at"))
+                    return detail
+            return None
+        if "select status from findings" in sql:
+            finding_id, org_id = self.params[0], self.params[1]
+            for row in self.db.findings:
+                if row["id"] == finding_id and row["org_id"] == org_id:
+                    return {"status": row["status"]}
+            return None
         return None
 
     async def all(self):
