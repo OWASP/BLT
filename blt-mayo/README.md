@@ -1,4 +1,4 @@
-# BLT-MAYO — Shell Dangerous-Execution Analyzer (Week 3 PR 1)
+# BLT-MAYO — Shell Dangerous-Execution Analyzer
 
 BLT-MAYO stands for **Monitor, Analyze, Yield, Observe**. It is a read-only Linux security-auditing workflow that turns filesystem artifacts into structured, explainable security findings.
 

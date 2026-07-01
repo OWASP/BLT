@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This pull request adds the shell-script half of the Week 3 BLT-MAYO milestone. It inspects shell source files as text and creates normalized security findings for high-signal dangerous-execution patterns.
+It inspects shell source files as text and creates normalized security findings for high-signal dangerous-execution patterns.
 
 The analyzer is deliberately independent from Python AST analysis. Python, cron, systemd, startup-hook, and SSH analyzers are outside this PR.
 
