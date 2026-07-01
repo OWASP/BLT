@@ -56,3 +56,7 @@ build/
 # OS generated files
 .Spotlight-V100
 .Trashes
+
+# Python
+__pycache__/
+*.pyc

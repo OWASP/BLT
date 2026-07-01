@@ -1,4 +1,5 @@
 stages:
+  - validate
   - build
   - deploy
 
@@ -12,6 +13,21 @@ cache:
       - Gemfile
   paths:
     - vendor/bundle
+
+validate-labs:
+  stage: validate
+  image: python:3.11-slim
+  cache: []
+  script:
+    - python -m pip install jsonschema==4.25.1 python-frontmatter==1.1.0
+    - python scripts/validate_labs.py
+  rules:
+    - changes:
+        - _labs/**/*
+        - schemas/lab.schema.json
+        - scripts/validate_labs.py
+        - docs/lab-authoring-guide.md
+        - docs/lab-template.md
 
 build_site:
   image: ruby:3.2
