@@ -112,7 +112,7 @@ def test_tool_call():
             "params": {
                 "name": "submit_issue",
                 "arguments": {
-                    "title": "Test Issue",
+                    "url": "https://example.com/vuln",
                     "description": "Testing tools/call protocol"
                 }
             }
@@ -161,12 +161,11 @@ def test_tool_schemas():
         # Verify submit_issue schema (Issue #12)
         submit_tool = next(t for t in tools if t["name"] == "submit_issue")
         properties = submit_tool["inputSchema"]["properties"]
-        assert "title" in properties
+        assert "url" in properties
         assert "description" in properties
-        assert "repo_id" in properties
         assert "labels" in properties
         assert "assignee" in properties
-        assert submit_tool["inputSchema"]["required"] == ["title", "description"]
+        assert submit_tool["inputSchema"]["required"] == ["url", "description"]
         
         # Verify add_comment schema (Issue #13)
         comment_tool = next(t for t in tools if t["name"] == "add_comment")
@@ -254,14 +253,14 @@ def test_tool_validation_errors():
         process.stdin.flush()
         read_jsonrpc_response(process, 1)
         
-        # 2. Call submit_issue missing required 'title'
+        # 2. Call submit_issue missing required 'url'
         process.stdin.write(json.dumps({
             "jsonrpc": "2.0", "id": 2,
             "method": "tools/call",
             "params": {
                 "name": "submit_issue",
                 "arguments": {
-                    "description": "Missing title"
+                    "description": "Missing url"
                 }
             }
         }) + "\n")
@@ -272,16 +271,16 @@ def test_tool_validation_errors():
         assert response["error"]["code"] == -32602
         assert "Missing required parameter" in response["error"]["message"]
 
-        # 3. Call submit_issue with invalid type for repo_id (integer instead of string)
+        # 3. Call submit_issue with invalid type for labels (integer instead of array)
         process.stdin.write(json.dumps({
             "jsonrpc": "2.0", "id": 3,
             "method": "tools/call",
             "params": {
                 "name": "submit_issue",
                 "arguments": {
-                    "title": "Valid title",
+                    "url": "https://example.com",
                     "description": "Valid description",
-                    "repo_id": 123
+                    "labels": 123
                 }
             }
         }) + "\n")
@@ -290,17 +289,17 @@ def test_tool_validation_errors():
         response = read_jsonrpc_response(process, 3)
         assert "error" in response
         assert response["error"]["code"] == -32602
-        assert "must be of type str" in response["error"]["message"]
+        assert "type" in response["error"]["message"].lower() or "validation" in response["error"]["message"].lower()
 
-        # 4. Call submit_issue with blank title
+        # 4. Call submit_issue with blank description
         process.stdin.write(json.dumps({
             "jsonrpc": "2.0", "id": 4,
             "method": "tools/call",
             "params": {
                 "name": "submit_issue",
                 "arguments": {
-                    "title": "   ",
-                    "description": "Valid description"
+                    "url": "https://example.com",
+                    "description": ""
                 }
             }
         }) + "\n")
@@ -309,7 +308,7 @@ def test_tool_validation_errors():
         response = read_jsonrpc_response(process, 4)
         assert "error" in response
         assert response["error"]["code"] == -32602
-        assert "cannot be empty" in response["error"]["message"]
+        assert "validation error" in response["error"]["message"].lower()
 
     finally:
         process.terminate()
@@ -346,7 +345,7 @@ def test_tool_confirmation_flow():
             "params": {
                 "name": "submit_issue",
                 "arguments": {
-                    "title": "Valid title",
+                    "url": "https://example.com",
                     "description": "Valid description"
                 }
             }

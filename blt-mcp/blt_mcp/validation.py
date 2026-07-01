@@ -8,11 +8,10 @@ logger = logging.getLogger("blt-mcp.validation")
 
 TOOL_SCHEMAS = {
     "submit_issue": {
-        "required": ["title", "description"],
+        "required": ["url", "description"],
         "properties": {
-            "title": {"type": str, "description": "The title of the issue."},
+            "url": {"type": str, "description": "The vulnerable URL being reported."},
             "description": {"type": str, "description": "A detailed description of the bug or vulnerability."},
-            "repo_id": {"type": str, "description": "The ID of the repository to submit to."},
             "labels": {"type": list, "item_type": str, "description": "Optional list of labels to apply to the issue."},
             "assignee": {"type": str, "description": "Optional username of the assignee for the issue."},
             "confirmed": {"type": bool, "description": "Must be set to true to execute this write operation."}
