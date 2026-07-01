@@ -31,6 +31,11 @@ blt-mcp = "blt_mcp.cli:cli"
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
+[dependency-groups]
+dev = [
+    "mcp-vcr>=0.1.3",
+]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 
