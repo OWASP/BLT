@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::mock_data::{self, Issue, Repo, Hunt, Stats};
+use crate::models::{self, Issue, Repo, Hunt, Stats};
 
 pub fn get_api_key() -> Option<String> {
     if let Ok(api_key) = std::env::var("BLT_API_KEY") {
@@ -112,11 +112,7 @@ pub fn parse_issues_from_json(root: &serde_json::Value) -> Vec<Issue> {
     issues
 }
 
-pub async fn get_issues(api_base: &str, offline: bool) -> Result<Vec<Issue>, Box<dyn std::error::Error>> {
-    if offline {
-        return Ok(mock_data::get_mock_issues());
-    }
-
+pub async fn get_issues(api_base: &str) -> Result<Vec<Issue>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/bugs", api_base);
     
@@ -195,11 +191,7 @@ pub fn parse_repos_from_json(root: &serde_json::Value) -> Vec<Repo> {
     repos
 }
 
-pub async fn get_repos(api_base: &str, offline: bool) -> Result<Vec<Repo>, Box<dyn std::error::Error>> {
-    if offline {
-        return Ok(mock_data::get_mock_repos());
-    }
-
+pub async fn get_repos(api_base: &str) -> Result<Vec<Repo>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/repos", api_base);
     
@@ -216,11 +208,7 @@ pub async fn get_repos(api_base: &str, offline: bool) -> Result<Vec<Repo>, Box<d
     Ok(repos)
 }
 
-pub async fn get_hunts(api_base: &str, offline: bool) -> Result<Vec<Hunt>, Box<dyn std::error::Error>> {
-    if offline {
-        return Ok(mock_data::get_mock_hunts());
-    }
-
+pub async fn get_hunts(api_base: &str) -> Result<Vec<Hunt>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/hunts/active", api_base);
     
@@ -307,11 +295,7 @@ pub fn parse_stats_from_json(root: &serde_json::Value) -> Stats {
     }
 }
 
-pub async fn get_stats(api_base: &str, offline: bool) -> Result<Stats, Box<dyn std::error::Error>> {
-    if offline {
-        return Ok(mock_data::get_mock_stats());
-    }
-
+pub async fn get_stats(api_base: &str) -> Result<Stats, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/stats", api_base);
     
@@ -326,12 +310,7 @@ pub async fn get_stats(api_base: &str, offline: bool) -> Result<Stats, Box<dyn s
     Ok(parse_stats_from_json(&root))
 }
 
-pub async fn submit_issue_triage(api_base: &str, issue_id: &str, offline: bool) -> Result<(), Box<dyn std::error::Error>> {
-    if offline {
-        // Simulated success in offline mode
-        return Ok(());
-    }
-
+pub async fn submit_issue_triage(api_base: &str, issue_id: &str) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/bugs/{}", api_base, issue_id);
     
@@ -348,11 +327,7 @@ pub async fn submit_issue_triage(api_base: &str, issue_id: &str, offline: bool) 
     Ok(())
 }
 
-pub async fn add_comment(api_base: &str, issue_id: &str, text: &str, offline: bool) -> Result<(), Box<dyn std::error::Error>> {
-    if offline {
-        return Ok(());
-    }
-
+pub async fn add_comment(api_base: &str, issue_id: &str, text: &str) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/bugs/{}/comments", api_base, issue_id);
     
@@ -369,11 +344,7 @@ pub async fn add_comment(api_base: &str, issue_id: &str, text: &str, offline: bo
     Ok(())
 }
 
-pub async fn submit_issue(api_base: &str, title: &str, repo: &str, severity: &str, description: &str, offline: bool) -> Result<(), Box<dyn std::error::Error>> {
-    if offline {
-        return Ok(());
-    }
-
+pub async fn submit_issue(api_base: &str, title: &str, repo: &str, severity: &str, description: &str) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/bugs", api_base);
     
@@ -393,11 +364,7 @@ pub async fn submit_issue(api_base: &str, title: &str, repo: &str, severity: &st
     Ok(())
 }
 
-pub async fn get_leaderboard(api_base: &str, offline: bool) -> Result<Vec<mock_data::LeaderboardEntry>, Box<dyn std::error::Error>> {
-    if offline {
-        return Ok(mock_data::get_mock_leaderboard());
-    }
-
+pub async fn get_leaderboard(api_base: &str) -> Result<Vec<models::LeaderboardEntry>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/leaderboard", api_base);
     
@@ -441,7 +408,7 @@ pub async fn get_leaderboard(api_base: &str, offline: bool) -> Result<Vec<mock_d
             .unwrap_or("Contributor")
             .to_string();
 
-        leaderboard.push(mock_data::LeaderboardEntry {
+        leaderboard.push(models::LeaderboardEntry {
             rank,
             name,
             bacon_points,

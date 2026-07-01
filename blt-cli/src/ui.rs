@@ -9,16 +9,20 @@ use ratatui::{
 use crate::app::{App, Tab, RunMode};
 use ratatui::style::Stylize;
 
-// Define BLT brand color palette (Modern Catppuccin-inspired)
-const BLT_RED: Color = Color::Rgb(243, 139, 168); // Soft Red / Pink
-const SLATE_BG: Color = Color::Rgb(36, 39, 58);   // Deep Macchiato Base
-const SLATE_SURFACE: Color = Color::Rgb(48, 52, 70); // Surface level 1
-const MUTED_BORDER: Color = Color::Rgb(91, 96, 120); // Overlay 1
-const TEXT_LIGHT: Color = Color::Rgb(202, 211, 245); // Text
-const SEVERITY_CRITICAL: Color = Color::Rgb(237, 135, 150); // Red
-const SEVERITY_HIGH: Color = Color::Rgb(245, 169, 127); // Peach
+// Define BLT brand color palette
+const BLT_RED: Color = Color::Rgb(248, 81, 73); // error red
+const SLATE_BG: Color = Color::Rgb(13, 17, 23);   // background
+const SLATE_SURFACE: Color = Color::Rgb(22, 27, 34); // surface
+const MUTED_BORDER: Color = Color::Rgb(48, 54, 61); // border
+const TEXT_LIGHT: Color = Color::Rgb(201, 209, 217); // text
+const SEVERITY_CRITICAL: Color = Color::Rgb(248, 81, 73); // Red
+const SEVERITY_HIGH: Color = Color::Rgb(210, 153, 34); // Yellow/Orange
 
 pub fn draw(f: &mut Frame, app: &mut App) {
+    // Fill the background of the entire TUI to ensure a consistent dark slate theme
+    let bg_block = Block::default().bg(SLATE_BG);
+    f.render_widget(bg_block, f.size());
+
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -68,7 +72,7 @@ fn draw_header(f: &mut Frame, app: &App, rect: Rect) {
         ])
         .split(rect);
 
-    let mcp_status = if app.run_mode == crate::app::RunMode::Mcp && app.is_live { "Connected" } else { "Mock Fallback" };
+    let mcp_status = if app.run_mode == crate::app::RunMode::Mcp && app.is_live { "Mcp Live" } else { "Offline" };
     let open_count = app.issues.iter().filter(|i| i.status != "Resolved").count();
     let crit_count = app.issues.iter().filter(|i| i.severity == "Critical").count();
     let high_count = app.issues.iter().filter(|i| i.severity == "High").count();
@@ -381,13 +385,7 @@ fn draw_hunts_tab(f: &mut Frame, app: &App, rect: Rect) {
             Line::from(""),
             Line::from(Span::styled("Goal / Description:", Style::default().fg(Color::Yellow).add_modifier(Modifier::UNDERLINED))),
             Line::from(Span::styled(&hunt.description, Style::default().fg(TEXT_LIGHT))),
-            Line::from(""),
-            Line::from(Span::styled("Participants: ", Style::default().fg(Color::Gray))),
-            Line::from(Span::styled("• NachiketRoy, shivam, rosai (Mocked)", Style::default().fg(TEXT_LIGHT))),
-            Line::from(Span::styled("End Date: ", Style::default().fg(Color::Gray))),
-            Line::from(Span::styled("2026-12-31 (Mocked)", Style::default().fg(TEXT_LIGHT))),
-            Line::from(Span::styled("Progress: ", Style::default().fg(Color::Gray))),
-            Line::from(Span::styled("[█████████░░░░] 65%", Style::default().fg(Color::Green))),
+
         ];
 
         let desc_p = Paragraph::new(desc_text)
@@ -441,7 +439,14 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
     .block(Block::default().borders(Borders::TOP).border_style(widget_style).title(" Issues Counter ").bg(SLATE_SURFACE));
     f.render_widget(card_1_text, card_1_chunks[0]);
 
-    let sparkline_data: [u64; 16] = [12, 18, 5, 2, 8, 14, 19, 7, 22, 15, 8, 10, 14, 25, 12, 9];
+    // Create sparkline data based on issues
+    let sparkline_data: Vec<u64> = if app.stats.total_issues > 0 {
+        vec![
+            12, 14, 5, 20, 25, 18, 10, 32, 19, 21, 35, 12, 15, 22, 10, 25, 22
+        ] // In a real app this would be historical data
+    } else {
+        vec![0; 15] // Empty state
+    };
     let sparkline = Sparkline::default()
         .block(Block::default().borders(Borders::NONE).bg(SLATE_SURFACE))
         .data(&sparkline_data)
@@ -524,9 +529,8 @@ fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
         .split(rect);
 
     let mode_str = match app.run_mode {
-        RunMode::Offline => "Offline Mode (Mock Data)",
-        RunMode::Standalone => "Standalone mode (REST API Connection)",
-        RunMode::Mcp => "MCP Client Subprocess Host mode",
+        RunMode::Live => "Live mode (REST API Connection)",
+        RunMode::Mcp => "MCP mode (Local AI Agent)",
     };
 
     let settings_text = vec![
@@ -550,8 +554,7 @@ fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
         Line::from(""),
         Line::from(Span::styled("  To change execution mode, relaunch CLI with flags:", Style::default().fg(Color::DarkGray))),
         Line::from(Span::styled("  - Standalone REST API:   blt-cli --api-base <url>", Style::default().fg(Color::DarkGray))),
-        Line::from(Span::styled("  - MCP Subprocess Mode:   blt-cli --mcp-path <path_to_server.py>", Style::default().fg(Color::DarkGray))),
-        Line::from(Span::styled("  - Offline Sandbox:       blt-cli --offline", Style::default().fg(Color::DarkGray))),
+        Line::from(Span::styled("  - MCP Subprocess Mode:   blt-cli --mcp-path <path_to_server>", Style::default().fg(Color::DarkGray))),
     ];
 
     let p = Paragraph::new(settings_text)
@@ -600,13 +603,12 @@ fn draw_footer(f: &mut Frame, app: &App, rect: Rect) {
         .constraints([Constraint::Percentage(20), Constraint::Percentage(40), Constraint::Percentage(40)])
         .split(rect);
 
-    let mode_str = match app.run_mode {
-        crate::app::RunMode::Offline => "OFFLINE",
-        crate::app::RunMode::Standalone => "API",
+    let run_mode_tag = match app.run_mode {
+        crate::app::RunMode::Live => "LIVE",
         crate::app::RunMode::Mcp => "MCP",
     };
 
-    let status_str = if !app.search_query.is_empty() { format!(" Filter: {} ", app.search_query) } else { format!(" Mode: {} ", mode_str) };
+    let status_str = if !app.search_query.is_empty() { format!(" Filter: {} ", app.search_query) } else { format!(" Mode: {} ", run_mode_tag) };
 
     let left = Paragraph::new(status_str)
         .style(Style::default().fg(Color::DarkGray))
@@ -1073,15 +1075,15 @@ fn draw_easter_egg_modal(f: &mut Frame, rect: Rect) {
     f.render_widget(Clear, modal_area);
     
     let art = vec![
-        Line::from(Span::styled(r#"  _   _    _    ____ _  __   ____  _        _    _   _ _____ _____ "#, Style::default().fg(Color::Green))),
-        Line::from(Span::styled(r#" | | | |  / \  / ___| |/ /  |  _ \| |      / \  | \ | | ____|_   _|"#, Style::default().fg(Color::Green))),
-        Line::from(Span::styled(r#" | |_| | / _ \| |   | ' /   | |_) | |     / _ \ |  \| |  _|   | |  "#, Style::default().fg(Color::Green))),
-        Line::from(Span::styled(r#" |  _  |/ ___ \ |___| . \   |  __/| |___ / ___ \| |\  | |___  | |  "#, Style::default().fg(Color::Green))),
-        Line::from(Span::styled(r#" |_| |_/_/   \_\____|_|\_\  |_|   |_____/_/   \_\_| \_|_____| |_|  "#, Style::default().fg(Color::Green))),
+        Line::from(Span::styled(r#"  ____    _    ____ ___  _   _ "#, Style::default().fg(Color::Red))),
+        Line::from(Span::styled(r#" | __ )  / \  / ___/ _ \| \ | |"#, Style::default().fg(Color::Red))),
+        Line::from(Span::styled(r#" |  _ \ / _ \| |  | | | |  \| |"#, Style::default().fg(Color::Red))),
+        Line::from(Span::styled(r#" | |_) / ___ \ |__| |_| | |\  |"#, Style::default().fg(Color::Red))),
+        Line::from(Span::styled(r#" |____/_/   \_\____\___/|_| \_|"#, Style::default().fg(Color::Red))),
         Line::from(""),
-        Line::from(Span::styled("        * You found the Konami Code Easter Egg! *", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled("* You found the BLT Konami Code! Extra Bacon 🥓 for you! *", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))),
         Line::from(""),
-        Line::from(Span::styled("                 [ Press Any Key ]", Style::default().fg(Color::Gray))),
+        Line::from(Span::styled("[ Press Any Key ]", Style::default().fg(Color::Gray))),
     ];
 
     let p = Paragraph::new(art)
