@@ -2,7 +2,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Row, Table, Tabs, Wrap, Sparkline},
+    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Row, Table, Tabs, Wrap},
     Frame,
 };
 
@@ -142,8 +142,14 @@ fn draw_issues_tab(f: &mut Frame, app: &App, rect: Rect) {
         .constraints([Constraint::Percentage(40), Constraint::Percentage(60)])
         .split(main_rect);
 
-    // 1. Draw Issues Table
-    let header_cells = vec!["ID", "Repo", "Severity", "Status", "Title"];
+    if app.issues.is_empty() {
+        let empty_msg = Paragraph::new("\n\nNo active issues found. Press 'Ctrl+S' or 's' to report one.")
+            .alignment(ratatui::layout::Alignment::Center)
+            .style(Style::default().fg(MUTED_BORDER));
+        f.render_widget(empty_msg, horizontal_layout[0]);
+    } else {
+        // 1. Draw Issues Table
+        let header_cells = vec!["ID", "Repo", "Severity", "Status", "Title"];
     let header = Row::new(header_cells)
         .style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))
         .bottom_margin(1);
@@ -222,9 +228,10 @@ fn draw_issues_tab(f: &mut Frame, app: &App, rect: Rect) {
         .title(" Vulnerabilities Log ")
         .title_style(Style::default().fg(TEXT_LIGHT).add_modifier(Modifier::BOLD))
         .bg(SLATE_BG))
-    .column_spacing(1);
+        .column_spacing(1);
 
-    f.render_widget(table, horizontal_layout[0]);
+        f.render_widget(table, horizontal_layout[0]);
+    }
 
     // 2. Draw Selected Issue Details Panel & Activity Panel
     if !app.issues.is_empty() {
@@ -308,7 +315,13 @@ fn draw_hunts_tab(f: &mut Frame, app: &App, rect: Rect) {
         .constraints([Constraint::Percentage(40), Constraint::Percentage(60)])
         .split(main_rect);
 
-    let header_cells = vec!["Hunt Title", "Goal", "Reward", "Status"];
+    if app.hunts.is_empty() {
+        let empty_msg = Paragraph::new("\n\nNo active hunts available.")
+            .alignment(ratatui::layout::Alignment::Center)
+            .style(Style::default().fg(MUTED_BORDER));
+        f.render_widget(empty_msg, horizontal_layout[0]);
+    } else {
+        let header_cells = vec!["Hunt Title", "Goal", "Reward", "Status"];
     let header = Row::new(header_cells)
         .style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))
         .bottom_margin(1);
@@ -367,9 +380,10 @@ fn draw_hunts_tab(f: &mut Frame, app: &App, rect: Rect) {
         .title(" Active Bounty Hunts ")
         .title_style(Style::default().fg(TEXT_LIGHT))
         .bg(SLATE_BG))
-    .column_spacing(1);
+        .column_spacing(1);
 
-    f.render_widget(table, horizontal_layout[0]);
+        f.render_widget(table, horizontal_layout[0]);
+    }
 
     if !app.hunts.is_empty() {
         let hunt = &app.hunts[app.selected_hunt_index];
@@ -434,32 +448,51 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
         .constraints([Constraint::Length(4), Constraint::Min(2)])
         .split(row_1[0]);
 
+    let display_total_issues = std::cmp::max(app.stats.total_issues, app.issues.len() as u32);
+    let display_active_repos = std::cmp::max(app.stats.active_repos, app.hunts.len() as u32);
+    let display_contributors = if app.leaderboard.is_empty() { 0 } else { std::cmp::max(app.stats.total_contributors, app.leaderboard.len() as u32) };
+
     let card_1_text = Paragraph::new(vec![
         Line::from(""),
-        Line::from(Span::styled(format!("  {}", app.stats.total_issues), Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled(format!("  {}", display_total_issues), Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD))),
         Line::from("  Total Issues"),
     ])
     .block(Block::default().borders(Borders::TOP).border_style(widget_style).title(" Issues Counter ").bg(SLATE_SURFACE));
     f.render_widget(card_1_text, card_1_chunks[0]);
 
-    // Create sparkline data based on issues
-    let sparkline_data: Vec<u64> = if app.stats.total_issues > 0 {
-        vec![
-            12, 14, 5, 20, 25, 18, 10, 32, 19, 21, 35, 12, 15, 22, 10, 25, 22
-        ] // In a real app this would be historical data
-    } else {
-        vec![0; 15] // Empty state
-    };
-    let sparkline = Sparkline::default()
+    // Create BarChart data based on issue severities
+    let mut crit = 0;
+    let mut high = 0;
+    let mut med = 0;
+    let mut low = 0;
+    for issue in &app.issues {
+        match issue.severity.to_lowercase().as_str() {
+            "critical" => crit += 1,
+            "high" => high += 1,
+            "medium" => med += 1,
+            _ => low += 1,
+        }
+    }
+    let barchart_data = vec![
+        ("Crit", crit as u64),
+        ("High", high as u64),
+        ("Med", med as u64),
+        ("Low", low as u64),
+    ];
+    let barchart = ratatui::widgets::BarChart::default()
         .block(Block::default().borders(Borders::NONE).bg(SLATE_SURFACE))
-        .data(&sparkline_data)
-        .style(Style::default().fg(BLT_RED));
-    f.render_widget(sparkline, card_1_chunks[1]);
+        .data(&barchart_data)
+        .bar_width(6)
+        .bar_gap(2)
+        .value_style(Style::default().fg(TEXT_LIGHT).add_modifier(Modifier::BOLD))
+        .label_style(Style::default().fg(TEXT_LIGHT))
+        .bar_style(Style::default().fg(BLT_RED));
+    f.render_widget(barchart, card_1_chunks[1]);
 
     // Card 2
     let card_2 = Paragraph::new(vec![
         Line::from(""),
-        Line::from(Span::styled(format!("  {}", app.stats.active_repos), Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled(format!("  {}", display_active_repos), Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))),
         Line::from("  Active Repos"),
     ])
     .block(Block::default().borders(Borders::TOP).border_style(widget_style).title(" Active Repos ").bg(SLATE_SURFACE));
@@ -468,7 +501,7 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
     // Card 3
     let card_3 = Paragraph::new(vec![
         Line::from(""),
-        Line::from(Span::styled(format!("  {}", app.stats.total_contributors), Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled(format!("  {}", display_contributors), Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))),
         Line::from("  Contributors"),
     ])
     .block(Block::default().borders(Borders::TOP).border_style(widget_style).title(" Contributor Community ").bg(SLATE_SURFACE));
@@ -507,22 +540,35 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
         Row::new(cells).style(Style::default().fg(TEXT_LIGHT))
     });
 
-    let leaderboard_table = Table::new(rows, [
-        Constraint::Length(6),
-        Constraint::Percentage(40),
-        Constraint::Percentage(30),
-        Constraint::Percentage(20),
-    ])
-    .header(header)
-    .block(Block::default()
-        .borders(Borders::ALL)
-        .border_style(widget_style)
-        .title(" Top Contributors ")
-        .title_style(Style::default().fg(TEXT_LIGHT).add_modifier(Modifier::BOLD))
-        .bg(SLATE_BG))
-    .column_spacing(1);
+    if app.leaderboard.is_empty() {
+        let empty_msg = Paragraph::new("\n\nNo contributors found.")
+            .alignment(ratatui::layout::Alignment::Center)
+            .block(Block::default()
+                .borders(Borders::ALL)
+                .border_style(widget_style)
+                .title(" Top Contributors ")
+                .title_style(Style::default().fg(TEXT_LIGHT).add_modifier(Modifier::BOLD))
+                .bg(SLATE_BG))
+            .style(Style::default().fg(MUTED_BORDER));
+        f.render_widget(empty_msg, horizontal_layout[1]);
+    } else {
+        let leaderboard_table = Table::new(rows, [
+            Constraint::Length(6),
+            Constraint::Percentage(40),
+            Constraint::Percentage(30),
+            Constraint::Percentage(20),
+        ])
+        .header(header)
+        .block(Block::default()
+            .borders(Borders::ALL)
+            .border_style(widget_style)
+            .title(" Top Contributors ")
+            .title_style(Style::default().fg(TEXT_LIGHT).add_modifier(Modifier::BOLD))
+            .bg(SLATE_BG))
+        .column_spacing(1);
 
-    f.render_widget(leaderboard_table, horizontal_layout[1]);
+        f.render_widget(leaderboard_table, horizontal_layout[1]);
+    }
 }
 
 fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
@@ -596,7 +642,7 @@ fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
         .block(Block::default()
             .borders(Borders::ALL)
             .border_style(Style::default().fg(MUTED_BORDER))
-            .title(" Minimal Security Scanner Core ")
+            .title(" Local Environment Security Scan ")
             .title_style(Style::default().fg(TEXT_LIGHT))
             .bg(SLATE_BG));
     f.render_widget(h, chunks[1]);
@@ -721,8 +767,8 @@ fn draw_help_modal(f: &mut Frame, rect: Rect) {
 
     let rows = vec![
         Row::new(vec![
-            Cell::from(Span::styled("Tab / Shift+Tab", Style::default().fg(Color::Yellow))),
-            Cell::from(Span::styled("Navigate between views", Style::default().fg(TEXT_LIGHT))),
+            Cell::from(Span::styled("Tab / 1-6", Style::default().fg(Color::Yellow))),
+            Cell::from(Span::styled("Navigate between views (1=Issues, 6=Onboarding)", Style::default().fg(TEXT_LIGHT))),
         ]),
         Row::new(vec![
             Cell::from(Span::styled("Up / Down Arrow", Style::default().fg(Color::Yellow))),
@@ -749,8 +795,16 @@ fn draw_help_modal(f: &mut Frame, rect: Rect) {
             Cell::from(Span::styled("Trigger AI-Assisted Triage (requires MCP)", Style::default().fg(TEXT_LIGHT))),
         ]),
         Row::new(vec![
-            Cell::from(Span::styled("s / Enter", Style::default().fg(Color::Yellow))),
-            Cell::from(Span::styled("Submit Vuln / View active Hunt details", Style::default().fg(TEXT_LIGHT))),
+            Cell::from(Span::styled("s / Ctrl+S", Style::default().fg(Color::Yellow))),
+            Cell::from(Span::styled("Open 'Report a Bug' form", Style::default().fg(TEXT_LIGHT))),
+        ]),
+        Row::new(vec![
+            Cell::from(Span::styled(": / Ctrl+P", Style::default().fg(Color::Yellow))),
+            Cell::from(Span::styled("Open Command Palette (e.g. for Vision AI)", Style::default().fg(TEXT_LIGHT))),
+        ]),
+        Row::new(vec![
+            Cell::from(Span::styled("Enter", Style::default().fg(Color::Yellow))),
+            Cell::from(Span::styled("View details of active Hunt or selection", Style::default().fg(TEXT_LIGHT))),
         ]),
         Row::new(vec![
             Cell::from(Span::styled("e", Style::default().fg(Color::Yellow))),
