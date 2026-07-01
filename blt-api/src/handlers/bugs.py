@@ -90,6 +90,9 @@ async def handle_bugs(
             SELECT 
                 b.id,
                 b.url,
+                b.title,
+                b.severity,
+                b.bug_type,
                 b.description,
                 b.status,   
                 b.verified,
@@ -134,6 +137,10 @@ async def handle_bugs(
             SELECT 
                 b.id,
                 b.url,
+                b.title,
+                b.severity,
+                b.bug_type,
+                b.steps_to_reproduce,
                 b.description,
                 b.markdown_description,
                 b.label,
@@ -242,6 +249,10 @@ async def handle_bugs(
             "cve_score",
             "hunt",
             "domain",
+            "title",
+            "severity",
+            "bug_type",
+            "steps_to_reproduce",
         }
 
         forbidden = sorted(set(body.keys()) - client_writable_fields)
@@ -448,6 +459,9 @@ async def handle_bugs(
             SELECT
                 b.id,
                 b.url,
+                b.title,
+                b.severity,
+                b.bug_type,
                 b.description,
                 b.status,
                 b.verified,
