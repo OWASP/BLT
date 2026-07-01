@@ -506,6 +506,10 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
             app.active_tab = Tab::Settings;
             app.status_message = "Switched to tab: Settings".to_string();
         }
+        KeyCode::Char('6') => {
+            app.active_tab = Tab::Onboarding;
+            app.status_message = "Switched to tab: Onboarding".to_string();
+        }
 
         // List Scrolling
         KeyCode::Down | KeyCode::Char('j') => app.scroll_down(),

@@ -129,10 +129,11 @@ impl App {
             RunMode::Live
         };
 
+        let system_user = std::env::var("USER").or_else(|_| std::env::var("USERNAME")).unwrap_or_else(|_| "Local User".to_string());
         let auth_user = if run_mode == RunMode::Mcp {
-            "Local User (MCP Mode)".to_string()
+            format!("{} (MCP Mode)", system_user)
         } else {
-            "Local User (REST)".to_string()
+            format!("{} (REST)", system_user)
         };
 
         let status_message = match run_mode {
