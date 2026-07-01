@@ -28,9 +28,9 @@ async def handle_hunts(
     logger = logging.getLogger(__name__)
     try: 
         db = await get_db_safe(env)  
-    except Exception as e:
-        logger.error(f"Database connection error: {str(e)}")
-        return error_response(f"Database connection error: {str(e)}", status=500)
+    except Exception:
+        logger.exception("Database connection error")
+        return error_response("Database connection error", status=500)
     
     # Get specific hunt
     if "id" in path_params:

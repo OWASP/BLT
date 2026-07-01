@@ -24,9 +24,9 @@ async def handle_repos(
     logger = logging.getLogger(__name__)
     try: 
         db = await get_db_safe(env)  
-    except Exception as e:
-        logger.error(f"Database connection error: {str(e)}")
-        return error_response(f"Database connection error: {str(e)}", status=500)
+    except Exception:
+        logger.exception("Database connection error")
+        return error_response("Database connection error", status=500)
     
     # Get specific repository
     if "id" in path_params:
@@ -64,11 +64,15 @@ async def handle_repos(
     where_clauses = []
     bindings = []
     
-    if org_id and org_id.isdigit():
+    if org_id:
+        if not org_id.isdigit():
+            return error_response("Invalid organization ID", status=400)
         where_clauses.append("organization_id = ?")
         bindings.append(int(org_id))
     
-    if project_id and project_id.isdigit():
+    if project_id:
+        if not project_id.isdigit():
+            return error_response("Invalid project ID", status=400)
         where_clauses.append("project_id = ?")
         bindings.append(int(project_id))
         

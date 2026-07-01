@@ -25,9 +25,9 @@ async def handle_leaderboard(
     logger = logging.getLogger(__name__)
     try: 
         db = await get_db_safe(env)  
-    except Exception as e:
-        logger.error(f"Database connection error: {str(e)}")
-        return error_response(f"Database connection error: {str(e)}", status=500)
+    except Exception:
+        logger.exception("Database connection error")
+        return error_response("Database connection error", status=500)
         
     page, per_page = parse_pagination_params(query_params)
     
@@ -46,22 +46,25 @@ async def handle_leaderboard(
             WHERE b.created >= datetime(?, 'start of month')
               AND b.created < datetime(?, 'start of month', '+1 month')
             GROUP BY u.id, u.username, u.title
-            ORDER BY total_score DESC
+            ORDER BY total_score DESC, u.id ASC
             LIMIT ? OFFSET ?
         '''
         # This is a simplified version; in a real app you'd parse month/year exactly
         # But wait, without valid month/year, we can't easily query this.
         # So let's fall back to a standard user score query if no dates.
-        if month and year:
-            date_str = f"{year}-{month.zfill(2)}-01"
-            result = await db.prepare(list_query).bind(date_str, date_str, per_page, (page - 1) * per_page).all()
-        else:
-            result = await db.prepare('''
-                SELECT id, username, title, total_score
-                FROM users
-                ORDER BY total_score DESC
-                LIMIT ? OFFSET ?
-            ''').bind(per_page, (page - 1) * per_page).all()
+        if not (month and year):
+            return error_response("month and year are required for monthly leaderboard", status=400)
+
+        try:
+            month_int = int(month)
+            year_int = int(year)
+            if month_int < 1 or month_int > 12:
+                raise ValueError
+        except ValueError:
+            return error_response("month must be 1-12 and year must be numeric", status=400)
+
+        date_str = f"{year_int:04d}-{month_int:02d}-01"
+        result = await db.prepare(list_query).bind(date_str, date_str, per_page, (page - 1) * per_page).all()
             
         data = convert_d1_results(result.results if hasattr(result, 'results') else [])
         
@@ -87,7 +90,7 @@ async def handle_leaderboard(
             JOIN domains d ON o.id = d.organization
             JOIN bugs b ON d.id = b.domain
             GROUP BY o.id, o.name
-            ORDER BY total_score DESC
+            ORDER BY total_score DESC, o.id ASC
             LIMIT ? OFFSET ?
         '''
         
@@ -109,7 +112,8 @@ async def handle_leaderboard(
     list_query = '''
         SELECT id, username, title, total_score
         FROM users
-        ORDER BY total_score DESC
+        WHERE total_score > 0
+        ORDER BY total_score DESC, id ASC
         LIMIT ? OFFSET ?
     '''
     
@@ -126,6 +130,8 @@ async def handle_leaderboard(
             total = total_result.to_py().get('total', 0)
         elif isinstance(total_result, dict):
             total = total_result.get('total', 0)
+        elif hasattr(total_result, 'total'):
+            total = getattr(total_result, 'total')
             
     return json_response({
         "success": True,

@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS hunts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL CHECK(LENGTH(title) >= 1 AND LENGTH(title) <= 200),
     description TEXT CHECK(description IS NULL OR LENGTH(description) <= 5000),
-    starts_at TIMESTAMP,
-    ends_at TIMESTAMP,
+    starts_at TIMESTAMP NOT NULL,
+    ends_at TIMESTAMP NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT 1,
     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP

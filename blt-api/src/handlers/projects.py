@@ -25,9 +25,9 @@ async def handle_projects(
     logger = logging.getLogger(__name__)
     try: 
         db = await get_db_safe(env)  
-    except Exception as e:
-        logger.error(f"Database connection error: {str(e)}")
-        return error_response(f"Database connection error: {str(e)}", status=500)
+    except Exception:
+        logger.exception("Database connection error")
+        return error_response("Database connection error", status=500)
     
     # Check if this is a request for project contributors
     if path.endswith("/contributors") and "id" in path_params:
@@ -99,7 +99,9 @@ async def handle_projects(
     
     where_sql = ""
     bindings = []
-    if organization_id and organization_id.isdigit():
+    if organization_id:
+        if not organization_id.isdigit():
+            return error_response("Invalid organization ID", status=400)
         where_sql = " WHERE organization_id = ?"
         bindings.append(int(organization_id))
     
