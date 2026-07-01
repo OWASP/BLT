@@ -207,3 +207,49 @@ async def create_bug_from_finding(
         raise BltApiError(str(message), status=status, body=json.dumps(body))
 
     return parse_bug_id(body)
+
+
+def health_endpoint(base_url: str) -> str:
+    base = base_url.rstrip("/")
+    if base.endswith("/health"):
+        return base
+    return f"{base}/health"
+
+
+def _urllib_get_json(url: str, headers: Mapping[str, str]) -> tuple[int, dict]:
+    req = urllib.request.Request(url, method="GET")
+    for key, value in headers.items():
+        req.add_header(key, value)
+    try:
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            status = int(getattr(resp, "status", 200) or 200)
+            raw = resp.read().decode("utf-8")
+    except urllib.error.HTTPError as exc:
+        status = int(exc.code)
+        raw = exc.read().decode("utf-8", errors="replace")
+    try:
+        parsed = json.loads(raw) if raw else {}
+    except json.JSONDecodeError:
+        parsed = {}
+    if not isinstance(parsed, dict):
+        parsed = {}
+    return status, parsed
+
+
+async def check_blt_api_reachable(
+    env: Any,
+    *,
+    fetch_impl: Optional[HttpPostJson] = None,
+) -> bool:
+    base_url, api_key = get_blt_config(env)
+    if not base_url:
+        return False
+    url = health_endpoint(base_url)
+    headers: dict[str, str] = {}
+    if api_key:
+        headers[API_KEY_HEADER] = api_key
+    if fetch_impl is not None:
+        status, _ = await fetch_impl(url, headers, {})
+        return 200 <= status < 300
+    status, _ = await asyncio.to_thread(_urllib_get_json, url, headers)
+    return 200 <= status < 300

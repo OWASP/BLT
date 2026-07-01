@@ -659,6 +659,8 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
+            min-height: 0;
+            overflow: hidden;
         }
 
         .detail-header {
@@ -684,11 +686,15 @@
 
         .detail-body {
             flex: 1;
+            min-height: 0;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 0.85rem;
+            -webkit-overflow-scrolling: touch;
         }
 
-        .detail-body::-webkit-scrollbar { width: 4px; }
+        .detail-body::-webkit-scrollbar { width: 6px; }
+        .detail-body::-webkit-scrollbar-thumb { background: #ff4040; }
 
         .detail-placeholder {
             height: 100%;
@@ -717,7 +723,7 @@
             background: rgba(255, 140, 0, 0.05);
             padding: 12px;
             border-radius: 4px;
-            margin: 8px;
+            margin: 0 0 8px;
             position: relative;
         }
 
@@ -760,6 +766,36 @@
             font-size: 11px;
             letter-spacing: 2px;
             margin: 3px 0;
+        }
+
+        .evidence-json {
+            margin: 0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 11px;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #8b949e;
+        }
+
+        .evidence-box-live {
+            min-height: 80px;
+        }
+
+        .access-section {
+            margin: 10px 0 12px;
+        }
+
+        .access-log-list {
+            margin-top: 4px;
+        }
+
+        .detail-error {
+            color: #f85149;
+        }
+
+        .detail-retry-btn {
+            margin-top: 10px;
         }
 
         .confidential-stamp {
@@ -1023,6 +1059,132 @@
         .toast.error { border-color: var(--accent-critical); color: var(--accent-critical); }
 
         .hidden { display: none !important; }
+
+        .findings-list-view {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem 0.75rem 1rem;
+            min-height: 0;
+        }
+
+        .findings-list-view.hidden {
+            display: none !important;
+        }
+
+        .finding-list-card {
+            border: 1px solid rgba(255, 32, 32, 0.35);
+            border-radius: 4px;
+            padding: 0.65rem 0.75rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            background: rgba(255, 32, 32, 0.04);
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .finding-list-card:hover,
+        .finding-list-card.selected {
+            border-color: #ff2020;
+            background: rgba(255, 32, 32, 0.1);
+        }
+
+        .finding-list-card .flc-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .finding-list-card .flc-id {
+            color: var(--accent-critical);
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .finding-list-card .flc-rule {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .finding-list-card .flc-target {
+            font-size: 0.62rem;
+            color: #aaa;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .triage-mode-btn.active {
+            border-color: #00c864;
+            color: #00c864;
+            box-shadow: 0 0 10px rgba(0, 200, 100, 0.35);
+        }
+
+        .triage-mode-btn:not(:disabled) {
+            cursor: pointer;
+        }
+
+        .detail-tab-panels {
+            margin-top: 0.25rem;
+        }
+
+        .detail-tab-panel {
+            display: none;
+        }
+
+        .detail-tab-panel.active {
+            display: block;
+        }
+
+        .detail-actions {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 170, 0, 0.25);
+        }
+
+        .status-save-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .status-save-row select {
+            flex: 1;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 11px;
+            margin-top: 8px;
+        }
+
+        .meta-grid dt {
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .meta-grid dd {
+            margin: 0 0 6px;
+            color: #ddd;
+            word-break: break-word;
+        }
+
+        .cve-link-row a {
+            color: #60a5fa;
+            font-size: 11px;
+            word-break: break-all;
+        }
+
+        .blt-issue-link {
+            display: inline-block;
+            margin-top: 6px;
+            color: #00c864;
+            font-size: 11px;
+        }
     </style>
 </head>
 <body>
@@ -1082,6 +1244,26 @@
                     <option value="low">low</option>
                 </select>
             </div>
+            <div class="field">
+                <label class="field-label" for="filter-status">Status</label>
+                <select id="filter-status" class="field-select">
+                    <option value="">All</option>
+                    <option value="open">open</option>
+                    <option value="triaging">triaging</option>
+                    <option value="converted">converted</option>
+                    <option value="snoozed">snoozed</option>
+                    <option value="wontfix">wontfix</option>
+                </select>
+            </div>
+            <div class="field">
+                <label class="field-label" for="filter-sort">Sort</label>
+                <select id="filter-sort" class="field-select">
+                    <option value="updated_at:desc">Updated (newest)</option>
+                    <option value="updated_at:asc">Updated (oldest)</option>
+                    <option value="created_at:desc">Created (newest)</option>
+                    <option value="severity:desc">Severity (high first)</option>
+                </select>
+            </div>
 
             <div class="filter-controls-panel">
                 <div class="section-title" style="margin-top:0;">Filter Controls</div>
@@ -1101,9 +1283,9 @@
                     </div>
                 </div>
 
-                <button type="button" class="triage-mode-btn" disabled aria-label="Triage Mode with AI filter">
+                <button type="button" id="triage-mode-btn" class="triage-mode-btn" aria-label="Priority triage queue">
                     <span class="ai-icon"><i class="fa-solid fa-robot"></i></span>
-                    <span>Triage Mode<br><span style="color:var(--text-muted);font-size:.62rem">(with AI filter)</span></span>
+                    <span>Priority Triage<br><span style="color:var(--text-muted);font-size:.62rem">(open critical/high)</span></span>
                 </button>
 
                 <div class="view-label">View</div>
@@ -1136,7 +1318,7 @@
                     </span>
                 </span>
             </div>
-            <div class="table-wrap">
+            <div id="findings-table-wrap" class="table-wrap">
                 <table class="findings-table">
                     <thead>
                         <tr>
@@ -1161,6 +1343,7 @@
                     </tbody>
                 </table>
             </div>
+            <div id="findings-list-view" class="findings-list-view hidden" aria-label="Findings list view"></div>
             <div class="findings-cube" aria-hidden="true">⬡</div>
         </section>
 
@@ -1186,58 +1369,6 @@
 </div>
 
 <div id="toast" class="toast"></div>
-<script src="assets/js/triage.js?v=12"></script>
-<script>
-// Failsafe inline click handler — overrides any JS file issues
-document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(function() {
-    document.getElementById('findings-body').addEventListener('click', function(e) {
-      var row = e.target.closest('tr[data-id]');
-      if (!row) return;
-
-      document.querySelectorAll('#findings-body tr').forEach(function(r) {
-        r.classList.remove('selected');
-      });
-      row.classList.add('selected');
-
-      var id = row.getAttribute('data-id');
-      var rule = row.getAttribute('data-rule');
-      var severity = row.getAttribute('data-severity');
-      var target = row.getAttribute('data-target');
-      var cve = row.getAttribute('data-cve') || '';
-
-      var panel = document.getElementById('detail-panel-content');
-      if (!panel) return;
-
-      panel.innerHTML =
-        '<div class="finding-card">' +
-          '<div class="finding-card-title">Finding Details: ' + id + '</div>' +
-          '<div class="evidence-section">' +
-            '<div class="evidence-label">Redacted Evidence Snippet</div>' +
-            '<div class="evidence-label-small">Evidence</div>' +
-            '<div class="evidence-box" style="position:relative">' +
-              '<div class="evidence-text">\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 \u2588\u2588\u2588 \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 \u2588\u2588\u2588\u2588\u2588\u2588</div>' +
-              '<div class="evidence-text">\u2588\u2588\u2588\u2588 \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 \u2588\u2588\u2588\u2588 \u2588\u2588\u2588\u2588</div>' +
-              '<div class="confidential-stamp">confidential</div>' +
-              '<span class="magnify-icon">\uD83D\uDD0D</span>' +
-            '</div>' +
-          '</div>' +
-          '<div class="summary-section">' +
-            '<div class="field-label">Summary</div>' +
-            '<div class="summary-text">' + rule + ' on ' + target + '. Severity: ' + severity + '.</div>' +
-          '</div>' +
-          '<button class="convert-btn" onclick="alert(\'Convert \' + \'' + id + '\' + \' to issue\')">' +
-            '<span>\uD83D\uDCCB</span>' +
-            '<span class="cve-badge">CVE</span>' +
-            '<span>Convert to Issue</span>' +
-          '</button>' +
-          '<div class="field-label">CVE Link</div>' +
-          '<input class="cve-input" type="text" value="' + cve + '" placeholder="https://cve.mitre.org/..." readonly />' +
-          '<button class="export-btn">📄 Export CSV</button>' +
-        '</div>';
-    }, true); // true = capture phase, fires before any other handlers
-  }, 500); // 500ms delay ensures rows are rendered first
-});
-</script>
+<script src="assets/js/triage.js?v=15"></script>
 </body>
 </html>
