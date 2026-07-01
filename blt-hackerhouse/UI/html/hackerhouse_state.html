@@ -1,0 +1,505 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>BLT HackerHouse</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed-dim": "#7bd8b1",
+                      "inverse-primary": "#c00000",
+                      "on-primary-container": "#fff1ef",
+                      "on-background": "#ffdad4",
+                      "outline": "#af8781",
+                      "primary": "#ffb4a8",
+                      "tertiary-fixed": "#ffdbca",
+                      "tertiary-container": "#b5530a",
+                      "outline-variant": "#5f3f3a",
+                      "surface-bright": "#4b3330",
+                      "secondary-container": "#017756",
+                      "on-primary-fixed": "#410000",
+                      "on-error": "#690005",
+                      "surface-variant": "#462f2b",
+                      "surface-container": "#2e1a17",
+                      "on-secondary-fixed": "#002115",
+                      "tertiary-fixed-dim": "#ffb68e",
+                      "on-surface": "#ffdad4",
+                      "inverse-on-surface": "#412b27",
+                      "error-container": "#93000a",
+                      "surface-container-lowest": "#1a0907",
+                      "primary-container": "#e10101",
+                      "on-secondary": "#003827",
+                      "primary-fixed": "#ffdad4",
+                      "secondary-fixed": "#97f5cc",
+                      "background": "#200e0c",
+                      "surface-container-low": "#2a1613",
+                      "on-primary-fixed-variant": "#930000",
+                      "on-tertiary-fixed-variant": "#763300",
+                      "on-surface-variant": "#e9bcb5",
+                      "tertiary": "#ffb68e",
+                      "on-secondary-fixed-variant": "#00513a",
+                      "error": "#ffb4ab",
+                      "on-tertiary-container": "#fff2ec",
+                      "surface": "#200e0c",
+                      "secondary": "#7bd8b1",
+                      "surface-container-highest": "#462f2b",
+                      "surface-container-high": "#3a2521",
+                      "inverse-surface": "#ffdad4",
+                      "on-error-container": "#ffdad6",
+                      "primary-fixed-dim": "#ffb4a8",
+                      "on-tertiary-fixed": "#331200",
+                      "surface-dim": "#200e0c",
+                      "on-secondary-container": "#9dfbd1",
+                      "on-primary": "#690000",
+                      "on-tertiary": "#532200",
+                      "surface-tint": "#ffb4a8"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "section-gap": "3rem",
+                      "container-padding-sm": "1rem",
+                      "stack-gap": "0.75rem",
+                      "gutter": "1rem",
+                      "container-padding-lg": "1.5rem"
+              },
+              "fontFamily": {
+                      "subsection-title": [
+                              "Manrope"
+                      ],
+                      "section-title": [
+                              "Manrope"
+                      ],
+                      "code-label": [
+                              "JetBrains Mono"
+                      ],
+                      "page-title-mobile": [
+                              "Manrope"
+                      ],
+                      "body-dense": [
+                              "Manrope"
+                      ],
+                      "page-title": [
+                              "Manrope"
+                      ],
+                      "body-base": [
+                              "Manrope"
+                      ]
+              },
+              "fontSize": {
+                      "subsection-title": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "section-title": [
+                              "36px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "code-label": [
+                              "13px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "page-title-mobile": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "body-dense": [
+                              "14px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "page-title": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "body-base": [
+                              "16px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .glow-red { box-shadow: inset 0 0 15px rgba(225, 1, 1, 0.2); border: 1px solid rgba(225, 1, 1, 0.4); }
+        .glow-green { box-shadow: inset 0 0 15px rgba(123, 216, 177, 0.2); border: 1px solid rgba(123, 216, 177, 0.4); }
+        .pulse-green { animation: pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .5; transform: scale(1.1); }
+        }
+        .room-transition { transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Layout overrides */
+        body { background-color: #200e0c; color: #ffdad4; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex antialiased">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-screen w-[18.5rem] sticky left-0 top-0 bg-surface-container border-r border-outline-variant shadow-lg p-gutter gap-stack-gap z-40">
+<div class="flex items-center gap-3 px-2 py-4 border-b border-outline-variant">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-xl relative">
+                B
+                <div class="absolute bottom-0 right-0 w-3 h-3 bg-secondary rounded-full border-2 border-surface-container pulse-green"></div>
+</div>
+<div>
+<h2 class="font-section-title text-section-title font-black text-primary !text-2xl leading-none">BLT</h2>
+<p class="font-body-base text-body-base text-on-surface-variant text-sm">Command Center</p>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto py-4 flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container rounded-xl shadow-[inset_0_0_8px_rgba(225,1,1,0.2)] font-body-base text-body-base font-semibold group hover:translate-x-1 transition-transform ease-in-out" href="#">
+<span class="material-symbols-outlined group-hover:scale-95 transition-transform" style="font-variation-settings: 'FILL' 1;">home</span>
+                HackerHouse
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 rounded-xl font-body-base text-body-base group hover:translate-x-1 ease-in-out" href="#">
+<span class="material-symbols-outlined group-hover:scale-95 transition-transform">rss_feed</span>
+                Activity Feed
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 rounded-xl font-body-base text-body-base group hover:translate-x-1 ease-in-out" href="#">
+<span class="material-symbols-outlined group-hover:scale-95 transition-transform">leaderboard</span>
+                Leaderboard
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 rounded-xl font-body-base text-body-base group hover:translate-x-1 ease-in-out" href="#">
+<span class="material-symbols-outlined group-hover:scale-95 transition-transform">sensors</span>
+                Status
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 rounded-xl font-body-base text-body-base group hover:translate-x-1 ease-in-out" href="#">
+<span class="material-symbols-outlined group-hover:scale-95 transition-transform">monitor_heart</span>
+                Health
+            </a>
+</nav>
+<div class="mt-auto flex flex-col gap-2 pt-4 border-t border-outline-variant">
+<button class="w-full py-3 px-4 bg-primary-container text-white rounded-lg font-body-base text-body-base font-bold hover:bg-[#B91C1C] transition-colors flex items-center justify-center gap-2">
+                Connect Node
+            </button>
+<div class="flex flex-col gap-1 mt-2">
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 rounded-xl text-sm group" href="#">
+<span class="material-symbols-outlined text-lg group-hover:scale-95 transition-transform">settings</span>
+                    Settings
+                </a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 rounded-xl text-sm group" href="#">
+<span class="material-symbols-outlined text-lg group-hover:scale-95 transition-transform">help</span>
+                    Support
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
+<!-- TopNavBar (Main Area Header) -->
+<header class="flex justify-between items-center w-full px-6 py-4 sticky top-0 z-30 bg-surface/90 backdrop-blur-md shadow-md border-b border-outline-variant">
+<div class="flex items-center gap-4">
+<h1 class="font-page-title text-page-title font-extrabold text-primary !text-3xl leading-none hidden md:block">BLT HackerHouse</h1>
+<span class="px-3 py-1 bg-primary-container/20 text-primary-container border border-primary-container/50 rounded-full text-xs font-bold tracking-widest flex items-center gap-2">
+<span class="w-2 h-2 bg-primary-container rounded-full animate-pulse"></span>
+                    LIVE
+                 </span>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 text-primary hover:bg-surface-container-high transition-colors duration-200 rounded-full scale-95 active:opacity-80">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="p-2 text-primary hover:bg-surface-container-high transition-colors duration-200 rounded-full scale-95 active:opacity-80">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+</div>
+</header>
+<div class="flex-1 p-gutter overflow-y-auto">
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter h-full">
+<!-- Left: Building Vis (65%) -->
+<div class="xl:col-span-8 flex flex-col gap-stack-gap h-full">
+<div class="bg-surface-container-low border border-outline-variant rounded-lg p-3 flex justify-between items-center shadow-sm">
+<div class="flex items-center gap-2 text-secondary-fixed-dim text-sm font-medium">
+<span class="material-symbols-outlined text-base">policy</span>
+                            Possible identity match: <span class="font-bold text-on-surface">user_491</span>
+</div>
+<button class="text-xs bg-surface-container-highest px-3 py-1 rounded hover:bg-surface-container-high transition-colors border border-outline-variant">Review</button>
+</div>
+<div class="flex-1 bg-surface-container rounded-[1.5rem] border border-outline-variant shadow-lg relative overflow-hidden flex flex-col">
+<!-- Header / Legend -->
+<div class="p-4 flex justify-between items-center z-10 border-b border-outline-variant/50 bg-surface-container/80 backdrop-blur-sm">
+<h3 class="font-subsection-title text-subsection-title !text-xl text-on-surface">Digital Twin</h3>
+<div class="flex items-center gap-2 bg-surface-container-lowest px-4 py-2 rounded-full border border-outline-variant">
+<span class="w-2 h-2 bg-secondary rounded-full pulse-green"></span>
+<span class="font-code-label text-code-label text-on-surface-variant">55 contributors online</span>
+</div>
+</div>
+<!-- Vis Area -->
+<div class="flex-1 relative p-6 flex items-center justify-center min-h-[500px]">
+<!-- 3D Shader BG -->
+<!-- STITCH_THREEJS_START:ANIMATION_3 class="absolute inset-0 w-full h-full opacity-40 mix-blend-screen pointer-events-none" -->
+<div class="absolute inset-0 w-full h-full opacity-40 mix-blend-screen pointer-events-none" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_3" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_3');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const avatarMovements = {
+    // Logic for animating avatars between rooms
+    // Assume rooms are divs with IDs matching room names
+    move(contributorId, targetRoomId) {
+        const avatar = document.querySelector(`[data-contributor-id="${contributorId}"]`);
+        const targetRoom = document.getElementById(targetRoomId);
+        if (!avatar || !targetRoom) return;
+
+        // Simple smooth transition using absolute positioning or translation
+        // For a grid layout, we calculate offsets
+        const targetRect = targetRoom.getBoundingClientRect();
+        const currentRect = avatar.getBoundingClientRect();
+        
+        // Move logic
+        avatar.style.transform = `translate(${targetRect.left - currentRect.left}px, ${targetRect.top - currentRect.top}px)`;
+        
+        // After transition, append to new room to maintain DOM structure
+        setTimeout(() => {
+            avatar.style.transform = '';
+            targetRoom.querySelector('.avatar-container').appendChild(avatar);
+            this.pulseRoom(targetRoom);
+        }, 400);
+    },
+    pulseRoom(roomElement) {
+        roomElement.classList.add('animate-room-pulse');
+        setTimeout(() => roomElement.classList.remove('animate-room-pulse'), 1000);
+    },
+    showScoreDelta(contributorId, delta) {
+        const avatar = document.querySelector(`[data-contributor-id="${contributorId}"]`);
+        if (!avatar) return;
+        const deltaEl = document.createElement('div');
+        deltaEl.className = 'absolute -top-4 left-1/2 -translate-x-1/2 text-primary font-bold animate-fly-up';
+        deltaEl.textContent = `+${delta}`;
+        avatar.appendChild(deltaEl);
+        setTimeout(() => deltaEl.remove(), 1000);
+    }
+};
+
+// Simple Mock WebSocket for demo
+function initWebSocket() {
+    console.log('Connecting to HackerHouse WebSocket...');
+    // Real implementation would use new WebSocket(url)
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initWebSocket();
+});
+
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_3 -->
+<!-- The House -->
+<div class="w-full max-w-3xl flex flex-col gap-4 relative z-10">
+<!-- Floor 3: Review -->
+<div class="w-full border border-outline-variant rounded-xl p-4 bg-surface-container-highest/80 backdrop-blur-md">
+<div class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3">Floor 3: Review &amp; QA</div>
+<div class="grid grid-cols-5 gap-3 h-24">
+<div class="bg-surface border border-outline-variant rounded-lg flex items-center justify-center relative overflow-hidden group hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant opacity-50 text-3xl">fact_check</span>
+</div>
+<div class="bg-surface glow-red rounded-lg flex items-center justify-center relative overflow-hidden">
+<div class="w-8 h-8 rounded-full border-2 border-primary-container bg-surface-bright flex items-center justify-center absolute room-transition">
+<img alt="avatar" class="w-full h-full rounded-full opacity-80" data-alt="A macro photograph of a stylized digital avatar profile picture glowing slightly red against a dark background, representing an active software contributor in a cyberpunk interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDikOzmpqlJOGtoHHuNfTSi56oA-0FMmUcWsmSfwupZjKFKkl9C9GQrJKBeUR7v3rEjtO6j_uSqQ8xh5a7Ndk-o-T2FpwvAkwuFj0hmVR4EjxwGYin6dcsGxEBbiRX438M4w0qtfrzqA7231RB094UMXAuIpLsMJJODLGTkOGvjT5muEsYsB4korlIgXJcVn0M6Os5YLgVBSdz4K98FD0E_H_qdd4Ea-9RLBRsODXbuwJPfcb4LAHW83-CQvfcHOG1N4R02SJcOAQ9b">
+</div>
+</div>
+<div class="bg-surface border border-outline-variant rounded-lg flex items-center justify-center"></div>
+<div class="bg-surface border border-outline-variant rounded-lg flex items-center justify-center"></div>
+<div class="bg-surface glow-green rounded-lg flex items-center justify-center">
+<div class="w-6 h-6 rounded-full border-2 border-secondary bg-surface-bright absolute room-transition"></div>
+</div>
+</div>
+</div>
+<!-- Floor 2: Dev -->
+<div class="w-full border border-outline-variant rounded-xl p-4 bg-surface-container-highest/80 backdrop-blur-md relative">
+<div class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3">Floor 2: Development Core</div>
+<div class="absolute right-4 top-4 text-xs font-code-label text-secondary">+15 BLT/hr</div>
+<div class="grid grid-cols-5 gap-3 h-32">
+<div class="bg-surface glow-red rounded-lg flex items-center justify-center relative col-span-2">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-primary-container bg-surface-bright z-10"><img class="rounded-full" data-alt="A modern UI profile picture showing a glowing digital avatar in a dark mode application, high contrast lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPhmZJt-8iOetQA8QG3vUVovvAh44U6mMraQ0Tjf-_0-V7jKmI99jb0-2Gf-aV838vePgCwD7IleGICIQSK593L-Vew6LLjoN4-PDGec1ZTsUALiZsnjhptizgDyTNSDlISHN-cWI4N2a-QgXvLy7l3TdBsjZf5W18-2WBIV9SC9TIJUlIvP6dmEfwk-V33tL4XfBIhas3cYOYdKe1x-tcgSJwe6GhxwqThWnumlnYg-Cg7dhuIWPV9eVtYQjc6ghQXzSY_rFi_ym8"></div>
+<div class="w-8 h-8 rounded-full border-2 border-primary-container bg-surface-bright z-20"><img class="rounded-full" data-alt="A small circular avatar image depicting a male face with dramatic neon rim lighting, typical of a modern dark-mode hacker interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAWNZ6XtK9p7otJtKrqf2iVCNfoo5iZG8l2WxU5TV0UMksT2z_7a0iIBUYOo5fdfPOE3JULSbjOYsIV-M6XPbZ2VOhb2xFSm-6ioHTHlmeUQUuRFoDZpfeCI4GwFE8eDTfw71plJ7bh2LXh7mPHvIWiECmcwf9JvjiAzPRXW00gtxrsqyepZ7kGjNAKtxgsMI6rVjeFokB_1vTX9Tpg_TKy6XfcUX4SRrAzUBx40cqVvzV327veigupeOx-b_AYNICLpSio7lhrD4a"></div>
+<div class="w-8 h-8 rounded-full border-2 border-outline bg-surface-container-low z-30 flex items-center justify-center text-xs font-bold">+3</div>
+</div>
+</div>
+<div class="bg-surface border border-outline-variant rounded-lg flex items-center justify-center relative">
+<span class="material-symbols-outlined text-on-surface-variant opacity-50 text-3xl">terminal</span>
+</div>
+<div class="bg-surface glow-red rounded-lg flex items-center justify-center relative col-span-2">
+<div class="w-8 h-8 rounded-full border-2 border-primary-container bg-surface-bright"><img class="rounded-full" data-alt="Female avatar portrait inside a digital circle, illuminated by a soft red glow indicating active coding status in a futuristic dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9JzGKmUhdYImIqcskE1Bta3wPnk7ekH5CYKlRUBtCHz5S8-4iag38UHtxtJCs88YyN4_9sB0kMbJ0ZRXfHAHA98Sh6UVC9NJORm68FFIdv_XOHIZ4te6e01XwwO1h28eA6WN295HL4M-sttM8JRpxpY9mDCudFhtX8Bghx39rNlw1j_aBsDoJHLD19TtYyJrfIdstdcMNeNja8wNfRv1NOLJd3ZsunNkTLLeWV7ZTjDvUICYygudbepZXZ-YYfegmxwf1hk6aGMkZ"></div>
+</div>
+</div>
+</div>
+<!-- Floor 1: Ops -->
+<div class="w-full border border-outline-variant rounded-xl p-4 bg-surface-container-highest/80 backdrop-blur-md">
+<div class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3">Floor 1: Operations</div>
+<div class="grid grid-cols-5 gap-3 h-24">
+<div class="bg-surface border border-outline-variant rounded-lg flex items-center justify-center group">
+<span class="material-symbols-outlined text-on-surface-variant opacity-50 group-hover:text-secondary transition-colors text-3xl">storage</span>
+</div>
+<div class="bg-surface border border-outline-variant rounded-lg flex items-center justify-center"></div>
+<div class="bg-surface glow-green rounded-lg flex items-center justify-center">
+<div class="w-6 h-6 rounded-full border-2 border-secondary bg-surface-bright"></div>
+</div>
+<div class="bg-surface border border-outline-variant rounded-lg flex items-center justify-center"></div>
+<div class="bg-surface border border-outline-variant rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant opacity-50 text-3xl">router</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: 3 Panels (35%) -->
+<div class="xl:col-span-4 flex flex-col gap-stack-gap h-full overflow-hidden">
+<!-- Activity Stream -->
+<div class="flex-1 bg-surface-container rounded-xl border border-outline-variant shadow-lg flex flex-col min-h-0 overflow-hidden">
+<div class="p-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+<h3 class="font-subsection-title text-subsection-title !text-lg text-on-surface">Live Activity</h3>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">filter_list</span>
+</div>
+<div class="flex-1 overflow-y-auto p-2 flex flex-col gap-1">
+<!-- Item 1 -->
+<div class="p-3 rounded-lg hover:bg-surface-container-highest transition-colors flex gap-3 border border-transparent hover:border-outline-variant/50 cursor-pointer">
+<div class="w-8 h-8 rounded bg-surface-bright border border-outline-variant flex items-center justify-center flex-shrink-0">
+<span class="font-bold text-xs text-primary">GL</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-body-dense text-body-dense text-on-surface truncate"><span class="font-bold">user_491</span> merged PR #402</p>
+<p class="font-code-label text-code-label text-on-surface-variant text-xs mt-1">core/auth/token.go</p>
+</div>
+<div class="text-xs text-on-surface-variant">2m</div>
+</div>
+<!-- Item 2 -->
+<div class="p-3 rounded-lg hover:bg-surface-container-highest transition-colors flex gap-3 border border-transparent hover:border-outline-variant/50 cursor-pointer bg-surface-container-high/50">
+<div class="w-8 h-8 rounded bg-primary-container/20 border border-primary-container/50 flex items-center justify-center flex-shrink-0">
+<span class="font-bold text-xs text-primary-container">BLT</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-body-dense text-body-dense text-on-surface truncate"><span class="font-bold text-primary">System</span> generated 50 points</p>
+<p class="font-code-label text-code-label text-on-surface-variant text-xs mt-1">Reward distribution</p>
+</div>
+<div class="text-xs text-on-surface-variant">5m</div>
+</div>
+<!-- Item 3 -->
+<div class="p-3 rounded-lg hover:bg-surface-container-highest transition-colors flex gap-3 border border-transparent hover:border-outline-variant/50 cursor-pointer">
+<div class="w-8 h-8 rounded bg-surface-bright border border-outline-variant flex items-center justify-center flex-shrink-0">
+<span class="font-bold text-xs text-primary">GL</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-body-dense text-body-dense text-on-surface truncate"><span class="font-bold">dev_ninja</span> opened Issue #403</p>
+<p class="font-code-label text-code-label text-on-surface-variant text-xs mt-1">frontend/dashboard.tsx</p>
+</div>
+<div class="text-xs text-on-surface-variant">12m</div>
+</div>
+</div>
+</div>
+<!-- Leaderboard -->
+<div class="flex-1 bg-surface-container rounded-xl border border-outline-variant shadow-lg flex flex-col min-h-0 overflow-hidden">
+<div class="p-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+<h3 class="font-subsection-title text-subsection-title !text-lg text-on-surface">Top Contributors</h3>
+</div>
+<div class="flex-1 p-4 flex flex-col gap-3 justify-center">
+<!-- Rank 1 -->
+<div class="flex items-center gap-3 bg-surface-container-high p-2 rounded-lg border border-outline-variant/50 relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-[#FFD700]"></div>
+<div class="w-6 text-center font-bold text-on-surface-variant">1</div>
+<div class="w-8 h-8 rounded-full bg-surface relative">
+<span class="material-symbols-outlined absolute -top-3 -right-2 text-[#FFD700] text-sm" style="font-variation-settings: 'FILL' 1;">crown</span>
+<img class="w-full h-full rounded-full" data-alt="Avatar icon with a small golden crown overlaid on top corner, indicating a leaderboard winner in a dark user interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDd7fUKlaerH-kCDXgZJ1ACqm1c1qk9q5deTn-MXnfMxVZ0Pf6nIjtDkJIL7bd2_qSgM2mXYSGlzDmsM9fWsHbz6ntph_peaC9xk22o2L1W0KHV9uCLgGgzd5ph9lsMdmeLPPrSBcbB-wwWDrlw4CeDK3C0s1_kuk9kh6w5fRVqE55r03HHWBIOFy7pyhiH2k2GbCPdAVC2ooV8SlRrCayjpXAMdZ8LDdCifRZWcdqmhLEEUBo0XXyEhQ2D-KSV2pzjblHY-ZKVr5ec">
+</div>
+<div class="flex-1 font-body-dense text-body-dense font-bold">algo_rythm</div>
+<div class="text-right">
+<div class="font-code-label text-code-label text-secondary">14,250</div>
+<div class="text-[10px] text-secondary-fixed-dim flex items-center justify-end"><span class="material-symbols-outlined text-[10px]">arrow_upward</span> 350</div>
+</div>
+</div>
+<!-- Rank 2 -->
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container-highest transition-colors">
+<div class="w-6 text-center font-bold text-on-surface-variant">2</div>
+<div class="w-8 h-8 rounded-full bg-surface border border-outline-variant overflow-hidden"><img class="w-full h-full" data-alt="Simple portrait of a male user in dark mode interface representing 2nd place on a leaderboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdSHx0ifLDUHNZ1CQLt2OQxi4LuUDgajUebqMcK55TQrjNm8otjzHxGFfZmQlAHVWy8XE48KLVo-pMl9YXn3ChC1ixNe7g9q9CWdtCog4HQEFM_eV92qZkHvEC-jk1Inc_47GsijDfzmfJ9wm8XatJ1cbmdCtft-evEkH7na_G4AZJ4QadLRTB60PSj26oWEFTknp_0wfr9Utzu8qQMSuCVmQFuIgkGkBcSseNUSo4rP9RorvTy_GE2A2f4hAX50-3dUAUCfUMOajZ"></div>
+<div class="flex-1 font-body-dense text-body-dense">byte_me</div>
+<div class="text-right font-code-label text-code-label text-on-surface">12,100</div>
+</div>
+<!-- Rank 3 -->
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container-highest transition-colors">
+<div class="w-6 text-center font-bold text-on-surface-variant">3</div>
+<div class="w-8 h-8 rounded-full bg-surface border border-outline-variant overflow-hidden"><img class="w-full h-full" data-alt="Portrait of a female user in a round frame representing a 3rd place competitor on a high-contrast dark dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6vS1JUlHYNsOR_jyBY0vxSu4mFUddT28n-DRXQn64rADZo9P6vJENFoL8oEmj6El0p4zmKiHZ2hAl7Y80k_HdmwEhHjwzfUM-U0v6XFOYyXITbbswlPlGEKlUCni3AqMvtVd1lvMDpnNydNTdJdUpV-3RxhGLQ22qglhgKISPcqIPdu-ATJu2XTlgBsD4zYeuNGVV8vI3cn48NKYklsA9RZdMZMFTtQbZ9_4PDD5vhyb_-WUrZZJ3WSiRWr0cZS37HbnQF57Q3Zqx"></div>
+<div class="flex-1 font-body-dense text-body-dense">null_ptr</div>
+<div class="text-right font-code-label text-code-label text-on-surface">11,840</div>
+</div>
+</div>
+</div>
+<!-- Room Occupancy -->
+<div class="flex-none h-48 bg-surface-container rounded-xl border border-outline-variant shadow-lg flex flex-col overflow-hidden">
+<div class="p-3 border-b border-outline-variant bg-surface-container-low">
+<h3 class="font-subsection-title text-subsection-title !text-sm text-on-surface">Room Occupancy</h3>
+</div>
+<div class="flex-1 p-4 flex flex-col justify-around">
+<div class="w-full">
+<div class="flex justify-between text-xs text-on-surface-variant mb-1">
+<span>Dev Core (F2)</span>
+<span>85%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-[85%] rounded-full shadow-[0_0_8px_rgba(225,1,1,0.5)]"></div>
+</div>
+</div>
+<div class="w-full">
+<div class="flex justify-between text-xs text-on-surface-variant mb-1">
+<span>Review (F3)</span>
+<span>40%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[40%] rounded-full"></div>
+</div>
+</div>
+<div class="w-full">
+<div class="flex justify-between text-xs text-on-surface-variant mb-1">
+<span>Ops (F1)</span>
+<span>15%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-outline w-[15%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
