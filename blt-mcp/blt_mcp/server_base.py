@@ -37,9 +37,7 @@ if not BLT_API_KEY:
         pass
 
 if not BLT_API_KEY:
-    # Use the public static API key by default for OWASP BLT
-    BLT_API_KEY = "f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051"
-    logger.info("BLT_API_KEY not found in environment or credentials. Defaulting to public static API key.")
+    logger.info("BLT_API_KEY not found in environment or credentials.")
 
 
 

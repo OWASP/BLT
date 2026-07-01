@@ -28,6 +28,7 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
                             let comment = format!("{}: Manually confirmed & updated triage status for #{} to {} via TUI CLI.", app.auth_user, issue_id, app.triage_target_status);
                             issue.comments.push(comment.clone());
                             app.audit_logs.push(comment);
+                            app.audit_logs.push("+10 Bacon Points (Pending Verification)".to_string());
                         }
                     }
                     app.event_feed.push(message.clone());
@@ -38,6 +39,7 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
                     app.audit_logs.push(message.clone());
                     if success {
                         app.status_message = "✓ Bug submitted! Refreshing issues list...".to_string();
+                        app.audit_logs.push("+50 Bacon Points (Pending Verification)".to_string());
                     } else {
                         app.status_message = message;
                     }
@@ -49,6 +51,12 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
                     app.selected_issue_index = 0;
                     app.status_message = "✓ Issues refreshed with live data.".to_string();
                     app.audit_logs.push("Issues list refreshed after submission.".to_string());
+                    app.save_session();
+                }
+                crate::app::AppEvent::VisionDraftComplete { result } => {
+                    app.submit_form.description = result;
+                    app.status_message = "Vision AI drafting complete. Review and submit.".to_string();
+                    app.audit_logs.push("Vision AI generated issue draft.".to_string());
                     app.save_session();
                 }
                 crate::app::AppEvent::AiTriageResult { message } => {
@@ -139,9 +147,13 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
         crate::app::ActiveOverlay::SubmitForm => {
             if key.code == KeyCode::Char('s') && key.modifiers.contains(KeyModifiers::CONTROL) {
                 app.active_overlay = crate::app::ActiveOverlay::None;
+                let title = app.submit_form.title.clone();
                 let url = app.submit_form.url.clone();
                 let severity = app.submit_form.severity.clone();
+                let bug_type = app.submit_form.bug_type.clone();
                 let mut desc = app.submit_form.description.clone();
+                let steps = app.submit_form.steps_to_reproduce.clone();
+                let screenshot = app.submit_form.screenshot_path.clone();
                 
                 if app.run_mode == crate::app::RunMode::Mcp {
                     desc = format!("*Submitted by AI Agent via BLT-MCP*\n\n{}", desc);
@@ -161,8 +173,11 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                         let mut client_guard = mcp.lock().await;
                         let mut payload = serde_json::Map::new();
                         payload.insert("url".to_string(), serde_json::Value::String(url.clone()));
+                        payload.insert("title".to_string(), serde_json::Value::String(title.clone()));
                         payload.insert("description".to_string(), serde_json::Value::String(desc.clone()));
                         payload.insert("severity".to_string(), serde_json::Value::String(severity.clone()));
+                        payload.insert("bug_type".to_string(), serde_json::Value::String(bug_type.clone()));
+                        payload.insert("steps_to_reproduce".to_string(), serde_json::Value::String(steps.clone()));
                         payload.insert("confirmed".to_string(), serde_json::Value::Bool(true));
                         let args = serde_json::Value::Object(payload);
 
@@ -186,7 +201,7 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                             Err(e) => (false, format!("ERROR: Failed to communicate with MCP: {}", e)),
                         }
                     } else {
-                        match crate::api::submit_issue(&api_base, &url, "unknown", &severity, &desc).await {
+                        match crate::api::submit_issue(&api_base, &url, &title, &severity, &bug_type, &desc, &steps, &screenshot).await {
                             Ok(_) => (true, "SUCCESS: Vulnerability report submitted!".to_string()),
                             Err(e) => (false, format!("ERROR: Failed to submit: {}", e)),
                         }
@@ -220,40 +235,60 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                 }
                 KeyCode::Tab => {
                     app.submit_form.active_field = match app.submit_form.active_field {
+                        crate::app::FormField::Title => crate::app::FormField::Url,
                         crate::app::FormField::Url => crate::app::FormField::Severity,
-                        crate::app::FormField::Severity => crate::app::FormField::Description,
-                        crate::app::FormField::Description => crate::app::FormField::Url,
+                        crate::app::FormField::Severity => crate::app::FormField::BugType,
+                        crate::app::FormField::BugType => crate::app::FormField::Description,
+                        crate::app::FormField::Description => crate::app::FormField::StepsToReproduce,
+                        crate::app::FormField::StepsToReproduce => crate::app::FormField::Screenshot,
+                        crate::app::FormField::Screenshot => crate::app::FormField::Title,
                     };
                 }
                 KeyCode::Enter => {
                     let field = match app.submit_form.active_field {
+                        crate::app::FormField::Title => &mut app.submit_form.title,
                         crate::app::FormField::Url => &mut app.submit_form.url,
                         crate::app::FormField::Severity => &mut app.submit_form.severity,
+                        crate::app::FormField::BugType => &mut app.submit_form.bug_type,
                         crate::app::FormField::Description => &mut app.submit_form.description,
+                        crate::app::FormField::StepsToReproduce => &mut app.submit_form.steps_to_reproduce,
+                        crate::app::FormField::Screenshot => &mut app.submit_form.screenshot_path,
                     };
-                    if app.submit_form.active_field == crate::app::FormField::Description {
+                    if app.submit_form.active_field == crate::app::FormField::Description || app.submit_form.active_field == crate::app::FormField::StepsToReproduce {
                         field.push('\n');
                     } else {
                         app.submit_form.active_field = match app.submit_form.active_field {
+                            crate::app::FormField::Title => crate::app::FormField::Url,
                             crate::app::FormField::Url => crate::app::FormField::Severity,
-                            crate::app::FormField::Severity => crate::app::FormField::Description,
-                            crate::app::FormField::Description => crate::app::FormField::Url,
+                            crate::app::FormField::Severity => crate::app::FormField::BugType,
+                            crate::app::FormField::BugType => crate::app::FormField::Description,
+                            crate::app::FormField::Description => crate::app::FormField::StepsToReproduce,
+                            crate::app::FormField::StepsToReproduce => crate::app::FormField::Screenshot,
+                            crate::app::FormField::Screenshot => crate::app::FormField::Title,
                         };
                     }
                 }
                 KeyCode::Backspace => {
                     let field = match app.submit_form.active_field {
+                        crate::app::FormField::Title => &mut app.submit_form.title,
                         crate::app::FormField::Url => &mut app.submit_form.url,
                         crate::app::FormField::Severity => &mut app.submit_form.severity,
+                        crate::app::FormField::BugType => &mut app.submit_form.bug_type,
                         crate::app::FormField::Description => &mut app.submit_form.description,
+                        crate::app::FormField::StepsToReproduce => &mut app.submit_form.steps_to_reproduce,
+                        crate::app::FormField::Screenshot => &mut app.submit_form.screenshot_path,
                     };
                     field.pop();
                 }
                 KeyCode::Char(c) => {
                     let field = match app.submit_form.active_field {
+                        crate::app::FormField::Title => &mut app.submit_form.title,
                         crate::app::FormField::Url => &mut app.submit_form.url,
                         crate::app::FormField::Severity => &mut app.submit_form.severity,
+                        crate::app::FormField::BugType => &mut app.submit_form.bug_type,
                         crate::app::FormField::Description => &mut app.submit_form.description,
+                        crate::app::FormField::StepsToReproduce => &mut app.submit_form.steps_to_reproduce,
+                        crate::app::FormField::Screenshot => &mut app.submit_form.screenshot_path,
                     };
                     field.push(c);
                 }
@@ -371,6 +406,51 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                         app.status_message = "Not Implemented: Feature coming soon".to_string();
                     } else if cmd == "open hunt" {
                         app.active_tab = Tab::Hunts;
+                    } else if cmd.starts_with("vision ") {
+                        let args = cmd.replace("vision ", "");
+                        let mut parts = args.split_whitespace();
+                        if let Some(path) = parts.next() {
+                            let path = path.to_string();
+                            let gl_id = parts.next().map(|s| s.to_string());
+                            
+                            app.status_message = format!("Drafting issue from image {}...", path);
+                            app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
+                            app.submit_form.url = format!("Image: {}", path);
+                            app.submit_form.description = "Analyzing image with Vision AI...".to_string();
+                            
+                            let mcp_client_clone = app.mcp_client.clone();
+                            let sender = app.event_sender.clone();
+                            
+                            tokio::spawn(async move {
+                                if let Some(mcp) = mcp_client_clone {
+                                    let mut client_guard = mcp.lock().await;
+                                    let mut payload = serde_json::Map::new();
+                                    payload.insert("image_path".to_string(), serde_json::Value::String(path));
+                                    if let Some(gid) = gl_id {
+                                        payload.insert("gitlab_project_id".to_string(), serde_json::Value::String(gid));
+                                    }
+                                    
+                                    match client_guard.call_tool("draft_vision_issue", serde_json::Value::Object(payload)).await {
+                                        Ok(res) => {
+                                            let content_str = if let Some(error) = res.get("error") {
+                                                error.get("message").and_then(|m| m.as_str()).unwrap_or("Unknown MCP Error").to_string()
+                                            } else if let Some(result) = res.get("result") {
+                                                result.get("content").and_then(|c| c.as_array()).and_then(|c| c.first()).and_then(|c| c.get("text")).and_then(|t| t.as_str()).unwrap_or("Unknown response from MCP").to_string()
+                                            } else {
+                                                "ERROR: Invalid response structure from MCP server".to_string()
+                                            };
+                                            
+                                            let _ = sender.send(crate::app::AppEvent::VisionDraftComplete { result: content_str });
+                                        }
+                                        Err(e) => {
+                                            let _ = sender.send(crate::app::AppEvent::VisionDraftComplete { result: format!("ERROR: {}", e) });
+                                        }
+                                    }
+                                } else {
+                                    let _ = sender.send(crate::app::AppEvent::VisionDraftComplete { result: "ERROR: MCP is not connected.".to_string() });
+                                }
+                            });
+                        }
                     } else if cmd == "run mcp tool" {
                         app.status_message = "Not Implemented: Feature coming soon".to_string();
                     }
@@ -467,6 +547,15 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                 app.active_overlay = crate::app::ActiveOverlay::HuntDetail;
             } else if app.active_tab == Tab::Issues && !app.issues.is_empty() {
                 app.trigger_triage();
+            } else if app.active_tab == Tab::Settings {
+                if let Some(health) = &app.security_health {
+                    if !health.open_backdoor_ports.is_empty() || !health.world_writable_paths.is_empty() {
+                        app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
+                        app.submit_form.url = "System Scan Findings".to_string();
+                        app.submit_form.severity = "High".to_string();
+                        app.submit_form.description = format!("Found open backdoor ports: {:?} and world-writable paths: {:?}", health.open_backdoor_ports, health.world_writable_paths);
+                    }
+                }
             }
         }
         KeyCode::Char('s') => {

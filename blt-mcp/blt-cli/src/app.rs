@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::models::{self, Issue, Repo, Hunt, Stats};
+use crate::models::{Issue, Repo, Hunt, Stats};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Tab {
@@ -8,6 +8,7 @@ pub enum Tab {
     Stats,
     Logs,
     Settings,
+    Onboarding,
 }
 
 impl Tab {
@@ -18,6 +19,7 @@ impl Tab {
             Tab::Stats => "BLT Stats",
             Tab::Logs => "Logs & Events",
             Tab::Settings => "Settings",
+            Tab::Onboarding => "Onboarding",
         }
     }
 }
@@ -30,22 +32,30 @@ pub enum RunMode {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum FormField {
+    Title,
     Url,
     Severity,
+    BugType,
     Description,
+    StepsToReproduce,
+    Screenshot,
 }
 
 impl Default for FormField {
     fn default() -> Self {
-        FormField::Url
+        FormField::Title
     }
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct VulnerabilityForm {
+    pub title: String,
     pub url: String,
     pub severity: String,
+    pub bug_type: String,
     pub description: String,
+    pub steps_to_reproduce: String,
+    pub screenshot_path: String,
     pub active_field: FormField,
 }
 
@@ -69,6 +79,7 @@ pub enum AppEvent {
     TriageConfirmed { issue_id: String, success: bool, message: String },
     SubmitResult { success: bool, message: String },
     IssuesRefreshed { issues: Vec<crate::models::Issue>, total: u32 },
+    VisionDraftComplete { result: String },
     AiTriageResult { message: String },
     ScanComplete { health: crate::scanner::SecurityHealth },
 }
@@ -79,13 +90,14 @@ pub struct App {
     pub repos: Vec<Repo>,
     pub hunts: Vec<Hunt>,
     pub stats: Stats,
+    pub leaderboard: Vec<crate::models::LeaderboardEntry>,
+    pub good_first_issues: Vec<crate::models::GoodFirstIssue>,
     pub selected_issue_index: usize,
     pub selected_repo_index: usize,
     pub selected_hunt_index: usize,
     pub should_quit: bool,
     pub active_overlay: ActiveOverlay,
     pub submit_form: VulnerabilityForm,
-    pub leaderboard: Vec<models::LeaderboardEntry>,
     pub ai_triage_result: Option<String>,
     pub search_query: String,
     pub selected_issues: std::collections::HashSet<String>,
@@ -134,13 +146,14 @@ impl App {
             repos: Vec::new(),
             hunts: Vec::new(),
             stats: Stats { total_issues: 0, active_repos: 0, total_contributors: 0, bacon_points: 0 },
+            leaderboard: Vec::new(),
+            good_first_issues: Vec::new(),
             selected_issue_index: 0,
             selected_repo_index: 0,
             selected_hunt_index: 0,
             should_quit: false,
             active_overlay: ActiveOverlay::None,
             submit_form: VulnerabilityForm::default(),
-            leaderboard: Vec::new(),
             ai_triage_result: None,
             search_query: String::new(),
             selected_issues: std::collections::HashSet::new(),
@@ -175,7 +188,8 @@ impl App {
             Tab::Hunts => Tab::Stats,
             Tab::Stats => Tab::Logs,
             Tab::Logs => Tab::Settings,
-            Tab::Settings => Tab::Issues,
+            Tab::Settings => Tab::Onboarding,
+            Tab::Onboarding => Tab::Issues,
         };
         self.status_message = format!("Switched to tab: {}", self.active_tab.name());
     }
@@ -185,11 +199,12 @@ impl App {
             return;
         }
         self.active_tab = match self.active_tab {
-            Tab::Issues => Tab::Settings,
+            Tab::Issues => Tab::Onboarding,
             Tab::Hunts => Tab::Issues,
             Tab::Stats => Tab::Hunts,
             Tab::Logs => Tab::Stats,
             Tab::Settings => Tab::Logs,
+            Tab::Onboarding => Tab::Settings,
         };
         self.status_message = format!("Switched to tab: {}", self.active_tab.name());
     }

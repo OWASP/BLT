@@ -244,10 +244,16 @@ async def v2_get_organizations_leaderboard() -> str:
     return await _fetch("/v2/leaderboard/organizations", context="v2 organizations leaderboard")
 
 @mcp.resource("blt://v2/stats")
-async def v2_get_global_stats() -> str:
-    """Get global stats."""
-    logger.info("Fetching v2 global stats")
-    return await _fetch("/v2/stats", context="v2 global stats")
+async def v2_stats() -> str:
+    """Get overall BLT stats."""
+    logger.info("Fetching v2 stats")
+    return await _fetch("/v2/stats", context="v2 stats")
+
+@mcp.resource("blt://v2/leaderboard")
+async def v2_leaderboard() -> str:
+    """Get BLT leaderboard."""
+    logger.info("Fetching v2 leaderboard")
+    return await _fetch("/v2/leaderboard", context="v2 leaderboard")
 
 @mcp.resource("blt://v2/contributors")
 async def v2_list_contributors() -> str:

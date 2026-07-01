@@ -89,6 +89,7 @@ dependencies = [
 name = "blt-cli"
 version = "0.1.0"
 dependencies = [
+ "base64",
  "clap",
  "crossterm",
  "dirs",

@@ -42,8 +42,35 @@ async def list_repo_issues(repo_id: str) -> str:
 @mcp.resource("blt://issues/{issue_id}")
 async def get_issue(issue_id: str) -> str:
     """Get details for a specific BLT issue."""
-    logger.info(f"Fetching details for issue: {issue_id}")
     return await _fetch(f"/bugs/{issue_id}", context=f"issue {issue_id}")
+
+@mcp.resource("blt://good-first-issues")
+async def list_good_first_issues() -> str:
+    """Get the list of cross-project 'good first issues' from GitLab."""
+    import json
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                "https://gitlab.com/api/v4/groups/133215711/issues?labels=good%20first%20issue&state=opened&sort=desc&order_by=updated_at",
+                headers={"User-Agent": "BLT-MCP"}
+            )
+            resp.raise_for_status()
+            issues = resp.json()
+            # Map them into a standard format
+            results = []
+            for issue in issues:
+                results.append({
+                    "id": issue.get("id"),
+                    "title": issue.get("title"),
+                    "repository": issue.get("references", {}).get("full", "unknown"),
+                    "web_url": issue.get("web_url"),
+                    "description": issue.get("description", "")[:200] + "...",
+                    "bacon_estimate": 100 # Add Bacon estimate
+                })
+            return json.dumps({"success": True, "data": results})
+    except Exception as e:
+        logger.error(f"Failed to fetch good first issues: {e}")
+        return json.dumps({"success": False, "error": str(e)})
 
 
 # --- Original V1 Tools & Prompts ---
@@ -51,8 +78,11 @@ async def get_issue(issue_id: str) -> str:
 @mcp.tool()
 async def submit_issue(
     url: str,
+    title: str,
     description: str,
     severity: Optional[str] = None,
+    bug_type: Optional[str] = None,
+    steps_to_reproduce: Optional[str] = None,
     labels: Optional[List[str]] = None,
     assignee: Optional[str] = None,
     confirmed: bool = False
@@ -62,8 +92,11 @@ async def submit_issue(
     
     Args:
         url: The vulnerable URL being reported.
+        title: Title of the bug/vulnerability.
         description: A detailed description of the bug or vulnerability.
         severity: Severity level of the issue (e.g., 'low', 'medium', 'high', 'critical').
+        bug_type: The type of bug (e.g., 'XSS', 'SQLi').
+        steps_to_reproduce: Step-by-step instructions to reproduce the issue.
         labels: Optional list of labels to apply to the issue (e.g., ['bug', 'security']).
         assignee: Optional username of the assignee for the issue.
         confirmed: Set to true to confirm execution of this write operation.
@@ -79,10 +112,15 @@ async def submit_issue(
     
     payload = {
         "url": url,
+        "title": title,
         "description": description,
     }
     if severity:
         payload["severity"] = severity.lower()
+    if bug_type:
+        payload["bug_type"] = bug_type
+    if steps_to_reproduce:
+        payload["steps_to_reproduce"] = steps_to_reproduce
 
     headers = {
         "X-AI-Generated": "true",
@@ -102,7 +140,6 @@ async def submit_issue(
     except httpx.HTTPStatusError as e:
         error_msg = f"API Error {e.response.status_code}: {e.response.text}"
         logger.error(error_msg)
-        raise RuntimeError(error_msg) from e
     except Exception as e:
         logger.error(f"Failed to submit issue: {e}")
         raise RuntimeError(f"Failed to submit issue: {e}") from e
@@ -158,24 +195,162 @@ async def summarize_issue_context(issue_id: str) -> str:
     """
     return await summarize_issue_context_impl(issue_id, _fetch)
 
-@mcp.prompt()
-def triage_vulnerability(description: str) -> str:
-    """Create a prompt for triaging a vulnerability."""
-    return f"""You are an expert security analyst assisting with OWASP BLT triage.
-Please analyze the following vulnerability description and provide a structured assessment:
+@mcp.tool()
+async def triage_vulnerability(prompt: str) -> str:
+    """
+    Analyze a vulnerability description using Cloudflare Workers AI (Llama 3).
+    
+    Args:
+        prompt: The full prompt string containing the issue details to analyze.
+    """
+    import httpx
+    import os
+    
+    account_id = os.getenv("CF_ACCOUNT_ID")
+    api_token = os.getenv("CF_API_TOKEN")
+    
+    if not account_id or not api_token:
+        return (
+            "ERROR: Missing Cloudflare credentials.\n\n"
+            "Please add `CF_ACCOUNT_ID` and `CF_API_TOKEN` to your `BLT-MCP/.env` file "
+            "to enable AI Triage using Cloudflare Workers AI."
+        )
 
-VULNERABILITY DESCRIPTION:
-{description}
+    system_msg = (
+        "You are an expert security analyst assisting with OWASP BLT triage.\n"
+        "1. Identify the vulnerability class (e.g. Injection, XSS, BAC).\n"
+        "2. Assess the severity (Critical, High, Medium, Low).\n"
+        "3. Recommend immediate mitigation steps.\n\n"
+        "Please format your response clearly, starting with a Severity Suggestion, "
+        "followed by your detailed Recommendation."
+    )
 
-CONTEXT & GUIDELINES:
-1. Identify the vulnerability class (e.g. OWASP Top 10 like Injection, XSS, Broken Access Control).
-2. Assess the severity based on CVSS principles (Critical, High, Medium, Low). Consider:
-   - Exploitability (Attack Vector, Complexity, Privileges Required, User Interaction)
-   - Impact (Confidentiality, Integrity, Availability)
-3. Recommend immediate mitigation steps or a remediation plan.
-4. Suggest potential duplicate markers or related issues if common.
+    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/@cf/meta/llama-3-8b-instruct"
+    headers = {
+        "Authorization": f"Bearer {api_token}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "messages": [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": prompt}
+        ]
+    }
+    
+    logger.info("Sending prompt to Cloudflare Workers AI")
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, headers=headers, json=payload, timeout=30.0)
+            if response.status_code != 200:
+                logger.error(f"Cloudflare AI Error: {response.text}")
+                return f"ERROR: Cloudflare API returned status {response.status_code}"
+                
+            result = response.json()
+            if result.get("success"):
+                return result["result"]["response"]
+            else:
+                return f"ERROR: Cloudflare AI returned an error: {result.get('errors')}"
+    except Exception as e:
+        logger.error(f"Exception calling CF AI: {str(e)}")
+        return f"ERROR: Failed to call Cloudflare AI: {str(e)}"
 
-Please format your response clearly, starting with a Severity Suggestion, followed by a brief Duplicate Check, and then your detailed Recommendation."""
+@mcp.tool()
+async def draft_vision_issue(image_path: str, gitlab_project_id: Optional[str] = None) -> str:
+    """
+    Draft a vulnerability report (title and description) from a screenshot using Cloudflare Vision AI.
+    Optionally uploads the image to GitLab if GITLAB_API_TOKEN is set.
+    
+    Args:
+        image_path: Absolute path to the screenshot image on the local system.
+        gitlab_project_id: Optional GitLab project ID to upload the image to.
+    """
+    import httpx
+    import os
+    import json
+    
+    if not os.path.exists(image_path):
+        return f"ERROR: Image file not found at {image_path}"
+        
+    account_id = os.getenv("CF_ACCOUNT_ID")
+    api_token = os.getenv("CF_API_TOKEN")
+    
+    if not account_id or not api_token:
+        return "ERROR: Missing Cloudflare credentials (CF_ACCOUNT_ID and CF_API_TOKEN in .env)."
+
+    logger.info(f"Drafting issue from image: {image_path}")
+    
+    try:
+        with open(image_path, "rb") as f:
+            image_bytes = f.read()
+    except Exception as e:
+        return f"ERROR: Failed to read image file: {str(e)}"
+
+    # Cloudflare expects the image as an array of integers
+    image_array = list(image_bytes)
+    
+    prompt = (
+        "Analyze this screenshot of a web application. Identify any bugs, errors, or security vulnerabilities "
+        "shown. Provide a structured response with two sections:\n\n"
+        "TITLE: (A brief, clear title for the issue)\n\n"
+        "DESCRIPTION: (A detailed explanation of what is wrong and how to reproduce it if apparent)."
+    )
+
+    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/@cf/llava-hf/llava-1.5-7b-hf"
+    headers = {
+        "Authorization": f"Bearer {api_token}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "prompt": prompt,
+        "image": image_array
+    }
+    
+    analysis_text = ""
+    try:
+        logger.info("Calling Cloudflare Vision AI...")
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, headers=headers, json=payload, timeout=60.0)
+            if response.status_code != 200:
+                logger.error(f"Cloudflare AI Error: {response.text}")
+                return f"ERROR: Cloudflare API returned status {response.status_code}"
+                
+            result = response.json()
+            if result.get("success"):
+                analysis_text = result["result"]["description"] if "description" in result["result"] else result.get("result", {}).get("response", str(result.get("result")))
+            else:
+                return f"ERROR: Cloudflare AI returned an error: {result.get('errors')}"
+    except Exception as e:
+        logger.error(f"Exception calling CF Vision AI: {str(e)}")
+        return f"ERROR: Failed to call Cloudflare Vision AI: {str(e)}"
+        
+    # Optional GitLab Upload phase
+    image_markdown = ""
+    gl_token = os.getenv("GITLAB_API_TOKEN")
+    if gitlab_project_id and gl_token:
+        gl_url = f"https://gitlab.com/api/v4/projects/{gitlab_project_id}/uploads"
+        gl_headers = {"PRIVATE-TOKEN": gl_token}
+        
+        try:
+            logger.info("Uploading image to GitLab...")
+            filename = os.path.basename(image_path)
+            files = {"file": (filename, image_bytes, "image/png")}
+            async with httpx.AsyncClient() as client:
+                res = await client.post(gl_url, headers=gl_headers, files=files, timeout=30.0)
+                if res.status_code == 201:
+                    upload_data = res.json()
+                    image_markdown = upload_data.get("markdown", "")
+                else:
+                    logger.warning(f"GitLab upload failed: {res.text}")
+                    image_markdown = f"\n> [!WARNING]\n> Failed to upload image to GitLab (Status {res.status_code})"
+        except Exception as e:
+            logger.warning(f"GitLab upload exception: {str(e)}")
+            image_markdown = f"\n> [!WARNING]\n> Failed to upload image to GitLab: {str(e)}"
+
+    final_output = analysis_text
+    if image_markdown:
+        final_output += f"\n\n### Attached Screenshot\n{image_markdown}"
+        
+    return final_output
 
 def main() -> None:
     """Entry point for the BLT-MCP server."""
