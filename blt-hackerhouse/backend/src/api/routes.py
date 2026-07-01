@@ -45,15 +45,18 @@ _db_dep: Any = None
 _runner_dep: Any = None
 _hub_dep: Any = None
 _started_at: float = 0.0
+_settings = None
 
 
 def set_dependencies(db, runner: PipelineRunner, hub: WebSocketHub, started_at: float) -> None:
     """Wire the request-scoped dependencies (called from FastAPI lifespan)."""
-    global _db_dep, _runner_dep, _hub_dep, _started_at
+    global _db_dep, _runner_dep, _hub_dep, _started_at, _settings
+    from ..config import settings
     _db_dep = db
     _runner_dep = runner
     _hub_dep = hub
     _started_at = started_at
+    _settings = settings
 
 
 def _require_deps():
@@ -77,22 +80,42 @@ async def gitlab_webhook(
     from ..normalization.gitlab import normalize_gitlab_payload
     from ..state.queue import EventQueue
 
+    logger.info(
+        "webhook received",
+        extra={"event_header": x_gitlab_event, "token_present": bool(x_gitlab_token)},
+    )
+
     if not verify_gitlab_signature(x_gitlab_token, settings.gitlab_webhook_secret):
+        logger.warning("webhook rejected — invalid token")
         raise HTTPException(status_code=401, detail="Invalid token")
+
+    logger.info("webhook token verified")
 
     db, runner, hub = _require_deps()
 
     payload = await request.json()
+    object_kind = payload.get("object_kind", "unknown")
     try:
         event = normalize_gitlab_payload(payload)
     except Exception as exc:  # noqa: BLE001
-        logger.warning("webhook normalize failed", extra={"error": repr(exc)})
+        logger.warning("webhook normalize failed", extra={
+            "error": repr(exc), "object_kind": object_kind,
+        })
         hub.record_error()
         raise HTTPException(status_code=400, detail="Could not normalize payload")
 
     queue: EventQueue = request.app.state.event_queue
     await queue.put(event)
     hub.record_event()
+    logger.info(
+        "webhook enqueued",
+        extra={
+            "event_type": event.event_type,
+            "object_kind": object_kind,
+            "actor": event.actor_name,
+            "queue_depth": queue.qsize(),
+        },
+    )
     return {"status": "accepted"}
 
 
@@ -201,22 +224,48 @@ async def status() -> StatusResponse:
 # ---------------------------------------------------------------------------
 
 @router.get("/health", response_model=HealthResponse)
-async def health() -> HealthResponse:
+async def health(request: Request) -> HealthResponse:
     db, runner, hub = _require_deps()
     event_count = await EventQueries(db).count()
     stats = await ContributorQueries(db).stats()
     blt_bugs_cursor = await CursorQueries(db).get("blt_bugs")
+    gitlab_cursor = await CursorQueries(db).get("gitlab_events_0")
+
+    blt_poller = getattr(request.app.state, "blt_poller", None)
+    gap_detector = getattr(request.app.state, "gap_detector", None)
+
+    webhook_healthy = bool(_settings.gitlab_webhook_secret)
+
+    blt_last_poll = blt_poller.last_success_at.isoformat() if (
+        blt_poller and blt_poller.last_success_at
+    ) else None
+    blt_last_error = blt_poller.last_error_text if blt_poller else None
+
+    gap_last_poll = gap_detector.last_success_at.isoformat() if (
+        gap_detector and gap_detector.last_success_at
+    ) else None
+    gap_last_error = gap_detector.last_error_text if gap_detector else None
+
     return HealthResponse(
         status="healthy",
         components={
             "gitlab_webhook": {
-                "status": "healthy",
-                "last_event_at": None,
+                "status": "healthy" if webhook_healthy else "disabled",
+                "last_event_at": hub.last_event_at.isoformat() if hub.last_event_at else None,
+            },
+            "gitlab_gap_detector": {
+                "status": "healthy" if (gap_detector and gap_detector.enabled) else "disabled",
+                "last_poll_at": gap_last_poll,
+                "total_enqueued": gap_detector.total_enqueued if gap_detector else 0,
+                "last_error": gap_last_error,
+                "tracked_projects": len(gap_detector.project_ids) if gap_detector else 0,
             },
             "blt_polling": {
-                "status": "healthy",
-                "last_poll_at": blt_bugs_cursor[1] if blt_bugs_cursor else None,
+                "status": "healthy" if (blt_poller and blt_poller.enabled) else "disabled",
+                "last_poll_at": blt_last_poll,
                 "last_seen_bug_id": blt_bugs_cursor[0] if blt_bugs_cursor else 0,
+                "total_enqueued": blt_poller.total_enqueued if blt_poller else 0,
+                "last_error": blt_last_error,
             },
             "database": {
                 "status": "healthy",

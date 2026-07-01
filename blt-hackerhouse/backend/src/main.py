@@ -39,17 +39,21 @@ async def lifespan(app: FastAPI):
 
     queue = EventQueue()
     hub: WebSocketHub = get_hub()
-    runner = PipelineRunner(db=db, queue=queue, hub=hub)
+    poll_ms = _settings().pipeline_poll_interval_ms / 1000.0
+    runner = PipelineRunner(db=db, queue=queue, hub=hub, poll_interval=poll_ms)
     await runner.start()
+
+    # Startup validation
+    _validate_startup()
 
     blt_poller = BLTPoller(db=db, queue=queue)
     await blt_poller.start()
 
-    gap_project_ids = _parse_project_ids()
+    project_ids = _parse_project_ids()
     gap_detector = GitLabGapDetector(
         db=db,
         queue=queue,
-        project_ids=gap_project_ids,
+        project_ids=project_ids,
     )
     await gap_detector.start()
 
@@ -73,8 +77,48 @@ async def lifespan(app: FastAPI):
         logger.info("shutdown complete")
 
 
+def _validate_startup() -> None:
+    """Validate required configuration. Logs warnings for non-critical items."""
+    from .config import settings
+
+    if not settings.gitlab_webhook_secret:
+        logger.warning("GITLAB_WEBHOOK_SECRET not set — webhooks will accept no requests")
+
+    if settings.gitlab_api_token:
+        project_ids = _parse_project_ids()
+        if project_ids:
+            logger.info(
+                "gap detector configured",
+                extra={"project_ids": project_ids, "count": len(project_ids)},
+            )
+        else:
+            logger.warning(
+                "GITLAB_TRACKED_PROJECT_IDS is empty — gap detector will not poll any projects"
+            )
+    else:
+        logger.warning("GITLAB_API_TOKEN missing — gap detector disabled")
+
+    if not settings.websocket_auth_token:
+        logger.warning("WEBSOCKET_AUTH_TOKEN not set — WebSocket connections will be rejected")
+
+    logger.info(
+        "configuration summary",
+        extra={
+            "webhook_enabled": bool(settings.gitlab_webhook_secret),
+            "gap_detector_enabled": bool(settings.gitlab_api_token and _parse_project_ids()),
+            "blt_poller_enabled": bool(settings.blt_api_key),
+            "blt_poll_interval_s": settings.blt_poll_interval_seconds,
+            "gitlab_poll_interval_s": settings.gitlab_poll_interval_seconds,
+            "gitlab_lookback_m": settings.gitlab_lookback_minutes,
+            "log_level": settings.log_level,
+        },
+    )
+
+
 def _parse_project_ids() -> list[int]:
-    raw = os.environ.get("GITLAB_TRACKED_PROJECT_IDS", "")
+    from .config import settings
+
+    raw = settings.gitlab_tracked_project_ids
     if not raw:
         return []
     out: list[int] = []
@@ -82,7 +126,14 @@ def _parse_project_ids() -> list[int]:
         token = token.strip()
         if token.isdigit():
             out.append(int(token))
+        else:
+            logger.warning("ignoring non-integer project ID", extra={"value": token})
     return out
+
+
+def _settings():
+    from .config import settings
+    return settings
 
 
 def create_app() -> FastAPI:
@@ -95,9 +146,18 @@ def create_app() -> FastAPI:
     )
     app.include_router(router)
 
+    # WebSocket route must be registered before the static mount
+    # to prevent StaticFiles from intercepting WS upgrade requests.
     @app.websocket("/ws")
     async def _ws(websocket: WebSocket, token: str | None = None) -> None:
         await websocket_endpoint(websocket, app.state.hub, app.state.runner, token=token)
+
+    # Serve UI HTML files for local testing (keep at end of routes)
+    from pathlib import Path
+    ui_dir = Path(__file__).resolve().parents[2] / "UI" / "html"
+    if ui_dir.is_dir():
+        from fastapi.staticfiles import StaticFiles
+        app.mount("/", StaticFiles(directory=str(ui_dir), html=True), name="ui")
 
     return app
 

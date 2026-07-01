@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -23,9 +24,6 @@ from ..storage import CursorQueries, Database
 
 logger = get_logger(__name__)
 
-POLL_INTERVAL_SECONDS = 90
-LOOKBACK_MINUTES = 30
-
 
 class GitLabGapDetector:
     """Periodically fetch GitLab project events and enqueue anything new."""
@@ -36,16 +34,17 @@ class GitLabGapDetector:
         db: Database,
         queue: EventQueue,
         project_ids: list[int],
-        poll_interval: int = POLL_INTERVAL_SECONDS,
     ) -> None:
         self.db = db
         self.queue = queue
         self.project_ids = [int(pid) for pid in project_ids]
-        self.poll_interval = poll_interval
         self._task: asyncio.Task | None = None
         self._stop_event = asyncio.Event()
         self._cursors = CursorQueries(db)
         self._client: httpx.AsyncClient | None = None
+        self._last_success: datetime | None = None
+        self._last_error: str | None = None
+        self._total_enqueued: int = 0
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -61,7 +60,12 @@ class GitLabGapDetector:
         self._task = asyncio.create_task(self._run(), name="gitlab-gap-detector")
         logger.info(
             "gap detector started",
-            extra={"interval": self.poll_interval, "projects": len(self.project_ids)},
+            extra={
+                "interval_s": settings.gitlab_poll_interval_seconds,
+                "lookback_m": settings.gitlab_lookback_minutes,
+                "projects": len(self.project_ids),
+                "project_ids": self.project_ids,
+            },
         )
 
     async def stop(self) -> None:
@@ -79,6 +83,26 @@ class GitLabGapDetector:
         logger.info("gap detector stopped")
 
     # ------------------------------------------------------------------
+    # Readiness helpers
+    # ------------------------------------------------------------------
+
+    @property
+    def enabled(self) -> bool:
+        return self._task is not None and not self._task.done()
+
+    @property
+    def last_success_at(self) -> datetime | None:
+        return self._last_success
+
+    @property
+    def last_error_text(self) -> str | None:
+        return self._last_error
+
+    @property
+    def total_enqueued(self) -> int:
+        return self._total_enqueued
+
+    # ------------------------------------------------------------------
     # Run loop
     # ------------------------------------------------------------------
 
@@ -90,39 +114,56 @@ class GitLabGapDetector:
         )
         while not self._stop_event.is_set():
             try:
-                await self.detect_once()
+                t0 = time.monotonic()
+                enqueued = await self._detect()
+                elapsed_ms = int((time.monotonic() - t0) * 1000)
+                logger.info(
+                    "gap detector poll complete",
+                    extra={"enqueued": enqueued, "elapsed_ms": elapsed_ms},
+                )
+                self._last_success = datetime.now(tz=timezone.utc)
             except Exception:  # noqa: BLE001
                 logger.exception("gap detector iteration failed")
             try:
-                await asyncio.wait_for(self._stop_event.wait(), timeout=self.poll_interval)
+                await asyncio.wait_for(
+                    self._stop_event.wait(), timeout=settings.gitlab_poll_interval_seconds
+                )
             except asyncio.TimeoutError:
                 continue
 
-    async def detect_once(self) -> int:
+    async def _detect(self) -> int:
         """Run a single detection pass. Returns number of events enqueued."""
         if self._client is None:
             return 0
+
         enqueued = 0
-        after = (datetime.now(tz=timezone.utc) - timedelta(minutes=LOOKBACK_MINUTES)).strftime("%Y-%m-%d")
+        after = (
+            datetime.now(tz=timezone.utc) - timedelta(minutes=settings.gitlab_lookback_minutes)
+        ).strftime("%Y-%m-%d")
+
         for project_id in self.project_ids:
             source_key = f"gitlab_events_{project_id}"
             cursor = await self._cursors.get(source_key)
             last_seen = cursor[0] if cursor else 0
 
+            logger.info(
+                "gap detector polling project", extra={
+                    "project_id": project_id, "last_seen_event_id": last_seen,
+                }
+            )
+
             try:
-                events = await self._fetch_project_events(project_id, after)
+                events, new_high = await self._fetch_all_pages(project_id, after, last_seen)
             except RetryableHTTPError as exc:
-                logger.warning(
-                    "gap fetch failed",
-                    extra={"project_id": project_id, "error": str(exc)},
-                )
+                msg = f"project {project_id}: {exc}"
+                logger.warning("gap detector fetch exhausted", extra={
+                    "project_id": project_id, "error": str(exc),
+                })
+                self._last_error = msg
                 continue
 
-            new_high = last_seen
             for raw in events:
                 event_id = int(raw.get("id", 0))
-                if event_id <= last_seen:
-                    continue
                 try:
                     event = normalize_gitlab_payload(raw)
                 except Exception:  # noqa: BLE001
@@ -130,31 +171,73 @@ class GitLabGapDetector:
                     continue
                 await self.queue.put(event)
                 enqueued += 1
-                new_high = max(new_high, event_id)
 
             if new_high > last_seen:
                 await self._cursors.upsert(source_key, new_high)
+                logger.info(
+                    "gap detector cursor advanced",
+                    extra={"project_id": project_id, "old": last_seen, "new": new_high},
+                )
 
+        self._total_enqueued += enqueued
         return enqueued
 
-    async def _fetch_project_events(self, project_id: int, after: str) -> list[dict[str, Any]]:
+    async def _fetch_all_pages(
+        self, project_id: int, after: str, last_seen: int,
+    ) -> tuple[list[dict[str, Any]], int]:
+        """Fetch all pages of events for a project. Returns (events, max_id)."""
         assert self._client is not None
+        all_events: list[dict[str, Any]] = []
+        new_high = last_seen
+        page = 1
+        per_page = settings.gitlab_per_page
 
-        async def _do() -> list[dict[str, Any]]:
-            assert self._client is not None
-            resp = await self._client.get(
-                f"/projects/{project_id}/events",
-                params={"after": after, "per_page": 100, "page": 1},
+        while True:
+            async def _do() -> list[dict[str, Any]]:
+                assert self._client is not None
+                resp = await self._client.get(
+                    f"/projects/{project_id}/events",
+                    params={"after": after, "per_page": per_page, "page": page},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                return data if isinstance(data, list) else []
+
+            try:
+                page_events = await retry_async(
+                    _do,
+                    description=f"gitlab.events[proj={project_id}, page={page}]",
+                    config=RetryConfig(
+                        max_attempts=settings.gitlab_max_retries,
+                        base_delay=settings.gitlab_retry_base_delay,
+                        max_delay=settings.gitlab_retry_max_delay,
+                    ),
+                    on_failure=self._on_failure,
+                )
+            except RetryableHTTPError:
+                raise
+
+            if not page_events:
+                break
+
+            logger.info(
+                "gap detector fetched page",
+                extra={"project_id": project_id, "page": page, "count": len(page_events)},
             )
-            resp.raise_for_status()
-            data = resp.json()
-            return data if isinstance(data, list) else []
 
-        return await retry_async(
-            _do,
-            description=f"gitlab.events[{project_id}]",
-            on_failure=self._on_failure,
-        )
+            for raw in page_events:
+                event_id = int(raw.get("id", 0))
+                if event_id <= last_seen:
+                    # Cursor reached — stop across all remaining pages
+                    return all_events, new_high
+                all_events.append(raw)
+                new_high = max(new_high, event_id)
+
+            if len(page_events) < per_page:
+                break
+            page += 1
+
+        return all_events, new_high
 
     async def _on_failure(self, exc: Exception) -> None:
         from ..broadcast.hub import get_hub

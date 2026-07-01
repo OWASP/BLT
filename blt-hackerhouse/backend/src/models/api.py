@@ -109,6 +109,9 @@ class ComponentHealth(BaseModel):
     event_count: int | None = None
     connected_clients: int | None = None
     resolution_cache_size: int | None = None
+    total_enqueued: int | None = None
+    last_error: str | None = None
+    tracked_projects: int | None = None
 
 
 class StateResponse(BaseModel):

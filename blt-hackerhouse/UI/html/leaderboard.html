@@ -1,577 +1,480 @@
-<!DOCTYPE html><html class="dark" lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>BLT HackerHouse - Leaderboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>Leaderboard · BLT HackerHouse</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            "colors": {
-                    "secondary-fixed-dim": "#7bd8b1",
-                    "inverse-primary": "#c00000",
-                    "on-primary-container": "#fff1ef",
-                    "on-background": "#ffdad4",
-                    "outline": "#af8781",
-                    "primary": "#ffb4a8",
-                    "tertiary-fixed": "#ffdbca",
-                    "tertiary-container": "#b5530a",
-                    "outline-variant": "#5f3f3a",
-                    "surface-bright": "#4b3330",
-                    "secondary-container": "#017756",
-                    "on-primary-fixed": "#410000",
-                    "on-error": "#690005",
-                    "surface-variant": "#462f2b",
-                    "surface-container": "#2e1a17",
-                    "on-secondary-fixed": "#002115",
-                    "tertiary-fixed-dim": "#ffb68e",
-                    "on-surface": "#ffdad4",
-                    "inverse-on-surface": "#412b27",
-                    "error-container": "#93000a",
-                    "surface-container-lowest": "#1a0907",
-                    "primary-container": "#e10101",
-                    "on-secondary": "#003827",
-                    "primary-fixed": "#ffdad4",
-                    "secondary-fixed": "#97f5cc",
-                    "background": "#200e0c",
-                    "surface-container-low": "#2a1613",
-                    "on-primary-fixed-variant": "#930000",
-                    "on-tertiary-fixed-variant": "#763300",
-                    "on-surface-variant": "#e9bcb5",
-                    "tertiary": "#ffb68e",
-                    "on-secondary-fixed-variant": "#00513a",
-                    "error": "#ffb4ab",
-                    "on-tertiary-container": "#fff2ec",
-                    "surface": "#200e0c",
-                    "secondary": "#7bd8b1",
-                    "surface-container-highest": "#462f2b",
-                    "surface-container-high": "#3a2521",
-                    "inverse-surface": "#ffdad4",
-                    "on-error-container": "#ffdad6",
-                    "primary-fixed-dim": "#ffb4a8",
-                    "on-tertiary-fixed": "#331200",
-                    "surface-dim": "#200e0c",
-                    "on-secondary-container": "#9dfbd1",
-                    "on-primary": "#690000",
-                    "on-tertiary": "#532200",
-                    "surface-tint": "#ffb4a8"
-            },
-            "borderRadius": {
-                    "DEFAULT": "0.25rem",
-                    "lg": "0.5rem",
-                    "xl": "0.75rem",
-                    "full": "9999px"
-            },
-            "spacing": {
-                    "section-gap": "3rem",
-                    "container-padding-sm": "1rem",
-                    "stack-gap": "0.75rem",
-                    "gutter": "1rem",
-                    "container-padding-lg": "1.5rem"
-            },
-            "fontFamily": {
-                    "subsection-title": ["Manrope"],
-                    "section-title": ["Manrope"],
-                    "code-label": ["JetBrains Mono"],
-                    "page-title-mobile": ["Manrope"],
-                    "body-dense": ["Manrope"],
-                    "page-title": ["Manrope"],
-                    "body-base": ["Manrope"]
-            },
-            "fontSize": {
-                    "subsection-title": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
-                    "section-title": ["36px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "800"}],
-                    "code-label": ["13px", {"lineHeight": "1.5", "fontWeight": "500"}],
-                    "page-title-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "800"}],
-                    "body-dense": ["14px", {"lineHeight": "24px", "fontWeight": "400"}],
-                    "page-title": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
-                    "body-base": ["16px", {"lineHeight": "28px", "fontWeight": "400"}]
-            }
-          }
-        }
-      }
-    </script>
-<style>
-        .pulse-badge {
-            animation: pulse-red 2s infinite;
-        }
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(225, 1, 1, 0.4); }
-            70% { box-shadow: 0 0 0 6px rgba(225, 1, 1, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(225, 1, 1, 0); }
-        }
-        
-        /* Sparkline simplistic styles */
-        .sparkline {
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-        .sparkline-up { stroke: #7bd8b1; } /* secondary */
-        .sparkline-down { stroke: #ffb4ab; } /* error */
-        .sparkline-neutral { stroke: #ffb68e; } /* tertiary */
-
-        /* Rank backgrounds */
-        .rank-1 { background: linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(20,14,12,0) 100%); border-left: 4px solid #FFD700; }
-        .rank-2 { background: linear-gradient(135deg, rgba(192,192,192,0.1) 0%, rgba(20,14,12,0) 100%); border-left: 4px solid #C0C0C0; }
-        .rank-3 { background: linear-gradient(135deg, rgba(205,127,50,0.1) 0%, rgba(20,14,12,0) 100%); border-left: 4px solid #CD7F32; }
-
-        /* Detail expansion */
-        .detail-row {
-            display: none;
-        }
-        .detail-row.expanded {
-            display: table-row;
-            animation: slideDown 0.3s ease-out;
-        }
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .row-interactive:hover {
-            box-shadow: inset 0 0 0 1px rgba(225,1,1,0.2);
-            background-color: rgba(70, 47, 43, 0.5); /* surface-variant slightly transparent */
-        }
-    </style>
-</head>
-<body class="bg-background text-on-surface antialiased min-h-screen flex selection:bg-primary-container selection:text-white">
-<!-- Mobile Top Nav (Hidden on Desktop) -->
-<header class="md:hidden flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-outline-variant shadow-md">
-<div class="flex items-center gap-3">
-<div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
-<span class="material-symbols-outlined text-white text-sm" data-icon="terminal">terminal</span>
-</div>
-<h1 class="font-page-title-mobile text-page-title-mobile font-extrabold text-primary">BLT HackerHouse</h1>
-</div>
-<div class="flex gap-4">
-<button class="text-primary hover:bg-surface-container-high p-2 rounded-full transition-colors duration-200">
-<span class="material-symbols-outlined" data-icon="settings">settings</span>
-</button>
-</div>
-</header>
-<!-- Side Nav (Desktop) -->
-<nav class="hidden md:flex flex-col h-screen w-[18.5rem] sticky left-0 top-0 bg-surface-container border-r border-outline-variant shadow-lg p-gutter gap-stack-gap z-40">
-<!-- Brand Header -->
-<div class="mb-8 flex items-center gap-4 px-2 pt-4">
-<div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center shadow-[0_0_15px_rgba(225,1,1,0.3)]">
-<span class="material-symbols-outlined text-white text-xl" data-icon="terminal" data-weight="fill">terminal</span>
-</div>
-<div>
-<h1 class="font-section-title text-section-title font-black text-primary leading-tight">BLT<br>HackerHouse</h1>
-<p class="font-code-label text-code-label text-secondary mt-1">Command Center</p>
-</div>
-</div>
-<!-- Primary Navigation -->
-<div class="flex-1 flex flex-col gap-2">
-<a class="flex items-center gap-4 px-4 py-3 rounded-xl font-body-base text-body-base text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 hover:translate-x-1 ease-in-out" href="#">
-<span class="material-symbols-outlined" data-icon="home">home</span>
-                HackerHouse
-            </a>
-<a class="flex items-center gap-4 px-4 py-3 rounded-xl font-body-base text-body-base text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 hover:translate-x-1 ease-in-out" href="#">
-<span class="material-symbols-outlined" data-icon="rss_feed">rss_feed</span>
-                Activity Feed
-            </a>
-<!-- Active State -->
-<a class="flex items-center gap-4 px-4 py-3 bg-primary-container text-on-primary-container rounded-xl shadow-[inset_0_0_8px_rgba(225,1,1,0.2)] font-body-base text-body-base font-semibold" href="#">
-<span class="material-symbols-outlined" data-icon="leaderboard" data-weight="fill">leaderboard</span>
-                Leaderboard
-            </a>
-<a class="flex items-center gap-4 px-4 py-3 rounded-xl font-body-base text-body-base text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 hover:translate-x-1 ease-in-out" href="#">
-<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
-                Status
-            </a>
-<a class="flex items-center gap-4 px-4 py-3 rounded-xl font-body-base text-body-base text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 hover:translate-x-1 ease-in-out" href="#">
-<span class="material-symbols-outlined" data-icon="monitor_heart">monitor_heart</span>
-                Health
-            </a>
-</div>
-<!-- CTA & Footer Nav -->
-<div class="mt-auto flex flex-col gap-4">
-<button class="w-full py-3 px-4 bg-primary-container hover:bg-[#B91C1C] text-white rounded-xl font-body-base text-body-base font-bold transition-colors duration-200 shadow-[0_4px_14px_rgba(225,1,1,0.3)] flex justify-center items-center gap-2">
-<span class="material-symbols-outlined" data-icon="add_link">add_link</span>
-                Connect Node
-            </button>
-<div class="border-t border-outline-variant pt-4 flex flex-col gap-2">
-<a class="flex items-center gap-4 px-4 py-2 rounded-xl font-body-base text-body-base text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300" href="#">
-<span class="material-symbols-outlined" data-icon="settings">settings</span>
-                    Settings
-                </a>
-<a class="flex items-center gap-4 px-4 py-2 rounded-xl font-body-base text-body-base text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300" href="#">
-<span class="material-symbols-outlined" data-icon="help">help</span>
-                    Support
-                </a>
-</div>
-</div>
-</nav>
-<!-- Main Content Canvas -->
-<main class="flex-1 flex flex-col min-w-0 p-container-padding-sm md:p-container-padding-lg gap-section-gap overflow-x-hidden">
-<!-- Header Section -->
-<section class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 w-full border-b border-outline-variant pb-6">
-<div>
-<div class="flex items-center gap-3 mb-2">
-<h2 class="font-page-title text-page-title-mobile md:text-page-title font-extrabold text-on-surface">Leaderboard</h2>
-<div class="flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-full border border-outline-variant">
-<div class="w-2.5 h-2.5 rounded-full bg-primary-container pulse-badge"></div>
-<span class="font-code-label text-code-label text-on-surface-variant tracking-wide">Updated live</span>
-</div>
-</div>
-<p class="font-body-base text-body-base text-on-surface-variant">Real-time contribution metrics across all active nodes.</p>
-</div>
-<div class="flex gap-2">
-<!-- Period Selector -->
-<div class="bg-surface-container rounded-lg p-1 flex border border-outline-variant">
-<button class="px-4 py-1.5 rounded-md bg-surface-variant text-on-surface font-code-label text-code-label shadow-sm">All Time</button>
-<button class="px-4 py-1.5 rounded-md text-on-surface-variant hover:text-on-surface font-code-label text-code-label transition-colors">30D</button>
-<button class="px-4 py-1.5 rounded-md text-on-surface-variant hover:text-on-surface font-code-label text-code-label transition-colors">7D</button>
-</div>
-</div>
-</section>
-<!-- Stats Row (Bento/Cards) -->
-<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-<!-- Stat Card 1 -->
-<div class="bg-surface-container rounded-xl p-6 border border-outline-variant relative overflow-hidden group">
-<div class="absolute -right-6 -top-6 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-all duration-500"></div>
-<div class="flex justify-between items-start mb-4 relative z-10">
-<div class="p-2 bg-surface rounded-lg border border-outline-variant">
-<span class="material-symbols-outlined text-secondary" data-icon="group">group</span>
-</div>
-<span class="font-code-label text-code-label text-secondary bg-secondary/10 px-2 py-1 rounded text-xs flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span> 12%
-                    </span>
-</div>
-<div class="relative z-10">
-<h3 class="font-body-dense text-body-dense text-on-surface-variant uppercase tracking-wider mb-1">Total Contributors</h3>
-<div class="font-section-title text-section-title text-on-surface">1,432</div>
-</div>
-</div>
-<!-- Stat Card 2 -->
-<div class="bg-surface-container rounded-xl p-6 border border-outline-variant relative overflow-hidden group">
-<div class="absolute -right-6 -top-6 w-24 h-24 bg-secondary/5 rounded-full blur-2xl group-hover:bg-secondary/10 transition-all duration-500"></div>
-<div class="flex justify-between items-start mb-4 relative z-10">
-<div class="p-2 bg-surface rounded-lg border border-outline-variant">
-<span class="material-symbols-outlined text-tertiary" data-icon="link">link</span>
-</div>
-<span class="font-code-label text-code-label text-secondary bg-secondary/10 px-2 py-1 rounded text-xs flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span> 5%
-                    </span>
-</div>
-<div class="relative z-10">
-<h3 class="font-body-dense text-body-dense text-on-surface-variant uppercase tracking-wider mb-1">Linked Identities</h3>
-<div class="font-section-title text-section-title text-on-surface">8,901</div>
-</div>
-</div>
-<!-- Stat Card 3 -->
-<div class="bg-surface-container rounded-xl p-6 border border-outline-variant relative overflow-hidden group">
-<div class="absolute -right-6 -top-6 w-24 h-24 bg-tertiary/5 rounded-full blur-2xl group-hover:bg-tertiary/10 transition-all duration-500"></div>
-<div class="flex justify-between items-start mb-4 relative z-10">
-<div class="p-2 bg-surface rounded-lg border border-outline-variant">
-<span class="material-symbols-outlined text-primary-fixed-dim" data-icon="military_tech">military_tech</span>
-</div>
-<span class="font-code-label text-code-label text-on-surface-variant bg-surface-variant px-2 py-1 rounded text-xs flex items-center gap-1">
-                        Stable
-                    </span>
-</div>
-<div class="relative z-10">
-<h3 class="font-body-dense text-body-dense text-on-surface-variant uppercase tracking-wider mb-1">Total Network Score</h3>
-<div class="font-section-title text-section-title text-on-surface">2.4M</div>
-</div>
-</div>
-</section>
-<!-- Leaderboard Table Section -->
-<section class="bg-surface-container rounded-xl border border-outline-variant overflow-hidden flex flex-col">
-<!-- Table Header Area (Search/Filter) -->
-<div class="p-4 border-b border-outline-variant flex flex-col sm:flex-row justify-between items-center gap-4 bg-surface-container-low">
-<div class="relative w-full sm:w-64">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" data-icon="search">search</span>
-<input class="w-full bg-surface border border-outline-variant rounded-lg pl-10 pr-4 py-2 font-code-label text-code-label text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-on-surface-variant/50" placeholder="Search contributors..." type="text">
-</div>
-<div class="flex gap-2 w-full sm:w-auto">
-<button class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg font-code-label text-code-label text-on-surface hover:bg-surface-variant transition-colors">
-<span class="material-symbols-outlined text-sm" data-icon="filter_list">filter_list</span> Filter
-                    </button>
-<button class="flex items-center justify-center p-2 bg-surface border border-outline-variant rounded-lg hover:bg-surface-variant transition-colors">
-<span class="material-symbols-outlined text-on-surface" data-icon="more_vert">more_vert</span>
-</button>
-</div>
-</div>
-<!-- The Table -->
-<div class="overflow-x-auto">
-<table class="w-full text-left border-collapse">
-<thead>
-<tr class="bg-surface-container border-b border-outline-variant font-code-label text-code-label text-on-surface-variant uppercase tracking-wider text-xs">
-<th class="p-4 w-16 text-center">Rank</th>
-<th class="p-4">Contributor</th>
-<th class="p-4 text-right">Score</th>
-<th class="p-4 text-center hidden md:table-cell">Events</th>
-<th class="p-4 text-center hidden sm:table-cell">Platforms</th>
-<th class="p-4 text-center hidden lg:table-cell">Trend (7d)</th>
-</tr>
-</thead>
-<tbody class="font-body-base text-body-base text-on-surface divide-y divide-outline-variant/50" id="leaderboard-body">
-<!-- Row 1: Gold -->
-<tr class="rank-1 row-interactive cursor-pointer group" onclick="toggleDetail('detail-1')">
-<td class="p-4 text-center font-code-label font-bold text-[#FFD700]">#1</td>
-<td class="p-4">
-<div class="flex items-center gap-3">
-<div class="relative">
-<div class="w-10 h-10 rounded-full bg-surface-variant border-2 border-[#FFD700] overflow-hidden flex items-center justify-center">
-<!-- Placeholder for avatar -->
-<span class="material-symbols-outlined text-on-surface-variant" data-icon="person">person</span>
-</div>
-<div class="absolute -bottom-1 -right-1 w-4 h-4 bg-[#FFD700] rounded-full flex items-center justify-center border-2 border-surface-container">
-<span class="material-symbols-outlined text-[10px] text-black" data-icon="star" data-weight="fill">star</span>
-</div>
-</div>
-<div>
-<div class="font-semibold text-on-surface group-hover:text-primary transition-colors">0xCipher</div>
-<div class="font-code-label text-code-label text-xs text-on-surface-variant">@cipher_dev</div>
-</div>
-</div>
-</td>
-<td class="p-4 text-right">
-<div class="font-code-label text-code-label font-bold text-on-surface text-lg">145,200</div>
-<div class="font-code-label text-[11px] text-secondary flex items-center justify-end gap-1">
-<span class="material-symbols-outlined text-[12px]" data-icon="arrow_upward">arrow_upward</span> 2.4k today
-                                </div>
-</td>
-<td class="p-4 text-center hidden md:table-cell font-code-label text-code-label">1,204</td>
-<td class="p-4 text-center hidden sm:table-cell">
-<div class="flex items-center justify-center gap-1 opacity-70">
-<span class="material-symbols-outlined text-sm" data-icon="code">code</span>
-<span class="material-symbols-outlined text-sm" data-icon="forum">forum</span>
-</div>
-</td>
-<td class="p-4 text-center hidden lg:table-cell">
-<svg class="inline-block" height="20" width="60">
-<path class="sparkline sparkline-up" d="M0,15 L10,12 L20,18 L30,8 L40,10 L50,2 L60,5"></path>
-</svg>
-</td>
-</tr>
-<!-- Detail Row 1 -->
-<tr class="detail-row bg-surface/50 border-b border-outline-variant" id="detail-1">
-<td class="p-0" colspan="6">
-<div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-<div class="col-span-1 md:col-span-2">
-<h4 class="font-code-label text-code-label text-on-surface-variant mb-3 uppercase">Recent Activity</h4>
-<ul class="space-y-3 font-body-dense text-body-dense">
-<li class="flex items-start gap-3">
-<span class="material-symbols-outlined text-secondary text-sm mt-0.5" data-icon="commit">commit</span>
-<div>
-<span class="text-on-surface">Merged PR #442</span>
-<span class="text-on-surface-variant ml-2">"Core infrastructure update"</span>
-<div class="text-secondary font-code-label text-[11px] mt-1">+500 pts</div>
-</div>
-</li>
-<li class="flex items-start gap-3">
-<span class="material-symbols-outlined text-tertiary text-sm mt-0.5" data-icon="bug_report">bug_report</span>
-<div>
-<span class="text-on-surface">Closed Issue #440</span>
-<span class="text-on-surface-variant ml-2">"Memory leak in worker node"</span>
-<div class="text-secondary font-code-label text-[11px] mt-1">+150 pts</div>
-</div>
-</li>
-</ul>
-</div>
-<div>
-<h4 class="font-code-label text-code-label text-on-surface-variant mb-3 uppercase">Identity Links</h4>
-<div class="flex flex-wrap gap-2">
-<span class="px-2 py-1 bg-surface-container-highest rounded border border-outline-variant font-code-label text-[11px] flex items-center gap-1">GitHub: verified</span>
-<span class="px-2 py-1 bg-surface-container-highest rounded border border-outline-variant font-code-label text-[11px] flex items-center gap-1">Discord: verified</span>
-</div>
-</div>
-</div>
-</td>
-</tr>
-<!-- Row 2: Silver -->
-<tr class="rank-2 row-interactive cursor-pointer group" onclick="toggleDetail('detail-2')">
-<td class="p-4 text-center font-code-label font-bold text-[#C0C0C0]">#2</td>
-<td class="p-4">
-<div class="flex items-center gap-3">
-<div class="relative">
-<div class="w-10 h-10 rounded-full bg-surface-variant border-2 border-[#C0C0C0] overflow-hidden flex items-center justify-center">
-<span class="material-symbols-outlined text-on-surface-variant" data-icon="person_4">person_4</span>
-</div>
-</div>
-<div>
-<div class="font-semibold text-on-surface group-hover:text-primary transition-colors">NullPointer</div>
-<div class="font-code-label text-code-label text-xs text-on-surface-variant">@null_ptr</div>
-</div>
-</div>
-</td>
-<td class="p-4 text-right">
-<div class="font-code-label text-code-label font-bold text-on-surface text-lg">138,940</div>
-<div class="font-code-label text-[11px] text-tertiary flex items-center justify-end gap-1">
-<span class="material-symbols-outlined text-[12px]" data-icon="arrow_right_alt">arrow_right_alt</span> 450 today
-                                </div>
-</td>
-<td class="p-4 text-center hidden md:table-cell font-code-label text-code-label">982</td>
-<td class="p-4 text-center hidden sm:table-cell">
-<div class="flex items-center justify-center gap-1 opacity-70">
-<span class="material-symbols-outlined text-sm" data-icon="code">code</span>
-</div>
-</td>
-<td class="p-4 text-center hidden lg:table-cell">
-<svg class="inline-block" height="20" width="60">
-<path class="sparkline sparkline-neutral" d="M0,10 L10,12 L20,9 L30,11 L40,10 L50,8 L60,10"></path>
-</svg>
-</td>
-</tr>
-<!-- Detail Row 2 -->
-<tr class="detail-row bg-surface/50 border-b border-outline-variant" id="detail-2">
-<td class="p-0" colspan="6">
-<div class="p-6 text-center text-on-surface-variant font-code-label text-sm">
-<span class="material-symbols-outlined block text-3xl mb-2 opacity-50" data-icon="history">history</span>
-                                    No recent public activity.
-                                </div>
-</td>
-</tr>
-<!-- Row 3: Bronze -->
-<tr class="rank-3 row-interactive cursor-pointer group" onclick="toggleDetail('detail-3')">
-<td class="p-4 text-center font-code-label font-bold text-[#CD7F32]">#3</td>
-<td class="p-4">
-<div class="flex items-center gap-3">
-<div class="relative">
-<div class="w-10 h-10 rounded-full bg-surface-variant border-2 border-[#CD7F32] overflow-hidden flex items-center justify-center">
-<span class="material-symbols-outlined text-on-surface-variant" data-icon="smart_toy">smart_toy</span>
-</div>
-</div>
-<div>
-<div class="font-semibold text-on-surface group-hover:text-primary transition-colors">ByteMe</div>
-<div class="font-code-label text-code-label text-xs text-on-surface-variant">@byte_me_88</div>
-</div>
-</div>
-</td>
-<td class="p-4 text-right">
-<div class="font-code-label text-code-label font-bold text-on-surface text-lg">125,050</div>
-<div class="font-code-label text-[11px] text-error flex items-center justify-end gap-1">
-<span class="material-symbols-outlined text-[12px]" data-icon="arrow_downward">arrow_downward</span> -120 penalty
-                                </div>
-</td>
-<td class="p-4 text-center hidden md:table-cell font-code-label text-code-label">844</td>
-<td class="p-4 text-center hidden sm:table-cell">
-<div class="flex items-center justify-center gap-1 opacity-70">
-<span class="material-symbols-outlined text-sm" data-icon="code">code</span>
-<span class="material-symbols-outlined text-sm" data-icon="design_services">design_services</span>
-</div>
-</td>
-<td class="p-4 text-center hidden lg:table-cell">
-<svg class="inline-block" height="20" width="60">
-<path class="sparkline sparkline-down" d="M0,5 L10,8 L20,4 L30,12 L40,15 L50,18 L60,16"></path>
-</svg>
-</td>
-</tr>
-<!-- Detail Row 3 -->
-<tr class="detail-row bg-surface/50 border-b border-outline-variant" id="detail-3">
-<td class="p-0" colspan="6">
-<div class="p-6">
-<div class="bg-error-container/20 border border-error-container p-3 rounded-lg text-error font-body-dense text-sm flex items-start gap-2">
-<span class="material-symbols-outlined text-base mt-0.5" data-icon="warning">warning</span>
-<div>Score reduction due to reverted commit #8892 on main branch.</div>
-</div>
-</div>
-</td>
-</tr>
-<!-- Standard Row -->
-<tr class="row-interactive cursor-pointer group" onclick="toggleDetail('detail-4')">
-<td class="p-4 text-center font-code-label text-on-surface-variant">4</td>
-<td class="p-4">
-<div class="flex items-center gap-3">
-<div class="w-8 h-8 rounded-full bg-surface-variant border border-outline-variant overflow-hidden flex items-center justify-center">
-<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="person_3">person_3</span>
-</div>
-<div>
-<div class="font-semibold text-on-surface group-hover:text-primary transition-colors text-sm">NeonNinja</div>
-</div>
-</div>
-</td>
-<td class="p-4 text-right">
-<div class="font-code-label text-code-label text-on-surface">98,400</div>
-</td>
-<td class="p-4 text-center hidden md:table-cell font-code-label text-code-label text-on-surface-variant">512</td>
-<td class="p-4 text-center hidden sm:table-cell">
-<div class="flex items-center justify-center gap-1 opacity-50">
-<span class="material-symbols-outlined text-xs" data-icon="code">code</span>
-</div>
-</td>
-<td class="p-4 text-center hidden lg:table-cell">
-<svg class="inline-block opacity-50" height="20" width="60">
-<path class="sparkline sparkline-up" d="M0,15 L10,13 L20,14 L30,12 L40,10 L50,8 L60,5"></path>
-</svg>
-</td>
-</tr>
-<!-- Detail Row 4 -->
-<tr class="detail-row bg-surface/50 border-b border-outline-variant" id="detail-4">
-<td class="p-0" colspan="6">
-<div class="p-4 text-center text-on-surface-variant text-xs">Details loaded on demand...</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<!-- Pagination Footer -->
-<div class="p-4 border-t border-outline-variant flex items-center justify-between bg-surface-container-lowest">
-<span class="font-code-label text-[12px] text-on-surface-variant">Showing 1-4 of 1,432</span>
-<div class="flex gap-1">
-<button class="p-1 rounded bg-surface border border-outline-variant text-on-surface-variant hover:text-on-surface disabled:opacity-50"><span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span></button>
-<button class="p-1 px-3 rounded bg-primary-container text-white font-code-label text-[12px]">1</button>
-<button class="p-1 px-3 rounded bg-surface border border-outline-variant text-on-surface-variant hover:bg-surface-variant font-code-label text-[12px]">2</button>
-<button class="p-1 px-3 rounded bg-surface border border-outline-variant text-on-surface-variant hover:bg-surface-variant font-code-label text-[12px]">3</button>
-<span class="p-1 text-on-surface-variant">...</span>
-<button class="p-1 rounded bg-surface border border-outline-variant text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span></button>
-</div>
-</div>
-</section>
-</main>
-<!-- Mobile Bottom Nav (Hidden on Desktop) -->
-<nav class="md:hidden fixed bottom-0 left-0 w-full bg-surface-container border-t border-outline-variant pb-safe z-50">
-<div class="flex justify-around items-center h-16">
-<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-on-surface" href="#">
-<span class="material-symbols-outlined text-xl" data-icon="home">home</span>
-<span class="font-body-dense text-[10px] mt-1">Home</span>
-</a>
-<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-on-surface" href="#">
-<span class="material-symbols-outlined text-xl" data-icon="rss_feed">rss_feed</span>
-<span class="font-body-dense text-[10px] mt-1">Feed</span>
-</a>
-<!-- Active state mobile -->
-<a class="flex flex-col items-center justify-center w-full h-full text-primary relative" href="#">
-<div class="absolute -top-3 w-12 h-12 bg-surface-container rounded-full border border-outline-variant flex items-center justify-center shadow-lg">
-<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shadow-[inset_0_0_8px_rgba(225,1,1,0.4)]">
-<span class="material-symbols-outlined text-white" data-icon="leaderboard" data-weight="fill">leaderboard</span>
-</div>
-</div>
-<span class="font-body-dense text-[10px] mt-6 font-bold">Rank</span>
-</a>
-<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-on-surface" href="#">
-<span class="material-symbols-outlined text-xl" data-icon="sensors">sensors</span>
-<span class="font-body-dense text-[10px] mt-1">Status</span>
-</a>
-<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-on-surface" href="#">
-<span class="material-symbols-outlined text-xl" data-icon="settings">settings</span>
-<span class="font-body-dense text-[10px] mt-1">Menu</span>
-</a>
-</div>
-</nav>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,200&display=swap" rel="stylesheet">
+<script src="assets/js/theme.js"></script>
+<link rel="stylesheet" href="assets/css/blt-design.css">
+<link rel="stylesheet" href="assets/css/hackerhouse.css">
 <script>
-        function toggleDetail(detailId) {
-            // Close all other details
-            document.querySelectorAll('.detail-row').forEach(row => {
-                if(row.id !== detailId) {
-                    row.classList.remove('expanded');
-                }
-            });
-            
-            // Toggle the target detail
-            const el = document.getElementById(detailId);
-            if(el) {
-                el.classList.toggle('expanded');
-            }
-        }
-    </script>
-</body></html>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      },
+    },
+  },
+};
+</script>
+<style>
+.sidebar-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 160ms ease;
+  color: var(--blt-text-muted);
+}
+.sidebar-link:hover { background: var(--blt-surface-muted); color: var(--blt-text); }
+.sidebar-link[aria-current="page"],
+.sidebar-link.active {
+  background: var(--blt-primary-soft) !important;
+  color: var(--blt-primary) !important;
+  font-weight: 600;
+}
+.sidebar-link[aria-current="page"]::before,
+.sidebar-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 55%;
+  background: var(--blt-primary);
+  border-radius: 0 2px 2px 0;
+}
+.sidebar-link[aria-current="page"] .nav-icon,
+.sidebar-link.active .nav-icon { color: var(--blt-primary) !important; }
+
+/* Rank gradient rows */
+.rank-1 { background: linear-gradient(135deg, rgba(255,215,0,0.08) 0%, transparent 100%); border-left: 3px solid #FFD700; }
+.rank-2 { background: linear-gradient(135deg, rgba(192,192,192,0.08) 0%, transparent 100%); border-left: 3px solid #C0C0C0; }
+.rank-3 { background: linear-gradient(135deg, rgba(205,127,50,0.08) 0%, transparent 100%); border-left: 3px solid #CD7F32; }
+
+/* Period tabs */
+.period-tab {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: "JetBrains Mono", monospace;
+  transition: all 160ms ease;
+  color: var(--blt-text-muted);
+}
+.period-tab:hover { color: var(--blt-text); }
+.period-tab.active {
+  background: var(--blt-primary-soft);
+  color: var(--blt-primary);
+}
+</style>
+</head>
+<body class="min-h-screen font-sans antialiased bg-[var(--blt-background)] text-[var(--blt-text)]">
+
+<div class="lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)] min-h-screen">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="hidden lg:flex lg:flex-col lg:h-screen lg:sticky lg:top-0 bg-[var(--blt-surface)] border-r border-[var(--blt-border)] overflow-y-auto" aria-label="Main navigation">
+    <div class="flex items-center justify-between px-4 pt-5 pb-4">
+      <a class="flex items-center gap-2.5" href="#">
+        <div class="w-8 h-8 rounded-md bg-[var(--blt-primary)] flex items-center justify-center text-white font-extrabold text-sm">B</div>
+        <div>
+          <span class="text-sm font-semibold tracking-tight text-[var(--blt-text)]">BLT HackerHouse</span>
+          <p class="text-[10px] font-mono text-[var(--blt-text-subtle)] tracking-wider">COMMAND CENTER</p>
+        </div>
+      </a>
+    </div>
+    <div class="h-px bg-[var(--blt-border)] mx-4 mb-3"></div>
+    <nav class="flex-1 px-3 space-y-0.5" aria-label="Pages">
+      <a class="sidebar-link" href="hackerhouse_state.html">
+        <span class="material-symbols-outlined nav-icon text-lg">home</span>
+        HackerHouse
+      </a>
+      <a class="sidebar-link" href="activity_feed.html">
+        <span class="material-symbols-outlined nav-icon text-lg">rss_feed</span>
+        Activity Feed
+      </a>
+      <a class="sidebar-link active" aria-current="page" href="#">
+        <span class="material-symbols-outlined nav-icon text-lg" style="font-variation-settings:'FILL' 1">leaderboard</span>
+        Leaderboard
+      </a>
+      <a class="sidebar-link" href="status_health.html">
+        <span class="material-symbols-outlined nav-icon text-lg">sensors</span>
+        Status
+      </a>
+    </nav>
+    <div class="px-3 pt-3">
+      <button class="hh-theme-toggle w-full" type="button" data-theme-toggle>
+        <span class="material-symbols-outlined text-sm theme-icon-light">dark_mode</span>
+        <span class="material-symbols-outlined text-sm theme-icon-dark" style="display:none">light_mode</span>
+        <span class="text-xs font-semibold" data-theme-label>Dark</span>
+      </button>
+    </div>
+    <div class="mt-3 mb-4 px-3 pt-3 border-t border-[var(--blt-border)]">
+      <button class="blt-button-primary w-full text-xs" onclick="alert('Node connection coming soon')">
+        <span class="material-symbols-outlined text-sm">wifi_tethering</span>
+        Connect Node
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="blt-page-main px-4 py-6 sm:px-6 lg:px-8 min-h-screen">
+
+    <!-- Header -->
+    <section class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
+      <div>
+        <div class="flex items-center gap-3 mb-1">
+          <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[var(--blt-text)]">Leaderboard</h1>
+          <span class="blt-badge text-[10px] flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-[var(--blt-primary)]" style="animation:hh-pulse-dot 1.5s ease-in-out infinite"></span>
+            Updated live
+          </span>
+        </div>
+        <p class="text-sm text-[var(--blt-text-muted)]">Real-time contribution metrics across all active nodes.</p>
+      </div>
+      <div class="flex items-center gap-1 bg-[var(--blt-surface-muted)] rounded-lg p-0.5 border border-[var(--blt-border)]">
+        <button class="period-tab active">All Time</button>
+        <button class="period-tab">30D</button>
+        <button class="period-tab">7D</button>
+      </div>
+    </section>
+
+    <!-- Stats Row -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <!-- Stat 1 -->
+      <div class="hh-stat-card">
+        <div class="hh-stat-card-glow" style="background:var(--blt-primary);opacity:0.06"></div>
+        <div class="flex justify-between items-start mb-3 relative z-10">
+          <div class="p-2 rounded-lg bg-[var(--blt-surface-muted)] border border-[var(--blt-border)]">
+            <span class="material-symbols-outlined text-base text-[var(--blt-primary)]">group</span>
+          </div>
+          <span class="blt-status-badge blt-status-success text-[10px] flex items-center gap-0.5">
+            <span class="material-symbols-outlined text-[12px]">trending_up</span> 12%
+          </span>
+        </div>
+        <div class="relative z-10">
+          <p class="text-[11px] font-mono text-[var(--blt-text-subtle)] uppercase tracking-wider mb-0.5">Total Contributors</p>
+          <p class="text-2xl font-extrabold text-[var(--blt-text)]">1,432</p>
+        </div>
+      </div>
+
+      <!-- Stat 2 -->
+      <div class="hh-stat-card">
+        <div class="hh-stat-card-glow" style="background:#22c55e;opacity:0.06"></div>
+        <div class="flex justify-between items-start mb-3 relative z-10">
+          <div class="p-2 rounded-lg bg-[var(--blt-surface-muted)] border border-[var(--blt-border)]">
+            <span class="material-symbols-outlined text-base text-emerald-500">link</span>
+          </div>
+          <span class="blt-status-badge blt-status-success text-[10px] flex items-center gap-0.5">
+            <span class="material-symbols-outlined text-[12px]">trending_up</span> 5%
+          </span>
+        </div>
+        <div class="relative z-10">
+          <p class="text-[11px] font-mono text-[var(--blt-text-subtle)] uppercase tracking-wider mb-0.5">Linked Identities</p>
+          <p class="text-2xl font-extrabold text-[var(--blt-text)]">8,901</p>
+        </div>
+      </div>
+
+      <!-- Stat 3 -->
+      <div class="hh-stat-card">
+        <div class="hh-stat-card-glow" style="background:#f59e0b;opacity:0.05"></div>
+        <div class="flex justify-between items-start mb-3 relative z-10">
+          <div class="p-2 rounded-lg bg-[var(--blt-surface-muted)] border border-[var(--blt-border)]">
+            <span class="material-symbols-outlined text-base text-amber-500">military_tech</span>
+          </div>
+          <span class="blt-status-badge blt-status-muted text-[10px]">Stable</span>
+        </div>
+        <div class="relative z-10">
+          <p class="text-[11px] font-mono text-[var(--blt-text-subtle)] uppercase tracking-wider mb-0.5">Total Network Score</p>
+          <p class="text-2xl font-extrabold text-[var(--blt-text)]">2.4M</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Leaderboard Table -->
+    <section class="blt-card overflow-hidden">
+      <!-- Table Header -->
+      <div class="p-4 border-b border-[var(--blt-border)] flex flex-col sm:flex-row justify-between items-center gap-3 bg-[var(--blt-surface-muted)]">
+        <div class="relative w-full sm:w-56">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--blt-text-subtle)]">search</span>
+          <input class="w-full bg-[var(--blt-surface)] border border-[var(--blt-border-strong)] rounded-md pl-9 pr-3 py-2 text-sm font-mono text-[var(--blt-text)] placeholder-[var(--blt-text-subtle)] focus:outline-none focus:border-[var(--blt-primary)] focus:ring-1 focus:ring-[var(--blt-primary)] transition-colors" placeholder="Search contributors..." type="text">
+        </div>
+        <div class="flex gap-2 w-full sm:w-auto">
+          <button class="blt-button-secondary text-xs flex-1 sm:flex-none">
+            <span class="material-symbols-outlined text-sm">filter_list</span>
+            Filter
+          </button>
+          <button class="blt-button-secondary text-xs px-2">
+            <span class="material-symbols-outlined text-sm">more_vert</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- The Table -->
+      <div class="overflow-x-auto">
+        <table class="blt-data-table w-full">
+          <thead>
+            <tr class="font-mono text-[10px] uppercase tracking-wider">
+              <th class="p-3 w-14 text-center">Rank</th>
+              <th class="p-3 text-left">Contributor</th>
+              <th class="p-3 text-right">Score</th>
+              <th class="p-3 text-center hidden md:table-cell">Events</th>
+              <th class="p-3 text-center hidden sm:table-cell">Platforms</th>
+              <th class="p-3 text-center hidden lg:table-cell">Trend (7d)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--blt-border)]/50" id="leaderboard-body">
+            <!-- Row 1: Gold -->
+            <tr class="rank-1 hh-lb-row group" onclick="toggleDetail('detail-1')">
+              <td class="p-3 text-center">
+                <span class="font-mono font-bold text-sm" style="color:#FFD700">#1</span>
+              </td>
+              <td class="p-3">
+                <div class="flex items-center gap-3">
+                  <div class="relative">
+                    <div class="w-9 h-9 rounded-full bg-[var(--blt-surface-muted)] border-2 border-[#FFD700] flex items-center justify-center">
+                      <span class="material-symbols-outlined text-sm text-[var(--blt-text-subtle)]">person</span>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-[#FFD700] rounded-full flex items-center justify-center border-2 border-[var(--blt-surface)]">
+                      <span class="material-symbols-outlined text-[8px] text-black" style="font-variation-settings:'FILL' 1">star</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-sm text-[var(--blt-text)] group-hover:text-[var(--blt-primary)] transition-colors">0xCipher</div>
+                    <div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">@cipher_dev</div>
+                  </div>
+                </div>
+              </td>
+              <td class="p-3 text-right">
+                <div class="font-mono font-bold text-base text-[var(--blt-text)]">145,200</div>
+                <div class="font-mono text-[10px] text-emerald-500 flex items-center justify-end gap-0.5">
+                  <span class="material-symbols-outlined text-xs">arrow_upward</span> 2.4k today
+                </div>
+              </td>
+              <td class="p-3 text-center hidden md:table-cell font-mono text-sm text-[var(--blt-text-muted)]">1,204</td>
+              <td class="p-3 text-center hidden sm:table-cell">
+                <div class="flex items-center justify-center gap-1 text-[var(--blt-text-subtle)]">
+                  <span class="material-symbols-outlined text-sm">code</span>
+                  <span class="material-symbols-outlined text-sm">forum</span>
+                </div>
+              </td>
+              <td class="p-3 text-center hidden lg:table-cell">
+                <svg class="inline-block" height="20" width="60">
+                  <path class="hh-sparkline" stroke="#22c55e" d="M0,15 L10,12 L20,18 L30,8 L40,10 L50,2 L60,5"></path>
+                </svg>
+              </td>
+            </tr>
+            <!-- Detail 1 -->
+            <tr class="hh-lb-detail bg-[var(--blt-surface-muted)]/50" id="detail-1">
+              <td class="p-0" colspan="6">
+                <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div class="md:col-span-2">
+                    <h4 class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider mb-3">Recent Activity</h4>
+                    <ul class="space-y-2.5">
+                      <li class="flex items-start gap-2.5 text-sm">
+                        <span class="material-symbols-outlined text-emerald-500 text-sm mt-0.5">commit</span>
+                        <div>
+                          <span class="text-[var(--blt-text)]">Merged PR #442</span>
+                          <span class="text-[var(--blt-text-muted)] ml-1.5">"Core infrastructure update"</span>
+                          <div class="text-emerald-500 font-mono text-[10px] mt-0.5">+500 pts</div>
+                        </div>
+                      </li>
+                      <li class="flex items-start gap-2.5 text-sm">
+                        <span class="material-symbols-outlined text-amber-500 text-sm mt-0.5">bug_report</span>
+                        <div>
+                          <span class="text-[var(--blt-text)]">Closed Issue #440</span>
+                          <span class="text-[var(--blt-text-muted)] ml-1.5">"Memory leak in worker node"</span>
+                          <div class="text-emerald-500 font-mono text-[10px] mt-0.5">+150 pts</div>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider mb-3">Identity Links</h4>
+                    <div class="flex flex-wrap gap-1.5">
+                      <span class="blt-label text-[10px]">GitHub: verified</span>
+                      <span class="blt-label text-[10px]">Discord: verified</span>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 2: Silver -->
+            <tr class="rank-2 hh-lb-row group" onclick="toggleDetail('detail-2')">
+              <td class="p-3 text-center">
+                <span class="font-mono font-bold text-sm" style="color:#C0C0C0">#2</span>
+              </td>
+              <td class="p-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-[var(--blt-surface-muted)] border-2 border-[#C0C0C0] flex items-center justify-center">
+                    <span class="material-symbols-outlined text-sm text-[var(--blt-text-subtle)]">person_4</span>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-sm text-[var(--blt-text)] group-hover:text-[var(--blt-primary)] transition-colors">NullPointer</div>
+                    <div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">@null_ptr</div>
+                  </div>
+                </div>
+              </td>
+              <td class="p-3 text-right">
+                <div class="font-mono font-bold text-base text-[var(--blt-text)]">138,940</div>
+                <div class="font-mono text-[10px] text-amber-500 flex items-center justify-end gap-0.5">
+                  <span class="material-symbols-outlined text-xs">arrow_right_alt</span> 450 today
+                </div>
+              </td>
+              <td class="p-3 text-center hidden md:table-cell font-mono text-sm text-[var(--blt-text-muted)]">982</td>
+              <td class="p-3 text-center hidden sm:table-cell">
+                <div class="flex items-center justify-center gap-1 text-[var(--blt-text-subtle)]">
+                  <span class="material-symbols-outlined text-sm">code</span>
+                </div>
+              </td>
+              <td class="p-3 text-center hidden lg:table-cell">
+                <svg class="inline-block" height="20" width="60">
+                  <path class="hh-sparkline" stroke="#f59e0b" d="M0,10 L10,12 L20,9 L30,11 L40,10 L50,8 L60,10"></path>
+                </svg>
+              </td>
+            </tr>
+            <!-- Detail 2 -->
+            <tr class="hh-lb-detail bg-[var(--blt-surface-muted)]/50" id="detail-2">
+              <td class="p-0" colspan="6">
+                <div class="p-6 text-center text-[var(--blt-text-subtle)] font-mono text-sm">
+                  <span class="material-symbols-outlined block text-3xl mb-2 opacity-50">history</span>
+                  No recent public activity.
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 3: Bronze -->
+            <tr class="rank-3 hh-lb-row group" onclick="toggleDetail('detail-3')">
+              <td class="p-3 text-center">
+                <span class="font-mono font-bold text-sm" style="color:#CD7F32">#3</span>
+              </td>
+              <td class="p-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-[var(--blt-surface-muted)] border-2 border-[#CD7F32] flex items-center justify-center">
+                    <span class="material-symbols-outlined text-sm text-[var(--blt-text-subtle)]">smart_toy</span>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-sm text-[var(--blt-text)] group-hover:text-[var(--blt-primary)] transition-colors">ByteMe</div>
+                    <div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">@byte_me_88</div>
+                  </div>
+                </div>
+              </td>
+              <td class="p-3 text-right">
+                <div class="font-mono font-bold text-base text-[var(--blt-text)]">125,050</div>
+                <div class="font-mono text-[10px] text-[var(--blt-primary)] flex items-center justify-end gap-0.5">
+                  <span class="material-symbols-outlined text-xs">arrow_downward</span> -120 penalty
+                </div>
+              </td>
+              <td class="p-3 text-center hidden md:table-cell font-mono text-sm text-[var(--blt-text-muted)]">844</td>
+              <td class="p-3 text-center hidden sm:table-cell">
+                <div class="flex items-center justify-center gap-1 text-[var(--blt-text-subtle)]">
+                  <span class="material-symbols-outlined text-sm">code</span>
+                  <span class="material-symbols-outlined text-sm">design_services</span>
+                </div>
+              </td>
+              <td class="p-3 text-center hidden lg:table-cell">
+                <svg class="inline-block" height="20" width="60">
+                  <path class="hh-sparkline" stroke="#ef4444" d="M0,5 L10,8 L20,4 L30,12 L40,15 L50,18 L60,16"></path>
+                </svg>
+              </td>
+            </tr>
+            <!-- Detail 3 -->
+            <tr class="hh-lb-detail bg-[var(--blt-surface-muted)]/50" id="detail-3">
+              <td class="p-0" colspan="6">
+                <div class="p-5">
+                  <div class="flex items-start gap-2.5 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm">
+                    <span class="material-symbols-outlined text-sm text-[var(--blt-primary)] mt-0.5">warning</span>
+                    <span class="text-[var(--blt-text-muted)]">Score reduction due to reverted commit #8892 on main branch.</span>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 4: Standard -->
+            <tr class="hh-lb-row group" onclick="toggleDetail('detail-4')">
+              <td class="p-3 text-center">
+                <span class="font-mono text-sm text-[var(--blt-text-subtle)]">4</span>
+              </td>
+              <td class="p-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-[var(--blt-surface-muted)] border border-[var(--blt-border)] flex items-center justify-center">
+                    <span class="material-symbols-outlined text-xs text-[var(--blt-text-subtle)]">person_3</span>
+                  </div>
+                  <div class="font-semibold text-sm text-[var(--blt-text)] group-hover:text-[var(--blt-primary)] transition-colors">NeonNinja</div>
+                </div>
+              </td>
+              <td class="p-3 text-right font-mono text-sm text-[var(--blt-text)]">98,400</td>
+              <td class="p-3 text-center hidden md:table-cell font-mono text-sm text-[var(--blt-text-muted)]">512</td>
+              <td class="p-3 text-center hidden sm:table-cell">
+                <div class="flex justify-center gap-1 text-[var(--blt-text-subtle)] opacity-60">
+                  <span class="material-symbols-outlined text-sm">code</span>
+                </div>
+              </td>
+              <td class="p-3 text-center hidden lg:table-cell">
+                <svg class="inline-block opacity-60" height="20" width="60">
+                  <path class="hh-sparkline" stroke="#22c55e" d="M0,15 L10,13 L20,14 L30,12 L40,10 L50,8 L60,5"></path>
+                </svg>
+              </td>
+            </tr>
+            <!-- Detail 4 -->
+            <tr class="hh-lb-detail bg-[var(--blt-surface-muted)]/50" id="detail-4">
+              <td class="p-0" colspan="6">
+                <div class="p-4 text-center text-[var(--blt-text-subtle)] text-xs">Details loaded on demand...</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="p-4 border-t border-[var(--blt-border)] flex items-center justify-between bg-[var(--blt-surface-muted)]">
+        <span class="font-mono text-[11px] text-[var(--blt-text-subtle)]">Showing 1-4 of 1,432</span>
+        <div class="flex gap-1">
+          <button class="p-1.5 rounded bg-[var(--blt-surface)] border border-[var(--blt-border)] text-[var(--blt-text-subtle)] hover:text-[var(--blt-text)] disabled:opacity-50">
+            <span class="material-symbols-outlined text-sm">chevron_left</span>
+          </button>
+          <button class="px-3 py-1.5 rounded bg-[var(--blt-primary)] text-white font-mono text-[11px]">1</button>
+          <button class="px-3 py-1.5 rounded bg-[var(--blt-surface)] border border-[var(--blt-border)] text-[var(--blt-text-subtle)] hover:bg-[var(--blt-surface-muted)] font-mono text-[11px]">2</button>
+          <button class="px-3 py-1.5 rounded bg-[var(--blt-surface)] border border-[var(--blt-border)] text-[var(--blt-text-subtle)] hover:bg-[var(--blt-surface-muted)] font-mono text-[11px]">3</button>
+          <span class="px-1 py-1.5 text-[var(--blt-text-subtle)] font-mono text-[11px]">...</span>
+          <button class="p-1.5 rounded bg-[var(--blt-surface)] border border-[var(--blt-border)] text-[var(--blt-text-subtle)] hover:text-[var(--blt-text)]">
+            <span class="material-symbols-outlined text-sm">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+function toggleDetail(detailId) {
+  document.querySelectorAll('.hh-lb-detail').forEach(function(row) {
+    if (row.id !== detailId) {
+      row.classList.remove('expanded');
+    }
+  });
+  var el = document.getElementById(detailId);
+  if (el) {
+    el.classList.toggle('expanded');
+  }
+}
+</script>
+</body>
+</html>

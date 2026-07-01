@@ -124,14 +124,19 @@ class PipelineRunner:
         # 1. Dedup + persist
         inserted = await record_if_absent(self.db, event)
         if not inserted:
-            logger.debug("pipeline dedup drop", extra={"key": event.idempotency_key})
+            logger.info("pipeline dedup dropped", extra={
+                "key": event.idempotency_key, "source": event.source, "type": event.event_type,
+            })
             return
 
+        # 2. Sequence number (lock is scoped to increment + write only)
         async with self._lock:
             self._sequence += 1
-            await self.events_q.assign_sequence(event.id, self._sequence)
+            seq = self._sequence
 
-        # 2. Identity resolution
+        await self.events_q.assign_sequence(event.id, seq)
+
+        # 3. Identity resolution
         result = await resolver.resolve(event)
         contributor = await self.contributors_q.get(result.contributor_id)
         if contributor is None:
@@ -149,7 +154,7 @@ class PipelineRunner:
         )
         await self.avatars_q.upsert(avatar)
 
-        # 4. Score leaderboard
+        # 5. Score leaderboard
         delta = self.leaderboard.record(str(contributor.id), event.event_type, event.metadata)
         if delta:
             contributor.add_score(delta)

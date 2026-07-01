@@ -1,0 +1,7 @@
+poll_cursors: []
+events (1):
+  acc0f43d-49d1-47d9-96e6-3f03bf7bb32e: gitlab / mr_opened / alice
+contributors (1):
+  170a30e0-658b-4d55-a8f5-7b74bde64d75: alice score=2
+avatars (1):
+  170a30e0-658b-4d55-a8f5-7b74bde64d75: floor=2 room=merge_request_room

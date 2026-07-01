@@ -1,389 +1,524 @@
-<!DOCTYPE html><html class="dark" lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>BLT HackerHouse - Status &amp; Health</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>Status · BLT HackerHouse</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            "colors": {
-                    "secondary-fixed-dim": "#7bd8b1",
-                    "inverse-primary": "#c00000",
-                    "on-primary-container": "#fff1ef",
-                    "on-background": "#ffdad4",
-                    "outline": "#af8781",
-                    "primary": "#ffb4a8",
-                    "tertiary-fixed": "#ffdbca",
-                    "tertiary-container": "#b5530a",
-                    "outline-variant": "#5f3f3a",
-                    "surface-bright": "#4b3330",
-                    "secondary-container": "#017756",
-                    "on-primary-fixed": "#410000",
-                    "on-error": "#690005",
-                    "surface-variant": "#462f2b",
-                    "surface-container": "#2e1a17",
-                    "on-secondary-fixed": "#002115",
-                    "tertiary-fixed-dim": "#ffb68e",
-                    "on-surface": "#ffdad4",
-                    "inverse-on-surface": "#412b27",
-                    "error-container": "#93000a",
-                    "surface-container-lowest": "#1a0907",
-                    "primary-container": "#e10101",
-                    "on-secondary": "#003827",
-                    "primary-fixed": "#ffdad4",
-                    "secondary-fixed": "#97f5cc",
-                    "background": "#200e0c",
-                    "surface-container-low": "#2a1613",
-                    "on-primary-fixed-variant": "#930000",
-                    "on-tertiary-fixed-variant": "#763300",
-                    "on-surface-variant": "#e9bcb5",
-                    "tertiary": "#ffb68e",
-                    "on-secondary-fixed-variant": "#00513a",
-                    "error": "#ffb4ab",
-                    "on-tertiary-container": "#fff2ec",
-                    "surface": "#200e0c",
-                    "secondary": "#7bd8b1",
-                    "surface-container-highest": "#462f2b",
-                    "surface-container-high": "#3a2521",
-                    "inverse-surface": "#ffdad4",
-                    "on-error-container": "#ffdad6",
-                    "primary-fixed-dim": "#ffb4a8",
-                    "on-tertiary-fixed": "#331200",
-                    "surface-dim": "#200e0c",
-                    "on-secondary-container": "#9dfbd1",
-                    "on-primary": "#690000",
-                    "on-tertiary": "#532200",
-                    "surface-tint": "#ffb4a8"
-            },
-            "borderRadius": {
-                    "DEFAULT": "0.25rem",
-                    "lg": "0.5rem",
-                    "xl": "0.75rem",
-                    "full": "9999px"
-            },
-            "spacing": {
-                    "section-gap": "3rem",
-                    "container-padding-sm": "1rem",
-                    "stack-gap": "0.75rem",
-                    "gutter": "1rem",
-                    "container-padding-lg": "1.5rem"
-            },
-            "fontFamily": {
-                    "subsection-title": [
-                            "Manrope"
-                    ],
-                    "section-title": [
-                            "Manrope"
-                    ],
-                    "code-label": [
-                            "JetBrains Mono"
-                    ],
-                    "page-title-mobile": [
-                            "Manrope"
-                    ],
-                    "body-dense": [
-                            "Manrope"
-                    ],
-                    "page-title": [
-                            "Manrope"
-                    ],
-                    "body-base": [
-                            "Manrope"
-                    ]
-            },
-            "fontSize": {
-                    "subsection-title": [
-                            "24px",
-                            {
-                                    "lineHeight": "1.3",
-                                    "fontWeight": "700"
-                            }
-                    ],
-                    "section-title": [
-                            "36px",
-                            {
-                                    "lineHeight": "1.2",
-                                    "letterSpacing": "-0.01em",
-                                    "fontWeight": "800"
-                            }
-                    ],
-                    "code-label": [
-                            "13px",
-                            {
-                                    "lineHeight": "1.5",
-                                    "fontWeight": "500"
-                            }
-                    ],
-                    "page-title-mobile": [
-                            "32px",
-                            {
-                                    "lineHeight": "1.2",
-                                    "fontWeight": "800"
-                            }
-                    ],
-                    "body-dense": [
-                            "14px",
-                            {
-                                    "lineHeight": "24px",
-                                    "fontWeight": "400"
-                            }
-                    ],
-                    "page-title": [
-                            "48px",
-                            {
-                                    "lineHeight": "1.1",
-                                    "letterSpacing": "-0.02em",
-                                    "fontWeight": "800"
-                            }
-                    ],
-                    "body-base": [
-                            "16px",
-                            {
-                                    "lineHeight": "28px",
-                                    "fontWeight": "400"
-                            }
-                    ]
-            }
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,200&display=swap" rel="stylesheet">
+<script src="assets/js/theme.js"></script>
+<link rel="stylesheet" href="assets/css/blt-design.css">
+<link rel="stylesheet" href="assets/css/hackerhouse.css">
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      },
     },
-        },
-      }
-    </script>
+  },
+};
+</script>
 <style>
-        .pulse-glow {
-            box-shadow: inset 0 0 15px rgba(225, 1, 1, 0.2);
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: inset 0 0 15px rgba(225, 1, 1, 0.2); }
-            50% { box-shadow: inset 0 0 25px rgba(225, 1, 1, 0.4); }
-            100% { box-shadow: inset 0 0 15px rgba(225, 1, 1, 0.2); }
-        }
-        .log-line {
-            animation: fadein 0.3s ease-in;
-        }
-        @keyframes fadein {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
+.sidebar-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 160ms ease;
+  color: var(--blt-text-muted);
+}
+.sidebar-link:hover { background: var(--blt-surface-muted); color: var(--blt-text); }
+.sidebar-link[aria-current="page"],
+.sidebar-link.active {
+  background: var(--blt-primary-soft) !important;
+  color: var(--blt-primary) !important;
+  font-weight: 600;
+}
+.sidebar-link[aria-current="page"]::before,
+.sidebar-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 55%;
+  background: var(--blt-primary);
+  border-radius: 0 2px 2px 0;
+}
+.sidebar-link[aria-current="page"] .nav-icon,
+.sidebar-link.active .nav-icon { color: var(--blt-primary) !important; }
+
+/* Donut chart */
+.donut-chart {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.donut-chart-inner {
+  position: absolute;
+  inset: 8px;
+  background: var(--blt-surface);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Health bar */
+.health-bar-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--blt-surface-muted);
+  overflow: hidden;
+}
+.health-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 800ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+</style>
 </head>
-<body class="bg-background text-on-background font-body-base antialiased min-h-screen flex flex-col md:flex-row">
-<!-- TopNavBar (Mobile Only) -->
-<header class="flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50 bg-surface/90 backdrop-blur-md shadow-md md:hidden border-b border-outline-variant">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-primary-container text-2xl" style="font-variation-settings: 'FILL' 1;">terminal</span>
-<span class="font-page-title-mobile text-page-title-mobile font-extrabold text-primary">BLT HackerHouse</span>
+<body class="min-h-screen font-sans antialiased bg-[var(--blt-background)] text-[var(--blt-text)]">
+
+<div class="lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)] min-h-screen">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="hidden lg:flex lg:flex-col lg:h-screen lg:sticky lg:top-0 bg-[var(--blt-surface)] border-r border-[var(--blt-border)] overflow-y-auto" aria-label="Main navigation">
+    <div class="flex items-center justify-between px-4 pt-5 pb-4">
+      <a class="flex items-center gap-2.5" href="#">
+        <div class="w-8 h-8 rounded-md bg-[var(--blt-primary)] flex items-center justify-center text-white font-extrabold text-sm">B</div>
+        <div>
+          <span class="text-sm font-semibold tracking-tight text-[var(--blt-text)]">BLT HackerHouse</span>
+          <p class="text-[10px] font-mono text-[var(--blt-text-subtle)] tracking-wider">COMMAND CENTER</p>
+        </div>
+      </a>
+    </div>
+    <div class="h-px bg-[var(--blt-border)] mx-4 mb-3"></div>
+    <nav class="flex-1 px-3 space-y-0.5" aria-label="Pages">
+      <a class="sidebar-link" href="hackerhouse_state.html">
+        <span class="material-symbols-outlined nav-icon text-lg">home</span>
+        HackerHouse
+      </a>
+      <a class="sidebar-link" href="activity_feed.html">
+        <span class="material-symbols-outlined nav-icon text-lg">rss_feed</span>
+        Activity Feed
+      </a>
+      <a class="sidebar-link" href="leaderboard.html">
+        <span class="material-symbols-outlined nav-icon text-lg">leaderboard</span>
+        Leaderboard
+      </a>
+      <a class="sidebar-link active" aria-current="page" href="#">
+        <span class="material-symbols-outlined nav-icon text-lg" style="font-variation-settings:'FILL' 1">sensors</span>
+        Status
+      </a>
+    </nav>
+    <div class="px-3 pt-3">
+      <button class="hh-theme-toggle w-full" type="button" data-theme-toggle>
+        <span class="material-symbols-outlined text-sm theme-icon-light">dark_mode</span>
+        <span class="material-symbols-outlined text-sm theme-icon-dark" style="display:none">light_mode</span>
+        <span class="text-xs font-semibold" data-theme-label>Dark</span>
+      </button>
+    </div>
+    <div class="mt-3 mb-4 px-3 pt-3 border-t border-[var(--blt-border)]">
+      <button class="blt-button-primary w-full text-xs" onclick="alert('Node connection coming soon')">
+        <span class="material-symbols-outlined text-sm">wifi_tethering</span>
+        Connect Node
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="blt-page-main px-4 py-6 sm:px-6 lg:px-8 min-h-screen">
+
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[var(--blt-text)]">Ecosystem Status</h1>
+        <p class="text-sm text-[var(--blt-text-muted)] mt-1">Real-time occupancy, pipeline metrics, and system health.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="blt-status-badge blt-status-success text-[10px] flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500" style="box-shadow:0 0 6px rgba(34,197,94,0.5)"></span>
+          SYS_ONLINE
+        </span>
+      </div>
+    </div>
+
+    <!-- ═══ System Health Grid ═══ -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-8">
+
+      <!-- ── Left: Room Occupancy ── -->
+      <div class="lg:col-span-7 blt-card p-5">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="font-bold text-base text-[var(--blt-text)]">Room Occupancy</h2>
+          <span class="blt-badge text-[10px]">15 Active Rooms</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Room 1: Active -->
+          <div class="bg-[var(--blt-surface-muted)] rounded-lg p-3.5 border border-[var(--blt-border)] flex items-center justify-between hover:border-[var(--blt-border-strong)] transition-colors group">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-md bg-[var(--blt-surface)] border border-[var(--blt-border)] flex items-center justify-center font-mono text-xs font-bold text-[var(--blt-primary)] group-hover:border-[var(--blt-primary)] transition-colors">F1</div>
+              <div>
+                <div class="font-semibold text-sm text-[var(--blt-text)]">Main Hall</div>
+                <div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">Capacity: 4/10</div>
+              </div>
+            </div>
+            <div class="flex -space-x-1.5">
+              <div class="w-7 h-7 rounded-full border-2 border-[var(--blt-surface-muted)] bg-[var(--blt-surface)] flex items-center justify-center overflow-hidden">
+                <span class="material-symbols-outlined text-xs text-[var(--blt-text-subtle)]">person</span>
+              </div>
+              <div class="w-7 h-7 rounded-full border-2 border-[var(--blt-surface-muted)] bg-[var(--blt-surface)] flex items-center justify-center overflow-hidden">
+                <span class="material-symbols-outlined text-xs text-[var(--blt-text-subtle)]">person</span>
+              </div>
+              <div class="w-7 h-7 rounded-full border-2 border-[var(--blt-surface-muted)] bg-[var(--blt-surface)] flex items-center justify-center text-[9px] font-mono font-bold text-[var(--blt-text-subtle)]">+2</div>
+            </div>
+          </div>
+
+          <!-- Room 2: High Activity -->
+          <div class="bg-[var(--blt-surface-muted)] rounded-lg p-3.5 border border-[var(--blt-primary)]/40 flex items-center justify-between group" style="box-shadow:inset 0 0 12px color-mix(in srgb, var(--blt-primary) 8%, transparent)">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-md bg-[var(--blt-primary-soft)] border border-[var(--blt-primary)]/50 flex items-center justify-center font-mono text-xs font-bold text-[var(--blt-primary)]">F2</div>
+              <div>
+                <div class="font-semibold text-sm text-[var(--blt-text)]">Server Room B</div>
+                <div class="font-mono text-[10px] text-[var(--blt-primary)]">High Activity</div>
+              </div>
+            </div>
+            <div class="flex -space-x-1.5">
+              <div class="w-7 h-7 rounded-full border-2 border-[var(--blt-primary)]/30 bg-[var(--blt-primary-soft)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-xs text-[var(--blt-primary)]">person</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Room 3: Normal -->
+          <div class="bg-[var(--blt-surface-muted)] rounded-lg p-3.5 border border-[var(--blt-border)] flex items-center justify-between hover:border-[var(--blt-border-strong)] transition-colors group">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-md bg-[var(--blt-surface)] border border-[var(--blt-border)] flex items-center justify-center font-mono text-xs font-bold text-[var(--blt-primary)] group-hover:border-[var(--blt-primary)] transition-colors">F1</div>
+              <div>
+                <div class="font-semibold text-sm text-[var(--blt-text)]">Lounge Alpha</div>
+                <div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">Capacity: 1/5</div>
+              </div>
+            </div>
+            <div class="flex -space-x-1.5">
+              <div class="w-7 h-7 rounded-full border-2 border-[var(--blt-surface-muted)] bg-[var(--blt-surface)] flex items-center justify-center">
+                <span class="material-symbols-outlined text-xs text-[var(--blt-text-subtle)]">person</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Room 4: Empty -->
+          <div class="bg-[var(--blt-surface-muted)]/50 rounded-lg p-3.5 border border-dashed border-[var(--blt-border)] flex items-center justify-between opacity-60">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-md bg-[var(--blt-surface)] border border-[var(--blt-border)] flex items-center justify-center font-mono text-xs text-[var(--blt-text-subtle)]">F3</div>
+              <div>
+                <div class="font-medium text-sm text-[var(--blt-text-muted)]">Quiet Pod 1</div>
+                <div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">Empty</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 text-center">
+          <button class="blt-button-secondary text-xs">
+            <span class="material-symbols-outlined text-sm">expand_more</span>
+            View All 15 Rooms
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Right: Stats & Health ── -->
+      <div class="lg:col-span-5 flex flex-col gap-5">
+
+        <!-- Identity Linkage -->
+        <div class="blt-card p-5 relative overflow-hidden">
+          <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full blur-3xl" style="background:color-mix(in srgb, var(--blt-primary) 6%, transparent);pointer-events:none"></div>
+          <h2 class="font-bold text-sm text-[var(--blt-text)] mb-5 relative z-10">Identity Linkage</h2>
+          <div class="flex items-center gap-5 relative z-10">
+            <div class="donut-chart" style="background:conic-gradient(#22c55e 85%, var(--blt-surface-muted) 0)">
+              <div class="donut-chart-inner">
+                <span class="font-mono font-bold text-lg text-emerald-500">85%</span>
+              </div>
+            </div>
+            <div>
+              <p class="text-xs text-[var(--blt-text-muted)] mb-2">Total Contributors linked to GitLab accounts.</p>
+              <div class="flex gap-4">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                  <span class="text-[11px] text-[var(--blt-text)]">Linked (42)</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <div class="w-2 h-2 rounded-full bg-[var(--blt-surface-muted)]"></div>
+                  <span class="text-[11px] text-[var(--blt-text-muted)]">Pending (8)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pipeline Velocity -->
+        <div class="blt-card p-5 flex-1">
+          <h2 class="font-bold text-sm text-[var(--blt-text)] mb-4">Pipeline Velocity</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="hh-metric-card">
+              <span class="material-symbols-outlined text-sm text-amber-500 mb-1.5">bolt</span>
+              <div class="font-mono font-bold text-2xl text-[var(--blt-text)]">142</div>
+              <div class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider">Events/Min</div>
+            </div>
+            <div class="hh-metric-card">
+              <span class="material-symbols-outlined text-sm text-emerald-500 mb-1.5">webhook</span>
+              <div class="font-mono font-bold text-2xl text-emerald-500">89%</div>
+              <div class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider">Webhook Succ.</div>
+            </div>
+            <div class="hh-metric-card">
+              <span class="material-symbols-outlined text-sm text-sky-500 mb-1.5">sync</span>
+              <div class="font-mono font-bold text-2xl text-[var(--blt-text)]">12ms</div>
+              <div class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider">Avg Poll Latency</div>
+            </div>
+            <div class="hh-metric-card border border-[var(--blt-primary)]/30 relative overflow-hidden" style="background:color-mix(in srgb, var(--blt-primary) 6%, var(--blt-surface-muted))">
+              <div class="absolute inset-0 opacity-[0.04]" style="background:var(--blt-primary);animation:hh-pulse-dot 2s ease-in-out infinite"></div>
+              <span class="material-symbols-outlined text-sm text-[var(--blt-primary)] mb-1.5 relative z-10">warning</span>
+              <div class="font-mono font-bold text-2xl text-[var(--blt-primary)] relative z-10">3</div>
+              <div class="font-mono text-[10px] text-[var(--blt-primary)] uppercase tracking-wider relative z-10">Active Errors</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Component Health Monitoring ═══ -->
+    <section class="mb-8">
+      <h2 class="font-bold text-lg text-[var(--blt-text)] mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-lg text-[var(--blt-primary)]">monitor_heart</span>
+        System Health
+      </h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Webhook -->
+        <div class="hh-health-card">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="hh-health-indicator online"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">Webhook</span>
+            </div>
+            <span class="blt-status-badge blt-status-success text-[9px]">operational</span>
+          </div>
+          <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
+            <div class="flex justify-between">
+              <span>Uptime</span>
+              <span class="text-[var(--blt-text)]">99.8%</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Latency</span>
+              <span class="text-[var(--blt-text)]">24ms</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Last event</span>
+              <span class="text-[var(--blt-text)]">2s ago</span>
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Throughput</span>
+                <span class="text-emerald-500">89%</span>
+              </div>
+              <div class="health-bar-track">
+                <div class="health-bar-fill bg-emerald-500" style="width:89%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gap Detector -->
+        <div class="hh-health-card">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="hh-health-indicator online"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">Gap Detector</span>
+            </div>
+            <span class="blt-status-badge blt-status-success text-[9px]">operational</span>
+          </div>
+          <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
+            <div class="flex justify-between">
+              <span>Uptime</span>
+              <span class="text-[var(--blt-text)]">99.6%</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Poll interval</span>
+              <span class="text-[var(--blt-text)]">30s</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Last scan</span>
+              <span class="text-[var(--blt-text)]">8s ago</span>
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Coverage</span>
+                <span class="text-emerald-500">97%</span>
+              </div>
+              <div class="health-bar-track">
+                <div class="health-bar-fill bg-emerald-500" style="width:97%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WebSocket -->
+        <div class="hh-health-card">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="hh-health-indicator online"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">WebSocket</span>
+            </div>
+            <span class="blt-status-badge blt-status-success text-[9px]">operational</span>
+          </div>
+          <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
+            <div class="flex justify-between">
+              <span>Connections</span>
+              <span class="text-[var(--blt-text)]">12 active</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Msg rate</span>
+              <span class="text-[var(--blt-text)]">8/s</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Last broadcast</span>
+              <span class="text-[var(--blt-text)]">1s ago</span>
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Health</span>
+                <span class="text-emerald-500">Stable</span>
+              </div>
+              <div class="health-bar-track">
+                <div class="health-bar-fill bg-emerald-500" style="width:100%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Database -->
+        <div class="hh-health-card">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="hh-health-indicator online"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">Database</span>
+            </div>
+            <span class="blt-status-badge blt-status-success text-[9px]">operational</span>
+          </div>
+          <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
+            <div class="flex justify-between">
+              <span>Uptime</span>
+              <span class="text-[var(--blt-text)]">100%</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Query latency</span>
+              <span class="text-[var(--blt-text)]">3ms</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Connections</span>
+              <span class="text-[var(--blt-text)]">4/10</span>
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Health</span>
+                <span class="text-emerald-500">Optimal</span>
+              </div>
+              <div class="health-bar-track">
+                <div class="health-bar-fill bg-emerald-500" style="width:100%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Queue -->
+        <div class="hh-health-card">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="hh-health-indicator online"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">Queue</span>
+            </div>
+            <span class="blt-status-badge blt-status-success text-[9px]">operational</span>
+          </div>
+          <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
+            <div class="flex justify-between">
+              <span>Depth</span>
+              <span class="text-[var(--blt-text)]">0 pending</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Throughput</span>
+              <span class="text-[var(--blt-text)]">142/s</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Last processed</span>
+              <span class="text-[var(--blt-text)]">0.5s ago</span>
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Backlog</span>
+                <span class="text-emerald-500">Clear</span>
+              </div>
+              <div class="health-bar-track">
+                <div class="health-bar-fill bg-emerald-500" style="width:2%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Identity Resolver -->
+        <div class="hh-health-card">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="hh-health-indicator online"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">Identity Resolver</span>
+            </div>
+            <span class="blt-status-badge blt-status-success text-[9px]">operational</span>
+          </div>
+          <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
+            <div class="flex justify-between">
+              <span>Resolved</span>
+              <span class="text-[var(--blt-text)]">42 identities</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Confidence</span>
+              <span class="text-[var(--blt-text)]">94% avg</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Pending review</span>
+              <span class="text-amber-500">3 flags</span>
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Match rate</span>
+                <span class="text-emerald-500">85%</span>
+              </div>
+              <div class="health-bar-track">
+                <div class="health-bar-fill bg-emerald-500" style="width:85%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
 </div>
-<div class="flex gap-4">
-<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 p-2 rounded-full"><span class="material-symbols-outlined">settings</span></button>
-<button class="bg-primary-container text-on-primary-container font-bold px-4 py-1.5 rounded-full text-sm flex items-center gap-2 shadow-[0_0_10px_rgba(225,1,1,0.5)]">
-<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-                LIVE
-            </button>
-</div>
-</header>
-<!-- SideNavBar (Desktop Only) -->
-<nav class="hidden md:flex flex-col h-screen w-[18.5rem] sticky left-0 top-0 bg-surface-container shadow-lg border-r border-outline-variant p-gutter gap-stack-gap z-40">
-<div class="flex flex-col items-center gap-4 mb-8 pt-4">
-<div class="w-16 h-16 rounded-full bg-surface-container-highest border-2 border-primary-container flex items-center justify-center pulse-glow overflow-hidden">
-<span class="material-symbols-outlined text-primary-container text-3xl" style="font-variation-settings: 'FILL' 1;">api</span>
-</div>
-<div class="text-center">
-<h1 class="font-section-title text-section-title font-black text-primary leading-tight">BLT HackerHouse</h1>
-<p class="text-on-surface-variant text-sm mt-1 uppercase tracking-wider font-bold">Command Center</p>
-</div>
-</div>
-<div class="flex-1 flex flex-col gap-2">
-<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 hover:translate-x-1" href="#">
-<span class="material-symbols-outlined">home</span>
-<span class="font-medium">HackerHouse</span>
-</a>
-<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 hover:translate-x-1" href="#">
-<span class="material-symbols-outlined">rss_feed</span>
-<span class="font-medium">Activity Feed</span>
-</a>
-<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 hover:translate-x-1" href="#">
-<span class="material-symbols-outlined">leaderboard</span>
-<span class="font-medium">Leaderboard</span>
-</a>
-<a class="flex items-center gap-4 px-4 py-3 rounded-xl bg-primary-container text-on-primary-container shadow-[inset_0_0_8px_rgba(225,1,1,0.2)] hover:translate-x-1 transition-transform ease-in-out" href="#">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">sensors</span>
-<span class="font-bold">Status</span>
-</a>
-<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 hover:translate-x-1" href="#">
-<span class="material-symbols-outlined">monitor_heart</span>
-<span class="font-medium">Health</span>
-</a>
-</div>
-<div class="mt-auto flex flex-col gap-4">
-<button class="w-full bg-primary-container text-on-primary-container font-bold py-3 rounded-xl shadow-lg hover:bg-inverse-primary transition-colors duration-200 flex justify-center items-center gap-2">
-<span class="material-symbols-outlined">cable</span>
-                Connect Node
-            </button>
-<div class="flex flex-col gap-1 border-t border-outline-variant pt-4">
-<a class="flex items-center gap-4 px-4 py-2 rounded-lg text-on-surface-variant hover:text-on-surface text-sm transition-colors" href="#">
-<span class="material-symbols-outlined text-lg">settings</span>
-<span>Settings</span>
-</a>
-<a class="flex items-center gap-4 px-4 py-2 rounded-lg text-on-surface-variant hover:text-on-surface text-sm transition-colors" href="#">
-<span class="material-symbols-outlined text-lg">help</span>
-<span>Support</span>
-</a>
-</div>
-</div>
-</nav>
-<!-- Main Content Canvas -->
-<main class="flex-1 flex flex-col p-container-padding-sm md:p-container-padding-lg gap-section-gap overflow-y-auto">
-<!-- Status View Section -->
-<section class="flex flex-col gap-stack-gap">
-<header class="flex justify-between items-end mb-4 border-b border-surface-container-high pb-4">
-<div>
-<h2 class="font-page-title text-page-title text-primary tracking-tight">Ecosystem Status</h2>
-<p class="text-on-surface-variant mt-2 font-body-dense text-body-dense">Real-time occupancy and pipeline metrics.</p>
-</div>
-<div class="bg-surface-container-high px-4 py-2 rounded-lg border border-outline-variant flex items-center gap-3">
-<div class="flex items-center gap-2">
-<span class="w-3 h-3 rounded-full bg-secondary shadow-[0_0_8px_rgba(123,216,177,0.6)]"></span>
-<span class="font-code-label text-code-label text-secondary">SYS_ONLINE</span>
-</div>
-</div>
-</header>
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-<!-- Left Column: Room Occupancy -->
-<div class="lg:col-span-7 bg-surface-container rounded-xl border border-outline-variant p-6 shadow-md">
-<div class="flex justify-between items-center mb-6">
-<h3 class="font-subsection-title text-subsection-title text-on-surface">Room Occupancy</h3>
-<span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold text-on-surface-variant border border-outline-variant">15 Active Rooms</span>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<!-- Room Card Example 1 -->
-<div class="bg-surface-container-low rounded-lg p-4 border border-outline-variant flex justify-between items-center hover:bg-surface-container transition-colors group">
-<div class="flex items-center gap-4">
-<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center font-code-label text-code-label font-bold text-primary border border-surface-variant group-hover:border-primary-container transition-colors">
-                                    F1
-                                </div>
-<div>
-<h4 class="font-bold text-on-surface">Main Hall</h4>
-<p class="text-xs text-on-surface-variant">Capacity: 4/10</p>
-</div>
-</div>
-<div class="flex -space-x-2">
-<img alt="" class="w-8 h-8 rounded-full border-2 border-surface-container-low" data-alt="A small circular avatar placeholder image showing a young male developer with glasses, brightly lit in a modern tech office setting. Dark background with subtle neon green accents. Professional headshot style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKimn3U6uisdvJPEetIptBgkAnssmVmqS9UDHT59kB9STSTL22LEpG9yOuKtYyM1Y4uKtHm1p5XSloPVAoOUhD8MXLsyUtbuhZFbKA5v_LNgnzP28LSUXfXLJnoZp3jS2yEzQ3BZgX8K2a2T0BgSVBqvyYWiA7G6kcsmtbU_7tr4M5BL-1QdbIBHg2ns4jGRGYWztgu-nXdGlXNx0oAhZeDcyb8H3OGPFM6z2cX1xRtSL41p9I3is5Wb95hEc_0c3SeaALe8FJaeaT">
-<img alt="" class="w-8 h-8 rounded-full border-2 border-surface-container-low" data-alt="A small circular avatar placeholder image showing a young female developer with dark hair, brightly lit in a modern tech office setting. Dark background with subtle neon green accents. Professional headshot style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGtsj_yH-eZXyPOQ7WKrpCLlGYEcvlNPnQJzIjHgrgK_S90c6K93mih4OEIf2_rizzE0DbzkczAJ70KDxDQPlxW7bNrcLqcZNXJCYql8ThweqDt1PlGp9wQN0s8GIdsdS2YdEi81cIvNFKt8SJF-MH5WQ7s2okOzlIxAek0rBJKC_wXdGgvgqZzmurF1vBoWGDgQNtTtRyL8LnkjxS9UsV81yjLj9m3pVpXa7nYOrRkONPGRUJhndkY3ERUPB8ljbtQ_4r-7Sg3FXI">
-<div class="w-8 h-8 rounded-full border-2 border-surface-container-low bg-surface-container-highest flex items-center justify-center text-[10px] font-bold text-on-surface-variant">+2</div>
-</div>
-</div>
-<!-- Room Card Example 2 -->
-<div class="bg-surface-container-low rounded-lg p-4 border border-outline-variant flex justify-between items-center hover:bg-surface-container transition-colors group pulse-glow">
-<div class="flex items-center gap-4">
-<div class="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center font-code-label text-code-label font-bold text-primary-container border border-primary-container">
-                                    F2
-                                </div>
-<div>
-<h4 class="font-bold text-on-surface">Server Room B</h4>
-<p class="text-xs text-primary">High Activity</p>
-</div>
-</div>
-<div class="flex -space-x-2">
-<img alt="" class="w-8 h-8 rounded-full border-2 border-primary-container" data-alt="A small circular avatar placeholder image showing a focused male developer with a beard, lit by the glow of a computer screen. Dark background. Professional headshot style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoVRqhlxjkWBqxZAiLBoQ3SvX2sVjUb6WAAQVEoMU3IE0l8NjdbRfg-rOjac0kRTTsqaLxoF5KNtW8l8btRm5IOVzWUDDWdOEo5xNPSN-I6a4Ft8tE768ueorlfrdBKMrqEtQi1TfRITznDnOq809NvBD8VPFu2wtAJC1BwTzuFNhcssVe37g6Dgh2zRQNbdt8Swq8WjmwYudSodF1YRKpec2KM68Fxzy90VsVLOqPzg2XHoPb4rSF4Lgx8uLr7vPo0-cV-cc5uDcs">
-</div>
-</div>
-<!-- Room Card Example 3 -->
-<div class="bg-surface-container-low rounded-lg p-4 border border-outline-variant flex justify-between items-center hover:bg-surface-container transition-colors group">
-<div class="flex items-center gap-4">
-<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center font-code-label text-code-label font-bold text-primary border border-surface-variant group-hover:border-primary-container transition-colors">
-                                    F1
-                                </div>
-<div>
-<h4 class="font-bold text-on-surface">Lounge Alpha</h4>
-<p class="text-xs text-on-surface-variant">Capacity: 1/5</p>
-</div>
-</div>
-<div class="flex -space-x-2">
-<img alt="" class="w-8 h-8 rounded-full border-2 border-surface-container-low" data-alt="A small circular avatar placeholder image showing a young female designer with glasses, softly lit. Dark background. Professional headshot style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBt06mEUHqeuJXIN1mFJULiBWgy8nV6gNHa5BrImhuRm20L5H5YVnzSkZ7-40Gsb_V_fwFrYJveKb1-OdX43Fym7emLNkaGKl2ujMgYoHf1kcMpgJ1FmKvV-q1vPdvaT2_aByqUGSV66P_5uxsBG13tQ2qrCg3WABXOTEovP5Zs-Rs9umyPtxP3mibQ6_pxp2-cUlb3J5mTj16dUZ4Moa6sA7QVCk0pVamR6LdgeXw0woGSaie8OwFEnyR2l4I_jEPyzbmV-o5gi5oB">
-</div>
-</div>
-<!-- Room Card Example 4 (Empty) -->
-<div class="bg-surface-container-lowest rounded-lg p-4 border border-dashed border-outline-variant flex justify-between items-center opacity-70">
-<div class="flex items-center gap-4">
-<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center font-code-label text-code-label text-on-surface-variant border border-surface-variant">
-                                    F3
-                                </div>
-<div>
-<h4 class="font-medium text-on-surface-variant">Quiet Pod 1</h4>
-<p class="text-xs text-on-surface-variant">Empty</p>
-</div>
-</div>
-</div>
-</div>
-<!-- Paginator/More indicator -->
-<div class="mt-4 flex justify-center">
-<button class="text-sm font-bold text-primary hover:text-primary-container transition-colors">View All 15 Rooms</button>
-</div>
-</div>
-<!-- Right Column: Stats & Health -->
-<div class="lg:col-span-5 flex flex-col gap-gutter">
-<!-- Identity Stats Card -->
-<div class="bg-surface-container rounded-xl border border-outline-variant p-6 shadow-md relative overflow-hidden">
-<!-- Abstract bg glow -->
-<div class="absolute -right-10 -top-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl"></div>
-<h3 class="font-subsection-title text-subsection-title text-on-surface mb-6 relative z-10">Identity Linkage</h3>
-<div class="flex items-center gap-6 relative z-10">
-<!-- CSS Donut Chart approximation -->
-<div class="relative w-24 h-24 rounded-full flex items-center justify-center" style="background: conic-gradient(#7bd8b1 85%, #462f2b 0);">
-<div class="absolute inset-2 bg-surface-container rounded-full flex items-center justify-center">
-<span class="font-code-label text-code-label font-bold text-secondary text-lg">85%</span>
-</div>
-</div>
-<div>
-<p class="text-sm text-on-surface-variant mb-1">Total Contributors linked to GitLab accounts.</p>
-<div class="flex gap-4 mt-3">
-<div class="flex items-center gap-2">
-<div class="w-2 h-2 rounded-full bg-secondary"></div>
-<span class="text-xs text-on-surface">Linked (42)</span>
-</div>
-<div class="flex items-center gap-2">
-<div class="w-2 h-2 rounded-full bg-surface-variant"></div>
-<span class="text-xs text-on-surface-variant">Pending (8)</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Pipeline Health Metrics -->
-<div class="bg-surface-container rounded-xl border border-outline-variant p-6 shadow-md flex-1">
-<h3 class="font-subsection-title text-subsection-title text-on-surface mb-6">Pipeline Velocity</h3>
-<div class="grid grid-cols-2 gap-4">
-<div class="bg-surface-container-low p-4 rounded-lg border border-outline-variant">
-<span class="material-symbols-outlined text-tertiary mb-2">bolt</span>
-<div class="font-code-label text-code-label text-tertiary text-2xl font-bold">142</div>
-<div class="text-xs text-on-surface-variant uppercase tracking-wider mt-1">Events/Min</div>
-</div>
-<div class="bg-surface-container-low p-4 rounded-lg border border-outline-variant">
-<span class="material-symbols-outlined text-secondary mb-2">webhook</span>
-<div class="font-code-label text-code-label text-secondary text-2xl font-bold">89%</div>
-<div class="text-xs text-on-surface-variant uppercase tracking-wider mt-1">Webhook Succ.</div>
-</div>
-<div class="bg-surface-container-low p-4 rounded-lg border border-outline-variant">
-<span class="material-symbols-outlined text-primary mb-2">sync</span>
-<div class="font-code-label text-code-label text-primary text-2xl font-bold">12ms</div>
-<div class="text-xs text-on-surface-variant uppercase tracking-wider mt-1">Avg Poll Latency</div>
-</div>
-<div class="bg-error-container/20 p-4 rounded-lg border border-error-container relative overflow-hidden">
-<div class="absolute inset-0 bg-error-container/5 animate-pulse"></div>
-<span class="material-symbols-outlined text-error mb-2 relative z-10">warning</span>
-<div class="font-code-label text-code-label text-error text-2xl font-bold relative z-10">3</div>
-<div class="text-xs text-error uppercase tracking-wider mt-1 relative z-10">Active Errors</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</section>
-</main>
-</body></html>
+</body>
+</html>
