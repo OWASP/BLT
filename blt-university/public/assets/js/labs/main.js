@@ -27,6 +27,7 @@
         'csrf-auto-submit': renderCsrfAutoSubmitSimulation,
         'csrf-image': renderCsrfImageSimulation,
         'csrf-ajax': renderCsrfAjaxSimulation,
+        'idor-profile': renderIdorProfileSimulation,
         'legacy-payload': renderLegacyPayloadSimulation
     };
 
@@ -333,6 +334,84 @@
         };
     }
 
+    // IDOR validation helpers.
+    function usesAuthenticatedIdentity(code) {
+        return /\b(req|request)\.(user|session)\.(id|userId)\b/i.test(code) ||
+            /\b(currentUser|authenticatedUser)\.(id|userId)\b/i.test(code);
+    }
+
+    function findFirstIndex(code, patterns) {
+        return patterns.reduce((firstIndex, pattern) => {
+            const index = code.search(pattern);
+            if (index === -1) {
+                return firstIndex;
+            }
+
+            return firstIndex === -1 ? index : Math.min(firstIndex, index);
+        }, -1);
+    }
+
+    function dataResponseIndex(code) {
+        return code.search(/\b(res|response)\.(json|send|render)\s*\(\s*(profile|record|resource|account)\b/i);
+    }
+
+    function authorizationCheckIndex(code) {
+        return findFirstIndex(code, [
+            /(profile|record|resource|account)\.(userId|ownerId|id)\s*[!=]==?\s*(req|request)\.(user|session)\.(id|userId)/i,
+            /(req|request)\.(user|session)\.(id|userId)\s*[!=]==?\s*(profile|record|resource|account)\.(userId|ownerId|id)/i,
+            /\b(if\s*\([^)]*\b(authorize|isAuthorized|canAccess|canView|requireOwner|requireOwnership)\s*\(|requireOwner|requireOwnership)\b/i
+        ]);
+    }
+
+    function checksResourceOwnershipBeforeReturn(code) {
+        const checkIndex = authorizationCheckIndex(code);
+        const responseIndex = dataResponseIndex(code);
+
+        return checkIndex !== -1 && (responseIndex === -1 || checkIndex < responseIndex);
+    }
+
+    function rejectsUnauthorizedAccessBeforeReturn(code) {
+        const rejectionIndex = findFirstIndex(code, [
+            /if\s*\([^)]*(profile|record|resource|account|authorize|isAuthorized|canAccess|canView|requireOwner|requireOwnership)[^)]*\)\s*\{?[\s\S]{0,220}\b(return\s+)?(res|response)\.status\s*\(\s*(401|403)\s*\)/i,
+            /if\s*\([^)]*(profile|record|resource|account|authorize|isAuthorized|canAccess|canView|requireOwner|requireOwnership)[^)]*\)\s*\{?[\s\S]{0,220}\bthrow\s+new\s+(Forbidden|Unauthorized|Auth)/i
+        ]);
+        const responseIndex = dataResponseIndex(code);
+
+        return rejectionIndex !== -1 && (responseIndex === -1 || rejectionIndex < responseIndex);
+    }
+
+    function returnsResourceBeforeAuthorization(code) {
+        const responseIndex = dataResponseIndex(code);
+        if (responseIndex === -1) {
+            return false;
+        }
+
+        const checkIndex = authorizationCheckIndex(code);
+        return checkIndex === -1 || responseIndex < checkIndex;
+    }
+
+    function validateIdorFix(code) {
+        const checks = [
+            {
+                label: 'Authenticated user identity is used for the access decision',
+                passed: usesAuthenticatedIdentity(code)
+            },
+            {
+                label: 'Resource ownership or authorization is checked before returning data',
+                passed: checksResourceOwnershipBeforeReturn(code) && !returnsResourceBeforeAuthorization(code)
+            },
+            {
+                label: 'Unauthorized object access is rejected',
+                passed: rejectsUnauthorizedAccessBeforeReturn(code)
+            }
+        ];
+
+        return {
+            passed: checks.every(check => check.passed),
+            checks
+        };
+    }
+
     function createHintController(hints = []) {
         let nextIndex = 0;
 
@@ -624,12 +703,14 @@
                     </span>
                     <span class="text-gray-500 transition group-open:rotate-180 dark:text-gray-300"><i class="ph-bold ph-caret-down"></i></span>
                 </summary>
-                <div class="grid gap-3 border-t border-gray-200 p-4 dark:border-gray-700 lg:grid-cols-3">
+                <div class="grid gap-4 border-t border-gray-200 p-4 dark:border-gray-700">
                     ${guidance.map(item => `
                         <div class="min-w-0 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/80">
-                            <h6 class="m-0 mb-2 text-sm font-bold text-gray-900 dark:text-white">${escapeHtml(item.title)}</h6>
-                            <p class="m-0 text-sm leading-relaxed text-gray-600 dark:text-gray-300">${escapeHtml(item.body)}</p>
-                            ${item.code ? `<pre class="mt-3 max-h-32 overflow-auto rounded-lg bg-gray-950 p-3 text-[10px] leading-relaxed text-gray-100"><code>${escapeHtml(item.code)}</code></pre>` : ''}
+                            <div class="min-w-0">
+                                <h6 class="m-0 mb-2 text-sm font-bold text-gray-900 dark:text-white">${escapeHtml(item.title)}</h6>
+                                <p class="m-0 text-sm leading-relaxed text-gray-600 dark:text-gray-300">${escapeHtml(item.body)}</p>
+                            </div>
+                            ${item.code ? `<pre class="mt-4 max-h-32 min-w-0 overflow-auto rounded-lg bg-gray-950 p-3 text-[10px] leading-relaxed text-gray-100"><code>${escapeHtml(item.code)}</code></pre>` : ''}
                         </div>
                     `).join('')}
                 </div>
@@ -639,7 +720,7 @@
 
     function renderFixOverview(messages, checks = []) {
         return `
-            <details class="group rounded-2xl border border-gray-200 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-800/30" open>
+            <details class="group rounded-2xl border border-gray-200 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-800/30">
                 <summary class="flex cursor-pointer list-none items-center justify-between gap-4 p-5">
                     <span class="flex items-start gap-3">
                         <span class="mt-1 text-bltRed"><i class="ph-bold ph-target"></i></span>
@@ -1082,6 +1163,40 @@
             fixGoal: 'Protect the password endpoint from cross-site JavaScript requests.',
             fixError: 'The fix still needs token presence, server validation, and SameSite cookie protection.',
             complete: 'You identified the AJAX CSRF path and added token-based defenses.'
+        });
+    }
+
+    function renderIdorProfileSimulation(container, config, context) {
+        renderCodeFixSimulation(container, config, context, {
+            engine: 'idor-profile',
+            title: 'IDOR Profile Access Defense',
+            validateFix: validateIdorFix,
+            fixGuidance: [
+                {
+                    title: 'Do not trust object IDs alone',
+                    body: 'Route parameters identify the requested object, not whether the current user is allowed to read it.',
+                    code: 'const profile = db.getUserProfile(request.params.userId);'
+                },
+                {
+                    title: 'Compare owner to session user',
+                    body: 'Load the resource, then verify that its owner matches the authenticated user before returning it.',
+                    code: "if (!profile || profile.userId !== request.user.id) {\n  return response.status(403).json({ error: 'Forbidden' });\n}"
+                },
+                {
+                    title: 'Centralize authorization',
+                    body: 'A helper such as canAccessProfile(user, profile) keeps the ownership rule consistent across routes.',
+                    code: 'if (!canAccessProfile(request.user, profile)) return response.status(403).end();'
+                }
+            ],
+            messages: {
+                identifyPrompt: 'Select the line that returns a profile based only on a user-controlled object ID.',
+                identifyError: 'Not quite. Select the line where the requested profile is returned without an ownership check.',
+                explainError: 'Choose the answer that explains why changing the URL can expose another user profile.',
+                fixPrompt: 'Verify that the authenticated user owns or is allowed to access the requested profile before returning it.',
+                fixGoal: 'Prevent users from reading profiles that belong to someone else.',
+                fixError: 'The fix still needs authenticated identity, an ownership/authorization check, and a rejection path.',
+                complete: 'You identified the missing object-level authorization check and protected the profile route.'
+            }
         });
     }
 

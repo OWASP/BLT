@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 if (state) {
-                    state.textContent = isCurrent ? 'Current' : isTaskComplete(jumpIndex) ? 'Complete' : isUnlocked ? 'Available' : 'Locked';
+                    state.textContent = isTaskComplete(jumpIndex) ? 'Complete' : isCurrent ? 'Current' : isUnlocked ? 'Available' : 'Locked';
                     state.className = 'block text-xs ' + (isCurrent || isTaskComplete(jumpIndex) ? 'text-bltRed' : 'text-gray-400');
                 }
             });
