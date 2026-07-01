@@ -19,7 +19,6 @@ messages:
     params:
       arguments:
         description: Found a SQL injection in the login endpoint.
-        title: SQL Injection found
         url: blt://v2/bugs
       name: submit_issue
   t: 10
@@ -41,23 +40,25 @@ messages:
       serverInfo:
         name: blt-mcp
         version: 1.27.1
-  t: 984
+  t: 1172
 - dir: s2c
   payload:
-    error:
-      code: -32602
-      message: 'Validation error for tool ''submit_issue'': Unexpected parameter:
-        ''title'''
     id: NORM_ID_2
     jsonrpc: '2.0'
-  t: 984
+    result:
+      content:
+      - text: 'Error executing tool submit_issue: Write operation requires confirmation.
+          Please set ''confirmed'': true to proceed.'
+        type: text
+      isError: true
+  t: 1188
 meta:
-  recorded_at: '2026-07-01T09:17:00.112750Z'
+  recorded_at: '2026-07-01T09:23:48.177756Z'
   schema_version: '1.0'
   server_command:
   - uv
   - run
   - -m
   - blt_mcp.server
-  session_id: 00000001-replay-20260701T091700112750Z
+  session_id: 00000001-replay-20260701T092348177756Z
   version: 1
