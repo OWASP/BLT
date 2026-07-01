@@ -30,8 +30,9 @@
   <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800 transition-colors" role="banner">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <nav class="flex items-center justify-between h-16" role="navigation" aria-label="Main navigation">
-        <a href="../index.html" class="flex items-center">
+        <a href="../index.html" class="flex items-center gap-2.5">
           <img src="../assets/img/logo-lg.png" alt="OWASP BLT Logo" class="h-8 w-auto">
+          <span class="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100">OWASP <span class="text-red-600 dark:text-red-400">BLT</span></span>
         </a>
         <ul class="hidden md:flex items-center gap-1 list-none m-0 p-0">
           <li><a href="../index.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Home</a></li>
@@ -45,8 +46,8 @@
             <i class="fa-solid fa-sun dark:hidden text-sm" aria-hidden="true"></i>
             <i class="fa-solid fa-moon hidden dark:block text-sm" aria-hidden="true"></i>
           </button>
-          <button id="loginBtn" class="whitespace-nowrap flex-shrink-0 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors">Login</button>
-          <button id="signupBtn" class="whitespace-nowrap flex-shrink-0 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">Sign Up</button>
+          <a id="loginBtn" href="login.html" class="whitespace-nowrap flex-shrink-0 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors">Login</a>
+          <a id="signupBtn" href="signup.html" class="whitespace-nowrap flex-shrink-0 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">Sign Up</a>
         </div>
         <button class="md:hidden p-2 text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" id="mobileMenuBtn" aria-label="Open menu">
           <i class="fa-solid fa-bars text-base" aria-hidden="true"></i>
@@ -61,8 +62,8 @@
           <li><a href="about.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">About</a></li>
         </ul>
         <div class="flex gap-3 mt-3">
-          <button class="whitespace-nowrap flex-shrink-0 flex-1 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors">Login</button>
-          <button class="whitespace-nowrap flex-shrink-0 flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">Sign Up</button>
+          <a href="login.html" class="whitespace-nowrap flex-shrink-0 flex-1 px-4 py-2 text-sm font-medium text-center text-red-600 dark:text-red-400 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors">Login</a>
+          <a href="signup.html" class="whitespace-nowrap flex-shrink-0 flex-1 px-4 py-2 text-sm font-medium text-center text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">Sign Up</a>
         </div>
       </div>
     </div>
