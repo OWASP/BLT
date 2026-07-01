@@ -43,9 +43,24 @@ permalink: /labs/
     <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="{{ lab.category | slugify }}" data-level="{{ lab.difficulty | downcase }}" data-search="{{ lab.title | downcase }} {{ lab.description | downcase }} {{ lab.category | downcase }}">
       <a href="{{ lab.url | relative_url }}" class="block h-44 bg-gray-950 relative overflow-hidden">
         {% assign lab_key = lab.title | downcase %}
+        {% assign lab_icon = nil %}
+        {% if lab_key contains "server-side request forgery" %}{% assign lab_icon = "cloud-arrow-down" %}
+        {% elsif lab_key contains "file upload" %}{% assign lab_icon = "upload-simple" %}
+        {% elsif lab_key contains "sensitive data" %}{% assign lab_icon = "key" %}
+        {% elsif lab_key contains "broken authentication" %}{% assign lab_icon = "lock-key" %}
+        {% elsif lab_key contains "open redirect" %}{% assign lab_icon = "arrow-bend-up-right" %}
+        {% elsif lab_key contains "command injection" %}{% assign lab_icon = "terminal-window" %}
+        {% endif %}
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
         <div class="absolute inset-0 opacity-80">
-          {% if lab_key contains "request forgery" %}
+          {% if lab_icon %}
+          <div class="absolute left-8 top-12 w-48 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-xl">
+            <div class="mb-3 h-2 w-28 rounded-full bg-white/25"></div>
+            <div class="h-2 w-40 rounded-full bg-white/10"></div>
+            <div class="mt-4 font-mono text-[10px] uppercase tracking-wider text-red-100">Safe mock scenario</div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-{{ lab_icon }} text-2xl"></i></div>
+          {% elsif lab_key contains "request forgery" %}
           <div class="absolute left-8 top-14 w-44 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-xl">
             <div class="mb-3 flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-red-600"></span><span class="h-2 w-24 rounded-full bg-white/25"></span></div>
             <div class="space-y-2"><div class="h-2 rounded-full bg-white/20"></div><div class="h-2 w-3/4 rounded-full bg-white/20"></div><div class="h-7 rounded-lg border border-red-400/40 bg-red-500/30"></div></div>
