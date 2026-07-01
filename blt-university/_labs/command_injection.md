@@ -48,6 +48,33 @@ tasks:
   order: 3
   simulation:
     scenario: ping_feature
+    engine: command-basic
+    type: ping_feature
+    target_url: /safe-simulation
+    vulnerable_code: |
+      app.post('/ping', (req, res) => {
+        const ip = req.body.ip_address;
+        exec('ping -c 1 ' + ip, (error, stdout) => res.send(stdout));
+      });
+    vulnerable_lines:
+    - 3
+    explain:
+      question: Why can the attacker run another command?
+      options:
+      - id: shell_concat
+        label: User input is concatenated into a shell command, so separators can append commands.
+      - id: missing_css
+        label: The response is missing a stylesheet.
+      answer: shell_concat
+    expected_patterns:
+    - separate_command_arguments
+    - input_allowlist
+    - shell_metacharacter_blocking
+    fix_starter_code: |
+      app.post('/ping', (req, res) => {
+        const ip = req.body.ip_address;
+        exec('ping -c 1 ' + ip, (error, stdout) => res.send(stdout));
+      });
     vulnerable_parameters:
     - ip_address
     success_criteria: Execute a command that shows the current directory contents
@@ -55,15 +82,39 @@ tasks:
     hints:
     - Use command separators like ; to chain commands
     difficulty: beginner
-    engine: legacy-payload
-    type: ping_feature
-    target_url: /safe-simulation
 - name: Command Injection with Pipes
   description: Use pipe operators for command injection
   type: simulation
   order: 4
   simulation:
     scenario: ping_filter_semicolon
+    engine: command-pipe
+    type: ping_filter_semicolon
+    target_url: /safe-simulation
+    vulnerable_code: |
+      app.post('/lookup', (req, res) => {
+        const ip = req.body.ip_address.replace(';', '');
+        exec('ping -c 1 ' + ip, (error, stdout) => res.send(stdout));
+      });
+    vulnerable_lines:
+    - 3
+    explain:
+      question: Why is blocking only semicolons insufficient?
+      options:
+      - id: alternate_operator
+        label: Other shell operators such as pipes can still change command execution.
+      - id: too_many_packets
+        label: Ping always sends too many packets.
+      answer: alternate_operator
+    expected_patterns:
+    - separate_command_arguments
+    - strict_ip_validation
+    - shell_metacharacter_blocking
+    fix_starter_code: |
+      app.post('/lookup', (req, res) => {
+        const ip = req.body.ip_address.replace(';', '');
+        exec('ping -c 1 ' + ip, (error, stdout) => res.send(stdout));
+      });
     vulnerable_parameters:
     - ip_address
     success_criteria: Execute a command that shows system information
@@ -71,15 +122,41 @@ tasks:
     hints:
     - Try the pipe operator (|) to feed output into commands
     difficulty: beginner
-    engine: legacy-payload
-    type: ping_filter_semicolon
-    target_url: /safe-simulation
 - name: Blind Command Injection
   description: Practice blind command injection techniques
   type: simulation
   order: 5
   simulation:
     scenario: blind_injection
+    engine: command-blind
+    type: blind_injection
+    target_url: /safe-simulation
+    vulnerable_code: |
+      app.post('/health-check', (req, res) => {
+        const ip = req.body.ip_address;
+        execSync(`ping -c 1 ${ip}`);
+        res.send('OK');
+      });
+    vulnerable_lines:
+    - 3
+    explain:
+      question: Why can a time delay prove command injection?
+      options:
+      - id: blind_timing
+        label: The injected command changes server response timing even when command output is hidden.
+      - id: browser_cache
+        label: Browser cache makes every request slower.
+      answer: blind_timing
+    expected_patterns:
+    - separate_command_arguments
+    - strict_ip_validation
+    - shell_metacharacter_blocking
+    fix_starter_code: |
+      app.post('/health-check', (req, res) => {
+        const ip = req.body.ip_address;
+        execSync(`ping -c 1 ${ip}`);
+        res.send('OK');
+      });
     vulnerable_parameters:
     - ip_address
     success_criteria: Cause a measurable time delay
@@ -87,9 +164,6 @@ tasks:
     hints:
     - Use time delays like sleep to confirm injection
     difficulty: intermediate
-    engine: legacy-payload
-    type: blind_injection
-    target_url: /safe-simulation
 - name: Command Injection Prevention
   description: Learn how to prevent command injection vulnerabilities
   type: theory
@@ -116,6 +190,33 @@ tasks:
   order: 7
   simulation:
     scenario: filter_bypass
+    engine: command-filter-bypass
+    type: filter_bypass
+    target_url: /safe-simulation
+    vulnerable_code: |
+      app.post('/diag', (req, res) => {
+        const ip = req.body.ip_address.replaceAll(' ', '');
+        exec('ping -c 1 ' + ip, (error, stdout) => res.send(stdout));
+      });
+    vulnerable_lines:
+    - 3
+    explain:
+      question: Why can encoding bypass this filter?
+      options:
+      - id: shell_expansion
+        label: Shell expansions and alternate separators can restore spaces or command chaining after filtering.
+      - id: invalid_route
+        label: The route name is too short.
+      answer: shell_expansion
+    expected_patterns:
+    - separate_command_arguments
+    - strict_ip_validation
+    - shell_metacharacter_blocking
+    fix_starter_code: |
+      app.post('/diag', (req, res) => {
+        const ip = req.body.ip_address.replaceAll(' ', '');
+        exec('ping -c 1 ' + ip, (error, stdout) => res.send(stdout));
+      });
     vulnerable_parameters:
     - ip_address
     success_criteria: Execute a command that shows the current user
@@ -123,9 +224,6 @@ tasks:
     hints:
     - Use ${IFS} instead of spaces to bypass filters
     difficulty: advanced
-    engine: legacy-payload
-    type: filter_bypass
-    target_url: /safe-simulation
 - name: Command Injection in Web Shells
   description: Understand how command injection relates to web shells
   type: theory

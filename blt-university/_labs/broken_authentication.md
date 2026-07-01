@@ -61,7 +61,33 @@ tasks:
   simulation:
     type: auth_default_creds
     scenario: default_login
+    engine: auth-default-creds
     target_url: /login
+    vulnerable_code: |
+      const users = [
+        { username: 'admin', password: 'admin', mustChangePassword: false }
+      ];
+      app.post('/login', (req, res) => login(req.body.username, req.body.password));
+    vulnerable_lines:
+    - 2
+    - 4
+    explain:
+      question: Why can the admin account be compromised?
+      options:
+      - id: default_password
+        label: A known default password remains active and there is no forced password change.
+      - id: missing_logo
+        label: The login page does not display a logo.
+      answer: default_password
+    expected_patterns:
+    - password_policy
+    - default_credential_rotation
+    - rate_limiting
+    fix_starter_code: |
+      const users = [
+        { username: 'admin', password: 'admin', mustChangePassword: false }
+      ];
+      app.post('/login', (req, res) => login(req.body.username, req.body.password));
     vulnerable_parameters:
     - username
     - password
@@ -71,7 +97,6 @@ tasks:
     - Try admin/admin
     - Try admin/password
     difficulty: beginner
-    engine: legacy-payload
 - name: Session Fixation & Session Management
   description: Understand why session IDs must rotate after login.
   type: theory
@@ -101,7 +126,36 @@ tasks:
   simulation:
     type: session_fixation
     scenario: fixation_reuse
+    engine: auth-session-fixation
     target_url: /session-test
+    vulnerable_code: |
+      app.post('/login', (req, res) => {
+        if (validPassword(req.body)) {
+          req.session.userId = user.id;
+          res.redirect('/admin');
+        }
+      });
+    vulnerable_lines:
+    - 3
+    explain:
+      question: Why is this session fixation-prone?
+      options:
+      - id: no_rotation
+        label: The app keeps the existing session ID after login instead of rotating it.
+      - id: no_username
+        label: The username field is missing from the request.
+      answer: no_rotation
+    expected_patterns:
+    - session_rotation
+    - secure_cookie_flags
+    - login_rate_limit
+    fix_starter_code: |
+      app.post('/login', (req, res) => {
+        if (validPassword(req.body)) {
+          req.session.userId = user.id;
+          res.redirect('/admin');
+        }
+      });
     vulnerable_parameters:
     - sessionid
     success_payload: sessionid=fixed-session-0001
@@ -110,7 +164,6 @@ tasks:
     - Set sessionid first
     - Log in and reuse sessionid
     difficulty: intermediate
-    engine: legacy-payload
 - name: JWT Misconfiguration (alg=none)
   description: Learn about forging JWTs when signature isn't checked.
   type: theory
@@ -140,7 +193,34 @@ tasks:
   simulation:
     type: jwt_forge
     scenario: jwt_admin
+    engine: auth-jwt-none
     target_url: /admin
+    vulnerable_code: |
+      app.get('/admin', (req, res) => {
+        const token = req.headers.authorization;
+        const claims = jwt.decode(token);
+        if (claims.role === 'admin') res.send('admin');
+      });
+    vulnerable_lines:
+    - 3
+    explain:
+      question: Why can an unsigned token work here?
+      options:
+      - id: no_signature
+        label: The token is decoded without verifying its signature or allowed algorithm.
+      - id: expired_css
+        label: The stylesheet cache expired.
+      answer: no_signature
+    expected_patterns:
+    - jwt_signature_verification
+    - algorithm_allowlist
+    - token_expiry
+    fix_starter_code: |
+      app.get('/admin', (req, res) => {
+        const token = req.headers.authorization;
+        const claims = jwt.decode(token);
+        if (claims.role === 'admin') res.send('admin');
+      });
     vulnerable_parameters:
     - Authorization
     success_payload: "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJyb2xlIjoiYWRtaW4ifQ."
@@ -149,7 +229,6 @@ tasks:
     - Set alg:none
     - Remove signature or use weak-secret
     difficulty: intermediate
-    engine: legacy-payload
 - name: Password Reset Flaws
   description: Weak reset tokens, long lifetime, predictable values.
   type: theory
@@ -183,7 +262,34 @@ tasks:
   simulation:
     type: password_reset_guess
     scenario: guess_reset_token
+    engine: auth-reset-token
     target_url: /reset-password?token=
+    vulnerable_code: |
+      app.post('/reset-password', (req, res) => {
+        const token = req.query.token;
+        if (token.length === 4) resetPassword(token, req.body.password);
+        res.send('reset');
+      });
+    vulnerable_lines:
+    - 3
+    explain:
+      question: Why can this reset token be guessed?
+      options:
+      - id: weak_token
+        label: The token is short, predictable, and not checked for expiry or single use.
+      - id: long_form
+        label: The reset form has too many fields.
+      answer: weak_token
+    expected_patterns:
+    - cryptographic_random_token
+    - single_use_token
+    - token_expiry
+    fix_starter_code: |
+      app.post('/reset-password', (req, res) => {
+        const token = req.query.token;
+        if (token.length === 4) resetPassword(token, req.body.password);
+        res.send('reset');
+      });
     vulnerable_parameters:
     - token
     success_payload: token=AB12
@@ -192,7 +298,6 @@ tasks:
     - Try small alphanumeric combinations
     - Lab only simulates tiny safe token space
     difficulty: intermediate
-    engine: legacy-payload
 - name: Brute-Force & Rate-Limiting Controls
   description: Why progressive delays and lockouts stop brute-force.
   type: theory
@@ -220,7 +325,36 @@ tasks:
   simulation:
     type: bruteforce_sim
     scenario: rate_limit_test
+    engine: auth-rate-limit
     target_url: /login
+    vulnerable_code: |
+      app.post('/login', (req, res) => {
+        const user = findUser(req.body.username);
+        if (user && checkPassword(user, req.body.password)) {
+          createSession(user);
+        }
+      });
+    vulnerable_lines:
+    - 3
+    explain:
+      question: Why can attackers keep guessing credentials?
+      options:
+      - id: unlimited_attempts
+        label: The login flow checks passwords without rate limits, lockouts, or progressive delay.
+      - id: no_redirect
+        label: The login flow does not redirect after failure.
+      answer: unlimited_attempts
+    expected_patterns:
+    - rate_limiting
+    - account_lockout
+    - password_hashing
+    fix_starter_code: |
+      app.post('/login', (req, res) => {
+        const user = findUser(req.body.username);
+        if (user && checkPassword(user, req.body.password)) {
+          createSession(user);
+        }
+      });
     vulnerable_parameters:
     - username
     - password
@@ -230,7 +364,6 @@ tasks:
     - Small controlled attempts
     - Lab simulates lockout
     difficulty: advanced
-    engine: legacy-payload
 - name: Authentication Remediation & Best Practices
   description: Final summary of secure approaches.
   type: theory

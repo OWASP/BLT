@@ -74,7 +74,32 @@ tasks:
   simulation:
     type: open_redirect_basic
     scenario: redirect_to_attacker
+    engine: redirect-basic
     target_url: /redirect?next=https://example.com
+    vulnerable_code: |
+      app.get('/redirect', (req, res) => {
+        const next = req.query.next || '/dashboard';
+        res.redirect(next);
+      });
+    vulnerable_lines:
+    - 3
+    explain:
+      question: Why can this redirect be abused?
+      options:
+      - id: raw_redirect
+        label: The app redirects to a user-controlled URL without validating the destination.
+      - id: missing_template
+        label: The page does not use a server-side template.
+      answer: raw_redirect
+    expected_patterns:
+    - allowlisted_redirects
+    - url_normalization
+    - dangerous_scheme_blocking
+    fix_starter_code: |
+      app.get('/redirect', (req, res) => {
+        const next = req.query.next || '/dashboard';
+        res.redirect(next);
+      });
     vulnerable_parameters:
     - next
     success_payload: https://evil.attacker.example/phish
@@ -83,7 +108,6 @@ tasks:
     - Replace ?next= with full attacker URL
     - Try http & https
     difficulty: beginner
-    engine: legacy-payload
 - name: Phishing Simulation via Open Redirect
   description: Show how attackers make a trusted-looking link forward to evil site.
   type: simulation
@@ -91,7 +115,32 @@ tasks:
   simulation:
     type: open_redirect_phish
     scenario: phishing_link
+    engine: redirect-phishing
     target_url: /redirect?next=
+    vulnerable_code: |
+      app.get('/login', (req, res) => {
+        const returnTo = req.query.next || '/account';
+        authenticate(req, () => res.redirect(returnTo));
+      });
+    vulnerable_lines:
+    - 3
+    explain:
+      question: Why does this make phishing easier?
+      options:
+      - id: trusted_chain
+        label: A trusted-looking login URL can forward victims to an attacker-controlled page.
+      - id: weak_password
+        label: The user's password is too short.
+      answer: trusted_chain
+    expected_patterns:
+    - internal_path_allowlist
+    - url_normalization
+    - external_scheme_blocking
+    fix_starter_code: |
+      app.get('/login', (req, res) => {
+        const returnTo = req.query.next || '/account';
+        authenticate(req, () => res.redirect(returnTo));
+      });
     vulnerable_parameters:
     - next
     success_payload: https://trusted.example/login?next=https://evil.attacker.example
@@ -99,7 +148,6 @@ tasks:
     hints:
     - Create trusted-looking URL that chains attacker destination
     difficulty: intermediate
-    engine: legacy-payload
 - name: Open Redirect Chaining to SSRF or Internal Targets
   description: Use nested redirect to reach simulated internal host.
   type: simulation
@@ -107,7 +155,32 @@ tasks:
   simulation:
     type: open_redirect_chain
     scenario: chain_to_internal
+    engine: redirect-chain
     target_url: /redirect?next=
+    vulnerable_code: |
+      app.get('/out', (req, res) => {
+        const destination = decodeURIComponent(req.query.next || '');
+        res.redirect(destination);
+      });
+    vulnerable_lines:
+    - 3
+    explain:
+      question: Why can nested redirects be dangerous?
+      options:
+      - id: redirect_chain
+        label: The first redirect can hide a second hop to an internal or restricted resource.
+      - id: slow_network
+        label: Redirects always make the network slower.
+      answer: redirect_chain
+    expected_patterns:
+    - allowlisted_redirects
+    - url_normalization
+    - nested_redirect_blocking
+    fix_starter_code: |
+      app.get('/out', (req, res) => {
+        const destination = decodeURIComponent(req.query.next || '');
+        res.redirect(destination);
+      });
     vulnerable_parameters:
     - next
     success_payload: http://evil.attacker.example/redirect?to=http://127.0.0.1:8080/secret
@@ -116,7 +189,6 @@ tasks:
     - Use nested redirects
     - Internal host access simulated safely
     difficulty: advanced
-    engine: legacy-payload
 - name: Bypass Attempts & URL Encodings
   description: Encoding tricks that bypass naive validation (educational only).
   type: theory
