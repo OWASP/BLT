@@ -164,3 +164,94 @@ async def v2_get_hackathon(slug: str) -> str:
     """Get hackathon by slug."""
     logger.info(f"Fetching v2 hackathon: {slug}")
     return await _fetch(f"/v2/hackathons/{slug}", context=f"v2 hackathon {slug}")
+
+@mcp.resource("blt://v2/hunts")
+async def v2_list_hunts() -> str:
+    """List hunts."""
+    logger.info("Fetching v2 hunts list")
+    return await _fetch("/v2/hunts", context="v2 hunts")
+
+@mcp.resource("blt://v2/hunts/active")
+async def v2_get_active_hunts() -> str:
+    """Get active hunts."""
+    logger.info("Fetching v2 active hunts")
+    return await _fetch("/v2/hunts/active", context="v2 active hunts")
+
+@mcp.resource("blt://v2/hunts/previous")
+async def v2_get_previous_hunts() -> str:
+    """Get previous hunts."""
+    logger.info("Fetching v2 previous hunts")
+    return await _fetch("/v2/hunts/previous", context="v2 previous hunts")
+
+@mcp.resource("blt://v2/hunts/upcoming")
+async def v2_get_upcoming_hunts() -> str:
+    """Get upcoming hunts."""
+    logger.info("Fetching v2 upcoming hunts")
+    return await _fetch("/v2/hunts/upcoming", context="v2 upcoming hunts")
+
+@mcp.resource("blt://v2/hunts/{id}")
+async def v2_get_hunt(id: str) -> str:
+    """Get hunt by ID."""
+    logger.info(f"Fetching v2 hunt: {id}")
+    return await _fetch(f"/v2/hunts/{id}", context=f"v2 hunt {id}")
+
+@mcp.resource("blt://v2/projects")
+async def v2_list_projects() -> str:
+    """List projects."""
+    logger.info("Fetching v2 projects list")
+    return await _fetch("/v2/projects", context="v2 projects")
+
+@mcp.resource("blt://v2/projects/{id}")
+async def v2_get_project(id: str) -> str:
+    """Get project by ID."""
+    logger.info(f"Fetching v2 project: {id}")
+    return await _fetch(f"/v2/projects/{id}", context=f"v2 project {id}")
+
+@mcp.resource("blt://v2/projects/{id}/contributors")
+async def v2_get_project_contributors(id: str) -> str:
+    """Get project contributors by project ID."""
+    logger.info(f"Fetching v2 project contributors: {id}")
+    return await _fetch(f"/v2/projects/{id}/contributors", context=f"v2 project contributors {id}")
+
+@mcp.resource("blt://v2/repos")
+async def v2_list_repos() -> str:
+    """List repos."""
+    logger.info("Fetching v2 repos list")
+    return await _fetch("/v2/repos", context="v2 repos")
+
+@mcp.resource("blt://v2/repos/{id}")
+async def v2_get_repo(id: str) -> str:
+    """Get repo by ID."""
+    logger.info(f"Fetching v2 repo: {id}")
+    return await _fetch(f"/v2/repos/{id}", context=f"v2 repo {id}")
+
+@mcp.resource("blt://v2/leaderboard")
+async def v2_get_global_leaderboard() -> str:
+    """Get global leaderboard."""
+    logger.info("Fetching v2 global leaderboard")
+    return await _fetch("/v2/leaderboard", context="v2 global leaderboard")
+
+@mcp.resource("blt://v2/leaderboard/monthly")
+async def v2_get_monthly_leaderboard() -> str:
+    """Get monthly leaderboard."""
+    logger.info("Fetching v2 monthly leaderboard")
+    return await _fetch("/v2/leaderboard/monthly", context="v2 monthly leaderboard")
+
+@mcp.resource("blt://v2/leaderboard/organizations")
+async def v2_get_organizations_leaderboard() -> str:
+    """Get organizations leaderboard."""
+    logger.info("Fetching v2 organizations leaderboard")
+    return await _fetch("/v2/leaderboard/organizations", context="v2 organizations leaderboard")
+
+@mcp.resource("blt://v2/contributors")
+async def v2_list_contributors() -> str:
+    """List contributors."""
+    logger.info("Fetching v2 contributors list")
+    return await _fetch("/v2/contributors", context="v2 contributors")
+
+@mcp.resource("blt://v2/contributors/{id}")
+async def v2_get_contributor(id: str) -> str:
+    """Get contributor by ID."""
+    logger.info(f"Fetching v2 contributor: {id}")
+    return await _fetch(f"/v2/contributors/{id}", context=f"v2 contributor {id}")
+
