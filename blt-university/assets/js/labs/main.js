@@ -47,6 +47,7 @@
             }
 
             renderer(container, config, {
+                engine,
                 labId,
                 taskIndex,
                 completeTask() {

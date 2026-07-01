@@ -121,7 +121,7 @@ tasks:
     type: upload_mimetype_bypass
     scenario: mimetype_bypass
     engine: upload-mimetype
-    target_url: /upload
+    target_url: /avatar
     vulnerable_code: |
       app.post('/avatar', upload.single('file'), (req, res) => {
         if (req.file.mimetype.startsWith('image/')) {

@@ -13,7 +13,10 @@
     }
 
     function validateExplainAnswer(selectedAnswer, expectedAnswer) {
-        return String(selectedAnswer || '') === String(expectedAnswer || '');
+        const selected = String(selectedAnswer ?? '').trim();
+        const expected = String(expectedAnswer ?? '').trim();
+
+        return Boolean(selected) && Boolean(expected) && selected === expected;
     }
 
     // Regex-based validation.
@@ -446,7 +449,9 @@
     }
 
     function blocksShellMetacharacters(code) {
-        return /[;&|`$<>]|\bmetacharacter|shell\s*:\s*false|shell\s*=\s*False/i.test(code);
+        return /\bshell\s*:\s*false|shell\s*=\s*False/i.test(code) ||
+            /\/\[[^\]]*[;&|`$<>][^\]]*\]\/\s*\.\s*(test|exec)\s*\(\s*(input|ip|host|cmd|target|req|request)/i.test(code) ||
+            /\b(reject|block|deny|throw)[\s\S]{0,80}\b(shell\s*)?metacharacter/i.test(code);
     }
 
     function isPlausibleCommandFix(code) {

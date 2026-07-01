@@ -127,7 +127,7 @@ tasks:
     type: session_fixation
     scenario: fixation_reuse
     engine: auth-session-fixation
-    target_url: /session-test
+    target_url: /login
     vulnerable_code: |
       app.post('/login', (req, res) => {
         if (validPassword(req.body)) {

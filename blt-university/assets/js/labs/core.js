@@ -84,28 +84,44 @@
     function getStoredSimulationProgress() {
         const storageKey = 'blt-lab-progress';
         try {
-            return JSON.parse(localStorage.getItem(storageKey) || '{}');
+            const parsed = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
         } catch (_error) {
             return {};
         }
     }
 
     function getSimulationProgress(labId, taskIndex) {
-        return getStoredSimulationProgress()[labId]?.[taskIndex] || null;
+        const labProgress = getStoredSimulationProgress()[labId];
+        return labProgress && typeof labProgress === 'object' && !Array.isArray(labProgress)
+            ? labProgress[taskIndex] || null
+            : null;
     }
 
     function setSimulationProgress(labId, taskIndex, value) {
         const storageKey = 'blt-lab-progress';
         const progress = getStoredSimulationProgress();
-        const labProgress = progress[labId] || {};
+        const existingLabProgress = progress[labId];
+        const labProgress = existingLabProgress && typeof existingLabProgress === 'object' && !Array.isArray(existingLabProgress)
+            ? existingLabProgress
+            : {};
+        const existingTaskProgress = labProgress[taskIndex];
 
         labProgress[taskIndex] = {
-            ...(labProgress[taskIndex] || {}),
+            ...(existingTaskProgress && typeof existingTaskProgress === 'object' && !Array.isArray(existingTaskProgress)
+                ? existingTaskProgress
+                : {}),
             ...value
         };
 
         progress[labId] = labProgress;
-        localStorage.setItem(storageKey, JSON.stringify(progress));
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(progress));
+        } catch (_error) {
+            return false;
+        }
+
+        return true;
     }
 
     Object.assign(BltLabs, {

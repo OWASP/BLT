@@ -372,7 +372,7 @@
 
     function renderFamilySimulation(container, config, context, options) {
         renderCodeFixSimulation(container, config, context, {
-            engine: config.engine || options.engine,
+            engine: config.engine || context.engine || options.engine,
             title: config.title || options.title,
             validateFix: options.validateFix,
             fixGuidance: genericGuidance(config, options.fixGuidance),

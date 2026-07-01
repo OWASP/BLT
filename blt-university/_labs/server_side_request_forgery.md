@@ -129,7 +129,7 @@ tasks:
     type: redirect_ssrf
     scenario: redirect_to_internal
     engine: ssrf-redirect
-    target_url: /fetch?url=
+    target_url: /preview?url=
     vulnerable_code: |
       app.get('/preview', async (req, res) => {
         const url = new URL(req.query.url);

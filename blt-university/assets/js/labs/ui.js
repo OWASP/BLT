@@ -113,6 +113,10 @@
 
         container.querySelectorAll('[data-stage-target]').forEach(button => {
             button.addEventListener('click', () => {
+                if (button.dataset.stageTarget === state.value) {
+                    return;
+                }
+
                 state.set(button.dataset.stageTarget);
                 rerender();
             });

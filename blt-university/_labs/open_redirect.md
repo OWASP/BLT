@@ -116,7 +116,7 @@ tasks:
     type: open_redirect_phish
     scenario: phishing_link
     engine: redirect-phishing
-    target_url: /redirect?next=
+    target_url: /login?next=
     vulnerable_code: |
       app.get('/login', (req, res) => {
         const returnTo = req.query.next || '/account';
@@ -156,7 +156,7 @@ tasks:
     type: open_redirect_chain
     scenario: chain_to_internal
     engine: redirect-chain
-    target_url: /redirect?next=
+    target_url: /out?next=
     vulnerable_code: |
       app.get('/out', (req, res) => {
         const destination = decodeURIComponent(req.query.next || '');

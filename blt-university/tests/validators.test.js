@@ -66,6 +66,12 @@ describe('lab fix validators', () => {
         selectedAnswer: '',
         expectedAnswer: 'direct_sql_input',
         expected: false
+      },
+      {
+        name: 'missing expected answer',
+        selectedAnswer: null,
+        expectedAnswer: undefined,
+        expected: false
       }
     ])('explanation answer: $name', ({ selectedAnswer, expectedAnswer, expected }) => {
       it(`returns ${expected}`, () => {
@@ -435,6 +441,18 @@ describe('lab fix validators', () => {
       expect(result.passed).toBe(true);
     });
 
+    it('does not count arbitrary metacharacter text as shell protection', () => {
+      const { validateCommandFix } = loadLabHelpers().helpers;
+      const result = validateCommandFix(`
+        if (!net.isIP(ip)) throw new Error('Invalid IP');
+        const note = a > b ? 'ok' : 'retry';
+        spawn('ping', ['-c', '1', ip]);
+      `);
+
+      expect(result.passed).toBe(false);
+      expect(checkResults(result)).toEqual([true, true, true, false]);
+    });
+
     it('accepts layered file upload defenses', () => {
       const { validateUploadFix } = loadLabHelpers().helpers;
       const result = validateUploadFix(`
@@ -482,8 +500,10 @@ describe('lab fix validators', () => {
         const passwordHash = await argon2.hash(password);
         requireMfa(user);
         req.session.regenerate(() => createSession(user, { httpOnly: true, sameSite: 'Lax', secure: true }));
-        jwt.verify(token, publicKey, { algorithms: ['RS256'], expiresIn: '15m' });
-        if (claims.alg === 'none') reject();
+        const decoded = jwt.decode(token, { complete: true });
+        if (decoded.header.alg === 'none') reject();
+        const claims = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
+        if (claims.exp * 1000 < Date.now()) reject();
         const resetToken = crypto.randomBytes(32);
         rateLimit(req.ip);
         lockout(user.id);

@@ -123,6 +123,17 @@ describe('SQLi simulation user flow', () => {
     expect(getFixEditor(labDocument.simulationRoot)).toBeNull();
   });
 
+  it('keeps draft fix code when the active stage pill is clicked', () => {
+    const { labDocument } = initializeSqliSimulation();
+
+    advanceSqliSimulationToFix(labDocument);
+    const editor = getFixEditor(labDocument.simulationRoot);
+    editor.value = 'draft fix in progress';
+    getRequiredElement(labDocument.simulationRoot, '[data-stage-target="fix"]').click();
+
+    expect(getFixEditor(labDocument.simulationRoot).value).toBe('draft fix in progress');
+  });
+
   it('shows progressive hints and repeats the final hint', () => {
     const { labDocument } = initializeSqliSimulation();
     const hintButton = getRequiredButton(labDocument.simulationRoot, 'Show Hint');
@@ -157,7 +168,6 @@ describe('open redirect identify-explain-fix simulation', () => {
       labDataText: JSON.stringify([
         {
           simulation: {
-            engine: 'redirect-basic',
             vulnerable_code: [
               "app.get('/redirect', (req, res) => {",
               "  const next = req.query.next || '/dashboard';",
