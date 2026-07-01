@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensitive Data Exposure - BLT University</title>
+    <meta name="description" content="Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code.">
+    
+    <!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>Sensitive Data Exposure | BLT University</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Sensitive Data Exposure" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code." />
+<meta name="twitter:description" property="og:description" content="Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code." />
+<link rel="canonical" href="https://university.owaspblt.org/labs/sensitive_data_exposure/" />
+<meta property="og:url" content="https://university.owaspblt.org/labs/sensitive_data_exposure/" />
+<meta property="og:site_name" content="BLT University" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-07-01T01:38:20+00:00" />
+<meta property="article:modified_time" content="2026-07-01T01:38:20+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Sensitive Data Exposure" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-07-01T01:38:20+00:00","datePublished":"2026-07-01T01:38:20+00:00","description":"Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code.","headline":"Sensitive Data Exposure","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/labs/sensitive_data_exposure/"},"url":"https://university.owaspblt.org/labs/sensitive_data_exposure/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        if (localStorage.getItem("theme") === "dark") {
+          document.documentElement.classList.add("dark");
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Geist', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+                    },
+                    colors: {
+                        bltRed: '#dc2626',
+                        bltRedLight: '#fee2e2',
+                        bltRedHover: '#b91c1c',
+                        bltDark: '#111827',
+                        bltCoral: '#ef4444',
+                        bltFooter: '#0e0d0c'
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(17,24,39,0.04)',
+                        float: '0 10px 24px -18px rgba(220,38,38,.8)'
+                    }
+                }
+            }
+        }
+        </script>
+    <style>
+        .dot-field {
+            background-image: radial-gradient(rgba(17, 24, 39, 0.18) 1px, transparent 1px);
+            background-size: 18px 18px;
+            mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        }
+        .mobile-menu.open {
+            display: flex;
+        }
+        .mobile-toggle.active span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+        .mobile-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .mobile-toggle.active span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+        .feature-divider::before,
+        .feature-divider::after {
+            content: "";
+            height: 1px;
+            flex: 1;
+        }
+        .feature-divider::before {
+            background: linear-gradient(to right, transparent, #e5e7eb);
+        }
+        .feature-divider::after {
+            background: linear-gradient(to left, transparent, #e5e7eb);
+        }
+        .wave-dots i {
+            position: absolute;
+            width: 0.25rem;
+            height: 0.25rem;
+            border-radius: 999px;
+            background: #d1d5db;
+            animation: wave 2s infinite ease-in-out;
+        }
+        .wave-dots i:nth-child(1) { top: 0; left: 0; }
+        .wave-dots i:nth-child(2) { top: 0; left: 1rem; }
+        .wave-dots i:nth-child(3) { top: 0.25rem; left: 0.5rem; animation-delay: 0.35s; }
+        .wave-dots i:nth-child(4) { top: 0.5rem; left: 0; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(5) { top: 0.5rem; left: 1rem; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(6) { top: 0.75rem; left: 0.5rem; animation-delay: 0.85s; }
+        .section-kicker.with-bar::before {
+            content: "";
+            position: absolute;
+            top: 0.18rem;
+            left: -0.55rem;
+            width: 3px;
+            height: 1.25rem;
+            border-radius: 0 2px 2px 0;
+            background: #ef4444;
+        }
+        .footer-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image:
+              linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .footer-links p {
+            margin: 0 0 0.35rem;
+            color: #6b7280;
+            font-size: 0.625rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .footer-links a {
+            display: block;
+            color: #d1d5db;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            transition: color 180ms ease;
+        }
+        .footer-links a:hover {
+            color: white;
+        }
+        @keyframes wave {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-3px);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
+    
+    <header
+  class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm"
+  id="site-header"
+>
+  <div
+    class="relative mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-lg:px-4"
+  >
+    <a
+      href="/"
+      class="inline-flex items-center gap-2.5"
+      aria-label="BLT University home"
+    >
+      <img
+        src="/assets/images/blt-university-logo.png"
+        alt="BLT University logo"
+        class="h-12 sm:h-14"
+      />
+      <div class="flex flex-col">
+        <span class="text-sm font-semibold tracking-tight">BLT University</span>
+      </div>
+    </a>
+
+    <nav
+      class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-7 lg:flex"
+      aria-label="Primary navigation"
+    >
+      
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/courses/"
+        >Courses</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/labs/"
+        >Labs</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/instructors/"
+        >Instructors</a
+      >
+      
+    </nav>
+
+    <div class="hidden items-center gap-3 lg:flex">
+      
+      
+      
+      <a
+        class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+        href="/request/"
+        >Request course</a
+      >
+      
+      
+      
+      <a
+        class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+        href="/enroll/"
+        >Enroll now</a
+      >
+      
+      
+    </div>
+
+    <button
+      class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-lg:flex"
+      id="mobile-toggle"
+      type="button"
+      aria-label="Toggle menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+    </button>
+  </div>
+
+  <nav
+    class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white px-6 py-4"
+    id="mobile-menu"
+    aria-label="Mobile navigation"
+  >
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/courses/">Courses</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+      href="/request/"
+      >Request course</a
+    >
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+      href="/enroll/"
+      >Enroll now</a
+    >
+    
+    
+  </nav>
+</header>
+
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
+<script id="lab-data" type="application/json">[{"name":"Introduction to Sensitive Data Exposure","description":"Understand what sensitive data exposure is, why it matters, and common sources of leaks.","type":"theory","order":1,"heading":"Introduction to Sensitive Data Exposure","content":"<h2>What is Sensitive Data Exposure?<\/h2>\n<p>Sensitive Data Exposure occurs when applications, APIs, or servers fail to adequately protect confidential information such as credentials, API keys, personal data, or cryptographic keys.<\/p>\n\n<h3>Common sensitive data types<\/h3>\n<ul>\n  <li>Passwords and password hashes<\/li>\n  <li>API keys, tokens, and secrets<\/li>\n  <li>Personally Identifiable Information (PII)<\/li>\n  <li>Encryption keys and certificates<\/li>\n  <li>Internal configuration and debug data<\/li>\n<\/ul>\n\n<h3>Typical sources of exposure<\/h3>\n<ul>\n  <li>Misconfigured storage (public S3 buckets, exposed directories)<\/li>\n  <li>Verbose error messages or stack traces<\/li>\n  <li>Unencrypted transmissions (HTTP instead of HTTPS)<\/li>\n  <li>Leftover files (.git, backups) on web root<\/li>\n  <li>Logging secrets to accessible logs<\/li>\n<\/ul>\n","mcq":{"question":"Which of the following is a primary risk from sensitive data exposure?","options":["A) Faster page loads","B) Credential theft and service compromise","C) Improved SEO","D) Reduced disk usage"],"answer":"B"}},{"name":"Data-in-Transit: TLS and Transport Security","description":"Learn about protecting data during transport and common TLS misconfigurations.","type":"theory","order":2,"heading":"Data-in-Transit: TLS and Transport Security","content":"<h2>Protecting Data in Transit<\/h2>\n<p>Use TLS to encrypt data between clients and servers.<\/p>\n<ul>\n    <li>Enforce TLS 1.2+ and disable insecure ciphers<\/li>\n    <li>Use HSTS<\/li>\n    <li>Redirect HTTP to HTTPS and validate certificates<\/li>\n<\/ul>\n","mcq":{"question":"Which practice helps protect data in transit?","options":["A) Serving sensitive API over HTTP","B) Enforcing HTTPS with HSTS","C) Embedding credentials in query strings","D) Using self-signed certificates in production"],"answer":"B"}},{"name":"Leakage via Debug/Error Messages (Simulation)","description":"Simulate leaking secrets in verbose error pages.","type":"simulation","order":3,"simulation":{"type":"error_leak","scenario":"stack_trace_disclosure","target_url":"/user/profile?show=error","vulnerable_parameters":["show"],"success_payload":"Trigger a stack trace showing 'DB_PASSWORD=secret_db_pass'","success_criteria":"Simulated trace reveals safe example of a secret.","hints":["Try show=error","Look for debug endpoints"],"difficulty":"beginner","engine":"legacy-payload"}},{"name":"Exposed Backup/.git or Public Files (Simulation)","description":"Simulate exposed config or repository files revealing secrets.","type":"simulation","order":4,"simulation":{"type":"file_exposure","scenario":"exposed_git","target_url":"/.git/HEAD","vulnerable_parameters":[],"success_payload":"Access /.git/config or backup/config.bak and find simulated AWS key","success_criteria":"Retrieve simulated config with safe example key","hints":["Try /.git/HEAD","/backup/config.bak","/config/.env"],"difficulty":"intermediate","engine":"legacy-payload"}},{"name":"API Key / Secret in JavaScript or HTML (Simulation)","description":"Simulate discovering secrets embedded in static files.","type":"simulation","order":5,"simulation":{"type":"asset_leak","scenario":"frontend_key_disclosure","target_url":"/static/js/app.js","vulnerable_parameters":[],"success_payload":"Find 'API_KEY = \"AKIA...EXAMPLE\"'","success_criteria":"Locate simulated hardcoded API key","hints":["Inspect JS/CSS","Search for TOKEN or KEY strings"],"difficulty":"beginner","engine":"legacy-payload"}},{"name":"Insecure Storage: Plaintext Secrets (Simulation)","description":"Simulate plaintext stored credentials.","type":"simulation","order":6,"simulation":{"type":"storage_plaintext","scenario":"plaintext_passwords","target_url":"/admin/export-users","vulnerable_parameters":[],"success_payload":"Download simulated CSV with plaintext password example","success_criteria":"Reveal plaintext or weak-hash example","hints":["Try admin/export endpoints"],"difficulty":"intermediate","engine":"legacy-payload"}},{"name":"Token Replay & Poorly Scoped Tokens","description":"Theory: long-lived tokens & overly broad scopes.","type":"theory","order":7,"heading":"Token Replay & Poorly Scoped Tokens","content":"<h2>Token Risks<\/h2>\n<p>Tokens should expire fast, be scoped, and revocable.<\/p>\n<ul>\n    <li>Short expiry<\/li>\n    <li>Minimal permissions<\/li>\n    <li>Revocation & monitoring<\/li>\n<\/ul>\n","mcq":{"question":"Which reduces the blast radius if a key is leaked?","options":["A) Long-lived, broad tokens","B) Short-lived minimal scope tokens","C) Hardcode secrets","D) Reuse same key everywhere"],"answer":"B"}},{"name":"Prevention & Remediation Best Practices","description":"Learn controls to prevent leaks.","type":"theory","order":8,"heading":"Prevention & Remediation Best Practices","content":"<h2>Remediation & Prevention<\/h2>\n<ul>\n  <li>Encrypt at rest + in transit<\/li>\n  <li>Use secrets managers<\/li>\n  <li>Do not store secrets in repos<\/li>\n  <li>Limit PII and retention<\/li>\n<\/ul>\n","mcq":{"question":"Which is a secure way to manage secrets?","options":["A) Put secrets in git","B) Use a secrets manager","C) Store plaintext secrets in web root","D) Hardcode in source"],"answer":"B"}},{"name":"Sensitive Data Exposure Challenge - Safe Remediation","description":"Simulation: find exposed secret & provide remediation text.","type":"simulation","order":9,"simulation":{"type":"remediation_plan","scenario":"identify_and_remediate","target_url":"/.env","vulnerable_parameters":[],"success_payload":"Find simulated SECRET_KEY and provide remediation steps","success_criteria":"User mentions rotate, revoke, secrets manager","hints":["Search for exposed /.env","Provide fix steps"],"difficulty":"advanced","engine":"legacy-payload"}}]</script>
+
+
+
+
+
+<article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
+    <section class="bg-bltDark text-white pt-32 md:pt-36 pb-16 md:pb-20 relative overflow-hidden border-b border-white/5">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.12),transparent_34%)]"></div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="grid lg:grid-cols-[1fr_340px] gap-8 items-center">
+                <div>
+                    <div class="flex flex-wrap items-center gap-3 mb-5">
+                        <span class="px-2.5 py-1 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">Data Protection</span>
+                        <span class="px-2.5 py-1 bg-white/10 border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">intermediate</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/10 border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">
+                            <i class="ph-bold ph-clock text-sm text-bltRed"></i>
+                            40 mins
+                        </span>
+                    </div>
+
+                    <h1 class="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4 leading-tight max-w-4xl">Sensitive Data Exposure</h1>
+                    <p class="text-sm md:text-base text-gray-400 leading-relaxed max-w-2xl">Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code.</p>
+
+                    <div class="mt-7 grid gap-4 text-xs md:text-sm text-gray-300 sm:grid-cols-3 max-w-3xl">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-flask text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Hands-on Labs</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-globe-hemisphere-west text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Real-world Scenarios</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-lightning text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Immediate Feedback</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden lg:block">
+                    <div class="h-[190px] rounded-2xl border border-white/10 bg-white/5 p-3 shadow-2xl">
+                        <div class="h-full rounded-2xl border border-white/10 bg-gray-950/70 overflow-hidden">
+                            <div class="flex h-7 items-center gap-1.5 border-b border-white/10 bg-white/5 px-3">
+                                <span class="h-2 w-2 rounded-full bg-red-400"></span>
+                                <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                                <span class="h-2 w-2 rounded-full bg-green-400"></span>
+                            </div>
+                            
+                            <div class="flex h-[155px] items-center justify-center p-4">
+                                <div class="flex h-24 w-24 items-center justify-center rounded-3xl border border-red-500/40 bg-red-950/30 text-bltRed shadow-2xl">
+                                    <i class="ph-bold ph-key text-5xl"></i>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main data-lab-root data-lab-id="sensitive-data-exposure" class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-8 relative z-20 pb-24">
+        <div class="lg:col-span-8 min-w-0">
+            <div class="bg-white dark:bg-gray-900 p-5 md:p-8 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
+                
+                <section data-lab-task data-task-index="0" class="">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            1
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Introduction to Sensitive Data Exposure</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Understand what sensitive data exposure is, why it matters, and common sources of leaks.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            Introduction to Sensitive Data Exposure
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <h2>What is Sensitive Data Exposure?</h2>
+<p>Sensitive Data Exposure occurs when applications, APIs, or servers fail to adequately protect confidential information such as credentials, API keys, personal data, or cryptographic keys.</p>
+
+<h3>Common sensitive data types</h3>
+<ul>
+  <li>Passwords and password hashes</li>
+  <li>API keys, tokens, and secrets</li>
+  <li>Personally Identifiable Information (PII)</li>
+  <li>Encryption keys and certificates</li>
+  <li>Internal configuration and debug data</li>
+</ul>
+
+<h3>Typical sources of exposure</h3>
+<ul>
+  <li>Misconfigured storage (public S3 buckets, exposed directories)</li>
+  <li>Verbose error messages or stack traces</li>
+  <li>Unencrypted transmissions (HTTP instead of HTTPS)</li>
+  <li>Leftover files (.git, backups) on web root</li>
+  <li>Logging secrets to accessible logs</li>
+</ul>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">Which of the following is a primary risk from sensitive data exposure?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Faster page loads</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Credential theft and service compromise</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Improved SEO</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Reduced disk usage</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="1" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            2
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Data-in-Transit: TLS and Transport Security</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn about protecting data during transport and common TLS misconfigurations.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            Data-in-Transit: TLS and Transport Security
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <h2>Protecting Data in Transit</h2>
+<p>Use TLS to encrypt data between clients and servers.</p>
+<ul>
+    <li>Enforce TLS 1.2+ and disable insecure ciphers</li>
+    <li>Use HSTS</li>
+    <li>Redirect HTTP to HTTPS and validate certificates</li>
+</ul>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">Which practice helps protect data in transit?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Serving sensitive API over HTTP</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Enforcing HTTPS with HSTS</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Embedding credentials in query strings</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Using self-signed certificates in production</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="2" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            3
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Leakage via Debug/Error Messages (Simulation)</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Simulate leaking secrets in verbose error pages.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Simulate leaking secrets in verbose error pages.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="2" data-simulation-engine="legacy-payload"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/user/profile?show=error</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Stack trace disclosure</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="3" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            4
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Exposed Backup/.git or Public Files (Simulation)</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Simulate exposed config or repository files revealing secrets.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Simulate exposed config or repository files revealing secrets.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="3" data-simulation-engine="legacy-payload"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/.git/HEAD</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Exposed git</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="4" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            5
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">API Key / Secret in JavaScript or HTML (Simulation)</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Simulate discovering secrets embedded in static files.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Simulate discovering secrets embedded in static files.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="4" data-simulation-engine="legacy-payload"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/static/js/app.js</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Frontend key disclosure</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="5" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            6
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Insecure Storage: Plaintext Secrets (Simulation)</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Simulate plaintext stored credentials.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Simulate plaintext stored credentials.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="5" data-simulation-engine="legacy-payload"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/admin/export-users</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Plaintext passwords</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="6" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            7
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Token Replay & Poorly Scoped Tokens</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Theory: long-lived tokens & overly broad scopes.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            Token Replay & Poorly Scoped Tokens
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <h2>Token Risks</h2>
+<p>Tokens should expire fast, be scoped, and revocable.</p>
+<ul>
+    <li>Short expiry</li>
+    <li>Minimal permissions</li>
+    <li>Revocation &amp; monitoring</li>
+</ul>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">Which reduces the blast radius if a key is leaked?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Long-lived, broad tokens</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Short-lived minimal scope tokens</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Hardcode secrets</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Reuse same key everywhere</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="7" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            8
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Prevention & Remediation Best Practices</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn controls to prevent leaks.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            Prevention & Remediation Best Practices
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <h2>Remediation &amp; Prevention</h2>
+<ul>
+  <li>Encrypt at rest + in transit</li>
+  <li>Use secrets managers</li>
+  <li>Do not store secrets in repos</li>
+  <li>Limit PII and retention</li>
+</ul>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">Which is a secure way to manage secrets?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Put secrets in git</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Use a secrets manager</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Store plaintext secrets in web root</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Hardcode in source</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="8" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            9
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Sensitive Data Exposure Challenge - Safe Remediation</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Simulation: find exposed secret & provide remediation text.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Simulation: find exposed secret & provide remediation text.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="8" data-simulation-engine="legacy-payload"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/.env</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Identify and remediate</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+
+                <footer class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                    <button type="button" data-lab-prev class="inline-flex items-center justify-center gap-2 px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-500 dark:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                        <i class="ph-bold ph-arrow-left"></i>
+                        Previous
+                    </button>
+                    <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
+                        Next
+                        <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                </footer>
+            </div>
+        </div>
+
+        <aside class="lg:col-span-4 min-w-0 space-y-6">
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800">
+                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+                    <i class="ph-bold ph-chart-line-up text-bltRed"></i>
+                    Lab Progress
+                </h3>
+                <div class="mb-6">
+                    <div class="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                        <span>Completion</span>
+                        <span data-lab-percent>0%</span>
+                    </div>
+                    <div class="w-full h-2.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                        <div data-lab-progress class="h-full w-0 bg-bltRed rounded-full transition-all duration-300"></div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    
+                    <button type="button" data-lab-jump data-task-index="0" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">1</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Introduction to Sensitive Data Exposure</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="1" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">2</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Data-in-Transit: TLS and Transport Security</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="2" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">3</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Leakage via Debug/Error Messages (Simulation)</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="3" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">4</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Exposed Backup/.git or Public Files (Simulation)</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="4" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">5</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">API Key / Secret in JavaScript or HTML (Simulation)</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="5" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">6</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Insecure Storage: Plaintext Secrets (Simulation)</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="6" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">7</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Token Replay & Poorly Scoped Tokens</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="7" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">8</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Prevention & Remediation Best Practices</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="8" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">9</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Sensitive Data Exposure Challenge - Safe Remediation</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                </div>
+            </div>
+
+            <div class="bg-gray-900 dark:bg-gray-800/80 p-6 rounded-[2rem] text-white relative overflow-hidden group border border-transparent dark:border-gray-700">
+                <div class="absolute -right-4 -bottom-4 opacity-10 pointer-events-none text-bltRed">
+                    <i class="ph-fill ph-shield-check text-8xl"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3 relative z-10">Practice Security</h3>
+                <p class="text-gray-400 text-sm leading-relaxed mb-5 relative z-10">
+                    These labs are educational simulations designed for ethical cybersecurity learning.
+                </p>
+                <div class="space-y-3 text-xs text-gray-300 relative z-10">
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>OWASP aligned content</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Interactive challenge tasks</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Beginner friendly guidance</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Instant feedback and hints</div>
+                </div>
+            </div>
+        </aside>
+    </main>
+</article>
+
+<script src="/assets/js/labs/main.js?v=1782869900"></script>
+
+    
+    <footer
+  class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-bltFooter py-10 pb-8 text-white max-md:rounded-t-[.8rem]"
+>
+  <h2
+    class="relative m-0 break-all px-2 text-center text-[clamp(2rem,5vw,4.5rem)] font-light leading-[1.02] tracking-[-.045em] text-white sm:break-normal"
+  >
+    university.owaspblt.org
+  </h2>
+  <div
+    class="relative mx-auto mt-3 h-[3px] w-16 rounded-full bg-red-600"
+    aria-hidden="true"
+  ></div>
+  <div
+    class="footer-links relative mx-auto mt-8 grid max-w-6xl grid-cols-1 gap-6 px-6 font-mono sm:grid-cols-2 md:grid-cols-4 md:gap-8"
+  >
+    <div>
+      <p>Docs</p>
+      <a href="/courses/">Courses</a>
+      <a href="/labs/">Labs</a>
+    </div>
+    <div>
+      <p>Learn</p>
+      <a href="/enroll/">Enroll</a>
+      <a href="/instructors/">Instructors</a>
+      <a href="/request/">Request Course</a>
+    </div>
+    <div>
+      <p>Project</p>
+      <a
+        href="https://gitlab.com/owasp-blt/blt-university"
+        target="_blank"
+        rel="noopener noreferrer"
+        >GitLab repo</a
+      >
+    </div>
+    <div>
+      <p>OWASP</p>
+      <a
+        href="https://owaspblt.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >OWASP BLT</a
+      >
+      <a
+        href="https://owasp.org/www-project-bug-logging-tool/"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Foundation page</a
+      >
+      <a
+        href="https://owasp.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >owasp.org</a
+      >
+    </div>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/main.js?v=1782869900"></script>
+</body>
+</html>

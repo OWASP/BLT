@@ -26,7 +26,8 @@
         'csrf-form': renderCsrfFormSimulation,
         'csrf-auto-submit': renderCsrfAutoSubmitSimulation,
         'csrf-image': renderCsrfImageSimulation,
-        'csrf-ajax': renderCsrfAjaxSimulation
+        'csrf-ajax': renderCsrfAjaxSimulation,
+        'legacy-payload': renderLegacyPayloadSimulation
     };
 
     function createSimulationState(initialState = SimulationStates.IDENTIFY) {
@@ -969,6 +970,109 @@
             fixGoal: 'Protect the password endpoint from cross-site JavaScript requests.',
             fixError: 'The fix still needs token presence, server validation, and SameSite cookie protection.',
             complete: 'You identified the AJAX CSRF path and added token-based defenses.'
+        });
+    }
+
+    function normalizeChallengeAnswer(value) {
+        return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    }
+
+    function renderLegacyPayloadSimulation(container, config, context) {
+        const savedProgress = getSimulationProgress(context.labId, context.taskIndex);
+        const completed = Boolean(savedProgress?.completed);
+        const acceptedPayloads = Array.isArray(config.accepted_payloads)
+            ? config.accepted_payloads
+            : (config.accepted_payloads ? [config.accepted_payloads] : []);
+        const expectedAnswers = [config.success_payload, ...acceptedPayloads]
+            .map(normalizeChallengeAnswer)
+            .filter(Boolean);
+        const parameters = (config.vulnerable_parameters || []).map(escapeHtml).join(', ') || 'No parameter required';
+        const hints = (config.hints || []).map(hint => `<li>${escapeHtml(hint)}</li>`).join('');
+
+        container.innerHTML = `
+            <section class="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900" aria-label="Safe payload simulation">
+                <div class="border-b border-gray-200 bg-gray-50 p-5 dark:border-gray-700 dark:bg-gray-800/50">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <p class="m-0 text-[10px] font-bold uppercase tracking-widest text-bltRed">Safe Mock Simulation</p>
+                            <h3 class="m-0 mt-1 text-lg font-bold text-gray-900 dark:text-white">${escapeHtml(String(config.scenario || config.type || 'Payload challenge').replaceAll('_', ' '))}</h3>
+                        </div>
+                        <span class="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold capitalize text-gray-600 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300">${escapeHtml(config.difficulty || 'practice')}</span>
+                    </div>
+                </div>
+                <div class="space-y-5 p-5">
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <div class="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/40">
+                            <p class="m-0 text-[10px] font-bold uppercase tracking-widest text-gray-400">Target</p>
+                            <code class="mt-2 block break-all text-sm text-gray-800 dark:text-gray-200">${escapeHtml(config.target_url || '/safe-simulation')}</code>
+                        </div>
+                        <div class="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/40">
+                            <p class="m-0 text-[10px] font-bold uppercase tracking-widest text-gray-400">Parameters</p>
+                            <p class="m-0 mt-2 text-sm font-semibold text-gray-800 dark:text-gray-200">${parameters}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="m-0 text-sm font-bold text-gray-900 dark:text-white">Objective</h4>
+                        <p class="m-0 mt-1 text-sm leading-relaxed text-gray-600 dark:text-gray-300">${escapeHtml(config.success_criteria || 'Enter the payload that completes this safe simulation.')}</p>
+                    </div>
+                    ${completed ? `
+                        <div class="rounded-xl border border-green-200 bg-green-50 p-4 text-green-700 dark:border-green-900/40 dark:bg-green-900/15 dark:text-green-300">
+                            <p class="m-0 text-sm font-bold">Simulation complete</p>
+                            <p class="m-0 mt-1 text-sm">The expected behavior was reproduced inside the mock environment. No real request or command was executed.</p>
+                        </div>
+                    ` : `
+                        <div class="space-y-3">
+                            <label class="block text-sm font-bold text-gray-900 dark:text-white" for="legacy-payload-${context.taskIndex}">Payload or action</label>
+                            <textarea id="legacy-payload-${context.taskIndex}" data-legacy-payload rows="4" class="w-full rounded-xl border border-gray-200 bg-gray-950 p-4 font-mono text-sm text-gray-100 outline-none transition focus:border-bltRed focus:ring-2 focus:ring-red-100 dark:border-gray-700" placeholder="Enter your safe simulation input..."></textarea>
+                            <div class="flex flex-wrap gap-3">
+                                <button type="button" data-legacy-submit class="inline-flex items-center justify-center gap-2 rounded-xl bg-bltRed px-5 py-3 text-sm font-bold text-white transition hover:bg-bltRedHover"><i class="ph-bold ph-play"></i> Run Simulation</button>
+                                <button type="button" data-legacy-reset class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"><i class="ph-bold ph-arrow-clockwise"></i> Reset</button>
+                            </div>
+                            <p data-legacy-feedback class="hidden" aria-live="polite"></p>
+                        </div>
+                        ${hints ? `
+                            <details class="rounded-xl border border-red-100 bg-red-50/60 p-4 dark:border-red-900/30 dark:bg-red-900/10">
+                                <summary class="cursor-pointer text-sm font-bold text-gray-900 dark:text-white">Show hints</summary>
+                                <ul class="mb-0 mt-3 space-y-2 pl-5 text-sm text-gray-600 dark:text-gray-300">${hints}</ul>
+                            </details>
+                        ` : ''}
+                    `}
+                    <p class="m-0 text-xs leading-relaxed text-gray-500 dark:text-gray-400"><strong>Safety boundary:</strong> this challenge only compares input locally in your browser. It never sends the payload, contacts the target, uploads a file, or executes a command.</p>
+                </div>
+            </section>
+        `;
+
+        if (completed) {
+            return;
+        }
+
+        const editor = container.querySelector('[data-legacy-payload]');
+        const feedback = container.querySelector('[data-legacy-feedback]');
+        container.querySelector('[data-legacy-submit]')?.addEventListener('click', () => {
+            const answer = normalizeChallengeAnswer(editor?.value);
+            if (answer && expectedAnswers.includes(answer)) {
+                setSimulationProgress(context.labId, context.taskIndex, {
+                    completed: true,
+                    engine: 'legacy-payload',
+                    state: SimulationStates.COMPLETE,
+                    score: 100
+                });
+                context.completeTask();
+                renderLegacyPayloadSimulation(container, config, context);
+                return;
+            }
+
+            renderFeedback(feedback, 'That input does not reproduce the expected mock behavior yet. Review the objective and reveal a hint if needed.', 'error');
+        });
+        container.querySelector('[data-legacy-reset]')?.addEventListener('click', () => {
+            if (editor) {
+                editor.value = '';
+                editor.focus();
+            }
+            if (feedback) {
+                feedback.className = 'hidden';
+                feedback.textContent = '';
+            }
         });
     }
 
