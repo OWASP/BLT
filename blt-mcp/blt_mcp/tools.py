@@ -1,0 +1,75 @@
+import datetime
+import json
+import logging
+from typing import Any, Callable, Dict, List, Optional
+
+logger = logging.getLogger("blt-mcp.tools")
+
+def generate_ai_metadata(tool_name: str) -> Dict[str, Any]:
+    """
+    Generate AI metadata for write operations and log the operation.
+    """
+    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    metadata = {
+        "ai_generated": True,
+        "timestamp": timestamp,
+        "source": "BLT-MCP"
+    }
+    logger.info(f"Tagged write operation '{tool_name}' with AI metadata: {metadata}")
+    return metadata
+
+async def summarize_issue_context_impl(issue_id: str, fetch_fn: Callable[[str, Optional[str]], Any]) -> str:
+    """
+    Core implementation of the summarize_issue_context tool.
+    Accepts issue_id and a fetch function (to query the BLT API).
+    """
+    logger.info(f"Summarizing context for issue: {issue_id}")
+    try:
+        try:
+            # Fetch issue details
+            issue_raw = await fetch_fn(f"/bugs/{issue_id}", f"issue {issue_id}")
+            issue_data = json.loads(issue_raw)
+        except Exception as e:
+            logger.error(f"Failed to fetch issue {issue_id}: {e}")
+            return f"Error: Issue with ID '{issue_id}' not found or could not be retrieved."
+
+        title = issue_data.get("title", "No Title")
+        status = issue_data.get("status") or issue_data.get("state") or "Unknown"
+        description = issue_data.get("description") or issue_data.get("body") or "No description provided."
+
+        # Fetch comments - either from issue_data if present, or from the comments endpoint
+        comments = issue_data.get("comments")
+        if comments is None:
+            try:
+                comments_raw = await fetch_fn(f"/bugs/{issue_id}/comments", f"comments for issue {issue_id}")
+                comments = json.loads(comments_raw)
+            except Exception as e:
+                logger.debug(f"Failed to fetch comments for issue {issue_id}: {e}")
+                comments = []
+
+        # Format comments
+        comments_formatted = ""
+        if isinstance(comments, list) and len(comments) > 0:
+            formatted_list = []
+            for c in comments:
+                if isinstance(c, dict):
+                    text = c.get("content") or c.get("body") or c.get("comment_text") or c.get("text") or str(c)
+                    author = c.get("author") or c.get("username") or c.get("created_by") or "Unknown"
+                    formatted_list.append(f"- {author}: {text}")
+                else:
+                    formatted_list.append(f"- {c}")
+            comments_formatted = "\n".join(formatted_list)
+        else:
+            comments_formatted = "No comments."
+
+        summary = (
+            f"Issue ID: {issue_id}\n"
+            f"Title: {title}\n"
+            f"Status: {status}\n\n"
+            f"Description:\n{description}\n\n"
+            f"Comments:\n{comments_formatted}"
+        )
+        return summary
+    except Exception as e:
+        logger.error(f"Error generating summary for issue {issue_id}: {e}")
+        return f"Error: Failed to generate summary for issue '{issue_id}' due to an internal error."
