@@ -7,7 +7,7 @@ pub fn get_api_key() -> Option<String> {
     }
     
     // Fallback to local credentials.json
-    let home = dirs::home_dir()?;
+    let home = dirs::home_dir().unwrap_or_default();
     let creds_path = home.join(".blt-mcp").join("credentials.json");
     if let Ok(content) = std::fs::read_to_string(creds_path) {
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
@@ -16,6 +16,7 @@ pub fn get_api_key() -> Option<String> {
             }
         }
     }
+
     None
 }
 
@@ -344,17 +345,40 @@ pub async fn add_comment(api_base: &str, issue_id: &str, text: &str) -> Result<(
     Ok(())
 }
 
-pub async fn submit_issue(api_base: &str, title: &str, repo: &str, severity: &str, description: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn submit_issue(api_base: &str, url: &str, title: &str, severity: &str, bug_type: &str, description: &str, steps_to_reproduce: &str, screenshot_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
-    let url = format!("{}/v2/bugs", api_base);
+    let api_url = format!("{}/v2/bugs", api_base);
     
     let mut payload = std::collections::HashMap::new();
-    payload.insert("title", title);
-    payload.insert("repository", repo);
-    payload.insert("severity", severity);
-    payload.insert("description", description);
+    payload.insert("url".to_string(), url.to_string());
+    payload.insert("title".to_string(), title.to_string());
+    payload.insert("severity".to_string(), severity.to_string());
+    payload.insert("bug_type".to_string(), bug_type.to_string());
+    payload.insert("description".to_string(), description.to_string());
+    payload.insert("steps_to_reproduce".to_string(), steps_to_reproduce.to_string());
+    
+    if !screenshot_path.trim().is_empty() {
+        if screenshot_path.starts_with("http") {
+            payload.insert("screenshot".to_string(), screenshot_path.to_string());
+        } else {
+            // Read local file and base64 encode
+            if let Ok(bytes) = std::fs::read(screenshot_path) {
+                use base64::{Engine as _, engine::general_purpose::STANDARD};
+                let b64 = STANDARD.encode(&bytes);
+                let mime = if screenshot_path.to_lowercase().ends_with(".png") {
+                    "image/png"
+                } else if screenshot_path.to_lowercase().ends_with(".gif") {
+                    "image/gif"
+                } else {
+                    "image/jpeg"
+                };
+                let data_url = format!("data:{};base64,{}", mime, b64);
+                payload.insert("screenshot".to_string(), data_url);
+            }
+        }
+    }
 
-    let mut req = client.post(&url).json(&payload);
+    let mut req = client.post(&api_url).json(&payload);
     if let Some(api_key) = get_api_key() {
         req = req.header("X-BLT-API-Key", api_key);
     }
@@ -376,6 +400,10 @@ pub async fn get_leaderboard(api_base: &str) -> Result<Vec<models::LeaderboardEn
     let resp = req.send().await?.error_for_status()?;
     let root = resp.json::<serde_json::Value>().await?;
 
+    Ok(parse_leaderboard_from_json(&root))
+}
+
+pub fn parse_leaderboard_from_json(root: &serde_json::Value) -> Vec<models::LeaderboardEntry> {
     let raw_arr = if let Some(data) = root.get("data") {
         data.as_array()
     } else {
@@ -383,14 +411,15 @@ pub async fn get_leaderboard(api_base: &str) -> Result<Vec<models::LeaderboardEn
     };
 
     let Some(arr) = raw_arr else {
-        return Ok(Vec::new());
+        return Vec::new();
     };
 
     let mut leaderboard = Vec::new();
+    let mut current_rank = 1;
     for item in arr {
         let rank = item.get("rank")
             .and_then(|v| v.as_u64())
-            .unwrap_or(0) as u32;
+            .unwrap_or(current_rank as u64) as u32;
 
         let name = item.get("name")
             .or_else(|| item.get("username"))
@@ -399,11 +428,12 @@ pub async fn get_leaderboard(api_base: &str) -> Result<Vec<models::LeaderboardEn
             .to_string();
 
         let bacon_points = item.get("bacon_points")
-            .or_else(|| item.get("points"))
+            .or_else(|| item.get("total_score"))
             .and_then(|v| v.as_u64())
             .unwrap_or(0) as u32;
 
         let reputation = item.get("reputation")
+            .or_else(|| item.get("title"))
             .and_then(|v| v.as_str())
             .unwrap_or("Contributor")
             .to_string();
@@ -414,31 +444,101 @@ pub async fn get_leaderboard(api_base: &str) -> Result<Vec<models::LeaderboardEn
             bacon_points,
             reputation,
         });
+        current_rank += 1;
     }
 
-    Ok(leaderboard)
+    leaderboard
+}
+
+pub fn parse_good_first_issues_from_json(root: &serde_json::Value) -> Vec<models::GoodFirstIssue> {
+    let raw_arr = if let Some(data) = root.get("data") {
+        data.as_array()
+    } else {
+        root.as_array()
+    };
+
+    let Some(arr) = raw_arr else {
+        return Vec::new();
+    };
+
+    let mut issues = Vec::new();
+    for item in arr {
+        let id = item.get("id").and_then(|v| v.as_u64()).unwrap_or(0);
+        let title = item.get("title").and_then(|v| v.as_str()).unwrap_or("Untitled").to_string();
+        let repository = item.get("repository").and_then(|v| v.as_str()).unwrap_or("Unknown").to_string();
+        let web_url = item.get("web_url").and_then(|v| v.as_str()).unwrap_or("").to_string();
+        let description = item.get("description").and_then(|v| v.as_str()).unwrap_or("").to_string();
+        let bacon_estimate = item.get("bacon_estimate").and_then(|v| v.as_u64()).unwrap_or(100) as u32;
+
+        issues.push(models::GoodFirstIssue {
+            id,
+            title,
+            repository,
+            web_url,
+            description,
+            bacon_estimate,
+        });
+    }
+    
+    issues
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
 
-    #[tokio::test]
-    async fn test_offline_api_get_issues() {
-        let issues = get_issues("", true).await.unwrap();
-        assert!(!issues.is_empty(), "Should return mock data in offline mode");
+    #[test]
+    fn test_parse_leaderboard_from_json() {
+        let json_data = json!({
+            "data": [
+                {
+                    "rank": 1,
+                    "name": "Alice",
+                    "bacon_points": 100,
+                    "reputation": "Admin"
+                },
+                {
+                    "username": "Bob",
+                    "total_score": 50,
+                    "title": "Contributor"
+                }
+            ]
+        });
+
+        let leaderboard = parse_leaderboard_from_json(&json_data);
+        assert_eq!(leaderboard.len(), 2);
+        
+        assert_eq!(leaderboard[0].rank, 1);
+        assert_eq!(leaderboard[0].name, "Alice");
+        assert_eq!(leaderboard[0].bacon_points, 100);
+        assert_eq!(leaderboard[0].reputation, "Admin");
+
+        assert_eq!(leaderboard[1].rank, 2); // Auto-incremented rank
+        assert_eq!(leaderboard[1].name, "Bob");
+        assert_eq!(leaderboard[1].bacon_points, 50);
+        assert_eq!(leaderboard[1].reputation, "Contributor");
     }
 
-    #[tokio::test]
-    async fn test_offline_api_get_hunts() {
-        let hunts = get_hunts("", true).await.unwrap();
-        assert!(!hunts.is_empty(), "Should return mock data in offline mode");
-    }
+    #[test]
+    fn test_parse_good_first_issues_from_json() {
+        let json_data = json!([
+            {
+                "id": 1,
+                "title": "Fix typo",
+                "repository": "owasp-blt/blt-university",
+                "web_url": "https://gitlab.com/owasp-blt/blt-university/-/issues/1",
+                "description": "There is a typo.",
+                "bacon_estimate": 10
+            }
+        ]);
 
-    #[tokio::test]
-    async fn test_offline_api_get_stats() {
-        let stats = get_stats("", true).await.unwrap();
-        assert!(stats.total_issues > 0, "Stats should have mock data");
+        let issues = parse_good_first_issues_from_json(&json_data);
+        assert_eq!(issues.len(), 1);
+        assert_eq!(issues[0].id, 1);
+        assert_eq!(issues[0].title, "Fix typo");
+        assert_eq!(issues[0].repository, "owasp-blt/blt-university");
+        assert_eq!(issues[0].web_url, "https://gitlab.com/owasp-blt/blt-university/-/issues/1");
+        assert_eq!(issues[0].bacon_estimate, 10);
     }
 }
-

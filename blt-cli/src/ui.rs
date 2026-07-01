@@ -42,6 +42,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         Tab::Stats => draw_stats_tab(f, app, chunks[1]),
         Tab::Logs => draw_logs_tab(f, app, chunks[1]),
         Tab::Settings => draw_settings_tab(f, app, chunks[1]),
+        Tab::Onboarding => draw_onboarding_tab(f, app, chunks[1]),
     }
 
     // 3. Draw Footer / Status Bar
@@ -96,6 +97,7 @@ fn draw_header(f: &mut Frame, app: &App, rect: Rect) {
         "Stats".to_string(),
         "Logs".to_string(),
         "Config".to_string(),
+        "Onboarding".to_string(),
     ];
     let tab_index = match app.active_tab {
         Tab::Issues => 0,
@@ -103,6 +105,7 @@ fn draw_header(f: &mut Frame, app: &App, rect: Rect) {
         Tab::Stats => 2,
         Tab::Logs => 3,
         Tab::Settings => 4,
+        Tab::Onboarding => 5,
     };
 
     let tabs = Tabs::new(tab_titles)
@@ -582,6 +585,8 @@ fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
                     health_text.push(Line::from(format!("      - {}", path)));
                 }
             }
+            health_text.push(Line::from(""));
+            health_text.push(Line::from(Span::styled("  Press [Enter] to submit findings as a Bug", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))));
         }
     } else {
         health_text.push(Line::from(Span::styled(" Running Security Health Scan...", Style::default().fg(Color::Yellow))));
@@ -595,6 +600,49 @@ fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
             .title_style(Style::default().fg(TEXT_LIGHT))
             .bg(SLATE_BG));
     f.render_widget(h, chunks[1]);
+}
+
+fn draw_onboarding_tab(f: &mut Frame, app: &App, rect: Rect) {
+    let block = Block::default()
+        .title(" Good First Issues (Cross-Project) ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Magenta));
+
+    if app.good_first_issues.is_empty() {
+        let msg = Paragraph::new("Loading good first issues or none found...")
+            .block(block)
+            .alignment(ratatui::layout::Alignment::Center);
+        f.render_widget(msg, rect);
+        return;
+    }
+
+    let rows: Vec<Row> = app.good_first_issues.iter().map(|issue| {
+        Row::new(vec![
+            issue.repository.clone(),
+            issue.title.clone(),
+            format!("{} 🥓", issue.bacon_estimate),
+            issue.web_url.clone(),
+        ])
+    }).collect();
+
+    let widths = [
+        Constraint::Percentage(20),
+        Constraint::Percentage(40),
+        Constraint::Length(15),
+        Constraint::Percentage(25),
+    ];
+
+    let table = Table::new(rows, widths)
+        .header(
+            Row::new(vec!["Repository", "Title", "Est. Bacon", "Link"])
+                .style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))
+                .bottom_margin(1),
+        )
+        .block(block)
+        .highlight_style(Style::default().bg(Color::DarkGray).add_modifier(Modifier::BOLD))
+        .highlight_symbol(">> ");
+
+    f.render_widget(table, rect);
 }
 
 fn draw_footer(f: &mut Frame, app: &App, rect: Rect) {
@@ -768,15 +816,19 @@ fn draw_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
 }
 
 fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
-    let modal_area = centered_rect(80, 70, rect);
+    let modal_area = centered_rect(85, 90, rect);
     f.render_widget(Clear, modal_area);
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
+            Constraint::Length(3), // Title
             Constraint::Length(3), // URL
             Constraint::Length(3), // Severity
-            Constraint::Min(5),    // Description
+            Constraint::Length(3), // Bug Type
+            Constraint::Min(4),    // Description
+            Constraint::Min(4),    // Steps to Reproduce
+            Constraint::Length(3), // Screenshot
             Constraint::Length(3), // Instructions
         ])
         .margin(1)
@@ -794,27 +846,56 @@ fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
     let style_active = Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD);
     let style_inactive = Style::default().fg(MUTED_BORDER);
 
+    // Title Field
+    let title_style = if *active == crate::app::FormField::Title { style_active } else { style_inactive };
+    let title_text = if *active == crate::app::FormField::Title { format!("{}█", app.submit_form.title) } else { app.submit_form.title.clone() };
+    let title_p = Paragraph::new(title_text)
+        .block(Block::default().borders(Borders::ALL).border_style(title_style).title(" Bug Title * "));
+    f.render_widget(title_p, chunks[0]);
+
     // URL Field
     let url_style = if *active == crate::app::FormField::Url { style_active } else { style_inactive };
     let url_text = if *active == crate::app::FormField::Url { format!("{}█", app.submit_form.url) } else { app.submit_form.url.clone() };
     let url_p = Paragraph::new(url_text)
         .block(Block::default().borders(Borders::ALL).border_style(url_style).title(" Vulnerable URL * (e.g. https://api.owaspblt.org/login) "));
-    f.render_widget(url_p, chunks[0]);
+    f.render_widget(url_p, chunks[1]);
 
     // Severity Field
     let sev_style = if *active == crate::app::FormField::Severity { style_active } else { style_inactive };
     let sev_text = if *active == crate::app::FormField::Severity { format!("{}█", app.submit_form.severity) } else { app.submit_form.severity.clone() };
     let sev_p = Paragraph::new(sev_text)
         .block(Block::default().borders(Borders::ALL).border_style(sev_style).title(" Severity (Low/Medium/High/Critical) "));
-    f.render_widget(sev_p, chunks[1]);
+    f.render_widget(sev_p, chunks[2]);
+
+    // Bug Type Field
+    let type_style = if *active == crate::app::FormField::BugType { style_active } else { style_inactive };
+    let type_text = if *active == crate::app::FormField::BugType { format!("{}█", app.submit_form.bug_type) } else { app.submit_form.bug_type.clone() };
+    let type_p = Paragraph::new(type_text)
+        .block(Block::default().borders(Borders::ALL).border_style(type_style).title(" Bug Type "));
+    f.render_widget(type_p, chunks[3]);
 
     // Description Field
     let desc_style = if *active == crate::app::FormField::Description { style_active } else { style_inactive };
     let desc_text = if *active == crate::app::FormField::Description { format!("{}█", app.submit_form.description) } else { app.submit_form.description.clone() };
     let desc_p = Paragraph::new(desc_text)
-        .block(Block::default().borders(Borders::ALL).border_style(desc_style).title(" Description & Steps to Reproduce * "))
+        .block(Block::default().borders(Borders::ALL).border_style(desc_style).title(" Description * "))
         .wrap(Wrap { trim: false });
-    f.render_widget(desc_p, chunks[2]);
+    f.render_widget(desc_p, chunks[4]);
+
+    // Steps to Reproduce Field
+    let steps_style = if *active == crate::app::FormField::StepsToReproduce { style_active } else { style_inactive };
+    let steps_text = if *active == crate::app::FormField::StepsToReproduce { format!("{}█", app.submit_form.steps_to_reproduce) } else { app.submit_form.steps_to_reproduce.clone() };
+    let steps_p = Paragraph::new(steps_text)
+        .block(Block::default().borders(Borders::ALL).border_style(steps_style).title(" Steps to Reproduce "))
+        .wrap(Wrap { trim: false });
+    f.render_widget(steps_p, chunks[5]);
+
+    // Screenshot Field
+    let ss_style = if *active == crate::app::FormField::Screenshot { style_active } else { style_inactive };
+    let ss_text = if *active == crate::app::FormField::Screenshot { format!("{}█", app.submit_form.screenshot_path) } else { app.submit_form.screenshot_path.clone() };
+    let ss_p = Paragraph::new(ss_text)
+        .block(Block::default().borders(Borders::ALL).border_style(ss_style).title(" Screenshot (Path/URL) "));
+    f.render_widget(ss_p, chunks[6]);
 
     // Instructions
     let instr_p = Paragraph::new(Line::from(vec![
@@ -828,7 +909,7 @@ fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
         Span::styled("Cancel", Style::default().fg(TEXT_LIGHT)),
     ]))
     .alignment(ratatui::layout::Alignment::Center);
-    f.render_widget(instr_p, chunks[3]);
+    f.render_widget(instr_p, chunks[7]);
 }
 
 fn parse_markdown(text: &str) -> Vec<Line<'_>> {

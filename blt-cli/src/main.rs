@@ -93,6 +93,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     }
                                 }
                             }
+                            
+                            // Attempt to read leaderboard resource
+                            if let Ok(resp) = client.read_resource("blt://v2/leaderboard").await {
+                                if let Some(contents) = resp.get("result").and_then(|r| r.get("contents")).and_then(|c| c.as_array()) {
+                                    if let Some(content) = contents.first() {
+                                        if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
+                                            if let Ok(root) = serde_json::from_str::<serde_json::Value>(text) {
+                                                app.leaderboard = crate::api::parse_leaderboard_from_json(&root);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Attempt to read good-first-issues resource
+                            if let Ok(resp) = client.read_resource("blt://good-first-issues").await {
+                                if let Some(contents) = resp.get("result").and_then(|r| r.get("contents")).and_then(|c| c.as_array()) {
+                                    if let Some(content) = contents.first() {
+                                        if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
+                                            if let Ok(root) = serde_json::from_str::<serde_json::Value>(text) {
+                                                app.good_first_issues = crate::api::parse_good_first_issues_from_json(&root);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
 
                             if issues_loaded && repos_loaded {
                                 app.audit_logs.push("SUCCESS: Connected to live MCP server. Awaiting live events...".to_string());

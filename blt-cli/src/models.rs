@@ -58,3 +58,13 @@ pub struct Stats {
     pub bacon_points: u32,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GoodFirstIssue {
+    pub id: u64,
+    pub title: String,
+    pub repository: String,
+    pub web_url: String,
+    pub description: String,
+    pub bacon_estimate: u32,
+}
+
