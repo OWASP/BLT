@@ -29,3 +29,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+
+[tool.setuptools]
+packages = ["blt_mcp"]
+

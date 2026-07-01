@@ -22,6 +22,9 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# Wrangler
+.wrangler/
+
 # Virtual Environment
 .venv/
 venv/
