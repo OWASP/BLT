@@ -50,10 +50,18 @@ permalink: /labs/
         {% elsif lab_key contains "broken authentication" %}{% assign lab_icon = "lock-key" %}
         {% elsif lab_key contains "open redirect" %}{% assign lab_icon = "arrow-bend-up-right" %}
         {% elsif lab_key contains "command injection" %}{% assign lab_icon = "terminal-window" %}
+        {% elsif lab_key contains "object reference" %}{% assign lab_icon = "identification-card" %}
         {% endif %}
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
         <div class="absolute inset-0 opacity-80">
-          {% if lab_icon %}
+          {% if lab_key contains "object reference" %}
+          <div class="absolute left-8 top-14 w-48 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-xl">
+            <div class="mb-3 flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-red-600"></span><span class="h-2 w-28 rounded-full bg-white/25"></span></div>
+            <div class="rounded-lg border border-red-400/40 bg-red-500/20 px-3 py-2 font-mono text-[11px] text-red-100">/profiles/42</div>
+            <div class="mt-3 h-2 w-32 rounded-full bg-white/20"></div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-identification-card text-2xl"></i></div>
+          {% elsif lab_icon %}
           <div class="absolute left-8 top-12 w-48 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-xl">
             <div class="mb-3 h-2 w-28 rounded-full bg-white/25"></div>
             <div class="h-2 w-40 rounded-full bg-white/10"></div>
