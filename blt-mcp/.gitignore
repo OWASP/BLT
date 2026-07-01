@@ -47,3 +47,8 @@ htmlcov/
 
 # Logs
 *.log
+
+# Rust / Cargo
+/blt-cli/target/
+target/
+**/*.rs.bk
