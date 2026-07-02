@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "blt-mayo"
 version = "0.3.1"
-description = "BLT-MAYO Week 3 PR 1 shell dangerous-execution analyzer"
+description = "BLT-MAYO"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{name = "Jayant Malvi"}]

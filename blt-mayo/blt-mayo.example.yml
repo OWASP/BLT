@@ -1,4 +1,4 @@
-# Week 3 PR 1 example configuration: shell dangerous-execution analysis
+# Example configuration: shell dangerous-execution analysis
 profile: standard
 
 # Paths may be absolute or relative to this YAML file.
