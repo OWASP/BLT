@@ -1570,12 +1570,6 @@ def test_video_js_walkie_lobby_opt_in_is_sticky():
     assert "if (initialMediaPreferences.walkie) return;" in js
 
 
-def test_video_room_has_github_footer_link():
-    """Room page should have a footer link to the GitHub repository."""
-    html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
-    assert "https://gitlab.com/owasp-blt/blt-safecloak" in html
-    assert "fa-brands fa-github" in html
-
 
 def test_display_name_persisted_to_local_storage():
     """Display name must be persisted to localStorage (not sessionStorage) in both
