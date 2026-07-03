@@ -76,7 +76,7 @@ pub enum ActiveOverlay {
 }
 
 pub enum AppEvent {
-    TriageConfirmed { issue_id: String, success: bool, message: String },
+    TriageConfirmed { issue_id: String, success: bool, message: String, target_status: String },
     SubmitResult { success: bool, message: String },
     IssuesRefreshed { issues: Vec<crate::models::Issue>, total: u32 },
     VisionDraftComplete { result: String },
@@ -318,6 +318,7 @@ impl App {
         let issue_id = issue.id.clone();
         let api_base = self.api_base.clone();
         let sender = self.event_sender.clone();
+        let target_status = self.triage_target_status.clone();
         
         self.status_message = format!("Triaging Issue #{}...", issue_id);
 
@@ -329,7 +330,7 @@ impl App {
                 Err(e) => (false, format!("ERROR: Failed to submit triage for Issue #{}: {}", issue_id, e)),
             };
 
-            let _ = sender.send(AppEvent::TriageConfirmed { issue_id, success, message });
+            let _ = sender.send(AppEvent::TriageConfirmed { issue_id, success, message, target_status });
         });
     }
 
@@ -344,7 +345,9 @@ impl App {
             event_feed: &self.event_feed,
         };
         if let Ok(json) = serde_json::to_string(&data) {
-            let _ = std::fs::write("blt_session.json", json);
+            tokio::spawn(async move {
+                let _ = tokio::fs::write("blt_session.json", json).await;
+            });
         }
     }
 

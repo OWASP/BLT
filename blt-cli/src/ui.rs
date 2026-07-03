@@ -620,16 +620,17 @@ fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
         if health.open_backdoor_ports.is_empty() && health.world_writable_paths.is_empty() {
             health_text.push(Line::from(Span::styled(" Host Security Health: PASS", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD))));
             health_text.push(Line::from("  No common backdoor ports or world-writable paths detected."));
+        } else if health.world_writable_paths.is_empty() {
+            health_text.push(Line::from(Span::styled(" Host Security Health: INFO", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))));
+            health_text.push(Line::from(format!("  [i] Notice: Unusual ports open: {:?} (low confidence)", health.open_backdoor_ports)));
         } else {
             health_text.push(Line::from(Span::styled(" Host Security Health: WARNING", Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD))));
             if !health.open_backdoor_ports.is_empty() {
-                health_text.push(Line::from(format!("  [!] Open Backdoor Ports Detected: {:?}", health.open_backdoor_ports)));
+                health_text.push(Line::from(format!("  [i] Notice: Unusual ports open: {:?} (low confidence)", health.open_backdoor_ports)));
             }
-            if !health.world_writable_paths.is_empty() {
-                health_text.push(Line::from("  [!] World-Writable Paths Detected:"));
-                for path in &health.world_writable_paths {
-                    health_text.push(Line::from(format!("      - {}", path)));
-                }
+            health_text.push(Line::from("  [!] High Severity: World-Writable Paths Detected:"));
+            for path in &health.world_writable_paths {
+                health_text.push(Line::from(format!("      - {}", path)));
             }
             health_text.push(Line::from(""));
             health_text.push(Line::from(Span::styled("  Press [Enter] to submit findings as a Bug", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))));
