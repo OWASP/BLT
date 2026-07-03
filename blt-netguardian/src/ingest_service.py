@@ -158,7 +158,7 @@ async def process_ingest(
         if field not in payload:
             raise IngestError(
                 IngestErrorCode.INVALID_ENVELOPE,
-                f"payload_plaintext missing required field: {field}",
+                f"payload missing required field: {field}",
             )
 
     fingerprint = payload.get("fingerprint")
