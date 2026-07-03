@@ -4,11 +4,22 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Mapping, Optional
 
 
 ALLOWED_SORT_FIELDS = frozenset({"updated_at", "created_at", "severity", "rule_id"})
 ALLOWED_STATUSES = frozenset({"open", "triaging", "converted", "snoozed", "wontfix"})
+
+# Rank severities by risk so sorting reflects urgency, not alphabetical order.
+SEVERITY_RANK_SQL = (
+    "CASE severity "
+    "WHEN 'critical' THEN 5 "
+    "WHEN 'high' THEN 4 "
+    "WHEN 'medium' THEN 3 "
+    "WHEN 'low' THEN 2 "
+    "WHEN 'info' THEN 1 "
+    "ELSE 0 END"
+)
 CSV_COLUMNS = (
     "id",
     "rule_id",
@@ -81,6 +92,14 @@ class FindingsStore:
         sort_field = query.sort if query.sort in ALLOWED_SORT_FIELDS else "updated_at"
         sort_dir = "DESC" if query.order.lower() == "desc" else "ASC"
 
+        # Severity is a category, not a lexical value: rank it by risk so
+        # "Severity (high first)" in the UI actually surfaces critical/high,
+        # rather than alphabetical (critical < high < info < low < medium).
+        if sort_field == "severity":
+            order_sql = f"{SEVERITY_RANK_SQL} {sort_dir}, updated_at DESC"
+        else:
+            order_sql = f"{sort_field} {sort_dir}"
+
         rows = await self.db.prepare(
             f"""
             SELECT id, org_id, envelope_id, rule_id, severity, title, target,
@@ -88,7 +107,7 @@ class FindingsStore:
                    created_at, updated_at
             FROM findings
             WHERE {where_sql}
-            ORDER BY {sort_field} {sort_dir}
+            ORDER BY {order_sql}
             LIMIT ? OFFSET ?
             """
         ).bind(*params, query.limit, query.offset).all()
@@ -242,19 +261,24 @@ class FindingsStore:
 
     @staticmethod
     def _row_to_item(row: dict) -> dict:
-        return {
-            "id": row["id"],
-            "org_id": row["org_id"],
-            "envelope_id": row["envelope_id"],
-            "rule_id": row["rule_id"],
-            "severity": row["severity"],
-            "title": row["title"],
-            "target": row.get("target"),
-            "status": row["status"],
-            "fingerprint": row.get("fingerprint"),
-            "cve_id": row.get("cve_id"),
-            "cve_score": row.get("cve_score"),
-            "blt_issue_id": row.get("blt_issue_id"),
-            "created_at": row["created_at"],
-            "updated_at": row["updated_at"],
-        }
+        return finding_row_to_item(row)
+
+
+def finding_row_to_item(row: Mapping[str, Any]) -> dict:
+    """Project a findings row into the public finding shape (single source of truth)."""
+    return {
+        "id": row["id"],
+        "org_id": row["org_id"],
+        "envelope_id": row["envelope_id"],
+        "rule_id": row["rule_id"],
+        "severity": row["severity"],
+        "title": row["title"],
+        "target": row.get("target"),
+        "status": row["status"],
+        "fingerprint": row.get("fingerprint"),
+        "cve_id": row.get("cve_id"),
+        "cve_score": row.get("cve_score"),
+        "blt_issue_id": row.get("blt_issue_id"),
+        "created_at": row["created_at"],
+        "updated_at": row["updated_at"],
+    }

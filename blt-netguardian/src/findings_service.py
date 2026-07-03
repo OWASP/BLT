@@ -11,7 +11,14 @@ from typing import Any, Mapping, Optional
 
 from auth import AuthError, require_org_auth
 from blt_api_client import BltApiError, create_bug_from_finding, is_blt_api_configured
-from findings_store import ALLOWED_SORT_FIELDS, ALLOWED_STATUSES, CSV_COLUMNS, FindingsQuery, FindingsStore
+from findings_store import (
+    ALLOWED_SORT_FIELDS,
+    ALLOWED_STATUSES,
+    CSV_COLUMNS,
+    FindingsQuery,
+    FindingsStore,
+    finding_row_to_item,
+)
 from payload_crypto import PayloadCryptoError, decrypt_payload, get_org_key, is_wrapped_ciphertext
 from payload_redact import redact_payload
 
@@ -205,22 +212,7 @@ async def get_finding_for_request(
     )
     access_logs = await store.list_access_logs(auth.org_id, finding_id, limit=5)
 
-    finding = {
-        "id": row["id"],
-        "org_id": row["org_id"],
-        "envelope_id": row["envelope_id"],
-        "rule_id": row["rule_id"],
-        "severity": row["severity"],
-        "title": row["title"],
-        "target": row.get("target"),
-        "status": row["status"],
-        "fingerprint": row.get("fingerprint"),
-        "cve_id": row.get("cve_id"),
-        "cve_score": row.get("cve_score"),
-        "blt_issue_id": row.get("blt_issue_id"),
-        "created_at": row["created_at"],
-        "updated_at": row["updated_at"],
-    }
+    finding = finding_row_to_item(row)
 
     return FindingsListResult(
         status=200,
@@ -428,22 +420,7 @@ async def update_finding_for_request(
     )
 
     updated_row = await store.get_finding_detail(auth.org_id, finding_id)
-    finding = {
-        "id": updated_row["id"],
-        "org_id": updated_row["org_id"],
-        "envelope_id": updated_row["envelope_id"],
-        "rule_id": updated_row["rule_id"],
-        "severity": updated_row["severity"],
-        "title": updated_row["title"],
-        "target": updated_row.get("target"),
-        "status": updated_row["status"],
-        "fingerprint": updated_row.get("fingerprint"),
-        "cve_id": updated_row.get("cve_id"),
-        "cve_score": updated_row.get("cve_score"),
-        "blt_issue_id": updated_row.get("blt_issue_id"),
-        "created_at": updated_row["created_at"],
-        "updated_at": updated_row["updated_at"],
-    }
+    finding = finding_row_to_item(updated_row)
 
     return FindingsListResult(
         status=200,
