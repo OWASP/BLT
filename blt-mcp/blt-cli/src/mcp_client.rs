@@ -24,10 +24,13 @@ impl McpSubprocessClient {
             cmd.arg(arg);
         }
 
+        let stderr_file = std::fs::File::create("mcp_error.log")?;
+
         let mut child = cmd
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(Stdio::null()) // Discard MCP logs so they don't corrupt the TUI buffer
+            .stderr(Stdio::from(stderr_file))
+            .kill_on_drop(true)
             .spawn()?;
 
         let stdin = child.stdin.take().ok_or("Failed to grab stdin pipe")?;
@@ -122,7 +125,13 @@ impl McpSubprocessClient {
         let mut line = String::new();
         loop {
             line.clear();
-            let bytes_read = self.stdout_reader.read_line(&mut line).await?;
+            let read_fut = self.stdout_reader.read_line(&mut line);
+            let bytes_read = match tokio::time::timeout(std::time::Duration::from_secs(10), read_fut).await {
+                Ok(Ok(n)) => n,
+                Ok(Err(e)) => return Err(e.into()),
+                Err(_) => return Err("MCP Subprocess read timeout".into()),
+            };
+            
             if bytes_read == 0 {
                 return Err("EOF reached on subprocess stdout pipe before receiving response".into());
             }
@@ -132,6 +141,10 @@ impl McpSubprocessClient {
             // Filters out notifications (which don't have id field)
             if let Some(id) = response.get("id") {
                 if id.as_i64() == Some(expected_id) {
+                    if let Some(error) = response.get("error") {
+                        let msg = error.get("message").and_then(|m| m.as_str()).unwrap_or("Unknown MCP JSON-RPC error");
+                        return Err(format!("MCP Error: {}", msg).into());
+                    }
                     return Ok(response);
                 }
             }

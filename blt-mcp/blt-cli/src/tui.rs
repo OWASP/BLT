@@ -21,11 +21,11 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
         // Process any messages from background tokio tasks
         while let Ok(event) = app.event_receiver.try_recv() {
             match event {
-                crate::app::AppEvent::TriageConfirmed { issue_id, success, message } => {
+                crate::app::AppEvent::TriageConfirmed { issue_id, success, message, target_status } => {
                     if success {
                         if let Some(issue) = app.issues.iter_mut().find(|i| i.id == issue_id) {
-                            issue.status = app.triage_target_status.clone();
-                            let comment = format!("{}: Manually confirmed & updated triage status for #{} to {} via TUI CLI.", app.auth_user, issue_id, app.triage_target_status);
+                            issue.status = target_status.clone();
+                            let comment = format!("{}: Manually confirmed & updated triage status for #{} to {} via TUI CLI.", app.auth_user, issue_id, target_status);
                             issue.comments.push(comment.clone());
                             app.audit_logs.push(comment);
                             app.audit_logs.push("+10 Bacon Points (Pending Verification)".to_string());
@@ -101,6 +101,17 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
     if key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL) {
         app.should_quit = true;
         return;
+    }
+
+    let is_text_input = app.active_overlay == crate::app::ActiveOverlay::SubmitForm
+        || app.active_overlay == crate::app::ActiveOverlay::SearchInput
+        || app.active_overlay == crate::app::ActiveOverlay::CommandPalette;
+
+    if key.code == KeyCode::Char('q') && !is_text_input {
+        if app.active_overlay != crate::app::ActiveOverlay::None {
+            app.active_overlay = crate::app::ActiveOverlay::None;
+            return;
+        }
     }
 
     // Konami code check
@@ -183,10 +194,7 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
 
                         match client_guard.call_tool("submit_issue", args).await {
                             Ok(res) => {
-                                if let Some(error) = res.get("error") {
-                                    let msg = error.get("message").and_then(|m| m.as_str()).unwrap_or("Unknown MCP Error");
-                                    (false, format!("ERROR: MCP server JSONRPC error: {}", msg))
-                                } else if let Some(result) = res.get("result") {
+                                if let Some(result) = res.get("result") {
                                     let is_error = result.get("isError").and_then(|e| e.as_bool()).unwrap_or(false);
                                     let content_str = result.get("content").and_then(|c| c.as_array()).and_then(|c| c.first()).and_then(|c| c.get("text")).and_then(|t| t.as_str()).unwrap_or("Unknown response from MCP");
                                     if is_error {
@@ -364,6 +372,7 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                                 issue_id: id.clone(),
                                 success: true,
                                 message: format!("Bulk action complete for #{}", id),
+                                target_status: target.clone(),
                             });
                         }
                         let _ = sender.send(crate::app::AppEvent::SubmitResult {
@@ -432,9 +441,7 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                                     
                                     match client_guard.call_tool("draft_vision_issue", serde_json::Value::Object(payload)).await {
                                         Ok(res) => {
-                                            let content_str = if let Some(error) = res.get("error") {
-                                                error.get("message").and_then(|m| m.as_str()).unwrap_or("Unknown MCP Error").to_string()
-                                            } else if let Some(result) = res.get("result") {
+                                            let content_str = if let Some(result) = res.get("result") {
                                                 result.get("content").and_then(|c| c.as_array()).and_then(|c| c.first()).and_then(|c| c.get("text")).and_then(|t| t.as_str()).unwrap_or("Unknown response from MCP").to_string()
                                             } else {
                                                 "ERROR: Invalid response structure from MCP server".to_string()
@@ -553,11 +560,16 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                 app.trigger_triage();
             } else if app.active_tab == Tab::Settings {
                 if let Some(health) = &app.security_health {
-                    if !health.open_backdoor_ports.is_empty() || !health.world_writable_paths.is_empty() {
+                    if !health.world_writable_paths.is_empty() {
                         app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
                         app.submit_form.url = "System Scan Findings".to_string();
                         app.submit_form.severity = "High".to_string();
-                        app.submit_form.description = format!("Found open backdoor ports: {:?} and world-writable paths: {:?}", health.open_backdoor_ports, health.world_writable_paths);
+                        let mut desc = String::new();
+                        if !health.open_backdoor_ports.is_empty() {
+                            desc.push_str(&format!("Found open backdoor ports: {:?}\n", health.open_backdoor_ports));
+                        }
+                        desc.push_str(&format!("Found world-writable paths: {:?}", health.world_writable_paths));
+                        app.submit_form.description = desc;
                     }
                 }
             }

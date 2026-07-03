@@ -28,8 +28,8 @@ pub async fn run_scan() -> SecurityHealth {
         for path in paths_to_check {
             if let Ok(meta) = std::fs::metadata(path) {
                 let mode = meta.permissions().mode();
-                // Check if other write bit is set
-                if mode & 0o002 != 0 {
+                // Check if other write bit is set and sticky bit is not set
+                if mode & 0o002 != 0 && mode & 0o1000 == 0 {
                     health.world_writable_paths.push(path.to_string());
                 }
             }

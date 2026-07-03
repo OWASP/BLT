@@ -136,6 +136,19 @@ TOOL_SCHEMAS = {
             "user_id": {"type": str, "description": "The ID of the user to register."},
             "confirmed": {"type": bool, "description": "Must be set to true to execute this write operation."}
         }
+    },
+    "triage_vulnerability": {
+        "required": ["prompt"],
+        "properties": {
+            "prompt": {"type": str, "description": "The full prompt string containing the issue details to analyze."}
+        }
+    },
+    "draft_vision_issue": {
+        "required": ["image_path"],
+        "properties": {
+            "image_path": {"type": str, "description": "Absolute path to the screenshot image on the local system."},
+            "gitlab_project_id": {"type": str, "description": "Optional GitLab project ID to upload the image to."}
+        }
     }
 }
 
@@ -146,7 +159,7 @@ def validate_tool_arguments(tool_name: str, arguments: dict) -> Optional[str]:
     """
     schema = TOOL_SCHEMAS.get(tool_name)
     if not schema:
-        return None
+        return f"Unknown tool '{tool_name}' - no validation schema found."
 
     # Check for required fields
     for req in schema["required"]:
