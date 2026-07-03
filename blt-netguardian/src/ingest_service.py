@@ -19,6 +19,7 @@ from envelope import (
 from errors import IngestError, IngestErrorCode
 from findings_store import FindingsStore
 from ingest_store import IngestStore
+from payload_crypto import PayloadCryptoError, decrypt_payload, get_org_key, wrap_ciphertext
 from secrets import lookup_sender_secret
 
 DEFAULT_MAX_BODY = 1_048_576
@@ -123,11 +124,34 @@ async def process_ingest(
             headers={"Retry-After": "60"},
         )
 
-    payload = envelope.get("payload_plaintext")
-    if not isinstance(payload, Mapping):
+    plaintext_payload = envelope.get("payload_plaintext")
+    ciphertext_b64 = envelope.get("payload_ciphertext")
+    if isinstance(plaintext_payload, Mapping):
+        payload = plaintext_payload
+        stored_payload_json = json.dumps(
+            payload, separators=(",", ":"), ensure_ascii=False
+        )
+    elif isinstance(ciphertext_b64, str):
+        key = get_org_key(env, org_id)
+        if key is None:
+            raise IngestError(
+                IngestErrorCode.UNKNOWN_KID,
+                "payload encryption key not configured for org",
+            )
+        try:
+            payload = decrypt_payload(key, ciphertext_b64, aad=org_id.encode())
+        except PayloadCryptoError as exc:
+            raise IngestError(
+                IngestErrorCode.INVALID_PAYLOAD_MODE,
+                f"payload decryption failed: {exc}",
+            ) from exc
+        # Store the ciphertext at rest; metadata columns below come from the
+        # decrypted payload so list/filter still work without exposing evidence.
+        stored_payload_json = wrap_ciphertext(ciphertext_b64)
+    else:
         raise IngestError(
             IngestErrorCode.INVALID_PAYLOAD_MODE,
-            "only plaintext payload mode is currently supported",
+            "exactly one of payload_plaintext or payload_ciphertext is required",
         )
 
     for field in ("rule_id", "severity", "title"):
@@ -171,7 +195,7 @@ async def process_ingest(
         payload_digest=str(envelope["payload_digest"]).lower(),
         issued_at_unix=issued_unix,
         received_at_unix=received_unix,
-        payload_json=json.dumps(payload, separators=(",", ":"), ensure_ascii=False),
+        payload_json=stored_payload_json,
         payload=payload,
     )
     await store.record_rate_accept(org_id, now)

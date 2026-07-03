@@ -790,6 +790,29 @@
             margin-top: 4px;
         }
 
+        .evidence-badge {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            vertical-align: middle;
+        }
+
+        .evidence-badge.enc-ok {
+            color: #00c864;
+            border: 1px solid #00c864;
+            background: rgba(0, 200, 100, 0.08);
+        }
+
+        .evidence-badge.enc-fail {
+            color: #f85149;
+            border: 1px solid #f85149;
+            background: rgba(248, 81, 73, 0.08);
+        }
+
         .detail-error {
             color: #f85149;
         }
@@ -1369,6 +1392,6 @@
 </div>
 
 <div id="toast" class="toast"></div>
-<script src="assets/js/triage.js?v=15"></script>
+<script src="assets/js/triage.js?v=16"></script>
 </body>
 </html>

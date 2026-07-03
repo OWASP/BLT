@@ -12,6 +12,7 @@ from typing import Any, Mapping, Optional
 from auth import AuthError, require_org_auth
 from blt_api_client import BltApiError, create_bug_from_finding, is_blt_api_configured
 from findings_store import ALLOWED_SORT_FIELDS, ALLOWED_STATUSES, CSV_COLUMNS, FindingsQuery, FindingsStore
+from payload_crypto import PayloadCryptoError, decrypt_payload, get_org_key, is_wrapped_ciphertext
 from payload_redact import redact_payload
 
 DEFAULT_LIMIT = 50
@@ -164,24 +165,45 @@ async def get_finding_for_request(
     id_fn = new_id or (lambda prefix: __import__("hashlib").sha256(
         f"{prefix}-{finding_id}-{now.timestamp()}".encode()
     ).hexdigest()[:16])
+
+    try:
+        stored = json.loads(row.get("payload_json") or "{}")
+    except json.JSONDecodeError:
+        stored = {}
+
+    payload_raw: dict = {}
+    encrypted_at_rest = False
+    decrypted = False
+    if is_wrapped_ciphertext(stored):
+        encrypted_at_rest = True
+        action = "decrypt_view"
+        key = get_org_key(env, auth.org_id)
+        if key is not None:
+            try:
+                payload_raw = decrypt_payload(
+                    key, stored["ciphertext"], aad=auth.org_id.encode()
+                )
+                decrypted = True
+            except PayloadCryptoError:
+                payload_raw = {}
+    else:
+        action = "view_detail"
+        payload_raw = stored if isinstance(stored, dict) else {}
+
     await store.record_access(
         log_id=id_fn("access-view"),
         org_id=auth.org_id,
         finding_id=finding_id,
         actor=auth.org_id,
-        action="view_detail",
-        detail={"route": "GET /api/findings/{id}"},
+        action=action,
+        detail={
+            "route": "GET /api/findings/{id}",
+            "encrypted_at_rest": encrypted_at_rest,
+            "decrypted": decrypted,
+        },
         created_at_unix=int(now.timestamp()),
     )
     access_logs = await store.list_access_logs(auth.org_id, finding_id, limit=5)
-
-    payload_raw: dict = {}
-    try:
-        payload_raw = json.loads(row.get("payload_json") or "{}")
-        if not isinstance(payload_raw, dict):
-            payload_raw = {}
-    except json.JSONDecodeError:
-        payload_raw = {}
 
     finding = {
         "id": row["id"],
@@ -205,6 +227,10 @@ async def get_finding_for_request(
         body={
             "finding": finding,
             "payload_snippet": redact_payload(payload_raw),
+            "evidence": {
+                "encrypted_at_rest": encrypted_at_rest,
+                "decrypted": decrypted,
+            },
             "envelope": {
                 "sender_id": row.get("sender_id"),
                 "kid": row.get("kid"),

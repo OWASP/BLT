@@ -9,6 +9,12 @@
 pytest==9.0.3
 pytest-asyncio==0.21.1
 
+# Evidence encryption for local dev + tests (ciphertext payload mode).
+# AES-256-GCM via pyca/cryptography. NOTE: not used by the Cloudflare Workers
+# runtime, which maps the same AES-256-GCM params onto WebCrypto (crypto.subtle)
+# through a runtime adapter. Import is lazy so plaintext mode works without it.
+cryptography>=42.0.0
+
 # Note: The following are NOT compatible with Cloudflare Workers:
 # - Flask, Werkzeug (traditional web frameworks)
 # - Redis, Celery (require persistent connections)
