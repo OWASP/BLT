@@ -49,7 +49,6 @@ skips = ["B101"]
 testpaths = ["tests"]
 asyncio_mode = "strict"
 
-
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
 exclude = [

@@ -214,6 +214,7 @@ async def handle_review(request, env):
             return create_error_response("Field 'code' cannot be empty", 400)
 
         language = data.get("language", "unknown")
+        _context = data.get("context", "")
 
         # Placeholder for actual AI review logic
         # In production, this would call AI services, perform static analysis, etc.
@@ -389,8 +390,6 @@ def create_json_response(data, status_code=200):
     headers.set("Access-Control-Allow-Headers", "Content-Type")
 
     return Response.new(json.dumps(data), status=status_code, headers=headers)
-
-
 def create_text_response(message, status_code=200):
     """
     Create a plain-text response.

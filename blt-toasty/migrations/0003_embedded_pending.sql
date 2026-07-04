@@ -1,0 +1,23 @@
+-- Migration: 0003_embedded_pending.sql
+-- Documents the addition of 'embedded_pending' status for graceful
+-- degradation when the FastEmbed sidecar is unavailable.
+--
+-- Pipeline states after this migration:
+--   pending → redaction_passed → summarized → embedded → exported
+--                                    ↓
+--                            embedded_pending → embedded
+--                                    ↓
+--                               quarantined
+--
+-- NOTE: D1 (SQLite) does not support ALTER TABLE ... DROP CONSTRAINT.
+-- State validation is enforced at the application layer by each module's
+-- inline _transition_state() and guard functions.  The CHECK constraint
+-- on triage_events.status (if present from 0001_initial.sql on upstream/main)
+-- already includes 'embedded'.  The new 'embedded_pending' state is
+-- validated purely at the application layer.
+--
+-- This migration is intentionally a no-op.  It exists to document the
+-- new state and maintain sequential migration numbering.
+
+-- No-op: state validation is enforced at the application layer.
+SELECT 1;

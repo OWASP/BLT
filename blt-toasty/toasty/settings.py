@@ -134,7 +134,7 @@ if not DEBUG:
     # Enforce SSL redirect conditionally depending on environment/proxy setup
     if os.getenv("SECURE_SSL_REDIRECT", "True").strip().lower() in ("1", "true", "yes", "on"):
         SECURE_SSL_REDIRECT = True
-        
+
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     # Note: Modern browsers ignore X-XSS-Protection; SECURE_BROWSER_XSS_FILTER is obsolete.

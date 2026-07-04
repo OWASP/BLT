@@ -3,6 +3,7 @@ import glob
 import os
 import pytest
 
+
 @pytest.fixture(scope="session")
 def all_golden_reports():
     """
@@ -12,10 +13,10 @@ def all_golden_reports():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     synthetic_files = glob.glob(os.path.join(base_dir, "golden_set", "synthetic", "*.json"))
     historical_files = glob.glob(os.path.join(base_dir, "golden_set", "historical", "*.json"))
-    
+
     all_files = synthetic_files + historical_files
     reports = []
-    
+
     for fpath in all_files:
         with open(fpath, "r", encoding="utf-8") as f:
             try:
@@ -25,8 +26,9 @@ def all_golden_reports():
                 reports.append(data)
             except json.JSONDecodeError as e:
                 pytest.fail(f"Failed to parse JSON in {fpath}: {str(e)}")
-                
+
     return reports
+
 
 def pytest_generate_tests(metafunc):
     """
@@ -39,7 +41,7 @@ def pytest_generate_tests(metafunc):
         synthetic_files = glob.glob(os.path.join(base_dir, "golden_set", "synthetic", "*.json"))
         historical_files = glob.glob(os.path.join(base_dir, "golden_set", "historical", "*.json"))
         all_files = synthetic_files + historical_files
-        
+
         reports = []
         ids = []
         for fpath in all_files:
@@ -49,5 +51,5 @@ def pytest_generate_tests(metafunc):
                 reports.append(data)
                 # Use the file name as the test ID
                 ids.append(os.path.basename(fpath))
-                
+
         metafunc.parametrize("golden_report", reports, ids=ids)

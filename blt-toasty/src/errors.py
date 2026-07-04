@@ -91,3 +91,19 @@ class LLMUnavailableError(Exception):
         super().__init__(message)
         self.providers_tried = providers_tried or []
         self.last_error = last_error
+
+
+class EmbeddingServiceError(Exception):
+    """Raised when the FastEmbed sidecar is unreachable or returns an error.
+
+    This exception is used by the embedding client when the sidecar
+    service times out, returns a non-200 response, or produces
+    embeddings with incorrect dimensions.
+
+    Attributes:
+        status_code: The HTTP status code from the sidecar (if available).
+    """
+
+    def __init__(self, message: str, *, status_code: int | None = None):
+        super().__init__(message)
+        self.status_code = status_code

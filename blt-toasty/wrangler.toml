@@ -60,10 +60,16 @@ id = "local-kv-placeholder"
 # binding = "TOASTY_BUCKET"
 # bucket_name = "toasty-files"
 
+# Vectorize index for semantic duplicate detection
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "toasty-embeddings"
+
 # Environment variables (secrets should be set via wrangler secret put)
 [vars]
 ENVIRONMENT = "development"
 LOG_LEVEL = "info"
+FASTEMBED_URL = "http://localhost:5003"
 
 
 [observability]

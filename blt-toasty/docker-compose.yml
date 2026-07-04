@@ -72,6 +72,18 @@ services:
       - REDIS_URL=redis://redis:6379/0
     command: python manage.py runserver 0.0.0.0:8000
 
+  fastembed-sidecar:
+    build: ./fastembed_sidecar
+    container_name: toasty-fastembed
+    ports:
+      - "5003:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   postgres_db:
   qdrant_db:
