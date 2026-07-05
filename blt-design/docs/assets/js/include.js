@@ -56,7 +56,7 @@ function wireDocLinks(root) {
 
     const targetPath = normalizePath(new URL(href, window.location.origin).pathname);
     // Safer matching condition using endsWith
-    if (current === targetPath || current.endsWith(path)) {
+    if (current === targetPath || (path !== 'index.html' && current.endsWith(path))) {
       setActive(link);
       link.setAttribute('aria-current', 'page');
     }
