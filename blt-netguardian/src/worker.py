@@ -660,9 +660,10 @@ class BLTWorker:
                         ),
                     )
                 elif request.method == 'PATCH':
+                    raw_patch = await self._read_request_body(request)
                     try:
-                        body = await request.json()
-                    except (ValueError, json.JSONDecodeError):
+                        body = json.loads(raw_patch.decode('utf-8') or 'null')
+                    except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
                         return self.json_response({'error': 'invalid_body'}, status=400)
                     if not isinstance(body, dict):
                         return self.json_response({'error': 'invalid_body'}, status=400)
@@ -774,9 +775,25 @@ class BLTWorker:
             return {}
         if isinstance(headers, dict):
             return dict(headers)
+        # Cloudflare Workers exposes a JS Headers object via FFI; iterating with
+        # .items() is unreliable from Python, so prefer .get() per known names.
+        if hasattr(headers, 'get'):
+            result: Dict[str, str] = {}
+            for name in (
+                'Authorization', 'authorization',
+                'Content-Type', 'content-type',
+                'Origin', 'origin',
+                'X-API-Key', 'x-api-key',
+                'X-BLT-Body-Digest', 'x-blt-body-digest',
+            ):
+                value = headers.get(name)
+                if value is not None and str(value) != '':
+                    result[name] = str(value)
+            if result:
+                return result
         try:
             return {str(key): str(value) for key, value in headers.items()}
-        except AttributeError:
+        except (AttributeError, TypeError):
             return {}
 
     def get_query_params(self, request) -> Dict[str, str]:
@@ -822,7 +839,7 @@ class BLTWorker:
 
     def requires_authentication(self, path: str, method: str) -> bool:
         """Protect API routes; reads can be toggled with AUTHENTICATE_READ_ENDPOINTS."""
-        if path == 'api/ingest' or path.startswith('api/findings'):
+        if path in ('api/health', 'api/ingest') or path.startswith('api/findings'):
             return False
         if not path.startswith('api/'):
             return False

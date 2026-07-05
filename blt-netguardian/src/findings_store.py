@@ -6,6 +6,8 @@ import json
 from dataclasses import dataclass
 from typing import Any, Mapping, Optional
 
+from d1_compat import d1_row, d1_rows, row_get
+
 
 ALLOWED_SORT_FIELDS = frozenset({"updated_at", "created_at", "severity", "rule_id"})
 ALLOWED_STATUSES = frozenset({"open", "triaging", "converted", "snoozed", "wontfix"})
@@ -84,10 +86,10 @@ class FindingsStore:
             raise RuntimeError("D1 not configured")
 
         where_sql, params = self._where_clause(query)
-        count_row = await self.db.prepare(
+        count_row = d1_row(await self.db.prepare(
             f"SELECT COUNT(*) AS total FROM findings WHERE {where_sql}"
-        ).bind(*params).first()
-        total = int(count_row["total"]) if count_row else 0
+        ).bind(*params).first())
+        total = int(row_get(count_row, "total", 0) or 0)
 
         sort_field = query.sort if query.sort in ALLOWED_SORT_FIELDS else "updated_at"
         sort_dir = "DESC" if query.order.lower() == "desc" else "ASC"
@@ -100,7 +102,7 @@ class FindingsStore:
         else:
             order_sql = f"{sort_field} {sort_dir}"
 
-        rows = await self.db.prepare(
+        rows = d1_rows(await self.db.prepare(
             f"""
             SELECT id, org_id, envelope_id, rule_id, severity, title, target,
                    status, fingerprint, cve_id, cve_score, blt_issue_id,
@@ -110,9 +112,9 @@ class FindingsStore:
             ORDER BY {order_sql}
             LIMIT ? OFFSET ?
             """
-        ).bind(*params, query.limit, query.offset).all()
+        ).bind(*params, query.limit, query.offset).all())
 
-        items = [self._row_to_item(row) for row in rows.results]
+        items = [self._row_to_item(row) for row in rows]
         return items, total
 
     async def export_findings(self, query: FindingsQuery) -> list[dict]:
@@ -135,7 +137,7 @@ class FindingsStore:
     async def get_finding_detail(self, org_id: str, finding_id: str) -> Optional[dict]:
         if self.db is None:
             raise RuntimeError("D1 not configured")
-        row = await self.db.prepare(
+        row = d1_row(await self.db.prepare(
             """
             SELECT f.id, f.org_id, f.envelope_id, f.rule_id, f.severity, f.title,
                    f.target, f.status, f.fingerprint, f.cve_id, f.cve_score,
@@ -146,24 +148,20 @@ class FindingsStore:
             JOIN envelopes e ON e.id = f.envelope_id
             WHERE f.id = ? AND f.org_id = ?
             """
-        ).bind(finding_id, org_id).first()
-        if row is None:
-            return None
-        return dict(row)
+        ).bind(finding_id, org_id).first())
+        return row
 
     async def find_by_fingerprint(self, org_id: str, fingerprint: str) -> Optional[dict]:
         if self.db is None or not fingerprint:
             return None
-        row = await self.db.prepare(
+        row = d1_row(await self.db.prepare(
             """
             SELECT id, org_id, fingerprint, blt_issue_id
             FROM findings
             WHERE org_id = ? AND fingerprint = ?
             """
-        ).bind(org_id, fingerprint).first()
-        if row is None:
-            return None
-        return dict(row)
+        ).bind(org_id, fingerprint).first())
+        return row
 
     async def record_access(
         self,
@@ -179,18 +177,30 @@ class FindingsStore:
         if self.db is None:
             raise RuntimeError("D1 not configured")
         detail_json = json.dumps(detail, separators=(",", ":")) if detail else None
-        await self.db.prepare(
-            """
-            INSERT INTO access_logs (
-              id, org_id, finding_id, actor, action, detail_json, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            """
-        ).bind(log_id, org_id, finding_id, actor, action, detail_json, created_at_unix).run()
+        # Omit detail_json when absent: a Python None binding becomes JS
+        # ``undefined`` on the Workers D1 bridge, which is rejected.
+        if detail_json is None:
+            await self.db.prepare(
+                """
+                INSERT INTO access_logs (
+                  id, org_id, finding_id, actor, action, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """
+            ).bind(log_id, org_id, finding_id, actor, action, created_at_unix).run()
+        else:
+            await self.db.prepare(
+                """
+                INSERT INTO access_logs (
+                  id, org_id, finding_id, actor, action, detail_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """
+            ).bind(log_id, org_id, finding_id, actor, action, detail_json, created_at_unix).run()
 
     async def list_access_logs(self, org_id: str, finding_id: str, *, limit: int = 10) -> list[dict]:
         if self.db is None:
             return []
-        rows = await self.db.prepare(
+        logs = []
+        for row in d1_rows(await self.db.prepare(
             """
             SELECT id, actor, action, detail_json, created_at
             FROM access_logs
@@ -198,18 +208,16 @@ class FindingsStore:
             ORDER BY created_at DESC
             LIMIT ?
             """
-        ).bind(org_id, finding_id, limit).all()
-        logs = []
-        for row in rows.results:
+        ).bind(org_id, finding_id, limit).all()):
             entry = {
                 "id": row["id"],
                 "actor": row["actor"],
                 "action": row["action"],
                 "created_at": row["created_at"],
             }
-            if row.get("detail_json"):
+            if row_get(row, "detail_json"):
                 try:
-                    entry["detail"] = json.loads(row["detail_json"])
+                    entry["detail"] = json.loads(row_get(row, "detail_json"))
                 except json.JSONDecodeError:
                     entry["detail"] = None
             logs.append(entry)
@@ -231,10 +239,10 @@ class FindingsStore:
             WHERE id = ? AND org_id = ?
             """
         ).bind(blt_issue_id, updated_at_unix, finding_id, org_id).run()
-        row = await self.db.prepare(
+        row = d1_row(await self.db.prepare(
             "SELECT blt_issue_id FROM findings WHERE id = ? AND org_id = ?"
-        ).bind(finding_id, org_id).first()
-        return row is not None and row.get("blt_issue_id") == blt_issue_id
+        ).bind(finding_id, org_id).first())
+        return row is not None and row_get(row, "blt_issue_id") == blt_issue_id
 
     async def update_finding_status(
         self,
@@ -254,10 +262,10 @@ class FindingsStore:
             WHERE id = ? AND org_id = ?
             """
         ).bind(status, updated_at_unix, finding_id, org_id).run()
-        row = await self.db.prepare(
+        row = d1_row(await self.db.prepare(
             "SELECT status FROM findings WHERE id = ? AND org_id = ?"
-        ).bind(finding_id, org_id).first()
-        return row is not None and row.get("status") == status
+        ).bind(finding_id, org_id).first())
+        return row is not None and row_get(row, "status") == status
 
     @staticmethod
     def _row_to_item(row: dict) -> dict:
@@ -267,18 +275,18 @@ class FindingsStore:
 def finding_row_to_item(row: Mapping[str, Any]) -> dict:
     """Project a findings row into the public finding shape (single source of truth)."""
     return {
-        "id": row["id"],
-        "org_id": row["org_id"],
-        "envelope_id": row["envelope_id"],
-        "rule_id": row["rule_id"],
-        "severity": row["severity"],
-        "title": row["title"],
-        "target": row.get("target"),
-        "status": row["status"],
-        "fingerprint": row.get("fingerprint"),
-        "cve_id": row.get("cve_id"),
-        "cve_score": row.get("cve_score"),
-        "blt_issue_id": row.get("blt_issue_id"),
-        "created_at": row["created_at"],
-        "updated_at": row["updated_at"],
+        "id": row_get(row, "id"),
+        "org_id": row_get(row, "org_id"),
+        "envelope_id": row_get(row, "envelope_id"),
+        "rule_id": row_get(row, "rule_id"),
+        "severity": row_get(row, "severity"),
+        "title": row_get(row, "title"),
+        "target": row_get(row, "target"),
+        "status": row_get(row, "status"),
+        "fingerprint": row_get(row, "fingerprint"),
+        "cve_id": row_get(row, "cve_id"),
+        "cve_score": row_get(row, "cve_score"),
+        "blt_issue_id": row_get(row, "blt_issue_id"),
+        "created_at": row_get(row, "created_at"),
+        "updated_at": row_get(row, "updated_at"),
     }

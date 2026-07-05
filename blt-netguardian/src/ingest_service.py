@@ -20,7 +20,7 @@ from errors import IngestError, IngestErrorCode
 from findings_store import FindingsStore
 from ingest_store import IngestStore
 from payload_crypto import PayloadCryptoError, decrypt_payload, get_org_key, wrap_ciphertext
-from secrets import lookup_sender_secret
+from ng_secrets import lookup_sender_secret
 
 DEFAULT_MAX_BODY = 1_048_576
 DEFAULT_RPM = 60
