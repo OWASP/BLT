@@ -13,6 +13,8 @@ run_worker_first = true
 # Environment variables
 [vars]
 ENVIRONMENT = "production"
+AUTHENTICATE_READ_ENDPOINTS = "false"
+NG_DEFAULT_ORG = "org-demo"
 # Set via wrangler secret (production/staging):
 #   BLT_API_BASE_URL = https://api.owaspblt.org/v2
 #   BLT_API_KEY      = <X-BLT-API-Key value>

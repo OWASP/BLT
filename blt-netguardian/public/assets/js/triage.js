@@ -365,9 +365,9 @@
         function getToken() { return tokenInput.value.trim(); }
 
         function authHeaders(json) {
+            const h = {};
             const t = getToken();
-            if (!t) throw new Error('No token.');
-            const h = { Authorization: 'Bearer ' + t };
+            if (t) h.Authorization = 'Bearer ' + t;
             if (json) h['Content-Type'] = 'application/json';
             return h;
         }
@@ -610,14 +610,9 @@
         }
 
         async function connect() {
-            const token = getToken();
-            if (!token) {
-                authError.textContent = 'Enter a token.';
-                authError.classList.remove('hidden');
-                return;
-            }
             authError.classList.add('hidden');
-            writeStoredToken(token);
+            const token = getToken();
+            if (token) writeStoredToken(token);
             try {
                 await loadList();
                 authOverlay.classList.add('hidden');
@@ -689,11 +684,7 @@
         if (saved) tokenInput.value = saved;
         else if (IS_LOCAL) tokenInput.value = DEMO_TOKEN;
 
-        if (tokenInput && tokenInput.value) {
-            connect().catch(function () {});
-        } else if (authOverlay) {
-            authOverlay.classList.remove('hidden');
-            setConnected(false, 'Offline');
-        }
+        authOverlay.classList.add('hidden');
+        connect().catch(function () {});
     });
 })();

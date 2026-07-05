@@ -61,6 +61,34 @@ def resolve_org_from_token(env: Any, token: str) -> Optional[str]:
     return None
 
 
+def read_endpoints_require_auth(env: Any) -> bool:
+    """When false, triage/findings routes accept unauthenticated reads (demo/pilot)."""
+    raw = getattr(env, "AUTHENTICATE_READ_ENDPOINTS", None)
+    if raw is None:
+        return True
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def default_org_id(env: Any) -> str:
+    raw = getattr(env, "NG_DEFAULT_ORG", None)
+    if raw:
+        return str(raw).strip()
+    return "org-demo"
+
+
+def resolve_org_auth(env: Any, headers: Mapping[str, str]) -> OrgAuthContext:
+    """Resolve org from Bearer token, or use the default org when auth is disabled."""
+    token = extract_bearer_token(headers)
+    if token:
+        org_id = resolve_org_from_token(env, token)
+        if org_id is None:
+            raise AuthError("invalid or unknown API token")
+        return OrgAuthContext(org_id=org_id, token=token)
+    if not read_endpoints_require_auth(env):
+        return OrgAuthContext(org_id=default_org_id(env), token="")
+    raise AuthError("missing Bearer token")
+
+
 def require_org_auth(env: Any, headers: Mapping[str, str]) -> OrgAuthContext:
     token = extract_bearer_token(headers)
     if not token:

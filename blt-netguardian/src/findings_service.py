@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
 
-from auth import AuthError, require_org_auth
+from auth import AuthError, resolve_org_auth
 from blt_api_client import BltApiError, create_bug_from_finding, is_blt_api_configured
 from d1_compat import row_get
 from findings_store import (
@@ -104,7 +104,7 @@ def parse_findings_query(params: Mapping[str, str]) -> tuple[Optional[FindingsQu
 
 
 def _auth_or_error(env: Any, headers: Mapping[str, str]):
-    return require_org_auth(env, headers)
+    return resolve_org_auth(env, headers)
 
 
 async def list_findings_for_request(
