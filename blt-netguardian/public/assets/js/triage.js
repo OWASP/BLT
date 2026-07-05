@@ -22,6 +22,9 @@
         const viewListBtn     = document.getElementById('view-list');
         const tableWrap       = document.getElementById('findings-table-wrap');
         const listView        = document.getElementById('findings-list-view');
+        const layout          = document.querySelector('.layout');
+        const mobileTabBtns   = document.querySelectorAll('.mobile-tab');
+        const mobileMq        = window.matchMedia('(max-width: 900px)');
         const toast           = document.getElementById('toast');
 
         const IS_LOCAL   = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
@@ -36,12 +39,36 @@
         let listViewMode = false;
         let lastHealth = null;
 
+        function isMobileView() { return mobileMq.matches; }
+
+        function setMobilePanel(name) {
+            if (!layout || !isMobileView()) return;
+            layout.classList.remove('panel-findings', 'panel-filters', 'panel-detail');
+            layout.classList.add('panel-' + name);
+            mobileTabBtns.forEach(function (btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-mobile-panel') === name);
+            });
+        }
+
+        function applyMobileLayout() {
+            if (isMobileView()) {
+                setListViewMode(true);
+                if (layout && !layout.classList.contains('panel-detail') &&
+                    !layout.classList.contains('panel-filters')) {
+                    layout.classList.add('panel-findings');
+                }
+            } else if (layout) {
+                layout.classList.remove('panel-findings', 'panel-filters', 'panel-detail');
+            }
+        }
+
         function onFindingClick(rawId) {
             if (!rawId) return;
             selectedRawId = rawId;
             document.querySelectorAll('.finding-row, .finding-list-card').forEach(function (el) {
                 el.classList.toggle('selected', el.getAttribute('data-raw-id') === rawId);
             });
+            if (isMobileView()) setMobilePanel('detail');
             loadFindingDetail(rawId);
         }
 
@@ -642,6 +669,18 @@
             viewTableBtn.addEventListener('click', function () { setListViewMode(false); });
             viewListBtn.addEventListener('click', function () { setListViewMode(true); });
         }
+
+        mobileTabBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                setMobilePanel(btn.getAttribute('data-mobile-panel'));
+            });
+        });
+        if (typeof mobileMq.addEventListener === 'function') {
+            mobileMq.addEventListener('change', applyMobileLayout);
+        } else if (typeof mobileMq.addListener === 'function') {
+            mobileMq.addListener(applyMobileLayout);
+        }
+        applyMobileLayout();
 
         try { localStorage.removeItem('ng_api_token'); } catch (_) {}
         loadList().catch(function (err) { showToast(apiErrorMsg(err), 'error'); });

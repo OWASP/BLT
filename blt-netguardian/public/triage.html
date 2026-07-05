@@ -1208,6 +1208,187 @@
             color: #00c864;
             font-size: 11px;
         }
+
+        /* ── MOBILE TAB BAR (hidden on desktop) ───────────────── */
+        .mobile-tabs {
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            html, body {
+                overflow-x: hidden;
+                overflow-y: auto;
+                height: auto;
+                min-height: 100%;
+                max-width: 100vw;
+            }
+
+            .app {
+                height: auto;
+                min-height: 100dvh;
+                max-width: 100vw;
+                overflow-x: hidden;
+            }
+
+            .header {
+                grid-template-columns: 1fr;
+                gap: 0.45rem;
+                padding: 0.55rem 0.75rem;
+            }
+
+            .header-spacer { display: none; }
+
+            .header-title {
+                font-size: 0.72rem;
+                letter-spacing: 0.14em;
+                white-space: normal;
+                line-height: 1.25;
+            }
+
+            .header-actions {
+                justify-content: center;
+                gap: 0.45rem;
+                flex-wrap: wrap;
+            }
+
+            .header-icon {
+                width: 1.85rem;
+                height: 1.85rem;
+                font-size: 0.75rem;
+            }
+
+            #change-token-btn { display: none; }
+
+            .conn-pill {
+                font-size: 0.52rem;
+                max-width: 42vw;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .mobile-tabs {
+                display: flex;
+                gap: 0.35rem;
+                padding: 0.45rem 0.65rem;
+                border-bottom: 1px solid var(--border);
+                background: rgba(8, 8, 8, 0.98);
+                position: sticky;
+                top: 0;
+                z-index: 20;
+            }
+
+            .mobile-tab {
+                flex: 1;
+                border: 1px solid rgba(255, 32, 32, 0.45);
+                background: rgba(255, 32, 32, 0.05);
+                color: var(--text-muted);
+                font-family: inherit;
+                font-size: 0.62rem;
+                font-weight: 700;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                padding: 0.55rem 0.35rem;
+                border-radius: 2px;
+                cursor: pointer;
+            }
+
+            .mobile-tab.active {
+                color: var(--text-primary);
+                border-color: var(--border);
+                box-shadow: var(--glow-soft);
+                background: rgba(255, 32, 32, 0.14);
+            }
+
+            .layout {
+                display: block;
+                min-height: calc(100dvh - 7.5rem);
+            }
+
+            .layout > .sidebar,
+            .layout > .findings-col,
+            .layout > .detail-col {
+                display: none;
+                width: 100%;
+                min-height: calc(100dvh - 8rem);
+                border-right: none;
+            }
+
+            .layout.panel-findings > .findings-col { display: flex; }
+            .layout.panel-filters > .sidebar { display: block; }
+            .layout.panel-detail > .detail-col { display: flex; }
+
+            .sidebar {
+                overflow: visible;
+                padding-bottom: 1.25rem;
+            }
+
+            .findings-col {
+                border-bottom: 1px solid var(--border);
+            }
+
+            .findings-col .table-wrap {
+                display: none !important;
+            }
+
+            .findings-col .findings-list-view.hidden {
+                display: block !important;
+            }
+
+            .findings-cube { display: none; }
+
+            .detail-col {
+                overflow: visible;
+            }
+
+            .detail-body {
+                min-height: 50vh;
+                max-height: none;
+                overflow: visible;
+            }
+
+            .detail-placeholder {
+                min-height: 40vh;
+            }
+
+            .detail-tabs {
+                flex-wrap: wrap;
+            }
+
+            .detail-tab {
+                flex: 1 1 auto;
+                min-width: 4.5rem;
+                text-align: center;
+            }
+
+            .meta-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .risk-cols,
+            .risk-row {
+                grid-template-columns: 1fr !important;
+            }
+
+            .toast {
+                left: 0.75rem;
+                right: 0.75rem;
+                bottom: 0.75rem;
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-title { font-size: 0.62rem; letter-spacing: 0.1em; }
+            .findings-count { display: none; }
+            .date-row { grid-template-columns: 1fr; }
+            .evidence-pre, .payload-pre,
+            .evidence-json {
+                font-size: 0.58rem;
+                word-break: break-word;
+                white-space: pre-wrap;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1237,8 +1418,14 @@
         </div>
     </header>
 
+    <nav class="mobile-tabs" aria-label="Panel navigation">
+        <button type="button" class="mobile-tab active" data-mobile-panel="findings">Findings</button>
+        <button type="button" class="mobile-tab" data-mobile-panel="filters">Filters</button>
+        <button type="button" class="mobile-tab" data-mobile-panel="detail">Detail</button>
+    </nav>
+
     <!-- 3-column layout -->
-    <div class="layout">
+    <div class="layout panel-findings">
 
         <!-- Left: Filters -->
         <aside class="sidebar panel-frame panel-glow">
@@ -1382,6 +1569,6 @@
 </div>
 
 <div id="toast" class="toast"></div>
-<script src="assets/js/triage.js?v=17"></script>
+<script src="assets/js/triage.js?v=18"></script>
 </body>
 </html>
