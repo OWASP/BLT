@@ -33,11 +33,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "tests"))
 
+import base64  # noqa: E402
+
 from canonicalize import body_digest_hex  # noqa: E402
 from envelope import prepare_signed_envelope  # noqa: E402
 from ingest_service import process_ingest  # noqa: E402
 from ingest_store import IngestStore  # noqa: E402
 from netguardian_db import open_netguardian_db  # noqa: E402
+from payload_crypto import encrypt_payload  # noqa: E402
 from worker import BLTWorker  # noqa: E402
 
 HOST = "localhost"
@@ -47,6 +50,9 @@ PUBLIC = (ROOT / "public").resolve()
 DEMO_SECRET_HEX = "736563726574"
 DEMO_TOKEN = "triage-token"
 DEMO_ORG = "org-demo"
+# Stable 32-byte AES-256 key for the local demo (dev only, never a prod key).
+DEMO_PAYLOAD_KEY = b"netguardian-demo-aesgcm-key-0032"
+DEMO_PAYLOAD_KEY_B64 = base64.b64encode(DEMO_PAYLOAD_KEY).decode("ascii")
 
 DB = open_netguardian_db(ROOT)
 ENV = SimpleNamespace(
@@ -54,6 +60,7 @@ ENV = SimpleNamespace(
     ENVIRONMENT="development",
     NG_SENDER_SECRETS=json.dumps({f"{DEMO_ORG}:scanner-1:k1": DEMO_SECRET_HEX}),
     NG_ORG_API_TOKENS=json.dumps({DEMO_TOKEN: DEMO_ORG}),
+    NG_PAYLOAD_KEYS=json.dumps({DEMO_ORG: DEMO_PAYLOAD_KEY_B64}),
     NG_INGEST_RPM="6000",
     AUTHENTICATE_READ_ENDPOINTS="false",
     CORS_ALLOWED_ORIGINS=f"http://{HOST}:{PORT},http://127.0.0.1:{PORT}",
@@ -72,6 +79,8 @@ DEMO_FINDINGS = [
         "cve_id": "CVE-2024-0001",
         "password": "should-be-redacted",
         "evidence": {"snippet": "SELECT * FROM x WHERE id=' + req.id", "token": "redact-me"},
+        # Seeded as AES-256-GCM ciphertext to demo encrypted-at-rest + decrypt-on-view.
+        "_encrypt": True,
     },
     {
         "rule_id": "nuclei.tls.weak-cipher",
@@ -95,6 +104,8 @@ def _seed_demo_data() -> None:
 
     async def seed_one(index: int, payload: dict) -> None:
         now = datetime.now(timezone.utc)
+        payload = dict(payload)
+        encrypt = payload.pop("_encrypt", False)
         body = {
             "version": "ztr-finding-1",
             "org_id": DEMO_ORG,
@@ -103,9 +114,14 @@ def _seed_demo_data() -> None:
             "alg": "hmac-sha256",
             "issued_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "nonce": f"seed-{index}-{int(now.timestamp())}",
-            "plaintext_mode": True,
-            "payload_plaintext": payload,
         }
+        if encrypt:
+            body["payload_ciphertext"] = encrypt_payload(
+                DEMO_PAYLOAD_KEY, payload, aad=DEMO_ORG.encode()
+            )
+        else:
+            body["plaintext_mode"] = True
+            body["payload_plaintext"] = payload
         signed = prepare_signed_envelope(body, secret)
         raw = json.dumps(signed, separators=(",", ":"), ensure_ascii=False).encode()
         await process_ingest(
@@ -224,7 +240,8 @@ def main() -> None:
     print(f"  App:    http://{HOST}:{PORT}/index.html")
     print(f"  Triage: http://{HOST}:{PORT}/triage.html")
     print(f"  Token:  {DEMO_TOKEN}   (org {DEMO_ORG})")
-    print(f"  Seeded: {len(DEMO_FINDINGS)} demo findings")
+    encrypted = sum(1 for f in DEMO_FINDINGS if f.get("_encrypt"))
+    print(f"  Seeded: {len(DEMO_FINDINGS)} demo findings ({encrypted} AES-256-GCM encrypted at rest)")
     blt_url = getattr(ENV, "BLT_API_BASE_URL", "") or "(stub convert)"
     print(f"  BLT-API: {blt_url}  (run: python3 local_dev/blt_api_stub.py)")
     print("  Ctrl+C to stop.")

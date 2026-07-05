@@ -44,12 +44,19 @@ class FindingsPreparedStatement(FakePreparedStatement):
                 and not row.get("blt_issue_id")
             ]
 
+        reverse = " desc" in sql
+        if "case severity" in sql:
+            rank = {"critical": 5, "high": 4, "medium": 3, "low": 2, "info": 1}
+            rows.sort(
+                key=lambda row: (rank.get(row["severity"], 0), row["updated_at"]),
+                reverse=reverse,
+            )
+            return rows
         sort_field = "updated_at"
-        for candidate in ("updated_at", "created_at", "severity", "rule_id"):
+        for candidate in ("updated_at", "created_at", "rule_id"):
             if f"order by {candidate}" in sql:
                 sort_field = candidate
                 break
-        reverse = " desc" in sql
         rows.sort(key=lambda row: row[sort_field], reverse=reverse)
         return rows
 
@@ -269,6 +276,25 @@ async def test_list_findings_pagination(env, sample_findings):
     assert result.body["total"] == 2
     assert len(result.body["findings"]) == 1
     assert result.body["findings"][0]["id"] == "f2"
+
+
+@pytest.mark.asyncio
+async def test_list_findings_sort_severity_ranks_by_risk(env, sample_findings):
+    db = FindingsFakeDB(sample_findings)
+    headers = {"Authorization": "Bearer token-org-a"}
+
+    result = await list_findings_for_request(
+        env=env,
+        db=db,
+        headers=headers,
+        query_params={"sort": "severity", "order": "desc"},
+        store=FindingsStore(db),
+    )
+
+    assert result.status == 200
+    severities = [f["severity"] for f in result.body["findings"]]
+    # critical must rank above high (not alphabetical, where 'high' < 'critical').
+    assert severities == ["critical", "high"]
 
 
 @pytest.mark.asyncio

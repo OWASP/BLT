@@ -660,7 +660,10 @@ class BLTWorker:
                         ),
                     )
                 elif request.method == 'PATCH':
-                    body = await request.json()
+                    try:
+                        body = await request.json()
+                    except (ValueError, json.JSONDecodeError):
+                        return self.json_response({'error': 'invalid_body'}, status=400)
                     if not isinstance(body, dict):
                         return self.json_response({'error': 'invalid_body'}, status=400)
                     result = await update_finding_for_request(

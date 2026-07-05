@@ -191,6 +191,13 @@
             const bltIssue = finding.blt_issue_id;
             const cveHref = cveUrl(safeCve);
             const env = data.envelope || {};
+            const evidence = data.evidence || {};
+            let evidenceBadge = '';
+            if (evidence.encrypted_at_rest) {
+                evidenceBadge = evidence.decrypted
+                    ? '<span class="evidence-badge enc-ok" title="AES-256-GCM ciphertext at rest, decrypted server-side for this authorized view">\uD83D\uDD13 Encrypted at rest · decrypted server-side</span>'
+                    : '<span class="evidence-badge enc-fail" title="Encrypted at rest; server could not decrypt (key unavailable)">\uD83D\uDD12 Encrypted at rest · key unavailable</span>';
+            }
 
             const statusOptions = STATUSES.map(function (s) {
                 const sel = s === status ? ' selected' : '';
@@ -209,7 +216,7 @@
                   <div class="detail-tab-panel active" data-panel="evidence">
                     <div class="evidence-section">
                       <div class="evidence-label">Redacted Evidence Snippet</div>
-                      <div class="evidence-label-small">Payload (server-redacted)</div>
+                      <div class="evidence-label-small">Payload (server-redacted)${evidenceBadge}</div>
                       <div class="evidence-box evidence-box-live">
                         <pre class="evidence-json">${esc(snippetText)}</pre>
                         <div class="confidential-stamp">confidential</div>
