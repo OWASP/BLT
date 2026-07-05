@@ -1213,17 +1213,7 @@
 <body>
 <div class="app">
 
-    <!-- Auth -->
-    <div id="auth-overlay" class="auth-overlay">
-        <div class="auth-modal panel-glow">
-            <h2>NetGuardian Triage</h2>
-            <p>Enter org Bearer token from <code>NG_ORG_API_TOKENS</code>. Stored locally in this browser only.</p>
-            <label class="field-label" for="api-token">Org API Token</label>
-            <input id="api-token" type="password" class="field-input" autocomplete="off" placeholder="Bearer token…">
-            <button id="save-token" type="button" class="auth-submit">Connect</button>
-            <div id="auth-error" class="auth-error hidden"></div>
-        </div>
-    </div>
+    <!-- Auth overlay removed for midterm demo (open triage, no token). -->
 
     <!-- Header -->
     <header class="header">
@@ -1392,6 +1382,6 @@
 </div>
 
 <div id="toast" class="toast"></div>
-<script src="assets/js/triage.js?v=16"></script>
+<script src="assets/js/triage.js?v=17"></script>
 </body>
 </html>

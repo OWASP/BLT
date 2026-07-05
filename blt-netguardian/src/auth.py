@@ -81,9 +81,10 @@ def resolve_org_auth(env: Any, headers: Mapping[str, str]) -> OrgAuthContext:
     token = extract_bearer_token(headers)
     if token:
         org_id = resolve_org_from_token(env, token)
-        if org_id is None:
+        if org_id is not None:
+            return OrgAuthContext(org_id=org_id, token=token)
+        if read_endpoints_require_auth(env):
             raise AuthError("invalid or unknown API token")
-        return OrgAuthContext(org_id=org_id, token=token)
     if not read_endpoints_require_auth(env):
         return OrgAuthContext(org_id=default_org_id(env), token="")
     raise AuthError("missing Bearer token")

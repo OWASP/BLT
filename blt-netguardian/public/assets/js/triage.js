@@ -2,10 +2,6 @@
     "use strict";
 
     document.addEventListener('DOMContentLoaded', function () {
-        const authOverlay     = document.getElementById('auth-overlay');
-        const tokenInput      = document.getElementById('api-token');
-        const saveTokenBtn    = document.getElementById('save-token');
-        const authError       = document.getElementById('auth-error');
         const connPill        = document.getElementById('conn-pill');
         const connDot         = document.getElementById('conn-dot');
         const connLabel       = document.getElementById('conn-label');
@@ -29,7 +25,6 @@
         const toast           = document.getElementById('toast');
 
         const IS_LOCAL   = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-        const DEMO_TOKEN = 'triage-token';
         const STATUSES   = ['open', 'triaging', 'converted', 'snoozed', 'wontfix'];
 
         let selectedRawId = null;
@@ -340,12 +335,10 @@
                 .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
-        function readStoredToken() {
-            try { return localStorage.getItem('ng_api_token'); } catch (_) { return null; }
-        }
-
-        function writeStoredToken(t) {
-            try { localStorage.setItem('ng_api_token', t); } catch (_) {}
+        function authHeaders(json) {
+            const h = {};
+            if (json) h['Content-Type'] = 'application/json';
+            return h;
         }
 
         function showToast(text, kind) {
@@ -360,16 +353,6 @@
             connDot.className = 'conn-dot' + (ok ? ' live' : '');
             connLabel.textContent = label || (ok ? 'Connected' : 'Offline');
             connPill.classList.toggle('visible', ok);
-        }
-
-        function getToken() { return tokenInput.value.trim(); }
-
-        function authHeaders(json) {
-            const h = {};
-            const t = getToken();
-            if (t) h.Authorization = 'Bearer ' + t;
-            if (json) h['Content-Type'] = 'application/json';
-            return h;
         }
 
         async function apiRequest(path, opts) {
@@ -609,29 +592,9 @@
             }
         }
 
-        async function connect() {
-            authError.classList.add('hidden');
-            const token = getToken();
-            if (token) writeStoredToken(token);
-            try {
-                await loadList();
-                authOverlay.classList.add('hidden');
-            } catch (err) {
-                setConnected(false, 'Auth failed');
-                authError.textContent = apiErrorMsg(err);
-                authError.classList.remove('hidden');
-                authOverlay.classList.remove('hidden');
-            }
-        }
-
-        if (saveTokenBtn) saveTokenBtn.addEventListener('click', connect);
-        if (tokenInput) {
-            tokenInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') connect(); });
-        }
         if (changeTokenBtn) {
             changeTokenBtn.addEventListener('click', function () {
-                authOverlay.classList.remove('hidden');
-                tokenInput.focus();
+                showToast('Open triage — no API token required for this demo.', 'success');
             });
         }
         if (btnAvatar) {
@@ -644,7 +607,7 @@
                     }
                     showToast(msg, 'success');
                 } else {
-                    authOverlay.classList.remove('hidden');
+                    showToast('Not connected — check API health.', 'error');
                 }
             });
         }
@@ -680,11 +643,7 @@
             viewListBtn.addEventListener('click', function () { setListViewMode(true); });
         }
 
-        const saved = readStoredToken();
-        if (saved) tokenInput.value = saved;
-        else if (IS_LOCAL) tokenInput.value = DEMO_TOKEN;
-
-        authOverlay.classList.add('hidden');
-        connect().catch(function () {});
+        try { localStorage.removeItem('ng_api_token'); } catch (_) {}
+        loadList().catch(function (err) { showToast(apiErrorMsg(err), 'error'); });
     });
 })();
