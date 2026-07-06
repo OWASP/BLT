@@ -1113,26 +1113,49 @@
         .finding-list-card .flc-top {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             gap: 0.5rem;
             margin-bottom: 0.35rem;
+        }
+
+        .finding-list-card .flc-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            justify-content: flex-end;
         }
 
         .finding-list-card .flc-id {
             color: var(--accent-critical);
             font-weight: 700;
             font-size: 0.75rem;
+            flex-shrink: 0;
         }
 
         .finding-list-card .flc-rule {
             font-size: 0.68rem;
             color: var(--text-muted);
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.2rem;
+            word-break: break-word;
         }
 
+        .finding-list-card .flc-host {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #ffb84d;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.15rem;
+        }
+
+        .finding-list-card .flc-path,
         .finding-list-card .flc-target {
             font-size: 0.62rem;
             color: #aaa;
+            word-break: break-all;
+            line-height: 1.35;
+        }
+
+        .finding-list-card .flc-target {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -1310,11 +1333,14 @@
             .layout > .detail-col {
                 display: none;
                 width: 100%;
-                min-height: calc(100dvh - 8rem);
+                min-height: auto;
                 border-right: none;
             }
 
-            .layout.panel-findings > .findings-col { display: flex; }
+            .layout.panel-findings > .findings-col {
+                display: flex;
+                min-height: calc(100dvh - 9.5rem);
+            }
             .layout.panel-filters > .sidebar { display: block; }
             .layout.panel-detail > .detail-col { display: flex; }
 
@@ -1325,9 +1351,57 @@
 
             .findings-col {
                 border-bottom: 1px solid var(--border);
+                min-height: auto;
             }
 
-            .findings-col .table-wrap {
+            .findings-header {
+                padding: 0.45rem 0.65rem;
+            }
+
+            .findings-title {
+                font-size: 0.78rem;
+            }
+
+            .findings-shield,
+            .findings-cube { display: none; }
+
+            .findings-count {
+                position: static;
+                transform: none;
+                display: block;
+                text-align: center;
+                margin-bottom: 0.15rem;
+                font-size: 0.55rem;
+            }
+
+            .findings-list-view {
+                padding: 0.35rem 0.5rem calc(1rem + env(safe-area-inset-bottom, 0px));
+            }
+
+            .finding-list-card {
+                padding: 0.55rem 0.6rem;
+                margin-bottom: 0.4rem;
+            }
+
+            .finding-list-card .flc-top {
+                align-items: center;
+            }
+
+            .finding-list-card .flc-badges .sev,
+            .finding-list-card .flc-badges .status-pill {
+                font-size: 0.52rem;
+                padding: 0.12rem 0.35rem;
+            }
+
+            .finding-list-card .flc-host {
+                font-size: 0.68rem;
+            }
+
+            .finding-list-card .flc-path {
+                white-space: normal;
+            }
+
+            .detail-col {
                 display: none !important;
             }
 
@@ -1371,10 +1445,14 @@
             }
 
             .toast {
-                left: 0.75rem;
-                right: 0.75rem;
-                bottom: 0.75rem;
+                left: 0.65rem;
+                right: 0.65rem;
+                bottom: calc(0.65rem + env(safe-area-inset-bottom, 0px));
+                transform: none;
                 max-width: none;
+                font-size: 0.6rem;
+                text-align: center;
+                line-height: 1.35;
             }
         }
 
@@ -1569,6 +1647,6 @@
 </div>
 
 <div id="toast" class="toast"></div>
-<script src="assets/js/triage.js?v=18"></script>
+<script src="assets/js/triage.js?v=19"></script>
 </body>
 </html>

@@ -491,6 +491,21 @@
             if (viewListBtn) viewListBtn.classList.toggle('active', listMode);
         }
 
+        function targetParts(target) {
+            if (!target) return { host: '—', path: '' };
+            try {
+                if (/^https?:\/\//i.test(target)) {
+                    const u = new URL(target);
+                    const path = (u.pathname || '/') + (u.search || '');
+                    return {
+                        host: u.hostname,
+                        path: path === '/' ? '' : path,
+                    };
+                }
+            } catch (_) {}
+            return { host: 'acme.example', path: target };
+        }
+
         function renderListCards(findings) {
             if (!listView) return;
             if (!findings.length) {
@@ -499,11 +514,16 @@
             }
             listView.innerHTML = findings.map(function (f) {
                 const sel = f.id === selectedRawId ? ' selected' : '';
+                const tp = targetParts(f.target);
+                const pathLine = tp.path
+                    ? '<div class="flc-path">' + esc(tp.path) + '</div>'
+                    : '';
                 return '<div class="finding-list-card' + sel + '" data-raw-id="' + esc(f.id) + '">' +
                     '<div class="flc-top"><span class="flc-id">' + esc(displayId(f.id)) + '</span>' +
-                    sevBadge(f.severity) + ' ' + statusPill(f.status) + '</div>' +
+                    '<div class="flc-badges">' + sevBadge(f.severity) + statusPill(f.status) + '</div></div>' +
                     '<div class="flc-rule">' + esc(f.rule_id || '—') + '</div>' +
-                    '<div class="flc-target">' + esc(f.target || '—') + '</div></div>';
+                    '<div class="flc-host">' + esc(tp.host) + '</div>' +
+                    pathLine + '</div>';
             }).join('');
         }
 
@@ -572,8 +592,11 @@
                 findingsCount.textContent = total + ' total' + (triageQueueOn ? ' · triage queue' : '');
                 const bltLabel = await checkIntegrations();
                 const label = data.org_id || 'connected';
-                setConnected(true, bltLabel ? label + ' · ' + bltLabel : label);
-                if (bltLabel === 'BLT-API down') {
+                const connText = isMobileView()
+                    ? label
+                    : (bltLabel ? label + ' · ' + bltLabel : label);
+                setConnected(true, connText);
+                if (!isMobileView() && bltLabel === 'BLT-API down') {
                     showToast('BLT-API unreachable — start: python3 local_dev/blt_api_stub.py', 'error');
                 }
             } catch (err) {
