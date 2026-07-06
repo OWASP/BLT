@@ -73,7 +73,7 @@ fn draw_header(f: &mut Frame, app: &App, rect: Rect) {
         ])
         .split(rect);
 
-    let mcp_status = if app.run_mode == crate::app::RunMode::Mcp && app.is_live { "Mcp Live" } else { "Offline" };
+    let mcp_status = if app.run_mode == crate::app::RunMode::Mcp { "MCP Mode" } else { "Live Mode" };
     let open_count = app.issues.iter().filter(|i| i.status != "Resolved").count();
     let crit_count = app.issues.iter().filter(|i| i.severity == "Critical").count();
     let high_count = app.issues.iter().filter(|i| i.severity == "High").count();
@@ -81,7 +81,7 @@ fn draw_header(f: &mut Frame, app: &App, rect: Rect) {
     let header_text = vec![
         Line::from(vec![
             Span::styled(" BLT CLI v1.0        ", Style::default().fg(TEXT_LIGHT).add_modifier(Modifier::BOLD)),
-            Span::styled(format!("● {}", mcp_status), Style::default().fg(if app.is_live { Color::Green } else { Color::Yellow })),
+            Span::styled(format!("● {}", mcp_status), Style::default().fg(Color::Green)),
         ]),
         Line::from(Span::styled(format!(" User: {}", app.auth_user), Style::default().fg(Color::Gray))),
         Line::from(Span::styled(format!(" Open: {}  Critical: {}  High: {}", open_count, crit_count, high_count), Style::default().fg(Color::Gray))),
