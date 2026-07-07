@@ -20,8 +20,9 @@ const SEVERITY_HIGH: Color = Color::Rgb(210, 153, 34); // Yellow/Orange
 
 pub fn draw(f: &mut Frame, app: &mut App) {
     // Fill the background of the entire TUI to ensure a consistent dark slate theme
-    let bg_block = Block::default().bg(SLATE_BG);
-    f.render_widget(bg_block, f.size());
+    let bg_block = Block::default()
+        .bg(Color::Rgb(10, 15, 20));
+    f.render_widget(bg_block, f.area());
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -30,7 +31,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
             Constraint::Min(10),   // Content
             Constraint::Length(3), // Footer
         ])
-        .split(f.size());
+        .split(f.area());
 
     // 1. Draw Header
     draw_header(f, app, chunks[0]);
@@ -701,7 +702,7 @@ fn draw_onboarding_tab(f: &mut Frame, app: &App, rect: Rect) {
                 .bottom_margin(1),
         )
         .block(block)
-        .highlight_style(Style::default().bg(Color::DarkGray).add_modifier(Modifier::BOLD))
+        .row_highlight_style(Style::default().bg(Color::DarkGray).add_modifier(Modifier::BOLD))
         .highlight_symbol(">> ");
 
     f.render_widget(table, rect);

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ratatui = { version = "0.26.1", features = ["serde"] }
+ratatui = { version = "0.30", features = ["serde"] }
 crossterm = { version = "0.27.0", features = ["event-stream"] }
 tokio = { version = "1.38", features = ["full"] }
 reqwest = { version = "0.12", features = ["json"] }
