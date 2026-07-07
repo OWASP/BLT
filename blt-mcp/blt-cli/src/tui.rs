@@ -560,15 +560,15 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                 app.trigger_triage();
             } else if app.active_tab == Tab::Settings {
                 if let Some(health) = &app.security_health {
-                    if !health.world_writable_paths.is_empty() {
+                    if !health.findings.is_empty() {
                         app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
                         app.submit_form.url = "System Scan Findings".to_string();
                         app.submit_form.severity = "High".to_string();
                         let mut desc = String::new();
-                        if !health.open_backdoor_ports.is_empty() {
-                            desc.push_str(&format!("Found open backdoor ports: {:?}\n", health.open_backdoor_ports));
+                        desc.push_str("Found the following security issues:\n");
+                        for finding in &health.findings {
+                            desc.push_str(&format!("- {}\n", finding));
                         }
-                        desc.push_str(&format!("Found world-writable paths: {:?}", health.world_writable_paths));
                         app.submit_form.description = desc;
                     }
                 }
