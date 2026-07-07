@@ -617,26 +617,41 @@ fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
 
     let mut health_text = vec![Line::from("")];
     if let Some(health) = &app.security_health {
-        if health.open_backdoor_ports.is_empty() && health.world_writable_paths.is_empty() {
-            health_text.push(Line::from(Span::styled(" Host Security Health: PASS", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD))));
-            health_text.push(Line::from("  No common backdoor ports or world-writable paths detected."));
-        } else if health.world_writable_paths.is_empty() {
-            health_text.push(Line::from(Span::styled(" Host Security Health: INFO", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))));
-            health_text.push(Line::from(format!("  [i] Notice: Unusual ports open: {:?} (low confidence)", health.open_backdoor_ports)));
-        } else {
-            health_text.push(Line::from(Span::styled(" Host Security Health: WARNING", Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD))));
-            if !health.open_backdoor_ports.is_empty() {
-                health_text.push(Line::from(format!("  [i] Notice: Unusual ports open: {:?} (low confidence)", health.open_backdoor_ports)));
+        // Aggregate statuses
+        let status_to_str = |s: &crate::scanner::ToolStatus| {
+            match s {
+                crate::scanner::ToolStatus::Pending => Span::styled("⏳ Running...", Style::default().fg(Color::Yellow)),
+                crate::scanner::ToolStatus::Missing => Span::styled("⚠️ Not Installed", Style::default().fg(Color::DarkGray)),
+                crate::scanner::ToolStatus::Skipped => Span::styled("⏭️ Skipped", Style::default().fg(Color::DarkGray)),
+                crate::scanner::ToolStatus::Error(e) => Span::styled(format!("❌ Error: {}", e), Style::default().fg(BLT_RED)),
+                crate::scanner::ToolStatus::Success => Span::styled("✅ Complete", Style::default().fg(Color::Green)),
             }
-            health_text.push(Line::from("  [!] High Severity: World-Writable Paths Detected:"));
-            for path in &health.world_writable_paths {
-                health_text.push(Line::from(format!("      - {}", path)));
+        };
+
+        health_text.push(Line::from(vec![Span::styled(" Trivy: ", Style::default().fg(Color::Gray)), status_to_str(&health.trivy_status)]));
+        health_text.push(Line::from(vec![Span::styled(" Semgrep: ", Style::default().fg(Color::Gray)), status_to_str(&health.semgrep_status)]));
+        health_text.push(Line::from(vec![Span::styled(" Bandit: ", Style::default().fg(Color::Gray)), status_to_str(&health.bandit_status)]));
+        
+        health_text.push(Line::from(""));
+        
+        if health.findings.is_empty() && health.scan_complete {
+            health_text.push(Line::from(Span::styled(" Host Security Health: PASS", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD))));
+            health_text.push(Line::from("  No vulnerabilities or secrets detected."));
+        } else if !health.findings.is_empty() {
+            health_text.push(Line::from(Span::styled(format!(" Host Security Health: WARNING ({} findings)", health.findings.len()), Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD))));
+            for finding in health.findings.iter().take(10) {
+                health_text.push(Line::from(format!("  - {}", finding)));
+            }
+            if health.findings.len() > 10 {
+                health_text.push(Line::from(format!("  ...and {} more", health.findings.len() - 10)));
             }
             health_text.push(Line::from(""));
             health_text.push(Line::from(Span::styled("  Press [Enter] to submit findings as a Bug", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))));
+        } else {
+            health_text.push(Line::from(Span::styled(" Scanning in progress... Please wait.", Style::default().fg(Color::Yellow))));
         }
     } else {
-        health_text.push(Line::from(Span::styled(" Running Security Health Scan...", Style::default().fg(Color::Yellow))));
+        health_text.push(Line::from(Span::styled(" Initializing Security Health Scan...", Style::default().fg(Color::Yellow))));
     }
 
     let h = Paragraph::new(health_text)
