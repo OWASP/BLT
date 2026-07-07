@@ -50,20 +50,42 @@ pub async fn run_scan() -> SecurityHealth {
     health
 }
 
-async fn run_trivy() -> (ToolStatus, Vec<String>) {
-    let output_res = Command::new("trivy")
-        .args(&["fs", "--format", "json", "--scanners", "vuln,secret,misconfig", "--skip-dirs", "node_modules", "--skip-dirs", "target", "."])
-        .output()
-        .await;
-
-    let output = match output_res {
-        Ok(out) => out,
-        Err(e) => {
-            if e.kind() == std::io::ErrorKind::NotFound {
-                return (ToolStatus::Missing, vec![]);
+async fn run_tool(tool: &str, args: &[&str]) -> Result<std::process::Output, ToolStatus> {
+    #[cfg(target_os = "windows")]
+    {
+        let mut all_args = vec!["/c", tool];
+        all_args.extend_from_slice(args);
+        match Command::new("cmd").args(&all_args).output().await {
+            Ok(output) => {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                if !output.status.success() && stderr.contains("is not recognized") {
+                    Err(ToolStatus::Missing)
+                } else {
+                    Ok(output)
+                }
             }
-            return (ToolStatus::Error(format!("Execution failed: {}", e)), vec![]);
+            Err(e) => Err(ToolStatus::Error(format!("Execution failed: {}", e))),
         }
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        match Command::new(tool).args(args).output().await {
+            Ok(output) => Ok(output),
+            Err(e) => {
+                if e.kind() == std::io::ErrorKind::NotFound {
+                    Err(ToolStatus::Missing)
+                } else {
+                    Err(ToolStatus::Error(format!("Execution failed: {}", e)))
+                }
+            }
+        }
+    }
+}
+
+async fn run_trivy() -> (ToolStatus, Vec<String>) {
+    let output = match run_tool("trivy", &["fs", "--format", "json", "--scanners", "vuln,secret,misconfig", "--skip-dirs", "node_modules", "--skip-dirs", "target", "."]).await {
+        Ok(out) => out,
+        Err(status) => return (status, vec![]),
     };
 
     let parsed: serde_json::Value = match serde_json::from_slice(&output.stdout) {
@@ -97,19 +119,9 @@ async fn run_trivy() -> (ToolStatus, Vec<String>) {
 }
 
 async fn run_semgrep() -> (ToolStatus, Vec<String>) {
-    let output_res = Command::new("semgrep")
-        .args(&["scan", "--json"])
-        .output()
-        .await;
-
-    let output = match output_res {
+    let output = match run_tool("semgrep", &["scan", "--json"]).await {
         Ok(out) => out,
-        Err(e) => {
-            if e.kind() == std::io::ErrorKind::NotFound {
-                return (ToolStatus::Missing, vec![]);
-            }
-            return (ToolStatus::Error(format!("Execution failed: {}", e)), vec![]);
-        }
+        Err(status) => return (status, vec![]),
     };
 
     let parsed: serde_json::Value = match serde_json::from_slice(&output.stdout) {
@@ -132,7 +144,6 @@ async fn run_semgrep() -> (ToolStatus, Vec<String>) {
 }
 
 async fn run_bandit() -> (ToolStatus, Vec<String>) {
-    // Check if python project
     let is_python = std::path::Path::new("requirements.txt").exists() 
                  || std::path::Path::new("pyproject.toml").exists()
                  || std::path::Path::new("setup.py").exists();
@@ -141,19 +152,9 @@ async fn run_bandit() -> (ToolStatus, Vec<String>) {
         return (ToolStatus::Skipped, vec![]);
     }
 
-    let output_res = Command::new("bandit")
-        .args(&["-r", ".", "-f", "json"])
-        .output()
-        .await;
-
-    let output = match output_res {
+    let output = match run_tool("bandit", &["-r", ".", "-f", "json"]).await {
         Ok(out) => out,
-        Err(e) => {
-            if e.kind() == std::io::ErrorKind::NotFound {
-                return (ToolStatus::Missing, vec![]);
-            }
-            return (ToolStatus::Error(format!("Execution failed: {}", e)), vec![]);
-        }
+        Err(status) => return (status, vec![]),
     };
 
     let parsed: serde_json::Value = match serde_json::from_slice(&output.stdout) {
