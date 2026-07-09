@@ -49,6 +49,7 @@ class SnapshotContributor(BaseModel):
 
     id: UUID
     display_name: str
+    avatar_url: str = ""
     floor: int
     room: str
     identity_linked: bool

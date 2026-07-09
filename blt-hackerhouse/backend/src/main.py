@@ -154,6 +154,13 @@ def create_app() -> FastAPI:
 
     # Serve UI HTML files for local testing (keep at end of routes)
     from pathlib import Path
+
+    # Mount avatars BEFORE root so /avatars isn't swallowed by the root catch-all
+    avatars_dir = Path(__file__).resolve().parents[2] / "UI" / "avatars"
+    if avatars_dir.is_dir():
+        from fastapi.staticfiles import StaticFiles
+        app.mount("/avatars", StaticFiles(directory=str(avatars_dir)), name="avatars")
+
     ui_dir = Path(__file__).resolve().parents[2] / "UI" / "html"
     if ui_dir.is_dir():
         from fastapi.staticfiles import StaticFiles

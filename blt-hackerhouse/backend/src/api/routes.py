@@ -11,6 +11,7 @@ from uuid import UUID
 from fastapi import APIRouter, Header, HTTPException, Query, Request
 
 from ..broadcast.hub import WebSocketHub
+from ..broadcast.messages import avatar_url
 from ..models.api import (
     ActivityFeedItem,
     HealthResponse,
@@ -136,6 +137,8 @@ async def list_activity(
             source=e.source,
             event_type=e.event_type,
             actor_name=e.actor_name,
+            contributor_id=str(e.contributor_id) if e.contributor_id else "",
+            avatar_url=avatar_url(e.contributor_id) if e.contributor_id else "",
             repository=e.repository,
             timestamp=e.timestamp,
             metadata=e.metadata,
@@ -172,6 +175,7 @@ async def leaderboard(
             LeaderboardEntry(
                 contributor_id=c.id,
                 display_name=c.display_name,
+                avatar_url=avatar_url(c.id),
                 score=c.score,
                 rank=rank,
             )
@@ -298,6 +302,7 @@ async def state_snapshot() -> StateResponse:
                 SnapshotStateContributor(
                     id=c.id,
                     display_name=c.display_name,
+                    avatar_url=avatar_url(c.id),
                     floor=c.floor,
                     room=c.room,
                     identity_linked=c.identity_linked,

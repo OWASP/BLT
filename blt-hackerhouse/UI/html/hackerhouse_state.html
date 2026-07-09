@@ -390,7 +390,7 @@ tailwind.config = {
 
     contributorMap = {};
     contributors.forEach(function(c) {
-      contributorMap[c.id] = { name: c.display_name, floor: c.floor, score: c.score, last: c.last_event };
+      contributorMap[c.id] = { name: c.display_name, floor: c.floor, score: c.score, last: c.last_event, avatar: c.avatar_url };
       var grid = document.getElementById('floor-' + c.floor + '-grid');
       if (!grid) return;
       var deco = grid.querySelector('[data-deco="true"]');
@@ -398,16 +398,16 @@ tailwind.config = {
       avatar.dataset.contributorId = c.id;
       avatar.title = c.display_name + ' \u2014 ' + c.score + ' pts \u2014 ' + (c.last_event || 'idle');
       avatar.className = 'hh-avatar';
-      // Color by floor
       var colors = ['#f43f5e', '#0ea5e9', '#22c55e'];
       var bg = colors[(c.floor - 1 + 3) % 3];
-      avatar.style.background = bg + '15';
       avatar.style.border = '1.5px solid ' + bg;
-      avatar.style.color = bg;
-      var inner = document.createElement('span');
-      inner.className = 'relative z-10';
-      inner.textContent = c.display_name.charAt(0).toUpperCase();
-      avatar.appendChild(inner);
+      var img = document.createElement('img');
+      img.src = c.avatar_url || '';
+      img.alt = c.display_name;
+      img.className = 'hh-avatar-img';
+      img.loading = 'lazy';
+      img.onerror = function() { this.style.display = 'none'; };
+      avatar.appendChild(img);
       var dot = document.createElement('span');
       dot.className = 'hh-avatar-dot hh-avatar-dot-live';
       dot.style.background = bg;
@@ -448,13 +448,18 @@ tailwind.config = {
       var colors = ['#f43f5e', '#0ea5e9', '#22c55e'];
       var bg = colors[(tf - 1 + 3) % 3];
       avatar.className = 'hh-avatar hh-avatar-move';
-      avatar.style.background = bg + '15';
       avatar.style.border = '1.5px solid ' + bg;
-      avatar.style.color = bg;
-      var inner = document.createElement('span');
-      inner.className = 'relative z-10';
-      inner.textContent = info.name.charAt(0).toUpperCase();
-      avatar.appendChild(inner);
+      var img = document.createElement('img');
+      img.src = info.avatar || '';
+      img.alt = info.name;
+      img.className = 'hh-avatar-img';
+      img.loading = 'lazy';
+      img.onerror = function() { this.style.display = 'none'; };
+      avatar.appendChild(img);
+      var dot = document.createElement('span');
+      dot.className = 'hh-avatar-dot hh-avatar-dot-live';
+      dot.style.background = bg;
+      avatar.appendChild(dot);
       var deco = grid.querySelector('[data-deco="true"]');
       if (deco) { deco.parentNode.insertBefore(avatar, deco); deco.remove(); }
       else grid.appendChild(avatar);
@@ -466,6 +471,10 @@ tailwind.config = {
     if (info) info.score = msg.score;
     var avatar = document.querySelector('[data-contributor-id="' + msg.contributor_id + '"]');
     if (avatar && info) avatar.title = info.name + ' \u2014 ' + msg.score + ' pts';
+    if (avatar && info) {
+      var img = avatar.querySelector('img');
+      if (img && info.avatar) img.src = info.avatar;
+    }
 
     if (avatar && msg.delta) {
       var floater = document.createElement('div');
@@ -514,10 +523,13 @@ tailwind.config = {
         ? '<span class="w-5 text-center text-xs font-bold" style="color:' + m + '">' + (i+1) + '</span>'
         : '<span class="w-5 text-center text-xs text-[var(--blt-text-subtle)]">' + (i+1) + '</span>';
       var crown = i === 0 ? '<span class="material-symbols-outlined absolute -top-1 -right-1 text-amber-400 text-xs" style="font-variation-settings:\'FILL\' 1">stars</span>' : '';
+      var avatarImg = c.avatar_url
+        ? '<img src="' + c.avatar_url + '" class="w-full h-full rounded-full object-cover" alt="' + c.display_name + '" loading="lazy" onerror="this.style.display=\'none\'">'
+        : '<span class="text-xs font-bold" style="color:' + dotColor + '">' + c.display_name.charAt(0).toUpperCase() + '</span>';
       html += '<div class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[var(--blt-surface-muted)] transition-colors cursor-pointer" id="lb-' + c.id + '">' +
         rankBadge +
-        '<div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold relative" style="background:' + dotColor + '15;border:1.5px solid ' + dotColor + ';color:' + dotColor + '">' +
-          crown + c.display_name.charAt(0).toUpperCase() +
+        '<div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold relative overflow-hidden" style="background:' + dotColor + '15;border:1.5px solid ' + dotColor + '">' +
+          crown + avatarImg +
         '</div>' +
         '<div class="flex-1 font-medium text-xs text-[var(--blt-text)] truncate">' + c.display_name + '</div>' +
         '<div class="text-right">' +
@@ -543,9 +555,12 @@ tailwind.config = {
       var dotColor = colors[Math.floor(Math.random() * 3)];
       var icons = {issue_opened: 'bug_report', mr_opened: 'merge', mr_merged: 'merge_type', pipeline_run: 'play_circle', bug_bounty_submitted: 'rewarded_ads', note_added: 'chat', review_requested: 'rate_review'};
       var icon = icons[c.last_event] || 'circle';
+      var avatarImg = c.avatar_url
+        ? '<img src="' + c.avatar_url + '" class="w-full h-full rounded-full object-cover" alt="' + c.display_name + '" onerror="this.style.display=\'none\'">'
+        : '<span class="material-symbols-outlined text-sm" style="color:' + dotColor + '">' + icon + '</span>';
       html += '<div class="hh-feed-item flex gap-2 p-2 rounded-md hover:bg-[var(--blt-surface-muted)] transition-colors cursor-pointer">' +
-        '<div class="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center" style="background:' + dotColor + '12;color:' + dotColor + '">' +
-          '<span class="material-symbols-outlined text-sm">' + icon + '</span>' +
+        '<div class="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center overflow-hidden" style="background:' + dotColor + '12">' +
+          avatarImg +
         '</div>' +
         '<div class="flex-1 min-w-0">' +
           '<p class="text-xs text-[var(--blt-text)] truncate"><span class="font-semibold">' + c.display_name + '</span> ' + ev + '</p>' +

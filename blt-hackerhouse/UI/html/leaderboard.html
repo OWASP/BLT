@@ -169,7 +169,7 @@ tailwind.config = {
         </div>
         <div class="relative z-10">
           <p class="text-[11px] font-mono text-[var(--blt-text-subtle)] uppercase tracking-wider mb-0.5">Total Contributors</p>
-          <p class="text-2xl font-extrabold text-[var(--blt-text)]">1,432</p>
+          <p class="text-2xl font-extrabold text-[var(--blt-text)]" id="total-label">1,432</p>
         </div>
       </div>
 
@@ -239,205 +239,7 @@ tailwind.config = {
             </tr>
           </thead>
           <tbody class="divide-y divide-[var(--blt-border)]/50" id="leaderboard-body">
-            <!-- Row 1: Gold -->
-            <tr class="rank-1 hh-lb-row group" onclick="toggleDetail('detail-1')">
-              <td class="p-3 text-center">
-                <span class="font-mono font-bold text-sm" style="color:#FFD700">#1</span>
-              </td>
-              <td class="p-3">
-                <div class="flex items-center gap-3">
-                  <div class="relative">
-                    <div class="w-9 h-9 rounded-full bg-[var(--blt-surface-muted)] border-2 border-[#FFD700] flex items-center justify-center">
-                      <span class="material-symbols-outlined text-sm text-[var(--blt-text-subtle)]">person</span>
-                    </div>
-                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-[#FFD700] rounded-full flex items-center justify-center border-2 border-[var(--blt-surface)]">
-                      <span class="material-symbols-outlined text-[8px] text-black" style="font-variation-settings:'FILL' 1">star</span>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="font-semibold text-sm text-[var(--blt-text)] group-hover:text-[var(--blt-primary)] transition-colors">0xCipher</div>
-                    <div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">@cipher_dev</div>
-                  </div>
-                </div>
-              </td>
-              <td class="p-3 text-right">
-                <div class="font-mono font-bold text-base text-[var(--blt-text)]">145,200</div>
-                <div class="font-mono text-[10px] text-emerald-500 flex items-center justify-end gap-0.5">
-                  <span class="material-symbols-outlined text-xs">arrow_upward</span> 2.4k today
-                </div>
-              </td>
-              <td class="p-3 text-center hidden md:table-cell font-mono text-sm text-[var(--blt-text-muted)]">1,204</td>
-              <td class="p-3 text-center hidden sm:table-cell">
-                <div class="flex items-center justify-center gap-1 text-[var(--blt-text-subtle)]">
-                  <span class="material-symbols-outlined text-sm">code</span>
-                  <span class="material-symbols-outlined text-sm">forum</span>
-                </div>
-              </td>
-              <td class="p-3 text-center hidden lg:table-cell">
-                <svg class="inline-block" height="20" width="60">
-                  <path class="hh-sparkline" stroke="#22c55e" d="M0,15 L10,12 L20,18 L30,8 L40,10 L50,2 L60,5"></path>
-                </svg>
-              </td>
-            </tr>
-            <!-- Detail 1 -->
-            <tr class="hh-lb-detail bg-[var(--blt-surface-muted)]/50" id="detail-1">
-              <td class="p-0" colspan="6">
-                <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-5">
-                  <div class="md:col-span-2">
-                    <h4 class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider mb-3">Recent Activity</h4>
-                    <ul class="space-y-2.5">
-                      <li class="flex items-start gap-2.5 text-sm">
-                        <span class="material-symbols-outlined text-emerald-500 text-sm mt-0.5">commit</span>
-                        <div>
-                          <span class="text-[var(--blt-text)]">Merged PR #442</span>
-                          <span class="text-[var(--blt-text-muted)] ml-1.5">"Core infrastructure update"</span>
-                          <div class="text-emerald-500 font-mono text-[10px] mt-0.5">+500 pts</div>
-                        </div>
-                      </li>
-                      <li class="flex items-start gap-2.5 text-sm">
-                        <span class="material-symbols-outlined text-amber-500 text-sm mt-0.5">bug_report</span>
-                        <div>
-                          <span class="text-[var(--blt-text)]">Closed Issue #440</span>
-                          <span class="text-[var(--blt-text-muted)] ml-1.5">"Memory leak in worker node"</span>
-                          <div class="text-emerald-500 font-mono text-[10px] mt-0.5">+150 pts</div>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider mb-3">Identity Links</h4>
-                    <div class="flex flex-wrap gap-1.5">
-                      <span class="blt-label text-[10px]">GitHub: verified</span>
-                      <span class="blt-label text-[10px]">Discord: verified</span>
-                    </div>
-                  </div>
-                </div>
-              </td>
-            </tr>
-
-            <!-- Row 2: Silver -->
-            <tr class="rank-2 hh-lb-row group" onclick="toggleDetail('detail-2')">
-              <td class="p-3 text-center">
-                <span class="font-mono font-bold text-sm" style="color:#C0C0C0">#2</span>
-              </td>
-              <td class="p-3">
-                <div class="flex items-center gap-3">
-                  <div class="w-9 h-9 rounded-full bg-[var(--blt-surface-muted)] border-2 border-[#C0C0C0] flex items-center justify-center">
-                    <span class="material-symbols-outlined text-sm text-[var(--blt-text-subtle)]">person_4</span>
-                  </div>
-                  <div>
-                    <div class="font-semibold text-sm text-[var(--blt-text)] group-hover:text-[var(--blt-primary)] transition-colors">NullPointer</div>
-                    <div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">@null_ptr</div>
-                  </div>
-                </div>
-              </td>
-              <td class="p-3 text-right">
-                <div class="font-mono font-bold text-base text-[var(--blt-text)]">138,940</div>
-                <div class="font-mono text-[10px] text-amber-500 flex items-center justify-end gap-0.5">
-                  <span class="material-symbols-outlined text-xs">arrow_right_alt</span> 450 today
-                </div>
-              </td>
-              <td class="p-3 text-center hidden md:table-cell font-mono text-sm text-[var(--blt-text-muted)]">982</td>
-              <td class="p-3 text-center hidden sm:table-cell">
-                <div class="flex items-center justify-center gap-1 text-[var(--blt-text-subtle)]">
-                  <span class="material-symbols-outlined text-sm">code</span>
-                </div>
-              </td>
-              <td class="p-3 text-center hidden lg:table-cell">
-                <svg class="inline-block" height="20" width="60">
-                  <path class="hh-sparkline" stroke="#f59e0b" d="M0,10 L10,12 L20,9 L30,11 L40,10 L50,8 L60,10"></path>
-                </svg>
-              </td>
-            </tr>
-            <!-- Detail 2 -->
-            <tr class="hh-lb-detail bg-[var(--blt-surface-muted)]/50" id="detail-2">
-              <td class="p-0" colspan="6">
-                <div class="p-6 text-center text-[var(--blt-text-subtle)] font-mono text-sm">
-                  <span class="material-symbols-outlined block text-3xl mb-2 opacity-50">history</span>
-                  No recent public activity.
-                </div>
-              </td>
-            </tr>
-
-            <!-- Row 3: Bronze -->
-            <tr class="rank-3 hh-lb-row group" onclick="toggleDetail('detail-3')">
-              <td class="p-3 text-center">
-                <span class="font-mono font-bold text-sm" style="color:#CD7F32">#3</span>
-              </td>
-              <td class="p-3">
-                <div class="flex items-center gap-3">
-                  <div class="w-9 h-9 rounded-full bg-[var(--blt-surface-muted)] border-2 border-[#CD7F32] flex items-center justify-center">
-                    <span class="material-symbols-outlined text-sm text-[var(--blt-text-subtle)]">smart_toy</span>
-                  </div>
-                  <div>
-                    <div class="font-semibold text-sm text-[var(--blt-text)] group-hover:text-[var(--blt-primary)] transition-colors">ByteMe</div>
-                    <div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">@byte_me_88</div>
-                  </div>
-                </div>
-              </td>
-              <td class="p-3 text-right">
-                <div class="font-mono font-bold text-base text-[var(--blt-text)]">125,050</div>
-                <div class="font-mono text-[10px] text-[var(--blt-primary)] flex items-center justify-end gap-0.5">
-                  <span class="material-symbols-outlined text-xs">arrow_downward</span> -120 penalty
-                </div>
-              </td>
-              <td class="p-3 text-center hidden md:table-cell font-mono text-sm text-[var(--blt-text-muted)]">844</td>
-              <td class="p-3 text-center hidden sm:table-cell">
-                <div class="flex items-center justify-center gap-1 text-[var(--blt-text-subtle)]">
-                  <span class="material-symbols-outlined text-sm">code</span>
-                  <span class="material-symbols-outlined text-sm">design_services</span>
-                </div>
-              </td>
-              <td class="p-3 text-center hidden lg:table-cell">
-                <svg class="inline-block" height="20" width="60">
-                  <path class="hh-sparkline" stroke="#ef4444" d="M0,5 L10,8 L20,4 L30,12 L40,15 L50,18 L60,16"></path>
-                </svg>
-              </td>
-            </tr>
-            <!-- Detail 3 -->
-            <tr class="hh-lb-detail bg-[var(--blt-surface-muted)]/50" id="detail-3">
-              <td class="p-0" colspan="6">
-                <div class="p-5">
-                  <div class="flex items-start gap-2.5 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm">
-                    <span class="material-symbols-outlined text-sm text-[var(--blt-primary)] mt-0.5">warning</span>
-                    <span class="text-[var(--blt-text-muted)]">Score reduction due to reverted commit #8892 on main branch.</span>
-                  </div>
-                </div>
-              </td>
-            </tr>
-
-            <!-- Row 4: Standard -->
-            <tr class="hh-lb-row group" onclick="toggleDetail('detail-4')">
-              <td class="p-3 text-center">
-                <span class="font-mono text-sm text-[var(--blt-text-subtle)]">4</span>
-              </td>
-              <td class="p-3">
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full bg-[var(--blt-surface-muted)] border border-[var(--blt-border)] flex items-center justify-center">
-                    <span class="material-symbols-outlined text-xs text-[var(--blt-text-subtle)]">person_3</span>
-                  </div>
-                  <div class="font-semibold text-sm text-[var(--blt-text)] group-hover:text-[var(--blt-primary)] transition-colors">NeonNinja</div>
-                </div>
-              </td>
-              <td class="p-3 text-right font-mono text-sm text-[var(--blt-text)]">98,400</td>
-              <td class="p-3 text-center hidden md:table-cell font-mono text-sm text-[var(--blt-text-muted)]">512</td>
-              <td class="p-3 text-center hidden sm:table-cell">
-                <div class="flex justify-center gap-1 text-[var(--blt-text-subtle)] opacity-60">
-                  <span class="material-symbols-outlined text-sm">code</span>
-                </div>
-              </td>
-              <td class="p-3 text-center hidden lg:table-cell">
-                <svg class="inline-block opacity-60" height="20" width="60">
-                  <path class="hh-sparkline" stroke="#22c55e" d="M0,15 L10,13 L20,14 L30,12 L40,10 L50,8 L60,5"></path>
-                </svg>
-              </td>
-            </tr>
-            <!-- Detail 4 -->
-            <tr class="hh-lb-detail bg-[var(--blt-surface-muted)]/50" id="detail-4">
-              <td class="p-0" colspan="6">
-                <div class="p-4 text-center text-[var(--blt-text-subtle)] text-xs">Details loaded on demand...</div>
-              </td>
-            </tr>
+            <tr><td colspan="6" class="p-8 text-center text-sm text-[var(--blt-text-subtle)]">Loading leaderboard…</td></tr>
           </tbody>
         </table>
       </div>
@@ -475,6 +277,72 @@ function toggleDetail(detailId) {
     el.classList.toggle('expanded');
   }
 }
+
+// ── Live leaderboard fetch ──
+(function() {
+  var medals = ['#FFD700', '#C0C0C0', '#CD7F32'];
+  var rankClasses = ['rank-1', 'rank-2', 'rank-3'];
+
+  function renderRow(entry) {
+    var rank = entry.rank;
+    var medal = rank <= 3 ? medals[rank - 1] : null;
+    var rankClass = rank <= 3 ? rankClasses[rank - 1] : '';
+    var borderColor = medal || 'var(--blt-border)';
+    var rankDisplay = medal
+      ? '<span class="font-mono font-bold text-sm" style="color:' + medal + '">#' + rank + '</span>'
+      : '<span class="font-mono text-sm text-[var(--blt-text-subtle)]">' + rank + '</span>';
+    var avatarSrc = entry.avatar_url || '';
+    var avatarHtml = avatarSrc
+      ? '<img src="' + avatarSrc + '" class="w-full h-full object-cover" alt="' + entry.display_name + '" onerror="this.style.display=\\'none\\'">'
+      : '<span class="material-symbols-outlined text-xs text-[var(--blt-text-subtle)]">person</span>';
+    var medalBadge = rank === 1
+      ? '<div class="absolute -bottom-1 -right-1 w-4 h-4 bg-[#FFD700] rounded-full flex items-center justify-center border-2 border-[var(--blt-surface)]"><span class="material-symbols-outlined text-[8px] text-black" style="font-variation-settings:\'FILL\' 1">star</span></div>'
+      : '';
+
+    return '<tr class="hh-lb-row group ' + rankClass + '">' +
+      '<td class="p-3 text-center">' + rankDisplay + '</td>' +
+      '<td class="p-3">' +
+        '<div class="flex items-center gap-3">' +
+          '<div class="relative">' +
+            '<div class="w-9 h-9 rounded-full overflow-hidden bg-[var(--blt-surface-muted)] border-2 flex items-center justify-center" style="border-color:' + borderColor + '">' +
+              avatarHtml +
+            '</div>' +
+            medalBadge +
+          '</div>' +
+          '<div><div class="font-semibold text-sm text-[var(--blt-text)]">' + entry.display_name + '</div></div>' +
+        '</div>' +
+      '</td>' +
+      '<td class="p-3 text-right"><div class="font-mono font-bold text-base text-[var(--blt-text)]">' + (entry.score || 0).toLocaleString() + '</div></td>' +
+      '<td class="p-3 text-center hidden md:table-cell font-mono text-sm text-[var(--blt-text-muted)]">—</td>' +
+      '<td class="p-3 text-center hidden sm:table-cell text-[var(--blt-text-subtle)]">—</td>' +
+      '<td class="p-3 text-center hidden lg:table-cell text-[var(--blt-text-subtle)]">—</td>' +
+    '</tr>';
+  }
+
+  function renderTable(entries) {
+    var tbody = document.getElementById('leaderboard-body');
+    if (!tbody) return;
+    if (entries.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-sm text-[var(--blt-text-subtle)]">No contributors yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = entries.map(renderRow).join('');
+    document.getElementById('total-label').textContent = entries.length.toLocaleString() + ' contributors';
+  }
+
+  function fetchLeaderboard() {
+    fetch('/leaderboard?page=1&per_page=50')
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        renderTable(resp.data || []);
+      })
+      .catch(function(err) {
+        console.error('Leaderboard fetch failed', err);
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', fetchLeaderboard);
+})();
 </script>
 </body>
 </html>

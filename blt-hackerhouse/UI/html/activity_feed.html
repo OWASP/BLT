@@ -176,137 +176,47 @@ tailwind.config = {
       </div>
     </div>
 
-    <!-- Event List -->
-    <div class="space-y-3 mb-8">
-
-      <!-- Event 1: GitLab MR -->
-      <div class="hh-event-card flex">
-        <div class="hh-event-source-bar" style="background:#fc6d26"></div>
-        <div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 w-full items-start">
-          <div class="relative shrink-0 mt-0.5">
-            <div class="w-10 h-10 rounded-full border-2 border-[var(--blt-border)] overflow-hidden bg-[var(--blt-surface-muted)] flex items-center justify-center">
-              <img alt="Alex Chen avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwEalb9YYBkVSZcvUq4iI2WQYNmeUfnu7SL7sPasfqtaxFGccyT0x-OnchCXSY0zwDqii-D7zOq2M3DGsuAwr0lO1tsoCLwDFisUyC3RnfX8Yl-Jt5YZhiF7Ij7sdKYMGw5_FGj3y2R6orZKikOxuf7a1bVUEJnI3fhZajL8L6te93-bVi60qW-ZyxIQPZlDBNEYipvqWiUAiXFT4jfvCpRaqK6R2d_U0TY6C5X6-lqxIEGv_cMef5M6ah8FH0Pb0dj9BI15ZuRUv0">
-            </div>
-            <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--blt-surface)] border-2 border-[var(--blt-surface)] flex items-center justify-center">
-              <span class="material-symbols-outlined text-xs text-[#fc6d26]">merge</span>
-            </div>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-bold text-sm text-[var(--blt-text)]">Alex Chen</span>
-                <span class="blt-badge text-[10px]">Merge Request Opened</span>
-                <span class="blt-status-badge blt-status-success text-[10px]" style="font-size:10px;padding:1px 6px">+15 BLT</span>
-              </div>
-              <span class="font-mono text-[11px] text-[var(--blt-text-subtle)] shrink-0 flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">schedule</span> 2 mins ago
-              </span>
-            </div>
-            <h3 class="font-bold text-base text-[var(--blt-text)] mb-1 truncate">feat: implement dark mode toggle</h3>
-            <p class="text-sm text-[var(--blt-text-muted)] mb-3 line-clamp-2">Added the ability to switch between light and dark themes using Tailwind's class strategy. Includes local storage persistence.</p>
-            <div class="flex items-center gap-3 text-[11px] font-mono text-[var(--blt-text-subtle)]">
-              <span class="flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">folder_open</span> frontend-core
-              </span>
-              <span class="flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">commit</span> !428
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event 2: BLT System -->
-      <div class="hh-event-card flex">
-        <div class="hh-event-source-bar" style="background:var(--blt-primary)"></div>
-        <div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 w-full items-start">
-          <div class="relative shrink-0 mt-0.5">
-            <div class="w-10 h-10 rounded-full border-2 border-[var(--blt-primary)] overflow-hidden bg-[var(--blt-primary-soft)] flex items-center justify-center text-[var(--blt-primary)]">
-              <span class="material-symbols-outlined text-xl">trophy</span>
-            </div>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-bold text-sm text-[var(--blt-text)]">System</span>
-                <span class="blt-badge text-[10px]">Milestone Reached</span>
-              </div>
-              <span class="font-mono text-[11px] text-[var(--blt-text-subtle)] shrink-0 flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">schedule</span> 15 mins ago
-              </span>
-            </div>
-            <h3 class="font-bold text-base text-[var(--blt-text)] mb-1">Weekly Sprint Goal Achieved</h3>
-            <p class="text-sm text-[var(--blt-text-muted)]">The house has collectively merged 50 pull requests this week. +100 bonus BLT distributed to all active nodes.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event 3: GitLab Push -->
-      <div class="hh-event-card flex">
-        <div class="hh-event-source-bar" style="background:#fc6d26"></div>
-        <div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 w-full items-start">
-          <div class="relative shrink-0 mt-0.5">
-            <div class="w-10 h-10 rounded-full border-2 border-[var(--blt-border)] overflow-hidden bg-[var(--blt-surface-muted)] flex items-center justify-center">
-              <img alt="Sarah Jenkins avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnQSzjj8jaK3yRwrDSm_nsEvnWNzahZESW2UH7To8qZVV5C3kyyyrGZmaQUKBAiazhGnGS27A37zu2p7tjCIbLxpf5p8B2CimeOEGm-mzgznmLNB4XJz5muLjTe1uwYqM_wfgO_Kf2cJpIQZH1DFpii-zw753TPfXMLwM6q_fwW_lLgYceyiPNwUHS-8PSBzQxkLvWgSHU2hUbU_o8XDCfN5f6PL7gy0YJs4FRIHyvt4qrRp_CrIWACtM5C80rhXJrKs6La_K3pYys">
-            </div>
-            <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--blt-surface)] border-2 border-[var(--blt-surface)] flex items-center justify-center">
-              <span class="material-symbols-outlined text-xs text-[#fc6d26]">publish</span>
-            </div>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-bold text-sm text-[var(--blt-text)]">Sarah J.</span>
-                <span class="blt-badge text-[10px]">Pushed Commits</span>
-                <span class="blt-status-badge blt-status-success text-[10px]" style="font-size:10px;padding:1px 6px">+5 BLT</span>
-              </div>
-              <span class="font-mono text-[11px] text-[var(--blt-text-subtle)] shrink-0 flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">schedule</span> 1 hour ago
-              </span>
-            </div>
-            <div class="bg-[var(--blt-surface-muted)] border border-[var(--blt-border)] rounded-lg p-3 mt-2 font-mono text-xs space-y-1">
-              <div class="flex items-center gap-2 text-[var(--blt-text-muted)]">
-                <span class="text-emerald-500">a1b2c3d</span>
-                <span>fix: memory leak in dashboard polling</span>
-              </div>
-              <div class="flex items-center gap-2 text-[var(--blt-text-muted)]">
-                <span class="text-emerald-500">f8e7d6c</span>
-                <span>refactor: cleanup unused API endpoints</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <!-- Event List (populated by JS) -->
+    <div id="activity-list" class="space-y-3 mb-8">
+      <div class="flex items-center justify-center py-16 text-sm text-[var(--blt-text-subtle)]">Loading activity…</div>
     </div>
 
-    <!-- Skeleton Loading (hidden by default) -->
-    <div class="hh-event-card flex opacity-60 hidden">
-      <div class="w-1 shrink-0" style="background:var(--blt-border)"></div>
-      <div class="p-5 flex gap-4 w-full items-start">
-        <div class="w-10 h-10 rounded-full hh-skeleton shrink-0"></div>
-        <div class="flex-1 space-y-2">
-          <div class="flex justify-between">
-            <div class="w-32 h-4 rounded hh-skeleton"></div>
-            <div class="w-20 h-3 rounded hh-skeleton"></div>
+    <!-- Skeleton Loading (shown during fetch) -->
+    <div id="activity-skeleton" class="space-y-3 mb-8 hidden">
+      <div class="hh-event-card flex opacity-60">
+        <div class="w-1 shrink-0" style="background:var(--blt-border)"></div>
+        <div class="p-5 flex gap-4 w-full items-start">
+          <div class="w-10 h-10 rounded-full hh-skeleton shrink-0"></div>
+          <div class="flex-1 space-y-2">
+            <div class="flex justify-between"><div class="w-32 h-4 rounded hh-skeleton"></div><div class="w-20 h-3 rounded hh-skeleton"></div></div>
+            <div class="w-3/4 h-5 rounded hh-skeleton"></div>
+            <div class="w-full h-3 rounded hh-skeleton"></div>
           </div>
-          <div class="w-3/4 h-5 rounded hh-skeleton"></div>
-          <div class="w-full h-3 rounded hh-skeleton"></div>
-          <div class="w-2/3 h-3 rounded hh-skeleton"></div>
+        </div>
+      </div>
+      <div class="hh-event-card flex opacity-40">
+        <div class="w-1 shrink-0" style="background:var(--blt-border)"></div>
+        <div class="p-5 flex gap-4 w-full items-start">
+          <div class="w-10 h-10 rounded-full hh-skeleton shrink-0"></div>
+          <div class="flex-1 space-y-2">
+            <div class="flex justify-between"><div class="w-28 h-4 rounded hh-skeleton"></div><div class="w-16 h-3 rounded hh-skeleton"></div></div>
+            <div class="w-2/3 h-5 rounded hh-skeleton"></div>
+            <div class="w-full h-3 rounded hh-skeleton"></div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center justify-between border-t border-[var(--blt-border)] pt-6 pb-12">
-      <button class="blt-button-secondary text-xs" disabled>
+    <div id="activity-pagination" class="flex items-center justify-between border-t border-[var(--blt-border)] pt-6 pb-12 hidden">
+      <button id="btn-prev" class="blt-button-secondary text-xs" disabled>
         <span class="material-symbols-outlined text-sm">arrow_back</span>
         Prev
       </button>
       <div class="font-mono text-xs text-[var(--blt-text-subtle)] bg-[var(--blt-surface-muted)] px-3 py-1.5 rounded-md border border-[var(--blt-border)]">
-        Page <span class="font-bold text-[var(--blt-text)]">1</span> of 7
+        Page <span id="page-num" class="font-bold text-[var(--blt-text)]">1</span> of <span id="page-total">1</span>
       </div>
-      <button class="blt-button-secondary text-xs">
+      <button id="btn-next" class="blt-button-secondary text-xs">
         Next
         <span class="material-symbols-outlined text-sm">arrow_forward</span>
       </button>
@@ -316,25 +226,183 @@ tailwind.config = {
 </div>
 
 <script>
-// Fly-up animation helper (preserved from original)
-function triggerFlyup(x, y, amount) {
-  var el = document.createElement('div');
-  el.className = 'hh-score-float';
-  el.style.color = 'var(--blt-primary)';
-  el.style.left = x + 'px';
-  el.style.top = y + 'px';
-  el.style.position = 'fixed';
-  el.textContent = '+' + amount + ' BLT';
-  document.body.appendChild(el);
-  setTimeout(function() { el.remove(); }, 800);
-}
+(function() {
+  var currentPage = 1;
+  var totalPages = 1;
 
-document.querySelectorAll('.hh-event-card').forEach(function(card) {
-  card.addEventListener('click', function(e) {
-    var rect = card.getBoundingClientRect();
-    triggerFlyup(e.clientX, e.clientY - 20, Math.floor(Math.random() * 15) + 5);
+  var EVENT_ICONS = {
+    push: 'publish',
+    issue_opened: 'bug_report',
+    issue_closed: 'check_circle',
+    mr_opened: 'merge',
+    mr_merged: 'merge_type',
+    mr_closed: 'cancel',
+    pipeline_succeeded: 'check_circle',
+    pipeline_failed: 'error',
+    note_added: 'chat',
+    review_requested: 'rate_review',
+    bug_submitted: 'pest_control',
+    bug_verified: 'verified',
+    hunt_started: 'swords',
+    hunt_ended: 'military_tech',
+    bug_bounty_submitted: 'rewarded_ads',
+  };
+
+  function timeAgo(iso) {
+    var diff = Date.now() - new Date(iso).getTime();
+    var sec = Math.floor(diff / 1000);
+    if (sec < 60) return 'just now';
+    var min = Math.floor(sec / 60);
+    if (min < 60) return min + 'm ago';
+    var hr = Math.floor(min / 60);
+    if (hr < 24) return hr + 'h ago';
+    var d = Math.floor(hr / 24);
+    return d + 'd ago';
+  }
+
+  function sourceColor(source) {
+    return source === 'gitlab' ? '#fc6d26' : 'var(--blt-primary)';
+  }
+
+  function renderCard(ev) {
+    var color = sourceColor(ev.source);
+    var icon = EVENT_ICONS[ev.event_type] || 'circle';
+    var typeLabel = (ev.event_type || 'unknown').replace(/_/g, ' ');
+    var title = ev.metadata && ev.metadata.title ? ev.metadata.title : (ev.event_type || 'Event').replace(/_/g, ' ');
+
+    var avatarHtml = '';
+    if (ev.avatar_url) {
+      avatarHtml = '<span class="material-symbols-outlined text-lg hh-feed-avatar-icon" style="color:' + color + '">&nbsp;</span>' +
+        '<img src="' + ev.avatar_url + '" class="hh-avatar-img-feed" alt="' + ev.actor_name + '" data-icon="' + icon + '" loading="lazy">';
+    } else {
+      avatarHtml = '<span class="material-symbols-outlined text-lg" style="color:' + color + '">' + icon + '</span>';
+    }
+
+    var repoHtml = ev.repository
+      ? '<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">folder_open</span>' + ev.repository + '</span>'
+      : '';
+
+    var metadataHtml = '';
+    if (ev.metadata) {
+      if (ev.metadata.commit_sha) {
+        metadataHtml += '<div class="flex items-center gap-2 text-[var(--blt-text-muted)]"><span class="text-emerald-500">' + ev.metadata.commit_sha.substring(0,7) + '</span><span>' + (ev.metadata.commit_title || '') + '</span></div>';
+      }
+      if (ev.metadata.mr_iid) {
+        metadataHtml += '<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">commit</span>!' + ev.metadata.mr_iid + '</span>';
+      }
+    }
+
+    return '<div class="hh-event-card flex">' +
+      '<div class="hh-event-source-bar" style="background:' + color + '"></div>' +
+      '<div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 w-full items-start">' +
+        '<div class="relative shrink-0 mt-0.5">' +
+          '<div class="w-10 h-10 rounded-full border-2 overflow-hidden bg-[var(--blt-surface-muted)] flex items-center justify-center" style="border-color:' + color + '">' +
+            avatarHtml +
+          '</div>' +
+          '<div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--blt-surface)] border-2 border-[var(--blt-surface)] flex items-center justify-center">' +
+            '<span class="material-symbols-outlined text-xs" style="color:' + color + '">' + icon + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="flex-1 min-w-0">' +
+          '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">' +
+            '<div class="flex items-center gap-2 flex-wrap">' +
+              '<span class="font-bold text-sm text-[var(--blt-text)]">' + ev.actor_name + '</span>' +
+              '<span class="blt-badge text-[10px]">' + typeLabel + '</span>' +
+            '</div>' +
+            '<span class="font-mono text-[11px] text-[var(--blt-text-subtle)] shrink-0 flex items-center gap-1">' +
+              '<span class="material-symbols-outlined text-xs">schedule</span>' + timeAgo(ev.timestamp) +
+            '</span>' +
+          '</div>' +
+          '<h3 class="font-bold text-base text-[var(--blt-text)] mb-1 truncate">' + title + '</h3>' +
+          (repoHtml || metadataHtml ? '<div class="flex items-center gap-3 text-[11px] font-mono text-[var(--blt-text-subtle)] mt-1">' + repoHtml + metadataHtml + '</div>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function fetchActivity(page) {
+    var list = document.getElementById('activity-list');
+    var skel = document.getElementById('activity-skeleton');
+    var pag = document.getElementById('activity-pagination');
+    if (!list) return;
+
+    list.classList.add('hidden');
+    if (skel) skel.classList.remove('hidden');
+    if (pag) pag.classList.add('hidden');
+
+    fetch('/activity?page=' + page + '&per_page=20')
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        if (skel) skel.classList.add('hidden');
+        list.classList.remove('hidden');
+
+        var data = resp.data || [];
+        if (data.length === 0) {
+          list.innerHTML = '<div class="flex items-center justify-center py-16 text-sm text-[var(--blt-text-subtle)]">No activity yet. Events will appear here as they arrive.</div>';
+          return;
+        }
+        list.innerHTML = data.map(renderCard).join('');
+
+        if (resp.pagination) {
+          currentPage = resp.pagination.page;
+          totalPages = resp.pagination.total_pages || 1;
+          document.getElementById('page-num').textContent = currentPage;
+          document.getElementById('page-total').textContent = totalPages;
+          document.getElementById('btn-prev').disabled = currentPage <= 1;
+          document.getElementById('btn-next').disabled = currentPage >= totalPages;
+          if (pag) pag.classList.remove('hidden');
+        }
+      })
+      .catch(function(err) {
+        if (skel) skel.classList.add('hidden');
+        list.classList.remove('hidden');
+        list.innerHTML = '<div class="flex items-center justify-center py-16 text-sm text-[var(--blt-text-subtle)]">Failed to load activity. Is the backend running?</div>';
+        console.error('Activity fetch failed', err);
+      });
+  }
+
+  function setupPagination() {
+    document.getElementById('btn-prev').addEventListener('click', function() {
+      if (currentPage > 1) fetchActivity(currentPage - 1);
+    });
+    document.getElementById('btn-next').addEventListener('click', function() {
+      if (currentPage < totalPages) fetchActivity(currentPage + 1);
+    });
+  }
+
+  // Click-to-fly-up animation
+  function triggerFlyup(x, y, amount) {
+    var el = document.createElement('div');
+    el.className = 'hh-score-float';
+    el.style.color = 'var(--blt-primary)';
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.position = 'fixed';
+    el.textContent = '+' + amount + ' pts';
+    document.body.appendChild(el);
+    setTimeout(function() { el.remove(); }, 800);
+  }
+
+  document.addEventListener('click', function(e) {
+    var card = e.target.closest('.hh-event-card');
+    if (card) triggerFlyup(e.clientX, e.clientY - 20, Math.floor(Math.random() * 15) + 5);
   });
-});
+
+  setupPagination();
+  document.addEventListener('DOMContentLoaded', function() { fetchActivity(1); });
+
+  // Fallback for broken avatar images
+  document.addEventListener('error', function(e) {
+    var img = e.target;
+    if (img && img.tagName === 'IMG' && img.classList.contains('hh-avatar-img-feed')) {
+      img.style.display = 'none';
+      var iconEl = img.parentElement.querySelector('.hh-feed-avatar-icon');
+      if (iconEl && img.dataset.icon) {
+        iconEl.textContent = img.dataset.icon;
+      }
+    }
+  }, true);
+})();
 </script>
 </body>
 </html>

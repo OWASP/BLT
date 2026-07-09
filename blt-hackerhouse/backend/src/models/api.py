@@ -42,7 +42,9 @@ class ActivityFeedItem(BaseModel):
     source: str
     event_type: str
     actor_name: str
-    repository: str = ""
+    contributor_id: str
+    avatar_url: str
+    repository: str
     timestamp: datetime
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -52,6 +54,7 @@ class LeaderboardEntry(BaseModel):
 
     contributor_id: UUID
     display_name: str
+    avatar_url: str = ""
     score: int = Field(ge=0)
     rank: int = Field(ge=1)
 
@@ -136,6 +139,7 @@ class SnapshotStateContributor(BaseModel):
 
     id: UUID
     display_name: str
+    avatar_url: str = ""
     floor: int | None = None
     room: str | None = None
     identity_linked: bool = False
