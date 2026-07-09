@@ -9,11 +9,15 @@
         :root { --primary: #dc2626; --primary-hover: #b91c1c; --surface: #ffffff; --background: #f8fafc; --border: #e2e8f0; }
         * { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
         .dot-field{background-image:radial-gradient(rgba(17,24,39,.16) 1px,transparent 1px);background-size:18px 18px;mask-image:radial-gradient(circle at center,black 0,transparent 74%);-webkit-mask-image:radial-gradient(circle at center,black 0,transparent 74%)}
-        .btn-primary{background:linear-gradient(to bottom,#ef4444,#dc2626);color:white;border-bottom:1.5px solid #991b1b;border-radius:8px;padding:12px 18px;font-weight:600;box-shadow:0 10px 24px -14px rgba(220,38,38,.8);transition:all .2s ease}.btn-primary:hover{transform:translateY(-1px)}
+        .btn-primary{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(to bottom,#ef4444,#dc2626);color:white;border-bottom:1.5px solid #991b1b;border-radius:8px;padding:8px 12px;min-height:34px;font-size:13px;font-weight:600;line-height:1.2;box-shadow:0 8px 20px -14px rgba(220,38,38,.8);transition:all .2s ease}.btn-primary:hover{transform:translateY(-1px)}
         .btn-primary:disabled{transform:none;box-shadow:none}.tab-active{background:#111827;color:white}.tab-idle{background:#f8fafc;color:#475569}
+        .auth-control-sm{min-height:34px;border-radius:8px;font-size:13px;line-height:1.25}
+        .auth-input-sm{padding:8px 10px}
+        .auth-button-sm{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;font-weight:600}
+        .auth-tab-sm{min-height:32px;padding:7px 10px;font-size:13px;line-height:1.2}
     </style>
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-900 antialiased">
+<body class="min-h-screen overflow-x-hidden bg-gray-50 text-gray-900 antialiased">
     <header class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
             <a href="/" class="inline-flex items-center gap-2.5">
@@ -24,72 +28,78 @@
     </header>
 
     <main class="relative flex min-h-screen items-center justify-center px-4 py-28">
-        <div class="dot-field pointer-events-none absolute inset-x-0 top-20 mx-auto h-[36rem] w-[min(90rem,180vw)] opacity-70" aria-hidden="true"></div>
+        <div class="dot-field pointer-events-none absolute inset-x-0 top-20 mx-auto h-[36rem] w-[min(90rem,100vw)] opacity-70" aria-hidden="true"></div>
         <section class="relative z-10 grid w-full max-w-5xl overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)] md:grid-cols-[1fr_.9fr]">
             <div class="bg-[#0e0d0c] p-8 text-white md:p-10">
-                <span class="inline-flex rounded-full border border-red-400/40 bg-red-500/10 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-300">Credentials + email verification</span>
-                <h1 class="mt-6 text-4xl font-semibold leading-tight tracking-[-.04em] md:text-5xl">Sign up once. Log in with credentials.</h1>
-                <p class="mt-5 max-w-md text-sm leading-6 text-gray-300">First-time users create an account with name, email, and password. We send a verification code so organization admins know the account email is real.</p>
+                <span class="inline-flex rounded-full border border-red-400/40 bg-red-500/10 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-300">Team check-ins</span>
+                <h1 class="mt-6 text-4xl font-semibold leading-tight md:text-5xl">Welcome to Sizzle</h1>
+                <p class="mt-5 max-w-md text-sm leading-6 text-gray-300">Create your account or log in to manage daily check-ins, organization access, and account settings.</p>
                 <div class="mt-8 grid gap-3 text-sm text-gray-300">
-                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4"><strong class="text-white">1.</strong> Create account with email, password, and name</div>
-                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4"><strong class="text-white">2.</strong> Verify email with a one-time code</div>
-                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4"><strong class="text-white">3.</strong> Log in later with credentials</div>
+                    <div class="rounded-lg border border-white/10 bg-white/5 p-4"><strong class="text-white">Daily updates</strong><p class="mt-1 text-gray-400">Share progress, blockers, and plans with your organization.</p></div>
+                    <div class="rounded-lg border border-white/10 bg-white/5 p-4"><strong class="text-white">Organization access</strong><p class="mt-1 text-gray-400">Join the right teams and keep your account details current.</p></div>
                 </div>
             </div>
 
             <div class="p-8 md:p-10">
                 <div id="message" class="mb-5 hidden rounded-xl border px-4 py-3 text-sm"></div>
 
-                <div id="authTabs" class="mb-6 grid grid-cols-2 rounded-xl border border-gray-200 bg-gray-50 p-1 text-sm font-semibold">
-                    <button id="showLoginBtn" type="button" class="rounded-lg px-3 py-2 tab-active">Log in</button>
-                    <button id="showSignupBtn" type="button" class="rounded-lg px-3 py-2 tab-idle">Create account</button>
+                <div id="authTabs" class="mb-6 grid grid-cols-2 rounded-lg border border-gray-200 bg-gray-50 p-1 text-sm font-semibold">
+                    <button id="showLoginBtn" type="button" class="auth-control-sm auth-tab-sm rounded-lg tab-active">Log in</button>
+                    <button id="showSignupBtn" type="button" class="auth-control-sm auth-tab-sm rounded-lg tab-idle">Create account</button>
                 </div>
 
-                <form id="loginForm" class="space-y-5">
+                <form id="loginForm" class="space-y-4">
                     <div>
-                        <label for="loginEmail" class="mb-2 block text-sm font-semibold text-gray-700">Email address</label>
-                        <input id="loginEmail" name="email" type="email" required autocomplete="email" placeholder="you@example.com" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                        <h2 class="text-xl font-semibold leading-tight text-gray-900">Welcome back</h2>
+                        <p class="mt-1 text-sm leading-6 text-gray-600">Log in to continue your daily check-ins.</p>
                     </div>
                     <div>
-                        <label for="loginPassword" class="mb-2 block text-sm font-semibold text-gray-700">Password</label>
-                        <input id="loginPassword" name="password" type="password" required autocomplete="current-password" placeholder="Your password" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                        <label for="loginEmail" class="mb-1.5 block text-sm font-semibold text-gray-700">Email address</label>
+                        <input id="loginEmail" name="email" type="email" required autocomplete="email" placeholder="you@example.com" class="auth-control-sm auth-input-sm w-full border border-gray-200 bg-gray-50 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
                     </div>
-                    <button type="submit" class="btn-primary w-full">Log in</button>
+                    <div>
+                        <label for="loginPassword" class="mb-1.5 block text-sm font-semibold text-gray-700">Password</label>
+                        <input id="loginPassword" name="password" type="password" required autocomplete="current-password" placeholder="Your password" class="auth-control-sm auth-input-sm w-full border border-gray-200 bg-gray-50 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                    </div>
+                    <button type="submit" class="auth-control-sm auth-button-sm btn-primary w-full">Log in</button>
                 </form>
 
-                <form id="signupForm" class="hidden space-y-5">
+                <form id="signupForm" class="hidden space-y-4">
                     <div>
-                        <label for="signupName" class="mb-2 block text-sm font-semibold text-gray-700">Name</label>
-                        <input id="signupName" name="displayName" type="text" required autocomplete="name" placeholder="Your name" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                        <h2 class="text-xl font-semibold leading-tight text-gray-900">Create your account</h2>
+                        <p class="mt-1 text-sm leading-6 text-gray-600">Join Sizzle and start sharing updates with your organization.</p>
                     </div>
                     <div>
-                        <label for="signupEmail" class="mb-2 block text-sm font-semibold text-gray-700">Email address</label>
-                        <input id="signupEmail" name="email" type="email" required autocomplete="email" placeholder="you@example.com" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                        <label for="signupName" class="mb-1.5 block text-sm font-semibold text-gray-700">Name</label>
+                        <input id="signupName" name="displayName" type="text" required autocomplete="name" placeholder="Your name" class="auth-control-sm auth-input-sm w-full border border-gray-200 bg-gray-50 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
                     </div>
                     <div>
-                        <label for="signupPassword" class="mb-2 block text-sm font-semibold text-gray-700">Password</label>
-                        <input id="signupPassword" name="password" type="password" minlength="8" required autocomplete="new-password" placeholder="At least 8 characters" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                        <label for="signupEmail" class="mb-1.5 block text-sm font-semibold text-gray-700">Email address</label>
+                        <input id="signupEmail" name="email" type="email" required autocomplete="email" placeholder="you@example.com" class="auth-control-sm auth-input-sm w-full border border-gray-200 bg-gray-50 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
                     </div>
-                    <button type="submit" class="btn-primary w-full">Create account</button>
+                    <div>
+                        <label for="signupPassword" class="mb-1.5 block text-sm font-semibold text-gray-700">Password</label>
+                        <input id="signupPassword" name="password" type="password" minlength="8" required autocomplete="new-password" placeholder="At least 8 characters" class="auth-control-sm auth-input-sm w-full border border-gray-200 bg-gray-50 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                    </div>
+                    <button type="submit" class="auth-control-sm auth-button-sm btn-primary w-full">Create account</button>
                 </form>
 
-                <form id="verifyEmailForm" class="hidden space-y-5">
+                <form id="verifyEmailForm" class="hidden space-y-4">
                     <div>
                         <p class="text-sm font-semibold text-gray-900">Verify email</p>
                         <p id="verifyHint" class="mt-1 text-sm leading-6 text-gray-600">Enter the 6-digit code we sent to your email.</p>
                     </div>
                     <div>
-                        <label for="verifyOtp" class="mb-2 block text-sm font-semibold text-gray-700">Verification code</label>
-                        <input id="verifyOtp" name="otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="123456" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-center font-mono text-2xl tracking-[.35em] text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                        <label for="verifyOtp" class="mb-1.5 block text-sm font-semibold text-gray-700">Verification code</label>
+                        <input id="verifyOtp" name="otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="123456" class="auth-control-sm auth-input-sm w-full border border-gray-200 bg-gray-50 text-center font-mono text-lg tracking-[.28em] text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
                     </div>
-                    <button type="submit" class="btn-primary w-full">Verify email</button>
-                    <button type="button" id="resendVerificationBtn" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">Resend verification code</button>
+                    <button type="submit" class="auth-control-sm auth-button-sm btn-primary w-full">Verify email</button>
+                    <button type="button" id="resendVerificationBtn" class="auth-control-sm auth-button-sm w-full border border-gray-200 bg-white font-semibold text-gray-700 transition hover:bg-gray-50">Resend verification code</button>
                 </form>
 
-                <div class="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-xs leading-5 text-gray-500">
-                    Passwordless OTP login is being kept temporarily for migration.
-                    <form id="emailForm" class="mt-3 hidden"><input id="email" name="email" type="email" /><button type="submit">Send verification code</button></form>
-                    <form id="otpForm" class="hidden"><input id="otp" name="otp" /><button type="submit">Verify and continue</button></form>
+                <div class="hidden" aria-hidden="true">
+                    <form id="emailForm"><input id="email" name="email" type="email" class="auth-control-sm auth-input-sm" /><button type="submit" class="auth-control-sm auth-button-sm">Send verification code</button></form>
+                    <form id="otpForm"><input id="otp" name="otp" class="auth-control-sm auth-input-sm" /><button type="submit" class="auth-control-sm auth-button-sm">Verify and continue</button></form>
                 </div>
             </div>
         </section>
@@ -131,8 +141,8 @@
             signupForm.classList.toggle('hidden', panel !== 'signup');
             verifyEmailForm.classList.toggle('hidden', panel !== 'verify');
             document.getElementById('authTabs').classList.toggle('hidden', panel === 'verify');
-            showLoginBtn.className = 'rounded-lg px-3 py-2 ' + (panel === 'login' ? 'tab-active' : 'tab-idle');
-            showSignupBtn.className = 'rounded-lg px-3 py-2 ' + (panel === 'signup' ? 'tab-active' : 'tab-idle');
+            showLoginBtn.className = 'auth-control-sm auth-tab-sm rounded-lg ' + (panel === 'login' ? 'tab-active' : 'tab-idle');
+            showSignupBtn.className = 'auth-control-sm auth-tab-sm rounded-lg ' + (panel === 'signup' ? 'tab-active' : 'tab-idle');
         }
 
         function handleAuthResponse(data) {

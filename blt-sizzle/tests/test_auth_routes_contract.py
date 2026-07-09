@@ -37,6 +37,23 @@ class TestOtpAuthRouteContract(unittest.TestCase):
         ]:
             self.assertIn(name, self.source)
 
+    def test_json_response_converts_response_init_to_javascript_object(self):
+        start = self.source.index("def json_response")
+        end = self.source.index("def json_error")
+        body = self.source[start:end]
+        self.assertIn("to_js({", body)
+        self.assertIn("dict_converter=Object.fromEntries", body)
+        self.assertIn('"status": status', body)
+        self.assertIn('"headers": headers', body)
+
+    def test_auth_me_uses_json_response_status_helper(self):
+        start = self.source.index("async def handle_auth_me")
+        end = self.source.index("async def handle_auth_logout")
+        body = self.source[start:end]
+        self.assertIn('return json_response({"authenticated": False}, 401)', body)
+        self.assertIn('return json_response({"authenticated": False}, 500)', body)
+        self.assertNotIn('{"status": 401, "headers"', body)
+
     def test_signup_login_and_email_verification_routes_are_registered(self):
         signup = self.source.index('"/api/auth/signup"')
         credential_login = self.source.index('"/api/auth/login" and method == "POST"')

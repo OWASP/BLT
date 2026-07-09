@@ -1,10 +1,4 @@
 (function () {
-  const MOCK_DELAY = 120;
-  window.sizzleMockState = {
-    organizations: ['OWASP BLT', 'GSoC Contributors', 'Security Research Lab'],
-    selectedOrg: 'OWASP BLT'
-  };
-
   window.showToast = function showToast(message) {
     let container = document.querySelector('.toast-container');
     if (!container) {
@@ -39,15 +33,6 @@
   window.closeModal = function closeModal(id) {
     const modal = document.getElementById(id);
     if (modal) modal.classList.remove('active');
-  };
-
-  window.mockSave = function mockSave(message) {
-    setTimeout(() => window.showToast(message || 'Saved in Phase 1 mock UI'), MOCK_DELAY);
-  };
-
-  window.switchMockOrg = function switchMockOrg(select) {
-    window.sizzleMockState.selectedOrg = select.value;
-    window.showToast('Switched mock organization to ' + select.value);
   };
 
   document.addEventListener('click', (event) => {

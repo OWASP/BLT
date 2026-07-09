@@ -46,6 +46,11 @@ def redirect(location, status=302):
     return Response.new(None, response_init(status, {"Location": location}))
 
 
+def route_with_query(request, path):
+    url = URL.new(request.url)
+    return f"{path}{url.search or ''}"
+
+
 # Encryption utilities using Web Crypto API
 async def encrypt_data(data, key):
     """Encrypt data using AES-GCM"""
@@ -251,34 +256,73 @@ async def handle_request(request, env):
             return await handle_debug_db(request, env)
         
         else:
-            return Response.new(json.dumps({"error": "API route not found"}), 
-                              {"status": 404, "headers": {"Content-Type": "application/json"}})
+            return json_error("API route not found", 404)
     
     # Static Pages & Assets
     if method == "GET":
+        page_assets = {
+            "/app": "/pages/app.html",
+            "/login": "/pages/login.html",
+            "/dashboard": "/pages/dashboard.html",
+            "/profile": "/pages/profile.html",
+            "/organizations": "/pages/organizations.html",
+            "/leaderboard": "/pages/leaderboard.html",
+            "/settings": "/pages/settings.html",
+            "/check-ins": "/pages/check-ins.html",
+            "/checkins": "/pages/check-ins.html",
+        }
+        protected_pages = {"/app", "/dashboard", "/profile", "/organizations", "/settings", "/check-ins", "/checkins"}
+        canonical_page_routes = {
+            "/pages/app": "/app",
+            "/pages/app.html": "/app",
+            "/pages/login": "/login",
+            "/pages/login.html": "/login",
+            "/pages/dashboard": "/dashboard",
+            "/pages/dashboard.html": "/dashboard",
+            "/pages/profile": "/profile",
+            "/pages/profile.html": "/profile",
+            "/pages/organizations": "/organizations",
+            "/pages/organizations.html": "/organizations",
+            "/pages/leaderboard": "/leaderboard",
+            "/pages/leaderboard.html": "/leaderboard",
+            "/pages/settings": "/settings",
+            "/pages/settings.html": "/settings",
+            "/pages/check-ins": "/check-ins",
+            "/pages/check-ins.html": "/check-ins",
+        }
+
+        if path in canonical_page_routes:
+            canonical_path = canonical_page_routes[path]
+            user_id = await get_session_user(request, env)
+            if canonical_path == "/login" and user_id:
+                return redirect("/dashboard")
+            if canonical_path in protected_pages and not user_id:
+                return redirect("/login")
+            return redirect(route_with_query(request, canonical_path))
+
         if path == "" or path == "/" or path == "/index.html":
             if hasattr(env, 'ASSETS'):
-                return await env.ASSETS.fetch(request)
+                url_clone = URL.new(request.url)
+                url_clone.pathname = "/index.html"
+                request_clone = Request.new(url_clone, request)
+                return await env.ASSETS.fetch(request_clone)
             return Response.new("Assets not found", {"status": 404})
         
-        elif path in ["/app", "/login", "/dashboard", "/profile", "/organizations", "/leaderboard", "/settings", "/check-ins", "/checkins"]:
+        elif path in page_assets:
             if hasattr(env, 'ASSETS'):
-                page_assets = {
-                    "/app": "/pages/app.html",
-                    "/login": "/pages/login.html",
-                    "/dashboard": "/pages/dashboard.html",
-                    "/profile": "/pages/profile.html",
-                    "/organizations": "/pages/organizations.html",
-                    "/leaderboard": "/pages/leaderboard.html",
-                    "/settings": "/pages/settings.html",
-                    "/check-ins": "/pages/check-ins.html",
-                    "/checkins": "/pages/check-ins.html",
-                }
+                user_id = await get_session_user(request, env)
+                if path == "/login" and user_id:
+                    return redirect("/dashboard")
+                if path in protected_pages and not user_id:
+                    return redirect("/login")
                 url_clone = URL.new(request.url)
                 url_clone.pathname = page_assets[path]
                 request_clone = Request.new(url_clone, request)
                 return await env.ASSETS.fetch(request_clone)
             return Response.new("Assets not found", {"status": 404})
+
+        elif path == "/pages" or path.startswith("/pages/"):
+            return Response.new("Not Found", response_init(404))
         
         # Fallback for all other static assets (favicon.ico, CSS, JS, images)
         elif hasattr(env, 'ASSETS'):
@@ -2021,10 +2065,7 @@ async def handle_auth_me(request, env):
     try:
         user_id = await get_session_user(request, env)
         if not user_id:
-            return Response.new(
-                json.dumps({"authenticated": False}),
-                {"status": 401, "headers": {"Content-Type": "application/json"}}
-            )
+            return json_response({"authenticated": False}, 401)
 
         user_proxy = await env.sizzle_db.prepare("""
             SELECT user_id, email, email_verified, encrypted_display_name, github_id
@@ -2032,10 +2073,7 @@ async def handle_auth_me(request, env):
         """).bind(user_id).first()
 
         if not user_proxy:
-            return Response.new(
-                json.dumps({"authenticated": False}),
-                {"status": 401, "headers": {"Content-Type": "application/json"}}
-            )
+            return json_response({"authenticated": False}, 401)
 
         user = user_proxy.to_py()
         encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
@@ -2044,7 +2082,7 @@ async def handle_auth_me(request, env):
         fallback_display = email.split('@')[0] if email else user_id
         email_verified = bool(int(user.get('email_verified') or 0))
 
-        return Response.new(json.dumps({
+        return json_response({
             "authenticated": True,
             "userId": user_id,
             "email": email,
@@ -2053,14 +2091,11 @@ async def handle_auth_me(request, env):
             "needsEmailVerification": bool(email and not email_verified),
             "authProvider": "email" if email else "github",
             "githubLogin": user_id if user.get('github_id') else ""
-        }), {"headers": {"Content-Type": "application/json"}})
+        })
 
     except Exception as e:
         logger.error("Error in auth/me: %s", e, exc_info=True)
-        return Response.new(
-            json.dumps({"authenticated": False}),
-            {"status": 500, "headers": {"Content-Type": "application/json"}}
-        )
+        return json_response({"authenticated": False}, 500)
 
 
 async def handle_auth_logout(request, env):

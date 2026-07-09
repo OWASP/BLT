@@ -16,8 +16,8 @@
     <span><strong>BLT Sizzle</strong><span>Daily check-ins</span></span>
   </a>
   <div>
-    <nav class="sidebar-nav" aria-label="BLT-Newsletter-inspired dashboard navigation">
-      <a class="sidebar-item" href="/dashboard"><span>Overview</span></a><a class="sidebar-item active" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item" href="/organizations"><span>Organizations</span></a><a class="sidebar-item" href="/organizations#requests"><span>Requests</span></a><a class="sidebar-item" href="/organizations#members"><span>Members</span></a><a class="sidebar-item" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item" href="/profile"><span>Profile</span></a><a class="sidebar-item" href="/settings"><span>Settings</span></a>
+    <nav class="sidebar-nav" aria-label="Dashboard navigation">
+      <a class="sidebar-item" href="/dashboard"><span>Overview</span></a><a class="sidebar-item active" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item" href="/organizations"><span>Organizations</span></a><a class="sidebar-item" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item" href="/profile"><span>Profile</span></a><a class="sidebar-item" href="/settings"><span>Settings</span></a>
     </nav>
   </div>
   <div class="sidebar-footer" aria-label="Dashboard utilities">
@@ -28,7 +28,6 @@
     <main class="main-panel">
       <header class="page-header">
         <div>
-          <div class="eyebrow">BLT-Newsletter-inspired · Phase 2C</div>
           <h1>Daily Check-in</h1>
           <p class="page-description">Submit your daily update for an approved organization. Your saved check-in can be edited until the day rolls over in your configured timezone.</p>
         </div>
@@ -38,7 +37,7 @@
 <a href="/app" class="text-primary font-bold" style="display:none">Daily Check-in</a>
 <section class="grid grid-2">
   <article class="card card-pad">
-    <div class="page-header"><div><h2>Daily Check-in</h2><p class="page-description">Choose an approved organization and submit one update for today.</p></div><span class="status-badge status-approved">#dc2626 approved-only selector</span></div>
+    <div class="page-header"><div><h2>Daily Check-in</h2><p class="page-description">Choose an approved organization and submit one update for today.</p></div></div>
     <form id="checkinForm" class="grid">
       <label class="form-field"><span>Organization</span><select id="orgSelector" name="orgSlug" class="select"></select></label>
       <label class="form-field"><span>Yesterday / completed work</span><textarea id="previousWork" name="previousWork" class="textarea" placeholder="What did you complete?" required></textarea></label>

@@ -11,13 +11,29 @@ crons = ["0 * * * *"]
 [[d1_databases]]
 binding = "sizzle_db"
 database_name = "sizzle-db"
-database_id = "272f7618-e0af-42be-80b5-4ca1e0090356"
+database_id = "bdb60981-44fc-42af-952a-6596d350be09"
 migrations_dir = "migrations"
 
 # Configure assets (static files)
 [assets]
 directory = "src"
 binding = "ASSETS"
+html_handling = "none"
+run_worker_first = [
+  "/",
+  "/index.html",
+  "/login",
+  "/app",
+  "/dashboard",
+  "/profile",
+  "/organizations",
+  "/leaderboard",
+  "/settings",
+  "/check-ins",
+  "/checkins",
+  "/pages",
+  "/pages/*",
+]
 
 
 [observability]

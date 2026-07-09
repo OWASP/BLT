@@ -17,6 +17,51 @@ class TestCheckinDashboardContract(unittest.TestCase):
         self.assertIn('"/api/dashboard" and method == "GET"', self.source)
         self.assertIn("handle_dashboard_metrics", self.source)
 
+    def test_dashboard_page_is_session_gated_before_static_asset_fetch(self):
+        static_start = self.source.index("# Static Pages & Assets")
+        static_body = self.source[static_start:self.source.index("async def init_database")]
+        self.assertIn("protected_pages", static_body)
+        self.assertIn('"/dashboard": "/pages/dashboard.html"', static_body)
+        self.assertIn('"/dashboard"', static_body[static_body.index("protected_pages"):])
+        self.assertIn("await get_session_user(request, env)", static_body)
+        self.assertIn('return redirect("/login")', static_body)
+        session_check = static_body.index("await get_session_user(request, env)")
+        asset_fetch = static_body.index("return await env.ASSETS.fetch(request_clone)")
+        self.assertLess(session_check, asset_fetch)
+
+    def test_page_directory_aliases_redirect_to_clean_routes(self):
+        static_start = self.source.index("# Static Pages & Assets")
+        static_body = self.source[static_start:self.source.index("async def init_database")]
+        self.assertIn("canonical_page_routes", static_body)
+        self.assertIn('"/pages/login": "/login"', static_body)
+        self.assertIn('"/pages/login.html": "/login"', static_body)
+        self.assertIn('"/pages/dashboard": "/dashboard"', static_body)
+        self.assertIn('"/pages/dashboard.html": "/dashboard"', static_body)
+        self.assertIn("if path in canonical_page_routes:", static_body)
+        alias_check = static_body.index("if path in canonical_page_routes:")
+        fallback_fetch = static_body.index("return await env.ASSETS.fetch(request)")
+        self.assertLess(alias_check, fallback_fetch)
+
+    def test_login_page_redirects_authenticated_sessions_to_dashboard_before_static_asset_fetch(self):
+        static_start = self.source.index("# Static Pages & Assets")
+        static_body = self.source[static_start:self.source.index("async def init_database")]
+        page_route_body = static_body[
+            static_body.index("elif path in page_assets:"):static_body.index('elif path == "/pages"')
+        ]
+        self.assertIn('return redirect("/dashboard")', page_route_body)
+        combined_login_check = 'if path == "/login" and user_id:' in page_route_body
+        split_login_check = 'if path == "/login":' in page_route_body and "if user_id:" in page_route_body
+        self.assertTrue(combined_login_check or split_login_check)
+        login_check = (
+            page_route_body.index('if path == "/login" and user_id:')
+            if combined_login_check
+            else page_route_body.index('if path == "/login":')
+        )
+        dashboard_redirect = page_route_body.index('return redirect("/dashboard")')
+        asset_fetch = page_route_body.index("return await env.ASSETS.fetch(request_clone)")
+        self.assertLess(login_check, dashboard_redirect)
+        self.assertLess(dashboard_redirect, asset_fetch)
+
     def test_checkin_routes_use_session_identity_and_approved_orgs(self):
         helper = self.source[self.source.index("async def get_approved_org_membership"):self.source.index("async def decrypt_checkin_row")]
         self.assertIn("get_verified_session_user", helper)
