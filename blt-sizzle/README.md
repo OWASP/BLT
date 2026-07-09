@@ -1,409 +1,254 @@
-# 🔥 BLT Sizzle — Async Daily Check-in App
+# BLT Sizzle
 
-<div align="center">
+BLT Sizzle is an async daily check-in app for organization-based teams. It helps contributors share progress, surface blockers, and give admins a quick view of daily activity without adding another meeting.
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://gitlab.com/owasp-blt/blt-sizzle)
-[![License](https://img.shields.io/badge/license-OWASP%20BLT-blue.svg)](#-license)
-[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-orange.svg)](https://workers.cloudflare.com/)
-[![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](https://www.python.org/)
+The current app is built for the OWASP BLT / GSoC workflow, but the model is generic: users join organizations, admins approve access, and members submit check-ins for the organization they are working with.
 
-**A lightweight, secure, async-first daily check-in app built on Cloudflare Workers.**  
-Track progress, surface blockers, and keep your team aligned — without another meeting.
+## Current product flow
 
-</div>
+1. Create an account with name, email, and password.
+2. Verify email with the code sent by the app.
+3. Create organization, or request access to an existing one.
+4. Admins approve members and manage organization access.
+5. Approved members submit a daily check-in for a selected organization.
+6. Dashboard pages show participation, blockers, pending requests, and recent check-ins.
 
----
+## Features
 
-## Table of Contents
+- Email/password signup and login.
+- Email verification code flow.
+- PBKDF2 password hashing.
+- HttpOnly session cookies backed by D1 auth sessions.
+- Organization creation and membership requests.
+- Owner/admin/member roles.
+- Daily check-ins tied to organization membership.
+- One check-in per user/org/day, editable during the same day.
+- Dashboard, profile, organizations, settings, and check-in history pages.
+- Timezone-aware settings with IANA timezone options.
+- SendGrid-compatible email delivery.
 
-- [Features](#-features)
-- [Quick Deploy](#-quick-deploy)
-- [Setup](#️-setup)
-- [Configuration](#-configuration)
-- [Usage](#-usage)
-- [API Endpoints](#-api-endpoints)
-- [Architecture](#️-architecture)
-- [Database Schema](#-database-schema)
-- [Security](#-security)
-- [Testing](#-testing)
-- [Contributing](#-contributing)
-- [Roadmap](#️-roadmap)
-- [Troubleshooting](#-troubleshooting)
-- [License](#-license)
+## Stack
 
----
+- Cloudflare Python Workers
+- Cloudflare D1
+- Static HTML, CSS, Tailwind CDN, and vanilla JavaScript
+- Python unittest contract tests
+- Wrangler for local development and deployment
 
-## ✨ Features
-
-| Feature | Description |
-|---|---|
-| 📝 **Daily Check-ins** | Document previous work, today's plan, and blockers |
-| 😊 **Mood Tracking** | Express how you're feeling with emoji selections |
-| 🔁 **Auto Pre-fill** | Yesterday's plans automatically populate as today's accomplished work |
-| 💬 **Slack Integration** | Daily reminders via Slack with a direct link to your check-in form |
-| 📧 **Email Reminders** | Optional email notifications (SendGrid, Mailgun, AWS SES, Postmark) |
-| 🔒 **Encrypted Storage** | Sensitive data encrypted before storage in Cloudflare D1 |
-| ⏰ **Customizable Notifications** | Set preferred reminder time and timezone |
-
-> **⚠️ Security Note:** The current implementation uses base64 encoding as a placeholder for encryption.
-> For production use with sensitive data, implement proper AES-GCM encryption via the Web Crypto API.
-
----
-
-## 🚀 Quick Deploy
-
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://gitlab.com/owasp-blt/blt-sizzle)
-
----
-
-## 🛠️ Setup
-
-### Prerequisites
-
-- [Cloudflare Account](https://dash.cloudflare.com/sign-up) (free tier works)
-- [Node.js](https://nodejs.org/) 16.13 or later
-- Git
-
-### Steps
+## Setup
 
 ```bash
-# 1. Install Wrangler
 npm install
-
-# 2. Authenticate
 npx wrangler login
+cp .env.example .env
+```
 
-# 3. Create D1 database
+Create the D1 database if it does not exist yet:
+
+```bash
 npm run db:create
-# Copy the database ID into wrangler.toml under [[d1_databases]]
+```
 
-# 4. Initialize schema
-npm run db:init
+Copy the created database id into `wrangler.toml` under `[[d1_databases]]`.
 
-# 5. Set encryption key (production)
+Apply local migrations:
+
+```bash
+npm run db:migrate:dev
+```
+
+Start local development:
+
+```bash
+npm run dev
+```
+
+The app runs at:
+
+```text
+http://localhost:8787
+```
+
+## Environment variables
+
+Use `.env.example` as the local template. Do not commit real secrets.
+
+Required or commonly used values:
+
+| Variable | Purpose |
+|---|---|
+| `APP_NAME` | Display name used by email templates |
+| `APP_URL` | Local or deployed app URL |
+| `WORKER_HOST` | Host used by Worker links |
+| `ENCRYPTION_KEY` | Secret used for encrypted app data |
+| `OTP_SECRET` | Secret used to hash verification codes |
+| `SESSION_SECRET` | Secret used to hash session tokens |
+| `EMAIL_PROVIDER` | Currently `sendgrid` |
+| `EMAIL_API_KEY` | SendGrid API key |
+| `EMAIL_FROM` | Sender email address |
+| `EMAIL_FROM_NAME` | Sender display name |
+| `DEFAULT_TIMEZONE` | Default timezone for new users |
+
+For production, set secrets through Wrangler:
+
+```bash
 openssl rand -base64 32
 npx wrangler secret put ENCRYPTION_KEY
+npx wrangler secret put OTP_SECRET
+npx wrangler secret put SESSION_SECRET
+npx wrangler secret put EMAIL_API_KEY
+```
 
-# Or for development, add to wrangler.toml:
-# [vars]
-# ENCRYPTION_KEY = "your-generated-key"
+Non-secret values such as `EMAIL_FROM`, `EMAIL_FROM_NAME`, `APP_URL`, and `DEFAULT_TIMEZONE` can live in Worker vars.
 
-# 6. (Optional) Create KV namespace for session storage
-npx wrangler kv:namespace create "KV"
-# Copy the ID into wrangler.toml under [[kv_namespaces]]
+## SendGrid setup and debugging
 
-# 7. Deploy
+1. Verify the sender identity or domain in SendGrid.
+2. Set `EMAIL_PROVIDER=sendgrid`.
+3. Set `EMAIL_API_KEY` as a Cloudflare secret.
+4. Set `EMAIL_FROM` to the verified sender.
+5. Run the signup flow locally or on the deployed Worker.
+6. If email does not arrive, check Wrangler logs:
+
+```bash
+npm run tail
+```
+
+The Worker supports the current `EMAIL_*` names and legacy `SENDGRID_*` names during migration, but new setups should use `EMAIL_*`.
+
+## Database migrations
+
+Local development:
+
+```bash
+npm run db:migrate:dev
+```
+
+Production requires an explicit confirmation guard:
+
+```bash
+CONFIRM_PROD_MIGRATION=1 npm run db:migrate:prod
+```
+
+You can override the database name if needed:
+
+```bash
+D1_DATABASE=sizzle-db npm run db:migrate:dev
+```
+
+The migration script lives at:
+
+```text
+scripts/migrate.sh
+```
+
+## Useful commands
+
+```bash
+npm run dev
 npm run deploy
-```
-
-App will be live at `https://blt-sizzle-checkin.your-subdomain.workers.dev`.
-
-### Local Development
-
-```bash
-npm run dev   # http://localhost:8787
-npm run tail  # stream live logs
-npm run db:query "SELECT * FROM users LIMIT 5"
-```
-
-### Multiple Environments
-
-Create `wrangler.dev.toml` / `wrangler.staging.toml` with environment-specific values, then:
-
-```bash
-npx wrangler deploy --config wrangler.dev.toml
-npx wrangler deploy --config wrangler.staging.toml
-npx wrangler deploy  # production
-```
-
-### CI/CD (GitHub Actions)
-
-```yaml
-- name: Deploy to Cloudflare Workers
-  run: npx wrangler deploy
-  env:
-    CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-```
-
----
-
-## 🔧 Configuration
-
-### Environment Variables
-
-| Variable | How to set | Description |
-|---|---|---|
-| `ENCRYPTION_KEY` | `wrangler secret put` | Required. Encrypts stored data |
-| `EMAIL_API_KEY` | `wrangler secret put` | Email service API key |
-| `EMAIL_FROM` | `wrangler.toml [vars]` | Sender email address |
-| `EMAIL_PROVIDER` | `wrangler.toml [vars]` | `sendgrid` or `mailgun` |
-| `WORKER_HOST` | `wrangler.toml [vars]` | Deployed worker URL |
-
-Always use `wrangler secret put` for sensitive values in production — never commit them to `wrangler.toml`.
-
-### Scheduled Notifications
-
-Add a cron trigger to `wrangler.toml`:
-
-```toml
-[triggers]
-crons = ["0 9 * * *"]  # 9 AM UTC daily; worker checks per-user timezones
-```
-
-### Custom Domain
-
-```toml
-routes = [
-  { pattern = "checkin.yourdomain.com", custom_domain = true }
-]
-```
-
-### Slack Integration
-
-1. Create an [Incoming Webhook](https://api.slack.com/messaging/webhooks) in your Slack workspace
-2. In the app, go to **Settings**, paste the URL, set notification time/timezone, then click **Test**
-
----
-
-## 📱 Usage
-
-1. Visit your deployed app URL
-2. Fill out the daily form:
-   - **Previous Work** — auto-filled from last check-in
-   - **Today's Plan** — required
-   - **Blockers** — optional
-   - **Mood** — emoji picker
-3. Submit — done! ✅
-
----
-
-## 🛣️ API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/` | Main check-in form |
-| `GET` | `/settings` | Notification settings page |
-| `POST` | `/api/checkin` | Submit a check-in |
-| `GET` | `/api/checkin/latest` | Get latest check-in (for pre-fill) |
-| `GET` | `/api/settings` | Get user settings |
-| `POST` | `/api/settings` | Save user settings |
-| `POST` | `/api/notification/test` | Send a test notification |
-
----
-
-## 🏗️ Architecture
-
-```
-User Browser (HTML/CSS/JS)
-        │
-        ▼
-Cloudflare Worker (Python — workers/main.py)
-        │
-        ├──────────────────────┐
-        ▼                      ▼
-D1 Database (SQLite)    External APIs
-  ├─ users               ├─ Slack Webhooks
-  └─ checkins            ├─ SendGrid
-                         └─ Mailgun
-```
-
-**Stack:**
-- **Frontend**: Semantic HTML5, CSS3 (gradients, flexbox), Vanilla ES6+ JS, localStorage, Fetch API
-- **Backend**: Python on Cloudflare Workers, async/await, D1 (SQLite), Cron Triggers
-- **Infrastructure**: Cloudflare Workers (serverless), D1 Database, optional KV Namespace
-
----
-
-## 📊 Database Schema
-
-### Users
-
-| Column | Description |
-|---|---|
-| `user_id` | Unique identifier (generated client-side) |
-| `email` | Optional email for notifications |
-| `slack_webhook_url` | Encrypted Slack webhook URL |
-| `notification_time` | Preferred reminder time (HH:MM) |
-| `timezone` | User's timezone |
-| `email_notifications` | 0 or 1 |
-
-### Check-ins
-
-| Column | Description |
-|---|---|
-| `user_id` | FK → users |
-| `encrypted_previous_work` | Encrypted previous accomplishments |
-| `encrypted_today_plan` | Encrypted today's plans |
-| `encrypted_blockers` | Encrypted blockers/challenges |
-| `mood` | Emoji |
-| `checkin_date` | Date of check-in |
-
----
-
-## 🔒 Security
-
-### What's implemented
-- Encryption key required at startup — no fallback
-- All check-in content encrypted at rest
-- Parameterized queries (SQL injection protection)
-- HTTPS enforced by Cloudflare
-- Rate limiting by Cloudflare
-- Slack webhook URLs stored encrypted, never exposed in responses
-
-### Known limitations (production hardening needed)
-- **Encryption**: Current implementation uses base64 + IV, not true AES-GCM. For production, use the Web Crypto API:
-  ```python
-  from js import crypto
-  iv = crypto.getRandomValues(bytearray(12))
-  encrypted = await crypto.subtle.encrypt({"name": "AES-GCM", "iv": iv}, crypto_key, data)
-  ```
-- **Authentication**: User IDs are stored in `localStorage` — no password/SSO. Clearing browser data creates a new user (by design).
-- **No CSRF protection** — no session-based auth currently.
-
-### Recommended production hardening
-- Implement AES-GCM via Web Crypto API
-- Add OAuth (Cloudflare Access, Google, GitHub) or JWT
-- Add per-user rate limiting and audit logging
-- Add GDPR endpoints: `GET /api/user/export`, `DELETE /api/user/delete`
-- Implement data retention policies
-
-### Routine maintenance
-- **Weekly**: Review Worker logs for anomalies
-- **Monthly**: Update dependencies (`npm update`, `wrangler update`), rotate encryption keys
-- **Quarterly**: Full security audit, penetration testing
-
-### Vulnerability reporting
-Email **security@owasp.org** with description, reproduction steps, impact, and suggested fix. Do not publish publicly.
-
----
-
-## 🧪 Testing
-
-### Manual testing
-
-```bash
-npm run dev  # start local server at http://localhost:8787
-
-# Submit a check-in
-curl -X POST http://localhost:8787/api/checkin \
-  -H "Content-Type: application/json" \
-  -d '{"userId":"test_user","previousWork":"x","todayPlan":"y","blockers":"","mood":"😊"}'
-
-# Retrieve latest
-curl "http://localhost:8787/api/checkin/latest?userId=test_user"
-
-# Save settings
-curl -X POST http://localhost:8787/api/settings \
-  -H "Content-Type: application/json" \
-  -d '{"userId":"test_user","email":"test@example.com","notificationTime":"09:00","timezone":"UTC","slackWebhookUrl":"","emailNotifications":0}'
-```
-
-### Automated tests
-
-```bash
-pip install requests
-# Start server first, then:
-python tests/test_api.py
-```
-
-### Database inspection
-
-```bash
-npx wrangler d1 execute checkin-db --command "SELECT * FROM checkins ORDER BY created_at DESC LIMIT 10"
-npx wrangler d1 execute checkin-db --command "SELECT name FROM sqlite_master WHERE type='table'"
-```
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow the OWASP Code of Conduct.
-
-### Workflow
-
-1. Fork the repo and clone your fork
-2. Add upstream: `git remote add upstream https://gitlab.com/owasp-blt/blt-sizzle.git`
-3. Create a branch: `git checkout -b feature/your-feature` or `fix/bug-description`
-4. Make changes, test thoroughly, then open a merge request
-
-### Code style
-
-- **Python**: PEP 8, async/await, snake_case
-- **JavaScript**: ES6+, `const`/`let`, async/await, no frameworks
-- **HTML/CSS**: Semantic HTML5, BEM class naming, CSS variables, responsive design
-
-### PR checklist
-
-- [ ] Code follows style guidelines
-- [ ] Tests pass (`python tests/test_api.py`)
-- [ ] Documentation updated
-- [ ] Clear commit messages
-
-### Bug reports & feature requests
-
-Open a GitHub issue with: a clear title, description, reproduction steps (bugs) or use case and proposed solution (features).
-
----
-
-## 🗺️ Roadmap
-
-Contributions welcome!
-
-- [ ] 🔄 **Async Check-ins** — Post updates whenever it suits you; no synchronised schedules
-- [ ] 🤖 **AI Summaries** — Auto-summarise updates daily/weekly, highlight wins and blockers
-- [ ] 👥 **Per-group Summaries** — Team/role-specific insights (engineering vs design, etc.)
-- [ ] 🏠 **Persistent Rooms** — Always-open rooms for async updates with browsable history
-- [ ] 🖼️ **Rich Media** — Images, GIFs, short videos alongside text
-- [ ] 🎨 **Custom Prompts** — Admin-defined check-in questions with colour/emoji coding
-- [ ] 💬 **Comments & Reactions** — Async reactions and threaded comments on updates
-- [ ] 📦 **Bulk Export** — CSV, JSON, or PDF export for reporting
-- [ ] 🎥 **Video/Voice Updates** — Optional short audio/video clips
-- [ ] 🔗 **Project Tool Integrations** — GitHub, Jira, Trello task linking
-- [ ] 🌟 **Mood Tracking & Kudos** — Peer recognition and icebreakers
-- [ ] 🌍 **Timezone-aware Scheduling** — Respect each member's local time
-- [ ] 🏃 **Agile Templates** — Scrum, Kanban, retrospective support
-- [ ] 🔐 **Private Check-ins** — Team-visible vs manager-only updates
-- [ ] 📈 **Participation Analytics** — Engagement tracking and follow-up stats
-- [ ] 🆓 **Free-tier Limits** — Configurable caps for open-source/free plans
-
----
-
-## 🐛 Troubleshooting
-
-<details>
-<summary><strong>Database not initializing</strong></summary>
-
-Ensure the D1 database is created and the ID is correct in `wrangler.toml`, then re-run:
-```bash
-npm run db:init
-```
-</details>
-
-<details>
-<summary><strong>Slack notifications not working</strong></summary>
-
-Test the webhook directly:
-```bash
-curl -X POST -H 'Content-Type: application/json' -d '{"text":"Test"}' YOUR_WEBHOOK_URL
-```
-Then check Worker logs: `npm run tail`
-</details>
-
-<details>
-<summary><strong>Data not persisting</strong></summary>
-
-Check the D1 binding in `wrangler.toml` and verify schema was applied:
-```bash
+npm run tail
+npm run test
 npm run db:query "SELECT name FROM sqlite_master WHERE type='table'"
 ```
-</details>
 
----
+`npm run deploy` calls `deploy.sh`. The script requires `CLOUDFLARE_ACCOUNT_ID` or `CF_ACCOUNT_ID`, checks Wrangler authentication, runs the test suite unless `SKIP_TESTS=1` is set, and then deploys with `wrangler.toml`.
 
-##  License
+Python-only verification:
 
-This project is part of [OWASP BLT](https://gitlab.com/owasp-blt) and follows the same license terms.
+```bash
+python -m unittest discover tests -v
+python -m py_compile workers/*.py
+git diff --check
+```
 
----
+## Manual smoke flow
 
-<div align="center">Made with ❤️ by <a href="https://gitlab.com/owasp-blt">OWASP BLT</a></div>
+Use this before opening a merge request or deploying:
+
+1. Create an account.
+2. Verify email.
+3. Log in.
+4. Create organization.
+5. Create or use another account to request access.
+6. Approve the request as owner/admin.
+7. Submit a check-in as an approved member.
+8. Confirm dashboard metrics and check-in history update.
+9. Confirm unverified or unapproved users cannot check in.
+
+## API surface
+
+Main app routes:
+
+| Route | Purpose |
+|---|---|
+| `/` | Public landing page |
+| `/login` | Signup, login, and email verification |
+| `/dashboard` | Signed-in dashboard |
+| `/app` | Daily check-in form |
+| `/organizations` | Organization discovery and management |
+| `/profile` | Profile and verification state |
+| `/settings` | Reminder and timezone settings |
+| `/check-ins` | Check-in history |
+
+Core API routes:
+
+| Method | Route | Purpose |
+|---|---|---|
+| `POST` | `/api/auth/signup` | Create account and send verification code |
+| `POST` | `/api/auth/login` | Password login |
+| `POST` | `/api/auth/verify-email` | Verify email code |
+| `POST` | `/api/auth/resend-verification` | Resend verification code |
+| `GET` | `/api/auth/me` | Current session user |
+| `GET` | `/api/profile` | Profile state |
+| `POST` | `/api/profile` | Save profile settings |
+| `GET` | `/api/orgs` | User organizations |
+| `GET` | `/api/orgs/discover` | Discover organizations |
+| `POST` | `/api/orgs` | Create organization |
+| `POST` | `/api/orgs/:slug/join` | Request to join organization |
+| `GET` | `/api/checkins` | Check-in history |
+| `GET` | `/api/checkin/latest` | Latest check-in for selected org |
+| `POST` | `/api/checkin` | Create or update today's check-in |
+| `GET` | `/api/dashboard` | Dashboard metrics |
+| `GET` | `/api/timezones` | IANA timezone list |
+
+## Security notes
+
+Implemented:
+
+- Password hashes use PBKDF2.
+- Session cookies are HttpOnly and SameSite-aware.
+- Session tokens are hashed before storage.
+- Verification codes are hashed before storage.
+- Authenticated actions use the current session identity instead of trusting client-provided `userId`.
+- Organization and check-in flows enforce verified users and approved membership.
+
+Still worth hardening before broad production use:
+
+- Current encrypted check-in fields still use the legacy base64 placeholder approach, not production-grade AES-GCM encryption. Keep this limitation visible until the encrypted field strategy is replaced with real Web Crypto AES-GCM.
+- Add stronger CSRF protection for state-changing authenticated requests.
+- Review rate limits for login, verification, and organization actions.
+- Confirm encrypted field strategy against current production requirements.
+- Add audit logging for admin actions.
+
+## Contributing
+
+Use focused commits and keep each change reviewable.
+
+Before committing:
+
+```bash
+python -m unittest discover tests -v
+python -m py_compile workers/*.py
+git diff --check
+```
+
+Repository:
+
+```text
+https://gitlab.com/owasp-blt/blt-sizzle
+```
+
+## License
+
+This project is part of OWASP BLT and follows the project license terms.

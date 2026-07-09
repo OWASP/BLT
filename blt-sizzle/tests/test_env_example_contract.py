@@ -17,6 +17,8 @@ class TestEnvExampleContract(unittest.TestCase):
             "ENCRYPTION_KEY=",
             "OTP_SECRET=",
             "SESSION_SECRET=",
+            "CLOUDFLARE_ACCOUNT_ID=",
+            "CLOUDFLARE_API_TOKEN=",
             "EMAIL_PROVIDER=",
             "EMAIL_API_KEY=",
             "EMAIL_FROM=",
@@ -37,6 +39,11 @@ class TestEnvExampleContract(unittest.TestCase):
         self.assertIn("wrangler secret put SESSION_SECRET", self.content)
         self.assertIn("wrangler secret put EMAIL_API_KEY", self.content)
         self.assertIn("openssl rand -base64 32", self.content)
+
+    def test_env_example_documents_deploy_script_environment(self):
+        self.assertIn("Used by ./deploy.sh", self.content)
+        self.assertIn("Cloudflare account ID", self.content)
+        self.assertIn("Worker deploy permissions", self.content)
 
 
 if __name__ == "__main__":
