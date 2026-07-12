@@ -72,3 +72,22 @@ class ReplayAttackError(Exception):
     def __init__(self, message: str, *, delivery_id: str = ""):
         super().__init__(message)
         self.delivery_id = delivery_id
+
+
+class LLMUnavailableError(Exception):
+    """Raised when all configured LLM providers are unreachable.
+
+    This exception is the terminal failure state for the LLM router.
+    Both the primary provider (Cloudflare Workers AI) and the fallback
+    provider (OpenAI) have failed, and no further retry is possible
+    within the current request lifecycle.
+
+    Attributes:
+        providers_tried: List of provider names that were attempted.
+        last_error: The error message from the last provider that failed.
+    """
+
+    def __init__(self, message: str, *, providers_tried: list[str] | None = None, last_error: str = ""):
+        super().__init__(message)
+        self.providers_tried = providers_tried or []
+        self.last_error = last_error
