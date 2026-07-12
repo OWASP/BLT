@@ -12,8 +12,8 @@ Toasty operates entirely on Cloudflare's Edge, ensuring high performance, global
 - **Vector Store**: Cloudflare Vectorize (384-dimensional embeddings, cosine similarity)
 - **PII Detection**: Microsoft Presidio (Docker sidecar accessed via Cloudflare Tunnel)
 - **Embeddings**: FastEmbed Sidecar (`BAAI/bge-small-en-v1.5`)
-- **LLM Engine**: Cloudflare Workers AI (`@cf/meta/llama-3.1-8b-instruct`) with OpenAI (`gpt-4o-mini`) fallback
-- **Integration**: GitLab Webhooks & REST API, Slack API
+- **LLM Engine**: Cloudflare Workers AI (`@cf/meta/llama-3.1-8b-instruct`) with OpenAI (`gpt-4o-mini`) fallback; proposed Quality Gate provider routing uses LiteLLM
+- **Integration**: GitLab Webhooks & REST API, Slack API, and GitHub Actions/Check Runs for mirror-specific quality automation
 
 ## Design Philosophy: Zero-Trust & Fail-Closed Redaction 🔒
 The most critical invariant of the BLT-Toasty architecture is **Fail-Closed Redaction**.
@@ -26,6 +26,68 @@ RAW PAYLOAD → [REDACTION GATE] → redacted_text → [LLM / Vectorize]
 
 **The Guarantee:** No LLM inference and no vector embedding ever executes until Microsoft Presidio and strict regex fallback scanners successfully process the input with a confidence score of `>= 0.70`.
 If the redaction gate fails for *any* reason—timeout, parse error, or low confidence—the event is immediately quarantined in D1 and flagged for manual security review. This invariant is enforced at the code level by the `assert_redacted_before_downstream()` guard, ensuring 100% zero-trust processing of all incoming bug reports.
+
+## AI Quality Gate (BLT-Toasty)
+
+The AI Quality Gate is a proposed BLT-Toasty feature that acts as a post-submission gatekeeper for pull requests. It intercepts PR events at the webhook edge, runs deterministic and LLM-backed policy checks, and only allows downstream AI review tools such as CodeRabbit to run after the PR passes the gate.
+
+Although BLT-Toasty's core triage workflow is GitLab-integrated, this Quality Gate design targets the project's GitHub mirror and therefore uses GitHub-specific concepts such as pull requests, Check Runs, and Actions workflows.
+
+This is separate from **BLT-Preflight**. Preflight is an advisory tool that helps contributors before they open a PR; the Toasty Quality Gate runs after a PR is submitted and can enforce a hard `PASS`, `FAIL`, or `HOLD` decision.
+
+### Quality Gate Flow
+
+```text
+Pull Request → Webhook Ingress → Cloudflare Queue → Gate Processor
+       → deterministic rules → RAG-backed LLM policy review
+       → GitHub Check Run: PASS / FAIL / HOLD
+       → CodeRabbit runs only after PASS
+```
+
+The gate is designed to reduce maintainer review noise, prevent wasted LLM spend on low-quality or spam PRs, and give contributors clear feedback when a PR is blocked.
+
+### Policy Checks
+
+The gate combines fast deterministic checks with LLM policy review:
+
+- **Deterministic rules:** title length, required description, linked issue, draft status, single-file spam patterns, and spam keyword detection.
+- **RAG-backed review:** repository policy documents such as `CONTRIBUTING.md` are embedded in Cloudflare Vectorize and retrieved as context for LLM decisions.
+- **Structured outcomes:** every decision includes reason codes, policy context, and audit metadata so maintainers can review false positives.
+- **Shadow mode:** the gate can run in non-blocking mode before enforcement so maintainers can tune thresholds against real PR traffic.
+
+### Contributor Expectations
+
+Contributors should expect the `toasty/quality-gate` check to appear on PRs once this feature is enabled. A passing PR continues to the normal review flow. A failed or held PR should include actionable reason codes explaining what needs to be fixed before CodeRabbit or maintainer review continues.
+
+To avoid gate failures:
+
+- Write a clear PR title and description.
+- Link the relevant issue when required by the repository.
+- Avoid draft, placeholder, spam-like, or single-file noise submissions.
+- Follow the repository's contribution and security guidance.
+- Treat gate feedback as review input; maintainers can override false positives when needed.
+
+### Cloudflare-Native Gate Architecture
+
+The Quality Gate extends BLT-Toasty's Cloudflare-first architecture:
+
+- **Webhook ingress Worker:** validates GitHub HMAC signatures and deduplicates deliveries.
+- **Cloudflare Queues:** decouples webhook intake from policy processing with durable delivery.
+- **Gate processor Worker:** runs deterministic checks, LiteLLM-powered provider routing, and RAG-grounded policy review.
+- **Cloudflare D1:** stores decision logs, audit events, repository policy, cost telemetry, and false-positive tuning data.
+- **Cloudflare KV:** stores encrypted BYOK provider keys and rotation metadata.
+- **Cloudflare Vectorize:** indexes policy-document embeddings for retrieval during LLM checks.
+- **Cloudflare Pages dashboard:** exposes decision traces, key status, cost analytics, and maintainer review tools.
+
+### CodeRabbit Gate Chaining
+
+The intended GitHub Actions flow is:
+
+1. `toasty-quality-gate.yml` runs on PR events and publishes the `toasty/quality-gate` check.
+2. `coderabbit-after-gate.yml` runs through `workflow_run` and must explicitly check `github.event.workflow_run.conclusion == 'success'` before running CodeRabbit.
+3. `.coderabbit.yaml` can ignore blocked labels such as `bot:blocked` as a defense-in-depth layer.
+
+This keeps expensive AI code review behind the quality filter while preserving a clear audit trail for contributors and maintainers.
 
 ## 12-Week Roadmap & Milestones
 
