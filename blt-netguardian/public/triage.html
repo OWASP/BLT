@@ -1401,10 +1401,6 @@
                 white-space: normal;
             }
 
-            .detail-col {
-                display: none !important;
-            }
-
             .findings-col .findings-list-view.hidden {
                 display: block !important;
             }
@@ -1472,7 +1468,16 @@
 <body>
 <div class="app">
 
-    <!-- Auth overlay removed for midterm demo (open triage, no token). -->
+    <!-- Auth overlay: shown only when AUTHENTICATE_READ_ENDPOINTS requires a token. -->
+    <div id="auth-overlay" class="auth-overlay hidden" aria-hidden="true">
+        <div class="auth-modal">
+            <h2>API token</h2>
+            <p>Enter an org Bearer token to use triage. Demo deploys with open reads skip this screen.</p>
+            <input id="auth-token-input" type="password" autocomplete="off" placeholder="triage-token" aria-label="API token" />
+            <button id="auth-submit" type="button" class="auth-submit">Connect</button>
+            <p id="auth-error" class="auth-error" hidden></p>
+        </div>
+    </div>
 
     <!-- Header -->
     <header class="header">

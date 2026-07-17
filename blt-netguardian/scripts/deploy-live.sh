@@ -25,7 +25,7 @@ printf '%s' '{"triage-token":"org-demo"}' | "${WRANGLER[@]}" secret put NG_ORG_A
 printf '%s' '{"org-demo:scanner-1:k1":"736563726574"}' | "${WRANGLER[@]}" secret put NG_SENDER_SECRETS
 printf '%s' '{"org-demo":"bmV0Z3VhcmRpYW4tZGVtby1hZXNnY20ta2V5LTAwMzI="}' | "${WRANGLER[@]}" secret put NG_PAYLOAD_KEYS
 printf '%s' 'https://netguardian.owaspblt.org' | "${WRANGLER[@]}" secret put CORS_ALLOWED_ORIGINS
-printf '%s' 'false' | "${WRANGLER[@]}" secret put AUTHENTICATE_READ_ENDPOINTS
+# AUTHENTICATE_READ_ENDPOINTS is a non-secret flag — set via wrangler.toml [vars]
 
 # BLT-API — set if convert-to-issue should hit real API (optional for first boot)
 if [ -n "${BLT_API_BASE_URL:-}" ]; then

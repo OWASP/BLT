@@ -9,7 +9,8 @@ decrypt-on-view + audit-log flow.
 Usage (from the BLT-NetGuardian repo root):
 
     .venv/bin/python local_dev/seed_demo.py                      # local :8787
-    .venv/bin/python local_dev/seed_demo.py --base-url https://blt-netguardian.preethampujari395.workers.dev
+    .venv/bin/python local_dev/seed_demo.py --base-url https://… \
+        --secret-hex … --payload-key-b64 …                       # remote (credentials required)
 
 This script does not delete existing data. To reset a remote D1 first, run each
 statement separately and in this order (findings<->envelopes have a circular
@@ -45,6 +46,24 @@ API_PATH = "/api/ingest"
 DEMO_SECRET_HEX = "736563726574"
 DEMO_ORG = "org-demo"
 DEMO_PAYLOAD_KEY = b"netguardian-demo-aesgcm-key-0032"
+
+
+def _is_loopback(url: str) -> bool:
+    host = (urlparse(url).hostname or "").lower()
+    return host in {"localhost", "127.0.0.1", "::1"}
+
+
+def _resolve_credentials(base_url: str, *, secret_hex: str | None, payload_key: bytes | None):
+    """Allow committed demo defaults only against loopback destinations."""
+    if _is_loopback(base_url):
+        return secret_hex or DEMO_SECRET_HEX, payload_key or DEMO_PAYLOAD_KEY
+    if not secret_hex or payload_key is None:
+        raise SystemExit(
+            "Remote destinations require --secret-hex and --payload-key-b64 "
+            "(demo defaults are loopback-only)."
+        )
+    return secret_hex, payload_key
+
 
 # (payload, encrypt?) — a spread of severities, a couple encrypted with secrets.
 DEMO_FINDINGS = [
@@ -160,7 +179,14 @@ def _post(base_url: str, raw: bytes) -> tuple[int, str]:
     return status, body
 
 
-def build_envelope(payload: dict, encrypt: bool, seq: int) -> bytes:
+def build_envelope(
+    payload: dict,
+    encrypt: bool,
+    seq: int,
+    *,
+    secret_hex: str,
+    payload_key: bytes,
+) -> bytes:
     now = datetime.now(timezone.utc)
     stamp = int(now.timestamp())
     payload = dict(payload)
@@ -175,23 +201,42 @@ def build_envelope(payload: dict, encrypt: bool, seq: int) -> bytes:
         "nonce": f"seed-{stamp}-{seq}",
     }
     if encrypt:
-        body["payload_ciphertext"] = encrypt_payload(DEMO_PAYLOAD_KEY, payload, aad=DEMO_ORG.encode())
+        body["payload_ciphertext"] = encrypt_payload(payload_key, payload, aad=DEMO_ORG.encode())
     else:
         body["plaintext_mode"] = True
         body["payload_plaintext"] = payload
-    signed = prepare_signed_envelope(body, bytes.fromhex(DEMO_SECRET_HEX))
+    signed = prepare_signed_envelope(body, bytes.fromhex(secret_hex))
     return json.dumps(signed, separators=(",", ":"), ensure_ascii=False).encode()
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-url", default="http://localhost:8787")
+    parser.add_argument(
+        "--secret-hex",
+        default=None,
+        help="Sender HMAC secret hex (required for non-loopback destinations).",
+    )
+    parser.add_argument(
+        "--payload-key-b64",
+        default=None,
+        help="AES-256 payload key, base64 (required for non-loopback destinations).",
+    )
     args = parser.parse_args()
+
+    import base64
+
+    payload_key = base64.b64decode(args.payload_key_b64) if args.payload_key_b64 else None
+    secret_hex, payload_key = _resolve_credentials(
+        args.base_url, secret_hex=args.secret_hex, payload_key=payload_key
+    )
 
     print(f"Seeding {len(DEMO_FINDINGS)} findings -> {args.base_url}{API_PATH}\n")
     ok = 0
     for seq, (payload, encrypt) in enumerate(DEMO_FINDINGS):
-        raw = build_envelope(payload, encrypt, seq)
+        raw = build_envelope(
+            payload, encrypt, seq, secret_hex=secret_hex, payload_key=payload_key
+        )
         try:
             status, body = _post(args.base_url, raw)
         except OSError as exc:

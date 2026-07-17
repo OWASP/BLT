@@ -365,7 +365,41 @@
         function authHeaders(json) {
             const h = {};
             if (json) h['Content-Type'] = 'application/json';
+            const token = getStoredToken();
+            if (token) h['Authorization'] = 'Bearer ' + token;
             return h;
+        }
+
+        function getStoredToken() {
+            try { return localStorage.getItem('ng_api_token') || ''; } catch (_) { return ''; }
+        }
+
+        function setStoredToken(token) {
+            try {
+                if (token) localStorage.setItem('ng_api_token', token);
+                else localStorage.removeItem('ng_api_token');
+            } catch (_) {}
+        }
+
+        function openDemoMode() {
+            return !!(lastHealth && lastHealth.auth && lastHealth.auth.read_required === false);
+        }
+
+        function showAuthOverlay(show, message) {
+            const overlay = document.getElementById('auth-overlay');
+            const err = document.getElementById('auth-error');
+            if (!overlay) return;
+            overlay.classList.toggle('hidden', !show);
+            overlay.setAttribute('aria-hidden', show ? 'false' : 'true');
+            if (err) {
+                if (message) {
+                    err.hidden = false;
+                    err.textContent = message;
+                } else {
+                    err.hidden = true;
+                    err.textContent = '';
+                }
+            }
         }
 
         function showToast(text, kind) {
@@ -503,7 +537,7 @@
                     };
                 }
             } catch (_) {}
-            return { host: 'acme.example', path: target };
+            return { host: '—', path: String(target) };
         }
 
         function renderListCards(findings) {
@@ -644,7 +678,16 @@
 
         if (changeTokenBtn) {
             changeTokenBtn.addEventListener('click', function () {
-                showToast('Open triage — no API token required for this demo.', 'success');
+                if (openDemoMode()) {
+                    showToast('Open triage — reads do not require a token in this demo.', 'success');
+                    return;
+                }
+                showAuthOverlay(true);
+                const input = document.getElementById('auth-token-input');
+                if (input) {
+                    input.value = getStoredToken();
+                    input.focus();
+                }
             });
         }
         if (btnAvatar) {
@@ -653,7 +696,7 @@
                     let msg = 'Connected: ' + connLabel.textContent;
                     if (lastHealth && lastHealth.integrations) {
                         const blt = lastHealth.integrations.blt_api;
-                        if (blt) msg += ' | BLT-API configured=' + blt.configured + ' reachable=' + blt.reachable;
+                        if (blt) msg += ' | BLT-API configured=' + blt.configured;
                     }
                     showToast(msg, 'success');
                 } else {
@@ -705,7 +748,57 @@
         }
         applyMobileLayout();
 
-        try { localStorage.removeItem('ng_api_token'); } catch (_) {}
-        loadList().catch(function (err) { showToast(apiErrorMsg(err), 'error'); });
+        (async function boot() {
+            try {
+                lastHealth = await apiRequest('/api/health');
+                const blt = lastHealth && lastHealth.integrations && lastHealth.integrations.blt_api;
+                const label = blt && blt.configured ? 'BLT-API configured' : 'API live';
+                setConnected(true, label);
+            } catch (_) {
+                lastHealth = null;
+                setConnected(false, 'Offline');
+            }
+
+            const authSubmit = document.getElementById('auth-submit');
+            const authInput = document.getElementById('auth-token-input');
+            if (authSubmit && authInput) {
+                authSubmit.addEventListener('click', async function () {
+                    const token = (authInput.value || '').trim();
+                    if (!token) {
+                        showAuthOverlay(true, 'Token required.');
+                        return;
+                    }
+                    setStoredToken(token);
+                    try {
+                        await loadList();
+                        showAuthOverlay(false);
+                        showToast('Connected with org token.', 'success');
+                    } catch (err) {
+                        setStoredToken('');
+                        showAuthOverlay(true, apiErrorMsg(err));
+                    }
+                });
+            }
+
+            if (openDemoMode()) {
+                // Open-read demo: do not force a token for GET, but keep any stored
+                // token so PATCH/convert still authenticate.
+                showAuthOverlay(false);
+                if (IS_LOCAL && !getStoredToken()) {
+                    setStoredToken('triage-token');
+                }
+                showToast('Open triage — reads do not require a token in this demo.', 'success');
+                loadList().catch(function (err) { showToast(apiErrorMsg(err), 'error'); });
+                return;
+            }
+
+            if (!getStoredToken()) {
+                showAuthOverlay(true);
+                return;
+            }
+            loadList().catch(function (err) {
+                showAuthOverlay(true, apiErrorMsg(err));
+            });
+        })();
     });
 })();

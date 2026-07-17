@@ -28,8 +28,8 @@ from utils.storage import JobStateStore, TaskQueueStore, TargetRegistryStore, Vu
 from scanners.coordinator import ScannerCoordinator
 from scanners.autonomous_discovery import AutonomousDiscovery
 from scanners.contact_notifier import ContactNotifier
-from auth import AuthError
-from blt_api_client import check_blt_api_reachable, is_blt_api_configured
+from auth import AuthError, read_endpoints_require_auth
+from blt_api_client import is_blt_api_configured
 from errors import IngestError, IngestErrorCode
 from findings_service import (
     convert_to_issue_for_request,
@@ -546,24 +546,24 @@ class BLTWorker:
             return self.internal_error_response('Failed to list tasks', e)
 
     async def handle_api_health(self, request):
-        """GET /api/health — NetGuardian liveness and integration status."""
+        """GET /api/health — shallow liveness (no outbound probes)."""
         if request.method != 'GET':
             return self.json_response({'error': 'Method not allowed'}, status=405)
+
         blt_configured = is_blt_api_configured(self.env)
-        blt_reachable = False
-        if blt_configured:
-            try:
-                blt_reachable = await check_blt_api_reachable(self.env)
-            except Exception:
-                blt_reachable = False
         return self.json_response({
             'status': 'ok',
             'component': 'netguardian',
             'ingest': 'ready',
+            'auth': {
+                'read_required': read_endpoints_require_auth(self.env),
+            },
             'integrations': {
                 'blt_api': {
                     'configured': blt_configured,
-                    'reachable': blt_reachable if blt_configured else None,
+                    # Reachability is intentionally omitted from the public probe
+                    # so monitoring/abuse cannot amplify outbound BLT traffic.
+                    'reachable': None,
                 },
             },
         })

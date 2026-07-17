@@ -39,6 +39,23 @@ DEMO_SECRET_HEX = "736563726574"
 DEMO_ORG = "org-demo"
 DEMO_PAYLOAD_KEY = b"netguardian-demo-aesgcm-key-0032"
 
+
+def _is_loopback(url: str) -> bool:
+    host = (urlparse(url).hostname or "").lower()
+    return host in {"localhost", "127.0.0.1", "::1"}
+
+
+def _resolve_credentials(base_url: str, *, secret_hex: str | None, payload_key: bytes | None):
+    if _is_loopback(base_url):
+        return secret_hex or DEMO_SECRET_HEX, payload_key or DEMO_PAYLOAD_KEY
+    if not secret_hex or payload_key is None:
+        raise SystemExit(
+            "Remote destinations require --secret-hex and --payload-key-b64 "
+            "(demo defaults are loopback-only)."
+        )
+    return secret_hex, payload_key
+
+
 # A fresh, obviously-new finding so it stands out when it appears in the UI.
 NEW_FINDING = {
     "rule_id": "zap.ssrf",
@@ -52,7 +69,7 @@ NEW_FINDING = {
 }
 
 
-def build_signed_envelope(encrypt: bool) -> tuple[dict, bytes]:
+def build_signed_envelope(encrypt: bool, *, secret_hex: str, payload_key: bytes) -> tuple[dict, bytes]:
     now = datetime.now(timezone.utc)
     stamp = int(now.timestamp())
 
@@ -70,13 +87,13 @@ def build_signed_envelope(encrypt: bool) -> tuple[dict, bytes]:
     }
     if encrypt:
         body["payload_ciphertext"] = encrypt_payload(
-            DEMO_PAYLOAD_KEY, payload, aad=DEMO_ORG.encode()
+            payload_key, payload, aad=DEMO_ORG.encode()
         )
     else:
         body["plaintext_mode"] = True
         body["payload_plaintext"] = payload
 
-    signed = prepare_signed_envelope(body, bytes.fromhex(DEMO_SECRET_HEX))
+    signed = prepare_signed_envelope(body, bytes.fromhex(secret_hex))
     raw = json.dumps(signed, separators=(",", ":"), ensure_ascii=False).encode()
     return signed, raw
 
@@ -93,10 +110,29 @@ def main() -> int:
         action="store_true",
         help="Store payload as plaintext instead of AES-256-GCM encrypted.",
     )
+    parser.add_argument(
+        "--secret-hex",
+        default=None,
+        help="Sender HMAC secret hex (required for non-loopback destinations).",
+    )
+    parser.add_argument(
+        "--payload-key-b64",
+        default=None,
+        help="AES-256 payload key, base64 (required for non-loopback destinations).",
+    )
     args = parser.parse_args()
     encrypt = not args.plaintext
 
-    _signed, raw = build_signed_envelope(encrypt)
+    import base64
+
+    payload_key = base64.b64decode(args.payload_key_b64) if args.payload_key_b64 else None
+    secret_hex, payload_key = _resolve_credentials(
+        args.base_url, secret_hex=args.secret_hex, payload_key=payload_key
+    )
+
+    _signed, raw = build_signed_envelope(
+        encrypt, secret_hex=secret_hex, payload_key=payload_key
+    )
     parsed_url = urlparse(args.base_url.rstrip("/"))
     api_host = parsed_url.hostname or "localhost"
     api_port = parsed_url.port or (443 if parsed_url.scheme == "https" else 8787)

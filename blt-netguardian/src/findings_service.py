@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
 
-from auth import AuthError, resolve_org_auth
+from auth import AuthError, require_org_auth, resolve_org_auth
 from blt_api_client import BltApiError, create_bug_from_finding, is_blt_api_configured
 from d1_compat import row_get
 from findings_store import (
@@ -104,7 +104,13 @@ def parse_findings_query(params: Mapping[str, str]) -> tuple[Optional[FindingsQu
 
 
 def _auth_or_error(env: Any, headers: Mapping[str, str]):
+    """Read-path auth: may fall back to default org when AUTHENTICATE_READ_ENDPOINTS=false."""
     return resolve_org_auth(env, headers)
+
+
+def _mutation_auth_or_error(env: Any, headers: Mapping[str, str]):
+    """Write-path auth: always requires a valid Bearer token."""
+    return require_org_auth(env, headers)
 
 
 async def list_findings_for_request(
@@ -288,7 +294,7 @@ async def convert_to_issue_for_request(
     now: Optional[datetime] = None,
     fetch_impl: Any = None,
 ) -> FindingsListResult:
-    auth = _auth_or_error(env, headers)
+    auth = _mutation_auth_or_error(env, headers)
     if db is None:
         return FindingsListResult(
             status=503,
@@ -374,7 +380,7 @@ async def update_finding_for_request(
     new_id: Any = None,
     now: Optional[datetime] = None,
 ) -> FindingsListResult:
-    auth = _auth_or_error(env, headers)
+    auth = _mutation_auth_or_error(env, headers)
     if db is None:
         return FindingsListResult(
             status=503,
