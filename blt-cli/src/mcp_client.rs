@@ -24,7 +24,11 @@ impl McpSubprocessClient {
             cmd.arg(arg);
         }
 
-        let stderr_file = std::fs::File::create("mcp_error.log")?;
+        let home = dirs::home_dir().unwrap_or_default();
+        let config_dir = home.join(".blt-mcp");
+        let _ = std::fs::create_dir_all(&config_dir);
+        let log_path = config_dir.join("mcp_error.log");
+        let stderr_file = std::fs::OpenOptions::new().create(true).write(true).truncate(true).open(log_path)?;
 
         let mut child = cmd
             .stdin(Stdio::piped())

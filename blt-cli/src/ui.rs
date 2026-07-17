@@ -449,9 +449,9 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
         .constraints([Constraint::Length(4), Constraint::Min(2)])
         .split(row_1[0]);
 
-    let display_total_issues = std::cmp::max(app.stats.total_issues, app.issues.len() as u32);
-    let display_active_repos = std::cmp::max(app.stats.active_repos, app.hunts.len() as u32);
-    let display_contributors = if app.leaderboard.is_empty() { 0 } else { std::cmp::max(app.stats.total_contributors, app.leaderboard.len() as u32) };
+    let display_total_issues = app.stats.total_issues;
+    let display_active_repos = app.stats.active_repos;
+    let display_contributors = app.stats.total_contributors;
 
     let card_1_text = Paragraph::new(vec![
         Line::from(""),
@@ -635,9 +635,16 @@ fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
         
         health_text.push(Line::from(""));
         
-        if health.findings.is_empty() && health.scan_complete {
+        let all_success = health.trivy_status == crate::scanner::ToolStatus::Success
+            && health.semgrep_status == crate::scanner::ToolStatus::Success
+            && (health.bandit_status == crate::scanner::ToolStatus::Success || health.bandit_status == crate::scanner::ToolStatus::Skipped);
+
+        if health.findings.is_empty() && health.scan_complete && all_success {
             health_text.push(Line::from(Span::styled(" Host Security Health: PASS", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD))));
             health_text.push(Line::from("  No vulnerabilities or secrets detected."));
+        } else if health.findings.is_empty() && health.scan_complete {
+            health_text.push(Line::from(Span::styled(" Host Security Health: UNKNOWN", Style::default().fg(Color::DarkGray).add_modifier(Modifier::BOLD))));
+            health_text.push(Line::from("  Scan incomplete or missing scanners."));
         } else if !health.findings.is_empty() {
             health_text.push(Line::from(Span::styled(format!(" Host Security Health: WARNING ({} findings)", health.findings.len()), Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD))));
             for finding in health.findings.iter().take(10) {

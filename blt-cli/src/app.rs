@@ -131,9 +131,9 @@ impl App {
 
         let system_user = std::env::var("USER").or_else(|_| std::env::var("USERNAME")).unwrap_or_else(|_| "Local User".to_string());
         let auth_user = if run_mode == RunMode::Mcp {
-            format!("{} (MCP Mode)", system_user)
+            format!("Local System User: {} (MCP Mode)", system_user)
         } else {
-            format!("{} (REST)", system_user)
+            format!("Local System User: {} (REST)", system_user)
         };
 
         let status_message = match run_mode {
@@ -345,9 +345,10 @@ impl App {
             event_feed: &self.event_feed,
         };
         if let Ok(json) = serde_json::to_string(&data) {
-            tokio::spawn(async move {
-                let _ = tokio::fs::write("blt_session.json", json).await;
-            });
+            let temp_file = format!("blt_session_{}.json.tmp", std::process::id());
+            if std::fs::write(&temp_file, &json).is_ok() {
+                let _ = std::fs::rename(&temp_file, "blt_session.json");
+            }
         }
     }
 
@@ -422,6 +423,16 @@ mod tests {
     #[test]
     fn test_issue_selection() {
         let mut app = App::new(None, "".to_string());
+        app.issues = vec![
+            Issue {
+                id: "1".to_string(), repository: "repo".to_string(), title: "title".to_string(), description: "desc".to_string(),
+                status: "Open".to_string(), severity: "Low".to_string(), author: "author".to_string(), comments: vec![]
+            },
+            Issue {
+                id: "2".to_string(), repository: "repo".to_string(), title: "title2".to_string(), description: "desc2".to_string(),
+                status: "Open".to_string(), severity: "Low".to_string(), author: "author".to_string(), comments: vec![]
+            }
+        ];
         let initial_len = app.issues.len();
         
         if initial_len > 1 {
