@@ -249,11 +249,6 @@ async def v2_stats() -> str:
     logger.info("Fetching v2 stats")
     return await _fetch("/v2/stats", context="v2 stats")
 
-@mcp.resource("blt://v2/leaderboard")
-async def v2_leaderboard() -> str:
-    """Get BLT leaderboard."""
-    logger.info("Fetching v2 leaderboard")
-    return await _fetch("/v2/leaderboard", context="v2 leaderboard")
 
 @mcp.resource("blt://v2/contributors")
 async def v2_list_contributors() -> str:

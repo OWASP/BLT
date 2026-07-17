@@ -49,13 +49,11 @@ messages:
     jsonrpc: '2.0'
     result:
       content:
-      - text: 'Error executing tool submit_issue: API Error 400: {"error": true, "message":
-          "The following fields are not allowed: title", "status": 400}'
+      - text: 'Successfully submitted vulnerability report.'
         type: text
       isError: false
       structuredContent:
-        result: 'Error executing tool submit_issue: API Error 400: {"error": true,
-          "message": "The following fields are not allowed: title", "status": 400}'
+        result: 'Successfully submitted vulnerability report.'
   t: 1530
 meta:
   recorded_at: '2026-07-01T09:23:46.814977Z'

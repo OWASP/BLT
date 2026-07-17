@@ -11,7 +11,7 @@ def get_credentials_path() -> Path:
     # Use ~/.blt-mcp/credentials.json
     home = Path.home()
     config_dir = home / ".blt-mcp"
-    config_dir.mkdir(parents=True, exist_ok=True)
+    config_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
     return config_dir / "credentials.json"
 
 def save_credentials(api_key: str) -> None:
@@ -19,8 +19,14 @@ def save_credentials(api_key: str) -> None:
     creds_path = get_credentials_path()
     try:
         # Save securely with read/write only for owner
-        creds_path.write_text(json.dumps({"BLT_API_KEY": api_key}), encoding='utf-8')
-        os.chmod(creds_path, 0o600)
+        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+        if hasattr(os, 'O_NOFOLLOW'):
+            flags |= getattr(os, 'O_NOFOLLOW')
+            
+        fd = os.open(creds_path, flags, 0o600)
+        with open(fd, 'w', encoding='utf-8') as f:
+            f.write(json.dumps({"BLT_API_KEY": api_key}))
+            
         logger.info(f"Credentials saved to {creds_path}")
     except Exception as e:
         logger.error(f"Failed to save credentials: {e}")

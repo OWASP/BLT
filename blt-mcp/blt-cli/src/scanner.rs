@@ -112,6 +112,13 @@ async fn run_trivy() -> (ToolStatus, Vec<String>) {
                     findings.push(format!("[Trivy] {} ({}) in {}", title, severity, target));
                 }
             }
+            if let Some(misconfigs) = result.get("Misconfigurations").and_then(|m| m.as_array()) {
+                for misconfig in misconfigs {
+                    let id = misconfig.get("ID").and_then(|i| i.as_str()).unwrap_or("Unknown");
+                    let severity = misconfig.get("Severity").and_then(|s| s.as_str()).unwrap_or("UNKNOWN");
+                    findings.push(format!("[Trivy] {} ({}) in {}", id, severity, target));
+                }
+            }
         }
     }
 

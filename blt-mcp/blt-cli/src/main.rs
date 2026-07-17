@@ -60,8 +60,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     if let Some(content) = contents.first() {
                                         if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
                                             if let Ok(root) = serde_json::from_str::<serde_json::Value>(text) {
-                                                app.issues = crate::api::parse_issues_from_json(&root);
-                                                issues_loaded = true;
+                                                if let Ok(issues) = crate::api::parse_issues_from_json(&root) {
+                                                    app.issues = issues;
+                                                    issues_loaded = true;
+                                                }
                                             }
                                         }
                                     }
@@ -73,8 +75,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     if let Some(content) = contents.first() {
                                         if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
                                             if let Ok(root) = serde_json::from_str::<serde_json::Value>(text) {
-                                                app.repos = crate::api::parse_repos_from_json(&root);
-                                                repos_loaded = true;
+                                                if let Ok(repos) = crate::api::parse_repos_from_json(&root) {
+                                                    app.repos = repos;
+                                                    repos_loaded = true;
+                                                }
                                             }
                                         }
                                     }

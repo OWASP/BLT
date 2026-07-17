@@ -112,7 +112,6 @@ async def submit_issue(
     
     payload = {
         "url": url,
-        "title": title,
         "description": description,
     }
     if severity:
@@ -121,6 +120,10 @@ async def submit_issue(
         payload["bug_type"] = bug_type
     if steps_to_reproduce:
         payload["steps_to_reproduce"] = steps_to_reproduce
+    if labels:
+        payload["labels"] = labels
+    if assignee:
+        payload["assignee"] = assignee
 
     headers = {
         "X-AI-Generated": "true",
@@ -140,8 +143,10 @@ async def submit_issue(
     except httpx.HTTPStatusError as e:
         error_msg = f"API Error {e.response.status_code}: {e.response.text}"
         logger.error(error_msg)
-        return f"Error executing tool submit_issue: {error_msg}"
+        raise RuntimeError(f"Error executing tool submit_issue: {error_msg}") from e
     except Exception as e:
+        if isinstance(e, RuntimeError):
+            raise
         logger.error(f"Failed to submit issue: {e}")
         raise RuntimeError(f"Failed to submit issue: {e}") from e
 
@@ -211,8 +216,8 @@ async def triage_vulnerability(prompt: str) -> str:
     api_token = os.getenv("CF_API_TOKEN")
     
     if not account_id or not api_token:
-        return (
-            "ERROR: Missing Cloudflare credentials.\n\n"
+        raise ValueError(
+            "Missing Cloudflare credentials.\n\n"
             "Please add `CF_ACCOUNT_ID` and `CF_API_TOKEN` to your `BLT-MCP/.env` file "
             "to enable AI Triage using Cloudflare Workers AI."
         )
@@ -244,16 +249,18 @@ async def triage_vulnerability(prompt: str) -> str:
             response = await client.post(url, headers=headers, json=payload, timeout=30.0)
             if response.status_code != 200:
                 logger.error(f"Cloudflare AI Error: {response.text}")
-                return f"ERROR: Cloudflare API returned status {response.status_code}"
+                raise RuntimeError(f"Cloudflare API returned status {response.status_code}")
                 
             result = response.json()
             if result.get("success"):
                 return result["result"]["response"]
             else:
-                return f"ERROR: Cloudflare AI returned an error: {result.get('errors')}"
+                raise RuntimeError(f"Cloudflare AI returned an error: {result.get('errors')}")
     except Exception as e:
+        if isinstance(e, (ValueError, RuntimeError)):
+            raise
         logger.error(f"Exception calling CF AI: {str(e)}")
-        return f"ERROR: Failed to call Cloudflare AI: {str(e)}"
+        raise RuntimeError(f"Failed to call Cloudflare AI: {str(e)}") from e
 
 @mcp.tool()
 async def draft_vision_issue(image_path: str, gitlab_project_id: Optional[str] = None) -> str:
@@ -268,23 +275,45 @@ async def draft_vision_issue(image_path: str, gitlab_project_id: Optional[str] =
     import httpx
     import os
     import json
+    from pathlib import Path
     
-    if not os.path.exists(image_path):
-        return f"ERROR: Image file not found at {image_path}"
+    allowed_dir = Path.home() / ".blt-mcp" / "images"
+    allowed_dir.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        resolved_path = Path(image_path).resolve()
+        if not resolved_path.is_relative_to(allowed_dir):
+            raise ValueError(f"Image path must be within the server-owned directory: {allowed_dir}")
+    except AttributeError:
+        # Fallback for Python versions without is_relative_to
+        try:
+            resolved_path.relative_to(allowed_dir)
+        except ValueError:
+            raise ValueError(f"Image path must be within the server-owned directory: {allowed_dir}")
+
+    if not resolved_path.exists() or not resolved_path.is_file():
+        raise ValueError(f"Image file not found at {image_path}")
+
+    allowed_exts = {'.png', '.jpg', '.jpeg', '.gif', '.webp'}
+    if resolved_path.suffix.lower() not in allowed_exts:
+        raise ValueError("Invalid image type. Allowed: png, jpg, jpeg, gif, webp")
+
+    if resolved_path.stat().st_size > 10 * 1024 * 1024:
+        raise ValueError("Image file exceeds maximum size of 10MB")
         
     account_id = os.getenv("CF_ACCOUNT_ID")
     api_token = os.getenv("CF_API_TOKEN")
     
     if not account_id or not api_token:
-        return "ERROR: Missing Cloudflare credentials (CF_ACCOUNT_ID and CF_API_TOKEN in .env)."
+        raise ValueError("Missing Cloudflare credentials (CF_ACCOUNT_ID and CF_API_TOKEN in .env).")
 
     logger.info(f"Drafting issue from image: {image_path}")
     
     try:
-        with open(image_path, "rb") as f:
+        with open(resolved_path, "rb") as f:
             image_bytes = f.read()
     except Exception as e:
-        return f"ERROR: Failed to read image file: {str(e)}"
+        raise RuntimeError(f"Failed to read image file: {str(e)}") from e
 
     # Cloudflare expects the image as an array of integers
     image_array = list(image_bytes)
@@ -313,16 +342,18 @@ async def draft_vision_issue(image_path: str, gitlab_project_id: Optional[str] =
             response = await client.post(url, headers=headers, json=payload, timeout=60.0)
             if response.status_code != 200:
                 logger.error(f"Cloudflare AI Error: {response.text}")
-                return f"ERROR: Cloudflare API returned status {response.status_code}"
+                raise RuntimeError(f"Cloudflare API returned status {response.status_code}")
                 
             result = response.json()
             if result.get("success"):
                 analysis_text = result["result"]["description"] if "description" in result["result"] else result.get("result", {}).get("response", str(result.get("result")))
             else:
-                return f"ERROR: Cloudflare AI returned an error: {result.get('errors')}"
+                raise RuntimeError(f"Cloudflare AI returned an error: {result.get('errors')}")
     except Exception as e:
+        if isinstance(e, (ValueError, RuntimeError)):
+            raise
         logger.error(f"Exception calling CF Vision AI: {str(e)}")
-        return f"ERROR: Failed to call Cloudflare Vision AI: {str(e)}"
+        raise RuntimeError(f"Failed to call Cloudflare Vision AI: {str(e)}") from e
         
     # Optional GitLab Upload phase
     image_markdown = ""

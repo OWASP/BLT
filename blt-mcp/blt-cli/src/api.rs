@@ -3,7 +3,9 @@ use crate::models::{self, Issue, Repo, Hunt, Stats};
 
 pub fn get_api_key() -> Option<String> {
     if let Ok(api_key) = std::env::var("BLT_API_KEY") {
-        return Some(api_key);
+        if !api_key.trim().is_empty() {
+            return Some(api_key);
+        }
     }
     
     // Fallback to local credentials.json
@@ -20,7 +22,7 @@ pub fn get_api_key() -> Option<String> {
     None
 }
 
-pub fn parse_issues_from_json(root: &serde_json::Value) -> Vec<Issue> {
+pub fn parse_issues_from_json(root: &serde_json::Value) -> Result<Vec<Issue>, String> {
     let raw_arr = if let Some(data) = root.get("data") {
         data.as_array()
     } else if let Some(bugs) = root.get("bugs") {
@@ -30,7 +32,7 @@ pub fn parse_issues_from_json(root: &serde_json::Value) -> Vec<Issue> {
     };
 
     let Some(arr) = raw_arr else {
-        return Vec::new();
+        return Err("Payload is not an array".to_string());
     };
 
     let mut issues = Vec::new();
@@ -110,7 +112,7 @@ pub fn parse_issues_from_json(root: &serde_json::Value) -> Vec<Issue> {
         });
     }
 
-    issues
+    Ok(issues)
 }
 
 pub async fn get_issues(api_base: &str) -> Result<Vec<Issue>, Box<dyn std::error::Error>> {
@@ -125,15 +127,12 @@ pub async fn get_issues(api_base: &str) -> Result<Vec<Issue>, Box<dyn std::error
     let resp = req.send().await?.error_for_status()?;
     let root = resp.json::<serde_json::Value>().await?;
     
-    let issues = parse_issues_from_json(&root);
-    if issues.is_empty() {
-        return Err("API response issues data was not an array or was empty".into());
-    }
+    let issues = parse_issues_from_json(&root).map_err(|e| Box::<dyn std::error::Error>::from(e))?;
 
     Ok(issues)
 }
 
-pub fn parse_repos_from_json(root: &serde_json::Value) -> Vec<Repo> {
+pub fn parse_repos_from_json(root: &serde_json::Value) -> Result<Vec<Repo>, String> {
     let raw_arr = if let Some(data) = root.get("data") {
         data.as_array()
     } else {
@@ -141,7 +140,7 @@ pub fn parse_repos_from_json(root: &serde_json::Value) -> Vec<Repo> {
     };
 
     let Some(arr) = raw_arr else {
-        return Vec::new();
+        return Err("Payload is not an array".to_string());
     };
 
     let mut repos = Vec::new();
@@ -189,7 +188,7 @@ pub fn parse_repos_from_json(root: &serde_json::Value) -> Vec<Repo> {
         });
     }
 
-    repos
+    Ok(repos)
 }
 
 pub async fn get_repos(api_base: &str) -> Result<Vec<Repo>, Box<dyn std::error::Error>> {
@@ -204,7 +203,7 @@ pub async fn get_repos(api_base: &str) -> Result<Vec<Repo>, Box<dyn std::error::
     let resp = req.send().await?.error_for_status()?;
     let root = resp.json::<serde_json::Value>().await?;
 
-    let repos = parse_repos_from_json(&root);
+    let repos = parse_repos_from_json(&root).map_err(|e| Box::<dyn std::error::Error>::from(e))?;
 
     Ok(repos)
 }
@@ -311,12 +310,12 @@ pub async fn get_stats(api_base: &str) -> Result<Stats, Box<dyn std::error::Erro
     Ok(parse_stats_from_json(&root))
 }
 
-pub async fn submit_issue_triage(api_base: &str, issue_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn submit_issue_triage(api_base: &str, issue_id: &str, target_status: &str) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/bugs/{}", api_base, issue_id);
     
     let mut payload = std::collections::HashMap::new();
-    payload.insert("status", "In Review");
+    payload.insert("status", target_status);
 
     let mut req = client.patch(&url).json(&payload);
     if let Some(api_key) = get_api_key() {
@@ -361,20 +360,25 @@ pub async fn submit_issue(api_base: &str, url: &str, title: &str, severity: &str
         if screenshot_path.starts_with("http") {
             payload.insert("screenshot".to_string(), screenshot_path.to_string());
         } else {
-            // Read local file and base64 encode
-            if let Ok(bytes) = std::fs::read(screenshot_path) {
-                use base64::{Engine as _, engine::general_purpose::STANDARD};
-                let b64 = STANDARD.encode(&bytes);
-                let mime = if screenshot_path.to_lowercase().ends_with(".png") {
-                    "image/png"
-                } else if screenshot_path.to_lowercase().ends_with(".gif") {
-                    "image/gif"
-                } else {
-                    "image/jpeg"
-                };
-                let data_url = format!("data:{};base64,{}", mime, b64);
-                payload.insert("screenshot".to_string(), data_url);
+            let meta = tokio::fs::metadata(screenshot_path).await?;
+            if meta.len() > 10 * 1024 * 1024 {
+                return Err("Screenshot exceeds 10MB limit".into());
             }
+            // Read local file and base64 encode
+            let bytes = tokio::fs::read(screenshot_path).await?;
+            use base64::{Engine as _, engine::general_purpose::STANDARD};
+            let b64 = STANDARD.encode(&bytes);
+            let mime = if screenshot_path.to_lowercase().ends_with(".png") {
+                "image/png"
+            } else if screenshot_path.to_lowercase().ends_with(".gif") {
+                "image/gif"
+            } else if screenshot_path.to_lowercase().ends_with(".jpg") || screenshot_path.to_lowercase().ends_with(".jpeg") {
+                "image/jpeg"
+            } else {
+                return Err("Unsupported screenshot MIME type".into());
+            };
+            let data_url = format!("data:{};base64,{}", mime, b64);
+            payload.insert("screenshot".to_string(), data_url);
         }
     }
 

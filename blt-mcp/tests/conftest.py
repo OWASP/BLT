@@ -25,6 +25,7 @@ def pytest_sessionfinish(session, exitstatus):
             result = subprocess.run(cmd, capture_output=True, text=True)
             print(result.stdout)
             if result.returncode != 0:
-                print(f"WARNING: Golden snapshots verification failed:\n{result.stderr}", file=sys.stderr)
+                print(f"ERROR: Golden snapshots verification failed:\n{result.stderr}", file=sys.stderr)
+                session.exitstatus = result.returncode
         else:
             print("\n=== No Golden Snapshots found. Run `mcp-vcr record` to create some! ===")
