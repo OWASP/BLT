@@ -86,14 +86,17 @@ describe('simulation progress storage', () => {
       throw new Error('quota exceeded');
     });
 
-    expect(() => helpers.setSimulationProgress(SQLI_LAB_ID, 2, {
-      completed: true
-    })).not.toThrow();
-    expect(helpers.setSimulationProgress(SQLI_LAB_ID, 2, {
-      completed: true
-    })).toBe(false);
-
-    setItem.mockRestore();
+    try {
+      let result;
+      expect(() => {
+        result = helpers.setSimulationProgress(SQLI_LAB_ID, 2, {
+          completed: true
+        });
+      }).not.toThrow();
+      expect(result).toBe(false);
+    } finally {
+      setItem.mockRestore();
+    }
   });
 
   it('restores a completed simulation without dropping other labs from storage', () => {
