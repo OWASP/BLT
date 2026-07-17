@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::models::{Issue, Repo, Hunt, Stats};
+use crate::models::{Hunt, Issue, Repo, Stats};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Tab {
@@ -76,12 +76,29 @@ pub enum ActiveOverlay {
 }
 
 pub enum AppEvent {
-    TriageConfirmed { issue_id: String, success: bool, message: String, target_status: String },
-    SubmitResult { success: bool, message: String },
-    IssuesRefreshed { issues: Vec<crate::models::Issue>, total: u32 },
-    VisionDraftComplete { result: String },
-    AiTriageResult { message: String },
-    ScanComplete { health: crate::scanner::SecurityHealth },
+    TriageConfirmed {
+        issue_id: String,
+        success: bool,
+        message: String,
+        target_status: String,
+    },
+    SubmitResult {
+        success: bool,
+        message: String,
+    },
+    IssuesRefreshed {
+        issues: Vec<crate::models::Issue>,
+        total: u32,
+    },
+    VisionDraftComplete {
+        result: String,
+    },
+    AiTriageResult {
+        message: String,
+    },
+    ScanComplete {
+        health: crate::scanner::SecurityHealth,
+    },
 }
 
 pub struct App {
@@ -112,7 +129,8 @@ pub struct App {
     pub status_message: String,
     pub auth_user: String,
     pub is_live: bool,
-    pub mcp_client: Option<std::sync::Arc<tokio::sync::Mutex<crate::mcp_client::McpSubprocessClient>>>,
+    pub mcp_client:
+        Option<std::sync::Arc<tokio::sync::Mutex<crate::mcp_client::McpSubprocessClient>>>,
     pub security_health: Option<crate::scanner::SecurityHealth>,
     pub command_input: String,
     pub konami_index: usize,
@@ -129,7 +147,9 @@ impl App {
             RunMode::Live
         };
 
-        let system_user = std::env::var("USER").or_else(|_| std::env::var("USERNAME")).unwrap_or_else(|_| "Local User".to_string());
+        let system_user = std::env::var("USER")
+            .or_else(|_| std::env::var("USERNAME"))
+            .unwrap_or_else(|_| "Local User".to_string());
         let auth_user = if run_mode == RunMode::Mcp {
             format!("Local System User: {} (MCP Mode)", system_user)
         } else {
@@ -137,7 +157,9 @@ impl App {
         };
 
         let status_message = match run_mode {
-            RunMode::Mcp => "Initialized CLI in MCP Host Mode. Spawning subprocess server...".to_string(),
+            RunMode::Mcp => {
+                "Initialized CLI in MCP Host Mode. Spawning subprocess server...".to_string()
+            }
             RunMode::Live => format!("Connected directly to BLT API at {}", api_base),
         };
 
@@ -146,7 +168,12 @@ impl App {
             issues: Vec::new(),
             repos: Vec::new(),
             hunts: Vec::new(),
-            stats: Stats { total_issues: 0, active_repos: 0, total_contributors: 0, bacon_points: 0 },
+            stats: Stats {
+                total_issues: 0,
+                active_repos: 0,
+                total_contributors: 0,
+                bacon_points: 0,
+            },
             leaderboard: Vec::new(),
             good_first_issues: Vec::new(),
             selected_issue_index: 0,
@@ -173,7 +200,8 @@ impl App {
             security_health: None,
             command_input: String::new(),
             konami_index: 0,
-            agent_status_data: "Agent Status: Idle\nConnected: false\nUptime: 0m\nMemory: 0MB".to_string(),
+            agent_status_data: "Agent Status: Idle\nConnected: false\nUptime: 0m\nMemory: 0MB"
+                .to_string(),
             prompt_preview_data: "Loading prompt preview...".to_string(),
         };
         app.load_session();
@@ -257,7 +285,8 @@ impl App {
     }
 
     pub fn toggle_help(&mut self) {
-        if self.active_overlay != ActiveOverlay::None && self.active_overlay != ActiveOverlay::Help {
+        if self.active_overlay != ActiveOverlay::None && self.active_overlay != ActiveOverlay::Help
+        {
             return;
         }
         if self.active_overlay == ActiveOverlay::Help {
@@ -268,7 +297,9 @@ impl App {
     }
 
     pub fn toggle_agent_status(&mut self) {
-        if self.active_overlay != ActiveOverlay::None && self.active_overlay != ActiveOverlay::AgentStatus {
+        if self.active_overlay != ActiveOverlay::None
+            && self.active_overlay != ActiveOverlay::AgentStatus
+        {
             return;
         }
         if self.active_overlay == ActiveOverlay::AgentStatus {
@@ -279,14 +310,17 @@ impl App {
     }
 
     pub fn toggle_prompt_preview(&mut self) {
-        if self.active_overlay != ActiveOverlay::None && self.active_overlay != ActiveOverlay::PromptPreview {
+        if self.active_overlay != ActiveOverlay::None
+            && self.active_overlay != ActiveOverlay::PromptPreview
+        {
             return;
         }
         if self.active_overlay == ActiveOverlay::PromptPreview {
             self.active_overlay = ActiveOverlay::None;
         } else {
             self.active_overlay = ActiveOverlay::PromptPreview;
-            self.prompt_preview_data = "AI Prompt Preview will appear here once connected.".to_string();
+            self.prompt_preview_data =
+                "AI Prompt Preview will appear here once connected.".to_string();
         }
     }
 
@@ -298,7 +332,7 @@ impl App {
         if self.active_tab != Tab::Issues || self.issues.is_empty() {
             return;
         }
-        
+
         let issue = &self.issues[self.selected_issue_index];
         if issue.status == "In Review" {
             self.status_message = "Notice: Issue is already 'In Review'.".to_string();
@@ -313,24 +347,41 @@ impl App {
             return;
         }
         self.active_overlay = ActiveOverlay::None;
-        
+
         let issue = &self.issues[self.selected_issue_index];
         let issue_id = issue.id.clone();
         let api_base = self.api_base.clone();
         let sender = self.event_sender.clone();
         let target_status = self.triage_target_status.clone();
-        
+
         self.status_message = format!("Triaging Issue #{}...", issue_id);
 
         tokio::spawn(async move {
-            let res = crate::api::submit_issue_triage(&api_base, &issue_id).await;
+            let res = crate::api::submit_issue_triage(&api_base, &issue_id, &target_status).await;
 
             let (success, message) = match res {
-                Ok(_) => (true, format!("SUCCESS: Triage for Issue #{} was submitted successfully.", issue_id)),
-                Err(e) => (false, format!("ERROR: Failed to submit triage for Issue #{}: {}", issue_id, e)),
+                Ok(_) => (
+                    true,
+                    format!(
+                        "SUCCESS: Triage for Issue #{} was submitted successfully.",
+                        issue_id
+                    ),
+                ),
+                Err(e) => (
+                    false,
+                    format!(
+                        "ERROR: Failed to submit triage for Issue #{}: {}",
+                        issue_id, e
+                    ),
+                ),
             };
 
-            let _ = sender.send(AppEvent::TriageConfirmed { issue_id, success, message, target_status });
+            let _ = sender.send(AppEvent::TriageConfirmed {
+                issue_id,
+                success,
+                message,
+                target_status,
+            });
         });
     }
 
@@ -380,7 +431,7 @@ impl App {
         }
         let _ = std::fs::write("blt_export.log", out);
     }
-    
+
     pub fn reset_data(&mut self) {
         self.issues.clear();
     }
@@ -425,16 +476,28 @@ mod tests {
         let mut app = App::new(None, "".to_string());
         app.issues = vec![
             Issue {
-                id: "1".to_string(), repository: "repo".to_string(), title: "title".to_string(), description: "desc".to_string(),
-                status: "Open".to_string(), severity: "Low".to_string(), author: "author".to_string(), comments: vec![]
+                id: "1".to_string(),
+                repository: "repo".to_string(),
+                title: "title".to_string(),
+                description: "desc".to_string(),
+                status: "Open".to_string(),
+                severity: "Low".to_string(),
+                author: "author".to_string(),
+                comments: vec![],
             },
             Issue {
-                id: "2".to_string(), repository: "repo".to_string(), title: "title2".to_string(), description: "desc2".to_string(),
-                status: "Open".to_string(), severity: "Low".to_string(), author: "author".to_string(), comments: vec![]
-            }
+                id: "2".to_string(),
+                repository: "repo".to_string(),
+                title: "title2".to_string(),
+                description: "desc2".to_string(),
+                status: "Open".to_string(),
+                severity: "Low".to_string(),
+                author: "author".to_string(),
+                comments: vec![],
+            },
         ];
         let initial_len = app.issues.len();
-        
+
         if initial_len > 1 {
             assert_eq!(app.selected_issue_index, 0);
             app.scroll_down();

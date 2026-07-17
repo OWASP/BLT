@@ -21,7 +21,7 @@ messages:
         confirmed: true
         description: Found a SQL injection in the login endpoint.
         title: SQL Injection in login endpoint
-        url: blt://v2/bugs
+        url: https://example.com
       name: submit_issue
   t: 10
 - dir: s2c
@@ -49,11 +49,11 @@ messages:
     jsonrpc: '2.0'
     result:
       content:
-      - text: 'Successfully submitted vulnerability report.'
+      - text: 'Successfully submitted issue for https://example.com (ID: Unknown)'
         type: text
       isError: false
       structuredContent:
-        result: 'Successfully submitted vulnerability report.'
+        result: 'Successfully submitted issue for https://example.com (ID: Unknown)'
   t: 1530
 meta:
   recorded_at: '2026-07-01T09:23:46.814977Z'

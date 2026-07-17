@@ -1,9 +1,17 @@
 use serde::{Deserialize, Serialize};
 
-fn default_repo() -> String { "owasp-blt/api".to_string() }
-fn default_status() -> String { "Triage".to_string() }
-fn default_severity() -> String { "Medium".to_string() }
-fn default_author() -> String { "Community".to_string() }
+fn default_repo() -> String {
+    "owasp-blt/api".to_string()
+}
+fn default_status() -> String {
+    "Triage".to_string()
+}
+fn default_severity() -> String {
+    "Medium".to_string()
+}
+fn default_author() -> String {
+    "Community".to_string()
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Issue {
@@ -67,4 +75,3 @@ pub struct GoodFirstIssue {
     pub description: String,
     pub bacon_estimate: u32,
 }
-

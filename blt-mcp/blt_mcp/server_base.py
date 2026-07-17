@@ -1,4 +1,3 @@
-
 import os
 import sys
 import logging
@@ -9,7 +8,9 @@ from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
 # Load environment variables from .env file relative to this file's directory
-env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+env_path = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"
+)
 if os.path.exists(env_path):
     load_dotenv(dotenv_path=env_path)
 else:
@@ -18,8 +19,8 @@ else:
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stderr
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    stream=sys.stderr,
 )
 logger = logging.getLogger("blt-mcp")
 
@@ -30,6 +31,7 @@ BLT_API_KEY = os.getenv("BLT_API_KEY")
 if not BLT_API_KEY:
     try:
         from blt_mcp.auth import load_credentials
+
         BLT_API_KEY = load_credentials()
         if BLT_API_KEY:
             logger.info("Loaded BLT_API_KEY from local credentials file.")
@@ -38,7 +40,6 @@ if not BLT_API_KEY:
 
 if not BLT_API_KEY:
     logger.info("BLT_API_KEY not found in environment or credentials.")
-
 
 
 # Shared HTTPX client
@@ -53,7 +54,7 @@ async def server_lifespan(server: FastMCP):
         base_url=BLT_API_BASE,
         headers={"X-BLT-API-Key": BLT_API_KEY} if BLT_API_KEY else {},
         timeout=30.0,
-        follow_redirects=True
+        follow_redirects=True,
     )
     try:
         yield
@@ -62,12 +63,10 @@ async def server_lifespan(server: FastMCP):
         if http_client:
             await http_client.aclose()
 
+
 # Initialize FastMCP server
-mcp = FastMCP(
-    "blt-mcp",
-    dependencies=["click", "mcp"],
-    lifespan=server_lifespan
-)
+mcp = FastMCP("blt-mcp", dependencies=["click", "mcp"], lifespan=server_lifespan)
+
 
 async def _fetch(path: str, context: Optional[str] = None) -> str:
     try:

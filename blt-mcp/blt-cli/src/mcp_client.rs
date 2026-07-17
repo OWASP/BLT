@@ -1,8 +1,8 @@
 #![allow(dead_code)]
+use serde_json::json;
 use std::process::Stdio;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, ChildStdin, ChildStdout, Command};
-use serde_json::json;
 
 pub struct McpSubprocessClient {
     _child: Child,
@@ -28,7 +28,11 @@ impl McpSubprocessClient {
         let config_dir = home.join(".blt-mcp");
         let _ = std::fs::create_dir_all(&config_dir);
         let log_path = config_dir.join("mcp_error.log");
-        let stderr_file = std::fs::OpenOptions::new().create(true).write(true).truncate(true).open(log_path)?;
+        let stderr_file = std::fs::OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(log_path)?;
 
         let mut child = cmd
             .stdin(Stdio::piped())
@@ -68,7 +72,7 @@ impl McpSubprocessClient {
 
         self.send_request(&payload).await?;
         let resp = self.read_response(id).await?;
-        
+
         // Let the server know we are initialized per MCP lifecycle
         let init_notif = json!({
             "jsonrpc": "2.0",
@@ -80,7 +84,10 @@ impl McpSubprocessClient {
     }
 
     /// Read an MCP resource via its URI scheme.
-    pub async fn read_resource(&mut self, uri: &str) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    pub async fn read_resource(
+        &mut self,
+        uri: &str,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         let id = self.next_id();
         let payload = json!({
             "jsonrpc": "2.0",
@@ -96,7 +103,11 @@ impl McpSubprocessClient {
     }
 
     /// Call an MCP tool.
-    pub async fn call_tool(&mut self, name: &str, arguments: serde_json::Value) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    pub async fn call_tool(
+        &mut self,
+        name: &str,
+        arguments: serde_json::Value,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         let id = self.next_id();
         let payload = json!({
             "jsonrpc": "2.0",
@@ -117,7 +128,10 @@ impl McpSubprocessClient {
         self.request_id
     }
 
-    async fn send_request(&mut self, request: &serde_json::Value) -> Result<(), Box<dyn std::error::Error>> {
+    async fn send_request(
+        &mut self,
+        request: &serde_json::Value,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut line = serde_json::to_string(request)?;
         line.push('\n');
         self.stdin.write_all(line.as_bytes()).await?;
@@ -125,28 +139,37 @@ impl McpSubprocessClient {
         Ok(())
     }
 
-    async fn read_response(&mut self, expected_id: i64) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    async fn read_response(
+        &mut self,
+        expected_id: i64,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         let mut line = String::new();
         loop {
             line.clear();
             let read_fut = self.stdout_reader.read_line(&mut line);
-            let bytes_read = match tokio::time::timeout(std::time::Duration::from_secs(10), read_fut).await {
-                Ok(Ok(n)) => n,
-                Ok(Err(e)) => return Err(e.into()),
-                Err(_) => return Err("MCP Subprocess read timeout".into()),
-            };
-            
+            let bytes_read =
+                match tokio::time::timeout(std::time::Duration::from_secs(10), read_fut).await {
+                    Ok(Ok(n)) => n,
+                    Ok(Err(e)) => return Err(e.into()),
+                    Err(_) => return Err("MCP Subprocess read timeout".into()),
+                };
+
             if bytes_read == 0 {
-                return Err("EOF reached on subprocess stdout pipe before receiving response".into());
+                return Err(
+                    "EOF reached on subprocess stdout pipe before receiving response".into(),
+                );
             }
 
             let response: serde_json::Value = serde_json::from_str(&line)?;
-            
+
             // Filters out notifications (which don't have id field)
             if let Some(id) = response.get("id") {
                 if id.as_i64() == Some(expected_id) {
                     if let Some(error) = response.get("error") {
-                        let msg = error.get("message").and_then(|m| m.as_str()).unwrap_or("Unknown MCP JSON-RPC error");
+                        let msg = error
+                            .get("message")
+                            .and_then(|m| m.as_str())
+                            .unwrap_or("Unknown MCP JSON-RPC error");
                         return Err(format!("MCP Error: {}", msg).into());
                     }
                     return Ok(response);

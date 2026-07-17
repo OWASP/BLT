@@ -45,13 +45,18 @@ messages:
     result:
       contents:
       - mimeType: text/plain
-        text: '{"success": true, "data": [{"id": 1, "url": "https://example.com",
+        text: '{"success": true, "data": [{"id": 2, "url": "https://example.com",
+          "description": "Found a SQL injection in the login endpoint.", "status":
+          "open", "verified": 0, "score": null, "views": 0, "created": "2026-07-17
+          18:52:20", "modified": "2026-07-17 18:52:20", "is_hidden": 0, "rewarded":
+          0, "cve_id": null, "cve_score": null, "domain": null, "domain_name": null,
+          "domain_url": null}, {"id": 1, "url": "https://example.com",
           "description": "*Submitted by AI Agent via BLT-MCP*\n\nTesting", "status":
           "open", "verified": 0, "score": null, "views": 0, "created": "2026-07-01
           10:33:58", "modified": "2026-07-01 10:33:58", "is_hidden": 0, "rewarded":
           0, "cve_id": null, "cve_score": null, "domain": null, "domain_name": null,
           "domain_url": null}], "pagination": {"page": 1, "per_page": 20, "count":
-          1, "total": 1, "total_pages": 1}}'
+          2, "total": 2, "total_pages": 1}}'
         uri: blt://v2/bugs
   t: 1360
 meta:
