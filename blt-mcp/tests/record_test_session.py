@@ -1,13 +1,43 @@
 import subprocess
 import json
+import shutil
 import sys
 import os
 
 
+MAX_RESPONSE_LINES = 200
+
+
+def _read_response(stdout, expected_id):
+    """Read lines from stdout until a JSON-RPC response with the expected id is found.
+
+    Reads at most MAX_RESPONSE_LINES to avoid hanging on misbehaving servers.
+    """
+    for _ in range(MAX_RESPONSE_LINES):
+        line = stdout.readline()
+        if not line:
+            break
+        try:
+            resp = json.loads(line)
+            if resp.get("id") == expected_id:
+                return resp
+        except json.JSONDecodeError:
+            continue
+    return None
+
+
 def record_session():
     """Run an MCP client interaction through mcp-vcr to record a session."""
+    vcr_exe = shutil.which("mcp-vcr")
+    if vcr_exe is None:
+        print(
+            "ERROR: mcp-vcr not found on PATH. Install it or activate the venv.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     cmd = [
-        r".venv\Scripts\mcp-vcr.exe",
+        vcr_exe,
         "record",
         "--name",
         "issues_list",
@@ -43,14 +73,10 @@ def record_session():
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
 
-        # Read until we get the init response
-        for line in process.stdout:
-            try:
-                resp = json.loads(line)
-                if resp.get("id") == 1:
-                    break
-            except:
-                pass
+        resp = _read_response(process.stdout, 1)
+        if resp is None:
+            print("ERROR: No init response received.", file=sys.stderr)
+            sys.exit(1)
 
         # 2. Call resources/list
         list_request = {
@@ -62,14 +88,10 @@ def record_session():
         process.stdin.write(json.dumps(list_request) + "\n")
         process.stdin.flush()
 
-        # Read until list response
-        for line in process.stdout:
-            try:
-                resp = json.loads(line)
-                if resp.get("id") == 2:
-                    break
-            except:
-                pass
+        resp = _read_response(process.stdout, 2)
+        if resp is None:
+            print("ERROR: No list response received.", file=sys.stderr)
+            sys.exit(1)
 
         print("Session recorded successfully. Check the sessions/ directory.")
 

@@ -273,8 +273,8 @@ def test_tool_schemas():
             process.wait()
 
 
-def test_tool_validation_errors():
-    """Test that malformed/invalid inputs are rejected with clear JSON-RPC errors."""
+def _init_server_process():
+    """Helper to start the MCP server subprocess and initialize it."""
     cmd = [sys.executable, "-m", "blt_mcp.server"]
     env = os.environ.copy()
 
@@ -287,27 +287,26 @@ def test_tool_validation_errors():
         env=env,
     )
 
-    try:
-        # 1. Initialize
-        process.stdin.write(
-            json.dumps(
-                {
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "method": "initialize",
-                    "params": {
-                        "protocolVersion": "2024-11-05",
-                        "capabilities": {},
-                        "clientInfo": {"name": "test", "version": "1"},
-                    },
-                }
-            )
-            + "\n"
-        )
-        process.stdin.flush()
-        read_jsonrpc_response(process, 1)
+    init_request = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {},
+            "clientInfo": {"name": "test", "version": "1"},
+        },
+    }
+    process.stdin.write(json.dumps(init_request) + "\n")
+    process.stdin.flush()
+    read_jsonrpc_response(process, 1)
+    return process
 
-        # 2. Call submit_issue missing required 'url'
+
+def test_submit_issue_missing_url():
+    """Test that submit_issue rejects requests missing the required 'url' field."""
+    process = _init_server_process()
+    try:
         process.stdin.write(
             json.dumps(
                 {
@@ -328,13 +327,24 @@ def test_tool_validation_errors():
         assert "error" in response
         assert response["error"]["code"] == -32602
         assert "Missing required parameter" in response["error"]["message"]
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
 
-        # 3. Call submit_issue with invalid type for labels (integer instead of array)
+
+def test_submit_issue_invalid_label_type():
+    """Test that submit_issue rejects invalid types (integer instead of array for labels)."""
+    process = _init_server_process()
+    try:
         process.stdin.write(
             json.dumps(
                 {
                     "jsonrpc": "2.0",
-                    "id": 3,
+                    "id": 2,
                     "method": "tools/call",
                     "params": {
                         "name": "submit_issue",
@@ -351,20 +361,31 @@ def test_tool_validation_errors():
         )
         process.stdin.flush()
 
-        response = read_jsonrpc_response(process, 3)
+        response = read_jsonrpc_response(process, 2)
         assert "error" in response
         assert response["error"]["code"] == -32602
         assert (
             "type" in response["error"]["message"].lower()
             or "validation" in response["error"]["message"].lower()
         )
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
 
-        # 4. Call submit_issue with blank description
+
+def test_submit_issue_blank_description():
+    """Test that submit_issue rejects blank descriptions."""
+    process = _init_server_process()
+    try:
         process.stdin.write(
             json.dumps(
                 {
                     "jsonrpc": "2.0",
-                    "id": 4,
+                    "id": 2,
                     "method": "tools/call",
                     "params": {
                         "name": "submit_issue",
@@ -380,11 +401,10 @@ def test_tool_validation_errors():
         )
         process.stdin.flush()
 
-        response = read_jsonrpc_response(process, 4)
+        response = read_jsonrpc_response(process, 2)
         assert "error" in response
         assert response["error"]["code"] == -32602
         assert "validation error" in response["error"]["message"].lower()
-
     finally:
         process.terminate()
         try:
