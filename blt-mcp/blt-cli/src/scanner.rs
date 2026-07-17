@@ -56,8 +56,35 @@ async fn run_tool(tool: &str, args: &[&str]) -> Result<std::process::Output, Too
     {
         let mut all_args = vec!["/c", tool];
         all_args.extend_from_slice(args);
-        match Command::new("cmd").args(&all_args).output().await {
-            Ok(output) => {
+        let mut child = match Command::new("cmd")
+            .args(&all_args)
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .spawn()
+        {
+            Ok(c) => c,
+            Err(e) => return Err(ToolStatus::Error(format!("Spawn failed: {}", e))),
+        };
+
+        let stdout_handle = child.stdout.take();
+        let stderr_handle = child.stderr.take();
+
+        let work = async {
+            let status = child.wait().await?;
+            let mut stdout_bytes = Vec::new();
+            let mut stderr_bytes = Vec::new();
+            if let Some(mut out) = stdout_handle {
+                tokio::io::AsyncReadExt::read_to_end(&mut out, &mut stdout_bytes).await?;
+            }
+            if let Some(mut err) = stderr_handle {
+                tokio::io::AsyncReadExt::read_to_end(&mut err, &mut stderr_bytes).await?;
+            }
+            Ok::<std::process::Output, std::io::Error>(std::process::Output { status, stdout: stdout_bytes, stderr: stderr_bytes })
+        };
+
+        match tokio::time::timeout(std::time::Duration::from_secs(30), work).await {
+            Ok(Ok(output)) => {
                 let stderr = String::from_utf8_lossy(&output.stderr);
                 if !output.status.success() && stderr.contains("is not recognized") {
                     Err(ToolStatus::Missing)
@@ -65,19 +92,53 @@ async fn run_tool(tool: &str, args: &[&str]) -> Result<std::process::Output, Too
                     Ok(output)
                 }
             }
-            Err(e) => Err(ToolStatus::Error(format!("Execution failed: {}", e))),
+            Ok(Err(e)) => Err(ToolStatus::Error(format!("Execution failed: {}", e))),
+            Err(_) => {
+                let _ = child.kill().await;
+                Err(ToolStatus::Error("Execution timed out".to_string()))
+            }
         }
     }
     #[cfg(not(target_os = "windows"))]
     {
-        match Command::new(tool).args(args).output().await {
-            Ok(output) => Ok(output),
+        let mut child = match Command::new(tool)
+            .args(args)
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .spawn()
+        {
+            Ok(c) => c,
             Err(e) => {
                 if e.kind() == std::io::ErrorKind::NotFound {
-                    Err(ToolStatus::Missing)
+                    return Err(ToolStatus::Missing);
                 } else {
-                    Err(ToolStatus::Error(format!("Execution failed: {}", e)))
+                    return Err(ToolStatus::Error(format!("Spawn failed: {}", e)));
                 }
+            }
+        };
+        let stdout_handle = child.stdout.take();
+        let stderr_handle = child.stderr.take();
+
+        let work = async {
+            let status = child.wait().await?;
+            let mut stdout_bytes = Vec::new();
+            let mut stderr_bytes = Vec::new();
+            if let Some(mut out) = stdout_handle {
+                tokio::io::AsyncReadExt::read_to_end(&mut out, &mut stdout_bytes).await?;
+            }
+            if let Some(mut err) = stderr_handle {
+                tokio::io::AsyncReadExt::read_to_end(&mut err, &mut stderr_bytes).await?;
+            }
+            Ok::<std::process::Output, std::io::Error>(std::process::Output { status, stdout: stdout_bytes, stderr: stderr_bytes })
+        };
+
+        match tokio::time::timeout(std::time::Duration::from_secs(30), work).await {
+            Ok(Ok(output)) => Ok(output),
+            Ok(Err(e)) => Err(ToolStatus::Error(format!("Execution failed: {}", e))),
+            Err(_) => {
+                let _ = child.kill().await;
+                Err(ToolStatus::Error("Execution timed out".to_string()))
             }
         }
     }
@@ -204,7 +265,20 @@ async fn run_semgrep() -> (ToolStatus, Vec<String>) {
         }
     }
 
-    (ToolStatus::Success, findings)
+    let mut has_errors = false;
+    if let Some(errors) = parsed.get("errors").and_then(|e| e.as_array()) {
+        if !errors.is_empty() {
+            has_errors = true;
+        }
+    }
+
+    let status = if has_errors {
+        ToolStatus::Error("Semgrep scan reported errors".to_string())
+    } else {
+        ToolStatus::Success
+    };
+
+    (status, findings)
 }
 
 async fn run_bandit() -> (ToolStatus, Vec<String>) {
@@ -253,5 +327,18 @@ async fn run_bandit() -> (ToolStatus, Vec<String>) {
         }
     }
 
-    (ToolStatus::Success, findings)
+    let mut has_errors = false;
+    if let Some(errors) = parsed.get("errors").and_then(|e| e.as_array()) {
+        if !errors.is_empty() {
+            has_errors = true;
+        }
+    }
+
+    let status = if has_errors {
+        ToolStatus::Error("Bandit scan reported errors".to_string())
+    } else {
+        ToolStatus::Success
+    };
+
+    (status, findings)
 }

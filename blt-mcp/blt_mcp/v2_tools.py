@@ -47,7 +47,7 @@ async def auth_signin(email: str, password: str) -> str:
     """
     Sign in to retrieve a session or authentication token.
     """
-    logger.info(f"Signing in user: {email}")
+    logger.info("Signing in user")
     payload = {"email": email, "password": password}
     try:
         response = await http_client.post("/v2/auth/signin", json=payload)

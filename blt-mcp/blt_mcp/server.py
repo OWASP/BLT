@@ -2,6 +2,8 @@ import sys
 import logging
 import json
 import httpx
+import os
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from blt_mcp import server_base
 from blt_mcp.server_base import mcp, _fetch, logger
@@ -55,8 +57,6 @@ async def get_issue(issue_id: str) -> str:
 @mcp.resource("blt://good-first-issues")
 async def list_good_first_issues() -> str:
     """Get the list of cross-project 'good first issues' from GitLab."""
-    import json
-
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(
@@ -126,9 +126,10 @@ async def submit_issue(
 
     logger.info(f"Submitting issue for url: {url}")
 
+    full_description = f"Title: {title}\n\n{description}"
     payload = {
         "url": url,
-        "description": description,
+        "description": full_description,
     }
     if severity:
         payload["severity"] = severity.lower()
@@ -227,9 +228,6 @@ async def triage_vulnerability(prompt: str) -> str:
     Args:
         prompt: The full prompt string containing the issue details to analyze.
     """
-    import httpx
-    import os
-
     account_id = os.getenv("CF_ACCOUNT_ID")
     api_token = os.getenv("CF_API_TOKEN")
 
@@ -298,14 +296,9 @@ async def draft_vision_issue(
     Args:
         image_path: Absolute path to the screenshot image on the local system.
         gitlab_project_id: Optional GitLab project ID to upload the image to.
-    """
-    import httpx
-    import os
-    import json
-    from pathlib import Path
-
     allowed_dir = Path.home() / ".blt-mcp" / "images"
-    allowed_dir.mkdir(parents=True, exist_ok=True)
+    allowed_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+    allowed_dir.chmod(0o700)
 
     try:
         resolved_path = Path(image_path).resolve()

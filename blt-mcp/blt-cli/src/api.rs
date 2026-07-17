@@ -1,5 +1,17 @@
-#![allow(dead_code)]
 use crate::models::{self, Hunt, Issue, Repo, Stats};
+use std::sync::OnceLock;
+
+static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+
+fn get_client() -> &'static reqwest::Client {
+    CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(5))
+            .timeout(std::time::Duration::from_secs(10))
+            .build()
+            .unwrap_or_default()
+    })
+}
 
 pub fn get_api_key() -> Option<String> {
     if let Ok(api_key) = std::env::var("BLT_API_KEY") {
@@ -130,7 +142,7 @@ pub fn parse_issues_from_json(root: &serde_json::Value) -> Result<Vec<Issue>, St
 }
 
 pub async fn get_issues(api_base: &str) -> Result<Vec<Issue>, Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
+    let client = get_client();
     let url = format!("{}/v2/bugs", api_base);
 
     let mut req = client.get(&url);
@@ -211,7 +223,7 @@ pub fn parse_repos_from_json(root: &serde_json::Value) -> Result<Vec<Repo>, Stri
 }
 
 pub async fn get_repos(api_base: &str) -> Result<Vec<Repo>, Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
+    let client = get_client();
     let url = format!("{}/v2/repos", api_base);
 
     let mut req = client.get(&url);
@@ -228,7 +240,7 @@ pub async fn get_repos(api_base: &str) -> Result<Vec<Repo>, Box<dyn std::error::
 }
 
 pub async fn get_hunts(api_base: &str) -> Result<Vec<Hunt>, Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
+    let client = get_client();
     let url = format!("{}/v2/hunts/active", api_base);
 
     let mut req = client.get(&url);
@@ -323,7 +335,7 @@ pub fn parse_stats_from_json(root: &serde_json::Value) -> Stats {
 }
 
 pub async fn get_stats(api_base: &str) -> Result<Stats, Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
+    let client = get_client();
     let url = format!("{}/v2/stats", api_base);
 
     let mut req = client.get(&url);
@@ -342,7 +354,7 @@ pub async fn submit_issue_triage(
     issue_id: &str,
     target_status: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
+    let client = get_client();
     let url = format!("{}/v2/bugs/{}", api_base, issue_id);
 
     let mut payload = std::collections::HashMap::new();
@@ -363,7 +375,7 @@ pub async fn add_comment(
     issue_id: &str,
     text: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
+    let client = get_client();
     let url = format!("{}/v2/bugs/{}/comments", api_base, issue_id);
 
     let mut payload = std::collections::HashMap::new();
@@ -389,7 +401,7 @@ pub async fn submit_issue(
     steps_to_reproduce: &str,
     screenshot_path: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
+    let client = get_client();
     let api_url = format!("{}/v2/bugs", api_base);
 
     let mut payload = std::collections::HashMap::new();
@@ -404,7 +416,8 @@ pub async fn submit_issue(
     );
 
     if !screenshot_path.trim().is_empty() {
-        if screenshot_path.starts_with("http") {
+        let lower_path = screenshot_path.to_lowercase();
+        if lower_path.starts_with("http://") || lower_path.starts_with("https://") {
             payload.insert("screenshot".to_string(), screenshot_path.to_string());
         } else {
             let meta = tokio::fs::metadata(screenshot_path).await?;
@@ -444,7 +457,7 @@ pub async fn submit_issue(
 pub async fn get_leaderboard(
     api_base: &str,
 ) -> Result<Vec<models::LeaderboardEntry>, Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
+    let client = get_client();
     let url = format!("{}/v2/leaderboard", api_base);
 
     let mut req = client.get(&url);

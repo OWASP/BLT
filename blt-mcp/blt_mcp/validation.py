@@ -410,7 +410,7 @@ class InterceptingStdinBuffer(io.BufferedIOBase):
                                 sys.stdout.write(json.dumps(error_resp) + "\n")
                                 sys.stdout.flush()
                                 logger.error(
-                                    f"Rejected malformed tools/call payload (arguments is not an object): {decoded}"
+                                    "Rejected malformed tools/call payload (arguments is not an object)"
                                 )
 
                                 ping_req = {
@@ -437,7 +437,9 @@ class InterceptingStdinBuffer(io.BufferedIOBase):
                                 sys.stdout.write(json.dumps(error_resp) + "\n")
                                 sys.stdout.flush()
                                 logger.error(
-                                    f"Rejected invalid tools/call payload for '{tool_name}': {err_msg}. Payload: {arguments}"
+                                    "Rejected invalid tools/call payload for '%s': %s",
+                                    tool_name,
+                                    err_msg,
                                 )
 
                                 ping_req = {

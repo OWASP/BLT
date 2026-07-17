@@ -52,7 +52,7 @@ AI-guided workflows for common security tasks:
 ### Using uv (Recommended)
 
 ```bash
-git clone https://github.com/OWASP-BLT/BLT-MCP.git
+git clone https://gitlab.com/AEMphil/BLT-MCP.git
 cd BLT-MCP
 
 # Create a virtual environment and install dependencies
@@ -198,5 +198,5 @@ GNU AGPL v3 - see the `LICENSE` file for details.
 ## Support
 
 For issues, questions, or contributions, please visit:
-- GitHub: [https://github.com/OWASP-BLT/BLT-MCP](https://github.com/OWASP-BLT/BLT-MCP)
+- GitLab: [https://gitlab.com/AEMphil/BLT-MCP](https://gitlab.com/AEMphil/BLT-MCP)
 - OWASP BLT: [https://owasp.org/www-project-bug-logging-tool/](https://owasp.org/www-project-bug-logging-tool/)

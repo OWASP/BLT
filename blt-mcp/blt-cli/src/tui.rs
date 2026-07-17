@@ -39,6 +39,7 @@ where
                             app.audit_logs
                                 .push("+10 Bacon Points (Pending Verification)".to_string());
                         }
+                        app.selected_issues.remove(&issue_id);
                     }
                     app.event_feed.push(message.clone());
                     app.status_message = message;
@@ -48,38 +49,48 @@ where
                     app.audit_logs.push(message.clone());
                     if success {
                         app.status_message =
-                            "✓ Bug submitted! Refreshing issues list...".to_string();
-                        app.audit_logs
-                            .push("+50 Bacon Points (Pending Verification)".to_string());
+                            format!("SUCCESS: Operation completed! - {}", message);
+                        app.submit_form = crate::app::VulnerabilityForm::default();
                     } else {
-                        app.status_message = message;
+                        app.status_message = format!("ERROR: {}", message);
                     }
                     app.save_session();
                 }
                 crate::app::AppEvent::IssuesRefreshed { issues, total } => {
                     app.issues = issues;
-                    app.stats.total_issues = total;
-                    app.selected_issue_index = 0;
-                    app.status_message = "✓ Issues refreshed with live data.".to_string();
+                    app.event_feed
+                        .push(format!("Refreshed issues. Total: {}", total));
                     app.audit_logs
                         .push("Issues list refreshed after submission.".to_string());
                     app.save_session();
                 }
-                crate::app::AppEvent::VisionDraftComplete { result } => {
-                    app.submit_form.description = result;
-                    app.status_message =
-                        "Vision AI drafting complete. Review and submit.".to_string();
-                    app.audit_logs
-                        .push("Vision AI generated issue draft.".to_string());
+                crate::app::AppEvent::VisionDraftComplete { result, success } => {
+                    if success {
+                        app.submit_form.description = result;
+                        app.status_message =
+                            "Vision AI drafting complete. Review and submit.".to_string();
+                        app.audit_logs
+                            .push("Vision AI generated issue draft.".to_string());
+                    } else {
+                        app.status_message = format!("Vision AI failed: {}", result);
+                        app.audit_logs
+                            .push(format!("Vision AI failed: {}", result));
+                    }
                     app.save_session();
                 }
-                crate::app::AppEvent::AiTriageResult { message } => {
+                crate::app::AppEvent::AiTriageResult { message, success } => {
                     app.ai_triage_result = Some(message.clone());
-                    app.event_feed
-                        .push("AI Triage analysis complete.".to_string());
-                    app.audit_logs
-                        .push("Agent triggered AI Triage analysis.".to_string());
-                    app.status_message = "AI Triage analysis complete.".to_string();
+                    if success {
+                        app.event_feed
+                            .push("AI Triage analysis complete.".to_string());
+                        app.audit_logs
+                            .push("Agent triggered AI Triage analysis.".to_string());
+                        app.status_message = "AI Triage analysis complete.".to_string();
+                    } else {
+                        app.event_feed
+                            .push("AI Triage analysis failed.".to_string());
+                        app.status_message = format!("AI Triage failed: {}", message);
+                    }
                     app.save_session();
                 }
                 crate::app::AppEvent::ScanComplete { health } => {
@@ -208,71 +219,78 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                 tokio::spawn(async move {
                     let is_mcp = run_mode == crate::app::RunMode::Mcp;
 
-                    let (success, message) = if is_mcp && mcp_client_clone.is_some() {
-                        let mcp = mcp_client_clone.unwrap();
-                        let mut client_guard = mcp.lock().await;
-                        let mut payload = serde_json::Map::new();
-                        payload.insert("url".to_string(), serde_json::Value::String(url.clone()));
-                        payload.insert(
-                            "title".to_string(),
-                            serde_json::Value::String(title.clone()),
-                        );
-                        payload.insert(
-                            "description".to_string(),
-                            serde_json::Value::String(desc.clone()),
-                        );
-                        payload.insert(
-                            "severity".to_string(),
-                            serde_json::Value::String(severity.clone()),
-                        );
-                        payload.insert(
-                            "bug_type".to_string(),
-                            serde_json::Value::String(bug_type.clone()),
-                        );
-                        payload.insert(
-                            "steps_to_reproduce".to_string(),
-                            serde_json::Value::String(steps.clone()),
-                        );
-                        payload.insert("confirmed".to_string(), serde_json::Value::Bool(true));
-                        let args = serde_json::Value::Object(payload);
+                    let (success, message) = if is_mcp {
+                        if mcp_client_clone.is_none() {
+                            (
+                                false,
+                                "ERROR: MCP connection is unavailable. Submission failed.".to_string(),
+                            )
+                        } else {
+                            let mcp = mcp_client_clone.clone().unwrap();
+                            let mut client_guard = mcp.lock().await;
+                            let mut payload = serde_json::Map::new();
+                            payload.insert("url".to_string(), serde_json::Value::String(url.clone()));
+                            payload.insert(
+                                "title".to_string(),
+                                serde_json::Value::String(title.clone()),
+                            );
+                            payload.insert(
+                                "description".to_string(),
+                                serde_json::Value::String(desc.clone()),
+                            );
+                            payload.insert(
+                                "severity".to_string(),
+                                serde_json::Value::String(severity.clone()),
+                            );
+                            payload.insert(
+                                "bug_type".to_string(),
+                                serde_json::Value::String(bug_type.clone()),
+                            );
+                            payload.insert(
+                                "steps_to_reproduce".to_string(),
+                                serde_json::Value::String(steps.clone()),
+                            );
+                            payload.insert("confirmed".to_string(), serde_json::Value::Bool(true));
+                            let args = serde_json::Value::Object(payload);
 
-                        match client_guard.call_tool("submit_issue", args).await {
-                            Ok(res) => {
-                                if let Some(result) = res.get("result") {
-                                    let is_error = result
-                                        .get("isError")
-                                        .and_then(|e| e.as_bool())
-                                        .unwrap_or(false);
-                                    let content_str = result
-                                        .get("content")
-                                        .and_then(|c| c.as_array())
-                                        .and_then(|c| c.first())
-                                        .and_then(|c| c.get("text"))
-                                        .and_then(|t| t.as_str())
-                                        .unwrap_or("Unknown response from MCP");
-                                    if is_error {
+                            match client_guard.call_tool("submit_issue", args).await {
+                                Ok(res) => {
+                                    if let Some(result) = res.get("result") {
+                                        let is_error = result
+                                            .get("isError")
+                                            .and_then(|e| e.as_bool())
+                                            .unwrap_or(false);
+                                        let content_str = result
+                                            .get("content")
+                                            .and_then(|c| c.as_array())
+                                            .and_then(|c| c.first())
+                                            .and_then(|c| c.get("text"))
+                                            .and_then(|t| t.as_str())
+                                            .unwrap_or("Unknown response from MCP");
+                                        if is_error {
+                                            (
+                                                false,
+                                                format!(
+                                                    "ERROR: MCP tool execution failed: {}",
+                                                    content_str
+                                                ),
+                                            )
+                                        } else {
+                                            (true, content_str.to_string())
+                                        }
+                                    } else {
                                         (
                                             false,
-                                            format!(
-                                                "ERROR: MCP tool execution failed: {}",
-                                                content_str
-                                            ),
+                                            "ERROR: Invalid response structure from MCP server"
+                                                .to_string(),
                                         )
-                                    } else {
-                                        (true, content_str.to_string())
                                     }
-                                } else {
-                                    (
-                                        false,
-                                        "ERROR: Invalid response structure from MCP server"
-                                            .to_string(),
-                                    )
                                 }
+                                Err(e) => (
+                                    false,
+                                    format!("ERROR: Failed to communicate with MCP: {}", e),
+                                ),
                             }
-                            Err(e) => (
-                                false,
-                                format!("ERROR: Failed to communicate with MCP: {}", e),
-                            ),
                         }
                     } else {
                         match crate::api::submit_issue(
@@ -297,15 +315,40 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                     // Background refresh: wait a moment then re-fetch the live issues list
                     if success {
                         tokio::time::sleep(tokio::time::Duration::from_millis(1500)).await;
-                        match crate::api::get_issues(&api_base).await {
-                            Ok(fresh_issues) => {
-                                let total = fresh_issues.len() as u32;
-                                let _ = sender.send(crate::app::AppEvent::IssuesRefreshed {
-                                    issues: fresh_issues,
-                                    total,
-                                });
+                        if is_mcp && mcp_client_clone.is_some() {
+                            let mcp = mcp_client_clone.unwrap();
+                            let mut client_guard = mcp.lock().await;
+                            if let Ok(resp) = client_guard.read_resource("blt://v2/bugs").await {
+                                if let Some(contents) = resp
+                                    .get("result")
+                                    .and_then(|r| r.get("contents"))
+                                    .and_then(|c| c.as_array())
+                                    .and_then(|c| c.first())
+                                    .and_then(|c| c.get("text"))
+                                    .and_then(|t| t.as_str())
+                                {
+                                    if let Ok(root) = serde_json::from_str::<serde_json::Value>(contents) {
+                                        if let Ok(fresh_issues) = crate::api::parse_issues_from_json(&root) {
+                                            let total = fresh_issues.len() as u32;
+                                            let _ = sender.send(crate::app::AppEvent::IssuesRefreshed {
+                                                issues: fresh_issues,
+                                                total,
+                                            });
+                                        }
+                                    }
+                                }
                             }
-                            Err(_) => {} // silently ignore; user still got the success message
+                        } else {
+                            match crate::api::get_issues(&api_base).await {
+                                Ok(fresh_issues) => {
+                                    let total = fresh_issues.len() as u32;
+                                    let _ = sender.send(crate::app::AppEvent::IssuesRefreshed {
+                                        issues: fresh_issues,
+                                        total,
+                                    });
+                                }
+                                Err(_) => {}
+                            }
                         }
                     }
                 });
@@ -407,6 +450,7 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                 }
                 KeyCode::Char('s') => {
                     if !app.hunts.is_empty() {
+                        app.submit_form = crate::app::VulnerabilityForm::default();
                         app.submit_form.url = "".to_string();
                         app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
                         app.submit_form.active_field = crate::app::FormField::Url;
@@ -432,6 +476,18 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                 KeyCode::Enter => {
                     app.active_overlay = crate::app::ActiveOverlay::None;
                     app.status_message = format!("Applied search filter: '{}'", app.search_query);
+                    let visible_issues = app.get_visible_issue_indices();
+                    if !visible_issues.is_empty() {
+                        app.selected_issue_index = visible_issues[0];
+                    } else {
+                        app.selected_issue_index = 0;
+                    }
+                    let visible_hunts = app.get_visible_hunt_indices();
+                    if !visible_hunts.is_empty() {
+                        app.selected_hunt_index = visible_hunts[0];
+                    } else {
+                        app.selected_hunt_index = 0;
+                    }
                 }
                 KeyCode::Backspace => {
                     app.search_query.pop();
@@ -466,25 +522,70 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                         format!("Bulk triaging {} issues to '{}'...", count, target);
                     let sender = app.event_sender.clone();
                     let issue_ids: Vec<String> = app.selected_issues.iter().cloned().collect();
-                    app.selected_issues.clear();
+                    let mcp_client_clone = app.mcp_client.clone();
+                    let api_base = app.api_base.clone();
 
                     tokio::spawn(async move {
-                        tokio::time::sleep(std::time::Duration::from_millis(800)).await;
+                        let mut all_succeeded = true;
+                        let mut failed_count = 0;
+                        let mut first_error = String::new();
+
                         for id in &issue_ids {
+                            let res = if let Some(ref client_mutex) = mcp_client_clone {
+                                let mut client = client_mutex.lock().await;
+                                let args = serde_json::json!({
+                                    "id": id,
+                                    "status": target,
+                                    "confirmed": true
+                                });
+                                client.call_tool("update_bug", args).await.map(|_| ())
+                            } else {
+                                crate::api::submit_issue_triage(&api_base, id, &target).await
+                            };
+
+                            let (success, message) = match res {
+                                Ok(_) => (
+                                    true,
+                                    format!("Bulk triage: successfully updated status for #{} to {}", id, target),
+                                ),
+                                Err(e) => {
+                                    all_succeeded = false;
+                                    failed_count += 1;
+                                    if first_error.is_empty() {
+                                        first_error = e.to_string();
+                                    }
+                                    (
+                                        false,
+                                        format!("Bulk triage: failed to update status for #{}: {}", id, e),
+                                    )
+                                }
+                            };
+
                             let _ = sender.send(crate::app::AppEvent::TriageConfirmed {
                                 issue_id: id.clone(),
-                                success: true,
-                                message: format!("Bulk action complete for #{}", id),
+                                success,
+                                message,
                                 target_status: target.clone(),
                             });
                         }
-                        let _ = sender.send(crate::app::AppEvent::SubmitResult {
-                            success: true,
-                            message: format!(
-                                "Successfully bulk triaged {} issues to '{}'.",
-                                count, target
-                            ),
-                        });
+
+                        if all_succeeded {
+                            let _ = sender.send(crate::app::AppEvent::SubmitResult {
+                                success: true,
+                                message: format!(
+                                    "Successfully bulk triaged {} issues to '{}'.",
+                                    count, target
+                                ),
+                            });
+                        } else {
+                            let _ = sender.send(crate::app::AppEvent::SubmitResult {
+                                success: false,
+                                message: format!(
+                                    "Bulk triage completed with errors: {} failed. First error: {}",
+                                    failed_count, first_error
+                                ),
+                            });
+                        }
                     });
                 }
                 _ => {}
@@ -515,6 +616,18 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                     if cmd.starts_with("search ") {
                         app.search_query = cmd.replace("search ", "");
                         app.active_tab = Tab::Issues;
+                        let visible_issues = app.get_visible_issue_indices();
+                        if !visible_issues.is_empty() {
+                            app.selected_issue_index = visible_issues[0];
+                        } else {
+                            app.selected_issue_index = 0;
+                        }
+                        let visible_hunts = app.get_visible_hunt_indices();
+                        if !visible_hunts.is_empty() {
+                            app.selected_hunt_index = visible_hunts[0];
+                        } else {
+                            app.selected_hunt_index = 0;
+                        }
                     } else if cmd == "triage issue" {
                         app.active_tab = Tab::Issues;
                         app.trigger_triage();
@@ -530,6 +643,7 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                             let gl_id = parts.next().map(|s| s.to_string());
 
                             app.status_message = format!("Drafting issue from image {}...", path);
+                            app.submit_form = crate::app::VulnerabilityForm::default();
                             app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
                             app.submit_form.url = format!("Image: {}", path);
                             app.submit_form.description =
@@ -561,25 +675,30 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                                         .await
                                     {
                                         Ok(res) => {
-                                            let content_str = if let Some(result) =
+                                            let (success, content_str) = if let Some(result) =
                                                 res.get("result")
                                             {
-                                                result
+                                                let is_err = result.get("isError").and_then(|e| e.as_bool()).unwrap_or(false);
+                                                let text = result
                                                     .get("content")
                                                     .and_then(|c| c.as_array())
                                                     .and_then(|c| c.first())
                                                     .and_then(|c| c.get("text"))
                                                     .and_then(|t| t.as_str())
                                                     .unwrap_or("Unknown response from MCP")
-                                                    .to_string()
+                                                    .to_string();
+                                                (!is_err, text)
                                             } else {
-                                                "ERROR: Invalid response structure from MCP server"
-                                                    .to_string()
+                                                (
+                                                    false,
+                                                    "ERROR: Invalid response structure from MCP server".to_string()
+                                                )
                                             };
 
                                             let _ = sender.send(
                                                 crate::app::AppEvent::VisionDraftComplete {
                                                     result: content_str,
+                                                    success,
                                                 },
                                             );
                                         }
@@ -587,6 +706,7 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                                             let _ = sender.send(
                                                 crate::app::AppEvent::VisionDraftComplete {
                                                     result: format!("ERROR: {}", e),
+                                                    success: false,
                                                 },
                                             );
                                         }
@@ -595,6 +715,7 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                                     let _ =
                                         sender.send(crate::app::AppEvent::VisionDraftComplete {
                                             result: "ERROR: MCP is not connected.".to_string(),
+                                            success: false,
                                         });
                                 }
                             });
@@ -709,8 +830,9 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
             } else if app.active_tab == Tab::Settings {
                 if let Some(health) = &app.security_health {
                     if !health.findings.is_empty() {
+                        app.submit_form = crate::app::VulnerabilityForm::default();
                         app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
-                        app.submit_form.url = "System Scan Findings".to_string();
+                        app.submit_form.url = "".to_string();
                         app.submit_form.severity = "High".to_string();
                         let mut desc = String::new();
                         desc.push_str("Found the following security issues:\n");
@@ -723,6 +845,7 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
             }
         }
         KeyCode::Char('s') => {
+            app.submit_form = crate::app::VulnerabilityForm::default();
             app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
         }
         KeyCode::Char('A') => app.toggle_agent_status(),
@@ -753,6 +876,12 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                         match client.call_tool("triage_vulnerability", args).await {
                             Ok(resp) => {
                                 // Extract the string text from the MCP JSON-RPC response
+                                let is_err = resp
+                                    .get("result")
+                                    .and_then(|r| r.get("isError"))
+                                    .and_then(|ie| ie.as_bool())
+                                    .unwrap_or(false);
+
                                 let text = resp
                                     .get("result")
                                     .and_then(|r| r.get("content"))
@@ -762,25 +891,26 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                                     .and_then(|t| t.as_str())
                                     .unwrap_or("No analysis returned from MCP.");
 
-                                let message = format!(
-                                    "AI Triage Complete for Issue #{}:\n\n{}",
-                                    issue_id, text
-                                );
+                                let (success, message) = if is_err {
+                                    (false, format!("AI Triage Failed for Issue #{}: {}", issue_id, text))
+                                } else {
+                                    (true, format!("AI Triage Complete for Issue #{}:\n\n{}", issue_id, text))
+                                };
                                 let _ =
-                                    sender.send(crate::app::AppEvent::AiTriageResult { message });
+                                    sender.send(crate::app::AppEvent::AiTriageResult { message, success });
                             }
                             Err(e) => {
                                 let message =
                                     format!("AI Triage Failed for Issue #{}: {}", issue_id, e);
                                 let _ =
-                                    sender.send(crate::app::AppEvent::AiTriageResult { message });
+                                    sender.send(crate::app::AppEvent::AiTriageResult { message, success: false });
                             }
                         }
                     });
                 } else {
                     let message =
                         "Error: AI Triage requires an active Live MCP connection.".to_string();
-                    let _ = sender.send(crate::app::AppEvent::AiTriageResult { message });
+                    let _ = sender.send(crate::app::AppEvent::AiTriageResult { message, success: false });
                 }
             }
         }

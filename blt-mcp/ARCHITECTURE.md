@@ -50,11 +50,11 @@ The Rust CLI is an interactive Terminal User Interface (TUI) built using `ratatu
 
 - **`main.rs`**: The entry point. Handles CLI arguments, environment setup, and bootstraps either *Direct Mode* or *MCP Mode* (spawning the subprocess).
 - **`app.rs`**: Manages the core application state (loaded data, current view, active tabs) and handles state transitions.
-- **`tui.rs`**: Manages the terminal lifecycle (raw mode, alternate screens) and runs the primary synchronous event loop.
+- **`tui.rs`**: Manages the terminal lifecycle (raw mode, alternate screens) and runs the primary **async event loop** (via `tokio`). Key-presses spawn background `tokio` tasks for network operations and communicate results back to the main loop through an `mpsc` channel of `AppEvent`s.
 - **`ui.rs`**: Contains all `ratatui` rendering logic. Responsible for drawing layouts, panels, and widgets purely based on the current `app` state.
 - **`api.rs`**: The HTTP client used in *Direct Mode* to fetch data directly from the BLT REST API.
 - **`mcp_client.rs`**: The JSON-RPC client used in *MCP Mode*. It manages the Python subprocess and routes resource requests to it over `stdio`.
-- **`scanner.rs`**: An asynchronous background security health scanner that runs independently alongside the UI.
+- **`scanner.rs`**: An asynchronous background security health scanner that runs independently alongside the UI. Each subprocess scan (Trivy, Semgrep, Bandit) is bounded by a **30-second timeout**; the process is killed on expiry.
 - **`models.rs`**: Core data structures defining the shapes of issues, repos, and users.
 
 ---
@@ -116,6 +116,7 @@ Tools enable AI agents to perform actions:
 - Required: title, description
 - Optional: repo_id, severity, type, confirmed
 - Maps to: POST /bugs
+- Note: The BLT API does not natively support a `title` field; the server prepends the title to the `description` payload.
 
 #### award_bacon
 - Purpose: Reward contributors with bacon points

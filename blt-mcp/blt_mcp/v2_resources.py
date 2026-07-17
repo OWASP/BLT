@@ -7,7 +7,7 @@ logger = logging.getLogger("blt-mcp.v2_resources")
 @mcp.resource("blt://v2/auth/verify-email/{token}")
 async def v2_verify_email(token: str) -> str:
     """Verify email with a token."""
-    logger.info(f"Verifying email token: {token}")
+    logger.info("Verifying email token")
     return await _fetch(
         f"/v2/auth/verify-email?token={token}", context="v2 verify email"
     )

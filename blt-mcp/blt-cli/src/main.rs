@@ -46,7 +46,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if let Some(ref mcp_srv) = mcp_path {
         println!("Connecting to local MCP subprocess: {} ...", mcp_srv);
-        match mcp_client::McpSubprocessClient::spawn(mcp_srv).await {
+        let parts = split_arguments(mcp_srv);
+        if parts.is_empty() {
+            println!("ERROR: Empty MCP server path provided");
+            return Ok(());
+        }
+        let executable = &parts[0];
+        let args_slice = &parts[1..];
+        match mcp_client::McpSubprocessClient::spawn(executable, args_slice).await {
             Ok(mut client) => {
                 match client.initialize().await {
                     Ok(_) => {
@@ -179,6 +186,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 Some(std::sync::Arc::new(tokio::sync::Mutex::new(client)));
                             println!("SUCCESS: Connected to MCP server and loaded live resources.");
                         } else {
+                            app.is_live = true;
                             app.mcp_client =
                                 Some(std::sync::Arc::new(tokio::sync::Mutex::new(client)));
                             app.status_message =
@@ -242,6 +250,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Err(e) => {
                 println!("  - Stats Fetch Error: {}", e);
+            }
+        }
+
+        match api::get_leaderboard(&api_base).await {
+            Ok(leaderboard) => {
+                app.leaderboard = leaderboard;
+                any_success = true;
+            }
+            Err(e) => {
+                println!("  - Leaderboard Fetch Error: {}", e);
             }
         }
 
@@ -314,4 +332,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+fn split_arguments(s: &str) -> Vec<String> {
+    let mut args = Vec::new();
+    let mut current = String::new();
+    let mut in_double_quotes = false;
+    let mut in_single_quotes = false;
+    let mut chars = s.chars().peekable();
+
+    while let Some(c) = chars.next() {
+        match c {
+            '"' if !in_single_quotes => {
+                in_double_quotes = !in_double_quotes;
+            }
+            '\'' if !in_double_quotes => {
+                in_single_quotes = !in_single_quotes;
+            }
+            ' ' | '\t' if !in_double_quotes && !in_single_quotes => {
+                if !current.is_empty() {
+                    args.push(current);
+                    current = String::new();
+                }
+            }
+            _ => {
+                current.push(c);
+            }
+        }
+    }
+    if !current.is_empty() {
+        args.push(current);
+    }
+    args
 }
