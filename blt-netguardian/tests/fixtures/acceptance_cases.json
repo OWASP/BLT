@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "version": 1,
+    "org_id": "org-demo",
+    "sender_id": "scanner-1",
+    "kid": "k1",
+    "secret_hex": "736563726574",
+    "payload_key_b64": "bmV0Z3VhcmRpYW4tZGVtby1hZXNnY20ta2V5LTAwMzI=",
+    "accept_success_threshold": 0.95,
+    "description": "W7 golden fixtures for ingest acceptance gates. Cases with expect.kind=accept must hit expected HTTP status ≥ threshold."
+  },
+  "cases": [
+    {
+      "id": "valid_create",
+      "kind": "accept",
+      "description": "Fresh signed plaintext finding creates a row",
+      "mode": "plaintext",
+      "payload": {
+        "rule_id": "semgrep.python.sql-injection",
+        "severity": "critical",
+        "title": "SQL injection in query builder",
+        "target": "https://example.com/api",
+        "fingerprint": "fp-accept-valid-create",
+        "cve_id": "CVE-2024-0001"
+      },
+      "expect": { "status": 201, "body_status": "created" }
+    },
+    {
+      "id": "known_cve",
+      "kind": "accept",
+      "description": "Finding with CVE id accepted and stored",
+      "mode": "plaintext",
+      "payload": {
+        "rule_id": "osv.dependency",
+        "severity": "high",
+        "title": "Vulnerable dependency",
+        "target": "pkg:pypi/requests@2.19.0",
+        "fingerprint": "fp-accept-known-cve",
+        "cve_id": "CVE-2018-18074"
+      },
+      "expect": { "status": 201, "body_status": "created" }
+    },
+    {
+      "id": "encrypted_create",
+      "kind": "accept",
+      "description": "AES-GCM ciphertext envelope creates encrypted-at-rest finding",
+      "mode": "ciphertext",
+      "payload": {
+        "rule_id": "zap.ssrf",
+        "severity": "critical",
+        "title": "SSRF via URL parameter",
+        "target": "https://example.com/fetch",
+        "fingerprint": "fp-accept-encrypted",
+        "password": "should-not-leak",
+        "token": "secret-token"
+      },
+      "expect": { "status": 201, "body_status": "created" }
+    },
+    {
+      "id": "duplicate_nonce",
+      "kind": "accept",
+      "description": "Replaying the same nonce returns idempotent duplicate",
+      "mode": "plaintext",
+      "payload": {
+        "rule_id": "http.missing-hsts",
+        "severity": "medium",
+        "title": "Missing HSTS",
+        "target": "https://example.com",
+        "fingerprint": "fp-accept-dup-nonce"
+      },
+      "replay_nonce": true,
+      "expect": { "status": 200, "body_status": "duplicate" }
+    },
+    {
+      "id": "fingerprint_merge",
+      "kind": "accept",
+      "description": "Same fingerprint merges instead of creating a second finding",
+      "mode": "plaintext",
+      "payload": {
+        "rule_id": "http.missing-csp",
+        "severity": "low",
+        "title": "Missing CSP",
+        "target": "https://example.com",
+        "fingerprint": "fp-accept-merge"
+      },
+      "seed_same_fingerprint": true,
+      "expect": { "status": 200, "body_status": "merged" }
+    },
+    {
+      "id": "bad_signature",
+      "kind": "reject",
+      "description": "Tampered HMAC is rejected",
+      "mode": "plaintext",
+      "payload": {
+        "rule_id": "semgrep.test",
+        "severity": "high",
+        "title": "Tampered",
+        "target": "https://example.com",
+        "fingerprint": "fp-accept-bad-sig"
+      },
+      "tamper": "signature",
+      "expect": { "error": "bad_signature", "http_status": 401 }
+    },
+    {
+      "id": "clock_skew",
+      "kind": "reject",
+      "description": "issued_at far in the past is rejected",
+      "mode": "plaintext",
+      "payload": {
+        "rule_id": "semgrep.test",
+        "severity": "high",
+        "title": "Stale",
+        "target": "https://example.com",
+        "fingerprint": "fp-accept-skew"
+      },
+      "issued_at_offset_seconds": -3600,
+      "expect": { "error": "clock_skew", "http_status": 400 }
+    },
+    {
+      "id": "digest_mismatch",
+      "kind": "reject",
+      "description": "Wrong X-BLT-Body-Digest is rejected",
+      "mode": "plaintext",
+      "payload": {
+        "rule_id": "semgrep.test",
+        "severity": "high",
+        "title": "Bad digest",
+        "target": "https://example.com",
+        "fingerprint": "fp-accept-digest"
+      },
+      "tamper": "body_digest",
+      "expect": { "error": "digest_mismatch", "http_status": 400 }
+    },
+    {
+      "id": "missing_required_field",
+      "kind": "reject",
+      "description": "Payload missing severity is rejected",
+      "mode": "plaintext",
+      "payload": {
+        "rule_id": "semgrep.test",
+        "title": "No severity",
+        "target": "https://example.com",
+        "fingerprint": "fp-accept-missing"
+      },
+      "expect": { "error": "invalid_envelope", "http_status": 400 }
+    }
+  ]
+}
