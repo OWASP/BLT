@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::models::{self, Issue, Repo, Hunt, Stats};
+use crate::models::{self, Hunt, Issue, Repo, Stats};
 
 pub fn get_api_key() -> Option<String> {
     if let Ok(api_key) = std::env::var("BLT_API_KEY") {
@@ -7,7 +7,7 @@ pub fn get_api_key() -> Option<String> {
             return Some(api_key);
         }
     }
-    
+
     // Fallback to local credentials.json
     let home = dirs::home_dir().unwrap_or_default();
     let creds_path = home.join(".blt-mcp").join("credentials.json");
@@ -50,34 +50,40 @@ pub fn parse_issues_from_json(root: &serde_json::Value) -> Result<Vec<Issue>, St
             None => continue,
         };
 
-        let repository = item.get("repository")
+        let repository = item
+            .get("repository")
             .or_else(|| item.get("repo"))
             .and_then(|v| v.as_str())
             .unwrap_or("owasp-blt/api")
             .to_string();
 
-        let title = item.get("title")
+        let title = item
+            .get("title")
             .and_then(|v| v.as_str())
             .unwrap_or("Untitled Issue")
             .to_string();
 
-        let description = item.get("description")
+        let description = item
+            .get("description")
             .or_else(|| item.get("content"))
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
 
-        let status = item.get("status")
+        let status = item
+            .get("status")
             .and_then(|v| v.as_str())
             .unwrap_or("Triage")
             .to_string();
 
-        let severity = item.get("severity")
+        let severity = item
+            .get("severity")
             .and_then(|v| v.as_str())
             .unwrap_or("Medium")
             .to_string();
 
-        let author = item.get("author")
+        let author = item
+            .get("author")
             .or_else(|| item.get("username"))
             .and_then(|v| v.as_str())
             .unwrap_or("Community")
@@ -90,8 +96,16 @@ pub fn parse_issues_from_json(root: &serde_json::Value) -> Result<Vec<Issue>, St
                     if let Some(c_str) = c.as_str() {
                         comments.push(c_str.to_string());
                     } else if let Some(c_obj) = c.as_object() {
-                        let text = c_obj.get("text").or_else(|| c_obj.get("body")).and_then(|v| v.as_str()).unwrap_or("");
-                        let c_author = c_obj.get("author").or_else(|| c_obj.get("username")).and_then(|v| v.as_str()).unwrap_or("community");
+                        let text = c_obj
+                            .get("text")
+                            .or_else(|| c_obj.get("body"))
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("");
+                        let c_author = c_obj
+                            .get("author")
+                            .or_else(|| c_obj.get("username"))
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("community");
                         if !text.is_empty() {
                             comments.push(format!("{}: {}", c_author, text));
                         }
@@ -118,7 +132,7 @@ pub fn parse_issues_from_json(root: &serde_json::Value) -> Result<Vec<Issue>, St
 pub async fn get_issues(api_base: &str) -> Result<Vec<Issue>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/bugs", api_base);
-    
+
     let mut req = client.get(&url);
     if let Some(api_key) = get_api_key() {
         req = req.header("X-BLT-API-Key", api_key);
@@ -126,8 +140,9 @@ pub async fn get_issues(api_base: &str) -> Result<Vec<Issue>, Box<dyn std::error
 
     let resp = req.send().await?.error_for_status()?;
     let root = resp.json::<serde_json::Value>().await?;
-    
-    let issues = parse_issues_from_json(&root).map_err(|e| Box::<dyn std::error::Error>::from(e))?;
+
+    let issues =
+        parse_issues_from_json(&root).map_err(|e| Box::<dyn std::error::Error>::from(e))?;
 
     Ok(issues)
 }
@@ -158,23 +173,27 @@ pub fn parse_repos_from_json(root: &serde_json::Value) -> Result<Vec<Repo>, Stri
             None => continue,
         };
 
-        let name = item.get("name")
+        let name = item
+            .get("name")
             .and_then(|v| v.as_str())
             .unwrap_or("Unnamed Repo")
             .to_string();
 
-        let description = item.get("description")
+        let description = item
+            .get("description")
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
 
-        let url = item.get("url")
+        let url = item
+            .get("url")
             .or_else(|| item.get("html_url"))
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
 
-        let language = item.get("language")
+        let language = item
+            .get("language")
             .and_then(|v| v.as_str())
             .unwrap_or("Unknown")
             .to_string();
@@ -194,7 +213,7 @@ pub fn parse_repos_from_json(root: &serde_json::Value) -> Result<Vec<Repo>, Stri
 pub async fn get_repos(api_base: &str) -> Result<Vec<Repo>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/repos", api_base);
-    
+
     let mut req = client.get(&url);
     if let Some(api_key) = get_api_key() {
         req = req.header("X-BLT-API-Key", api_key);
@@ -211,7 +230,7 @@ pub async fn get_repos(api_base: &str) -> Result<Vec<Repo>, Box<dyn std::error::
 pub async fn get_hunts(api_base: &str) -> Result<Vec<Hunt>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/hunts/active", api_base);
-    
+
     let mut req = client.get(&url);
     if let Some(api_key) = get_api_key() {
         req = req.header("X-BLT-API-Key", api_key);
@@ -232,23 +251,27 @@ pub async fn get_hunts(api_base: &str) -> Result<Vec<Hunt>, Box<dyn std::error::
 
     let mut hunts = Vec::new();
     for item in arr {
-        let name = item.get("name")
+        let name = item
+            .get("name")
             .or_else(|| item.get("title"))
             .and_then(|v| v.as_str())
             .unwrap_or("Unnamed Hunt")
             .to_string();
 
-        let description = item.get("description")
+        let description = item
+            .get("description")
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
 
-        let status = item.get("status")
+        let status = item
+            .get("status")
             .and_then(|v| v.as_str())
             .unwrap_or("Active")
             .to_string();
 
-        let reward = item.get("reward")
+        let reward = item
+            .get("reward")
             .or_else(|| item.get("points"))
             .and_then(|v| v.as_str())
             .unwrap_or("50 Bacon")
@@ -268,22 +291,26 @@ pub async fn get_hunts(api_base: &str) -> Result<Vec<Hunt>, Box<dyn std::error::
 pub fn parse_stats_from_json(root: &serde_json::Value) -> Stats {
     let data = root.get("data").unwrap_or(root);
 
-    let total_issues = data.get("bugs")
+    let total_issues = data
+        .get("bugs")
         .or_else(|| data.get("total_issues"))
         .and_then(|v| v.as_u64())
         .unwrap_or(0) as u32;
 
-    let active_repos = data.get("active_repos")
+    let active_repos = data
+        .get("active_repos")
         .or_else(|| data.get("organization"))
         .and_then(|v| v.as_u64())
         .unwrap_or(0) as u32;
 
-    let total_contributors = data.get("users")
+    let total_contributors = data
+        .get("users")
         .or_else(|| data.get("total_contributors"))
         .and_then(|v| v.as_u64())
         .unwrap_or(0) as u32;
 
-    let bacon_points = data.get("bacon_points")
+    let bacon_points = data
+        .get("bacon_points")
         .and_then(|v| v.as_u64())
         .unwrap_or(0) as u32;
 
@@ -298,7 +325,7 @@ pub fn parse_stats_from_json(root: &serde_json::Value) -> Stats {
 pub async fn get_stats(api_base: &str) -> Result<Stats, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/stats", api_base);
-    
+
     let mut req = client.get(&url);
     if let Some(api_key) = get_api_key() {
         req = req.header("X-BLT-API-Key", api_key);
@@ -310,10 +337,14 @@ pub async fn get_stats(api_base: &str) -> Result<Stats, Box<dyn std::error::Erro
     Ok(parse_stats_from_json(&root))
 }
 
-pub async fn submit_issue_triage(api_base: &str, issue_id: &str, target_status: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn submit_issue_triage(
+    api_base: &str,
+    issue_id: &str,
+    target_status: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/bugs/{}", api_base, issue_id);
-    
+
     let mut payload = std::collections::HashMap::new();
     payload.insert("status", target_status);
 
@@ -327,10 +358,14 @@ pub async fn submit_issue_triage(api_base: &str, issue_id: &str, target_status: 
     Ok(())
 }
 
-pub async fn add_comment(api_base: &str, issue_id: &str, text: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn add_comment(
+    api_base: &str,
+    issue_id: &str,
+    text: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/bugs/{}/comments", api_base, issue_id);
-    
+
     let mut payload = std::collections::HashMap::new();
     payload.insert("text", text);
 
@@ -344,18 +379,30 @@ pub async fn add_comment(api_base: &str, issue_id: &str, text: &str) -> Result<(
     Ok(())
 }
 
-pub async fn submit_issue(api_base: &str, url: &str, title: &str, severity: &str, bug_type: &str, description: &str, steps_to_reproduce: &str, screenshot_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn submit_issue(
+    api_base: &str,
+    url: &str,
+    title: &str,
+    severity: &str,
+    bug_type: &str,
+    description: &str,
+    steps_to_reproduce: &str,
+    screenshot_path: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let api_url = format!("{}/v2/bugs", api_base);
-    
+
     let mut payload = std::collections::HashMap::new();
     payload.insert("url".to_string(), url.to_string());
     payload.insert("title".to_string(), title.to_string());
     payload.insert("severity".to_string(), severity.to_string());
     payload.insert("bug_type".to_string(), bug_type.to_string());
     payload.insert("description".to_string(), description.to_string());
-    payload.insert("steps_to_reproduce".to_string(), steps_to_reproduce.to_string());
-    
+    payload.insert(
+        "steps_to_reproduce".to_string(),
+        steps_to_reproduce.to_string(),
+    );
+
     if !screenshot_path.trim().is_empty() {
         if screenshot_path.starts_with("http") {
             payload.insert("screenshot".to_string(), screenshot_path.to_string());
@@ -366,13 +413,15 @@ pub async fn submit_issue(api_base: &str, url: &str, title: &str, severity: &str
             }
             // Read local file and base64 encode
             let bytes = tokio::fs::read(screenshot_path).await?;
-            use base64::{Engine as _, engine::general_purpose::STANDARD};
+            use base64::{engine::general_purpose::STANDARD, Engine as _};
             let b64 = STANDARD.encode(&bytes);
             let mime = if screenshot_path.to_lowercase().ends_with(".png") {
                 "image/png"
             } else if screenshot_path.to_lowercase().ends_with(".gif") {
                 "image/gif"
-            } else if screenshot_path.to_lowercase().ends_with(".jpg") || screenshot_path.to_lowercase().ends_with(".jpeg") {
+            } else if screenshot_path.to_lowercase().ends_with(".jpg")
+                || screenshot_path.to_lowercase().ends_with(".jpeg")
+            {
                 "image/jpeg"
             } else {
                 return Err("Unsupported screenshot MIME type".into());
@@ -392,10 +441,12 @@ pub async fn submit_issue(api_base: &str, url: &str, title: &str, severity: &str
     Ok(())
 }
 
-pub async fn get_leaderboard(api_base: &str) -> Result<Vec<models::LeaderboardEntry>, Box<dyn std::error::Error>> {
+pub async fn get_leaderboard(
+    api_base: &str,
+) -> Result<Vec<models::LeaderboardEntry>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v2/leaderboard", api_base);
-    
+
     let mut req = client.get(&url);
     if let Some(api_key) = get_api_key() {
         req = req.header("X-BLT-API-Key", api_key);
@@ -421,22 +472,26 @@ pub fn parse_leaderboard_from_json(root: &serde_json::Value) -> Vec<models::Lead
     let mut leaderboard = Vec::new();
     let mut current_rank = 1;
     for item in arr {
-        let rank = item.get("rank")
+        let rank = item
+            .get("rank")
             .and_then(|v| v.as_u64())
             .unwrap_or(current_rank as u64) as u32;
 
-        let name = item.get("name")
+        let name = item
+            .get("name")
             .or_else(|| item.get("username"))
             .and_then(|v| v.as_str())
             .unwrap_or("Unknown")
             .to_string();
 
-        let bacon_points = item.get("bacon_points")
+        let bacon_points = item
+            .get("bacon_points")
             .or_else(|| item.get("total_score"))
             .and_then(|v| v.as_u64())
             .unwrap_or(0) as u32;
 
-        let reputation = item.get("reputation")
+        let reputation = item
+            .get("reputation")
             .or_else(|| item.get("title"))
             .and_then(|v| v.as_str())
             .unwrap_or("Contributor")
@@ -468,11 +523,30 @@ pub fn parse_good_first_issues_from_json(root: &serde_json::Value) -> Vec<models
     let mut issues = Vec::new();
     for item in arr {
         let id = item.get("id").and_then(|v| v.as_u64()).unwrap_or(0);
-        let title = item.get("title").and_then(|v| v.as_str()).unwrap_or("Untitled").to_string();
-        let repository = item.get("repository").and_then(|v| v.as_str()).unwrap_or("Unknown").to_string();
-        let web_url = item.get("web_url").and_then(|v| v.as_str()).unwrap_or("").to_string();
-        let description = item.get("description").and_then(|v| v.as_str()).unwrap_or("").to_string();
-        let bacon_estimate = item.get("bacon_estimate").and_then(|v| v.as_u64()).unwrap_or(100) as u32;
+        let title = item
+            .get("title")
+            .and_then(|v| v.as_str())
+            .unwrap_or("Untitled")
+            .to_string();
+        let repository = item
+            .get("repository")
+            .and_then(|v| v.as_str())
+            .unwrap_or("Unknown")
+            .to_string();
+        let web_url = item
+            .get("web_url")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        let description = item
+            .get("description")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        let bacon_estimate = item
+            .get("bacon_estimate")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(100) as u32;
 
         issues.push(models::GoodFirstIssue {
             id,
@@ -483,7 +557,7 @@ pub fn parse_good_first_issues_from_json(root: &serde_json::Value) -> Vec<models
             bacon_estimate,
         });
     }
-    
+
     issues
 }
 
@@ -512,7 +586,7 @@ mod tests {
 
         let leaderboard = parse_leaderboard_from_json(&json_data);
         assert_eq!(leaderboard.len(), 2);
-        
+
         assert_eq!(leaderboard[0].rank, 1);
         assert_eq!(leaderboard[0].name, "Alice");
         assert_eq!(leaderboard[0].bacon_points, 100);
@@ -542,7 +616,10 @@ mod tests {
         assert_eq!(issues[0].id, 1);
         assert_eq!(issues[0].title, "Fix typo");
         assert_eq!(issues[0].repository, "owasp-blt/blt-university");
-        assert_eq!(issues[0].web_url, "https://gitlab.com/owasp-blt/blt-university/-/issues/1");
+        assert_eq!(
+            issues[0].web_url,
+            "https://gitlab.com/owasp-blt/blt-university/-/issues/1"
+        );
         assert_eq!(issues[0].bacon_estimate, 10);
     }
 }

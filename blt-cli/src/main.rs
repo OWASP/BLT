@@ -1,18 +1,18 @@
-use std::io;
 use clap::Parser;
 use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{backend::CrosstermBackend, Terminal};
+use std::io;
 
-mod app;
-mod ui;
-mod tui;
-mod models;
 mod api;
+mod app;
 mod mcp_client;
+mod models;
 mod scanner;
+mod tui;
+mod ui;
 
 use app::App;
 
@@ -45,165 +45,215 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut app = App::new(mcp_path.clone(), api_base.clone());
 
     if let Some(ref mcp_srv) = mcp_path {
-            println!("Connecting to local MCP subprocess: {} ...", mcp_srv);
-            match mcp_client::McpSubprocessClient::spawn(mcp_srv).await {
-                Ok(mut client) => {
-                    match client.initialize().await {
-                        Ok(_) => {
-                            println!("Connected to MCP server. Loading resources...");
-                            let mut issues_loaded = false;
-                            let mut repos_loaded = false;
+        println!("Connecting to local MCP subprocess: {} ...", mcp_srv);
+        match mcp_client::McpSubprocessClient::spawn(mcp_srv).await {
+            Ok(mut client) => {
+                match client.initialize().await {
+                    Ok(_) => {
+                        println!("Connected to MCP server. Loading resources...");
+                        let mut issues_loaded = false;
+                        let mut repos_loaded = false;
 
-                            // Attempt to read issues resource
-                            if let Ok(resp) = client.read_resource("blt://v2/bugs").await {
-                                if let Some(contents) = resp.get("result").and_then(|r| r.get("contents")).and_then(|c| c.as_array()) {
-                                    if let Some(content) = contents.first() {
-                                        if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
-                                            if let Ok(root) = serde_json::from_str::<serde_json::Value>(text) {
-                                                if let Ok(issues) = crate::api::parse_issues_from_json(&root) {
-                                                    app.issues = issues;
-                                                    issues_loaded = true;
-                                                }
+                        // Attempt to read issues resource
+                        if let Ok(resp) = client.read_resource("blt://v2/bugs").await {
+                            if let Some(contents) = resp
+                                .get("result")
+                                .and_then(|r| r.get("contents"))
+                                .and_then(|c| c.as_array())
+                            {
+                                if let Some(content) = contents.first() {
+                                    if let Some(text) = content.get("text").and_then(|t| t.as_str())
+                                    {
+                                        if let Ok(root) =
+                                            serde_json::from_str::<serde_json::Value>(text)
+                                        {
+                                            if let Ok(issues) =
+                                                crate::api::parse_issues_from_json(&root)
+                                            {
+                                                app.issues = issues;
+                                                issues_loaded = true;
                                             }
                                         }
                                     }
                                 }
-                            }
-                            // Attempt to read repos resource
-                            if let Ok(resp) = client.read_resource("blt://v2/repos").await {
-                                if let Some(contents) = resp.get("result").and_then(|r| r.get("contents")).and_then(|c| c.as_array()) {
-                                    if let Some(content) = contents.first() {
-                                        if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
-                                            if let Ok(root) = serde_json::from_str::<serde_json::Value>(text) {
-                                                if let Ok(repos) = crate::api::parse_repos_from_json(&root) {
-                                                    app.repos = repos;
-                                                    repos_loaded = true;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Attempt to read stats resource
-                            if let Ok(resp) = client.read_resource("blt://v2/stats").await {
-                                if let Some(contents) = resp.get("result").and_then(|r| r.get("contents")).and_then(|c| c.as_array()) {
-                                    if let Some(content) = contents.first() {
-                                        if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
-                                            if let Ok(root) = serde_json::from_str::<serde_json::Value>(text) {
-                                                app.stats = crate::api::parse_stats_from_json(&root);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            // Attempt to read leaderboard resource
-                            if let Ok(resp) = client.read_resource("blt://v2/leaderboard").await {
-                                if let Some(contents) = resp.get("result").and_then(|r| r.get("contents")).and_then(|c| c.as_array()) {
-                                    if let Some(content) = contents.first() {
-                                        if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
-                                            if let Ok(root) = serde_json::from_str::<serde_json::Value>(text) {
-                                                app.leaderboard = crate::api::parse_leaderboard_from_json(&root);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Attempt to read good-first-issues resource
-                            if let Ok(resp) = client.read_resource("blt://good-first-issues").await {
-                                if let Some(contents) = resp.get("result").and_then(|r| r.get("contents")).and_then(|c| c.as_array()) {
-                                    if let Some(content) = contents.first() {
-                                        if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
-                                            if let Ok(root) = serde_json::from_str::<serde_json::Value>(text) {
-                                                app.good_first_issues = crate::api::parse_good_first_issues_from_json(&root);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            if issues_loaded && repos_loaded {
-                                app.audit_logs.push("SUCCESS: Connected to live MCP server. Awaiting live events...".to_string());
-                                app.status_message = "MCP connection established successfully!".to_string();
-                                app.is_live = true;
-                                app.mcp_client = Some(std::sync::Arc::new(tokio::sync::Mutex::new(client)));
-                                println!("SUCCESS: Connected to MCP server and loaded live resources.");
-                            } else {
-                                app.mcp_client = Some(std::sync::Arc::new(tokio::sync::Mutex::new(client)));
-                                app.status_message = "MCP connected, but failed to load primary resources.".to_string();
-                                println!("WARNING: Connected to MCP server, but failed to load primary resources.");
                             }
                         }
-                        Err(e) => {
-                            app.status_message = format!("MCP Init failed: {}", e);
-                            println!("ERROR: MCP handshake/initialization failed: {}", e);
+                        // Attempt to read repos resource
+                        if let Ok(resp) = client.read_resource("blt://v2/repos").await {
+                            if let Some(contents) = resp
+                                .get("result")
+                                .and_then(|r| r.get("contents"))
+                                .and_then(|c| c.as_array())
+                            {
+                                if let Some(content) = contents.first() {
+                                    if let Some(text) = content.get("text").and_then(|t| t.as_str())
+                                    {
+                                        if let Ok(root) =
+                                            serde_json::from_str::<serde_json::Value>(text)
+                                        {
+                                            if let Ok(repos) =
+                                                crate::api::parse_repos_from_json(&root)
+                                            {
+                                                app.repos = repos;
+                                                repos_loaded = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Attempt to read stats resource
+                        if let Ok(resp) = client.read_resource("blt://v2/stats").await {
+                            if let Some(contents) = resp
+                                .get("result")
+                                .and_then(|r| r.get("contents"))
+                                .and_then(|c| c.as_array())
+                            {
+                                if let Some(content) = contents.first() {
+                                    if let Some(text) = content.get("text").and_then(|t| t.as_str())
+                                    {
+                                        if let Ok(root) =
+                                            serde_json::from_str::<serde_json::Value>(text)
+                                        {
+                                            app.stats = crate::api::parse_stats_from_json(&root);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Attempt to read leaderboard resource
+                        if let Ok(resp) = client.read_resource("blt://v2/leaderboard").await {
+                            if let Some(contents) = resp
+                                .get("result")
+                                .and_then(|r| r.get("contents"))
+                                .and_then(|c| c.as_array())
+                            {
+                                if let Some(content) = contents.first() {
+                                    if let Some(text) = content.get("text").and_then(|t| t.as_str())
+                                    {
+                                        if let Ok(root) =
+                                            serde_json::from_str::<serde_json::Value>(text)
+                                        {
+                                            app.leaderboard =
+                                                crate::api::parse_leaderboard_from_json(&root);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Attempt to read good-first-issues resource
+                        if let Ok(resp) = client.read_resource("blt://good-first-issues").await {
+                            if let Some(contents) = resp
+                                .get("result")
+                                .and_then(|r| r.get("contents"))
+                                .and_then(|c| c.as_array())
+                            {
+                                if let Some(content) = contents.first() {
+                                    if let Some(text) = content.get("text").and_then(|t| t.as_str())
+                                    {
+                                        if let Ok(root) =
+                                            serde_json::from_str::<serde_json::Value>(text)
+                                        {
+                                            app.good_first_issues =
+                                                crate::api::parse_good_first_issues_from_json(
+                                                    &root,
+                                                );
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if issues_loaded && repos_loaded {
+                            app.audit_logs.push(
+                                "SUCCESS: Connected to live MCP server. Awaiting live events..."
+                                    .to_string(),
+                            );
+                            app.status_message =
+                                "MCP connection established successfully!".to_string();
+                            app.is_live = true;
+                            app.mcp_client =
+                                Some(std::sync::Arc::new(tokio::sync::Mutex::new(client)));
+                            println!("SUCCESS: Connected to MCP server and loaded live resources.");
+                        } else {
+                            app.mcp_client =
+                                Some(std::sync::Arc::new(tokio::sync::Mutex::new(client)));
+                            app.status_message =
+                                "MCP connected, but failed to load primary resources.".to_string();
+                            println!("WARNING: Connected to MCP server, but failed to load primary resources.");
                         }
                     }
-                }
-                Err(e) => {
-                    app.status_message = format!("MCP spawn failed: {}", e);
-                    println!("ERROR: Failed to spawn MCP subprocess: {}", e);
-                }
-            }
-        } else {
-            // Standalone Mode: Fetch from live API base
-            println!("Connecting to live API base: {} ...", api_base);
-            
-            let mut any_success = false;
-
-            match api::get_issues(&api_base).await {
-                Ok(issues) => {
-                    app.issues = issues;
-                    any_success = true;
-                }
-                Err(e) => {
-                    println!("  - Issues Fetch Error: {}", e);
-                }
-            }
-
-            match api::get_repos(&api_base).await {
-                Ok(repos) => {
-                    if !repos.is_empty() {
-                        app.repos = repos;
+                    Err(e) => {
+                        app.status_message = format!("MCP Init failed: {}", e);
+                        println!("ERROR: MCP handshake/initialization failed: {}", e);
                     }
-                    any_success = true;
-                }
-                Err(e) => {
-                    println!("  - Repos Fetch Error: {}", e);
                 }
             }
-
-            match api::get_hunts(&api_base).await {
-                Ok(hunts) => {
-                    app.hunts = hunts;
-                    any_success = true;
-                }
-                Err(e) => {
-                    println!("  - Hunts Fetch Error: {}", e);
-                }
-            }
-
-            match api::get_stats(&api_base).await {
-                Ok(stats) => {
-                    app.stats = stats;
-                    any_success = true;
-                }
-                Err(e) => {
-                    println!("  - Stats Fetch Error: {}", e);
-                }
-            }
-
-            if any_success {
-                app.status_message = "Connected to API (loaded live data where available).".to_string();
-                app.is_live = true;
-                println!("SUCCESS: Connected to API base successfully.");
-            } else {
-                app.status_message = "API connection failed.".to_string();
-                println!("ERROR: All API endpoints failed to connect.");
+            Err(e) => {
+                app.status_message = format!("MCP spawn failed: {}", e);
+                println!("ERROR: Failed to spawn MCP subprocess: {}", e);
             }
         }
+    } else {
+        // Standalone Mode: Fetch from live API base
+        println!("Connecting to live API base: {} ...", api_base);
+
+        let mut any_success = false;
+
+        match api::get_issues(&api_base).await {
+            Ok(issues) => {
+                app.issues = issues;
+                any_success = true;
+            }
+            Err(e) => {
+                println!("  - Issues Fetch Error: {}", e);
+            }
+        }
+
+        match api::get_repos(&api_base).await {
+            Ok(repos) => {
+                if !repos.is_empty() {
+                    app.repos = repos;
+                }
+                any_success = true;
+            }
+            Err(e) => {
+                println!("  - Repos Fetch Error: {}", e);
+            }
+        }
+
+        match api::get_hunts(&api_base).await {
+            Ok(hunts) => {
+                app.hunts = hunts;
+                any_success = true;
+            }
+            Err(e) => {
+                println!("  - Hunts Fetch Error: {}", e);
+            }
+        }
+
+        match api::get_stats(&api_base).await {
+            Ok(stats) => {
+                app.stats = stats;
+                any_success = true;
+            }
+            Err(e) => {
+                println!("  - Stats Fetch Error: {}", e);
+            }
+        }
+
+        if any_success {
+            app.status_message = "Connected to API (loaded live data where available).".to_string();
+            app.is_live = true;
+            println!("SUCCESS: Connected to API base successfully.");
+        } else {
+            app.status_message = "API connection failed.".to_string();
+            println!("ERROR: All API endpoints failed to connect.");
+        }
+    }
 
     println!("Starting TUI session...");
 
@@ -246,12 +296,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("OWASP BLT TUI Session Closed.");
         if let Some(ref srv) = mcp_path {
             if was_live {
-                println!("Status: Successfully connected to local MCP server at [{}].", srv);
+                println!(
+                    "Status: Successfully connected to local MCP server at [{}].",
+                    srv
+                );
             } else {
                 println!("Status: Failed to connect to local MCP server.");
             }
         } else if was_live {
-            println!("Status: Successfully connected to live API base at [{}].", api_base);
+            println!(
+                "Status: Successfully connected to live API base at [{}].",
+                api_base
+            );
         } else {
             println!("Status: Failed to connect to API base at [{}].", api_base);
         }
