@@ -1272,27 +1272,48 @@ fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
     let modal_area = centered_rect(85, 90, rect);
     f.render_widget(Clear, modal_area);
 
-    let chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(3), // Title
-            Constraint::Length(3), // URL
-            Constraint::Length(3), // Severity
-            Constraint::Length(3), // Bug Type
-            Constraint::Min(4),    // Description
-            Constraint::Min(4),    // Steps to Reproduce
-            Constraint::Length(3), // Screenshot
-            Constraint::Length(3), // Instructions
-        ])
-        .margin(1)
-        .split(modal_area);
-
     let block = Block::default()
         .borders(Borders::ALL)
         .border_style(Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD))
         .title(" Submit New Vulnerability ")
         .bg(SLATE_SURFACE);
     f.render_widget(block, modal_area);
+
+    let inner_area = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Min(0),
+            Constraint::Length(2), // Instructions
+        ])
+        .margin(1)
+        .split(modal_area);
+
+    let columns = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage(50),
+            Constraint::Percentage(50),
+        ])
+        .split(inner_area[0]);
+
+    let left_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(3), // Title
+            Constraint::Length(3), // URL
+            Constraint::Length(3), // Severity
+            Constraint::Length(3), // Bug Type
+            Constraint::Length(3), // Screenshot
+        ])
+        .split(columns[0]);
+
+    let right_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage(50), // Description
+            Constraint::Percentage(50), // Steps to Reproduce
+        ])
+        .split(columns[1]);
 
     let active = &app.submit_form.active_field;
 
@@ -1318,7 +1339,7 @@ fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
             .border_style(title_style)
             .title(" Bug Title * "),
     );
-    f.render_widget(title_p, chunks[0]);
+    f.render_widget(title_p, left_chunks[0]);
 
     // URL Field
     let url_style = if *active == crate::app::FormField::Url {
@@ -1335,9 +1356,9 @@ fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
         Block::default()
             .borders(Borders::ALL)
             .border_style(url_style)
-            .title(" Vulnerable URL * (e.g. https://api.owaspblt.org/login) "),
+            .title(" Vulnerable URL * "),
     );
-    f.render_widget(url_p, chunks[1]);
+    f.render_widget(url_p, left_chunks[1]);
 
     // Severity Field
     let sev_style = if *active == crate::app::FormField::Severity {
@@ -1356,7 +1377,7 @@ fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
             .border_style(sev_style)
             .title(" Severity (Low/Medium/High/Critical) "),
     );
-    f.render_widget(sev_p, chunks[2]);
+    f.render_widget(sev_p, left_chunks[2]);
 
     // Bug Type Field
     let type_style = if *active == crate::app::FormField::BugType {
@@ -1375,7 +1396,26 @@ fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
             .border_style(type_style)
             .title(" Bug Type "),
     );
-    f.render_widget(type_p, chunks[3]);
+    f.render_widget(type_p, left_chunks[3]);
+
+    // Screenshot Field
+    let ss_style = if *active == crate::app::FormField::Screenshot {
+        style_active
+    } else {
+        style_inactive
+    };
+    let ss_text = if *active == crate::app::FormField::Screenshot {
+        format!("{}█", app.submit_form.screenshot_path)
+    } else {
+        app.submit_form.screenshot_path.clone()
+    };
+    let ss_p = Paragraph::new(ss_text).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(ss_style)
+            .title(" Screenshot (Path/URL) "),
+    );
+    f.render_widget(ss_p, left_chunks[4]);
 
     // Description Field
     let desc_style = if *active == crate::app::FormField::Description {
@@ -1396,7 +1436,7 @@ fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
                 .title(" Description * "),
         )
         .wrap(Wrap { trim: false });
-    f.render_widget(desc_p, chunks[4]);
+    f.render_widget(desc_p, right_chunks[0]);
 
     // Steps to Reproduce Field
     let steps_style = if *active == crate::app::FormField::StepsToReproduce {
@@ -1417,26 +1457,7 @@ fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
                 .title(" Steps to Reproduce "),
         )
         .wrap(Wrap { trim: false });
-    f.render_widget(steps_p, chunks[5]);
-
-    // Screenshot Field
-    let ss_style = if *active == crate::app::FormField::Screenshot {
-        style_active
-    } else {
-        style_inactive
-    };
-    let ss_text = if *active == crate::app::FormField::Screenshot {
-        format!("{}█", app.submit_form.screenshot_path)
-    } else {
-        app.submit_form.screenshot_path.clone()
-    };
-    let ss_p = Paragraph::new(ss_text).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .border_style(ss_style)
-            .title(" Screenshot (Path/URL) "),
-    );
-    f.render_widget(ss_p, chunks[6]);
+    f.render_widget(steps_p, right_chunks[1]);
 
     // Instructions
     let instr_p = Paragraph::new(Line::from(vec![
@@ -1466,7 +1487,7 @@ fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
         Span::styled("Cancel", Style::default().fg(TEXT_LIGHT)),
     ]))
     .alignment(ratatui::layout::Alignment::Center);
-    f.render_widget(instr_p, chunks[7]);
+    f.render_widget(instr_p, inner_area[1]);
 }
 
 fn parse_markdown(text: &str) -> Vec<Line<'_>> {
@@ -1605,23 +1626,19 @@ fn draw_ai_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
 
 // Helper to center widgets on screen
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
-    let popup_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Percentage((100 - percent_y) / 2),
-            Constraint::Percentage(percent_y),
-            Constraint::Percentage((100 - percent_y) / 2),
-        ])
-        .split(r);
+    let mut w = (r.width as u32 * percent_x as u32 / 100) as u16;
+    let mut h = (r.height as u32 * percent_y as u32 / 100) as u16;
 
-    Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage((100 - percent_x) / 2),
-            Constraint::Percentage(percent_x),
-            Constraint::Percentage((100 - percent_x) / 2),
-        ])
-        .split(popup_layout[1])[1]
+    let min_w = 60.min(r.width);
+    let min_h = 18.min(r.height);
+
+    if w < min_w { w = min_w; }
+    if h < min_h { h = min_h; }
+
+    let x = r.x + (r.width - w) / 2;
+    let y = r.y + (r.height - h) / 2;
+
+    Rect::new(x, y, w, h)
 }
 
 // Minimal Cell and Cell conversion implementations for simple layout construction

@@ -92,9 +92,11 @@ pub enum AppEvent {
     },
     VisionDraftComplete {
         result: String,
+        success: bool,
     },
     AiTriageResult {
         message: String,
+        success: bool,
     },
     ScanComplete {
         health: crate::scanner::SecurityHealth,
@@ -238,19 +240,62 @@ impl App {
         self.status_message = format!("Switched to tab: {}", self.active_tab.name());
     }
 
+    pub fn get_visible_issue_indices(&self) -> Vec<usize> {
+        let mut indices = Vec::new();
+        for (idx, issue) in self.issues.iter().enumerate() {
+            if !self.search_query.is_empty() {
+                let q = self.search_query.to_lowercase();
+                if !issue.title.to_lowercase().contains(&q)
+                    && !issue.repository.to_lowercase().contains(&q)
+                    && !issue.status.to_lowercase().contains(&q)
+                    && !issue.severity.to_lowercase().contains(&q)
+                    && !issue.id.to_lowercase().contains(&q)
+                {
+                    continue;
+                }
+            }
+            indices.push(idx);
+        }
+        indices
+    }
+
+    pub fn get_visible_hunt_indices(&self) -> Vec<usize> {
+        let mut indices = Vec::new();
+        for (idx, hunt) in self.hunts.iter().enumerate() {
+            if !self.search_query.is_empty() {
+                let q = self.search_query.to_lowercase();
+                if !hunt.name.to_lowercase().contains(&q)
+                    && !hunt.description.to_lowercase().contains(&q)
+                    && !hunt.status.to_lowercase().contains(&q)
+                    && !hunt.reward.to_lowercase().contains(&q)
+                {
+                    continue;
+                }
+            }
+            indices.push(idx);
+        }
+        indices
+    }
+
     pub fn scroll_down(&mut self) {
         if self.active_overlay != ActiveOverlay::None {
             return;
         }
         match self.active_tab {
             Tab::Issues => {
-                if !self.issues.is_empty() {
-                    self.selected_issue_index = (self.selected_issue_index + 1) % self.issues.len();
+                let visible = self.get_visible_issue_indices();
+                if !visible.is_empty() {
+                    let current_pos = visible.iter().position(|&x| x == self.selected_issue_index).unwrap_or(0);
+                    let next_pos = (current_pos + 1) % visible.len();
+                    self.selected_issue_index = visible[next_pos];
                 }
             }
             Tab::Hunts => {
-                if !self.hunts.is_empty() {
-                    self.selected_hunt_index = (self.selected_hunt_index + 1) % self.hunts.len();
+                let visible = self.get_visible_hunt_indices();
+                if !visible.is_empty() {
+                    let current_pos = visible.iter().position(|&x| x == self.selected_hunt_index).unwrap_or(0);
+                    let next_pos = (current_pos + 1) % visible.len();
+                    self.selected_hunt_index = visible[next_pos];
                 }
             }
             _ => {}
@@ -263,21 +308,27 @@ impl App {
         }
         match self.active_tab {
             Tab::Issues => {
-                if !self.issues.is_empty() {
-                    if self.selected_issue_index == 0 {
-                        self.selected_issue_index = self.issues.len() - 1;
+                let visible = self.get_visible_issue_indices();
+                if !visible.is_empty() {
+                    let current_pos = visible.iter().position(|&x| x == self.selected_issue_index).unwrap_or(0);
+                    let next_pos = if current_pos == 0 {
+                        visible.len() - 1
                     } else {
-                        self.selected_issue_index -= 1;
-                    }
+                        current_pos - 1
+                    };
+                    self.selected_issue_index = visible[next_pos];
                 }
             }
             Tab::Hunts => {
-                if !self.hunts.is_empty() {
-                    if self.selected_hunt_index == 0 {
-                        self.selected_hunt_index = self.hunts.len() - 1;
+                let visible = self.get_visible_hunt_indices();
+                if !visible.is_empty() {
+                    let current_pos = visible.iter().position(|&x| x == self.selected_hunt_index).unwrap_or(0);
+                    let next_pos = if current_pos == 0 {
+                        visible.len() - 1
                     } else {
-                        self.selected_hunt_index -= 1;
-                    }
+                        current_pos - 1
+                    };
+                    self.selected_hunt_index = visible[next_pos];
                 }
             }
             _ => {}
@@ -434,6 +485,8 @@ impl App {
 
     pub fn reset_data(&mut self) {
         self.issues.clear();
+        self.selected_issue_index = 0;
+        self.selected_issues.clear();
     }
 }
 

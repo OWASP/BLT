@@ -13,14 +13,13 @@ pub struct McpSubprocessClient {
 
 impl McpSubprocessClient {
     /// Spawn the Python MCP server as a subprocess.
-    pub async fn spawn(mcp_server_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        let parts: Vec<&str> = mcp_server_path.split_whitespace().collect();
-        if parts.is_empty() {
+    pub async fn spawn(cmd_name: &str, args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
+        if cmd_name.trim().is_empty() {
             return Err("Empty MCP server path provided".into());
         }
 
-        let mut cmd = Command::new(parts[0]);
-        for arg in &parts[1..] {
+        let mut cmd = Command::new(cmd_name);
+        for arg in args {
             cmd.arg(arg);
         }
 
@@ -53,33 +52,45 @@ impl McpSubprocessClient {
         })
     }
 
-    /// Perform the initialize lifecycle handshake.
-    pub async fn initialize(&mut self) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
-        let id = self.next_id();
-        let payload = json!({
+    pub async fn initialize(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let req = json!({
             "jsonrpc": "2.0",
-            "id": id,
+            "id": self.request_id,
             "method": "initialize",
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
                 "clientInfo": {
                     "name": "blt-cli",
-                    "version": "1.0.0"
+                    "version": "0.1.0"
                 }
             }
         });
 
-        self.send_request(&payload).await?;
-        let resp = self.read_response(id).await?;
+        self.send_request(req).await?;
+        let _resp = self.read_response(self.request_id).await?;
+        self.request_id += 1;
 
-        // Let the server know we are initialized per MCP lifecycle
-        let init_notif = json!({
+        // Send initialized notification
+        let notif = json!({
             "jsonrpc": "2.0",
             "method": "notifications/initialized"
         });
-        self.send_request(&init_notif).await?;
+        self.send_notification(notif).await?;
 
+        Ok(())
+    }
+
+    pub async fn list_resources(&mut self) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+        let req = json!({
+            "jsonrpc": "2.0",
+            "id": self.request_id,
+            "method": "resources/list"
+        });
+
+        self.send_request(req).await?;
+        let resp = self.read_response(self.request_id).await?;
+        self.request_id += 1;
         Ok(resp)
     }
 
@@ -88,18 +99,19 @@ impl McpSubprocessClient {
         &mut self,
         uri: &str,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
-        let id = self.next_id();
-        let payload = json!({
+        let req = json!({
             "jsonrpc": "2.0",
-            "id": id,
+            "id": self.request_id,
             "method": "resources/read",
             "params": {
                 "uri": uri
             }
         });
 
-        self.send_request(&payload).await?;
-        self.read_response(id).await
+        self.send_request(req).await?;
+        let resp = self.read_response(self.request_id).await?;
+        self.request_id += 1;
+        Ok(resp)
     }
 
     /// Call an MCP tool.
@@ -108,10 +120,9 @@ impl McpSubprocessClient {
         name: &str,
         arguments: serde_json::Value,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
-        let id = self.next_id();
-        let payload = json!({
+        let req = json!({
             "jsonrpc": "2.0",
-            "id": id,
+            "id": self.request_id,
             "method": "tools/call",
             "params": {
                 "name": name,
@@ -119,21 +130,24 @@ impl McpSubprocessClient {
             }
         });
 
-        self.send_request(&payload).await?;
-        self.read_response(id).await
-    }
-
-    fn next_id(&mut self) -> i64 {
+        self.send_request(req).await?;
+        let resp = self.read_response(self.request_id).await?;
         self.request_id += 1;
-        self.request_id
+        Ok(resp)
     }
 
-    async fn send_request(
+    async fn send_request(&mut self, req: serde_json::Value) -> Result<(), Box<dyn std::error::Error>> {
+        let line = serde_json::to_string(&req)? + "\n";
+        self.stdin.write_all(line.as_bytes()).await?;
+        self.stdin.flush().await?;
+        Ok(())
+    }
+
+    async fn send_notification(
         &mut self,
-        request: &serde_json::Value,
+        notif: serde_json::Value,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let mut line = serde_json::to_string(request)?;
-        line.push('\n');
+        let line = serde_json::to_string(&notif)? + "\n";
         self.stdin.write_all(line.as_bytes()).await?;
         self.stdin.flush().await?;
         Ok(())
@@ -144,11 +158,17 @@ impl McpSubprocessClient {
         expected_id: i64,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         let mut line = String::new();
+        let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(10);
         loop {
+            let now = tokio::time::Instant::now();
+            if now >= deadline {
+                return Err("MCP Subprocess read timeout".into());
+            }
+            let remaining = deadline - now;
             line.clear();
             let read_fut = self.stdout_reader.read_line(&mut line);
             let bytes_read =
-                match tokio::time::timeout(std::time::Duration::from_secs(10), read_fut).await {
+                match tokio::time::timeout(remaining, read_fut).await {
                     Ok(Ok(n)) => n,
                     Ok(Err(e)) => return Err(e.into()),
                     Err(_) => return Err("MCP Subprocess read timeout".into()),
