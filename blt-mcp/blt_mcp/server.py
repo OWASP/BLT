@@ -296,6 +296,7 @@ async def draft_vision_issue(
     Args:
         image_path: Absolute path to the screenshot image on the local system.
         gitlab_project_id: Optional GitLab project ID to upload the image to.
+    """
     allowed_dir = Path.home() / ".blt-mcp" / "images"
     allowed_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
     allowed_dir.chmod(0o700)

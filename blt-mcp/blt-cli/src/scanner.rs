@@ -56,34 +56,19 @@ async fn run_tool(tool: &str, args: &[&str]) -> Result<std::process::Output, Too
     {
         let mut all_args = vec!["/c", tool];
         all_args.extend_from_slice(args);
-        let mut child = match Command::new("cmd")
+        let child = match Command::new("cmd")
             .args(&all_args)
             .stdin(std::process::Stdio::null())
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped())
+            .kill_on_drop(true)
             .spawn()
         {
             Ok(c) => c,
             Err(e) => return Err(ToolStatus::Error(format!("Spawn failed: {}", e))),
         };
 
-        let stdout_handle = child.stdout.take();
-        let stderr_handle = child.stderr.take();
-
-        let work = async {
-            let status = child.wait().await?;
-            let mut stdout_bytes = Vec::new();
-            let mut stderr_bytes = Vec::new();
-            if let Some(mut out) = stdout_handle {
-                tokio::io::AsyncReadExt::read_to_end(&mut out, &mut stdout_bytes).await?;
-            }
-            if let Some(mut err) = stderr_handle {
-                tokio::io::AsyncReadExt::read_to_end(&mut err, &mut stderr_bytes).await?;
-            }
-            Ok::<std::process::Output, std::io::Error>(std::process::Output { status, stdout: stdout_bytes, stderr: stderr_bytes })
-        };
-
-        match tokio::time::timeout(std::time::Duration::from_secs(30), work).await {
+        match tokio::time::timeout(std::time::Duration::from_secs(30), child.wait_with_output()).await {
             Ok(Ok(output)) => {
                 let stderr = String::from_utf8_lossy(&output.stderr);
                 if !output.status.success() && stderr.contains("is not recognized") {
@@ -94,18 +79,18 @@ async fn run_tool(tool: &str, args: &[&str]) -> Result<std::process::Output, Too
             }
             Ok(Err(e)) => Err(ToolStatus::Error(format!("Execution failed: {}", e))),
             Err(_) => {
-                let _ = child.kill().await;
                 Err(ToolStatus::Error("Execution timed out".to_string()))
             }
         }
     }
     #[cfg(not(target_os = "windows"))]
     {
-        let mut child = match Command::new(tool)
+        let child = match Command::new(tool)
             .args(args)
             .stdin(std::process::Stdio::null())
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped())
+            .kill_on_drop(true)
             .spawn()
         {
             Ok(c) => c,
@@ -117,27 +102,11 @@ async fn run_tool(tool: &str, args: &[&str]) -> Result<std::process::Output, Too
                 }
             }
         };
-        let stdout_handle = child.stdout.take();
-        let stderr_handle = child.stderr.take();
 
-        let work = async {
-            let status = child.wait().await?;
-            let mut stdout_bytes = Vec::new();
-            let mut stderr_bytes = Vec::new();
-            if let Some(mut out) = stdout_handle {
-                tokio::io::AsyncReadExt::read_to_end(&mut out, &mut stdout_bytes).await?;
-            }
-            if let Some(mut err) = stderr_handle {
-                tokio::io::AsyncReadExt::read_to_end(&mut err, &mut stderr_bytes).await?;
-            }
-            Ok::<std::process::Output, std::io::Error>(std::process::Output { status, stdout: stdout_bytes, stderr: stderr_bytes })
-        };
-
-        match tokio::time::timeout(std::time::Duration::from_secs(30), work).await {
+        match tokio::time::timeout(std::time::Duration::from_secs(30), child.wait_with_output()).await {
             Ok(Ok(output)) => Ok(output),
             Ok(Err(e)) => Err(ToolStatus::Error(format!("Execution failed: {}", e))),
             Err(_) => {
-                let _ = child.kill().await;
                 Err(ToolStatus::Error("Execution timed out".to_string()))
             }
         }
