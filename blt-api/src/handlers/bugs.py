@@ -20,6 +20,7 @@ _UPDATABLE_FIELDS = {
     "status", "verified", "score", "markdown_description",
     "description", "github_url", "cve_id", "cve_score",
     "is_hidden", "closed_by", "closed_date", "label",
+    "title", "severity", "bug_type", "steps_to_reproduce",
 }
 
 _VALID_STATUSES = {"open", "closed", "in-progress", "reviewing"}
@@ -576,7 +577,7 @@ async def update_bug(db: Any, request: Any, env: Any, bug_id_str: str, logger: A
                     return error_response(f"{field} must be an integer", status=400)
                 updates[field] = value
 
-            elif field in ("markdown_description", "description", "github_url", "cve_id", "cve_score", "closed_date"):
+            elif field in ("markdown_description", "description", "github_url", "cve_id", "cve_score", "closed_date", "title", "severity", "bug_type", "steps_to_reproduce"):
                 if value is not None and not isinstance(value, str):
                     return error_response(f"{field} must be a string or null", status=400)
                 updates[field] = value
