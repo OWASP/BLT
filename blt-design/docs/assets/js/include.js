@@ -26,16 +26,16 @@ function getSiteBase() {
 }
 
 function normalizePath(path) {
-  return path.replace(/\/+/g, '/').replace(/index\.html$/, '').replace(/\/$/, '');
+  return path.replace(/\/+/g, '/').replace(/index\.html$/, '').replace(/\.html$/, '').replace(/\/$/, '');
 }
 
 function setActive(link) {
-  link.classList.remove('border-transparent', 'text-slate-700');
-  link.classList.add('blt-active', 'border-red-600/30', 'bg-[#feeae9]', 'font-semibold', 'text-red-600');
+  link.classList.remove('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
+  link.classList.add('blt-active', 'bg-[#feeae9]', 'font-semibold', 'text-red-600');
 
   const icon = link.querySelector('i');
   if (icon) {
-    icon.classList.remove('text-slate-500');
+    icon.classList.remove('text-slate-400');
     icon.classList.add('text-red-600');
   }
 }
