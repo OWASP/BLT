@@ -139,22 +139,40 @@ class GitLabGapDetector:
 
     async def _fetch_project_events(self, project_id: int, after: str) -> list[dict[str, Any]]:
         assert self._client is not None
+        cursor = await self._cursors.get(f"gitlab_events_{project_id}")
+        last_seen = cursor[0] if cursor else 0
 
-        async def _do() -> list[dict[str, Any]]:
-            assert self._client is not None
-            resp = await self._client.get(
-                f"/projects/{project_id}/events",
-                params={"after": after, "per_page": 100, "page": 1},
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            return data if isinstance(data, list) else []
+        all_events: list[dict[str, Any]] = []
+        page = 1
+        while True:
+            async def _do(page: int = page) -> list[dict[str, Any]]:
+                assert self._client is not None
+                resp = await self._client.get(
+                    f"/projects/{project_id}/events",
+                    params={"after": after, "per_page": 100, "page": page},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                return data if isinstance(data, list) else []
 
-        return await retry_async(
-            _do,
-            description=f"gitlab.events[{project_id}]",
-            on_failure=self._on_failure,
-        )
+            try:
+                events = await retry_async(
+                    _do,
+                    description=f"gitlab.events[{project_id}].page{page}",
+                    on_failure=self._on_failure,
+                )
+            except RetryableHTTPError as exc:
+                logger.warning("gap fetch failed", extra={"project_id": project_id, "page": page, "error": str(exc)})
+                break
+
+            if not events:
+                break
+            all_events.extend(events)
+            if len(events) < 100 or int(events[-1].get("id", 0)) <= last_seen:
+                break
+            page += 1
+
+        return all_events
 
     async def _on_failure(self, exc: Exception) -> None:
         from ..broadcast.hub import get_hub

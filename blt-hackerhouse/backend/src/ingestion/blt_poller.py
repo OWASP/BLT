@@ -125,29 +125,37 @@ class BLTPoller:
         cursor = await self._cursors.get("blt_bugs")
         last_seen = cursor[0] if cursor else 0
 
-        async def _do() -> list[dict[str, Any]]:
-            assert self._client is not None
-            resp = await self._client.get(
-                "/bugs",
-                params={"page": 1, "per_page": self.page_size},
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            if isinstance(data, dict):
-                data = data.get("data") or data.get("results") or []
-            return [r for r in data if isinstance(r, dict)]
+        all_records: list[dict[str, Any]] = []
+        page = 1
+        while True:
+            async def _do(page: int = page) -> list[dict[str, Any]]:
+                assert self._client is not None
+                resp = await self._client.get(
+                    "/bugs",
+                    params={"page": page, "per_page": self.page_size},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                if isinstance(data, dict):
+                    data = data.get("data") or data.get("results") or []
+                return [r for r in data if isinstance(r, dict)]
 
-        try:
-            records = await retry_async(
-                _do,
-                description="blt.fetch_bugs",
-                on_failure=self._on_failure,
-            )
-        except RetryableHTTPError as exc:
-            logger.warning("blt fetch_bugs exhausted", extra={"error": str(exc)})
-            return []
+            try:
+                records = await retry_async(
+                    _do,
+                    description=f"blt.fetch_bugs.page{page}",
+                    on_failure=self._on_failure,
+                )
+            except RetryableHTTPError as exc:
+                logger.warning("blt fetch_bugs exhausted", extra={"error": str(exc), "page": page})
+                break
 
-        return [r for r in records if int(r.get("id", 0)) > last_seen]
+            all_records.extend(records)
+            if len(records) < self.page_size:
+                break
+            page += 1
+
+        return [r for r in all_records if int(r.get("id", 0)) > last_seen]
 
     async def _fetch_hunts(self) -> list[dict[str, Any]]:
         if self._client is None:
