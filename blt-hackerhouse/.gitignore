@@ -40,3 +40,5 @@ Thumbs.db
 
 # CommandCode (internal tooling)
 .commandcode/
+*.db-wal
+*.db-shm

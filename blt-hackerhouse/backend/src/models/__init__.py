@@ -6,16 +6,16 @@ Models have zero internal dependencies — they only import from
 pydantic and the Python standard library.
 """
 
-from models.event import Event
-from models.contributor import Contributor, ContributorSnapshot
-from models.identity import (
+from .event import Event
+from .contributor import Contributor, ContributorSnapshot
+from .identity import (
     IdentityMapping,
     IdentityFlag,
     PlatformIdentity,
     Platform,
 )
-from models.room import AvatarState, RoomMapEntry, RoomOccupancy
-from models.websocket import (
+from .room import AvatarState, RoomMapEntry, RoomOccupancy
+from .websocket import (
     SnapshotMessage,
     SnapshotData,
     SnapshotContributor,
@@ -25,7 +25,7 @@ from models.websocket import (
     IdentityFlagSource,
     LeaderboardUpdateMessage,
 )
-from models.api import (
+from .api import (
     PaginatedResponse,
     PaginationMeta,
     ActivityFeedItem,
