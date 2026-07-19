@@ -7,12 +7,15 @@ const {
   advanceSqliSimulationToFix,
   answerExplanation,
   cloneSerializableValue,
+  createMockDocument,
   findButton,
   findDescendant,
   getFixEditor,
   getRequiredButton,
+  getRequiredElement,
   getStoredLabProgress,
   initializeSqliSimulation,
+  loadLabHelpers,
   selectCodeLine,
   submitFix,
   validateExplanation,
@@ -120,6 +123,17 @@ describe('SQLi simulation user flow', () => {
     expect(getFixEditor(labDocument.simulationRoot)).toBeNull();
   });
 
+  it('keeps draft fix code when the active stage pill is clicked', () => {
+    const { labDocument } = initializeSqliSimulation();
+
+    advanceSqliSimulationToFix(labDocument);
+    const editor = getFixEditor(labDocument.simulationRoot);
+    editor.value = 'draft fix in progress';
+    getRequiredElement(labDocument.simulationRoot, '[data-stage-target="fix"]').click();
+
+    expect(getFixEditor(labDocument.simulationRoot).value).toBe('draft fix in progress');
+  });
+
   it('shows progressive hints and repeats the final hint', () => {
     const { labDocument } = initializeSqliSimulation();
     const hintButton = getRequiredButton(labDocument.simulationRoot, 'Show Hint');
@@ -141,5 +155,67 @@ describe('SQLi simulation user flow', () => {
       labDocument.simulationRoot,
       (element) => element.textContent === 'Bind username and password separately from the query.'
     )).toBeTruthy();
+  });
+});
+
+describe('open redirect identify-explain-fix simulation', () => {
+  it('completes and stores progress without legacy payload simulation', () => {
+    const taskIndex = 0;
+    const labDocument = createMockDocument({
+      labId: 'open-redirect',
+      simulationEngine: 'redirect-basic',
+      taskIndex,
+      labDataText: JSON.stringify([
+        {
+          simulation: {
+            vulnerable_code: [
+              "app.get('/redirect', (req, res) => {",
+              "  const next = req.query.next || '/dashboard';",
+              '  res.redirect(next);',
+              '});'
+            ].join('\n'),
+            vulnerable_lines: [3],
+            explain: {
+              question: 'Why can this redirect be abused?',
+              options: [
+                { id: 'raw_redirect', label: 'The app redirects to raw user input.' },
+                { id: 'missing_template', label: 'The app lacks a template.' }
+              ],
+              answer: 'raw_redirect'
+            },
+            fix_starter_code: "res.redirect(req.query.next);",
+            hints: ['Find the redirect call.']
+          }
+        }
+      ])
+    });
+    const loaded = loadLabHelpers({ document: labDocument, pathname: '/labs/open-redirect/' });
+
+    loaded.helpers.initializeLabSimulations();
+    selectCodeLine(labDocument, 3);
+    validateSelection(labDocument);
+    getRequiredElement(labDocument.simulationRoot, '[data-answer="raw_redirect"]').click();
+    validateExplanation(labDocument);
+    expect(getFixEditor(labDocument.simulationRoot)).toBeTruthy();
+
+    submitFix(labDocument, `
+      const allowedPaths = ['/dashboard'];
+      const parsed = new URL(req.query.next || '/dashboard', 'https://app.example');
+      if (parsed.protocol === 'javascript:' || parsed.protocol === 'data:' || req.query.next.startsWith('//')) reject();
+      const next = allowedPaths.includes(parsed.pathname) ? parsed.pathname : '/dashboard';
+      res.redirect(next);
+    `);
+
+    expect(getStoredLabProgress(loaded.storage)).toMatchObject({
+      'open-redirect': {
+        [taskIndex]: {
+          completed: true,
+          engine: 'redirect-basic',
+          state: 'complete',
+          score: 100
+        }
+      }
+    });
+    expect(labDocument.simulationRoot.textContent).toContain('Simulation Complete');
   });
 });

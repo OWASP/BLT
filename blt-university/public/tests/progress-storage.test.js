@@ -64,6 +64,41 @@ describe('simulation progress storage', () => {
     expect(cloneSerializableValue(helpers.getStoredSimulationProgress())).toEqual({});
   });
 
+  describe.each([
+    ['null', 'null'],
+    ['array', '[]'],
+    ['string', '"progress"'],
+    ['number', '42']
+  ])('shape-safe storage recovery: %s', (_name, storedValue) => {
+    it('recovers with an empty object', () => {
+      const { helpers, storage } = loadLabHelpers();
+
+      storage.set(LAB_PROGRESS_STORAGE_KEY, storedValue);
+
+      expect(cloneSerializableValue(helpers.getStoredSimulationProgress())).toEqual({});
+      expect(helpers.getSimulationProgress(SQLI_LAB_ID, 0)).toBeNull();
+    });
+  });
+
+  it('treats storage writes as best effort', () => {
+    const { helpers } = loadLabHelpers();
+    const setItem = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota exceeded');
+    });
+
+    try {
+      let result;
+      expect(() => {
+        result = helpers.setSimulationProgress(SQLI_LAB_ID, 2, {
+          completed: true
+        });
+      }).not.toThrow();
+      expect(result).toBe(false);
+    } finally {
+      setItem.mockRestore();
+    }
+  });
+
   it('restores a completed simulation without dropping other labs from storage', () => {
     const taskIndex = 0;
     const labDocument = createMockDocument({
