@@ -52,7 +52,7 @@ AI-guided workflows for common security tasks:
 ### Using uv (Recommended)
 
 ```bash
-git clone https://gitlab.com/AEMphil/BLT-MCP.git
+git clone https://gitlab.com/owasp-blt/blt-mcp.git
 cd BLT-MCP
 
 # Create a virtual environment and install dependencies
@@ -64,7 +64,7 @@ uv pip install -e .
 ### Using pip
 
 ```bash
-git clone https://gitlab.com/OWASP-BLT/BLT-MCP.git
+git clone https://gitlab.com/owasp-blt/blt-mcp.git
 cd BLT-MCP
 
 python -m venv venv
