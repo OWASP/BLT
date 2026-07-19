@@ -9,6 +9,7 @@ import hashlib
 import hmac
 import secrets
 import time
+import json
 from typing import Any, Optional
 from urllib.parse import urlparse
 
@@ -20,6 +21,12 @@ API_KEY_HEADER = "X-BLT-API-Key"
 API_KEY_ENV_VAR = "BLT_API_KEY"
 PUBLIC_BLT_API_KEY = "f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051"
 USER_API_KEY_PREFIX = "blt_live_"
+
+SCOPE_READ_BUGS = "read:bugs"
+SCOPE_WRITE_BUGS = "write:bugs"
+SCOPE_READ_JOBS = "read:jobs"
+SCOPE_WRITE_JOBS = "write:jobs"
+
 PUBLIC_API_KEY_PATHS = {
     "/",
     "/v2",
@@ -109,6 +116,7 @@ def _accepted_api_keys(env: Any) -> list[str]:
 
 
 def _secret_seed(env: Any) -> str:
+    """Return the secret seed used to derive the user API key hash key."""
     return str(
         getattr(env, "USER_DATA_HASH_KEY", "")
         or getattr(env, "USER_DATA_ENCRYPTION_KEY", "")
@@ -139,6 +147,7 @@ def is_user_api_key_candidate(request: Any) -> bool:
 
 
 def _utc_timestamp() -> str:
+    """Return the current UTC time as a SQL-compatible timestamp string."""
     return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
 
 
@@ -174,6 +183,12 @@ async def validate_api_key_request(request: Any, env: Any, db: Any = None) -> Op
         try:
             setattr(request, "user_id", int(key["user_id"]))
             setattr(request, "api_key_id", int(key["id"]))
+            raw_scopes = key.get("scopes")
+            parsed_scopes = json.loads(raw_scopes) if isinstance(raw_scopes, str) else (raw_scopes or [])
+            if not isinstance(parsed_scopes, list) or any(not isinstance(s, str) for s in parsed_scopes):
+                raise ValueError("Invalid scopes payload")
+            setattr(request, "api_key_scopes", parsed_scopes)
+
         except Exception:
             return error_response("Invalid API key", status=401)
 
@@ -181,3 +196,17 @@ async def validate_api_key_request(request: Any, env: Any, db: Any = None) -> Op
         return None
 
     return error_response("Invalid API key", status=401)
+
+
+def require_scope(request: Any, scope: str) -> Optional[Any]:
+    """Return a 403 error response if the API key lacks the required scope.
+    
+    JWT Bearer token users (no api_key_scopes set) bypass scope checks entirely.
+    Static shared API key users also bypass (api_key_scopes not set).
+    """
+    scopes = getattr(request, "api_key_scopes", None)
+    if scopes is None:
+        return None  # JWT or static key — full access
+    if scope not in scopes:
+        return error_response(f"API key missing required scope: {scope}", status=403)
+    return None

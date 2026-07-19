@@ -8,6 +8,7 @@ from libs.db import get_db_safe
 from libs.jwt_utils import decode_jwt
 from models import Bug
 from workers import Response
+from libs.api_key import require_scope, SCOPE_WRITE_BUGS
 import logging
 from libs.rate_limit import get_client_ip, is_rate_limited
 
@@ -223,7 +224,10 @@ async def handle_bugs(
     if method == "POST":
         if is_rate_limited(client_ip, BUG_RATE_LIMIT, _RATE_LIMIT_WINDOW_SECONDS, _RATE_LIMIT_MAX_REQUESTS):
             return error_response("Too many requests. Please try again later.", status=429)
-
+        err = require_scope(request, SCOPE_WRITE_BUGS)
+        if err:
+            return err
+        
         body = await parse_json_body(request)
         
         if not body:
@@ -238,6 +242,7 @@ async def handle_bugs(
                 f"Missing required fields: {', '.join(missing_fields)}",
                 status=400
             )
+        
 
         # Positive allowlist: only copy keys clients are allowed to write.
         client_writable_fields = {
@@ -519,12 +524,12 @@ async def handle_bugs(
 
 
 async def update_bug(db: Any, request: Any, env: Any, bug_id_str: str, logger: Any) -> Any:
-    """Update a bug. Requires JWT authentication. Only the bug owner can update."""
+    """Update a bug. Requires JWT Bearer token. API key auth not yet supported for PATCH."""
     try:
         if not bug_id_str.isdigit():
             return error_response("Invalid bug ID", status=400)
         bug_id = int(bug_id_str)
-
+        
         auth_header = _get_header(request, "Authorization")
         if not auth_header or not auth_header[:7].lower() == "bearer ":
             return error_response("Authentication required", status=401)
