@@ -1,443 +1,648 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sizzle | Daily Check-in</title>
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-    <!-- Tailwind CSS -->
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BLT Sizzle | Daily check-ins for async organizations</title>
+    <meta
+      name="description"
+      content="BLT Sizzle helps organizations collect daily check-ins, approve members, track blockers, and give admins a production-ready view of team progress."
+    />
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              blt: {
+                red: "#dc2626",
+                redDark: "#b91c1c",
+                ink: "#111827",
+                bg: "#f8fafc",
+                border: "#e2e8f0",
+              },
+            },
+            fontFamily: {
+              sans: [
+                "Geist",
+                "Inter",
+                "ui-sans-serif",
+                "system-ui",
+                "-apple-system",
+                "BlinkMacSystemFont",
+                "Segoe UI",
+                "sans-serif",
+              ],
+              mono: [
+                "ui-monospace",
+                "SFMono-Regular",
+                "Menlo",
+                "Monaco",
+                "Consolas",
+                "monospace",
+              ],
+            },
+          },
+        },
+      };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        outfit: ['Outfit', 'sans-serif'],
-                    },
-                    colors: {
-                        primary: {
-                            DEFAULT: '#E10101',
-                            dark: '#BC0000',
-                        },
-                        brand: {
-                            primary: '#E10101',
-                            secondary: '#7d0000',
-                            accent: '#ff3d3d',
-                        },
-                        secondary: '#64748b',
-                        gray: {
-                            200: '#E5E5E5',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Theme Initialization -->
-    <script>
-        if (localStorage.getItem('theme') === 'dark' ||
-            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
     <style>
-        body {
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .emoji-option.selected {
-            border-color: theme('colors.primary.DEFAULT');
-            background-color: rgba(225, 1, 1, 0.05);
-        }
-
-        .dark .emoji-option.selected {
-            background-color: rgba(225, 1, 1, 0.2);
-        }
+      .dot-field {
+        background-image: radial-gradient(
+          rgba(17, 24, 39, 0.18) 1px,
+          transparent 1px
+        );
+        background-size: 18px 18px;
+        mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        -webkit-mask-image: radial-gradient(
+          circle at center,
+          black 0,
+          transparent 74%
+        );
+      }
+      .feature-divider::before,
+      .feature-divider::after {
+        content: "";
+        height: 1px;
+        flex: 1;
+      }
+      .feature-divider::before {
+        background: linear-gradient(to right, transparent, #e5e7eb);
+      }
+      .feature-divider::after {
+        background: linear-gradient(to left, transparent, #e5e7eb);
+      }
+      .section-kicker.with-bar::before {
+        content: "";
+        position: absolute;
+        top: 0.18rem;
+        left: -0.55rem;
+        width: 3px;
+        height: 1.25rem;
+        border-radius: 0 2px 2px 0;
+        background: #ef4444;
+      }
+      .footer-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.04;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 1) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        border-bottom: 1.5px solid #991b1b;
+        background: linear-gradient(to bottom, #ef4444, #dc2626);
+        padding: 0.85rem 1.15rem;
+        font-weight: 600;
+        color: white;
+        box-shadow: 0 10px 24px -14px rgba(220, 38, 38, 0.8);
+        transition: transform 0.2s ease;
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+      }
+      .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        padding: 0.85rem 1.15rem;
+        font-weight: 600;
+        color: #374151;
+        transition:
+          background 0.2s,
+          border-color 0.2s;
+      }
+      .btn-secondary:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+      }
     </style>
-</head>
-
-<body
-    class="bg-gray-50 dark:bg-slate-900 min-h-screen flex flex-col items-center text-slate-900 dark:text-white transition-colors duration-300">
-    <!-- Header -->
+  </head>
+  <body
+    class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
+  >
     <header
-        class="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-700">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-2">
-                    <a href="/" class="flex items-center gap-2">
-                        <img src="/assets/images/owasp-blt-logo.svg" alt="OWASP BLT Logo" class="h-8 w-auto">
-                        <span class="font-bold text-xl tracking-tight hidden sm:block">SIZZLE</span>
-                    </a>
-                </div>
-
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="/" class="text-primary font-bold">Check-in</a>
-                    <a href="/leaderboard"
-                        class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium">Leaderboard</a>
-                    <a href="/settings"
-                        class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium">Settings</a>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    <a href="https://github.com/OWASP-BLT/BLT-Sizzle" target="_blank" rel="noopener noreferrer"
-                        class="p-2 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors"
-                        title="View on GitHub">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                    </a>
-                    <button id="themeToggle"
-                        class="p-2 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors">
-                        <svg id="sunIcon" class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                            <path fill-rule="evenodd"
-                                d="M10 18a.8.8 0 01-.8-.8V16.7a.8.8 0 111.6 0v.5a.8.8 0 01-.8.8zm8-8a.8.8 0 01-.8.8h-.5a.8.8 0 110-1.6h.5a.8.8 0 01.8.8zM10 2a.8.8 0 01.8.8v.5a.8.8 0 11-1.6 0V2.8a.8.8 0 01.8-.8zm-8 8a.8.8 0 01.8-.8h.5a.8.8 0 110 1.6H2.8a.8.8 0 01-.8-.8zm14.5 4.5a.8.8 0 010 1.1l-.4.4a.8.8 0 11-1.1-1.1l.4-.4a.8.8 0 011.1 0zm-11-11a.8.8 0 010 1.1l-.4.4a.8.8 0 01-1.1-1.1l.4-.4a.8.8 0 011.1 0z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <svg id="moonIcon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                        </svg>
-                    </button>
-                    <!-- Auth Controls -->
-                    <div id="authControls" class="hidden items-center gap-3">
-                        <span id="userDisplay" class="hidden text-sm font-medium text-slate-600 dark:text-slate-300 sm:block"></span>
-                        <button id="logoutBtn"
-                            class="hidden text-sm font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors">
-                            Sign out
-                        </button>
-                        <a id="loginBtn" href="/api/auth/login"
-                            class="hidden items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold px-4 py-2 rounded-xl hover:opacity-90 transition-opacity">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                            Login with GitHub
-                        </a>
-                    </div>
-                    <!-- Mobile Menu Button -->
-                    <button class="md:hidden p-2 text-slate-600 dark:text-slate-300">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16m-7 6h7"></path>
-                        </svg>
-                    </button>
-                </div>
-            </nav>
+      class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
+    >
+      <div
+        class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-md:px-4"
+      >
+        <a href="/" class="" aria-label="BLT Sizzle home">
+          <img src="/assets/logo.png" alt="Sizzle logo" class="h-12" />
+        </a>
+        <nav
+          class="hidden items-center gap-7 md:flex"
+          aria-label="Primary navigation"
+        >
+          <a
+            class="text-sm text-gray-500 transition hover:text-gray-900"
+            href="#workflow"
+            >Workflow</a
+          >
+          <a
+            class="text-sm text-gray-500 transition hover:text-gray-900"
+            href="#organizations"
+            >Organizations</a
+          >
+          <a
+            class="text-sm text-gray-500 transition hover:text-gray-900"
+            href="#dashboard"
+            >Dashboard</a
+          >
+          <a
+            class="text-sm text-gray-500 transition hover:text-gray-900"
+            href="#production"
+            >Production</a
+          >
+        </nav>
+        <div class="hidden items-center gap-3 md:flex">
+          <a
+            class="rounded-md px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+            href="/login"
+            >Log in</a
+          >
+          <a class="btn-primary px-4 py-2 text-sm" href="/login"
+            >Start check-in</a
+          >
         </div>
+      </div>
     </header>
 
-    <main class="pt-24 pb-12 px-4 w-full max-w-2xl">
-        <!-- Login prompt shown when not authenticated -->
-        <div id="loginOverlay"
-            class="hidden bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-8 md:p-10 text-center border border-gray-100 dark:border-slate-700">
-            <div class="text-6xl mb-4">👋</div>
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Sign in to Sizzle</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-8">Login with your GitHub account to submit daily check-ins and track your streaks.</p>
-            <a href="/api/auth/login"
-                class="inline-flex items-center gap-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold px-8 py-4 rounded-2xl hover:opacity-90 transition-opacity text-lg">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                Login with GitHub
-            </a>
+    <main>
+      <section
+        class="relative flex min-h-[43rem] items-start justify-center px-4 pb-14 pt-52 max-md:min-h-[38rem] max-md:pt-36"
+        aria-label="Hero"
+      >
+        <div
+          class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-[36rem] w-[min(94rem,180vw)] opacity-70"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="relative z-[2] flex w-full flex-col items-center text-center"
+        >
+          <a
+            class="inline-flex max-w-[min(46rem,calc(100vw_-_2rem))] items-center gap-3 rounded-full bg-white/60 py-[.15rem] pl-[.15rem] pr-3 text-sm font-medium text-gray-900 shadow-[0_10px_30px_-16px_rgba(220,38,38,.45),0_0_0_1px_rgba(0,0,0,.1)] backdrop-blur"
+            href="/login"
+          >
+            <span
+              class="flex-none rounded-full border border-red-200 bg-red-50 px-[.65rem] py-1 text-xs text-red-600"
+              >Email OTP</span
+            >
+            <span class="truncate"
+              >Organization check-ins, approvals, blockers, and admin
+              visibility.</span
+            >
+          </a>
+          <h1
+            class="mt-7 max-w-5xl text-[clamp(3.15rem,9.4vw,7rem)] font-bold leading-[.92] tracking-[-.055em] text-gray-900"
+          >
+            Async check-ins for
+            <span class="text-red-600">open-source</span> teams
+          </h1>
+          <p
+            class="mt-6 max-w-[46rem] text-[clamp(1rem,1.55vw,1.22rem)] leading-[1.6] text-gray-700 text-balance"
+          >
+            BLT Sizzle gives open-source organizations a lightweight daily
+            rhythm: members submit progress, admins approve access, blockers
+            surface early, and every update stays tied to the right
+            organization.
+          </p>
+          <div
+            class="mt-7 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
+          >
+            <a class="btn-primary text-base" href="/login">Log in with email</a>
+            <a class="btn-secondary text-base" href="#workflow"
+              >See the workflow</a
+            >
+          </div>
+          <div
+            class="mt-10 grid w-[min(54rem,calc(100%_-_2rem))] grid-cols-3 gap-3 text-left max-md:grid-cols-1"
+          >
+            <div
+              class="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm backdrop-blur"
+            >
+              <p class="font-mono text-2xl font-semibold text-red-600">72%</p>
+              <p
+                class="mt-1 text-xs font-medium uppercase tracking-[.16em] text-gray-400"
+              >
+                checked in today
+              </p>
+            </div>
+            <div
+              class="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm backdrop-blur"
+            >
+              <p class="font-mono text-2xl font-semibold text-red-600">4</p>
+              <p
+                class="mt-1 text-xs font-medium uppercase tracking-[.16em] text-gray-400"
+              >
+                active blockers
+              </p>
+            </div>
+            <div
+              class="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm backdrop-blur"
+            >
+              <p class="font-mono text-2xl font-semibold text-red-600">3</p>
+              <p
+                class="mt-1 text-xs font-medium uppercase tracking-[.16em] text-gray-400"
+              >
+                pending members
+              </p>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <div id="checkinCard"
-            class="hidden bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-8 md:p-10 text-slate-800 dark:text-slate-100 animate-in fade-in duration-700 border border-gray-100 dark:border-slate-700">
-            <header class="mb-8">
-                <h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">📝 Daily Check-in</h1>
-                <p class="text-slate-500 dark:text-slate-400 text-lg">Share your progress and plan for today</p>
-            </header>
+      <div
+        class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%_-_2rem))] items-center gap-3 text-gray-500"
+        aria-hidden="true"
+      >
+        <span class="font-mono text-xs tracking-[.18em] text-red-500"
+          >SIZZLE</span
+        >
+      </div>
 
-            <div id="streakDisplay"
-                class="hidden inline-flex items-center bg-primary/10 text-primary px-4 py-2 rounded-full font-bold text-sm mb-6 border border-primary/20 shadow-sm">
-                <span class="mr-2">🔥</span> <span id="streakCount">0</span> Day Streak!
-            </div>
-
-            <div id="successMessage"
-                class="hidden bg-emerald-500 text-white p-4 rounded-xl mb-6 shadow-md flex items-center gap-3">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Check-in submitted successfully!
-            </div>
-
-            <div id="errorMessage"
-                class="hidden bg-rose-500 text-white p-4 rounded-xl mb-6 shadow-md flex items-center gap-3">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                    </path>
-                </svg>
-                An error occurred. Please try again.
-            </div>
-
-            <form id="checkinForm" class="space-y-6">
-
-                <div class="space-y-2">
-                    <label for="previousWork" class="block text-sm font-bold text-slate-700 dark:text-slate-300">What
-                        did you do since last check-in?</label>
-                    <textarea id="previousWork" name="previousWork"
-                        class="w-full p-4 border-2 border-slate-100 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:border-primary transition-all duration-200 min-h-[120px] bg-slate-50 dark:bg-slate-900"
-                        placeholder="Describe your accomplishments..."></textarea>
-                </div>
-
-                <div class="space-y-2">
-                    <label for="todayPlan"
-                        class="block text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">What
-                        do you plan to do today?</label>
-                    <textarea id="todayPlan" name="todayPlan" required
-                        class="w-full p-4 border-2 border-slate-100 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:border-primary transition-all duration-200 min-h-[120px] bg-slate-50 dark:bg-slate-900 shadow-inner"
-                        placeholder="Outline your plans..."></textarea>
-                </div>
-
-                <div class="space-y-2">
-                    <label for="blockers" class="block text-sm font-bold text-slate-700 dark:text-slate-300">Any
-                        blockers or challenges?</label>
-                    <textarea id="blockers" name="blockers"
-                        class="w-full p-4 border-2 border-slate-100 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:border-primary transition-all duration-200 min-h-[100px] bg-slate-50 dark:bg-slate-900"
-                        placeholder="None, or describe any obstacles..."></textarea>
-                </div>
-
-                <label
-                    class="flex items-center gap-3 p-4 border-2 border-slate-100 dark:border-slate-700 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors group">
-                    <input type="checkbox" id="goalAccomplished" name="goalAccomplished"
-                        class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer">
-                    <span
-                        class="text-sm font-medium text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">I
-                        accomplished my goals for yesterday!</span>
-                </label>
-
-                <div class="space-y-3">
-                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">How are you feeling
-                        today?</label>
-                    <div
-                        class="flex flex-wrap gap-2 md:gap-3 p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border-2 border-slate-100 dark:border-slate-700">
-                        <span
-                            class="emoji-option text-3xl cursor-pointer p-2 rounded-xl border-2 border-transparent transition-all duration-200 hover:scale-110 active:scale-95"
-                            data-mood="😊" title="Happy">😊</span>
-                        <span
-                            class="emoji-option text-3xl cursor-pointer p-2 rounded-xl border-2 border-transparent transition-all duration-200 hover:scale-110 active:scale-95"
-                            data-mood="😐" title="Neutral">😐</span>
-                        <span
-                            class="emoji-option text-3xl cursor-pointer p-2 rounded-xl border-2 border-transparent transition-all duration-200 hover:scale-110 active:scale-95"
-                            data-mood="😟" title="Worried">😟</span>
-                        <span
-                            class="emoji-option text-3xl cursor-pointer p-2 rounded-xl border-2 border-transparent transition-all duration-200 hover:scale-110 active:scale-95"
-                            data-mood="😫" title="Stressed">😫</span>
-                        <span
-                            class="emoji-option text-3xl cursor-pointer p-2 rounded-xl border-2 border-transparent transition-all duration-200 hover:scale-110 active:scale-95"
-                            data-mood="🤗" title="Excited">🤗</span>
-                        <span
-                            class="emoji-option text-3xl cursor-pointer p-2 rounded-xl border-2 border-transparent transition-all duration-200 hover:scale-110 active:scale-95"
-                            data-mood="🤔" title="Thoughtful">🤔</span>
-                        <span
-                            class="emoji-option text-3xl cursor-pointer p-2 rounded-xl border-2 border-transparent transition-all duration-200 hover:scale-110 active:scale-95"
-                            data-mood="😴" title="Tired">😴</span>
-                        <span
-                            class="emoji-option text-3xl cursor-pointer p-2 rounded-xl border-2 border-transparent transition-all duration-200 hover:scale-110 active:scale-95"
-                            data-mood="💪" title="Motivated">💪</span>
-                    </div>
-                    <input type="hidden" id="mood" name="mood" value="😊">
-                </div>
-
-                <div id="orgSelectorGroup" class="hidden space-y-2">
-                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">Check-in for
-                        Organization</label>
-                    <select id="orgSelector"
-                        class="w-full p-4 border-2 border-slate-100 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:border-primary transition-all duration-200 bg-slate-50 dark:bg-slate-900">
-                        <option value="">Personal (no org)</option>
-                    </select>
-                </div>
-
-                <button type="submit" id="submitBtn"
-                    class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-5 rounded-2xl shadow-lg shadow-primary/20 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 text-lg uppercase tracking-wider">
-                    Submit Check-in
-                </button>
-            </form>
+      <section id="workflow" class="w-full px-4 pb-24 pt-10">
+        <div class="mx-auto w-[min(64rem,calc(100%_-_1rem))]">
+          <div class="mx-auto mb-10 max-w-[42rem] text-center">
+            <span
+              class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600"
+              >Workflow</span
+            >
+            <h2
+              class="mt-4 text-[clamp(2.25rem,4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-.04em]"
+            >
+              A simple rhythm for async teams.
+            </h2>
+            <p
+              class="mx-auto mt-4 max-w-[38rem] text-base leading-[1.6] text-gray-600"
+            >
+              Three steps keep teams aligned without turning daily progress into
+              another meeting.
+            </p>
+          </div>
+          <div
+            class="grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1"
+          >
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600"
+              >
+                01
+              </div>
+              <h3 class="mt-6 text-lg font-semibold">Join an organization</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">
+                Members request access. Owners and admins approve the people who
+                should be part of each organization.
+              </p>
+            </article>
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600"
+              >
+                02
+              </div>
+              <h3 class="mt-6 text-lg font-semibold">Check in daily</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">
+                Share completed work, today’s plan, blockers, and mood for the
+                organization you’re working with.
+              </p>
+            </article>
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600"
+              >
+                03
+              </div>
+              <h3 class="mt-6 text-lg font-semibold">Track momentum</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">
+                Admins review participation, blockers, streaks, and missing
+                check-ins from a focused dashboard.
+              </p>
+            </article>
+          </div>
         </div>
+      </section>
+
+      <section id="organizations" class="w-full px-4 pb-24 pt-6">
+        <div
+          class="mx-auto grid w-[min(72rem,calc(100%_-_1rem))] items-center gap-10 lg:grid-cols-[0.92fr_1.08fr]"
+        >
+          <div>
+            <h2
+              class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500"
+            >
+              Organizations
+            </h2>
+            <p
+              class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em]"
+            >
+              Every check-in belongs to the right team.
+            </p>
+            <p
+              class="mt-4 max-w-[38rem] text-base leading-[1.65] text-gray-600"
+            >
+              Users can belong to multiple organizations and choose where each
+              check-in goes. That keeps OWASP BLT, GSoC groups, and contributor
+              teams separate without forcing separate accounts.
+            </p>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="rounded-2xl border border-gray-200 bg-white p-5">
+              <p class="font-semibold">Multiple organizations</p>
+              <p class="mt-2 text-sm leading-6 text-gray-600">
+                One user can contribute to several orgs and switch context at
+                check-in time.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-gray-200 bg-white p-5">
+              <p class="font-semibold">Approval workflow</p>
+              <p class="mt-2 text-sm leading-6 text-gray-600">
+                Pending requests stay separate until an admin approves
+                membership.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-gray-200 bg-white p-5">
+              <p class="font-semibold">Multiple admins</p>
+              <p class="mt-2 text-sm leading-6 text-gray-600">
+                Owners can share admin work across mentors, maintainers, or team
+                leads.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-gray-200 bg-white p-5">
+              <p class="font-semibold">Org-specific history</p>
+              <p class="mt-2 text-sm leading-6 text-gray-600">
+                Progress, blockers, and streaks are scoped to the organization.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="dashboard" class="w-full px-4 pb-24 pt-6">
+        <div
+          class="mx-auto grid w-[min(72rem,calc(100%_-_1rem))] items-center gap-10 lg:grid-cols-[0.88fr_1.12fr]"
+        >
+          <div>
+            <h2
+              class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500"
+            >
+              Dashboard
+            </h2>
+            <p
+              class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em]"
+            >
+              Know who’s active, blocked, or missing.
+            </p>
+            <p
+              class="mt-4 max-w-[36rem] text-base leading-[1.65] text-gray-600"
+            >
+              The admin dashboard turns daily updates into an operational view:
+              today’s check-ins, missing members, blocker trends, mood signals,
+              and pending join requests.
+            </p>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <a class="btn-primary text-sm" href="/login">Open Sizzle</a
+              ><a class="btn-secondary text-sm" href="#production"
+                >Production checklist</a
+              >
+            </div>
+          </div>
+          <div
+            class="rounded-3xl border border-gray-200 bg-white p-4 shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)]"
+          >
+            <div
+              class="rounded-2xl border border-gray-100 bg-gray-50 p-4 font-mono text-xs text-gray-600"
+            >
+              <div class="mb-4 flex items-center justify-between">
+                <span class="font-sans text-sm font-semibold text-gray-900"
+                  >OWASP BLT · Today</span
+                ><span
+                  class="rounded-full bg-emerald-50 px-2 py-1 text-[.65rem] font-semibold text-emerald-700"
+                  >healthy</span
+                >
+              </div>
+              <div class="grid gap-2">
+                <div class="rounded-xl bg-white p-3 shadow-sm">
+                  <span class="text-red-600">18</span> checked in
+                  <span class="float-right text-emerald-700">72%</span>
+                </div>
+                <div class="rounded-xl bg-white p-3 shadow-sm">
+                  <span class="text-red-600">7</span> missing
+                  <span class="float-right text-gray-400">nudge</span>
+                </div>
+                <div class="rounded-xl bg-white p-3 shadow-sm">
+                  <span class="text-red-600">4</span> blockers
+                  <span class="float-right text-amber-600">needs review</span>
+                </div>
+                <div class="rounded-xl bg-white p-3 shadow-sm">
+                  <span class="text-red-600">3</span> pending members
+                  <span class="float-right text-gray-400">approve</span>
+                </div>
+              </div>
+              <pre
+                class="mt-4 overflow-hidden rounded-xl bg-[#111827] p-4 text-left text-[.68rem] leading-5 text-gray-200"
+              ><code>{
+  "org": "owasp-blt",
+  "checkedIn": 18,
+  "blockers": 4,
+  "missing": 7
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="production" class="w-full px-4 pb-24 pt-6">
+        <div
+          class="mx-auto w-[min(72rem,calc(100%_-_1rem))] rounded-3xl border border-gray-200 bg-white p-8 shadow-[0_22px_60px_-50px_rgba(15,23,42,.65)] md:p-10"
+        >
+          <span
+            class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600"
+            >Production-ready direction</span
+          >
+          <div class="mt-5 grid gap-8 lg:grid-cols-[.9fr_1.1fr]">
+            <div>
+              <h2
+                class="text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em]"
+              >
+                Built to become the real daily check-in app.
+              </h2>
+              <p class="mt-4 text-base leading-[1.65] text-gray-600">
+                The app is moving toward email OTP auth, secure sessions, D1
+                migrations, organization roles, and a dashboard that admins can
+                actually use every day.
+              </p>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div class="rounded-2xl bg-gray-50 p-4">
+                <p class="font-semibold">Email OTP auth</p>
+                <p class="mt-1 text-sm text-gray-600">
+                  SendGrid-backed verification and HttpOnly sessions.
+                </p>
+              </div>
+              <div class="rounded-2xl bg-gray-50 p-4">
+                <p class="font-semibold">D1-backed orgs</p>
+                <p class="mt-1 text-sm text-gray-600">
+                  Membership states, roles, and org-scoped check-ins.
+                </p>
+              </div>
+              <div class="rounded-2xl bg-gray-50 p-4">
+                <p class="font-semibold">Admin controls</p>
+                <p class="mt-1 text-sm text-gray-600">
+                  Approve members and review daily activity.
+                </p>
+              </div>
+              <div class="rounded-2xl bg-gray-50 p-4">
+                <p class="font-semibold">Dev/prod setup</p>
+                <p class="mt-1 text-sm text-gray-600">
+                  Clean envs, migrations, and deployment scripts.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer
+        class="w-[98%] mx-auto footer-panel relative mt-8 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-[#0e0d0c] px-5 py-12 pb-14 text-white md:px-8 md:py-14"
+      >
+        <h2
+          class="relative m-0 text-center text-[clamp(2rem,11vw,8rem)] font-light leading-[.9] text-white"
+        >
+          sizzle.owaspblt.org
+        </h2>
+        <div
+          class="relative mx-auto mt-5 h-[3px] w-16 rounded-full bg-red-600"
+          aria-hidden="true"
+        ></div>
+        <nav
+          class="relative mx-auto mt-10 grid w-[min(72rem,100%)] grid-cols-2 gap-x-8 gap-y-9 text-left sm:grid-cols-4"
+          aria-label="Footer navigation"
+        >
+          <div>
+            <h3
+              class="font-mono text-[.68rem] font-semibold uppercase tracking-[.28em] text-gray-500"
+            >
+              DOCS
+            </h3>
+            <ul class="mt-3 space-y-2 font-mono text-sm text-gray-300">
+              <li>
+                <a class="transition hover:text-white" href="#dashboard"
+                  >Dashboard</a
+                >
+              </li>
+              <li>
+                <a class="transition hover:text-white" href="/api/debug/db"
+                  >Health</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3
+              class="font-mono text-[.68rem] font-semibold uppercase tracking-[.28em] text-gray-500"
+            >
+              SIZZLE
+            </h3>
+            <ul class="mt-3 space-y-2 font-mono text-sm text-gray-300">
+              <li>
+                <a class="transition hover:text-white" href="/app">Check in</a>
+              </li>
+              <li>
+                <a class="transition hover:text-white" href="/settings"
+                  >Settings</a
+                >
+              </li>
+              <li>
+                <a class="transition hover:text-white" href="/leaderboard"
+                  >Leaderboard</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3
+              class="font-mono text-[.68rem] font-semibold uppercase tracking-[.28em] text-gray-500"
+            >
+              PROJECT
+            </h3>
+            <ul class="mt-3 space-y-2 font-mono text-sm text-gray-300">
+              <li>
+                <a
+                  class="transition hover:text-white"
+                  href="https://gitlab.com/owasp-blt/blt-sizzle"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >GitLab repo</a
+                >
+              </li>
+              <li>
+                <a
+                  class="transition hover:text-white"
+                  href="https://gitlab.com/owasp-blt"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >OWASP BLT group</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3
+              class="font-mono text-[.68rem] font-semibold uppercase tracking-[.28em] text-gray-500"
+            >
+              OWASP
+            </h3>
+            <ul class="mt-3 space-y-2 font-mono text-sm text-gray-300">
+              <li>
+                <a
+                  class="transition hover:text-white"
+                  href="https://owaspblt.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >OWASP BLT</a
+                >
+              </li>
+              <li>
+                <a
+                  class="transition hover:text-white"
+                  href="https://owasp.org/www-project-bug-logging-tool/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Foundation page</a
+                >
+              </li>
+              <li>
+                <a
+                  class="transition hover:text-white"
+                  href="https://owasp.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >owasp.org</a
+                >
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </footer>
     </main>
-
-    <script>
-        // Theme Toggle Logic
-        const themeToggle = document.getElementById('themeToggle');
-        const sunIcon = document.getElementById('sunIcon');
-        const moonIcon = document.getElementById('moonIcon');
-
-        function updateThemeIcons() {
-            if (document.documentElement.classList.contains('dark')) {
-                sunIcon.classList.remove('hidden');
-                moonIcon.classList.add('hidden');
-            } else {
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
-            }
-        }
-
-        updateThemeIcons();
-
-        themeToggle.addEventListener('click', () => {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            updateThemeIcons();
-        });
-
-        // Auth & App Logic
-        let userId = null;
-
-        async function checkAuth() {
-            try {
-                const res = await fetch('/api/auth/me');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.authenticated) return data;
-                }
-            } catch (e) {}
-            return null;
-        }
-
-        const emojiOptions = document.querySelectorAll('.emoji-option');
-        const moodInput = document.getElementById('mood');
-
-        emojiOptions.forEach(option => {
-            option.addEventListener('click', function () {
-                emojiOptions.forEach(opt => opt.classList.remove('selected'));
-                this.classList.add('selected');
-                moodInput.value = this.dataset.mood;
-            });
-        });
-
-        emojiOptions[0].classList.add('selected');
-
-        async function loadPreviousCheckin() {
-            try {
-                const response = await fetch(`/api/checkin/latest?userId=${userId}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.todayPlan) {
-                        document.getElementById('previousWork').value = data.todayPlan;
-                    }
-                    if (data.streak) {
-                        document.getElementById('streakDisplay').classList.remove('hidden');
-                        document.getElementById('streakCount').textContent = data.streak;
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading previous check-in:', error);
-            }
-        }
-
-        document.getElementById('checkinForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const successMessage = document.getElementById('successMessage');
-            const errorMessage = document.getElementById('errorMessage');
-            const submitButton = document.getElementById('submitBtn');
-
-            submitButton.disabled = true;
-            submitButton.innerHTML = `<span class="inline-flex items-center gap-2"><svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Submitting...</span>`;
-
-            const orgSelector = document.getElementById('orgSelector');
-            const formData = {
-                userId: userId,
-                previousWork: document.getElementById('previousWork').value,
-                todayPlan: document.getElementById('todayPlan').value,
-                blockers: document.getElementById('blockers').value,
-                mood: document.getElementById('mood').value,
-                goalAccomplished: document.getElementById('goalAccomplished').checked,
-                orgName: orgSelector ? orgSelector.value : ''
-            };
-
-            try {
-                const response = await fetch('/api/checkin', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    successMessage.classList.remove('hidden');
-                    if (result.streak) {
-                        document.getElementById('streakDisplay').classList.remove('hidden');
-                        document.getElementById('streakCount').textContent = result.streak;
-                    }
-                    setTimeout(() => { successMessage.classList.add('hidden'); }, 4000);
-                } else {
-                    throw new Error('Submission failed');
-                }
-            } catch (error) {
-                errorMessage.classList.remove('hidden');
-                setTimeout(() => { errorMessage.classList.add('hidden'); }, 4000);
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Submit Check-in';
-            }
-        });
-
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            await fetch('/api/auth/logout', { method: 'POST' });
-            window.location.reload();
-        });
-
-        // Initialise: check auth then show the appropriate UI
-        (async () => {
-            const authControls = document.getElementById('authControls');
-            const loginBtn = document.getElementById('loginBtn');
-            const userDisplay = document.getElementById('userDisplay');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const loginOverlay = document.getElementById('loginOverlay');
-            const checkinCard = document.getElementById('checkinCard');
-
-            // Show auth controls after check
-            authControls.classList.remove('hidden');
-            authControls.classList.add('flex');
-
-            // Handle auth errors from OAuth callback
-            const params = new URLSearchParams(window.location.search);
-            const authError = params.get('auth_error');
-
-            const authData = await checkAuth();
-            if (!authData) {
-                loginBtn.classList.remove('hidden');
-                loginBtn.classList.add('inline-flex');
-                loginOverlay.classList.remove('hidden');
-                if (authError) {
-                    const errDiv = document.createElement('div');
-                    errDiv.className = 'bg-rose-100 dark:bg-rose-900/30 border border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-300 text-sm font-medium px-4 py-3 rounded-xl mb-4';
-                    errDiv.textContent = 'GitHub sign-in failed. Please try again.';
-                    const loginLink = loginOverlay.querySelector('a[href="/api/auth/login"]');
-                    loginOverlay.insertBefore(errDiv, loginLink);
-                }
-                return;
-            }
-
-            userId = authData.userId;
-            userDisplay.textContent = authData.displayName;
-            userDisplay.classList.remove('hidden');
-            logoutBtn.classList.remove('hidden');
-            checkinCard.classList.remove('hidden');
-
-            await loadPreviousCheckin();
-
-            // Load orgs and show selector if user is in any
-            try {
-                const orgRes = await fetch('/api/orgs');
-                if (orgRes.ok) {
-                    const orgData = await orgRes.json();
-                    if (orgData.orgs && orgData.orgs.length > 0) {
-                        const sel = document.getElementById('orgSelector');
-                        orgData.orgs.forEach(o => {
-                            const opt = document.createElement('option');
-                            opt.value = o.name;
-                            opt.textContent = o.name;
-                            sel.appendChild(opt);
-                        });
-                        document.getElementById('orgSelectorGroup').classList.remove('hidden');
-                    }
-                }
-            } catch (e) {
-                console.error('Error loading orgs:', e);
-            }
-        })();
-    </script>
-</body>
-
+  </body>
 </html>

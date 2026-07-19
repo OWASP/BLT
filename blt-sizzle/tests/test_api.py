@@ -1,6 +1,6 @@
 """
 Integration tests for the BLT-Sizzle API.
-Runs against the deployed Worker at SIZZLE_URL (default: https://sizzle.owaspblt.org).
+Runs against the deployed Worker when SIZZLE_URL is set.
 All tests are read-only / non-destructive.
 """
 import os
@@ -10,7 +10,9 @@ import unittest
 import urllib.request
 import urllib.error
 
-BASE_URL = os.environ.get("SIZZLE_URL", "https://sizzle.owaspblt.org").rstrip("/")
+BASE_URL = os.environ.get("SIZZLE_URL", "").rstrip("/")
+RUN_NETWORK_TESTS = bool(BASE_URL)
+NETWORK_TEST_REASON = "Set SIZZLE_URL to run deployed Worker integration tests"
 
 
 def get(path, *, allow_redirects=False):
@@ -44,6 +46,7 @@ def get_no_redirect(path):
     return resp.status, headers, body
 
 
+@unittest.skipUnless(RUN_NETWORK_TESTS, NETWORK_TEST_REASON)
 class TestHomepage(unittest.TestCase):
     def test_homepage_returns_200(self):
         status, headers, body = get("/")
@@ -66,6 +69,7 @@ class TestHomepage(unittest.TestCase):
                       "Check that Login with GitHub button is present.")
 
 
+@unittest.skipUnless(RUN_NETWORK_TESTS, NETWORK_TEST_REASON)
 class TestAuthEndpoints(unittest.TestCase):
     def test_auth_login_redirects_to_github(self):
         status, headers, body = get_no_redirect("/api/auth/login")
@@ -81,6 +85,12 @@ class TestAuthEndpoints(unittest.TestCase):
         data = json.loads(body)
         self.assertFalse(data.get("authenticated"),
                          "Expected authenticated=false")
+
+    def test_dashboard_api_returns_401_when_not_authenticated(self):
+        status, headers, body = get("/api/dashboard")
+        self.assertEqual(status, 401, f"Expected 401 but got {status}: {body}")
+        data = json.loads(body)
+        self.assertIn("error", data)
 
     def test_callback_without_params_redirects_with_error(self):
         status, headers, body = get_no_redirect("/api/auth/callback")
@@ -101,6 +111,7 @@ class TestAuthEndpoints(unittest.TestCase):
                       f"Expected auth_error in redirect but got: {location}")
 
 
+@unittest.skipUnless(RUN_NETWORK_TESTS, NETWORK_TEST_REASON)
 class TestPublicApiEndpoints(unittest.TestCase):
     def test_leaderboard_returns_200_json(self):
         status, headers, body = get("/api/leaderboard")
@@ -118,15 +129,21 @@ class TestPublicApiEndpoints(unittest.TestCase):
         self.assertIn("error", data)
 
 
+@unittest.skipUnless(RUN_NETWORK_TESTS, NETWORK_TEST_REASON)
 class TestStaticAssets(unittest.TestCase):
     def test_leaderboard_page_returns_200(self):
         status, headers, body = get("/leaderboard")
         self.assertEqual(status, 200, f"Expected 200 but got {status}")
 
-    def test_settings_page_returns_200(self):
-        status, headers, body = get("/settings")
-        self.assertEqual(status, 200, f"Expected 200 but got {status}")
+    def test_dashboard_page_redirects_to_login_when_not_authenticated(self):
+        status, headers, body = get_no_redirect("/dashboard")
+        self.assertIn(status, (301, 302, 307, 308),
+                      f"Expected redirect but got {status}")
+        location = headers.get("location", "")
+        self.assertEqual(location, "/login",
+                         f"Expected redirect to /login but got: {location}")
 
+@unittest.skipUnless(RUN_NETWORK_TESTS, NETWORK_TEST_REASON)
 class TestAuthRedirectLoop(unittest.TestCase):
     """
     Verify that landing on the homepage after an OAuth failure does NOT
@@ -157,10 +174,8 @@ class TestAuthRedirectLoop(unittest.TestCase):
         self.assertEqual(status, 200,
                          f"/?auth_error=not_configured ended up with status {status}")
 
-
-
+class TestWorkerSyntax(unittest.TestCase):
     """Verify the worker Python source compiles without errors."""
-
     def test_worker_main_py_syntax(self):
         import ast
         worker_path = os.path.join(

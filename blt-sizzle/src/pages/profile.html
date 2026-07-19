@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile | BLT Sizzle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles/sizzle-dashboard.css" />
+</head>
+<body>
+  <div class="sizzle-shell">
+    
+<aside class="sizzle-sidebar">
+  <a class="brand" href="/dashboard" aria-label="BLT Sizzle dashboard">
+    <img src="/assets/logo.png" alt="Sizzle logo" />
+    <span><strong>BLT Sizzle</strong><span>Daily check-ins</span></span>
+  </a>
+  <div>
+    <nav class="sidebar-nav" aria-label="Dashboard navigation">
+      <a class="sidebar-item" href="/dashboard"><span>Overview</span></a><a class="sidebar-item" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item" href="/organizations"><span>Organizations</span></a><a class="sidebar-item" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item active" href="/profile"><span>Profile</span></a><a class="sidebar-item" href="/settings"><span>Settings</span></a>
+    </nav>
+  </div>
+  <div class="sidebar-footer" aria-label="Dashboard utilities">
+    <a class="sidebar-footer-link" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a class="sidebar-footer-link" href="/login">Sign in</a>
+  </div>
+</aside>
+    <main class="main-panel">
+      <header class="page-header">
+        <div>
+          <h1>Profile</h1>
+          <p class="page-description">Verify your email, update account identity, and review account status before requesting organization access.</p>
+        </div>
+        <div><a class="btn btn-secondary" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer" title="View on GitLab">View on GitLab</a></div>
+      </header>
+      
+<section class="grid grid-2">
+  <article class="card card-pad">
+    <div class="page-header"><div><h2>Profile</h2><p class="page-description">Manage the identity shown to organizations and admins.</p></div><span id="verification-status" class="status-badge status-unverified">Not verified</span></div>
+    <form id="profileForm" class="grid">
+      <label class="form-field"><span>Name</span><input id="displayName" name="displayName" class="input" autocomplete="name" placeholder="Your name" /></label>
+      <label class="form-field"><span>Email</span><input id="profileEmail" class="input" type="email" disabled placeholder="you@example.com" /></label>
+      <label class="form-field"><span>Timezone</span><input id="profileTimezone" class="input" value="UTC" disabled /></label>
+      <button class="btn btn-primary" type="submit">Save profile</button>
+    </form>
+  </article>
+  <article class="card card-pad">
+    <h2>Verify email</h2>
+    <p class="page-description">Enter the code sent during signup or resend a new one from this Profile sidebar option.</p>
+    <form id="verifyEmailProfileForm" class="grid" style="margin-top:16px">
+      <label class="form-field"><span>Verification code</span><input id="verifyEmailOtp" class="input" inputmode="numeric" maxlength="6" placeholder="123456" /></label>
+      <button class="btn btn-primary" type="submit">Verify email</button>
+      <button id="resendVerificationButton" class="btn btn-secondary" type="button">Resend verification code</button>
+    </form>
+  </article>
+</section>
+<section class="card card-pad" style="margin-top:16px"><h2>Session and account</h2><p class="page-description">Profile data is loaded from <code>/api/profile</code>. Authentication status is checked with <code>/api/auth/me</code> before protected actions.</p></section>
+
+    </main>
+  </div>
+  <div class="sheet-overlay" data-close-sheet></div>
+  <div class="toast-container"></div>
+  <script src="/scripts/sizzle-ui.js"></script>
+  <script>
+    let profileEmail = '';
+    async function loadProfile() {
+      const authResponse = await fetch('/api/auth/me');
+      if (authResponse.status === 401) { window.location.href = '/login'; return; }
+      const response = await fetch('/api/profile');
+      if (response.status === 401) { window.location.href = '/login'; return; }
+      const profile = response.ok ? await response.json() : {};
+      profileEmail = profile.email || '';
+      document.getElementById('displayName').value = profile.displayName || '';
+      document.getElementById('profileEmail').value = profileEmail;
+      document.getElementById('profileTimezone').value = profile.timezone || 'UTC';
+      const badge = document.getElementById('verification-status');
+      badge.textContent = profile.emailVerified ? 'Verified' : 'Not verified';
+      badge.className = 'status-badge ' + (profile.emailVerified ? 'status-verified' : 'status-unverified');
+    }
+
+    document.getElementById('profileForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const payload = { displayName: document.getElementById('displayName').value.trim(), timezone: document.getElementById('profileTimezone').value || 'UTC' };
+      const response = await fetch('/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const data = await response.json().catch(() => ({}));
+      showToast(response.ok ? 'Profile saved.' : (data.error || 'Profile could not be saved.'));
+    });
+
+    document.getElementById('verifyEmailProfileForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const response = await fetch('/api/auth/verify-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: profileEmail, otp: document.getElementById('verifyEmailOtp').value.trim() }) });
+      const data = await response.json().catch(() => ({}));
+      showToast(response.ok ? 'Email verified.' : (data.error || 'Email could not be verified.'));
+      if (response.ok) loadProfile();
+    });
+
+    document.getElementById('resendVerificationButton').addEventListener('click', async () => {
+      const response = await fetch('/api/auth/resend-verification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: profileEmail }) });
+      const data = await response.json().catch(() => ({}));
+      showToast(response.ok ? 'Verification code sent.' : (data.error || 'Verification email could not be sent.'));
+    });
+
+    loadProfile().catch(() => showToast('Profile could not be loaded.'));
+  </script>
+</body>
+</html>

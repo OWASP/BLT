@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Log in or sign up | BLT Sizzle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --primary: #dc2626; --primary-hover: #b91c1c; --surface: #ffffff; --background: #f8fafc; --border: #e2e8f0; }
+        * { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        .dot-field{background-image:radial-gradient(rgba(17,24,39,.16) 1px,transparent 1px);background-size:18px 18px;mask-image:radial-gradient(circle at center,black 0,transparent 74%);-webkit-mask-image:radial-gradient(circle at center,black 0,transparent 74%)}
+        .btn-primary{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(to bottom,#ef4444,#dc2626);color:white;border-bottom:1.5px solid #991b1b;border-radius:8px;padding:8px 12px;min-height:34px;font-size:13px;font-weight:600;line-height:1.2;box-shadow:0 8px 20px -14px rgba(220,38,38,.8);transition:all .2s ease}.btn-primary:hover{transform:translateY(-1px)}
+        .btn-primary:disabled{transform:none;box-shadow:none}.tab-active{background:#111827;color:white}.tab-idle{background:#f8fafc;color:#475569}
+        .auth-control-sm{min-height:34px;border-radius:8px;font-size:13px;line-height:1.25}
+        .auth-input-sm{padding:8px 10px}
+        .auth-button-sm{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;font-weight:600}
+        .auth-tab-sm{min-height:32px;padding:7px 10px;font-size:13px;line-height:1.2}
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-gray-50 text-gray-900 antialiased">
+    <header class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]">
+        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+            <a href="/" class="inline-flex items-center gap-2.5">
+                <img src="/assets/logo.png" alt="Sizzle logo" class="h-12" />
+            </a>
+            <a class="rounded-md px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900" href="/">Back to landing</a>
+        </div>
+    </header>
+
+    <main class="relative flex min-h-screen items-center justify-center px-4 py-28">
+        <div class="dot-field pointer-events-none absolute inset-x-0 top-20 mx-auto h-[36rem] w-[min(90rem,100vw)] opacity-70" aria-hidden="true"></div>
+        <section class="relative z-10 grid w-full max-w-5xl overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)] md:grid-cols-[1fr_.9fr]">
+            <div class="bg-[#0e0d0c] p-8 text-white md:p-10">
+                <span class="inline-flex rounded-full border border-red-400/40 bg-red-500/10 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-300">Team check-ins</span>
+                <h1 class="mt-6 text-4xl font-semibold leading-tight md:text-5xl">Welcome to Sizzle</h1>
+                <p class="mt-5 max-w-md text-sm leading-6 text-gray-300">Create your account or log in to manage daily check-ins, organization access, and account settings.</p>
+                <div class="mt-8 grid gap-3 text-sm text-gray-300">
+                    <div class="rounded-lg border border-white/10 bg-white/5 p-4"><strong class="text-white">Daily updates</strong><p class="mt-1 text-gray-400">Share progress, blockers, and plans with your organization.</p></div>
+                    <div class="rounded-lg border border-white/10 bg-white/5 p-4"><strong class="text-white">Organization access</strong><p class="mt-1 text-gray-400">Join the right teams and keep your account details current.</p></div>
+                </div>
+            </div>
+
+            <div class="p-8 md:p-10">
+                <div id="message" class="mb-5 hidden rounded-xl border px-4 py-3 text-sm"></div>
+
+                <div id="authTabs" class="mb-6 grid grid-cols-2 rounded-lg border border-gray-200 bg-gray-50 p-1 text-sm font-semibold">
+                    <button id="showLoginBtn" type="button" class="auth-control-sm auth-tab-sm rounded-lg tab-active">Log in</button>
+                    <button id="showSignupBtn" type="button" class="auth-control-sm auth-tab-sm rounded-lg tab-idle">Create account</button>
+                </div>
+
+                <form id="loginForm" class="space-y-4">
+                    <div>
+                        <h2 class="text-xl font-semibold leading-tight text-gray-900">Welcome back</h2>
+                        <p class="mt-1 text-sm leading-6 text-gray-600">Log in to continue your daily check-ins.</p>
+                    </div>
+                    <div>
+                        <label for="loginEmail" class="mb-1.5 block text-sm font-semibold text-gray-700">Email address</label>
+                        <input id="loginEmail" name="email" type="email" required autocomplete="email" placeholder="you@example.com" class="auth-control-sm auth-input-sm w-full border border-gray-200 bg-gray-50 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                    </div>
+                    <div>
+                        <label for="loginPassword" class="mb-1.5 block text-sm font-semibold text-gray-700">Password</label>
+                        <input id="loginPassword" name="password" type="password" required autocomplete="current-password" placeholder="Your password" class="auth-control-sm auth-input-sm w-full border border-gray-200 bg-gray-50 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                    </div>
+                    <button type="submit" class="auth-control-sm auth-button-sm btn-primary w-full">Log in</button>
+                </form>
+
+                <form id="signupForm" class="hidden space-y-4">
+                    <div>
+                        <h2 class="text-xl font-semibold leading-tight text-gray-900">Create your account</h2>
+                        <p class="mt-1 text-sm leading-6 text-gray-600">Join Sizzle and start sharing updates with your organization.</p>
+                    </div>
+                    <div>
+                        <label for="signupName" class="mb-1.5 block text-sm font-semibold text-gray-700">Name</label>
+                        <input id="signupName" name="displayName" type="text" required autocomplete="name" placeholder="Your name" class="auth-control-sm auth-input-sm w-full border border-gray-200 bg-gray-50 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                    </div>
+                    <div>
+                        <label for="signupEmail" class="mb-1.5 block text-sm font-semibold text-gray-700">Email address</label>
+                        <input id="signupEmail" name="email" type="email" required autocomplete="email" placeholder="you@example.com" class="auth-control-sm auth-input-sm w-full border border-gray-200 bg-gray-50 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                    </div>
+                    <div>
+                        <label for="signupPassword" class="mb-1.5 block text-sm font-semibold text-gray-700">Password</label>
+                        <input id="signupPassword" name="password" type="password" minlength="8" required autocomplete="new-password" placeholder="At least 8 characters" class="auth-control-sm auth-input-sm w-full border border-gray-200 bg-gray-50 text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                    </div>
+                    <button type="submit" class="auth-control-sm auth-button-sm btn-primary w-full">Create account</button>
+                </form>
+
+                <form id="verifyEmailForm" class="hidden space-y-4">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">Verify email</p>
+                        <p id="verifyHint" class="mt-1 text-sm leading-6 text-gray-600">Enter the 6-digit code we sent to your email.</p>
+                    </div>
+                    <div>
+                        <label for="verifyOtp" class="mb-1.5 block text-sm font-semibold text-gray-700">Verification code</label>
+                        <input id="verifyOtp" name="otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="123456" class="auth-control-sm auth-input-sm w-full border border-gray-200 bg-gray-50 text-center font-mono text-lg tracking-[.28em] text-gray-900 outline-none transition focus:border-red-500 focus:bg-white" />
+                    </div>
+                    <button type="submit" class="auth-control-sm auth-button-sm btn-primary w-full">Verify email</button>
+                    <button type="button" id="resendVerificationBtn" class="auth-control-sm auth-button-sm w-full border border-gray-200 bg-white font-semibold text-gray-700 transition hover:bg-gray-50">Resend verification code</button>
+                </form>
+
+                <div class="hidden" aria-hidden="true">
+                    <form id="emailForm"><input id="email" name="email" type="email" class="auth-control-sm auth-input-sm" /><button type="submit" class="auth-control-sm auth-button-sm">Send verification code</button></form>
+                    <form id="otpForm"><input id="otp" name="otp" class="auth-control-sm auth-input-sm" /><button type="submit" class="auth-control-sm auth-button-sm">Verify and continue</button></form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const verifyEmailForm = document.getElementById('verifyEmailForm');
+        const emailForm = document.getElementById('emailForm');
+        const otpForm = document.getElementById('otpForm');
+        const message = document.getElementById('message');
+        const showLoginBtn = document.getElementById('showLoginBtn');
+        const showSignupBtn = document.getElementById('showSignupBtn');
+        const resendVerificationBtn = document.getElementById('resendVerificationBtn');
+        const verifyHint = document.getElementById('verifyHint');
+        const loginSubmitButton = loginForm.querySelector('button[type="submit"]');
+        const signupSubmitButton = signupForm.querySelector('button[type="submit"]');
+        const verifySubmitButton = verifyEmailForm.querySelector('button[type="submit"]');
+        let pendingEmail = '';
+
+        function setPending(button, isPending, pendingText, defaultText) {
+            button.disabled = isPending;
+            button.textContent = isPending ? pendingText : defaultText;
+            button.classList.toggle('cursor-not-allowed', isPending);
+            button.classList.toggle('opacity-70', isPending);
+        }
+
+        function showMessage(text, type = 'info') {
+            message.textContent = text;
+            message.className = 'mb-5 rounded-xl border px-4 py-3 text-sm ' + (type === 'error'
+                ? 'border-red-200 bg-red-50 text-red-700'
+                : 'border-emerald-200 bg-emerald-50 text-emerald-700');
+            message.classList.remove('hidden');
+        }
+
+        function showPanel(panel) {
+            loginForm.classList.toggle('hidden', panel !== 'login');
+            signupForm.classList.toggle('hidden', panel !== 'signup');
+            verifyEmailForm.classList.toggle('hidden', panel !== 'verify');
+            document.getElementById('authTabs').classList.toggle('hidden', panel === 'verify');
+            showLoginBtn.className = 'auth-control-sm auth-tab-sm rounded-lg ' + (panel === 'login' ? 'tab-active' : 'tab-idle');
+            showSignupBtn.className = 'auth-control-sm auth-tab-sm rounded-lg ' + (panel === 'signup' ? 'tab-active' : 'tab-idle');
+        }
+
+        function handleAuthResponse(data) {
+            const user = data.user || {};
+            pendingEmail = (user.email || pendingEmail || '').toLowerCase();
+            if (data.needsEmailVerification || user.emailVerified === false) {
+                verifyHint.textContent = `Enter the 6-digit code we sent to ${pendingEmail}.`;
+                showMessage(data.verificationEmailSent === false
+                    ? 'Account created, but the verification email could not be sent. Check email provider settings or resend.'
+                    : 'Check your email for the verification code.');
+                showPanel('verify');
+                document.getElementById('verifyOtp').focus();
+                return;
+            }
+            window.location.href = '/app';
+        }
+
+        showLoginBtn.addEventListener('click', () => { message.classList.add('hidden'); showPanel('login'); });
+        showSignupBtn.addEventListener('click', () => { message.classList.add('hidden'); showPanel('signup'); });
+
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            pendingEmail = document.getElementById('loginEmail').value.trim().toLowerCase();
+            setPending(loginSubmitButton, true, 'Logging in…', 'Log in');
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: pendingEmail, password: document.getElementById('loginPassword').value })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    if (data.needsEmailVerification) { handleAuthResponse(data); return; }
+                    showMessage(data.error || 'Invalid email or password.', 'error');
+                    return;
+                }
+                handleAuthResponse(data);
+            } catch (error) {
+                showMessage('Network error while logging in. Please try again.', 'error');
+            } finally {
+                setPending(loginSubmitButton, false, 'Logging in…', 'Log in');
+            }
+        });
+
+        signupForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            pendingEmail = document.getElementById('signupEmail').value.trim().toLowerCase();
+            setPending(signupSubmitButton, true, 'Creating account…', 'Create account');
+            try {
+                const res = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        displayName: document.getElementById('signupName').value.trim(),
+                        email: pendingEmail,
+                        password: document.getElementById('signupPassword').value
+                    })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) { showMessage(data.error || 'Could not create account.', 'error'); return; }
+                handleAuthResponse(data);
+            } catch (error) {
+                showMessage('Network error while requesting the verification code. Please try again.', 'error');
+            } finally {
+                setPending(signupSubmitButton, false, 'Creating account…', 'Create account');
+            }
+        });
+
+        verifyEmailForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            setPending(verifySubmitButton, true, 'Verifying…', 'Verify email');
+            try {
+                const res = await fetch('/api/auth/verify-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: pendingEmail, otp: document.getElementById('verifyOtp').value.trim() })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) { showMessage(data.error || 'Invalid verification code.', 'error'); return; }
+                showMessage('Email verified. You can now log in.');
+                document.getElementById('loginEmail').value = pendingEmail;
+                showPanel('login');
+            } catch (error) {
+                showMessage('Network error while verifying the code. Please try again.', 'error');
+            } finally {
+                setPending(verifySubmitButton, false, 'Verifying…', 'Verify email');
+            }
+        });
+
+        resendVerificationBtn.addEventListener('click', async () => {
+            setPending(resendVerificationBtn, true, 'Sending code…', 'Resend verification code');
+            try {
+                const res = await fetch('/api/auth/resend-verification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: pendingEmail })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) { showMessage(data.error || 'Could not resend verification code.', 'error'); return; }
+                showMessage('Verification code sent. Check your email.');
+            } catch (error) {
+                showMessage('Network error while requesting the verification code. Please try again.', 'error');
+            } finally {
+                setPending(resendVerificationBtn, false, 'Sending code…', 'Resend verification code');
+            }
+        });
+
+        emailForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await fetch('/api/auth/request-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: pendingEmail }) });
+        });
+        otpForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await fetch('/api/auth/verify-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: pendingEmail, otp: '' }) });
+        });
+    </script>
+</body>
+</html>

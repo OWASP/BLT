@@ -1,29 +1,31 @@
 {
-    "name": "blt-sizzle-checkin",
-    "version": "1.0.0",
-    "description": "Daily check-in app for teams with Slack integration",
-    "main": "workers/main.py",
-    "scripts": {
-      "dev": "wrangler dev",
-      "deploy": "wrangler deploy",
-      "env:push": "bash scripts/push-env.sh",
-      "tail": "wrangler tail",
-      "db:create": "wrangler d1 create checkin-db",
-      "db:init": "wrangler d1 execute checkin-db --file=./schema.sql",
-      "db:query": "wrangler d1 execute checkin-db --command"
-    },
-    "keywords": [
-      "cloudflare",
-      "workers",
-      "python",
-      "checkin",
-      "slack",
-      "team",
-      "productivity"
-    ],
-    "author": "OWASP BLT",
-    "license": "Apache-2.0",
-    "devDependencies": {
-      "wrangler": "^3.0.0"
-    }
+  "name": "blt-sizzle-checkin",
+  "version": "1.0.0",
+  "description": "Organization-based async daily check-in app for OWASP BLT teams",
+  "main": "workers/main.py",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "bash deploy.sh",
+    "env:push": "bash scripts/push-env.sh",
+    "tail": "wrangler tail",
+    "db:create": "wrangler d1 create sizzle-db",
+    "db:migrate:dev": "bash scripts/migrate.sh dev",
+    "db:migrate:prod": "bash scripts/migrate.sh prod",
+    "db:query": "wrangler d1 execute sizzle-db --command",
+    "test": "python -m unittest discover tests -v"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "python",
+    "checkin",
+    "organizations",
+    "async",
+    "owasp-blt"
+  ],
+  "author": "OWASP BLT",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
   }
+}
