@@ -72,6 +72,7 @@ _add_route("GET", "/bugs", handle_bugs)
 _add_route("POST", "/bugs", handle_bugs)
 _add_route("PATCH", "/bugs/{id}", handle_bugs)
 _add_route("GET", "/bugs/{id}", handle_bugs)
+_add_route("DELETE", "/bugs/{id}", handle_bugs)
 
 # Users API
 _add_route("GET", "/users", handle_users)
@@ -159,6 +160,7 @@ _add_v2_route("GET", "/bugs", handle_bugs)
 _add_v2_route("POST", "/bugs", handle_bugs)
 _add_v2_route("PATCH", "/bugs/{id}", handle_bugs)
 _add_v2_route("GET", "/bugs/{id}", handle_bugs)
+_add_v2_route("DELETE", "/bugs/{id}", handle_bugs)
 
 _add_v2_route("GET", "/users", handle_users)
 _add_v2_route("POST", "/users", handle_users)

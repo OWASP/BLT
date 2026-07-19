@@ -109,3 +109,25 @@ class UserBugSave(Model):
 class UserBugFlag(Model):
     """Maps to the ``user_bug_flags`` junction table."""
     table_name = "user_bug_flags"
+
+
+class Hunt(Model):
+    """Maps to the ``hunts`` table."""
+    table_name = "hunts"
+
+
+class Project(Model):
+    """Maps to the ``projects`` table."""
+    table_name = "projects"
+
+
+class Repository(Model):
+    """Maps to the ``repositories`` table."""
+    table_name = "repositories"
+
+
+class Contributor(Model):
+    """Maps to the ``contributors`` table."""
+    table_name = "contributors"
+
+

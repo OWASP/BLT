@@ -629,3 +629,105 @@ class TestUpdateBug:
                 MockEnv(), {"id": "1"}, {}, "/bugs/1",
             )
         assert resp.status == 500
+
+    async def test_update_new_fields_success(self):
+        bug = {"id": 1, "user": 1, "title": "Old Title", "severity": "low", "bug_type": "xss", "steps_to_reproduce": "Step 1"}
+        updated = {"id": 1, "user": 1, "title": "New Title", "severity": "high", "bug_type": "rce", "steps_to_reproduce": "Step 2"}
+        mock_bug, mock_qs = _make_mock_bug_qs()
+        mock_qs.get = AsyncMock(side_effect=[bug, updated])
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(
+                    method="PATCH",
+                    body={
+                        "title": "New Title",
+                        "severity": "high",
+                        "bug_type": "rce",
+                        "steps_to_reproduce": "Step 2"
+                    },
+                    headers=_make_auth_header(1)
+                ),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 200
+        assert resp.data["success"] is True
+        mock_qs.update.assert_called_once_with(
+            title="New Title",
+            severity="high",
+            bug_type="rce",
+            steps_to_reproduce="Step 2"
+        )
+
+
+class TestDeleteBug:
+    """Tests for DELETE /bugs/{id}."""
+
+    async def test_delete_bug_success(self):
+        """Successful soft delete (Happy Path)"""
+        bug = {"id": 1, "user": 1, "is_hidden": 0}
+        mock_bug, mock_qs = _make_mock_bug_qs(get_return=bug)
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="DELETE", headers=_make_auth_header(1)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 200
+        assert resp.data["success"] is True
+        assert resp.data["message"] == "Bug deleted successfully"
+        mock_qs.update.assert_called_once_with(is_hidden=1)
+
+    async def test_delete_bug_unauthenticated_returns_401(self):
+        """Unauthenticated request (missing token or invalid)"""
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)):
+            resp = await handle_bugs(
+                MockRequest(method="DELETE"),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+            assert resp.status == 401
+
+            resp_invalid = await handle_bugs(
+                MockRequest(method="DELETE", headers={"Authorization": "Bearer invalid"}),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+            assert resp_invalid.status == 401
+
+    async def test_delete_bug_unauthorized_returns_403(self):
+        """Unauthorized (cross-user deletion)"""
+        bug = {"id": 1, "user": 42, "is_hidden": 0}  # owner is 42
+        mock_bug, mock_qs = _make_mock_bug_qs(get_return=bug)
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="DELETE", headers=_make_auth_header(1)),  # user 1 tries to delete
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 403
+        mock_qs.update.assert_not_called()
+
+    async def test_delete_bug_not_found_returns_404(self):
+        """Not found (non-existent bug)"""
+        mock_bug, _ = _make_mock_bug_qs(get_return=None)
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="DELETE", headers=_make_auth_header(1)),
+                MockEnv(), {"id": "9999999"}, {}, "/bugs/9999999",
+            )
+        assert resp.status == 404
+
+    async def test_delete_bug_invalid_id_returns_400(self):
+        """Not found (invalid/non-numeric ID)"""
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)):
+            resp = await handle_bugs(
+                MockRequest(method="DELETE", headers=_make_auth_header(1)),
+                MockEnv(), {"id": "invalid_id"}, {}, "/bugs/invalid_id",
+            )
+        assert resp.status == 400

@@ -20,6 +20,7 @@ _UPDATABLE_FIELDS = {
     "status", "verified", "score", "markdown_description",
     "description", "github_url", "cve_id", "cve_score",
     "is_hidden", "closed_by", "closed_date", "label",
+    "title", "severity", "bug_type", "steps_to_reproduce",
 }
 
 _VALID_STATUSES = {"open", "closed", "in-progress", "reviewing"}
@@ -90,6 +91,9 @@ async def handle_bugs(
             SELECT 
                 b.id,
                 b.url,
+                b.title,
+                b.severity,
+                b.bug_type,
                 b.description,
                 b.status,   
                 b.verified,
@@ -122,6 +126,10 @@ async def handle_bugs(
     if method == "PATCH" and "id" in path_params:
         return await update_bug(db, request, env, path_params["id"], logger)
 
+    # Delete bug
+    if method == "DELETE" and "id" in path_params:
+        return await delete_bug(db, request, env, path_params["id"], logger)
+
     # Get specific bug
     if "id" in path_params:
         try:
@@ -134,6 +142,10 @@ async def handle_bugs(
             SELECT 
                 b.id,
                 b.url,
+                b.title,
+                b.severity,
+                b.bug_type,
+                b.steps_to_reproduce,
                 b.description,
                 b.markdown_description,
                 b.label,
@@ -242,6 +254,10 @@ async def handle_bugs(
             "cve_score",
             "hunt",
             "domain",
+            "title",
+            "severity",
+            "bug_type",
+            "steps_to_reproduce",
         }
 
         forbidden = sorted(set(body.keys()) - client_writable_fields)
@@ -349,6 +365,14 @@ async def handle_bugs(
                 insert_fields["hunt"] = sanitized_body["hunt"]
             if "domain" in sanitized_body and sanitized_body["domain"] is not None:
                 insert_fields["domain"] = sanitized_body["domain"]
+            if "title" in sanitized_body and sanitized_body["title"] is not None:
+                insert_fields["title"] = sanitized_body["title"]
+            if "severity" in sanitized_body and sanitized_body["severity"] is not None:
+                insert_fields["severity"] = sanitized_body["severity"]
+            if "bug_type" in sanitized_body and sanitized_body["bug_type"] is not None:
+                insert_fields["bug_type"] = sanitized_body["bug_type"]
+            if "steps_to_reproduce" in sanitized_body and sanitized_body["steps_to_reproduce"] is not None:
+                insert_fields["steps_to_reproduce"] = sanitized_body["steps_to_reproduce"]
             if user_id is not None:
                 insert_fields["user"] = user_id
 
@@ -448,6 +472,9 @@ async def handle_bugs(
             SELECT
                 b.id,
                 b.url,
+                b.title,
+                b.severity,
+                b.bug_type,
                 b.description,
                 b.status,
                 b.verified,
@@ -550,7 +577,7 @@ async def update_bug(db: Any, request: Any, env: Any, bug_id_str: str, logger: A
                     return error_response(f"{field} must be an integer", status=400)
                 updates[field] = value
 
-            elif field in ("markdown_description", "description", "github_url", "cve_id", "cve_score", "closed_date"):
+            elif field in ("markdown_description", "description", "github_url", "cve_id", "cve_score", "closed_date", "title", "severity", "bug_type", "steps_to_reproduce"):
                 if value is not None and not isinstance(value, str):
                     return error_response(f"{field} must be a string or null", status=400)
                 updates[field] = value
@@ -569,4 +596,45 @@ async def update_bug(db: Any, request: Any, env: Any, bug_id_str: str, logger: A
         })
     except Exception as e:
         logger.error(f"Error updating bug: {str(e)}")
+        return error_response("Internal server error", status=500)
+
+
+async def delete_bug(db: Any, request: Any, env: Any, bug_id_str: str, logger: Any) -> Any:
+    """Soft delete a bug. Requires JWT authentication. Only the bug owner can delete."""
+    try:
+        if not bug_id_str.isdigit():
+            return error_response("Invalid bug ID", status=400)
+        bug_id = int(bug_id_str)
+
+        auth_header = _get_header(request, "Authorization")
+        if not auth_header or not auth_header[:7].lower() == "bearer ":
+            return error_response("Authentication required", status=401)
+        token = auth_header[7:].strip()
+        if not token:
+            return error_response("Authentication required", status=401)
+
+        payload = decode_jwt(token, env.JWT_SECRET)
+        if not payload or not payload.get("user_id"):
+            return error_response("Invalid or expired token", status=401)
+
+        try:
+            user_id = int(payload["user_id"])
+        except (ValueError, TypeError):
+            return error_response("Invalid or expired token", status=401)
+
+        bug = await Bug.objects(db).get(id=bug_id)
+        if not bug:
+            return error_response("Bug not found", status=404)
+
+        if bug.get("user") is None or bug["user"] != user_id:
+            return error_response("You can only delete your own bugs", status=403)
+
+        await Bug.objects(db).filter(id=bug_id).update(is_hidden=1)
+
+        return Response.json({
+            "success": True,
+            "message": "Bug deleted successfully",
+        })
+    except Exception as e:
+        logger.error(f"Error deleting bug: {str(e)}")
         return error_response("Internal server error", status=500)

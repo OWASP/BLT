@@ -3,9 +3,10 @@ Bug Hunts handler for the BLT API.
 """
 
 from typing import Any, Dict
-from utils import json_response, error_response, paginated_response, parse_pagination_params
-from client import create_client
-
+from utils import json_response, error_response, paginated_response, parse_pagination_params, convert_d1_results
+from libs.db import get_db_safe
+from models import Hunt
+import logging
 
 async def handle_hunts(
     request: Any,
@@ -15,7 +16,7 @@ async def handle_hunts(
     path: str
 ) -> Any:
     """
-    Handle bug hunt-related requests.
+    Handle bug hunt-related requests natively via D1 database.
     
     Endpoints:
         GET /hunts - List all bug hunts
@@ -24,120 +25,107 @@ async def handle_hunts(
         GET /hunts/previous - Get past hunts
         GET /hunts/upcoming - Get upcoming hunts
     """
-    client = create_client(env)
+    logger = logging.getLogger(__name__)
+    try: 
+        db = await get_db_safe(env)  
+    except Exception:
+        logger.exception("Database connection error")
+        return error_response("Database connection error", status=500)
     
     # Get specific hunt
     if "id" in path_params:
         hunt_id = path_params["id"]
         
-        # Validate ID is numeric
         if not hunt_id.isdigit():
             return error_response("Invalid hunt ID", status=400)
         
-        result = await client.get_hunt(int(hunt_id))
+        result = await db.prepare('''
+            SELECT id, title, description, starts_at, ends_at, is_active, created, modified 
+            FROM hunts 
+            WHERE id = ?
+        ''').bind(int(hunt_id)).first()
         
-        if result.get("error"):
-            return error_response(
-                result.get("message", "Hunt not found"),
-                status=result.get("status", 404)
-            )
-        
-        return json_response({
-            "success": True,
-            "data": result.get("data")
-        })
-    
-    # Get active hunts
-    if path.endswith("/active"):
-        result = await client.get_hunts(active=True)
-        
-        if result.get("error"):
-            return error_response(
-                result.get("message", "Failed to fetch active hunts"),
-                status=result.get("status", 500)
-            )
+        if result and hasattr(result, 'to_py'):
+            hunt_data = result.to_py()
+        elif result and isinstance(result, dict):
+            hunt_data = dict(result)
+        else:
+            hunt_data = None
+            
+        if not hunt_data:
+            return error_response("Hunt not found", status=404)
         
         return json_response({
             "success": True,
-            "filter": "active",
-            "data": result.get("data", [])
+            "data": hunt_data
         })
     
-    # Get previous hunts
-    if path.endswith("/previous"):
-        result = await client.get_hunts(previous=True)
-        
-        if result.get("error"):
-            return error_response(
-                result.get("message", "Failed to fetch previous hunts"),
-                status=result.get("status", 500)
-            )
-        
-        return json_response({
-            "success": True,
-            "filter": "previous",
-            "data": result.get("data", [])
-        })
+    # Determine filters
+    is_active_filter = path.endswith("/active") or query_params.get("active") == "true"
+    is_previous_filter = path.endswith("/previous") or query_params.get("previous") == "true"
+    is_upcoming_filter = path.endswith("/upcoming") or query_params.get("upcoming") == "true"
     
-    # Get upcoming hunts
-    if path.endswith("/upcoming"):
-        result = await client.get_hunts(upcoming=True)
+    where_clauses = []
+    if is_active_filter:
+        where_clauses.append("is_active = 1 AND starts_at <= CURRENT_TIMESTAMP AND ends_at >= CURRENT_TIMESTAMP")
+    elif is_previous_filter:
+        where_clauses.append("ends_at < CURRENT_TIMESTAMP")
+    elif is_upcoming_filter:
+        where_clauses.append("starts_at > CURRENT_TIMESTAMP")
         
-        if result.get("error"):
-            return error_response(
-                result.get("message", "Failed to fetch upcoming hunts"),
-                status=result.get("status", 500)
-            )
+    where_sql = ""
+    if where_clauses:
+        where_sql = " WHERE " + " AND ".join(where_clauses)
         
-        return json_response({
-            "success": True,
-            "filter": "upcoming",
-            "data": result.get("data", [])
-        })
-    
-    # List all hunts with pagination
+    # Pagination
     page, per_page = parse_pagination_params(query_params)
     
-    # Check for filter params
-    active = query_params.get("active") == "true"
-    previous = query_params.get("previous") == "true"
-    upcoming = query_params.get("upcoming") == "true"
+    # Count total
+    count_query = f"SELECT COUNT(*) as total FROM hunts{where_sql}"
+    total_result = await db.prepare(count_query).first()
     
-    result = await client.get_hunts(
-        page=page,
-        per_page=per_page,
-        active=active,
-        previous=previous,
-        upcoming=upcoming
-    )
+    if total_result and hasattr(total_result, 'to_py'):
+        total = total_result.to_py().get('total', 0)
+    elif total_result and isinstance(total_result, dict):
+        total = total_result.get('total', 0)
+    elif total_result and hasattr(total_result, 'total'):
+        total = getattr(total_result, 'total')
+    else:
+        total = 0
+        
+    # List queries
+    list_query = f'''
+        SELECT id, title, description, starts_at, ends_at, is_active, created, modified 
+        FROM hunts
+        {where_sql}
+        ORDER BY created DESC
+        LIMIT ? OFFSET ?
+    '''
     
-    if result.get("error"):
-        return error_response(
-            result.get("message", "Failed to fetch hunts"),
-            status=result.get("status", 500)
-        )
+    result = await db.prepare(list_query).bind(per_page, (page - 1) * per_page).all()
+    data = convert_d1_results(result.results if hasattr(result, 'results') else [])
     
-    data = result.get("data", {})
-    
-    # Handle paginated response
-    if isinstance(data, dict) and "results" in data:
-        return json_response({
-            "success": True,
-            "data": data.get("results", []),
-            "pagination": {
-                "page": page,
-                "per_page": per_page,
-                "count": len(data.get("results", [])),
-                "total": data.get("count"),
-                "next": data.get("next"),
-                "previous": data.get("previous")
-            }
-        })
-    
-    if isinstance(data, list):
-        return paginated_response(data, page=page, per_page=per_page)
-    
-    return json_response({
+    filter_name = None
+    if is_active_filter:
+        filter_name = "active"
+    elif is_previous_filter:
+        filter_name = "previous"
+    elif is_upcoming_filter:
+        filter_name = "upcoming"
+        
+    response = {
         "success": True,
-        "data": data
-    })
+        "data": data,
+        "pagination": {
+            "page": page,
+            "per_page": per_page,
+            "count": len(data),
+            "total": total,
+            "total_pages": (total + per_page - 1) // per_page if total > 0 else 0
+        }
+    }
+    
+    if filter_name:
+        response["filter"] = filter_name
+        
+    return json_response(response)
