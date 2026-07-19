@@ -77,9 +77,12 @@ def test_gitlab_unknown_object_kind():
 def test_gitlab_note_added():
     payload = {
         "object_kind": "note",
-        "noteable_type": "MergeRequest",
-        "noteable_id": 9,
-        "object_attributes": {"note": "Looks good!", "url": "https://gitlab.com/x"},
+        "object_attributes": {
+            "note": "Looks good!",
+            "url": "https://gitlab.com/x",
+            "noteable_type": "MergeRequest",
+            "noteable_id": 9,
+        },
         "user": {"id": 3, "username": "reviewer"},
         "project": {"path_with_namespace": "owasp/blt"},
     }
