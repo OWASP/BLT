@@ -1,8 +1,13 @@
 name = "blt-jobs"
+account_id = "4a11615c97ec0ffcbb7952a061aada19"
 compatibility_date = "2026-05-31"
+compatibility_flags = ["python_workers", "disable_python_external_sdk"]
+main = "src/worker.py"
 
 [assets]
 directory = "./public"
+binding = "ASSETS"
+run_worker_first = ["/admin-*", "/api/admin/*"]
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
 
