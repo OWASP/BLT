@@ -76,6 +76,8 @@ class PipelineRunner:
         if self._task is not None and not self._task.done():
             return
         self._stop_event.clear()
+        self._sequence = await self.events_q.max_sequence_number()
+        logger.info("pipeline sequence seeded", extra={"seq": self._sequence})
         self._task = asyncio.create_task(self._run(), name="pipeline-runner")
         logger.info("pipeline runner started")
 

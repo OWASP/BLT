@@ -103,6 +103,14 @@ class EventQueries:
             row = await cursor.fetchone()
         return int(row["c"]) if row else 0
 
+    async def max_sequence_number(self) -> int:
+        """Return the highest sequence_number in the events table, or 0 if empty."""
+        async with self.db.conn.execute(
+            "SELECT COALESCE(MAX(sequence_number), 0) AS m FROM events"
+        ) as cursor:
+            row = await cursor.fetchone()
+        return int(row["m"]) if row else 0
+
 
 class ContributorQueries:
     """Queries for the ``contributors`` table."""
