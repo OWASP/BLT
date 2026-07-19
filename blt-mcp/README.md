@@ -198,5 +198,5 @@ GNU AGPL v3 - see the `LICENSE` file for details.
 ## Support
 
 For issues, questions, or contributions, please visit:
-- GitLab: [https://gitlab.com/AEMphil/BLT-MCP](https://gitlab.com/AEMphil/BLT-MCP)
+- GitLab: [https://gitlab.com/owasp-blt/BLT-MCP](https://gitlab.com/owasp-blt/BLT-MCP)
 - OWASP BLT: [https://owasp.org/www-project-bug-logging-tool/](https://owasp.org/www-project-bug-logging-tool/)
