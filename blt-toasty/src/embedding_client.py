@@ -129,6 +129,12 @@ async def get_embedding(text: str, env) -> list[float]:
         )
 
     data = await response.json()
+    if not isinstance(data, dict) or not isinstance(data.get("embeddings"), list) or not data["embeddings"]:
+        raise EmbeddingServiceError(
+            "FastEmbed sidecar returned invalid or empty embeddings list",
+            status_code=500,
+        )
+
     embedding = data["embeddings"][0]
 
     if len(embedding) != EMBEDDING_DIMENSIONS:

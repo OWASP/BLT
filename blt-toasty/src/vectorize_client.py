@@ -194,6 +194,7 @@ async def find_duplicates(
 
         Returns an empty list on sidecar failure (degraded mode).
     """
+    top_k = min(top_k, 20)
     try:
         embedding = await get_embedding(redacted_text, env)
     except EmbeddingServiceError as exc:
@@ -212,7 +213,8 @@ async def find_duplicates(
     matches = []
     for match in result.matches:
         score = match.score
-        if score >= DUPLICATE_SCORE_THRESHOLD:
+        metadata = match.metadata or {}
+        if score >= DUPLICATE_SCORE_THRESHOLD and metadata.get("repo") == repo_full_name:
             matches.append(
                 {
                     "event_id": match.id,

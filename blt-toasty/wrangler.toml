@@ -34,6 +34,9 @@ name = "toasty-backend-staging"
 [env.development]
 name = "toasty-backend-dev"
 
+[env.development.vars]
+FASTEMBED_URL = "http://localhost:5003"
+
 # Routes for the worker (configure based on your domain)
 # [[routes]]
 # pattern = "api.toasty.example.com/*"
@@ -69,7 +72,6 @@ index_name = "toasty-embeddings"
 [vars]
 ENVIRONMENT = "development"
 LOG_LEVEL = "info"
-FASTEMBED_URL = "http://localhost:5003"
 
 
 [observability]

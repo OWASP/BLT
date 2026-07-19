@@ -10,6 +10,7 @@ Cloudflare Workers.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 
 from fastapi import FastAPI, HTTPException
@@ -91,13 +92,14 @@ async def embed(body: EmbedRequest) -> EmbedResponse:
         A response containing the embedding vectors, model name, and dimensions.
     """
     try:
-        embeddings = list(model.embed(body.texts))
+        embeddings = await asyncio.to_thread(lambda: [e.tolist() for e in model.embed(body.texts)])
     except Exception as exc:
         logger.error("Embedding generation failed: %s", exc)
         raise HTTPException(status_code=500, detail=f"Embedding generation failed: {exc}") from exc
 
+    dims = len(embeddings[0]) if embeddings else EMBEDDING_DIMENSIONS
     return EmbedResponse(
-        embeddings=[e.tolist() for e in embeddings],
+        embeddings=embeddings,
         model=MODEL_NAME,
-        dimensions=EMBEDDING_DIMENSIONS,
+        dimensions=dims,
     )

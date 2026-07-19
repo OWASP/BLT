@@ -144,3 +144,29 @@ class TestGetEmbedding:
         with pytest.raises(EmbeddingServiceError) as exc_info:
             await get_embedding("test", env)
         assert exc_info.value.status_code == 503
+
+    @pytest.mark.asyncio
+    async def test_empty_embeddings_raises_embedding_service_error(self):
+        """Response with empty embeddings list raises EmbeddingServiceError."""
+        env = _make_env(fetch_mock=_make_sidecar_fetch_mock(embeddings=[]))
+        with pytest.raises(EmbeddingServiceError) as exc_info:
+            await get_embedding("test", env)
+        assert exc_info.value.status_code == 500
+        assert "invalid or empty embeddings list" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_malformed_response_raises_embedding_service_error(self):
+        """Response missing embeddings field raises EmbeddingServiceError."""
+
+        async def malformed_fetch(url, options):
+            resp = MagicMock()
+            resp.ok = True
+            resp.status = 200
+            resp.json = AsyncMock(return_value={"unexpected_field": True})
+            return resp
+
+        env = _make_env(fetch_mock=AsyncMock(side_effect=malformed_fetch))
+        with pytest.raises(EmbeddingServiceError) as exc_info:
+            await get_embedding("test", env)
+        assert exc_info.value.status_code == 500
+        assert "invalid or empty embeddings list" in str(exc_info.value)

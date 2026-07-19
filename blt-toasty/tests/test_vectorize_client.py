@@ -220,11 +220,13 @@ class TestFindDuplicates:
         # The Vectorize query itself filters by repo via metadata filter,
         # so both results would be from the same repo in practice.
         # Here we test that the function passes the filter correctly.
-        await find_duplicates("redacted query text", "owasp/blt", env)
+        results = await find_duplicates("redacted query text", "owasp/blt", env)
 
         env.VECTORIZE.query.assert_awaited_once()
         query_args = env.VECTORIZE.query.call_args
         assert query_args[0][1]["filter"] == {"repo": "owasp/blt"}
+        assert len(results) == 1
+        assert results[0]["event_id"] == "evt-001"
 
     @pytest.mark.asyncio
     @patch("src.vectorize_client.get_embedding", new_callable=AsyncMock)

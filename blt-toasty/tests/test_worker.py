@@ -10,6 +10,9 @@ If you modify the parse_path logic in worker.py, you MUST update this copy to ma
 """
 
 
+import urllib.parse
+
+
 def parse_path(url):
     """
     Extract clean path from URL, handling query params and fragments.
@@ -23,19 +26,14 @@ def parse_path(url):
     Returns:
         str: The path component of the URL
     """
-    url_without_protocol = url.split("://", 1)[1] if "://" in url else url
-    path_start = url_without_protocol.find("/")
-
-    if path_start == -1:
+    parsed = urllib.parse.urlparse(url)
+    path = parsed.path
+    if not path or path == "":
         path = "/"
-    else:
-        path_with_query = url_without_protocol[path_start:]
-        path = path_with_query.split("?")[0].split("#")[0]
-        if not path.startswith("/"):
-            path = "/" + path
-        if len(path) > 1 and path.endswith("/"):
-            path = path[:-1]
-
+    elif not path.startswith("/"):
+        path = "/" + path
+    if len(path) > 1 and path.endswith("/"):
+        path = path[:-1]
     return path
 
 
