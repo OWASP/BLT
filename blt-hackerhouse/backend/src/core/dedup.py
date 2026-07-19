@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from uuid import UUID
 
+import aiosqlite
+
 from ..models.event import Event
 from ..storage import Database, EventQueries
 
@@ -19,10 +21,10 @@ async def is_duplicate(db: Database, event: Event) -> bool:
     return existing is not None
 
 
-async def record_if_absent(db: Database, event: Event) -> bool:
+async def record_if_absent(db: Database, event: Event, conn: aiosqlite.Connection | None = None) -> bool:
     """Insert the event idempotently; return True if it was newly recorded."""
     queries = EventQueries(db)
-    return await queries.insert(event)
+    return await queries.insert(event, conn=conn)
 
 
 async def already_seen(db: Database, event_id: UUID) -> bool:

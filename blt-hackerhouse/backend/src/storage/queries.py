@@ -13,6 +13,8 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
+import aiosqlite
+
 from ..models.contributor import Contributor
 from ..models.event import Event
 from ..models.identity import IdentityMapping
@@ -29,8 +31,9 @@ class EventQueries:
     def __init__(self, db: Database) -> None:
         self.db = db
 
-    async def insert(self, event: Event) -> bool:
+    async def insert(self, event: Event, conn: aiosqlite.Connection | None = None) -> bool:
         """Insert an event. Returns True if inserted, False if duplicate."""
+        db_conn = conn or self.db.conn
         sql = """
             INSERT INTO events (
                 id, source, event_type, actor_id, actor_name,
@@ -51,17 +54,20 @@ class EventQueries:
             dumps_json(event.metadata),
             event.idempotency_key,
         )
-        async with self.db.conn.execute(sql, params) as cursor:
-            await self.db.conn.commit()
+        async with db_conn.execute(sql, params) as cursor:
+            if conn is None:
+                await db_conn.commit()
             return cursor.rowcount > 0
 
-    async def assign_sequence(self, event_id: UUID, sequence: int) -> None:
+    async def assign_sequence(self, event_id: UUID, sequence: int, conn: aiosqlite.Connection | None = None) -> None:
         """Stamp a monotonic sequence number onto a freshly inserted event."""
-        await self.db.conn.execute(
+        db_conn = conn or self.db.conn
+        await db_conn.execute(
             "UPDATE events SET sequence_number = ? WHERE id = ?",
             (sequence, str(event_id)),
         )
-        await self.db.conn.commit()
+        if conn is None:
+            await db_conn.commit()
 
     async def get_by_idempotency_key(self, key: str) -> Event | None:
         async with self.db.conn.execute(
@@ -97,9 +103,10 @@ class EventQueries:
 
     async def count_since(self, since: datetime) -> int:
         """Count events ingested since ``since`` (UTC)."""
+        utc_since = since.astimezone(timezone.utc) if since.tzinfo else since.replace(tzinfo=timezone.utc)
         async with self.db.conn.execute(
-            "SELECT COUNT(*) AS c FROM events WHERE created_at >= ?",
-            (since.replace(tzinfo=None).isoformat(),),
+            "SELECT COUNT(*) AS c FROM events WHERE datetime(created_at) >= datetime(?)",
+            (utc_since.isoformat(),),
         ) as cursor:
             row = await cursor.fetchone()
         return int(row["c"]) if row else 0
@@ -119,8 +126,9 @@ class ContributorQueries:
     def __init__(self, db: Database) -> None:
         self.db = db
 
-    async def upsert(self, contributor: Contributor) -> Contributor:
+    async def upsert(self, contributor: Contributor, conn: aiosqlite.Connection | None = None) -> Contributor:
         """Insert or update a contributor record. Returns the persisted model."""
+        db_conn = conn or self.db.conn
         sql = """
             INSERT INTO contributors (
                 id, display_name, usernames, aliases, platform_ids,
@@ -146,12 +154,14 @@ class ContributorQueries:
             contributor.created_at.isoformat() if isinstance(contributor.created_at, datetime) else str(contributor.created_at),
             contributor.updated_at.isoformat() if isinstance(contributor.updated_at, datetime) else str(contributor.updated_at),
         )
-        await self.db.conn.execute(sql, params)
-        await self.db.conn.commit()
+        await db_conn.execute(sql, params)
+        if conn is None:
+            await db_conn.commit()
         return contributor
 
-    async def get(self, contributor_id: UUID) -> Contributor | None:
-        async with self.db.conn.execute(
+    async def get(self, contributor_id: UUID, conn: aiosqlite.Connection | None = None) -> Contributor | None:
+        db_conn = conn or self.db.conn
+        async with db_conn.execute(
             "SELECT * FROM contributors WHERE id = ?", (str(contributor_id),)
         ) as cursor:
             row = await cursor.fetchone()
@@ -198,7 +208,8 @@ class AvatarStateQueries:
     def __init__(self, db: Database) -> None:
         self.db = db
 
-    async def upsert(self, state: AvatarState) -> None:
+    async def upsert(self, state: AvatarState, conn: aiosqlite.Connection | None = None) -> None:
+        db_conn = conn or self.db.conn
         sql = """
             INSERT INTO avatar_state (contributor_id, floor, room, last_event, updated_at)
             VALUES (?, ?, ?, ?, ?)
@@ -215,8 +226,9 @@ class AvatarStateQueries:
             state.last_event,
             state.updated_at.isoformat() if isinstance(state.updated_at, datetime) else str(state.updated_at),
         )
-        await self.db.conn.execute(sql, params)
-        await self.db.conn.commit()
+        await db_conn.execute(sql, params)
+        if conn is None:
+            await db_conn.commit()
 
     async def get(self, contributor_id: UUID) -> AvatarState | None:
         async with self.db.conn.execute(
@@ -246,7 +258,8 @@ class IdentityQueries:
     def __init__(self, db: Database) -> None:
         self.db = db
 
-    async def insert(self, mapping: IdentityMapping) -> IdentityMapping:
+    async def insert(self, mapping: IdentityMapping, conn: aiosqlite.Connection | None = None) -> IdentityMapping:
+        db_conn = conn or self.db.conn
         sql = """
             INSERT INTO identity_mappings (
                 platform, platform_user_id, contributor_id, confidence, confirmed_by
@@ -263,17 +276,11 @@ class IdentityQueries:
             mapping.confidence,
             mapping.confirmed_by,
         )
-        async with self.db.conn.execute(sql, params) as cursor:
-            await self.db.conn.commit()
-
-        if mapping.id is None:
-            async with self.db.conn.execute(
-                "SELECT id FROM identity_mappings WHERE platform = ? AND platform_user_id = ?",
-                (mapping.platform, mapping.platform_user_id),
-            ) as cursor:
-                row = await cursor.fetchone()
-            if row:
-                mapping.id = int(row["id"])
+        async with db_conn.execute(sql, params) as cursor:
+            if conn is None:
+                await db_conn.commit()
+            if mapping.id is None:
+                mapping.id = cursor.lastrowid
         return mapping
 
     async def lookup(self, platform: str, platform_user_id: str) -> IdentityMapping | None:

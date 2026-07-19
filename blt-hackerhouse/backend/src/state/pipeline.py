@@ -40,6 +40,10 @@ from ..storage import (
 logger = logging.getLogger(__name__)
 
 
+class _PipelineSkip(Exception):
+    """Raised to skip broadcast and commit when an event is a duplicate or missing contributor."""
+
+
 class PipelineRunner:
     """Drains the EventQueue, applying the full downstream pipeline."""
 
@@ -111,6 +115,8 @@ class PipelineRunner:
                 continue
             try:
                 await self._process_event(event, resolver)
+            except _PipelineSkip:
+                pass
             except Exception as exc:  # noqa: BLE001
                 logger.exception("pipeline event failed")
                 self.hub.record_error()
@@ -127,46 +133,44 @@ class PipelineRunner:
                 self.queue.task_done()
 
     async def _process_event(self, event: Event, resolver) -> None:
-        # 1. Dedup + persist
-        inserted = await record_if_absent(self.db, event)
-        if not inserted:
-            logger.info("pipeline dedup dropped", extra={
-                "key": event.idempotency_key, "source": event.source, "type": event.event_type,
-            })
-            return
+        async with self.db.transaction() as conn:
+            # 1. Dedup + persist
+            inserted = await record_if_absent(self.db, event, conn=conn)
+            if not inserted:
+                logger.info("pipeline dedup dropped", extra={
+                    "key": event.idempotency_key, "source": event.source, "type": event.event_type,
+                })
+                raise _PipelineSkip()
 
-        # 2. Sequence number (lock is scoped to increment + write only)
-        async with self._lock:
-            self._sequence += 1
-            seq = self._sequence
+            async with self._lock:
+                self._sequence += 1
+                await self.events_q.assign_sequence(event.id, self._sequence, conn=conn)
 
-        await self.events_q.assign_sequence(event.id, seq)
+            # 2. Identity resolution
+            result = await resolver.resolve(event, conn=conn)
+            contributor = await self.contributors_q.get(result.contributor_id, conn=conn)
+            if contributor is None:
+                logger.warning("pipeline missing contributor", extra={"id": str(result.contributor_id)})
+                raise _PipelineSkip()
 
-        # 3. Identity resolution
-        result = await resolver.resolve(event)
-        contributor = await self.contributors_q.get(result.contributor_id)
-        if contributor is None:
-            logger.warning("pipeline missing contributor", extra={"id": str(result.contributor_id)})
-            return
+            # 3. Update avatar state
+            room = resolve_room(event.event_type)
+            avatar = AvatarState(
+                contributor_id=contributor.id,
+                floor=room.floor,
+                room=room.room,
+                last_event=event.event_type,
+                updated_at=datetime.now(tz=timezone.utc).replace(microsecond=0),
+            )
+            await self.avatars_q.upsert(avatar, conn=conn)
 
-        # 4. Update avatar state
-        room = resolve_room(event.event_type)
-        avatar = AvatarState(
-            contributor_id=contributor.id,
-            floor=room.floor,
-            room=room.room,
-            last_event=event.event_type,
-            updated_at=datetime.now(tz=timezone.utc).replace(microsecond=0),
-        )
-        await self.avatars_q.upsert(avatar)
+            # 4. Score leaderboard
+            delta = self.leaderboard.record(str(contributor.id), event.event_type, event.metadata)
+            if delta:
+                contributor.add_score(delta)
+                await self.contributors_q.upsert(contributor, conn=conn)
 
-        # 5. Score leaderboard
-        delta = self.leaderboard.record(str(contributor.id), event.event_type, event.metadata)
-        if delta:
-            contributor.add_score(delta)
-            await self.contributors_q.upsert(contributor)
-
-        # 6. Broadcast
+        # 5. Broadcast (outside transaction)
         self.hub.record_event()
         await self.hub.broadcast(
             build_avatar_move(event, floor=room.floor, room=room.room, contributor_id=contributor.id)

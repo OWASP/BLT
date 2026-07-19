@@ -33,47 +33,60 @@ async def lifespan(app: FastAPI):
     logger.info("startup begin")
 
     db: Database = get_database()
-    await db.connect()
-    applied = await db.run_migrations()
-    logger.info("migrations applied", extra={"count": applied})
+    runner: PipelineRunner | None = None
+    blt_poller: BLTPoller | None = None
+    gap_detector: GitLabGapDetector | None = None
 
-    queue = EventQueue()
-    hub: WebSocketHub = get_hub()
-    poll_ms = _settings().pipeline_poll_interval_ms / 1000.0
-    runner = PipelineRunner(db=db, queue=queue, hub=hub, poll_interval=poll_ms)
-    await runner.start()
-
-    # Startup validation
-    _validate_startup()
-
-    blt_poller = BLTPoller(db=db, queue=queue)
-    await blt_poller.start()
-
-    project_ids = _parse_project_ids()
-    gap_detector = GitLabGapDetector(
-        db=db,
-        queue=queue,
-        project_ids=project_ids,
-    )
-    await gap_detector.start()
-
-    app.state.event_queue = queue
-    app.state.hub = hub
-    app.state.runner = runner
-    app.state.blt_poller = blt_poller
-    app.state.gap_detector = gap_detector
-
-    set_dependencies(db, runner, hub, started_at=time.time())
-
-    logger.info("startup complete")
     try:
+        await db.connect()
+        applied = await db.run_migrations()
+        logger.info("migrations applied", extra={"count": applied})
+
+        queue = EventQueue()
+        hub: WebSocketHub = get_hub()
+        poll_ms = _settings().pipeline_poll_interval_ms / 1000.0
+        runner = PipelineRunner(db=db, queue=queue, hub=hub, poll_interval=poll_ms)
+        await runner.start()
+
+        _validate_startup()
+
+        blt_poller = BLTPoller(db=db, queue=queue)
+        await blt_poller.start()
+
+        gap_project_ids = _parse_project_ids()
+        gap_detector = GitLabGapDetector(
+            db=db,
+            queue=queue,
+            project_ids=gap_project_ids,
+        )
+        await gap_detector.start()
+
+        app.state.event_queue = queue
+        app.state.hub = hub
+        app.state.runner = runner
+        app.state.blt_poller = blt_poller
+        app.state.gap_detector = gap_detector
+
+        set_dependencies(db, runner, hub, started_at=time.time())
+
+        logger.info("startup complete")
         yield
     finally:
         logger.info("shutdown begin")
-        await gap_detector.stop()
-        await blt_poller.stop()
-        await runner.stop()
-        await db.close()
+        for component, name in (
+            (gap_detector, "gap_detector"),
+            (blt_poller, "blt_poller"),
+            (runner, "runner"),
+        ):
+            if component is not None:
+                try:
+                    await component.stop()
+                except Exception:
+                    logger.exception("%s.stop() failed during shutdown", name)
+        try:
+            await db.close()
+        except Exception:
+            logger.exception("db.close() failed during shutdown")
         logger.info("shutdown complete")
 
 

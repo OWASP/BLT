@@ -99,7 +99,9 @@ def _parse_ts(value: Any) -> datetime | None:
         text = str(value).replace("Z", "+00:00")
         parsed = datetime.fromisoformat(text)
         if parsed.tzinfo is not None:
-            parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+            parsed = parsed.astimezone(timezone.utc)
+        else:
+            parsed = parsed.replace(tzinfo=timezone.utc)
         return parsed
     except (TypeError, ValueError):
         return None
