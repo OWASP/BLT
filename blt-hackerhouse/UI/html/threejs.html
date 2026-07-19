@@ -1,0 +1,82 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width,initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+<!-- STITCH_THREEJS_START:ANIMATION_3 class="fixed inset-0 w-full h-full bg-transparent" -->
+<div class="fixed inset-0 w-full h-full bg-transparent" style="display:block;">
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<div id="threejs-container-ANIMATION_3" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_3');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const avatarMovements = {
+    // Logic for animating avatars between rooms
+    // Assume rooms are divs with IDs matching room names
+    move(contributorId, targetRoomId) {
+        const avatar = document.querySelector(`[data-contributor-id="${contributorId}"]`);
+        const targetRoom = document.getElementById(targetRoomId);
+        if (!avatar || !targetRoom) return;
+
+        // Simple smooth transition using absolute positioning or translation
+        // For a grid layout, we calculate offsets
+        const targetRect = targetRoom.getBoundingClientRect();
+        const currentRect = avatar.getBoundingClientRect();
+
+        // Move logic
+        avatar.style.transform = `translate(${targetRect.left - currentRect.left}px, ${targetRect.top - currentRect.top}px)`;
+
+        // After transition, append to new room to maintain DOM structure
+        setTimeout(() => {
+            avatar.style.transform = '';
+            const targetContainer = targetRoom.querySelector('.avatar-container');
+            if (targetContainer) {
+                targetContainer.appendChild(avatar);
+            }
+            this.pulseRoom(targetRoom);
+        }, 400);
+    },
+    pulseRoom(roomElement) {
+        roomElement.classList.add('animate-room-pulse');
+        setTimeout(() => roomElement.classList.remove('animate-room-pulse'), 1000);
+    },
+    showScoreDelta(contributorId, delta) {
+        const avatar = document.querySelector(`[data-contributor-id="${contributorId}"]`);
+        if (!avatar) return;
+        const deltaEl = document.createElement('div');
+        deltaEl.className = 'absolute -top-4 left-1/2 -translate-x-1/2 text-primary font-bold animate-fly-up';
+        const sign = delta > 0 ? '+' : '';
+        deltaEl.textContent = `${sign}${delta}`;
+        avatar.appendChild(deltaEl);
+        setTimeout(() => deltaEl.remove(), 1000);
+    }
+};
+
+// Simple Mock WebSocket for demo
+function initWebSocket() {
+    console.log('Connecting to HackerHouse WebSocket...');
+    // Real implementation would use new WebSocket(url)
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initWebSocket();
+});
+
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_3 -->
+
+
+</body></html>

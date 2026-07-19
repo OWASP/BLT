@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>Activity Feed · BLT HackerHouse</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,200&display=swap" rel="stylesheet">
+<script src="assets/js/theme.js"></script>
+<link rel="stylesheet" href="assets/css/blt-design.css">
+<link rel="stylesheet" href="assets/css/hackerhouse.css">
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      },
+    },
+  },
+};
+</script>
+<style>
+.sidebar-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 160ms ease;
+  color: var(--blt-text-muted);
+}
+.sidebar-link:hover { background: var(--blt-surface-muted); color: var(--blt-text); }
+.sidebar-link[aria-current="page"],
+.sidebar-link.active {
+  background: var(--blt-primary-soft) !important;
+  color: var(--blt-primary) !important;
+  font-weight: 600;
+}
+.sidebar-link[aria-current="page"]::before,
+.sidebar-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 55%;
+  background: var(--blt-primary);
+  border-radius: 0 2px 2px 0;
+}
+.sidebar-link[aria-current="page"] .nav-icon,
+.sidebar-link.active .nav-icon { color: var(--blt-primary) !important; }
+
+/* Source chip variants */
+.source-chip-gitlab {
+  background: rgba(252, 109, 38, 0.1);
+  border: 1px solid rgba(252, 109, 38, 0.3);
+  color: #fc6d26;
+}
+.source-chip-gitlab:hover {
+  background: rgba(252, 109, 38, 0.2);
+}
+.source-chip-blt {
+  background: var(--blt-primary-soft);
+  border: 1px solid color-mix(in srgb, var(--blt-primary) 30%, transparent);
+  color: var(--blt-primary);
+}
+.source-chip-blt:hover {
+  background: color-mix(in srgb, var(--blt-primary) 16%, transparent);
+}
+</style>
+</head>
+<body class="min-h-screen font-sans antialiased bg-[var(--blt-background)] text-[var(--blt-text)]">
+
+<div class="lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)] min-h-screen">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="hidden lg:flex lg:flex-col lg:h-screen lg:sticky lg:top-0 bg-[var(--blt-surface)] border-r border-[var(--blt-border)] overflow-y-auto" aria-label="Main navigation">
+    <div class="flex items-center justify-between px-4 pt-5 pb-4">
+      <a class="flex items-center gap-2.5" href="#">
+        <div class="w-8 h-8 rounded-md bg-[var(--blt-primary)] flex items-center justify-center text-white font-extrabold text-sm">B</div>
+        <div>
+          <span class="text-sm font-semibold tracking-tight text-[var(--blt-text)]">BLT HackerHouse</span>
+          <p class="text-[10px] font-mono text-[var(--blt-text-subtle)] tracking-wider">COMMAND CENTER</p>
+        </div>
+      </a>
+    </div>
+    <div class="h-px bg-[var(--blt-border)] mx-4 mb-3"></div>
+    <nav class="flex-1 px-3 space-y-0.5" aria-label="Pages">
+      <a class="sidebar-link" href="hackerhouse_state.html">
+        <span class="material-symbols-outlined nav-icon text-lg">home</span>
+        HackerHouse
+      </a>
+      <a class="sidebar-link active" aria-current="page" href="#">
+        <span class="material-symbols-outlined nav-icon text-lg" style="font-variation-settings:'FILL' 1">rss_feed</span>
+        Activity Feed
+      </a>
+      <a class="sidebar-link" href="leaderboard.html">
+        <span class="material-symbols-outlined nav-icon text-lg">leaderboard</span>
+        Leaderboard
+      </a>
+      <a class="sidebar-link" href="status_health.html">
+        <span class="material-symbols-outlined nav-icon text-lg">sensors</span>
+        Status
+      </a>
+    </nav>
+    <div class="px-3 pt-3">
+      <button class="hh-theme-toggle w-full" type="button" data-theme-toggle>
+        <span class="material-symbols-outlined text-sm theme-icon-light">dark_mode</span>
+        <span class="material-symbols-outlined text-sm theme-icon-dark" style="display:none">light_mode</span>
+        <span class="text-xs font-semibold" data-theme-label>Dark</span>
+      </button>
+    </div>
+    <div class="mt-3 mb-4 px-3 pt-3 border-t border-[var(--blt-border)]">
+      <button class="blt-button-primary w-full text-xs" onclick="alert('Node connection coming soon')">
+        <span class="material-symbols-outlined text-sm">wifi_tethering</span>
+        Connect Node
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="blt-page-main px-4 py-6 sm:px-6 lg:px-8 min-h-screen">
+
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[var(--blt-text)]">Activity Feed</h1>
+        <p class="text-sm text-[var(--blt-text-muted)] mt-1">Real-time chronological events across all nodes.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="blt-status-badge blt-status-success text-[10px]">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" style="animation:hh-pulse-dot 1.5s ease-in-out infinite"></span>
+          SYSTEM ONLINE
+        </span>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="blt-card p-4 mb-8 flex flex-col xl:flex-row gap-4 items-center justify-between">
+      <!-- Search -->
+      <div class="relative w-full xl:w-80">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--blt-text-subtle)]">search</span>
+        <input class="w-full bg-[var(--blt-surface-muted)] border border-[var(--blt-border-strong)] rounded-lg pl-10 pr-4 py-2.5 text-sm font-mono text-[var(--blt-text)] placeholder-[var(--blt-text-subtle)] focus:outline-none focus:border-[var(--blt-primary)] focus:ring-1 focus:ring-[var(--blt-primary)] transition-colors" placeholder="Search events, commits, users..." type="text">
+      </div>
+      <div class="flex items-center gap-3 w-full xl:w-auto">
+        <!-- Source Chips -->
+        <div class="flex items-center gap-2">
+          <span class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider">Source:</span>
+          <button class="source-chip-gitlab px-3 py-1 rounded-full font-mono text-[11px] font-semibold flex items-center gap-1 transition-colors">
+            <span class="material-symbols-outlined text-sm">integration_instructions</span>
+            GitLab
+          </button>
+          <button class="source-chip-blt px-3 py-1 rounded-full font-mono text-[11px] font-semibold flex items-center gap-1 transition-colors">
+            <span class="material-symbols-outlined text-sm">terminal</span>
+            BLT
+          </button>
+        </div>
+        <div class="w-px h-5 bg-[var(--blt-border)] hidden sm:block"></div>
+        <!-- Event Type -->
+        <button class="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-[var(--blt-border)] bg-[var(--blt-surface-muted)] hover:bg-[var(--blt-surface-raised)] transition-colors text-sm text-[var(--blt-text-muted)] font-medium">
+          <span class="material-symbols-outlined text-sm">filter_list</span>
+          All Events
+          <span class="material-symbols-outlined text-sm text-[var(--blt-text-subtle)]">expand_more</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Event List (populated by JS) -->
+    <div id="activity-list" class="space-y-3 mb-8">
+      <div class="flex items-center justify-center py-16 text-sm text-[var(--blt-text-subtle)]">Loading activity…</div>
+    </div>
+
+    <!-- Skeleton Loading (shown during fetch) -->
+    <div id="activity-skeleton" class="space-y-3 mb-8 hidden">
+      <div class="hh-event-card flex opacity-60">
+        <div class="w-1 shrink-0" style="background:var(--blt-border)"></div>
+        <div class="p-5 flex gap-4 w-full items-start">
+          <div class="w-10 h-10 rounded-full hh-skeleton shrink-0"></div>
+          <div class="flex-1 space-y-2">
+            <div class="flex justify-between"><div class="w-32 h-4 rounded hh-skeleton"></div><div class="w-20 h-3 rounded hh-skeleton"></div></div>
+            <div class="w-3/4 h-5 rounded hh-skeleton"></div>
+            <div class="w-full h-3 rounded hh-skeleton"></div>
+          </div>
+        </div>
+      </div>
+      <div class="hh-event-card flex opacity-40">
+        <div class="w-1 shrink-0" style="background:var(--blt-border)"></div>
+        <div class="p-5 flex gap-4 w-full items-start">
+          <div class="w-10 h-10 rounded-full hh-skeleton shrink-0"></div>
+          <div class="flex-1 space-y-2">
+            <div class="flex justify-between"><div class="w-28 h-4 rounded hh-skeleton"></div><div class="w-16 h-3 rounded hh-skeleton"></div></div>
+            <div class="w-2/3 h-5 rounded hh-skeleton"></div>
+            <div class="w-full h-3 rounded hh-skeleton"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="activity-pagination" class="flex items-center justify-between border-t border-[var(--blt-border)] pt-6 pb-12 hidden">
+      <button id="btn-prev" class="blt-button-secondary text-xs" disabled>
+        <span class="material-symbols-outlined text-sm">arrow_back</span>
+        Prev
+      </button>
+      <div class="font-mono text-xs text-[var(--blt-text-subtle)] bg-[var(--blt-surface-muted)] px-3 py-1.5 rounded-md border border-[var(--blt-border)]">
+        Page <span id="page-num" class="font-bold text-[var(--blt-text)]">1</span> of <span id="page-total">1</span>
+      </div>
+      <button id="btn-next" class="blt-button-secondary text-xs">
+        Next
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </button>
+    </div>
+
+  </main>
+</div>
+
+<script>
+(function() {
+  var currentPage = 1;
+  var totalPages = 1;
+
+  var EVENT_ICONS = {
+    push: 'publish',
+    issue_opened: 'bug_report',
+    issue_closed: 'check_circle',
+    mr_opened: 'merge',
+    mr_merged: 'merge_type',
+    mr_closed: 'cancel',
+    pipeline_succeeded: 'check_circle',
+    pipeline_failed: 'error',
+    note_added: 'chat',
+    review_requested: 'rate_review',
+    bug_submitted: 'pest_control',
+    bug_verified: 'verified',
+    hunt_started: 'swords',
+    hunt_ended: 'military_tech',
+    bug_bounty_submitted: 'rewarded_ads',
+  };
+
+  function timeAgo(iso) {
+    var diff = Date.now() - new Date(iso).getTime();
+    var sec = Math.floor(diff / 1000);
+    if (sec < 60) return 'just now';
+    var min = Math.floor(sec / 60);
+    if (min < 60) return min + 'm ago';
+    var hr = Math.floor(min / 60);
+    if (hr < 24) return hr + 'h ago';
+    var d = Math.floor(hr / 24);
+    return d + 'd ago';
+  }
+
+  function sourceColor(source) {
+    return source === 'gitlab' ? '#fc6d26' : 'var(--blt-primary)';
+  }
+
+  function renderCard(ev) {
+    var color = sourceColor(ev.source);
+    var icon = EVENT_ICONS[ev.event_type] || 'circle';
+    var typeLabel = (ev.event_type || 'unknown').replace(/_/g, ' ');
+    var title = ev.metadata && ev.metadata.title ? ev.metadata.title : (ev.event_type || 'Event').replace(/_/g, ' ');
+
+    var avatarHtml = '';
+    if (ev.avatar_url) {
+      avatarHtml = '<span class="material-symbols-outlined text-lg hh-feed-avatar-icon" style="color:' + color + '">&nbsp;</span>' +
+        '<img src="' + ev.avatar_url + '" class="hh-avatar-img-feed" alt="' + ev.actor_name + '" data-icon="' + icon + '" loading="lazy">';
+    } else {
+      avatarHtml = '<span class="material-symbols-outlined text-lg" style="color:' + color + '">' + icon + '</span>';
+    }
+
+    var repoHtml = ev.repository
+      ? '<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">folder_open</span>' + ev.repository + '</span>'
+      : '';
+
+    var metadataHtml = '';
+    if (ev.metadata) {
+      if (ev.metadata.commit_sha) {
+        metadataHtml += '<div class="flex items-center gap-2 text-[var(--blt-text-muted)]"><span class="text-emerald-500">' + ev.metadata.commit_sha.substring(0,7) + '</span><span>' + (ev.metadata.commit_title || '') + '</span></div>';
+      }
+      if (ev.metadata.mr_iid) {
+        metadataHtml += '<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">commit</span>!' + ev.metadata.mr_iid + '</span>';
+      }
+    }
+
+    return '<div class="hh-event-card flex">' +
+      '<div class="hh-event-source-bar" style="background:' + color + '"></div>' +
+      '<div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 w-full items-start">' +
+        '<div class="relative shrink-0 mt-0.5">' +
+          '<div class="w-10 h-10 rounded-full border-2 overflow-hidden bg-[var(--blt-surface-muted)] flex items-center justify-center" style="border-color:' + color + '">' +
+            avatarHtml +
+          '</div>' +
+          '<div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--blt-surface)] border-2 border-[var(--blt-surface)] flex items-center justify-center">' +
+            '<span class="material-symbols-outlined text-xs" style="color:' + color + '">' + icon + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="flex-1 min-w-0">' +
+          '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">' +
+            '<div class="flex items-center gap-2 flex-wrap">' +
+              '<span class="font-bold text-sm text-[var(--blt-text)]">' + ev.actor_name + '</span>' +
+              '<span class="blt-badge text-[10px]">' + typeLabel + '</span>' +
+            '</div>' +
+            '<span class="font-mono text-[11px] text-[var(--blt-text-subtle)] shrink-0 flex items-center gap-1">' +
+              '<span class="material-symbols-outlined text-xs">schedule</span>' + timeAgo(ev.timestamp) +
+            '</span>' +
+          '</div>' +
+          '<h3 class="font-bold text-base text-[var(--blt-text)] mb-1 truncate">' + title + '</h3>' +
+          (repoHtml || metadataHtml ? '<div class="flex items-center gap-3 text-[11px] font-mono text-[var(--blt-text-subtle)] mt-1">' + repoHtml + metadataHtml + '</div>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function fetchActivity(page) {
+    var list = document.getElementById('activity-list');
+    var skel = document.getElementById('activity-skeleton');
+    var pag = document.getElementById('activity-pagination');
+    if (!list) return;
+
+    list.classList.add('hidden');
+    if (skel) skel.classList.remove('hidden');
+    if (pag) pag.classList.add('hidden');
+
+    fetch('/activity?page=' + page + '&per_page=20')
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        if (skel) skel.classList.add('hidden');
+        list.classList.remove('hidden');
+
+        var data = resp.data || [];
+        if (data.length === 0) {
+          list.innerHTML = '<div class="flex items-center justify-center py-16 text-sm text-[var(--blt-text-subtle)]">No activity yet. Events will appear here as they arrive.</div>';
+          return;
+        }
+        list.innerHTML = data.map(renderCard).join('');
+
+        if (resp.pagination) {
+          currentPage = resp.pagination.page;
+          totalPages = resp.pagination.total_pages || 1;
+          document.getElementById('page-num').textContent = currentPage;
+          document.getElementById('page-total').textContent = totalPages;
+          document.getElementById('btn-prev').disabled = currentPage <= 1;
+          document.getElementById('btn-next').disabled = currentPage >= totalPages;
+          if (pag) pag.classList.remove('hidden');
+        }
+      })
+      .catch(function(err) {
+        if (skel) skel.classList.add('hidden');
+        list.classList.remove('hidden');
+        list.innerHTML = '<div class="flex items-center justify-center py-16 text-sm text-[var(--blt-text-subtle)]">Failed to load activity. Is the backend running?</div>';
+        console.error('Activity fetch failed', err);
+      });
+  }
+
+  function setupPagination() {
+    document.getElementById('btn-prev').addEventListener('click', function() {
+      if (currentPage > 1) fetchActivity(currentPage - 1);
+    });
+    document.getElementById('btn-next').addEventListener('click', function() {
+      if (currentPage < totalPages) fetchActivity(currentPage + 1);
+    });
+  }
+
+  // Click-to-fly-up animation
+  function triggerFlyup(x, y, amount) {
+    var el = document.createElement('div');
+    el.className = 'hh-score-float';
+    el.style.color = 'var(--blt-primary)';
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.position = 'fixed';
+    el.textContent = '+' + amount + ' pts';
+    document.body.appendChild(el);
+    setTimeout(function() { el.remove(); }, 800);
+  }
+
+  document.addEventListener('click', function(e) {
+    var card = e.target.closest('.hh-event-card');
+    if (card) triggerFlyup(e.clientX, e.clientY - 20, Math.floor(Math.random() * 15) + 5);
+  });
+
+  setupPagination();
+  document.addEventListener('DOMContentLoaded', function() { fetchActivity(1); });
+
+  // Fallback for broken avatar images
+  document.addEventListener('error', function(e) {
+    var img = e.target;
+    if (img && img.tagName === 'IMG' && img.classList.contains('hh-avatar-img-feed')) {
+      img.style.display = 'none';
+      var iconEl = img.parentElement.querySelector('.hh-feed-avatar-icon');
+      if (iconEl && img.dataset.icon) {
+        iconEl.textContent = img.dataset.icon;
+      }
+    }
+  }, true);
+})();
+</script>
+</body>
+</html>

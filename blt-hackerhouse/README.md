@@ -1,93 +1,228 @@
 # BLT-Hackerhouse
 
+Real-time contributor visualization platform for OWASP BLT.
 
+HackerHouse is a realtime operational dashboard that ingests events from **GitLab** and **BLT**, normalizes them into a unified internal model, resolves contributor identity across platforms, and broadcasts live contributor movement to connected clients. A maintainer can understand the current ecosystem state within seconds of opening the dashboard.
 
-## Getting started
+---
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Architecture Summary
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/owasp-blt/blt-hackerhouse.git
-git branch -M main
-git push -uf origin main
+GitLab Webhooks (push) ──┐
+                          ├──► Ingestion ──► Normalization ──► Identity Resolution
+BLT API (poll) ──────────┘                                         │
+                                                                   ▼
+Frontend ◄── WebSocket Broadcast ◄── State Reducer ◄──────────────┘
+   ▲              ▲
+   │              │
+   └── REST API ──┘  (activity feed, leaderboard, status, health)
 ```
 
-## Integrate with your tools
+**Platforms**: GitLab (primary SCM), BLT API (bug bounty + hunts)  
+**Database**: SQLite (single file, zero-config)  
+**Real-time**: WebSocket push + HTTP polling fallback  
+**Identity**: 4-stage resolution pipeline (exact → Levenshtein → Jaccard → unlinked)
 
-* [Set up project integrations](https://gitlab.com/owasp-blt/blt-hackerhouse/-/settings/integrations)
+---
 
-## Collaborate with your team
+## Current MVP Scope
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+| Included | Excluded |
+|----------|----------|
+| GitLab webhook ingestion (`X-Gitlab-Token` verification) | GitHub (platform migrated) |
+| BLT REST polling adapter (60s interval, `/bugs` + `/hunts`) | Slack (deferred — unvalidated) |
+| Event deduplication (idempotency keys) | Mentorship tracking (out of scope) |
+| Unified Event schema (Pydantic) | Frontend rendering (provided separately) |
+| GitLab + BLT event normalizers | Authentication / access control |
+| 4-stage identity resolution (GitLab ↔ BLT) | Historical replay |
+| Room routing (3 floors, 15 rooms, no mentorship rooms) | Discord, Jira, other integrations |
+| Avatar state persistence + WebSocket broadcast | Contributor badges / gamification |
+| Snapshot on connect + reconnect recovery | Docker Compose (post-MVP) |
+| Activity feed API (paginated) | CI/CD (post-MVP) |
+| Leaderboard computation + API | Unit/integration/load tests (post-MVP) |
+| Maintainer visibility API (status + health) | |
+| Exponential backoff retry + dead letter handling | |
+| Gap detection via GitLab Events API | |
+| Health endpoints + structured logging | |
 
-## Test and Deploy
+**20 backend features**. Full specification: [`docs/MVP_V1_SPEC.md`](docs/MVP_V1_SPEC.md)  
+**Deferred items**: [`docs/POST_MVP_BACKLOG.md`](docs/POST_MVP_BACKLOG.md)
 
-Use the built-in continuous integration in GitLab.
+---
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+## Repository Structure
 
-***
+```
+blt-hackerhouse/
+├── backend/
+│   ├── pyproject.toml
+│   ├── .env.example
+│   ├── migrations/           # Sequential SQLite DDL
+│   ├── scripts/              # Dev tooling (migrate, seed, run_dev)
+│   ├── src/
+│   │   ├── main.py           # FastAPI app factory + lifespan
+│   │   ├── config.py         # pydantic-settings env loader
+│   │   ├── models/           # Pure Pydantic schemas
+│   │   ├── core/             # Shared utilities (retry, logging, dedup, security)
+│   │   ├── storage/          # aiosqlite queries + migration runner
+│   │   ├── ingestion/        # GitLab webhook, BLT poller, gap detector, queue
+│   │   ├── normalization/    # GitLab + BLT event adapters
+│   │   ├── identity/         # 4-stage resolution pipeline (rapidfuzz)
+│   │   ├── state/            # Room map, reducer, pipeline runner
+│   │   ├── broadcast/        # WebSocket hub, message builders, leaderboard
+│   │   └── api/              # FastAPI routes + WebSocket endpoint
+│   └── tests/
+│       ├── fixtures/         # Real GitLab + BLT payloads
+│       ├── unit/             # Mirrors src/ tree
+│       └── integration/      # Cross-package flows
+├── frontend/                 # (TBD — provided separately)
+├── docs/                     # Specifications + planning artifacts
+└── README.md
+```
 
-# Editing this README
+**Package dependency direction**: `api → state → {broadcast, identity, normalization, ingestion} → storage → core → models → config`  
+Full design: [`docs/REPOSITORY_STRUCTURE.md`](docs/REPOSITORY_STRUCTURE.md)
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+---
 
-## Suggestions for a good README
+## Database
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+SQLite with 6 tables:
 
-## Name
-Choose a self-explaining name for your project.
+| Table | Purpose | Rows (expected) |
+|-------|---------|----------------|
+| `contributors` | Unified identities | 50–200 |
+| `identity_mappings` | Platform → contributor links | 100–400 |
+| `events` | Normalized event log | 500–3,000 |
+| `avatar_state` | Current room position | 50–200 |
+| `poll_cursors` | Polling cursor state | 2–10 |
+| `dead_letter_queue` | Failed events (capped 500) | 0–500 |
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Full schema: [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md)
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+---
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## Development Setup
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+### Prerequisites
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+- Python 3.12+
+- Git
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Quick Start
+
+```bash
+cd backend
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Linux/macOS
+# .venv\Scripts\activate   # Windows
+
+# Install runtime + dev dependencies
+pip install -e ".[dev]"
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your GitLab webhook secret, BLT API key, etc.
+
+# Run unit tests
+pytest tests/unit/ -v
+```
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GITLAB_WEBHOOK_SECRET` | Yes | Secret token for GitLab webhook verification |
+| `GITLAB_API_TOKEN` | For gap detection | GitLab personal access token with `read_api` scope |
+| `BLT_API_BASE_URL` | Yes | BLT-API base URL (e.g. `https://api.owaspblt.org`) |
+| `BLT_API_KEY` | Yes | API key for `X-BLT-API-Key` header |
+| `DATABASE_PATH` | No (default: `./blt_hackerhouse.db`) | SQLite database file path |
+| `POLL_INTERVAL_SECONDS` | No (default: `60`) | BLT polling interval |
+| `LOG_LEVEL` | No (default: `INFO`) | Python logging level |
+
+### Running Tests
+
+```bash
+# Unit tests
+pytest tests/unit/ -v
+
+# Integration tests
+pytest tests/integration/ -v
+
+# With coverage
+pytest --cov=src --cov-report=term-missing
+```
+
+---
+
+## API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/webhook/gitlab` | GitLab webhook receiver (token-verified) |
+| `GET` | `/activity` | Paginated event feed (`?page=1&per_page=50`) |
+| `GET` | `/leaderboard` | Paginated contributor scores (`?page=1&per_page=20`) |
+| `GET` | `/status` | Room occupancy + identity stats + pipeline health |
+| `GET` | `/health` | Per-component health check |
+| `GET` | `/state` | HTTP polling fallback snapshot |
+| `WS` | `/ws` | WebSocket endpoint (snapshot + live updates) |
+
+WebSocket message types: `snapshot`, `avatar_move`, `identity_flag`, `leaderboard_update`.
+
+---
 
 ## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+### MVP (Current)
+- [x] Architecture design + data model
+- [x] Models + config layer
+- [ ] Core utilities (logging, dedup, retry, security)
+- [ ] Storage layer (SQLite schema + query functions)
+- [ ] GitLab webhook ingestion
+- [ ] BLT polling adapter
+- [ ] Event normalizers (GitLab + BLT)
+- [ ] Identity resolution pipeline
+- [ ] Room routing + state reducer
+- [ ] WebSocket broadcast hub
+- [ ] REST API endpoints
+- [ ] Health + logging + dead letter handling
+- [ ] Gap detection + retry
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+### Post-MVP
+- [ ] Unit + integration + load tests
+- [ ] Docker Compose deployment
+- [ ] Contributor documentation
+- [ ] Frontend integration (when provided)
+- [ ] Slack integration (if requirements validated)
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Full backlog: [`docs/POST_MVP_BACKLOG.md`](docs/POST_MVP_BACKLOG.md)
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+---
+
+## Documentation Index
+
+| Document | Purpose |
+|----------|---------|
+| [`MVP_V1_SPEC.md`](docs/MVP_V1_SPEC.md) | Implementation specification — all 20 features with contracts |
+| [`REPOSITORY_STRUCTURE.md`](docs/REPOSITORY_STRUCTURE.md) | Package design, module responsibilities, dependency rules |
+| [`DATA_MODEL.md`](docs/DATA_MODEL.md) | Complete database schema with column-level design |
+| [`POST_MVP_BACKLOG.md`](docs/POST_MVP_BACKLOG.md) | All deferred/removed items |
+| [`ARCHITECTURE_REVIEW.md`](docs/ARCHITECTURE_REVIEW.md) | Pre-implementation review findings |
+| [`docs/archive/`](docs/archive/) | Historical planning artifacts (original proposal extractions) |
+
+---
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+To be determined.
+
+---
+
+## Acknowledgments
+
+Built as part of Google Summer of Code 2026 for OWASP BLT.  
+Lead Mentor: Donnie Brown.  
+Applicant: Rudra Pratap Singh.

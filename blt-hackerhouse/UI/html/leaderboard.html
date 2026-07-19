@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>Leaderboard · BLT HackerHouse</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,200&display=swap" rel="stylesheet">
+<script src="assets/js/theme.js"></script>
+<link rel="stylesheet" href="assets/css/blt-design.css">
+<link rel="stylesheet" href="assets/css/hackerhouse.css">
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      },
+    },
+  },
+};
+</script>
+<style>
+.sidebar-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 160ms ease;
+  color: var(--blt-text-muted);
+}
+.sidebar-link:hover { background: var(--blt-surface-muted); color: var(--blt-text); }
+.sidebar-link[aria-current="page"],
+.sidebar-link.active {
+  background: var(--blt-primary-soft) !important;
+  color: var(--blt-primary) !important;
+  font-weight: 600;
+}
+.sidebar-link[aria-current="page"]::before,
+.sidebar-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 55%;
+  background: var(--blt-primary);
+  border-radius: 0 2px 2px 0;
+}
+.sidebar-link[aria-current="page"] .nav-icon,
+.sidebar-link.active .nav-icon { color: var(--blt-primary) !important; }
+
+/* Rank gradient rows */
+.rank-1 { background: linear-gradient(135deg, rgba(255,215,0,0.08) 0%, transparent 100%); border-left: 3px solid #FFD700; }
+.rank-2 { background: linear-gradient(135deg, rgba(192,192,192,0.08) 0%, transparent 100%); border-left: 3px solid #C0C0C0; }
+.rank-3 { background: linear-gradient(135deg, rgba(205,127,50,0.08) 0%, transparent 100%); border-left: 3px solid #CD7F32; }
+
+/* Period tabs */
+.period-tab {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: "JetBrains Mono", monospace;
+  transition: all 160ms ease;
+  color: var(--blt-text-muted);
+}
+.period-tab:hover { color: var(--blt-text); }
+.period-tab.active {
+  background: var(--blt-primary-soft);
+  color: var(--blt-primary);
+}
+</style>
+</head>
+<body class="min-h-screen font-sans antialiased bg-[var(--blt-background)] text-[var(--blt-text)]">
+
+<div class="lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)] min-h-screen">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="hidden lg:flex lg:flex-col lg:h-screen lg:sticky lg:top-0 bg-[var(--blt-surface)] border-r border-[var(--blt-border)] overflow-y-auto" aria-label="Main navigation">
+    <div class="flex items-center justify-between px-4 pt-5 pb-4">
+      <a class="flex items-center gap-2.5" href="#">
+        <div class="w-8 h-8 rounded-md bg-[var(--blt-primary)] flex items-center justify-center text-white font-extrabold text-sm">B</div>
+        <div>
+          <span class="text-sm font-semibold tracking-tight text-[var(--blt-text)]">BLT HackerHouse</span>
+          <p class="text-[10px] font-mono text-[var(--blt-text-subtle)] tracking-wider">COMMAND CENTER</p>
+        </div>
+      </a>
+    </div>
+    <div class="h-px bg-[var(--blt-border)] mx-4 mb-3"></div>
+    <nav class="flex-1 px-3 space-y-0.5" aria-label="Pages">
+      <a class="sidebar-link" href="hackerhouse_state.html">
+        <span class="material-symbols-outlined nav-icon text-lg">home</span>
+        HackerHouse
+      </a>
+      <a class="sidebar-link" href="activity_feed.html">
+        <span class="material-symbols-outlined nav-icon text-lg">rss_feed</span>
+        Activity Feed
+      </a>
+      <a class="sidebar-link active" aria-current="page" href="#">
+        <span class="material-symbols-outlined nav-icon text-lg" style="font-variation-settings:'FILL' 1">leaderboard</span>
+        Leaderboard
+      </a>
+      <a class="sidebar-link" href="status_health.html">
+        <span class="material-symbols-outlined nav-icon text-lg">sensors</span>
+        Status
+      </a>
+    </nav>
+    <div class="px-3 pt-3">
+      <button class="hh-theme-toggle w-full" type="button" data-theme-toggle>
+        <span class="material-symbols-outlined text-sm theme-icon-light">dark_mode</span>
+        <span class="material-symbols-outlined text-sm theme-icon-dark" style="display:none">light_mode</span>
+        <span class="text-xs font-semibold" data-theme-label>Dark</span>
+      </button>
+    </div>
+    <div class="mt-3 mb-4 px-3 pt-3 border-t border-[var(--blt-border)]">
+      <button class="blt-button-primary w-full text-xs" onclick="alert('Node connection coming soon')">
+        <span class="material-symbols-outlined text-sm">wifi_tethering</span>
+        Connect Node
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="blt-page-main px-4 py-6 sm:px-6 lg:px-8 min-h-screen">
+
+    <!-- Header -->
+    <section class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
+      <div>
+        <div class="flex items-center gap-3 mb-1">
+          <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[var(--blt-text)]">Leaderboard</h1>
+          <span class="blt-badge text-[10px] flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-[var(--blt-primary)]" style="animation:hh-pulse-dot 1.5s ease-in-out infinite"></span>
+            Updated live
+          </span>
+        </div>
+        <p class="text-sm text-[var(--blt-text-muted)]">Real-time contribution metrics across all active nodes.</p>
+      </div>
+      <div class="flex items-center gap-1 bg-[var(--blt-surface-muted)] rounded-lg p-0.5 border border-[var(--blt-border)]">
+        <button class="period-tab active">All Time</button>
+        <button class="period-tab">30D</button>
+        <button class="period-tab">7D</button>
+      </div>
+    </section>
+
+    <!-- Stats Row -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <!-- Stat 1 -->
+      <div class="hh-stat-card">
+        <div class="hh-stat-card-glow" style="background:var(--blt-primary);opacity:0.06"></div>
+        <div class="flex justify-between items-start mb-3 relative z-10">
+          <div class="p-2 rounded-lg bg-[var(--blt-surface-muted)] border border-[var(--blt-border)]">
+            <span class="material-symbols-outlined text-base text-[var(--blt-primary)]">group</span>
+          </div>
+          <span class="blt-status-badge blt-status-success text-[10px] flex items-center gap-0.5">
+            <span class="material-symbols-outlined text-[12px]">trending_up</span> 12%
+          </span>
+        </div>
+        <div class="relative z-10">
+          <p class="text-[11px] font-mono text-[var(--blt-text-subtle)] uppercase tracking-wider mb-0.5">Total Contributors</p>
+          <p class="text-2xl font-extrabold text-[var(--blt-text)]" id="total-label">1,432</p>
+        </div>
+      </div>
+
+      <!-- Stat 2 -->
+      <div class="hh-stat-card">
+        <div class="hh-stat-card-glow" style="background:#22c55e;opacity:0.06"></div>
+        <div class="flex justify-between items-start mb-3 relative z-10">
+          <div class="p-2 rounded-lg bg-[var(--blt-surface-muted)] border border-[var(--blt-border)]">
+            <span class="material-symbols-outlined text-base text-emerald-500">link</span>
+          </div>
+          <span class="blt-status-badge blt-status-success text-[10px] flex items-center gap-0.5">
+            <span class="material-symbols-outlined text-[12px]">trending_up</span> 5%
+          </span>
+        </div>
+        <div class="relative z-10">
+          <p class="text-[11px] font-mono text-[var(--blt-text-subtle)] uppercase tracking-wider mb-0.5">Linked Identities</p>
+          <p class="text-2xl font-extrabold text-[var(--blt-text)]">8,901</p>
+        </div>
+      </div>
+
+      <!-- Stat 3 -->
+      <div class="hh-stat-card">
+        <div class="hh-stat-card-glow" style="background:#f59e0b;opacity:0.05"></div>
+        <div class="flex justify-between items-start mb-3 relative z-10">
+          <div class="p-2 rounded-lg bg-[var(--blt-surface-muted)] border border-[var(--blt-border)]">
+            <span class="material-symbols-outlined text-base text-amber-500">military_tech</span>
+          </div>
+          <span class="blt-status-badge blt-status-muted text-[10px]">Stable</span>
+        </div>
+        <div class="relative z-10">
+          <p class="text-[11px] font-mono text-[var(--blt-text-subtle)] uppercase tracking-wider mb-0.5">Total Network Score</p>
+          <p class="text-2xl font-extrabold text-[var(--blt-text)]">2.4M</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Leaderboard Table -->
+    <section class="blt-card overflow-hidden">
+      <!-- Table Header -->
+      <div class="p-4 border-b border-[var(--blt-border)] flex flex-col sm:flex-row justify-between items-center gap-3 bg-[var(--blt-surface-muted)]">
+        <div class="relative w-full sm:w-56">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--blt-text-subtle)]">search</span>
+          <input class="w-full bg-[var(--blt-surface)] border border-[var(--blt-border-strong)] rounded-md pl-9 pr-3 py-2 text-sm font-mono text-[var(--blt-text)] placeholder-[var(--blt-text-subtle)] focus:outline-none focus:border-[var(--blt-primary)] focus:ring-1 focus:ring-[var(--blt-primary)] transition-colors" placeholder="Search contributors..." type="text">
+        </div>
+        <div class="flex gap-2 w-full sm:w-auto">
+          <button class="blt-button-secondary text-xs flex-1 sm:flex-none">
+            <span class="material-symbols-outlined text-sm">filter_list</span>
+            Filter
+          </button>
+          <button class="blt-button-secondary text-xs px-2">
+            <span class="material-symbols-outlined text-sm">more_vert</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- The Table -->
+      <div class="overflow-x-auto">
+        <table class="blt-data-table w-full">
+          <thead>
+            <tr class="font-mono text-[10px] uppercase tracking-wider">
+              <th class="p-3 w-14 text-center">Rank</th>
+              <th class="p-3 text-left">Contributor</th>
+              <th class="p-3 text-right">Score</th>
+              <th class="p-3 text-center hidden md:table-cell">Events</th>
+              <th class="p-3 text-center hidden sm:table-cell">Platforms</th>
+              <th class="p-3 text-center hidden lg:table-cell">Trend (7d)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--blt-border)]/50" id="leaderboard-body">
+            <tr><td colspan="6" class="p-8 text-center text-sm text-[var(--blt-text-subtle)]">Loading leaderboard…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="p-4 border-t border-[var(--blt-border)] flex items-center justify-between bg-[var(--blt-surface-muted)]">
+        <span class="font-mono text-[11px] text-[var(--blt-text-subtle)]">Showing 1-4 of 1,432</span>
+        <div class="flex gap-1">
+          <button class="p-1.5 rounded bg-[var(--blt-surface)] border border-[var(--blt-border)] text-[var(--blt-text-subtle)] hover:text-[var(--blt-text)] disabled:opacity-50">
+            <span class="material-symbols-outlined text-sm">chevron_left</span>
+          </button>
+          <button class="px-3 py-1.5 rounded bg-[var(--blt-primary)] text-white font-mono text-[11px]">1</button>
+          <button class="px-3 py-1.5 rounded bg-[var(--blt-surface)] border border-[var(--blt-border)] text-[var(--blt-text-subtle)] hover:bg-[var(--blt-surface-muted)] font-mono text-[11px]">2</button>
+          <button class="px-3 py-1.5 rounded bg-[var(--blt-surface)] border border-[var(--blt-border)] text-[var(--blt-text-subtle)] hover:bg-[var(--blt-surface-muted)] font-mono text-[11px]">3</button>
+          <span class="px-1 py-1.5 text-[var(--blt-text-subtle)] font-mono text-[11px]">...</span>
+          <button class="p-1.5 rounded bg-[var(--blt-surface)] border border-[var(--blt-border)] text-[var(--blt-text-subtle)] hover:text-[var(--blt-text)]">
+            <span class="material-symbols-outlined text-sm">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+function toggleDetail(detailId) {
+  document.querySelectorAll('.hh-lb-detail').forEach(function(row) {
+    if (row.id !== detailId) {
+      row.classList.remove('expanded');
+    }
+  });
+  var el = document.getElementById(detailId);
+  if (el) {
+    el.classList.toggle('expanded');
+  }
+}
+
+// ── Live leaderboard fetch ──
+(function() {
+  var medals = ['#FFD700', '#C0C0C0', '#CD7F32'];
+  var rankClasses = ['rank-1', 'rank-2', 'rank-3'];
+
+  function renderRow(entry) {
+    var rank = entry.rank;
+    var medal = rank <= 3 ? medals[rank - 1] : null;
+    var rankClass = rank <= 3 ? rankClasses[rank - 1] : '';
+    var borderColor = medal || 'var(--blt-border)';
+    var rankDisplay = medal
+      ? '<span class="font-mono font-bold text-sm" style="color:' + medal + '">#' + rank + '</span>'
+      : '<span class="font-mono text-sm text-[var(--blt-text-subtle)]">' + rank + '</span>';
+    var avatarSrc = entry.avatar_url || '';
+    var avatarHtml = avatarSrc
+      ? '<img src="' + avatarSrc + '" class="w-full h-full object-cover" alt="' + entry.display_name + '" onerror="this.style.display=\\'none\\'">'
+      : '<span class="material-symbols-outlined text-xs text-[var(--blt-text-subtle)]">person</span>';
+    var medalBadge = rank === 1
+      ? '<div class="absolute -bottom-1 -right-1 w-4 h-4 bg-[#FFD700] rounded-full flex items-center justify-center border-2 border-[var(--blt-surface)]"><span class="material-symbols-outlined text-[8px] text-black" style="font-variation-settings:\'FILL\' 1">star</span></div>'
+      : '';
+
+    return '<tr class="hh-lb-row group ' + rankClass + '">' +
+      '<td class="p-3 text-center">' + rankDisplay + '</td>' +
+      '<td class="p-3">' +
+        '<div class="flex items-center gap-3">' +
+          '<div class="relative">' +
+            '<div class="w-9 h-9 rounded-full overflow-hidden bg-[var(--blt-surface-muted)] border-2 flex items-center justify-center" style="border-color:' + borderColor + '">' +
+              avatarHtml +
+            '</div>' +
+            medalBadge +
+          '</div>' +
+          '<div><div class="font-semibold text-sm text-[var(--blt-text)]">' + entry.display_name + '</div></div>' +
+        '</div>' +
+      '</td>' +
+      '<td class="p-3 text-right"><div class="font-mono font-bold text-base text-[var(--blt-text)]">' + (entry.score || 0).toLocaleString() + '</div></td>' +
+      '<td class="p-3 text-center hidden md:table-cell font-mono text-sm text-[var(--blt-text-muted)]">—</td>' +
+      '<td class="p-3 text-center hidden sm:table-cell text-[var(--blt-text-subtle)]">—</td>' +
+      '<td class="p-3 text-center hidden lg:table-cell text-[var(--blt-text-subtle)]">—</td>' +
+    '</tr>';
+  }
+
+  function renderTable(entries) {
+    var tbody = document.getElementById('leaderboard-body');
+    if (!tbody) return;
+    if (entries.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-sm text-[var(--blt-text-subtle)]">No contributors yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = entries.map(renderRow).join('');
+    document.getElementById('total-label').textContent = entries.length.toLocaleString() + ' contributors';
+  }
+
+  function fetchLeaderboard() {
+    fetch('/leaderboard?page=1&per_page=50')
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        renderTable(resp.data || []);
+      })
+      .catch(function(err) {
+        console.error('Leaderboard fetch failed', err);
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', fetchLeaderboard);
+})();
+</script>
+</body>
+</html>

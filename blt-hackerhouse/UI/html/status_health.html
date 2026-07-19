@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>Status · BLT HackerHouse</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,200&display=swap" rel="stylesheet">
+<script src="assets/js/theme.js"></script>
+<link rel="stylesheet" href="assets/css/blt-design.css">
+<link rel="stylesheet" href="assets/css/hackerhouse.css">
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      },
+    },
+  },
+};
+</script>
+<style>
+.sidebar-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 160ms ease;
+  color: var(--blt-text-muted);
+}
+.sidebar-link:hover { background: var(--blt-surface-muted); color: var(--blt-text); }
+.sidebar-link[aria-current="page"],
+.sidebar-link.active {
+  background: var(--blt-primary-soft) !important;
+  color: var(--blt-primary) !important;
+  font-weight: 600;
+}
+.sidebar-link[aria-current="page"]::before,
+.sidebar-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 55%;
+  background: var(--blt-primary);
+  border-radius: 0 2px 2px 0;
+}
+.sidebar-link[aria-current="page"] .nav-icon,
+.sidebar-link.active .nav-icon { color: var(--blt-primary) !important; }
+
+/* Donut chart */
+.donut-chart {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.donut-chart-inner {
+  position: absolute;
+  inset: 8px;
+  background: var(--blt-surface);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Health bar */
+.health-bar-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--blt-surface-muted);
+  overflow: hidden;
+}
+.health-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 800ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+</style>
+</head>
+<body class="min-h-screen font-sans antialiased bg-[var(--blt-background)] text-[var(--blt-text)]">
+
+<div class="lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)] min-h-screen">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="hidden lg:flex lg:flex-col lg:h-screen lg:sticky lg:top-0 bg-[var(--blt-surface)] border-r border-[var(--blt-border)] overflow-y-auto" aria-label="Main navigation">
+    <div class="flex items-center justify-between px-4 pt-5 pb-4">
+      <a class="flex items-center gap-2.5" href="#">
+        <div class="w-8 h-8 rounded-md bg-[var(--blt-primary)] flex items-center justify-center text-white font-extrabold text-sm">B</div>
+        <div>
+          <span class="text-sm font-semibold tracking-tight text-[var(--blt-text)]">BLT HackerHouse</span>
+          <p class="text-[10px] font-mono text-[var(--blt-text-subtle)] tracking-wider">COMMAND CENTER</p>
+        </div>
+      </a>
+    </div>
+    <div class="h-px bg-[var(--blt-border)] mx-4 mb-3"></div>
+    <nav class="flex-1 px-3 space-y-0.5" aria-label="Pages">
+      <a class="sidebar-link" href="hackerhouse_state.html">
+        <span class="material-symbols-outlined nav-icon text-lg">home</span>
+        HackerHouse
+      </a>
+      <a class="sidebar-link" href="activity_feed.html">
+        <span class="material-symbols-outlined nav-icon text-lg">rss_feed</span>
+        Activity Feed
+      </a>
+      <a class="sidebar-link" href="leaderboard.html">
+        <span class="material-symbols-outlined nav-icon text-lg">leaderboard</span>
+        Leaderboard
+      </a>
+      <a class="sidebar-link active" aria-current="page" href="#">
+        <span class="material-symbols-outlined nav-icon text-lg" style="font-variation-settings:'FILL' 1">sensors</span>
+        Status
+      </a>
+    </nav>
+    <div class="px-3 pt-3">
+      <button class="hh-theme-toggle w-full" type="button" data-theme-toggle>
+        <span class="material-symbols-outlined text-sm theme-icon-light">dark_mode</span>
+        <span class="material-symbols-outlined text-sm theme-icon-dark" style="display:none">light_mode</span>
+        <span class="text-xs font-semibold" data-theme-label>Dark</span>
+      </button>
+    </div>
+    <div class="mt-3 mb-4 px-3 pt-3 border-t border-[var(--blt-border)]">
+      <button class="blt-button-primary w-full text-xs" onclick="alert('Node connection coming soon')">
+        <span class="material-symbols-outlined text-sm">wifi_tethering</span>
+        Connect Node
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="blt-page-main px-4 py-6 sm:px-6 lg:px-8 min-h-screen">
+
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[var(--blt-text)]">Ecosystem Status</h1>
+        <p class="text-sm text-[var(--blt-text-muted)] mt-1">Real-time occupancy, pipeline metrics, and system health.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="blt-status-badge blt-status-success text-[10px] flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500" style="box-shadow:0 0 6px rgba(34,197,94,0.5)"></span>
+          <span id="sys-status-label">SYS_ONLINE</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- ═══ System Health Grid ═══ -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-8">
+
+      <!-- ── Left: Room Occupancy ── -->
+      <div class="lg:col-span-7 blt-card p-5">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="font-bold text-base text-[var(--blt-text)]">Room Occupancy</h2>
+          <span class="blt-badge text-[10px]" id="room-count">0 Rooms</span>
+        </div>
+
+        <div id="room-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="col-span-2 flex items-center justify-center py-10 text-sm text-[var(--blt-text-subtle)]">Loading rooms...</div>
+        </div>
+
+        <div class="mt-4 text-center">
+          <button class="blt-button-secondary text-xs">
+            <span class="material-symbols-outlined text-sm">expand_more</span>
+            View All 15 Rooms
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Right: Stats & Health ── -->
+      <div class="lg:col-span-5 flex flex-col gap-5">
+
+        <!-- Identity Linkage -->
+        <div class="blt-card p-5 relative overflow-hidden">
+          <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full blur-3xl" style="background:color-mix(in srgb, var(--blt-primary) 6%, transparent);pointer-events:none"></div>
+          <h2 class="font-bold text-sm text-[var(--blt-text)] mb-5 relative z-10">Identity Linkage</h2>
+          <div class="flex items-center gap-5 relative z-10">
+            <div class="donut-chart" style="background:conic-gradient(#22c55e 85%, var(--blt-surface-muted) 0)">
+              <div class="donut-chart-inner">
+                <span class="font-mono font-bold text-lg text-emerald-500" id="linkage-pct">--</span>
+              </div>
+            </div>
+            <div>
+              <p class="text-xs text-[var(--blt-text-muted)] mb-2">Total Contributors linked to GitLab accounts.</p>
+              <div class="flex gap-4">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                  <span class="text-[11px] text-[var(--blt-text)]" id="linked-count">Linked (--)</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <div class="w-2 h-2 rounded-full bg-[var(--blt-surface-muted)]"></div>
+                  <span class="text-[11px] text-[var(--blt-text-muted)]" id="unlinked-count">Pending (--)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pipeline Velocity -->
+        <div class="blt-card p-5 flex-1">
+          <h2 class="font-bold text-sm text-[var(--blt-text)] mb-4">Pipeline Velocity</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="hh-metric-card">
+              <span class="material-symbols-outlined text-sm text-amber-500 mb-1.5">bolt</span>
+              <div class="font-mono font-bold text-2xl text-[var(--blt-text)]" id="pv-events-min">--</div>
+              <div class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider">Events/Min</div>
+            </div>
+            <div class="hh-metric-card">
+              <span class="material-symbols-outlined text-sm text-emerald-500 mb-1.5">webhook</span>
+              <div class="font-mono font-bold text-2xl text-emerald-500" id="pv-webhooks">--</div>
+              <div class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider">Webhook Succ.</div>
+            </div>
+            <div class="hh-metric-card">
+              <span class="material-symbols-outlined text-sm text-sky-500 mb-1.5">sync</span>
+              <div class="font-mono font-bold text-2xl text-[var(--blt-text)]" id="pv-latency">--</div>
+              <div class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider">Avg Poll Latency</div>
+            </div>
+            <div class="hh-metric-card border border-[var(--blt-primary)]/30 relative overflow-hidden" style="background:color-mix(in srgb, var(--blt-primary) 6%, var(--blt-surface-muted))">
+              <div class="absolute inset-0 opacity-[0.04]" style="background:var(--blt-primary);animation:hh-pulse-dot 2s ease-in-out infinite"></div>
+              <span class="material-symbols-outlined text-sm text-[var(--blt-primary)] mb-1.5 relative z-10">warning</span>
+              <div class="font-mono font-bold text-2xl text-[var(--blt-primary)] relative z-10" id="pv-errors">--</div>
+              <div class="font-mono text-[10px] text-[var(--blt-primary)] uppercase tracking-wider relative z-10">Active Errors</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Component Health Monitoring ═══ -->
+    <section class="mb-8">
+      <h2 class="font-bold text-lg text-[var(--blt-text)] mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-lg text-[var(--blt-primary)]">monitor_heart</span>
+        System Health
+      </h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Webhook -->
+        <div class="hh-health-card" id="hc-webhook">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="hh-health-indicator online" data-hc-status="webhook"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">Webhook</span>
+            </div>
+            <span class="blt-status-badge blt-status-success text-[9px]" data-hc-badge="webhook">operational</span>
+          </div>
+          <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
+            <div class="flex justify-between">
+              <span>Last event</span>
+              <span class="text-[var(--blt-text)]" id="hc-webhook-last">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Uptime</span>
+              <span class="text-[var(--blt-text)]" id="uptime-label">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gap Detector -->
+        <div class="hh-health-card">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="hh-health-indicator online" data-hc-status="gitlab_gap_detector"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">Gap Detector</span>
+            </div>
+            <span class="blt-status-badge blt-status-success text-[9px]" data-hc-badge="gitlab_gap_detector">--</span>
+          </div>
+          <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
+            <div class="flex justify-between">
+              <span>Poll interval</span>
+              <span class="text-[var(--blt-text)]" id="hc-gap-interval">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Last poll</span>
+              <span class="text-[var(--blt-text)]" id="hc-gap-last">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Tracked projects</span>
+              <span class="text-[var(--blt-text)]" id="hc-gap-projects">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- WebSocket -->
+        <div class="hh-health-card">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="hh-health-indicator online"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">WebSocket</span>
+            </div>
+            <span class="blt-status-badge blt-status-success text-[9px]">operational</span>
+          </div>
+          <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
+            <div class="flex justify-between">
+              <span>Connections</span>
+              <span class="text-[var(--blt-text)]">12 active</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Msg rate</span>
+              <span class="text-[var(--blt-text)]">8/s</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Last broadcast</span>
+              <span class="text-[var(--blt-text)]">1s ago</span>
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Health</span>
+                <span class="text-emerald-500">Stable</span>
+              </div>
+              <div class="health-bar-track">
+                <div class="health-bar-fill bg-emerald-500" style="width:100%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Database -->
+        <div class="hh-health-card">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="hh-health-indicator online"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">Database</span>
+            </div>
+            <span class="blt-status-badge blt-status-success text-[9px]">operational</span>
+          </div>
+          <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
+            <div class="flex justify-between">
+              <span>Uptime</span>
+              <span class="text-[var(--blt-text)]">100%</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Query latency</span>
+              <span class="text-[var(--blt-text)]">3ms</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Connections</span>
+              <span class="text-[var(--blt-text)]">4/10</span>
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Health</span>
+                <span class="text-emerald-500">Optimal</span>
+              </div>
+              <div class="health-bar-track">
+                <div class="health-bar-fill bg-emerald-500" style="width:100%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Queue -->
+        <div class="hh-health-card">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="hh-health-indicator online"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">Queue</span>
+            </div>
+            <span class="blt-status-badge blt-status-success text-[9px]">operational</span>
+          </div>
+          <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
+            <div class="flex justify-between">
+              <span>Depth</span>
+              <span class="text-[var(--blt-text)]">0 pending</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Throughput</span>
+              <span class="text-[var(--blt-text)]">142/s</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Last processed</span>
+              <span class="text-[var(--blt-text)]">0.5s ago</span>
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Backlog</span>
+                <span class="text-emerald-500">Clear</span>
+              </div>
+              <div class="health-bar-track">
+                <div class="health-bar-fill bg-emerald-500" style="width:2%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Identity Resolver -->
+        <div class="hh-health-card">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="hh-health-indicator online"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">Identity Resolver</span>
+            </div>
+            <span class="blt-status-badge blt-status-success text-[9px]">operational</span>
+          </div>
+          <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
+            <div class="flex justify-between">
+              <span>Resolved</span>
+              <span class="text-[var(--blt-text)]">42 identities</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Confidence</span>
+              <span class="text-[var(--blt-text)]">94% avg</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Pending review</span>
+              <span class="text-amber-500">3 flags</span>
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Match rate</span>
+                <span class="text-emerald-500">85%</span>
+              </div>
+              <div class="health-bar-track">
+                <div class="health-bar-fill bg-emerald-500" style="width:85%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function() {
+  function fmtPct(v) { return Math.round(v * 100) + '%'; }
+
+  function fetchStatus() {
+    fetch('/status')
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        var d = resp.data;
+        if (!d) return;
+
+        // Room occupancy
+        var occ = d.room_occupancy || {};
+        var rooms = Object.keys(occ);
+        document.getElementById('room-count').textContent = rooms.length + ' Rooms';
+        var list = document.getElementById('room-list');
+        if (list) {
+          if (rooms.length === 0) {
+            list.innerHTML = '<div class="col-span-2 flex items-center justify-center py-10 text-sm text-[var(--blt-text-subtle)]">No active rooms</div>';
+          } else {
+            list.innerHTML = rooms.map(function(room) {
+              return '<div class="bg-[var(--blt-surface-muted)] rounded-lg p-3.5 border border-[var(--blt-border)] flex items-center justify-between">' +
+                '<div class="flex items-center gap-3">' +
+                  '<div class="w-9 h-9 rounded-md bg-[var(--blt-surface)] border border-[var(--blt-border)] flex items-center justify-center font-mono text-xs font-bold text-[var(--blt-primary)]">' + room.charAt(0).toUpperCase() + '</div>' +
+                  '<div><div class="font-semibold text-sm text-[var(--blt-text)]">' + room + '</div>' +
+                  '<div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">Occupancy: ' + occ[room] + '</div></div>' +
+                '</div>' +
+              '</div>';
+            }).join('');
+          }
+        }
+
+        // Identity linkage
+        var ident = d.identity_stats || {};
+        var pct = ident.linkage_rate != null ? Math.round(ident.linkage_rate * 100) : 0;
+        document.getElementById('linkage-pct').textContent = pct + '%';
+        document.getElementById('linked-count').textContent = 'Linked (' + (ident.linked_contributors || 0) + ')';
+        document.getElementById('unlinked-count').textContent = 'Pending (' + (ident.unlinked_contributors || 0) + ')';
+        var donut = document.querySelector('.donut-chart');
+        if (donut) donut.style.background = 'conic-gradient(#22c55e ' + pct + '%, var(--blt-surface-muted) 0)';
+
+        // Pipeline velocity
+        var ph = d.pipeline_health || {};
+        document.getElementById('pv-events-min').textContent = ph.events_ingested_last_minute || 0;
+        document.getElementById('pv-webhooks').textContent = (ph.gitlab_webhooks_received || 0) + ' received';
+        document.getElementById('pv-errors').textContent = ph.errors_last_hour || 0;
+        var queueDepth = ph.queue_depth || 0;
+        document.getElementById('pv-latency').textContent = queueDepth ? queueDepth + ' queued' : '0 queued';
+      }).catch(function(err) { console.error('Status fetch failed', err); });
+  }
+
+  function fetchHealth() {
+    fetch('/health')
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        var uptime = resp.uptime_seconds || 0;
+        var hrs = Math.floor(uptime / 3600);
+        var min = Math.floor((uptime % 3600) / 60);
+        document.getElementById('uptime-label').textContent = hrs + 'h ' + min + 'm';
+
+        var comps = resp.components || {};
+        var keys = ['gitlab_webhook', 'gitlab_gap_detector', 'blt_polling', 'database', 'websocket', 'identity_resolver'];
+        keys.forEach(function(key) {
+          var c = comps[key];
+          if (!c) return;
+          var statusEl = document.querySelector('[data-hc-status="' + key + '"]');
+          var badgeEl = document.querySelector('[data-hc-badge="' + key + '"]');
+          if (c.status === 'healthy') {
+            if (statusEl) { statusEl.className = 'hh-health-indicator online'; }
+            if (badgeEl) { badgeEl.className = 'blt-status-badge blt-status-success text-[9px]'; badgeEl.textContent = 'operational'; }
+          } else if (c.status === 'degraded') {
+            if (statusEl) { statusEl.className = 'hh-health-indicator degraded'; }
+            if (badgeEl) { badgeEl.className = 'blt-status-badge blt-status-success text-[9px]'; badgeEl.textContent = 'degraded'; badgeEl.style.background = 'rgba(245,158,11,0.15)'; badgeEl.style.color = '#f59e0b'; }
+          } else {
+            if (statusEl) { statusEl.className = 'hh-health-indicator offline'; }
+            if (badgeEl) { badgeEl.className = 'blt-status-badge blt-status-success text-[9px]'; badgeEl.textContent = c.status; badgeEl.style.background = 'rgba(239,68,68,0.15)'; badgeEl.style.color = '#ef4444'; }
+          }
+        });
+
+        // Webhook specific
+        var wh = comps.gitlab_webhook || {};
+        document.getElementById('hc-webhook-last').textContent = wh.last_event_at ? 'seen' : 'none yet';
+
+        // Gap detector specific
+        var gap = comps.gitlab_gap_detector || {};
+        document.getElementById('hc-gap-last').textContent = gap.last_poll_at ? 'recent' : '--';
+        document.getElementById('hc-gap-interval').textContent = gap.status === 'disabled' ? 'disabled' : 'active';
+        document.getElementById('hc-gap-projects').textContent = gap.tracked_projects || 0;
+
+        // DB
+        var dbComp = comps.database || {};
+        if (dbComp.event_count != null) {
+          document.getElementById('sys-status-label').textContent = 'SYS_ONLINE · ' + dbComp.event_count + ' events';
+        }
+
+        // WS
+        var wsComp = comps.websocket || {};
+        var connCount = wsComp.connected_clients || 0;
+        document.getElementById('sys-status-label').textContent += ' · ' + connCount + ' clients';
+      }).catch(function(err) { console.error('Health fetch failed', err); });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    fetchStatus();
+    fetchHealth();
+    setInterval(fetchStatus, 30000);
+    setInterval(fetchHealth, 30000);
+  });
+})();
+</script>
+</body>
+</html>

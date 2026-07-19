@@ -1,0 +1,31 @@
+{"ts":"2026-06-25T17:17:35.534875+00:00","level":"INFO","logger":"src.main","msg":"static files mounted","path":"C:\\BLT-Workspace\\BLT-Hacker_House\\blt-hackerhouse\\UI\\html"}
+INFO:     Started server process [23264]
+INFO:     Waiting for application startup.
+{"ts":"2026-06-25T17:17:35.535877+00:00","level":"INFO","logger":"src.main","msg":"startup begin"}
+{"ts":"2026-06-25T17:17:35.538751+00:00","level":"INFO","logger":"src.storage.connection","msg":"Database connected at blt_hackerhouse.db"}
+{"ts":"2026-06-25T17:17:35.539725+00:00","level":"INFO","logger":"src.storage.connection","msg":"Migrations complete: 0 new applied"}
+{"ts":"2026-06-25T17:17:35.539795+00:00","level":"INFO","logger":"src.main","msg":"migrations applied","count":0}
+{"ts":"2026-06-25T17:17:35.539881+00:00","level":"INFO","logger":"src.state.pipeline","msg":"pipeline runner started"}
+{"ts":"2026-06-25T17:17:35.539926+00:00","level":"INFO","logger":"src.ingestion.blt_poller","msg":"blt poller started","interval":60}
+{"ts":"2026-06-25T17:17:35.539969+00:00","level":"INFO","logger":"src.ingestion.gap_detector","msg":"gap detector disabled (no token or projects)"}
+{"ts":"2026-06-25T17:17:35.540000+00:00","level":"INFO","logger":"src.main","msg":"startup complete"}
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:54646 - "WebSocket /ws?token=test-secret-123" [accepted]
+{"ts":"2026-06-25T17:17:38.220009+00:00","level":"INFO","logger":"src.broadcast.hub","msg":"ws connect","clients":1}
+INFO:     connection open
+{"ts":"2026-06-25T17:17:38.227224+00:00","level":"INFO","logger":"src.broadcast.hub","msg":"ws disconnect","clients":0}
+INFO:     connection closed
+{"ts":"2026-06-25T17:17:39.754867+00:00","level":"WARNING","logger":"src.core.retry","msg":"retry_async http_error","op":"blt.fetch_hunts","status":500,"attempt":1}
+{"ts":"2026-06-25T17:17:39.755043+00:00","level":"INFO","logger":"src.core.retry","msg":"retry_async sleeping","op":"blt.fetch_hunts","delay_s":1.263,"attempt":1}
+{"ts":"2026-06-25T17:17:42.639869+00:00","level":"WARNING","logger":"src.core.retry","msg":"retry_async http_error","op":"blt.fetch_hunts","status":500,"attempt":2}
+{"ts":"2026-06-25T17:17:42.640229+00:00","level":"INFO","logger":"src.core.retry","msg":"retry_async sleeping","op":"blt.fetch_hunts","delay_s":1.964,"attempt":2}
+{"ts":"2026-06-25T17:17:46.400938+00:00","level":"WARNING","logger":"src.core.retry","msg":"retry_async http_error","op":"blt.fetch_hunts","status":500,"attempt":3}
+{"ts":"2026-06-25T17:17:46.401302+00:00","level":"INFO","logger":"src.core.retry","msg":"retry_async sleeping","op":"blt.fetch_hunts","delay_s":3.551,"attempt":3}
+INFO:     127.0.0.1:62342 - "GET /ui/hackerhouse_state.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62343 - "GET /ui/hackerhouse_state.html HTTP/1.1" 200 OK
+{"ts":"2026-06-25T17:17:51.857325+00:00","level":"WARNING","logger":"src.core.retry","msg":"retry_async http_error","op":"blt.fetch_hunts","status":500,"attempt":4}
+{"ts":"2026-06-25T17:17:51.857497+00:00","level":"INFO","logger":"src.core.retry","msg":"retry_async sleeping","op":"blt.fetch_hunts","delay_s":7.681,"attempt":4}
+{"ts":"2026-06-25T17:18:02.904616+00:00","level":"WARNING","logger":"src.core.retry","msg":"retry_async http_error","op":"blt.fetch_hunts","status":500,"attempt":5}
+{"ts":"2026-06-25T17:18:02.904994+00:00","level":"WARNING","logger":"src.ingestion.blt_poller","msg":"blt fetch_hunts exhausted","error":"blt.fetch_hunts failed after 5 attempts"}
+INFO:     127.0.0.1:60681 - "GET /state HTTP/1.1" 200 OK
