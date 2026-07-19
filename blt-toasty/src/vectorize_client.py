@@ -36,7 +36,7 @@ logger = logging.getLogger("toasty.vectorize_client")
 # ---------------------------------------------------------------------------
 
 DUPLICATE_SCORE_THRESHOLD = 0.80
-MODEL_VERSION = "bge-small-en-v1.5"
+MODEL_VERSION = "all-MiniLM-L6-v2"
 
 
 # ---------------------------------------------------------------------------

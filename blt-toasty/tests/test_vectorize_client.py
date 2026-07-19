@@ -78,7 +78,7 @@ def _make_vectorize_match(event_id, score, repo):
     match = MagicMock()
     match.id = event_id
     match.score = score
-    match.metadata = {"repo": repo, "event_id": event_id, "model_version": "bge-small-en-v1.5"}
+    match.metadata = {"repo": repo, "event_id": event_id, "model_version": "all-MiniLM-L6-v2"}
     return match
 
 
@@ -150,7 +150,7 @@ class TestIndexReport:
         assert len(vec["values"]) == 384
         assert vec["metadata"]["repo"] == "owasp/blt"
         assert vec["metadata"]["event_id"] == "evt-001"
-        assert vec["metadata"]["model_version"] == "bge-small-en-v1.5"
+        assert vec["metadata"]["model_version"] == "all-MiniLM-L6-v2"
         assert "created_at" in vec["metadata"]
 
     @pytest.mark.asyncio

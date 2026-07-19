@@ -1,7 +1,7 @@
 """FastEmbed sidecar service for OWASP BLT-Toasty.
 
 Exposes a minimal REST API to generate 384-dimensional sentence embeddings
-using the ``BAAI/bge-small-en-v1.5`` model via the FastEmbed library.
+using the ``sentence-transformers/all-MiniLM-L6-v2`` model via the FastEmbed library.
 
 This service runs as a standalone container because FastEmbed requires
 NumPy C extensions that are unavailable in the Pyodide runtime used by
@@ -22,7 +22,7 @@ logger = logging.getLogger("fastembed_sidecar")
 # Application & model
 # ---------------------------------------------------------------------------
 
-MODEL_NAME = "BAAI/bge-small-en-v1.5"
+MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 EMBEDDING_DIMENSIONS = 384
 
 app = FastAPI(

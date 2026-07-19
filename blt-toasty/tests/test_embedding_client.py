@@ -56,7 +56,7 @@ def _make_sidecar_fetch_mock(*, embeddings=None, status=200, ok=True):
         async def mock_json():
             return {
                 "embeddings": embeddings,
-                "model": "BAAI/bge-small-en-v1.5",
+                "model": "sentence-transformers/all-MiniLM-L6-v2",
                 "dimensions": EMBEDDING_DIMENSIONS,
             }
 
