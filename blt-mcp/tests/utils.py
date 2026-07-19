@@ -7,6 +7,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 class MCPResponseReader:
     """
     Manages a single background reader thread for a process stdout.
@@ -23,9 +24,7 @@ class MCPResponseReader:
         self._reader_error: Exception | None = None
 
         self._thread = threading.Thread(
-            target=self._read_loop,
-            args=(process.stdout,),
-            daemon=True
+            target=self._read_loop, args=(process.stdout,), daemon=True
         )
         self._thread.start()
 
@@ -63,14 +62,18 @@ class MCPResponseReader:
         try:
             while time.monotonic() < deadline:
                 if self._reader_error is not None:
-                    raise RuntimeError("Stdout reader thread failed") from self._reader_error
+                    raise RuntimeError(
+                        "Stdout reader thread failed"
+                    ) from self._reader_error
                 if (
                     self._process.poll() is not None
                     and self._responses.empty()
                     and not self._thread.is_alive()
                 ):
-                    raise RuntimeError(f"Process exited with code {self._process.returncode}")
-                    
+                    raise RuntimeError(
+                        f"Process exited with code {self._process.returncode}"
+                    )
+
                 remaining = deadline - time.monotonic()
                 try:
                     response = self._responses.get(timeout=max(min(remaining, 0.1), 0))
@@ -99,8 +102,10 @@ class MCPResponseReader:
     def stop(self):
         self._stopped = True
 
+
 # Helper to maintain compatibility with existing tests
 _readers = {}
+
 
 def read_jsonrpc_response(process, expected_id, timeout=35.0):
     if process not in _readers:

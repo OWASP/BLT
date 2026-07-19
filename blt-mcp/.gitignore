@@ -22,9 +22,6 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Wrangler
-.wrangler/
-
 # Virtual Environment
 .venv/
 venv/
@@ -48,7 +45,13 @@ htmlcov/
 # Logs
 *.log
 
-# Rust / Cargo
-/blt-cli/target/
+# VCR Local Sessions (Keep snapshots/ for CI golden tests)
+sessions/
+
+# Snapshot replay artifacts (intermediate files, not golden)
+snapshots/*-replay-*.yaml
+
+# TUI Local State
+blt_session.json
+
 target/
-**/*.rs.bk

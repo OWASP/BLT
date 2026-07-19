@@ -4,20 +4,21 @@ import sys
 import os
 from tests.utils import read_jsonrpc_response
 
+
 def test_resources_list():
     """Test resources/list MCP endpoint."""
     cmd = [sys.executable, "-m", "blt_mcp.server"]
     env = os.environ.copy()
-    
+
     process = subprocess.Popen(
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        env=env
+        env=env,
     )
-    
+
     try:
         # 1. Initialize
         init_request = {
@@ -27,31 +28,31 @@ def test_resources_list():
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"}
-            }
+                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+            },
         }
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
-        read_jsonrpc_response(process, 1) # Wait for init response
-        
+        read_jsonrpc_response(process, 1)  # Wait for init response
+
         # 2. Call resources/list
         list_request = {
             "jsonrpc": "2.0",
             "id": 2,
             "method": "resources/list",
-            "params": {}
+            "params": {},
         }
         process.stdin.write(json.dumps(list_request) + "\n")
         process.stdin.flush()
-        
+
         response = read_jsonrpc_response(process, 2)
         assert "result" in response
         assert "resources" in response["result"]
-        
+
         resources = response["result"]["resources"]
-        # FastMCP might return fixed resources here. 
+        # FastMCP might return fixed resources here.
         # blt://repos and blt://issues are fixed (no params).
-        
+
         resource_uris = [r["uri"] for r in resources]
         assert "blt://repos" in resource_uris
         assert "blt://issues" in resource_uris
@@ -62,18 +63,18 @@ def test_resources_list():
         assert "blt://v2/jobs" in resource_uris
         assert "blt://v2/jobs/stats" in resource_uris
         assert "blt://v2/hackathons" in resource_uris
-        
+
         # Check metadata
         for r in resources:
             assert "name" in r
             assert "uri" in r
             assert "description" in r
             assert r["uri"].startswith("blt://")
-            
+
         # Specific checks
         repos_resource = next(r for r in resources if r["uri"] == "blt://repos")
         assert "repositories" in repos_resource["description"].lower()
-        
+
         issues_resource = next(r for r in resources if r["uri"] == "blt://issues")
         assert "issues" in issues_resource["description"].lower()
 
@@ -88,20 +89,21 @@ def test_resources_list():
             process.kill()
             process.wait()
 
+
 def test_resource_templates_list():
     """Test resources/templates/list MCP endpoint."""
     cmd = [sys.executable, "-m", "blt_mcp.server"]
     env = os.environ.copy()
-    
+
     process = subprocess.Popen(
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        env=env
+        env=env,
     )
-    
+
     try:
         # 1. Initialize
         init_request = {
@@ -111,30 +113,30 @@ def test_resource_templates_list():
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"}
-            }
+                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+            },
         }
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
-        read_jsonrpc_response(process, 1) # Wait for init response
-        
+        read_jsonrpc_response(process, 1)  # Wait for init response
+
         # 2. Call resources/templates/list
         list_request = {
             "jsonrpc": "2.0",
             "id": 2,
             "method": "resources/templates/list",
-            "params": {}
+            "params": {},
         }
         process.stdin.write(json.dumps(list_request) + "\n")
         process.stdin.flush()
-        
+
         response = read_jsonrpc_response(process, 2)
         assert "result" in response
         assert "resourceTemplates" in response["result"]
-        
+
         templates = response["result"]["resourceTemplates"]
         template_uris = [t["uriTemplate"] for t in templates]
-        
+
         assert "blt://repos/{repo_id}/issues" in template_uris
         assert "blt://issues/{issue_id}" in template_uris
         assert "blt://v2/auth/verify-email/{token}" in template_uris
@@ -166,20 +168,21 @@ def test_resource_templates_list():
             process.kill()
             process.wait()
 
+
 def test_resource_read():
     """Test resources/read MCP endpoint."""
     cmd = [sys.executable, "-m", "blt_mcp.server"]
     env = os.environ.copy()
-    
+
     process = subprocess.Popen(
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        env=env
+        env=env,
     )
-    
+
     try:
         # 1. Initialize
         init_request = {
@@ -189,27 +192,25 @@ def test_resource_read():
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"}
-            }
+                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+            },
         }
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
         read_jsonrpc_response(process, 1)
-        
+
         # 2. Call resources/read for blt://repos
         read_request = {
             "jsonrpc": "2.0",
             "id": 2,
             "method": "resources/read",
-            "params": {
-                "uri": "blt://repos"
-            }
+            "params": {"uri": "blt://repos"},
         }
         process.stdin.write(json.dumps(read_request) + "\n")
         process.stdin.flush()
-        
+
         response = read_jsonrpc_response(process, 2)
-        # We don't necessarily expect a success here if the API key is invalid, 
+        # We don't necessarily expect a success here if the API key is invalid,
         # but we expect a valid JSON-RPC response (either result or error).
         assert "result" in response or "error" in response
 
@@ -221,41 +222,51 @@ def test_resource_read():
             process.kill()
             process.wait()
 
+
 def test_resource_read_parameterized():
     """Test resources/read with a parameterized URI (Issue #10)."""
     cmd = [sys.executable, "-m", "blt_mcp.server"]
     env = os.environ.copy()
-    
+
     process = subprocess.Popen(
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        env=env
+        env=env,
     )
-    
+
     try:
         # 1. Initialize
-        process.stdin.write(json.dumps({
-            "jsonrpc": "2.0", "id": 1, "method": "initialize",
-            "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1"}}
-        }) + "\n")
+        process.stdin.write(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2024-11-05",
+                        "capabilities": {},
+                        "clientInfo": {"name": "test", "version": "1"},
+                    },
+                }
+            )
+            + "\n"
+        )
         process.stdin.flush()
         read_jsonrpc_response(process, 1)
-        
+
         # 2. Call resources/read for a specific issue
         read_request = {
             "jsonrpc": "2.0",
             "id": 2,
             "method": "resources/read",
-            "params": {
-                "uri": "blt://issues/123"
-            }
+            "params": {"uri": "blt://issues/123"},
         }
         process.stdin.write(json.dumps(read_request) + "\n")
         process.stdin.flush()
-        
+
         response = read_jsonrpc_response(process, 2)
         # Whether it succeeds or fails with 404, we expect a valid JSON-RPC structure
         assert "result" in response or "error" in response
@@ -268,26 +279,38 @@ def test_resource_read_parameterized():
             process.kill()
             process.wait()
 
+
 def test_error_handling():
     """Test that invalid methods return a proper JSON-RPC error (Issue #8)."""
     cmd = [sys.executable, "-m", "blt_mcp.server"]
     env = os.environ.copy()
-    
+
     process = subprocess.Popen(
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        env=env
+        env=env,
     )
-    
+
     try:
         # 1. Initialize (Required by MCP spec before other requests)
-        process.stdin.write(json.dumps({
-            "jsonrpc": "2.0", "id": 1, "method": "initialize",
-            "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1"}}
-        }) + "\n")
+        process.stdin.write(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2024-11-05",
+                        "capabilities": {},
+                        "clientInfo": {"name": "test", "version": "1"},
+                    },
+                }
+            )
+            + "\n"
+        )
         process.stdin.flush()
         read_jsonrpc_response(process, 1)
 
@@ -296,11 +319,11 @@ def test_error_handling():
             "jsonrpc": "2.0",
             "id": 99,
             "method": "resources/read",
-            "params": {} # Missing 'uri'
+            "params": {},  # Missing 'uri'
         }
         process.stdin.write(json.dumps(invalid_request) + "\n")
         process.stdin.flush()
-        
+
         response = read_jsonrpc_response(process, 99)
         assert "error" in response
     finally:

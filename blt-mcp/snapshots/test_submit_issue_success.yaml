@@ -1,0 +1,67 @@
+messages:
+- dir: c2s
+  payload:
+    id: 1
+    jsonrpc: '2.0'
+    method: initialize
+    params:
+      capabilities: {}
+      clientInfo:
+        name: test-client
+        version: 1.0.0
+      protocolVersion: '2024-11-05'
+  t: 0
+- dir: c2s
+  payload:
+    id: 2
+    jsonrpc: '2.0'
+    method: tools/call
+    params:
+      arguments:
+        confirmed: true
+        description: Found a SQL injection in the login endpoint.
+        title: SQL Injection in login endpoint
+        url: https://example.com
+      name: submit_issue
+  t: 10
+- dir: s2c
+  payload:
+    id: NORM_ID_1
+    jsonrpc: '2.0'
+    result:
+      capabilities:
+        experimental: {}
+        prompts:
+          listChanged: false
+        resources:
+          listChanged: false
+          subscribe: false
+        tools:
+          listChanged: false
+      protocolVersion: '2024-11-05'
+      serverInfo:
+        name: blt-mcp
+        version: 1.27.1
+  t: 1172
+- dir: s2c
+  payload:
+    id: NORM_ID_2
+    jsonrpc: '2.0'
+    result:
+      content:
+      - text: 'Successfully submitted issue for https://example.com (ID: Unknown)'
+        type: text
+      isError: false
+      structuredContent:
+        result: 'Successfully submitted issue for https://example.com (ID: Unknown)'
+  t: 1530
+meta:
+  recorded_at: '2026-07-01T09:23:46.814977Z'
+  schema_version: '1.0'
+  server_command:
+  - uv
+  - run
+  - -m
+  - blt_mcp.server
+  session_id: 00000001-replay-20260701T092346814977Z
+  version: 1

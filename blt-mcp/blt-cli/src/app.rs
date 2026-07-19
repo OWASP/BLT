@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::mock_data::{self, Issue, Repo, Hunt, Stats};
+use crate::models::{Hunt, Issue, Repo, Stats};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Tab {
@@ -8,6 +8,7 @@ pub enum Tab {
     Stats,
     Logs,
     Settings,
+    Onboarding,
 }
 
 impl Tab {
@@ -18,23 +19,26 @@ impl Tab {
             Tab::Stats => "BLT Stats",
             Tab::Logs => "Logs & Events",
             Tab::Settings => "Settings",
+            Tab::Onboarding => "Onboarding",
         }
     }
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum RunMode {
-    Offline,
-    Standalone,
     Mcp,
+    Live,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum FormField {
     Title,
-    RepoId,
+    Url,
     Severity,
+    BugType,
     Description,
+    StepsToReproduce,
+    Screenshot,
 }
 
 impl Default for FormField {
@@ -46,9 +50,12 @@ impl Default for FormField {
 #[derive(Clone, Debug, Default)]
 pub struct VulnerabilityForm {
     pub title: String,
-    pub repo_id: String,
+    pub url: String,
     pub severity: String,
+    pub bug_type: String,
     pub description: String,
+    pub steps_to_reproduce: String,
+    pub screenshot_path: String,
     pub active_field: FormField,
 }
 
@@ -62,12 +69,38 @@ pub enum ActiveOverlay {
     AiTriage,
     SearchInput,
     BulkTriageConfirm,
+    CommandPalette,
+    AgentStatus,
+    PromptPreview,
+    EasterEgg,
 }
 
 pub enum AppEvent {
-    TriageConfirmed { issue_id: String, success: bool, message: String },
-    SubmitResult { success: bool, message: String },
-    AiTriageResult { message: String },
+    TriageConfirmed {
+        issue_id: String,
+        success: bool,
+        message: String,
+        target_status: String,
+    },
+    SubmitResult {
+        success: bool,
+        message: String,
+    },
+    IssuesRefreshed {
+        issues: Vec<crate::models::Issue>,
+        total: u32,
+    },
+    VisionDraftComplete {
+        result: String,
+        success: bool,
+    },
+    AiTriageResult {
+        message: String,
+        success: bool,
+    },
+    ScanComplete {
+        health: crate::scanner::SecurityHealth,
+    },
 }
 
 pub struct App {
@@ -76,13 +109,14 @@ pub struct App {
     pub repos: Vec<Repo>,
     pub hunts: Vec<Hunt>,
     pub stats: Stats,
+    pub leaderboard: Vec<crate::models::LeaderboardEntry>,
+    pub good_first_issues: Vec<crate::models::GoodFirstIssue>,
     pub selected_issue_index: usize,
     pub selected_repo_index: usize,
     pub selected_hunt_index: usize,
     pub should_quit: bool,
     pub active_overlay: ActiveOverlay,
     pub submit_form: VulnerabilityForm,
-    pub leaderboard: Vec<mock_data::LeaderboardEntry>,
     pub ai_triage_result: Option<String>,
     pub search_query: String,
     pub selected_issues: std::collections::HashSet<String>,
@@ -97,51 +131,59 @@ pub struct App {
     pub status_message: String,
     pub auth_user: String,
     pub is_live: bool,
+    pub mcp_client:
+        Option<std::sync::Arc<tokio::sync::Mutex<crate::mcp_client::McpSubprocessClient>>>,
+    pub security_health: Option<crate::scanner::SecurityHealth>,
+    pub command_input: String,
+    pub konami_index: usize,
+    pub agent_status_data: String,
+    pub prompt_preview_data: String,
 }
 
 impl App {
-    pub fn new(offline: bool, mcp_path: Option<String>, api_base: String) -> Self {
-        let run_mode = if offline {
-            RunMode::Offline
-        } else if mcp_path.is_some() {
+    pub fn new(mcp_path: Option<String>, api_base: String) -> App {
+        let (event_sender, event_receiver) = tokio::sync::mpsc::unbounded_channel();
+        let run_mode = if mcp_path.is_some() {
             RunMode::Mcp
         } else {
-            RunMode::Standalone
+            RunMode::Live
         };
 
-        // Populate with mock data for offline testing by default
-        let issues = mock_data::get_mock_issues();
-        let repos = mock_data::get_mock_repos();
-        let hunts = mock_data::get_mock_hunts();
-        let stats = mock_data::get_mock_stats();
-
-        let auth_user = match run_mode {
-            RunMode::Offline => "NachiketRoy (Offline Mode)".to_string(),
-            RunMode::Mcp => "AI Agent (MCP Mode)".to_string(),
-            RunMode::Standalone => "NachiketRoy (OAuth 2.0)".to_string(),
+        let system_user = std::env::var("USER")
+            .or_else(|_| std::env::var("USERNAME"))
+            .unwrap_or_else(|_| "Local User".to_string());
+        let auth_user = if run_mode == RunMode::Mcp {
+            format!("Local System User: {} (MCP Mode)", system_user)
+        } else {
+            format!("Local System User: {} (REST)", system_user)
         };
 
         let status_message = match run_mode {
-            RunMode::Offline => "Initialized CLI in Offline Mode. Hit [h] for help.".to_string(),
-            RunMode::Mcp => "Initialized CLI in MCP Host Mode. Spawning subprocess server...".to_string(),
-            RunMode::Standalone => format!("Connected directly to BLT API at {}", api_base),
+            RunMode::Mcp => {
+                "Initialized CLI in MCP Host Mode. Spawning subprocess server...".to_string()
+            }
+            RunMode::Live => format!("Connected directly to BLT API at {}", api_base),
         };
-
-        let (event_sender, event_receiver) = tokio::sync::mpsc::unbounded_channel();
 
         let mut app = App {
             active_tab: Tab::Issues,
-            issues,
-            repos,
-            hunts,
-            stats,
+            issues: Vec::new(),
+            repos: Vec::new(),
+            hunts: Vec::new(),
+            stats: Stats {
+                total_issues: 0,
+                active_repos: 0,
+                total_contributors: 0,
+                bacon_points: 0,
+            },
+            leaderboard: Vec::new(),
+            good_first_issues: Vec::new(),
             selected_issue_index: 0,
             selected_repo_index: 0,
             selected_hunt_index: 0,
             should_quit: false,
             active_overlay: ActiveOverlay::None,
             submit_form: VulnerabilityForm::default(),
-            leaderboard: mock_data::get_mock_leaderboard(),
             ai_triage_result: None,
             search_query: String::new(),
             selected_issues: std::collections::HashSet::new(),
@@ -156,6 +198,13 @@ impl App {
             status_message,
             auth_user,
             is_live: false,
+            mcp_client: None,
+            security_health: None,
+            command_input: String::new(),
+            konami_index: 0,
+            agent_status_data: "Agent Status: Idle\nConnected: false\nUptime: 0m\nMemory: 0MB"
+                .to_string(),
+            prompt_preview_data: "Loading prompt preview...".to_string(),
         };
         app.load_session();
         app
@@ -170,7 +219,8 @@ impl App {
             Tab::Hunts => Tab::Stats,
             Tab::Stats => Tab::Logs,
             Tab::Logs => Tab::Settings,
-            Tab::Settings => Tab::Issues,
+            Tab::Settings => Tab::Onboarding,
+            Tab::Onboarding => Tab::Issues,
         };
         self.status_message = format!("Switched to tab: {}", self.active_tab.name());
     }
@@ -180,13 +230,51 @@ impl App {
             return;
         }
         self.active_tab = match self.active_tab {
-            Tab::Issues => Tab::Settings,
+            Tab::Issues => Tab::Onboarding,
             Tab::Hunts => Tab::Issues,
             Tab::Stats => Tab::Hunts,
             Tab::Logs => Tab::Stats,
             Tab::Settings => Tab::Logs,
+            Tab::Onboarding => Tab::Settings,
         };
         self.status_message = format!("Switched to tab: {}", self.active_tab.name());
+    }
+
+    pub fn get_visible_issue_indices(&self) -> Vec<usize> {
+        let mut indices = Vec::new();
+        for (idx, issue) in self.issues.iter().enumerate() {
+            if !self.search_query.is_empty() {
+                let q = self.search_query.to_lowercase();
+                if !issue.title.to_lowercase().contains(&q)
+                    && !issue.repository.to_lowercase().contains(&q)
+                    && !issue.status.to_lowercase().contains(&q)
+                    && !issue.severity.to_lowercase().contains(&q)
+                    && !issue.id.to_lowercase().contains(&q)
+                {
+                    continue;
+                }
+            }
+            indices.push(idx);
+        }
+        indices
+    }
+
+    pub fn get_visible_hunt_indices(&self) -> Vec<usize> {
+        let mut indices = Vec::new();
+        for (idx, hunt) in self.hunts.iter().enumerate() {
+            if !self.search_query.is_empty() {
+                let q = self.search_query.to_lowercase();
+                if !hunt.name.to_lowercase().contains(&q)
+                    && !hunt.description.to_lowercase().contains(&q)
+                    && !hunt.status.to_lowercase().contains(&q)
+                    && !hunt.reward.to_lowercase().contains(&q)
+                {
+                    continue;
+                }
+            }
+            indices.push(idx);
+        }
+        indices
     }
 
     pub fn scroll_down(&mut self) {
@@ -195,13 +283,19 @@ impl App {
         }
         match self.active_tab {
             Tab::Issues => {
-                if !self.issues.is_empty() {
-                    self.selected_issue_index = (self.selected_issue_index + 1) % self.issues.len();
+                let visible = self.get_visible_issue_indices();
+                if !visible.is_empty() {
+                    let current_pos = visible.iter().position(|&x| x == self.selected_issue_index).unwrap_or(0);
+                    let next_pos = (current_pos + 1) % visible.len();
+                    self.selected_issue_index = visible[next_pos];
                 }
             }
             Tab::Hunts => {
-                if !self.hunts.is_empty() {
-                    self.selected_hunt_index = (self.selected_hunt_index + 1) % self.hunts.len();
+                let visible = self.get_visible_hunt_indices();
+                if !visible.is_empty() {
+                    let current_pos = visible.iter().position(|&x| x == self.selected_hunt_index).unwrap_or(0);
+                    let next_pos = (current_pos + 1) % visible.len();
+                    self.selected_hunt_index = visible[next_pos];
                 }
             }
             _ => {}
@@ -214,21 +308,27 @@ impl App {
         }
         match self.active_tab {
             Tab::Issues => {
-                if !self.issues.is_empty() {
-                    if self.selected_issue_index == 0 {
-                        self.selected_issue_index = self.issues.len() - 1;
+                let visible = self.get_visible_issue_indices();
+                if !visible.is_empty() {
+                    let current_pos = visible.iter().position(|&x| x == self.selected_issue_index).unwrap_or(0);
+                    let next_pos = if current_pos == 0 {
+                        visible.len() - 1
                     } else {
-                        self.selected_issue_index -= 1;
-                    }
+                        current_pos - 1
+                    };
+                    self.selected_issue_index = visible[next_pos];
                 }
             }
             Tab::Hunts => {
-                if !self.hunts.is_empty() {
-                    if self.selected_hunt_index == 0 {
-                        self.selected_hunt_index = self.hunts.len() - 1;
+                let visible = self.get_visible_hunt_indices();
+                if !visible.is_empty() {
+                    let current_pos = visible.iter().position(|&x| x == self.selected_hunt_index).unwrap_or(0);
+                    let next_pos = if current_pos == 0 {
+                        visible.len() - 1
                     } else {
-                        self.selected_hunt_index -= 1;
-                    }
+                        current_pos - 1
+                    };
+                    self.selected_hunt_index = visible[next_pos];
                 }
             }
             _ => {}
@@ -236,13 +336,42 @@ impl App {
     }
 
     pub fn toggle_help(&mut self) {
-        if self.active_overlay != ActiveOverlay::None && self.active_overlay != ActiveOverlay::Help {
+        if self.active_overlay != ActiveOverlay::None && self.active_overlay != ActiveOverlay::Help
+        {
             return;
         }
         if self.active_overlay == ActiveOverlay::Help {
             self.active_overlay = ActiveOverlay::None;
         } else {
             self.active_overlay = ActiveOverlay::Help;
+        }
+    }
+
+    pub fn toggle_agent_status(&mut self) {
+        if self.active_overlay != ActiveOverlay::None
+            && self.active_overlay != ActiveOverlay::AgentStatus
+        {
+            return;
+        }
+        if self.active_overlay == ActiveOverlay::AgentStatus {
+            self.active_overlay = ActiveOverlay::None;
+        } else {
+            self.active_overlay = ActiveOverlay::AgentStatus;
+        }
+    }
+
+    pub fn toggle_prompt_preview(&mut self) {
+        if self.active_overlay != ActiveOverlay::None
+            && self.active_overlay != ActiveOverlay::PromptPreview
+        {
+            return;
+        }
+        if self.active_overlay == ActiveOverlay::PromptPreview {
+            self.active_overlay = ActiveOverlay::None;
+        } else {
+            self.active_overlay = ActiveOverlay::PromptPreview;
+            self.prompt_preview_data =
+                "AI Prompt Preview will appear here once connected.".to_string();
         }
     }
 
@@ -254,7 +383,7 @@ impl App {
         if self.active_tab != Tab::Issues || self.issues.is_empty() {
             return;
         }
-        
+
         let issue = &self.issues[self.selected_issue_index];
         if issue.status == "In Review" {
             self.status_message = "Notice: Issue is already 'In Review'.".to_string();
@@ -269,25 +398,41 @@ impl App {
             return;
         }
         self.active_overlay = ActiveOverlay::None;
-        
+
         let issue = &self.issues[self.selected_issue_index];
         let issue_id = issue.id.clone();
         let api_base = self.api_base.clone();
-        let run_mode = self.run_mode.clone();
         let sender = self.event_sender.clone();
-        
+        let target_status = self.triage_target_status.clone();
+
         self.status_message = format!("Triaging Issue #{}...", issue_id);
 
         tokio::spawn(async move {
-            let offline = run_mode == RunMode::Offline;
-            let res = crate::api::submit_issue_triage(&api_base, &issue_id, offline).await;
+            let res = crate::api::submit_issue_triage(&api_base, &issue_id, &target_status).await;
 
             let (success, message) = match res {
-                Ok(_) => (true, format!("SUCCESS: Triage for Issue #{} was submitted successfully.", issue_id)),
-                Err(e) => (false, format!("ERROR: Failed to submit triage for Issue #{}: {}", issue_id, e)),
+                Ok(_) => (
+                    true,
+                    format!(
+                        "SUCCESS: Triage for Issue #{} was submitted successfully.",
+                        issue_id
+                    ),
+                ),
+                Err(e) => (
+                    false,
+                    format!(
+                        "ERROR: Failed to submit triage for Issue #{}: {}",
+                        issue_id, e
+                    ),
+                ),
             };
 
-            let _ = sender.send(AppEvent::TriageConfirmed { issue_id, success, message });
+            let _ = sender.send(AppEvent::TriageConfirmed {
+                issue_id,
+                success,
+                message,
+                target_status,
+            });
         });
     }
 
@@ -302,7 +447,10 @@ impl App {
             event_feed: &self.event_feed,
         };
         if let Ok(json) = serde_json::to_string(&data) {
-            let _ = std::fs::write("blt_session.json", json);
+            let temp_file = format!("blt_session_{}.json.tmp", std::process::id());
+            if std::fs::write(&temp_file, &json).is_ok() {
+                let _ = std::fs::rename(&temp_file, "blt_session.json");
+            }
         }
     }
 
@@ -334,6 +482,12 @@ impl App {
         }
         let _ = std::fs::write("blt_export.log", out);
     }
+
+    pub fn reset_data(&mut self) {
+        self.issues.clear();
+        self.selected_issue_index = 0;
+        self.selected_issues.clear();
+    }
 }
 
 #[cfg(test)]
@@ -342,14 +496,14 @@ mod tests {
 
     #[test]
     fn test_app_initialization() {
-        let app = App::new(true, None, "https://api.owaspblt.org".to_string());
+        let app = App::new(None, "https://api.owaspblt.org".to_string());
         assert_eq!(app.active_tab, Tab::Issues);
         assert_eq!(app.active_overlay, ActiveOverlay::None);
     }
 
     #[test]
     fn test_modal_toggles() {
-        let mut app = App::new(true, None, "https://api.owaspblt.org".to_string());
+        let mut app = App::new(None, "https://api.owaspblt.org".to_string());
         assert_eq!(app.active_overlay, ActiveOverlay::None);
 
         app.toggle_help();
@@ -360,7 +514,7 @@ mod tests {
 
     #[test]
     fn test_tab_navigation() {
-        let mut app = App::new(true, None, "".to_string());
+        let mut app = App::new(None, "".to_string());
         assert_eq!(app.active_tab, Tab::Issues);
         app.next_tab();
         assert_eq!(app.active_tab, Tab::Hunts);
@@ -372,10 +526,31 @@ mod tests {
 
     #[test]
     fn test_issue_selection() {
-        let mut app = App::new(true, None, "".to_string());
-        app.issues = crate::mock_data::get_mock_issues();
+        let mut app = App::new(None, "".to_string());
+        app.issues = vec![
+            Issue {
+                id: "1".to_string(),
+                repository: "repo".to_string(),
+                title: "title".to_string(),
+                description: "desc".to_string(),
+                status: "Open".to_string(),
+                severity: "Low".to_string(),
+                author: "author".to_string(),
+                comments: vec![],
+            },
+            Issue {
+                id: "2".to_string(),
+                repository: "repo".to_string(),
+                title: "title2".to_string(),
+                description: "desc2".to_string(),
+                status: "Open".to_string(),
+                severity: "Low".to_string(),
+                author: "author".to_string(),
+                comments: vec![],
+            },
+        ];
         let initial_len = app.issues.len();
-        
+
         if initial_len > 1 {
             assert_eq!(app.selected_issue_index, 0);
             app.scroll_down();

@@ -4,61 +4,63 @@ This document describes the architecture and design of the BLT-MCP server implem
 
 ## Overview
 
-BLT-MCP is a Model Context Protocol (MCP) server that bridges AI agents with the BLT (Bug Logging Tool) ecosystem. It implements the MCP standard specification to provide structured, programmatic access to BLT functionality.
+The OWASP BLT toolchain consists of a **Dual Interface Ecosystem** that connects users (both Human and AI) to the BLT (Bug Logging Tool) backend REST API.
+
+1. **BLT-CLI (Rust TUI):** An interactive Text User Interface designed for *Humans*.
+2. **BLT-MCP (Python Server):** A Model Context Protocol server designed for *AI Agents* (e.g., Claude, Cursor, Cline).
+
+Both interfaces ultimately consume the same core BLT REST API (`https://api.owaspblt.org`).
+
+### TUI Modes (Direct vs MCP Mode)
+The Rust TUI (`blt-cli`) features a unique dual-mode architecture:
+- **Direct Mode (Standalone):** The TUI communicates directly with the BLT REST API via standard HTTP requests. This is the default, lightweight mode for users.
+- **MCP Mode (Dogfooding):** When launched with the `--mcp-path` flag, the TUI transforms into an *MCP Client*. It spawns the Python `BLT-MCP` server as a background subprocess and routes its data requests through the MCP server. This allows developers to thoroughly test and "dogfood" the Python MCP server without needing a third-party AI client.
 
 ## Architecture Diagram
 
+```text
+                               ┌─────────────────────────┐
+                               │       Human User        │
+                               └────────────┬────────────┘
+                                            │ interacts
+┌─────────────────────────┐    ┌────────────▼────────────┐
+│      AI Assistant       │    │     BLT-CLI (Rust)      │
+│ (Claude, Cursor, etc.)  │    │     Terminal TUI        │
+└────────────┬────────────┘    └─┬─────────────────────┬─┘
+             │                   │                     │
+             │ JSON-RPC          │ JSON-RPC            │
+             │ (stdio)           │ (stdio)             │ HTTP
+             │                   │ [--mcp-path]        │ (Direct Mode)
+┌────────────▼───────────────────▼───────┐             │
+│            BLT-MCP (Python)            │             │
+│            MCP Server                  │             │
+└────────────┬───────────────────────────┘             │
+             │ HTTPS                                   │
+             └───────────────────────┐   ┌─────────────┘
+                                     │   │
+                               ┌─────▼───▼───────────────┐
+                               │     BLT REST API        │
+                               │ https://api.owaspblt.org│
+                               └─────────────────────────┘
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     AI Agent / MCP Client                    │
-│                  (Claude Desktop, Cline, etc.)               │
-└────────────────────┬────────────────────────────────────────┘
-                     │ JSON-RPC 2.0 over stdio
-                     │
-┌────────────────────▼────────────────────────────────────────┐
-│                    BLT-MCP Server                            │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │           MCP Protocol Layer                         │   │
-│  │  - Request/Response Handling                         │   │
-│  │  - JSON-RPC 2.0 Transport (stdio)                    │   │
-│  │  - Schema Validation                                 │   │
-│  └──────────────────────────────────────────────────────┘   │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │           Resources Layer                            │   │
-│  │  - blt://issues                                      │   │
-│  │  - blt://repos                                       │   │
-│  │  - blt://contributors                                │   │
-│  │  - blt://workflows                                   │   │
-│  │  - blt://leaderboards                                │   │
-│  │  - blt://rewards                                     │   │
-│  └──────────────────────────────────────────────────────┘   │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │           Tools Layer                                │   │
-│  │  - submit_issue                                      │   │
-│  │  - award_bacon                                       │   │
-│  │  - update_issue_status                               │   │
-│  │  - add_comment                                       │   │
-│  └──────────────────────────────────────────────────────┘   │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │           Prompts Layer                              │   │
-│  │  - triage_vulnerability                              │   │
-│  │  - plan_remediation                                  │   │
-│  │  - review_contribution                               │   │
-│  └──────────────────────────────────────────────────────┘   │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │           Authentication & API Client                │   │
-│  │  - OAuth/API Key Management                          │   │
-│  │  - HTTP Request Handling                             │   │
-│  │  - Error Handling                                    │   │
-│  └──────────────────────────────────────────────────────┘   │
-└────────────────────┬────────────────────────────────────────┘
-                     │ HTTPS
-                     │
-┌────────────────────▼────────────────────────────────────────┐
-│                    BLT REST API                              │
-│                https://api.owaspblt.org                      │
-└──────────────────────────────────────────────────────────────┘
-```
+
+## BLT-CLI (Rust TUI) Structure
+
+The Rust CLI is an interactive Terminal User Interface (TUI) built using `ratatui` and `crossterm`. Its architecture separates state management, UI rendering, and data fetching into distinct modules:
+
+- **`main.rs`**: The entry point. Handles CLI arguments, environment setup, and bootstraps either *Direct Mode* or *MCP Mode* (spawning the subprocess).
+- **`app.rs`**: Manages the core application state (loaded data, current view, active tabs) and handles state transitions.
+- **`tui.rs`**: Manages the terminal lifecycle (raw mode, alternate screens) and runs the primary **async event loop** (via `tokio`). Key-presses spawn background `tokio` tasks for network operations and communicate results back to the main loop through an `mpsc` channel of `AppEvent`s.
+- **`ui.rs`**: Contains all `ratatui` rendering logic. Responsible for drawing layouts, panels, and widgets purely based on the current `app` state.
+- **`api.rs`**: The HTTP client used in *Direct Mode* to fetch data directly from the BLT REST API.
+- **`mcp_client.rs`**: The JSON-RPC client used in *MCP Mode*. It manages the Python subprocess and routes resource requests to it over `stdio`.
+- **`scanner.rs`**: An asynchronous background security health scanner that runs independently alongside the UI. Each subprocess scan (Trivy, Semgrep, Bandit) is bounded by a **30-second timeout**; the process is killed on expiry.
+- **`models.rs`**: Core data structures defining the shapes of issues, repos, and users.
+
+---
+
+## BLT-MCP Server Details
+The remainder of this document focuses specifically on the architecture and design of the **BLT-MCP Python Server**.
 
 ## Component Details
 
@@ -114,6 +116,7 @@ Tools enable AI agents to perform actions:
 - Required: title, description
 - Optional: repo_id, severity, type, confirmed
 - Maps to: POST /bugs
+- Note: The BLT API does not natively support a `title` field; the server prepends the title to the `description` payload.
 
 #### award_bacon
 - Purpose: Reward contributors with bacon points

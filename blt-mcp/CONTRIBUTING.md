@@ -1,10 +1,16 @@
-# Contributing to BLT-MCP
+# Contributing to BLT-MCP & BLT-CLI
 
-Thank you for your interest in contributing to the BLT-MCP project! This guide will help you get started with your first contribution.
+Thank you for your interest in contributing to the BLT-MCP project! This repository contains two major components:
+1. **`blt_mcp`**: The Python-based Model Context Protocol (MCP) Server.
+2. **`blt-cli`**: The high-performance Rust-based Terminal UI (TUI).
+
+This guide will help you get started with your first contribution.
 
 ## Development Environment Setup
 
 1. **Fork and Clone**: Fork the repository on GitHub and clone it to your local machine.
+
+### Python Server (`blt_mcp`)
 2. **Python Version**: Ensure you have Python 3.12.x installed.
 3. **Environment**: We recommend using [uv](https://github.com/astral-sh/uv) for dependency management.
    ```bash
@@ -17,26 +23,46 @@ Thank you for your interest in contributing to the BLT-MCP project! This guide w
    cp .env.example .env
    ```
 
+### Rust CLI (`blt-cli`)
+5. **Rust Version**: Ensure you have the latest stable Rust toolchain installed via [rustup](https://rustup.rs/).
+6. **Build**:
+   ```bash
+   cd blt-cli
+   cargo build
+   ```
+
 ## Development Workflow
 
-### Coding Standards
-
+### Python Coding Standards (`blt_mcp`)
 - Follow [PEP 8](https://www.python.org/dev/peps/pep-0008/) for Python code.
 - Use type hints wherever possible.
-- Write descriptive docstrings for functions and classes.
+- **MCP Components**:
+  - Define new tools using the `@server.tool()` decorators.
+  - Define new resources using the `@server.resource()` decorators.
+  - Define new prompts using the `@server.prompt()` decorators.
 
-### Implementing Features
+### Rust Coding Standards (`blt-cli`)
+- Format code using `cargo fmt`.
+- Ensure no warnings are produced by `cargo clippy`.
+- Keep TUI layout logic in `src/ui.rs` and event handling in `src/tui.rs`.
 
-The server is built using the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk).
-- **Tools**: Define new tools using the `@server.call_tool()` decorator or the `Tool` registry.
-- **Resources**: Define new resources using the `@server.read_resource()` decorator.
-- **Prompts**: Define new prompts using the `@server.list_prompts()` and `@server.get_prompt()` decorators.
+## Testing
 
-### Testing
+### Deterministic MCP Testing (`mcp-vcr`)
+We use `mcp-vcr` to record and playback JSON-RPC sessions, allowing for deterministic tests without hitting the live BLT API.
+- Recorded sessions meant for tests should be stored in the `snapshots/` directory.
+- Temporary scratchpad recordings should be placed in `sessions/` (which is `.gitignore`d).
 
-Before submitting a pull request, ensure all tests pass:
+Before submitting a PR for the Python server, ensure all Pytest tests pass:
 ```bash
 pytest
+```
+
+Before submitting a PR for the Rust CLI, ensure the codebase compiles cleanly:
+```bash
+cd blt-cli
+cargo check
+cargo test
 ```
 
 ## Pull Request Process
@@ -49,8 +75,8 @@ pytest
 
 ## Security Considerations
 
-- **Vulnerabilities**: If you find a security vulnerability, please do not report it via a public issue. Instead, follow the project's security policy or contact the maintainers directly.
-- **API Keys**: Never commit your `.env` file or any API keys to the repository.
+- **Vulnerabilities**: If you find a security vulnerability, please do not report it via a public issue. Instead, follow the project's security policy.
+- **API Keys**: Never commit your `.env` file, `credentials.json`, or any API keys to the repository.
 
 ## Community
 
