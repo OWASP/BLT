@@ -55,7 +55,8 @@ function wireDocLinks(root) {
     link.setAttribute('href', href);
 
     const targetPath = normalizePath(new URL(href, window.location.origin).pathname);
-    if (current === targetPath) {
+    // Safer matching condition using endsWith
+    if (current === targetPath || (path !== 'index.html' && current.endsWith(path))) {
       setActive(link);
       link.setAttribute('aria-current', 'page');
     }
@@ -69,11 +70,26 @@ function wireDocLinks(root) {
     link.setAttribute('href', href);
 
     const targetPath = normalizePath(new URL(href, window.location.origin).pathname);
-    if (current === targetPath) {
+    if (current === targetPath || (path !== 'index.html' && current.endsWith(path))) {
       setActive(link);
       link.setAttribute('aria-current', 'page');
     }
   }
+}
+
+for (const link of rootLinks) {
+  const path = link.getAttribute('data-root-link');
+  if (!path) continue;
+
+  const href = `${siteBase}${path}`;
+  link.setAttribute('href', href);
+
+  const targetPath = normalizePath(new URL(href, window.location.origin).pathname);
+  if (current === targetPath) {
+    setActive(link);
+    link.setAttribute('aria-current', 'page');
+  }
+}
 }
 
 function wireAssets(root) {
