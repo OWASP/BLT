@@ -70,7 +70,38 @@ tasks:
   simulation:
     type: error_leak
     scenario: stack_trace_disclosure
+    engine: sensitive-error
     target_url: /user/profile?show=error
+    vulnerable_code: |
+      app.get('/user/profile', (req, res) => {
+        try {
+          loadProfile(req.user.id);
+        } catch (error) {
+          res.status(500).send(error.stack + '\nDB_PASSWORD=' + process.env.DB_PASSWORD);
+        }
+      });
+    vulnerable_lines:
+    - 5
+    explain:
+      question: Why does this expose sensitive data?
+      options:
+      - id: verbose_error
+        label: The error response includes stack details and a raw secret.
+      - id: missing_avatar
+        label: The profile does not include an avatar.
+      answer: verbose_error
+    expected_patterns:
+    - error_redaction
+    - secret_manager
+    - safe_logging
+    fix_starter_code: |
+      app.get('/user/profile', (req, res) => {
+        try {
+          loadProfile(req.user.id);
+        } catch (error) {
+          res.status(500).send(error.stack + '\nDB_PASSWORD=' + process.env.DB_PASSWORD);
+        }
+      });
     vulnerable_parameters:
     - show
     success_payload: Trigger a stack trace showing 'DB_PASSWORD=secret_db_pass'
@@ -79,7 +110,6 @@ tasks:
     - Try show=error
     - Look for debug endpoints
     difficulty: beginner
-    engine: legacy-payload
 - name: Exposed Backup/.git or Public Files (Simulation)
   description: Simulate exposed config or repository files revealing secrets.
   type: simulation
@@ -87,7 +117,32 @@ tasks:
   simulation:
     type: file_exposure
     scenario: exposed_git
+    engine: sensitive-file
     target_url: /.git/HEAD
+    vulnerable_code: |
+      app.use('/.git', express.static(path.join(__dirname, '.git')));
+      app.use('/backup', express.static(path.join(__dirname, 'backup')));
+      app.get('/backup/config.bak', (req, res) => res.sendFile('/app/backup/config.bak'));
+    vulnerable_lines:
+    - 1
+    - 2
+    - 3
+    explain:
+      question: Why are public backup and repository files dangerous?
+      options:
+      - id: public_secret_files
+        label: Public static routes can expose config, keys, and repository metadata.
+      - id: no_cache
+        label: Static files cannot be cached.
+      answer: public_secret_files
+    expected_patterns:
+    - deny_sensitive_paths
+    - authorization_required
+    - secret_manager
+    fix_starter_code: |
+      app.use('/.git', express.static(path.join(__dirname, '.git')));
+      app.use('/backup', express.static(path.join(__dirname, 'backup')));
+      app.get('/backup/config.bak', (req, res) => res.sendFile('/app/backup/config.bak'));
     vulnerable_parameters: []
     success_payload: Access /.git/config or backup/config.bak and find simulated AWS key
     success_criteria: Retrieve simulated config with safe example key
@@ -96,7 +151,6 @@ tasks:
     - /backup/config.bak
     - /config/.env
     difficulty: intermediate
-    engine: legacy-payload
 - name: API Key / Secret in JavaScript or HTML (Simulation)
   description: Simulate discovering secrets embedded in static files.
   type: simulation
@@ -104,7 +158,32 @@ tasks:
   simulation:
     type: asset_leak
     scenario: frontend_key_disclosure
+    engine: sensitive-asset
     target_url: /static/js/app.js
+    vulnerable_code: |
+      window.APP_CONFIG = {
+        apiBase: 'https://api.example',
+        API_KEY: 'AKIA...EXAMPLE'
+      };
+    vulnerable_lines:
+    - 3
+    explain:
+      question: Why should this key not be shipped to the browser?
+      options:
+      - id: client_secret
+        label: Any secret embedded in JavaScript can be read by every visitor.
+      - id: missing_bundle
+        label: JavaScript cannot define configuration.
+      answer: client_secret
+    expected_patterns:
+    - remove_client_secret
+    - backend_proxy
+    - secret_manager
+    fix_starter_code: |
+      window.APP_CONFIG = {
+        apiBase: 'https://api.example',
+        API_KEY: 'AKIA...EXAMPLE'
+      };
     vulnerable_parameters: []
     success_payload: Find 'API_KEY = "AKIA...EXAMPLE"'
     success_criteria: Locate simulated hardcoded API key
@@ -112,7 +191,6 @@ tasks:
     - Inspect JS/CSS
     - Search for TOKEN or KEY strings
     difficulty: beginner
-    engine: legacy-payload
 - name: 'Insecure Storage: Plaintext Secrets (Simulation)'
   description: Simulate plaintext stored credentials.
   type: simulation
@@ -120,14 +198,39 @@ tasks:
   simulation:
     type: storage_plaintext
     scenario: plaintext_passwords
+    engine: sensitive-storage
     target_url: /admin/export-users
+    vulnerable_code: |
+      app.get('/admin/export-users', requireAdmin, (req, res) => {
+        const rows = users.map(user => `${user.email},${user.password}`);
+        res.send(rows.join('\n'));
+      });
+    vulnerable_lines:
+    - 2
+    - 3
+    explain:
+      question: Why is this export unsafe?
+      options:
+      - id: plaintext_export
+        label: Passwords are stored or exported in plaintext instead of being hashed and protected.
+      - id: csv_format
+        label: CSV files cannot contain email addresses.
+      answer: plaintext_export
+    expected_patterns:
+    - password_hashing
+    - authorization_required
+    - sensitive_field_redaction
+    fix_starter_code: |
+      app.get('/admin/export-users', requireAdmin, (req, res) => {
+        const rows = users.map(user => `${user.email},${user.password}`);
+        res.send(rows.join('\n'));
+      });
     vulnerable_parameters: []
     success_payload: Download simulated CSV with plaintext password example
     success_criteria: Reveal plaintext or weak-hash example
     hints:
     - Try admin/export endpoints
     difficulty: intermediate
-    engine: legacy-payload
 - name: Token Replay & Poorly Scoped Tokens
   description: 'Theory: long-lived tokens & overly broad scopes.'
   type: theory
@@ -177,7 +280,33 @@ tasks:
   simulation:
     type: remediation_plan
     scenario: identify_and_remediate
+    engine: sensitive-remediation
     target_url: /.env
+    vulnerable_code: |
+      app.get('/.env', (req, res) => {
+        logger.info('Serving SECRET_KEY=' + process.env.SECRET_KEY);
+        res.type('text/plain').send('SECRET_KEY=' + process.env.SECRET_KEY);
+      });
+    vulnerable_lines:
+    - 2
+    - 3
+    explain:
+      question: What must happen after a secret is exposed?
+      options:
+      - id: rotate_revoke
+        label: Remove the exposure, rotate or revoke the secret, and move it to managed storage.
+      - id: ignore_secret
+        label: Keep using the secret because it was only exposed once.
+      answer: rotate_revoke
+    expected_patterns:
+    - secret_rotation
+    - secret_manager
+    - redacted_logging
+    fix_starter_code: |
+      app.get('/.env', (req, res) => {
+        logger.info('Serving SECRET_KEY=' + process.env.SECRET_KEY);
+        res.type('text/plain').send('SECRET_KEY=' + process.env.SECRET_KEY);
+      });
     vulnerable_parameters: []
     success_payload: Find simulated SECRET_KEY and provide remediation steps
     success_criteria: User mentions rotate, revoke, secrets manager
@@ -185,5 +314,4 @@ tasks:
     - Search for exposed /.env
     - Provide fix steps
     difficulty: advanced
-    engine: legacy-payload
 ---

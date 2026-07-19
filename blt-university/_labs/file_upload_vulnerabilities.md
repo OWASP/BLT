@@ -75,7 +75,35 @@ tasks:
   simulation:
     type: upload_shell
     scenario: web_shell_upload
+    engine: upload-shell
     target_url: /upload
+    vulnerable_code: |
+      app.post('/upload', upload.single('file'), (req, res) => {
+        const filename = req.file.originalname;
+        fs.writeFileSync('/var/www/uploads/' + filename, req.file.buffer);
+        res.send(`/uploads/${filename}`);
+      });
+    vulnerable_lines:
+    - 3
+    - 4
+    explain:
+      question: Why can this upload become executable?
+      options:
+      - id: executable_upload
+        label: The app trusts the original filename and stores attacker content under a web-served path.
+      - id: small_file
+        label: The uploaded file is too small.
+      answer: executable_upload
+    expected_patterns:
+    - allowed_file_types
+    - magic_byte_validation
+    - outside_web_root_storage
+    fix_starter_code: |
+      app.post('/upload', upload.single('file'), (req, res) => {
+        const filename = req.file.originalname;
+        fs.writeFileSync('/var/www/uploads/' + filename, req.file.buffer);
+        res.send(`/uploads/${filename}`);
+      });
     vulnerable_parameters:
     - file
     success_payload: upload a file named shell.php containing '<?php echo shell_exec($_GET["cmd"]); ?>'
@@ -85,7 +113,6 @@ tasks:
     - Try double extensions like image.php.jpg
     - The lab simulates execution (no real system commands run)
     difficulty: intermediate
-    engine: legacy-payload
 - name: 'Simulation: Content-Type Bypass'
   description: Bypass naive MIME-type checks by uploading a malicious payload disguised as an image.
   type: simulation
@@ -93,7 +120,37 @@ tasks:
   simulation:
     type: upload_mimetype_bypass
     scenario: mimetype_bypass
-    target_url: /upload
+    engine: upload-mimetype
+    target_url: /avatar
+    vulnerable_code: |
+      app.post('/avatar', upload.single('file'), (req, res) => {
+        if (req.file.mimetype.startsWith('image/')) {
+          fs.writeFileSync('/var/www/uploads/' + req.file.originalname, req.file.buffer);
+        }
+        res.send('uploaded');
+      });
+    vulnerable_lines:
+    - 2
+    - 3
+    explain:
+      question: Why is trusting only the MIME header weak?
+      options:
+      - id: spoofed_mime
+        label: Attackers can spoof Content-Type while the file content remains malicious.
+      - id: large_image
+        label: Images are always too large to store.
+      answer: spoofed_mime
+    expected_patterns:
+    - extension_allowlist
+    - magic_byte_validation
+    - malware_scanning
+    fix_starter_code: |
+      app.post('/avatar', upload.single('file'), (req, res) => {
+        if (req.file.mimetype.startsWith('image/')) {
+          fs.writeFileSync('/var/www/uploads/' + req.file.originalname, req.file.buffer);
+        }
+        res.send('uploaded');
+      });
     vulnerable_parameters:
     - file
     success_payload: Upload file with .jpg extension but with embedded script content
@@ -102,7 +159,6 @@ tasks:
     - Add PHP inside a .jpg
     - Try payload in EXIF or metadata (simulated)
     difficulty: intermediate
-    engine: legacy-payload
 - name: 'Simulation: Path Traversal via Filename'
   description: Exploit improper file path handling to write outside upload directory.
   type: simulation
@@ -110,7 +166,35 @@ tasks:
   simulation:
     type: upload_path_traversal
     scenario: path_traversal
+    engine: upload-path-traversal
     target_url: /upload?path=
+    vulnerable_code: |
+      app.post('/upload', upload.single('file'), (req, res) => {
+        const destination = path.join('/srv/uploads', req.query.path, req.file.originalname);
+        fs.writeFileSync(destination, req.file.buffer);
+        res.send('saved');
+      });
+    vulnerable_lines:
+    - 2
+    - 3
+    explain:
+      question: Why can this write outside the upload directory?
+      options:
+      - id: traversal_path
+        label: User-controlled path segments can include ../ and escape the intended directory.
+      - id: missing_thumbnail
+        label: The file does not have a thumbnail.
+      answer: traversal_path
+    expected_patterns:
+    - path_normalization
+    - traversal_blocking
+    - safe_storage_root
+    fix_starter_code: |
+      app.post('/upload', upload.single('file'), (req, res) => {
+        const destination = path.join('/srv/uploads', req.query.path, req.file.originalname);
+        fs.writeFileSync(destination, req.file.buffer);
+        res.send('saved');
+      });
     vulnerable_parameters:
     - file
     - path
@@ -120,7 +204,6 @@ tasks:
     - Try ../ sequences
     - Use URL-encoded traversal
     difficulty: advanced
-    engine: legacy-payload
 - name: Secure File Upload Practices
   description: Learn secure practices for file upload systems.
   type: theory
@@ -150,7 +233,37 @@ tasks:
   simulation:
     type: upload_restricted_ext_bypass
     scenario: double_extension
+    engine: upload-double-extension
     target_url: /upload
+    vulnerable_code: |
+      app.post('/upload', upload.single('file'), (req, res) => {
+        if (!req.file.originalname.endsWith('.php')) {
+          fs.writeFileSync('/var/www/uploads/' + req.file.originalname, req.file.buffer);
+        }
+        res.send('uploaded');
+      });
+    vulnerable_lines:
+    - 2
+    - 3
+    explain:
+      question: Why can double extensions bypass this check?
+      options:
+      - id: blocklist_bypass
+        label: Blocking one suffix misses alternate names and server parsing behavior such as shell.php.jpg.
+      - id: no_filename
+        label: Uploaded files do not have filenames.
+      answer: blocklist_bypass
+    expected_patterns:
+    - extension_allowlist
+    - magic_byte_validation
+    - server_generated_filename
+    fix_starter_code: |
+      app.post('/upload', upload.single('file'), (req, res) => {
+        if (!req.file.originalname.endsWith('.php')) {
+          fs.writeFileSync('/var/www/uploads/' + req.file.originalname, req.file.buffer);
+        }
+        res.send('uploaded');
+      });
     vulnerable_parameters:
     - file
     success_payload: shell.php.jpg
@@ -159,5 +272,4 @@ tasks:
     - Try double extensions
     - Try tricky filenames / mixed casing
     difficulty: advanced
-    engine: legacy-payload
 ---

@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "test": "jest",
     "test:js": "jest"
   },
   "devDependencies": {
@@ -10,6 +11,13 @@
     "jest-environment-jsdom": "29.7.0"
   },
   "jest": {
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jsdom",
+    "testMatch": [
+      "<rootDir>/tests/**/*.test.js"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/public/",
+      "<rootDir>/_site/"
+    ]
   }
 }
