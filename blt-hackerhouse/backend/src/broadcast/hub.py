@@ -55,6 +55,10 @@ class WebSocketHub:
     def record_event(self) -> None:
         self._last_event_at = datetime.now(tz=timezone.utc).replace(microsecond=0)
 
+    @property
+    def last_event_at(self) -> datetime | None:
+        return self._last_event_at
+
     def record_error(self) -> None:
         self._error_log.append(datetime.now(tz=timezone.utc).replace(microsecond=0))
 

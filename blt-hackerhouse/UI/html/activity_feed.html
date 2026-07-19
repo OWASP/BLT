@@ -1,448 +1,408 @@
-<!DOCTYPE html><html class="dark" lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>Activity Feed - BLT HackerHouse</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>Activity Feed · BLT HackerHouse</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "secondary-fixed-dim": "#7bd8b1",
-                        "inverse-primary": "#c00000",
-                        "on-primary-container": "#fff1ef",
-                        "on-background": "#ffdad4",
-                        "outline": "#af8781",
-                        "primary": "#ffb4a8",
-                        "tertiary-fixed": "#ffdbca",
-                        "tertiary-container": "#b5530a",
-                        "outline-variant": "#5f3f3a",
-                        "surface-bright": "#4b3330",
-                        "secondary-container": "#017756",
-                        "on-primary-fixed": "#410000",
-                        "on-error": "#690005",
-                        "surface-variant": "#462f2b",
-                        "surface-container": "#2e1a17",
-                        "on-secondary-fixed": "#002115",
-                        "tertiary-fixed-dim": "#ffb68e",
-                        "on-surface": "#ffdad4",
-                        "inverse-on-surface": "#412b27",
-                        "error-container": "#93000a",
-                        "surface-container-lowest": "#1a0907",
-                        "primary-container": "#e10101",
-                        "on-secondary": "#003827",
-                        "primary-fixed": "#ffdad4",
-                        "secondary-fixed": "#97f5cc",
-                        "background": "#200e0c",
-                        "surface-container-low": "#2a1613",
-                        "on-primary-fixed-variant": "#930000",
-                        "on-tertiary-fixed-variant": "#763300",
-                        "on-surface-variant": "#e9bcb5",
-                        "tertiary": "#ffb68e",
-                        "on-secondary-fixed-variant": "#00513a",
-                        "error": "#ffb4ab",
-                        "on-tertiary-container": "#fff2ec",
-                        "surface": "#200e0c",
-                        "secondary": "#7bd8b1",
-                        "surface-container-highest": "#462f2b",
-                        "surface-container-high": "#3a2521",
-                        "inverse-surface": "#ffdad4",
-                        "on-error-container": "#ffdad6",
-                        "primary-fixed-dim": "#ffb4a8",
-                        "on-tertiary-fixed": "#331200",
-                        "surface-dim": "#200e0c",
-                        "on-secondary-container": "#9dfbd1",
-                        "on-primary": "#690000",
-                        "on-tertiary": "#532200",
-                        "surface-tint": "#ffb4a8"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    "spacing": {
-                        "section-gap": "3rem",
-                        "container-padding-sm": "1rem",
-                        "stack-gap": "0.75rem",
-                        "gutter": "1rem",
-                        "container-padding-lg": "1.5rem"
-                    },
-                    "fontFamily": {
-                        "subsection-title": ["Manrope"],
-                        "section-title": ["Manrope"],
-                        "code-label": ["JetBrains Mono"],
-                        "page-title-mobile": ["Manrope"],
-                        "body-dense": ["Manrope"],
-                        "page-title": ["Manrope"],
-                        "body-base": ["Manrope"]
-                    },
-                    "fontSize": {
-                        "subsection-title": ["24px", { "lineHeight": "1.3", "fontWeight": "700" }],
-                        "section-title": ["36px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "800" }],
-                        "code-label": ["13px", { "lineHeight": "1.5", "fontWeight": "500" }],
-                        "page-title-mobile": ["32px", { "lineHeight": "1.2", "fontWeight": "800" }],
-                        "body-dense": ["14px", { "lineHeight": "24px", "fontWeight": "400" }],
-                        "page-title": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800" }],
-                        "body-base": ["16px", { "lineHeight": "28px", "fontWeight": "400" }]
-                    }
-                }
-            }
-        }
-    </script>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        .material-symbols-outlined.fill {
-            font-variation-settings: 'FILL' 1;
-        }
-        
-        /* Custom scrollbar for webkit */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(46, 26, 23, 0.5); 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(175, 135, 129, 0.3); 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(175, 135, 129, 0.5); 
-        }
-        
-        /* Glow effect on focus/active */
-        .glow-focus:focus-within {
-            box-shadow: 0 0 0 4px rgba(225, 1, 1, 0.08);
-            border-color: #e10101;
-            outline: none;
-        }
-        
-        .card-hover {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .card-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.55), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .pulse-border {
-            animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        
-        @keyframes pulse-border {
-            0%, 100% { border-color: rgba(225, 1, 1, 0.5); }
-            50% { border-color: rgba(225, 1, 1, 1); }
-        }
-
-        .shimmer {
-            background: linear-gradient(90deg, #3a2521 0%, #462f2b 50%, #3a2521 100%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite linear;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-    </style>
-</head>
-<body class="bg-background text-on-surface font-body-base antialiased min-h-screen flex flex-col md:flex-row overflow-hidden">
-<!-- TopNavBar (Mobile Only) -->
-<nav class="md:hidden flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-outline-variant shadow-md">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-primary text-3xl">terminal</span>
-<div class="font-page-title-mobile text-page-title-mobile font-extrabold text-primary">BLT HackerHouse</div>
-</div>
-<div class="flex items-center gap-4 text-primary">
-<button class="hover:bg-surface-container-high p-2 rounded-full transition-colors duration-200">
-<span class="material-symbols-outlined">search</span>
-</button>
-<button class="hover:bg-surface-container-high p-2 rounded-full transition-colors duration-200">
-<span class="material-symbols-outlined">menu</span>
-</button>
-</div>
-</nav>
-<!-- SideNavBar (Desktop) -->
-<nav class="hidden md:flex flex-col h-screen w-[18.5rem] sticky left-0 top-0 bg-surface-container border-r border-outline-variant shadow-lg p-gutter gap-stack-gap z-40 shrink-0">
-<!-- Header -->
-<div class="flex items-center gap-3 px-4 py-6 mb-2">
-<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-xl shadow-[0_0_15px_rgba(225,1,1,0.3)]">
-<span class="material-symbols-outlined">terminal</span>
-</div>
-<div>
-<h1 class="font-section-title text-section-title font-black text-primary leading-tight text-xl">BLT HackerHouse</h1>
-<p class="font-code-label text-code-label text-on-surface-variant text-xs mt-0.5">Command Center</p>
-</div>
-</div>
-<!-- Main Navigation -->
-<div class="flex flex-col gap-1 flex-grow">
-<!-- Inactive -->
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 hover:translate-x-1" href="#">
-<span class="material-symbols-outlined">home</span>
-<span class="font-body-base text-body-base font-medium">HackerHouse</span>
-</a>
-<!-- Active -->
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-container text-on-primary-container shadow-[inset_0_0_8px_rgba(225,1,1,0.2)] font-bold" href="#">
-<span class="material-symbols-outlined fill">rss_feed</span>
-<span class="font-body-base text-body-base">Activity Feed</span>
-</a>
-<!-- Inactive -->
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 hover:translate-x-1" href="#">
-<span class="material-symbols-outlined">leaderboard</span>
-<span class="font-body-base text-body-base font-medium">Leaderboard</span>
-</a>
-<!-- Inactive -->
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 hover:translate-x-1" href="#">
-<span class="material-symbols-outlined">sensors</span>
-<span class="font-body-base text-body-base font-medium">Status</span>
-</a>
-<!-- Inactive -->
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300 hover:translate-x-1" href="#">
-<span class="material-symbols-outlined">monitor_heart</span>
-<span class="font-body-base text-body-base font-medium">Health</span>
-</a>
-</div>
-<!-- CTA -->
-<div class="mt-auto mb-4 px-2">
-<button class="w-full py-3 px-4 bg-primary-container text-on-primary-container rounded-xl font-bold font-body-base shadow-[0_4px_14px_rgba(225,1,1,0.3)] hover:bg-[#B91C1C] transition-all duration-300 flex items-center justify-center gap-2">
-<span class="material-symbols-outlined text-sm">wifi_tethering</span>
-                Connect Node
-            </button>
-</div>
-<!-- Footer Navigation -->
-<div class="flex flex-col gap-1 border-t border-outline-variant pt-4">
-<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300" href="#">
-<span class="material-symbols-outlined text-[20px]">settings</span>
-<span class="font-body-dense text-body-dense font-medium">Settings</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-300" href="#">
-<span class="material-symbols-outlined text-[20px]">help</span>
-<span class="font-body-dense text-body-dense font-medium">Support</span>
-</a>
-</div>
-</nav>
-<!-- Main Content Canvas -->
-<main class="flex-1 overflow-y-auto bg-background p-4 md:p-8 h-screen w-full relative">
-<!-- Header -->
-<div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-<div>
-<h1 class="font-page-title text-page-title-mobile md:text-page-title text-on-surface mb-2">Activity Feed</h1>
-<p class="font-body-base text-body-base text-on-surface-variant">Real-time chronological events across all nodes.</p>
-</div>
-<div class="flex items-center gap-3 text-sm font-code-label text-code-label text-on-surface-variant bg-surface-container-low px-4 py-2 rounded-lg border border-outline-variant">
-<span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-secondary-fixed animate-pulse"></span> SYSTEM ONLINE</span>
-</div>
-</div>
-<!-- Filter Bar -->
-<div class="bg-surface-container rounded-xl border border-outline-variant p-4 mb-8 flex flex-col xl:flex-row gap-4 items-center justify-between shadow-sm">
-<!-- Search -->
-<div class="relative w-full xl:w-96 glow-focus rounded-xl">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-<input class="w-full bg-surface-container-highest border border-outline-variant rounded-xl pl-10 pr-4 py-2.5 font-code-label text-code-label text-on-surface placeholder-on-surface-variant focus:ring-0 focus:border-primary-container transition-colors" placeholder="Search events, commits, users..." type="text">
-</div>
-<div class="flex flex-wrap items-center gap-4 w-full xl:w-auto justify-between xl:justify-end">
-<!-- Source Chips -->
-<div class="flex items-center gap-2">
-<span class="font-code-label text-code-label text-on-surface-variant mr-2">Source:</span>
-<button class="px-3 py-1.5 rounded-full border border-[#fc6d26] bg-[#fc6d26]/10 text-[#fc6d26] font-code-label text-code-label flex items-center gap-1 hover:bg-[#fc6d26]/20 transition-colors">
-<span class="material-symbols-outlined text-[16px]">integration_instructions</span>
-                        GitLab
-                    </button>
-<button class="px-3 py-1.5 rounded-full border border-primary-container bg-primary-container/10 text-primary-fixed flex items-center gap-1 hover:bg-primary-container/20 transition-colors font-code-label text-code-label">
-<span class="material-symbols-outlined text-[16px]">terminal</span>
-                        BLT
-                    </button>
-</div>
-<div class="w-px h-6 bg-outline-variant hidden sm:block"></div>
-<!-- Event Type Dropdown (Simulated) -->
-<button class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-outline-variant bg-surface-container-highest hover:bg-surface-container-high transition-colors text-on-surface font-body-dense text-body-dense font-medium">
-<span class="material-symbols-outlined text-[20px]">filter_list</span>
-                    All Events
-                    <span class="material-symbols-outlined text-[20px] text-on-surface-variant ml-2">expand_more</span>
-</button>
-</div>
-</div>
-<!-- Event List -->
-<div class="flex flex-col gap-4 mb-8">
-<!-- Timeline Line Background (Simulated via padding/borders on cards to keep layout fluid) -->
-<!-- Event Card 1 (GitLab Merge Request) -->
-<div class="bg-surface-container border border-outline-variant rounded-xl p-0 flex overflow-hidden card-hover group relative">
-<!-- Vertical Source Bar -->
-<div class="w-1.5 bg-[#fc6d26] shrink-0"></div>
-<div class="p-5 flex flex-col sm:flex-row gap-5 w-full items-start">
-<!-- Avatar/Icon -->
-<div class="relative shrink-0 mt-1">
-<div class="w-12 h-12 rounded-full border-2 border-outline-variant overflow-hidden bg-surface-container-highest flex items-center justify-center">
-<img alt="Alex Chen avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwEalb9YYBkVSZcvUq4iI2WQYNmeUfnu7SL7sPasfqtaxFGccyT0x-OnchCXSY0zwDqii-D7zOq2M3DGsuAwr0lO1tsoCLwDFisUyC3RnfX8Yl-Jt5YZhiF7Ij7sdKYMGw5_FGj3y2R6orZKikOxuf7a1bVUEJnI3fhZajL8L6te93-bVi60qW-ZyxIQPZlDBNEYipvqWiUAiXFT4jfvCpRaqK6R2d_U0TY6C5X6-lqxIEGv_cMef5M6ah8FH0Pb0dj9BI15ZuRUv0">
-</div>
-<div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-surface border-2 border-surface-container flex items-center justify-center">
-<span class="material-symbols-outlined text-[14px] text-[#fc6d26]">merge</span>
-</div>
-</div>
-<!-- Content -->
-<div class="flex-1 min-w-0">
-<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-<div class="flex items-center gap-2 flex-wrap">
-<span class="font-bold text-on-surface">Alex Chen</span>
-<span class="font-code-label text-code-label px-2 py-0.5 rounded bg-surface-container-highest border border-outline-variant text-on-surface-variant">Merge Request Opened</span>
-<span class="text-secondary font-code-label text-[12px] bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/20">+15 BLT</span>
-</div>
-<span class="font-code-label text-code-label text-on-surface-variant shrink-0 flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px]">schedule</span> 2 mins ago
-                            </span>
-</div>
-<h3 class="font-subsection-title text-[18px] font-bold text-primary-fixed mb-1 truncate">feat: implement dark mode toggle</h3>
-<p class="font-body-dense text-body-dense text-on-surface-variant mb-3 line-clamp-2">Added the ability to switch between light and dark themes using Tailwind's class strategy. Includes local storage persistence.</p>
-<div class="flex items-center gap-3">
-<span class="font-code-label text-[12px] text-on-surface-variant flex items-center gap-1">
-<span class="material-symbols-outlined text-[16px]">folder_open</span> frontend-core
-                            </span>
-<span class="font-code-label text-[12px] text-on-surface-variant flex items-center gap-1">
-<span class="material-symbols-outlined text-[16px]">commit</span> !428
-                            </span>
-</div>
-</div>
-</div>
-</div>
-<!-- Event Card 2 (BLT System Event) -->
-<div class="bg-surface-container border border-outline-variant rounded-xl p-0 flex overflow-hidden card-hover group relative">
-<div class="w-1.5 bg-primary-container shrink-0"></div>
-<div class="p-5 flex flex-col sm:flex-row gap-5 w-full items-start">
-<div class="relative shrink-0 mt-1">
-<div class="w-12 h-12 rounded-full border-2 border-primary-container overflow-hidden bg-primary-container/10 flex items-center justify-center text-primary-container">
-<span class="material-symbols-outlined text-2xl">trophy</span>
-</div>
-</div>
-<div class="flex-1 min-w-0">
-<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-<div class="flex items-center gap-2 flex-wrap">
-<span class="font-bold text-on-surface">System</span>
-<span class="font-code-label text-code-label px-2 py-0.5 rounded bg-primary-container/20 border border-primary-container/50 text-primary-fixed">Milestone Reached</span>
-</div>
-<span class="font-code-label text-code-label text-on-surface-variant shrink-0 flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px]">schedule</span> 15 mins ago
-                            </span>
-</div>
-<h3 class="font-subsection-title text-[18px] font-bold text-primary-fixed mb-1">Weekly Sprint Goal Achieved</h3>
-<p class="font-body-dense text-body-dense text-on-surface-variant">The house has collectively merged 50 pull requests this week. +100 bonus BLT distributed to all active nodes.</p>
-</div>
-</div>
-</div>
-<!-- Event Card 3 (GitLab Push) -->
-<div class="bg-surface-container border border-outline-variant rounded-xl p-0 flex overflow-hidden card-hover group relative">
-<div class="w-1.5 bg-[#fc6d26] shrink-0"></div>
-<div class="p-5 flex flex-col sm:flex-row gap-5 w-full items-start">
-<div class="relative shrink-0 mt-1">
-<div class="w-12 h-12 rounded-full border-2 border-outline-variant overflow-hidden bg-surface-container-highest flex items-center justify-center">
-<img alt="Sarah Jenkins avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnQSzjj8jaK3yRwrDSm_nsEvnWNzahZESW2UH7To8qZVV5C3kyyyrGZmaQUKBAiazhGnGS27A37zu2p7tjCIbLxpf5p8B2CimeOEGm-mzgznmLNB4XJz5muLjTe1uwYqM_wfgO_Kf2cJpIQZH1DFpii-zw753TPfXMLwM6q_fwW_lLgYceyiPNwUHS-8PSBzQxkLvWgSHU2hUbU_o8XDCfN5f6PL7gy0YJs4FRIHyvt4qrRp_CrIWACtM5C80rhXJrKs6La_K3pYys">
-</div>
-<div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-surface border-2 border-surface-container flex items-center justify-center">
-<span class="material-symbols-outlined text-[14px] text-[#fc6d26]">publish</span>
-</div>
-</div>
-<div class="flex-1 min-w-0">
-<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-<div class="flex items-center gap-2 flex-wrap">
-<span class="font-bold text-on-surface">Sarah J.</span>
-<span class="font-code-label text-code-label px-2 py-0.5 rounded bg-surface-container-highest border border-outline-variant text-on-surface-variant">Pushed Commits</span>
-<span class="text-secondary font-code-label text-[12px] bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/20">+5 BLT</span>
-</div>
-<span class="font-code-label text-code-label text-on-surface-variant shrink-0 flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px]">schedule</span> 1 hour ago
-                            </span>
-</div>
-<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-3 mt-3 font-code-label text-code-label">
-<div class="flex items-center gap-2 mb-1 text-on-surface">
-<span class="text-secondary">a1b2c3d</span>
-<span>fix: memory leak in dashboard polling</span>
-</div>
-<div class="flex items-center gap-2 text-on-surface">
-<span class="text-secondary">f8e7d6c</span>
-<span>refactor: cleanup unused API endpoints</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Skeleton Loading State -->
-<div class="bg-surface-container border border-outline-variant rounded-xl p-0 flex overflow-hidden opacity-70">
-<div class="w-1.5 bg-outline-variant shrink-0"></div>
-<div class="p-5 flex flex-col sm:flex-row gap-5 w-full items-start">
-<div class="w-12 h-12 rounded-full shimmer shrink-0 mt-1"></div>
-<div class="flex-1 w-full">
-<div class="flex justify-between mb-4">
-<div class="w-32 h-5 rounded shimmer"></div>
-<div class="w-20 h-4 rounded shimmer"></div>
-</div>
-<div class="w-3/4 h-6 rounded shimmer mb-3"></div>
-<div class="w-full h-4 rounded shimmer mb-2"></div>
-<div class="w-2/3 h-4 rounded shimmer"></div>
-</div>
-</div>
-</div>
-</div>
-<!-- Pagination -->
-<div class="flex items-center justify-between border-t border-outline-variant pt-6 mt-8 pb-12">
-<button class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface disabled:opacity-50 transition-colors flex items-center gap-2 font-code-label" disabled="">
-<span class="material-symbols-outlined text-[18px]">arrow_back</span>
-                Prev
-            </button>
-<div class="font-code-label text-code-label text-on-surface-variant bg-surface-container-low px-4 py-1.5 rounded-full border border-outline-variant">
-                Page <span class="text-on-surface font-bold">1</span> of 7
-            </div>
-<button class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors flex items-center gap-2 font-code-label">
-                Next
-                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-</button>
-</div>
-</main>
-<!-- Score Fly-up Template (Hidden, referenced by JS ideally) -->
-<div class="hidden absolute font-code-label text-secondary font-bold z-50 pointer-events-none drop-shadow-md" id="flyup-template">
-        +10 BLT
-    </div>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,200&display=swap" rel="stylesheet">
+<script src="assets/js/theme.js"></script>
+<link rel="stylesheet" href="assets/css/blt-design.css">
+<link rel="stylesheet" href="assets/css/hackerhouse.css">
 <script>
-        // Simple fly-up animation logic (demonstration)
-        function triggerFlyup(x, y, amount) {
-            const template = document.getElementById('flyup-template');
-            const clone = template.cloneNode(true);
-            clone.id = '';
-            clone.classList.remove('hidden');
-            clone.textContent = `+${amount} BLT`;
-            
-            // Set initial position
-            clone.style.left = `${x}px`;
-            clone.style.top = `${y}px`;
-            
-            // Add to body
-            document.body.appendChild(clone);
-            
-            // Animate
-            const animation = clone.animate([
-                { transform: 'translateY(0)', opacity: 1 },
-                { transform: 'translateY(-40px)', opacity: 0 }
-            ], {
-                duration: 600,
-                easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
-            });
-            
-            animation.onfinish = () => clone.remove();
-        }
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      },
+    },
+  },
+};
+</script>
+<style>
+.sidebar-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 160ms ease;
+  color: var(--blt-text-muted);
+}
+.sidebar-link:hover { background: var(--blt-surface-muted); color: var(--blt-text); }
+.sidebar-link[aria-current="page"],
+.sidebar-link.active {
+  background: var(--blt-primary-soft) !important;
+  color: var(--blt-primary) !important;
+  font-weight: 600;
+}
+.sidebar-link[aria-current="page"]::before,
+.sidebar-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 55%;
+  background: var(--blt-primary);
+  border-radius: 0 2px 2px 0;
+}
+.sidebar-link[aria-current="page"] .nav-icon,
+.sidebar-link.active .nav-icon { color: var(--blt-primary) !important; }
 
-        // Add subtle interaction to cards to demonstrate the flyup
-        document.querySelectorAll('.card-hover').forEach(card => {
-            card.addEventListener('click', (e) => {
-                const rect = card.getBoundingClientRect();
-                triggerFlyup(e.clientX, e.clientY - 20, Math.floor(Math.random() * 15) + 5);
-            });
-        });
-    </script>
-</body></html>
+/* Source chip variants */
+.source-chip-gitlab {
+  background: rgba(252, 109, 38, 0.1);
+  border: 1px solid rgba(252, 109, 38, 0.3);
+  color: #fc6d26;
+}
+.source-chip-gitlab:hover {
+  background: rgba(252, 109, 38, 0.2);
+}
+.source-chip-blt {
+  background: var(--blt-primary-soft);
+  border: 1px solid color-mix(in srgb, var(--blt-primary) 30%, transparent);
+  color: var(--blt-primary);
+}
+.source-chip-blt:hover {
+  background: color-mix(in srgb, var(--blt-primary) 16%, transparent);
+}
+</style>
+</head>
+<body class="min-h-screen font-sans antialiased bg-[var(--blt-background)] text-[var(--blt-text)]">
+
+<div class="lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)] min-h-screen">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="hidden lg:flex lg:flex-col lg:h-screen lg:sticky lg:top-0 bg-[var(--blt-surface)] border-r border-[var(--blt-border)] overflow-y-auto" aria-label="Main navigation">
+    <div class="flex items-center justify-between px-4 pt-5 pb-4">
+      <a class="flex items-center gap-2.5" href="#">
+        <div class="w-8 h-8 rounded-md bg-[var(--blt-primary)] flex items-center justify-center text-white font-extrabold text-sm">B</div>
+        <div>
+          <span class="text-sm font-semibold tracking-tight text-[var(--blt-text)]">BLT HackerHouse</span>
+          <p class="text-[10px] font-mono text-[var(--blt-text-subtle)] tracking-wider">COMMAND CENTER</p>
+        </div>
+      </a>
+    </div>
+    <div class="h-px bg-[var(--blt-border)] mx-4 mb-3"></div>
+    <nav class="flex-1 px-3 space-y-0.5" aria-label="Pages">
+      <a class="sidebar-link" href="hackerhouse_state.html">
+        <span class="material-symbols-outlined nav-icon text-lg">home</span>
+        HackerHouse
+      </a>
+      <a class="sidebar-link active" aria-current="page" href="#">
+        <span class="material-symbols-outlined nav-icon text-lg" style="font-variation-settings:'FILL' 1">rss_feed</span>
+        Activity Feed
+      </a>
+      <a class="sidebar-link" href="leaderboard.html">
+        <span class="material-symbols-outlined nav-icon text-lg">leaderboard</span>
+        Leaderboard
+      </a>
+      <a class="sidebar-link" href="status_health.html">
+        <span class="material-symbols-outlined nav-icon text-lg">sensors</span>
+        Status
+      </a>
+    </nav>
+    <div class="px-3 pt-3">
+      <button class="hh-theme-toggle w-full" type="button" data-theme-toggle>
+        <span class="material-symbols-outlined text-sm theme-icon-light">dark_mode</span>
+        <span class="material-symbols-outlined text-sm theme-icon-dark" style="display:none">light_mode</span>
+        <span class="text-xs font-semibold" data-theme-label>Dark</span>
+      </button>
+    </div>
+    <div class="mt-3 mb-4 px-3 pt-3 border-t border-[var(--blt-border)]">
+      <button class="blt-button-primary w-full text-xs" onclick="alert('Node connection coming soon')">
+        <span class="material-symbols-outlined text-sm">wifi_tethering</span>
+        Connect Node
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="blt-page-main px-4 py-6 sm:px-6 lg:px-8 min-h-screen">
+
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[var(--blt-text)]">Activity Feed</h1>
+        <p class="text-sm text-[var(--blt-text-muted)] mt-1">Real-time chronological events across all nodes.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="blt-status-badge blt-status-success text-[10px]">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" style="animation:hh-pulse-dot 1.5s ease-in-out infinite"></span>
+          SYSTEM ONLINE
+        </span>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="blt-card p-4 mb-8 flex flex-col xl:flex-row gap-4 items-center justify-between">
+      <!-- Search -->
+      <div class="relative w-full xl:w-80">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--blt-text-subtle)]">search</span>
+        <input class="w-full bg-[var(--blt-surface-muted)] border border-[var(--blt-border-strong)] rounded-lg pl-10 pr-4 py-2.5 text-sm font-mono text-[var(--blt-text)] placeholder-[var(--blt-text-subtle)] focus:outline-none focus:border-[var(--blt-primary)] focus:ring-1 focus:ring-[var(--blt-primary)] transition-colors" placeholder="Search events, commits, users..." type="text">
+      </div>
+      <div class="flex items-center gap-3 w-full xl:w-auto">
+        <!-- Source Chips -->
+        <div class="flex items-center gap-2">
+          <span class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider">Source:</span>
+          <button class="source-chip-gitlab px-3 py-1 rounded-full font-mono text-[11px] font-semibold flex items-center gap-1 transition-colors">
+            <span class="material-symbols-outlined text-sm">integration_instructions</span>
+            GitLab
+          </button>
+          <button class="source-chip-blt px-3 py-1 rounded-full font-mono text-[11px] font-semibold flex items-center gap-1 transition-colors">
+            <span class="material-symbols-outlined text-sm">terminal</span>
+            BLT
+          </button>
+        </div>
+        <div class="w-px h-5 bg-[var(--blt-border)] hidden sm:block"></div>
+        <!-- Event Type -->
+        <button class="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-[var(--blt-border)] bg-[var(--blt-surface-muted)] hover:bg-[var(--blt-surface-raised)] transition-colors text-sm text-[var(--blt-text-muted)] font-medium">
+          <span class="material-symbols-outlined text-sm">filter_list</span>
+          All Events
+          <span class="material-symbols-outlined text-sm text-[var(--blt-text-subtle)]">expand_more</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Event List (populated by JS) -->
+    <div id="activity-list" class="space-y-3 mb-8">
+      <div class="flex items-center justify-center py-16 text-sm text-[var(--blt-text-subtle)]">Loading activity…</div>
+    </div>
+
+    <!-- Skeleton Loading (shown during fetch) -->
+    <div id="activity-skeleton" class="space-y-3 mb-8 hidden">
+      <div class="hh-event-card flex opacity-60">
+        <div class="w-1 shrink-0" style="background:var(--blt-border)"></div>
+        <div class="p-5 flex gap-4 w-full items-start">
+          <div class="w-10 h-10 rounded-full hh-skeleton shrink-0"></div>
+          <div class="flex-1 space-y-2">
+            <div class="flex justify-between"><div class="w-32 h-4 rounded hh-skeleton"></div><div class="w-20 h-3 rounded hh-skeleton"></div></div>
+            <div class="w-3/4 h-5 rounded hh-skeleton"></div>
+            <div class="w-full h-3 rounded hh-skeleton"></div>
+          </div>
+        </div>
+      </div>
+      <div class="hh-event-card flex opacity-40">
+        <div class="w-1 shrink-0" style="background:var(--blt-border)"></div>
+        <div class="p-5 flex gap-4 w-full items-start">
+          <div class="w-10 h-10 rounded-full hh-skeleton shrink-0"></div>
+          <div class="flex-1 space-y-2">
+            <div class="flex justify-between"><div class="w-28 h-4 rounded hh-skeleton"></div><div class="w-16 h-3 rounded hh-skeleton"></div></div>
+            <div class="w-2/3 h-5 rounded hh-skeleton"></div>
+            <div class="w-full h-3 rounded hh-skeleton"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="activity-pagination" class="flex items-center justify-between border-t border-[var(--blt-border)] pt-6 pb-12 hidden">
+      <button id="btn-prev" class="blt-button-secondary text-xs" disabled>
+        <span class="material-symbols-outlined text-sm">arrow_back</span>
+        Prev
+      </button>
+      <div class="font-mono text-xs text-[var(--blt-text-subtle)] bg-[var(--blt-surface-muted)] px-3 py-1.5 rounded-md border border-[var(--blt-border)]">
+        Page <span id="page-num" class="font-bold text-[var(--blt-text)]">1</span> of <span id="page-total">1</span>
+      </div>
+      <button id="btn-next" class="blt-button-secondary text-xs">
+        Next
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </button>
+    </div>
+
+  </main>
+</div>
+
+<script>
+(function() {
+  var currentPage = 1;
+  var totalPages = 1;
+
+  var EVENT_ICONS = {
+    push: 'publish',
+    issue_opened: 'bug_report',
+    issue_closed: 'check_circle',
+    mr_opened: 'merge',
+    mr_merged: 'merge_type',
+    mr_closed: 'cancel',
+    pipeline_succeeded: 'check_circle',
+    pipeline_failed: 'error',
+    note_added: 'chat',
+    review_requested: 'rate_review',
+    bug_submitted: 'pest_control',
+    bug_verified: 'verified',
+    hunt_started: 'swords',
+    hunt_ended: 'military_tech',
+    bug_bounty_submitted: 'rewarded_ads',
+  };
+
+  function timeAgo(iso) {
+    var diff = Date.now() - new Date(iso).getTime();
+    var sec = Math.floor(diff / 1000);
+    if (sec < 60) return 'just now';
+    var min = Math.floor(sec / 60);
+    if (min < 60) return min + 'm ago';
+    var hr = Math.floor(min / 60);
+    if (hr < 24) return hr + 'h ago';
+    var d = Math.floor(hr / 24);
+    return d + 'd ago';
+  }
+
+  function sourceColor(source) {
+    return source === 'gitlab' ? '#fc6d26' : 'var(--blt-primary)';
+  }
+
+  function renderCard(ev) {
+    var color = sourceColor(ev.source);
+    var icon = EVENT_ICONS[ev.event_type] || 'circle';
+    var typeLabel = (ev.event_type || 'unknown').replace(/_/g, ' ');
+    var title = ev.metadata && ev.metadata.title ? ev.metadata.title : (ev.event_type || 'Event').replace(/_/g, ' ');
+
+    var avatarHtml = '';
+    if (ev.avatar_url) {
+      avatarHtml = '<span class="material-symbols-outlined text-lg hh-feed-avatar-icon" style="color:' + color + '">&nbsp;</span>' +
+        '<img src="' + ev.avatar_url + '" class="hh-avatar-img-feed" alt="' + ev.actor_name + '" data-icon="' + icon + '" loading="lazy">';
+    } else {
+      avatarHtml = '<span class="material-symbols-outlined text-lg" style="color:' + color + '">' + icon + '</span>';
+    }
+
+    var repoHtml = ev.repository
+      ? '<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">folder_open</span>' + ev.repository + '</span>'
+      : '';
+
+    var metadataHtml = '';
+    if (ev.metadata) {
+      if (ev.metadata.commit_sha) {
+        metadataHtml += '<div class="flex items-center gap-2 text-[var(--blt-text-muted)]"><span class="text-emerald-500">' + ev.metadata.commit_sha.substring(0,7) + '</span><span>' + (ev.metadata.commit_title || '') + '</span></div>';
+      }
+      if (ev.metadata.mr_iid) {
+        metadataHtml += '<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">commit</span>!' + ev.metadata.mr_iid + '</span>';
+      }
+    }
+
+    return '<div class="hh-event-card flex">' +
+      '<div class="hh-event-source-bar" style="background:' + color + '"></div>' +
+      '<div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 w-full items-start">' +
+        '<div class="relative shrink-0 mt-0.5">' +
+          '<div class="w-10 h-10 rounded-full border-2 overflow-hidden bg-[var(--blt-surface-muted)] flex items-center justify-center" style="border-color:' + color + '">' +
+            avatarHtml +
+          '</div>' +
+          '<div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--blt-surface)] border-2 border-[var(--blt-surface)] flex items-center justify-center">' +
+            '<span class="material-symbols-outlined text-xs" style="color:' + color + '">' + icon + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="flex-1 min-w-0">' +
+          '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">' +
+            '<div class="flex items-center gap-2 flex-wrap">' +
+              '<span class="font-bold text-sm text-[var(--blt-text)]">' + ev.actor_name + '</span>' +
+              '<span class="blt-badge text-[10px]">' + typeLabel + '</span>' +
+            '</div>' +
+            '<span class="font-mono text-[11px] text-[var(--blt-text-subtle)] shrink-0 flex items-center gap-1">' +
+              '<span class="material-symbols-outlined text-xs">schedule</span>' + timeAgo(ev.timestamp) +
+            '</span>' +
+          '</div>' +
+          '<h3 class="font-bold text-base text-[var(--blt-text)] mb-1 truncate">' + title + '</h3>' +
+          (repoHtml || metadataHtml ? '<div class="flex items-center gap-3 text-[11px] font-mono text-[var(--blt-text-subtle)] mt-1">' + repoHtml + metadataHtml + '</div>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function fetchActivity(page) {
+    var list = document.getElementById('activity-list');
+    var skel = document.getElementById('activity-skeleton');
+    var pag = document.getElementById('activity-pagination');
+    if (!list) return;
+
+    list.classList.add('hidden');
+    if (skel) skel.classList.remove('hidden');
+    if (pag) pag.classList.add('hidden');
+
+    fetch('/activity?page=' + page + '&per_page=20')
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        if (skel) skel.classList.add('hidden');
+        list.classList.remove('hidden');
+
+        var data = resp.data || [];
+        if (data.length === 0) {
+          list.innerHTML = '<div class="flex items-center justify-center py-16 text-sm text-[var(--blt-text-subtle)]">No activity yet. Events will appear here as they arrive.</div>';
+          return;
+        }
+        list.innerHTML = data.map(renderCard).join('');
+
+        if (resp.pagination) {
+          currentPage = resp.pagination.page;
+          totalPages = resp.pagination.total_pages || 1;
+          document.getElementById('page-num').textContent = currentPage;
+          document.getElementById('page-total').textContent = totalPages;
+          document.getElementById('btn-prev').disabled = currentPage <= 1;
+          document.getElementById('btn-next').disabled = currentPage >= totalPages;
+          if (pag) pag.classList.remove('hidden');
+        }
+      })
+      .catch(function(err) {
+        if (skel) skel.classList.add('hidden');
+        list.classList.remove('hidden');
+        list.innerHTML = '<div class="flex items-center justify-center py-16 text-sm text-[var(--blt-text-subtle)]">Failed to load activity. Is the backend running?</div>';
+        console.error('Activity fetch failed', err);
+      });
+  }
+
+  function setupPagination() {
+    document.getElementById('btn-prev').addEventListener('click', function() {
+      if (currentPage > 1) fetchActivity(currentPage - 1);
+    });
+    document.getElementById('btn-next').addEventListener('click', function() {
+      if (currentPage < totalPages) fetchActivity(currentPage + 1);
+    });
+  }
+
+  // Click-to-fly-up animation
+  function triggerFlyup(x, y, amount) {
+    var el = document.createElement('div');
+    el.className = 'hh-score-float';
+    el.style.color = 'var(--blt-primary)';
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.position = 'fixed';
+    el.textContent = '+' + amount + ' pts';
+    document.body.appendChild(el);
+    setTimeout(function() { el.remove(); }, 800);
+  }
+
+  document.addEventListener('click', function(e) {
+    var card = e.target.closest('.hh-event-card');
+    if (card) triggerFlyup(e.clientX, e.clientY - 20, Math.floor(Math.random() * 15) + 5);
+  });
+
+  setupPagination();
+  document.addEventListener('DOMContentLoaded', function() { fetchActivity(1); });
+
+  // Fallback for broken avatar images
+  document.addEventListener('error', function(e) {
+    var img = e.target;
+    if (img && img.tagName === 'IMG' && img.classList.contains('hh-avatar-img-feed')) {
+      img.style.display = 'none';
+      var iconEl = img.parentElement.querySelector('.hh-feed-avatar-icon');
+      if (iconEl && img.dataset.icon) {
+        iconEl.textContent = img.dataset.icon;
+      }
+    }
+  }, true);
+})();
+</script>
+</body>
+</html>

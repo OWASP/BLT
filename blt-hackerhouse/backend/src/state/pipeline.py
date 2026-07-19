@@ -127,30 +127,27 @@ class PipelineRunner:
                 self.queue.task_done()
 
     async def _process_event(self, event: Event, resolver) -> None:
-        # 1. Dedup check (read-only) — defer persist so downstream failures
-        #    don't permanently block the idempotency key from retry.
-        if await is_duplicate(self.db, event):
-            logger.debug("pipeline dedup drop", extra={"key": event.idempotency_key})
+        # 1. Dedup + persist
+        inserted = await record_if_absent(self.db, event)
+        if not inserted:
+            logger.info("pipeline dedup dropped", extra={
+                "key": event.idempotency_key, "source": event.source, "type": event.event_type,
+            })
             return
 
-        # 2. Identity resolution
+        # 2. Sequence number (lock is scoped to increment + write only)
+        async with self._lock:
+            self._sequence += 1
+            seq = self._sequence
+
+        await self.events_q.assign_sequence(event.id, seq)
+
+        # 3. Identity resolution
         result = await resolver.resolve(event)
         contributor = await self.contributors_q.get(result.contributor_id)
         if contributor is None:
             logger.warning("pipeline missing contributor", extra={"id": str(result.contributor_id)})
             return
-
-        # 3. Persist + assign sequence FIRST — so if this succeeds the key is
-        #    consumed and downstream failures cannot leave stale side effects
-        #    for a replayable event.  If it fails (concurrent duplicate),
-        #    nothing was committed yet.
-        async with self._lock:
-            inserted = await record_if_absent(self.db, event)
-            if not inserted:
-                logger.debug("pipeline dedup drop (concurrent)", extra={"key": event.idempotency_key})
-                return
-            self._sequence += 1
-            await self.events_q.assign_sequence(event.id, self._sequence)
 
         # 4. Update avatar state
         room = resolve_room(event.event_type)

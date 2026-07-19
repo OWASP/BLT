@@ -42,7 +42,9 @@ class ActivityFeedItem(BaseModel):
     source: str
     event_type: str
     actor_name: str
-    repository: str = ""
+    contributor_id: str
+    avatar_url: str
+    repository: str
     timestamp: datetime
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -52,6 +54,7 @@ class LeaderboardEntry(BaseModel):
 
     contributor_id: UUID
     display_name: str
+    avatar_url: str = ""
     score: int = Field(ge=0)
     rank: int = Field(ge=1)
 
@@ -109,6 +112,9 @@ class ComponentHealth(BaseModel):
     event_count: int | None = None
     connected_clients: int | None = None
     resolution_cache_size: int | None = None
+    total_enqueued: int | None = None
+    last_error: str | None = None
+    tracked_projects: int | None = None
 
 
 class StateResponse(BaseModel):
@@ -133,6 +139,7 @@ class SnapshotStateContributor(BaseModel):
 
     id: UUID
     display_name: str
+    avatar_url: str = ""
     floor: int | None = None
     room: str | None = None
     identity_linked: bool = False

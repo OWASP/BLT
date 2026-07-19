@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
@@ -18,6 +19,18 @@ from ..models.websocket import (
     SnapshotData,
     SnapshotMessage,
 )
+
+AVATAR_COUNT = 10
+
+
+def avatar_url(contributor_id: UUID) -> str:
+    """Deterministic avatar URL for a contributor based on their UUID.
+
+    Hashes the UUID and picks one of the 10 available avatar PNGs.
+    """
+    digest = hashlib.sha256(str(contributor_id).encode()).hexdigest()
+    idx = int(digest, 16) % AVATAR_COUNT
+    return f"/avatars/avatar-{idx}.png"
 
 
 def _now() -> datetime:
@@ -36,6 +49,7 @@ def build_snapshot(
             SnapshotContributor(
                 id=c.id,
                 display_name=c.display_name,
+                avatar_url=avatar_url(c.id),
                 floor=avatar.floor if avatar else 1,
                 room=avatar.room if avatar else "activity_monitor",
                 identity_linked=c.is_linked,
