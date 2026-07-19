@@ -6,7 +6,7 @@ These tests verify that:
   - Navigation elements are present (navbar, theme toggle).
   - Page-specific UI elements are present (editor, consent form, etc.).
   - The correct JS/CSS assets are referenced.
-  - GitHub links are present where expected.
+  - GitLab links are present where expected.
 
 No browser or server is required – files are read directly from disk.
 """
@@ -97,7 +97,7 @@ def test_index_html_title():
     assert '<title>' in html
 
 
-def test_index_html_has_github_link():
+def test_index_html_has_gitlab_link():
     html = _read('index.html')
     assert 'gitlab.com/owasp-blt/blt-safecloak' in html
 
@@ -286,6 +286,6 @@ def test_video_room_html_has_walkie_banner():
     assert 'id="walkie-cue-text"' in html
 
 
-def test_video_room_html_has_github_footer():
+def test_video_room_html_has_gitlab_footer():
     html = _read('video-room.html')
     assert 'gitlab.com/owasp-blt/blt-safecloak' in html
