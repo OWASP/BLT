@@ -32,11 +32,12 @@ class EventQueries:
     async def insert(self, event: Event) -> bool:
         """Insert an event. Returns True if inserted, False if duplicate."""
         sql = """
-            INSERT OR IGNORE INTO events (
+            INSERT INTO events (
                 id, source, event_type, actor_id, actor_name,
                 contributor_id, repository, timestamp, metadata,
                 idempotency_key
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(idempotency_key) DO NOTHING
         """
         params = (
             str(event.id),
