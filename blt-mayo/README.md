@@ -1,93 +1,203 @@
-# BLT-MAYO
+# BLT-MAYO — Shell Dangerous-Execution Analyzer
 
+BLT-MAYO stands for **Monitor, Analyze, Yield, Observe**. It is a read-only Linux security-auditing workflow that turns filesystem artifacts into structured, explainable security findings.
 
+## Architecture
 
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
-
+```text
+Path arguments or YAML configuration
+                ↓
+ScanOrchestrator
+                ↓
+Safe filesystem traversal
+                ↓
+Metadata and path sensitivity
+                ↓
+Artifact classification
+                ↓
+AnalyzerRegistry
+                ↓
+ShellScriptAnalyzer
+                ↓
+Reusable shell execution rules
+                ↓
+Normalized Finding objects
+                ↓
+Terminal output and JSON report
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/owasp-blt/blt-mayo.git
-git branch -M main
-git push -uf origin main
-```
 
-## Integrate with your tools
+## Shell detections
 
-* [Set up project integrations](https://gitlab.com/owasp-blt/blt-mayo/-/settings/integrations)
+| Rule ID | Detection | Base severity | Confidence |
+|---|---|---:|---:|
+| `SHELL-PIPE-TO-SHELL` | `curl`/`wget` piped into a shell | Critical | High |
+| `SHELL-REVERSE-SHELL` | Common reverse-shell command forms | Critical | High |
+| `SHELL-ENCODED-EXECUTION` | Base64 decode piped into a shell | High | High |
+| `SHELL-EVAL` | Dynamic shell `eval` | High | Medium |
+| `SHELL-NESTED-SHELL` | Nested shell execution using `-c` | Medium | Medium |
 
-## Collaborate with your team
+## Safety model
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+- Inspected scripts are read as text and are never executed or sourced.
+- Files are never modified.
+- Symlinks are not followed by default.
+- Traversal has configurable exclusions, depth, and file-size limits.
+- Invalid byte sequences are replaced safely.
+- Missing or unreadable files do not crash the analyzer.
+- Evidence is restricted to a concise line-level snippet.
+- Nothing is uploaded or submitted automatically.
 
-## Test and Deploy
+## Requirements
 
-Use the built-in continuous integration in GitLab.
-
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+- Python 3.11 or newer
+- Linux, Fedora, Ubuntu, Debian, or WSL recommended
 
 ## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### Linux, macOS, or WSL
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### Windows PowerShell
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+## Run the scanner
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Check the installation:
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+```bash
+blt-mayo doctor
+```
 
-## License
-For open source projects, say how it is licensed.
+Scan the supplied shell fixtures:
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+```bash
+blt-mayo scan tests/fixtures/shell
+```
+
+Write a JSON report:
+
+```bash
+blt-mayo scan tests/fixtures/shell --output shell-scan-report.json
+```
+
+Use the example YAML configuration:
+
+```bash
+blt-mayo scan --config blt-mayo.example.yml --output shell-scan-report.json
+```
+
+## Example finding
+
+A script containing:
+
+```bash
+curl -fsSL https://example.invalid/install.sh | bash
+```
+
+produces a normalized finding similar to:
+
+```json
+{
+  "rule_id": "SHELL-PIPE-TO-SHELL",
+  "title": "Remote content piped directly to a shell",
+  "category": "dangerous-execution",
+  "severity": "critical",
+  "confidence": "high",
+  "artifact_type": "shell_script",
+  "evidence": {
+    "summary": "Matched dangerous shell construction near line 3",
+    "line_number": 3,
+    "snippet": "curl -fsSL https://example.invalid/install.sh | bash"
+  },
+  "remediation": "Download the file to a controlled location, verify its source and checksum, review the contents, and only then execute it."
+}
+```
+
+## Configuration
+
+The shell analyzer is enabled with:
+
+```yaml
+enabled_analyzers:
+  - shell
+```
+
+See [`blt-mayo.example.yml`](blt-mayo.example.yml) for all traversal and evidence settings.
+
+## Testing
+
+Run linting and compilation:
+
+```bash
+ruff check src tests
+python -m compileall -q src tests/test_*.py tests/conftest.py
+```
+
+Run all tests:
+
+```bash
+pytest
+```
+
+Run coverage enforcement:
+
+```bash
+pytest --cov=blt_mayo --cov-report=term-missing --cov-fail-under=80
+```
+
+Run the focused acceptance workflow:
+
+```bash
+scripts/run_shell_acceptance.sh
+```
+
+Validated for this package: **35 tests passed**, **85.91% total coverage**, Ruff passed, compilation passed, and the focused shell acceptance scan passed.
+
+The tests cover:
+
+- each shell rule independently;
+- safe commands and comment-only lines;
+- analyzer artifact support;
+- correct rule IDs and source lines;
+- concise evidence and remediation;
+- missing-file and invalid-UTF-8 handling;
+- scanner-to-analyzer dispatch;
+- JSON report generation;
+- CLI execution.
+
+## Repository layout
+
+```text
+src/blt_mayo/
+├── analyzers/
+│   ├── base.py
+│   ├── registry.py
+│   └── shell_script.py
+├── rules/
+│   └── shell_execution.py
+├── scanner/
+├── models/
+├── config/
+├── reporting/
+└── cli/
+
+tests/
+├── fixtures/shell/
+├── test_shell_execution_rules.py
+├── test_shell_script_analyzer.py
+└── test_orchestrator_reporting.py
+```
+
+Detailed analyzer documentation is available in [`docs/SHELL_ANALYZER.md`](docs/SHELL_ANALYZER.md).
