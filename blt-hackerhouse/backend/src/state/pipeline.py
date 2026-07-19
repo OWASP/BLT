@@ -169,7 +169,7 @@ class PipelineRunner:
         # 6. Broadcast
         self.hub.record_event()
         await self.hub.broadcast(
-            build_avatar_move(event, floor=room.floor, room=room.room)
+            build_avatar_move(event, floor=room.floor, room=room.room, contributor_id=contributor.id)
         )
         if result.flag is not None:
             try:

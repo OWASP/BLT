@@ -52,8 +52,7 @@ def build_snapshot(
     )
 
 
-def build_avatar_move(event: Event, floor: int, room: str) -> AvatarMoveMessage:
-    contributor_id = event.contributor_id or UUID(int=0)
+def build_avatar_move(event: Event, floor: int, room: str, *, contributor_id: UUID) -> AvatarMoveMessage:
     return AvatarMoveMessage(
         contributor_id=contributor_id,
         floor=floor,
