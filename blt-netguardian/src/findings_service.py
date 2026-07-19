@@ -9,8 +9,9 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
 
-from auth import AuthError, require_org_auth
+from auth import AuthError, require_org_auth, resolve_org_auth
 from blt_api_client import BltApiError, create_bug_from_finding, is_blt_api_configured
+from d1_compat import row_get
 from findings_store import (
     ALLOWED_SORT_FIELDS,
     ALLOWED_STATUSES,
@@ -103,6 +104,12 @@ def parse_findings_query(params: Mapping[str, str]) -> tuple[Optional[FindingsQu
 
 
 def _auth_or_error(env: Any, headers: Mapping[str, str]):
+    """Read-path auth: may fall back to default org when AUTHENTICATE_READ_ENDPOINTS=false."""
+    return resolve_org_auth(env, headers)
+
+
+def _mutation_auth_or_error(env: Any, headers: Mapping[str, str]):
+    """Write-path auth: always requires a valid Bearer token."""
     return require_org_auth(env, headers)
 
 
@@ -174,7 +181,7 @@ async def get_finding_for_request(
     ).hexdigest()[:16])
 
     try:
-        stored = json.loads(row.get("payload_json") or "{}")
+        stored = json.loads(row_get(row, "payload_json") or "{}")
     except json.JSONDecodeError:
         stored = {}
 
@@ -224,9 +231,9 @@ async def get_finding_for_request(
                 "decrypted": decrypted,
             },
             "envelope": {
-                "sender_id": row.get("sender_id"),
-                "kid": row.get("kid"),
-                "received_at": row.get("envelope_received_at"),
+                "sender_id": row_get(row, "sender_id"),
+                "kid": row_get(row, "kid"),
+                "received_at": row_get(row, "envelope_received_at"),
             },
             "access": {
                 "view_logged": True,
@@ -287,7 +294,7 @@ async def convert_to_issue_for_request(
     now: Optional[datetime] = None,
     fetch_impl: Any = None,
 ) -> FindingsListResult:
-    auth = _auth_or_error(env, headers)
+    auth = _mutation_auth_or_error(env, headers)
     if db is None:
         return FindingsListResult(
             status=503,
@@ -299,7 +306,7 @@ async def convert_to_issue_for_request(
     if row is None:
         return FindingsListResult(status=404, body={"error": "not_found", "message": "finding not found"})
 
-    existing = row.get("blt_issue_id")
+    existing = row_get(row, "blt_issue_id")
     if existing:
         return FindingsListResult(
             status=200,
@@ -373,7 +380,7 @@ async def update_finding_for_request(
     new_id: Any = None,
     now: Optional[datetime] = None,
 ) -> FindingsListResult:
-    auth = _auth_or_error(env, headers)
+    auth = _mutation_auth_or_error(env, headers)
     if db is None:
         return FindingsListResult(
             status=503,
@@ -415,7 +422,7 @@ async def update_finding_for_request(
         finding_id=finding_id,
         actor=auth.org_id,
         action="status_change",
-        detail={"from": row.get("status"), "to": status},
+        detail={"from": row_get(row, "status"), "to": status},
         created_at_unix=updated,
     )
 

@@ -114,17 +114,39 @@ async def test_update_finding_status(env, sample_findings):
 
 
 @pytest.mark.asyncio
-async def test_update_finding_rejects_invalid_status(env, sample_findings):
+async def test_update_finding_requires_token_even_when_reads_open(sample_findings):
+    env = SimpleNamespace(
+        NG_ORG_API_TOKENS=json.dumps({"token-org-a": "org-a"}),
+        AUTHENTICATE_READ_ENDPOINTS="false",
+    )
     db = FindingsFakeDB(sample_findings)
-    headers = {"Authorization": "Bearer token-org-a"}
+    from auth import AuthError
 
-    result = await update_finding_for_request(
+    with pytest.raises(AuthError):
+        await update_finding_for_request(
+            env=env,
+            db=db,
+            headers={},
+            finding_id="f1",
+            body={"status": "triaging"},
+            store=FindingsStore(db),
+        )
+
+
+@pytest.mark.asyncio
+async def test_list_findings_allows_open_reads_without_token(sample_findings):
+    env = SimpleNamespace(
+        NG_ORG_API_TOKENS=json.dumps({"token-org-a": "org-a"}),
+        AUTHENTICATE_READ_ENDPOINTS="false",
+        NG_DEFAULT_ORG="org-a",
+    )
+    db = FindingsFakeDB(sample_findings)
+    result = await list_findings_for_request(
         env=env,
         db=db,
-        headers=headers,
-        finding_id="f1",
-        body={"status": "bogus"},
+        headers={},
+        query_params={},
         store=FindingsStore(db),
     )
-
-    assert result.status == 400
+    assert result.status == 200
+    assert result.body["org_id"] == "org-a"

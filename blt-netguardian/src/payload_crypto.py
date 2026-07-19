@@ -33,11 +33,14 @@ class PayloadCryptoError(Exception):
 def _aesgcm(key: bytes):
     try:
         from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-    except ImportError as exc:  # pragma: no cover - depends on environment
-        raise PayloadCryptoError(
-            "AES-GCM backend unavailable; install 'cryptography' for local dev"
-        ) from exc
-    return AESGCM(key)
+
+        return AESGCM(key)
+    except ImportError:
+        # Cloudflare Workers ships no 'cryptography'; use the pure-Python backend
+        # (identical AES-256-GCM wire format) so encrypted evidence still works.
+        from aesgcm_pure import AESGCMPure
+
+        return AESGCMPure(key)
 
 
 def generate_key_b64() -> str:

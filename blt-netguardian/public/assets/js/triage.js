@@ -2,10 +2,6 @@
     "use strict";
 
     document.addEventListener('DOMContentLoaded', function () {
-        const authOverlay     = document.getElementById('auth-overlay');
-        const tokenInput      = document.getElementById('api-token');
-        const saveTokenBtn    = document.getElementById('save-token');
-        const authError       = document.getElementById('auth-error');
         const connPill        = document.getElementById('conn-pill');
         const connDot         = document.getElementById('conn-dot');
         const connLabel       = document.getElementById('conn-label');
@@ -26,10 +22,12 @@
         const viewListBtn     = document.getElementById('view-list');
         const tableWrap       = document.getElementById('findings-table-wrap');
         const listView        = document.getElementById('findings-list-view');
+        const layout          = document.querySelector('.layout');
+        const mobileTabBtns   = document.querySelectorAll('.mobile-tab');
+        const mobileMq        = window.matchMedia('(max-width: 900px)');
         const toast           = document.getElementById('toast');
 
         const IS_LOCAL   = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-        const DEMO_TOKEN = 'triage-token';
         const STATUSES   = ['open', 'triaging', 'converted', 'snoozed', 'wontfix'];
 
         let selectedRawId = null;
@@ -41,12 +39,36 @@
         let listViewMode = false;
         let lastHealth = null;
 
+        function isMobileView() { return mobileMq.matches; }
+
+        function setMobilePanel(name) {
+            if (!layout || !isMobileView()) return;
+            layout.classList.remove('panel-findings', 'panel-filters', 'panel-detail');
+            layout.classList.add('panel-' + name);
+            mobileTabBtns.forEach(function (btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-mobile-panel') === name);
+            });
+        }
+
+        function applyMobileLayout() {
+            if (isMobileView()) {
+                setListViewMode(true);
+                if (layout && !layout.classList.contains('panel-detail') &&
+                    !layout.classList.contains('panel-filters')) {
+                    layout.classList.add('panel-findings');
+                }
+            } else if (layout) {
+                layout.classList.remove('panel-findings', 'panel-filters', 'panel-detail');
+            }
+        }
+
         function onFindingClick(rawId) {
             if (!rawId) return;
             selectedRawId = rawId;
             document.querySelectorAll('.finding-row, .finding-list-card').forEach(function (el) {
                 el.classList.toggle('selected', el.getAttribute('data-raw-id') === rawId);
             });
+            if (isMobileView()) setMobilePanel('detail');
             loadFindingDetail(rawId);
         }
 
@@ -340,12 +362,44 @@
                 .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
-        function readStoredToken() {
-            try { return localStorage.getItem('ng_api_token'); } catch (_) { return null; }
+        function authHeaders(json) {
+            const h = {};
+            if (json) h['Content-Type'] = 'application/json';
+            const token = getStoredToken();
+            if (token) h['Authorization'] = 'Bearer ' + token;
+            return h;
         }
 
-        function writeStoredToken(t) {
-            try { localStorage.setItem('ng_api_token', t); } catch (_) {}
+        function getStoredToken() {
+            try { return localStorage.getItem('ng_api_token') || ''; } catch (_) { return ''; }
+        }
+
+        function setStoredToken(token) {
+            try {
+                if (token) localStorage.setItem('ng_api_token', token);
+                else localStorage.removeItem('ng_api_token');
+            } catch (_) {}
+        }
+
+        function openDemoMode() {
+            return !!(lastHealth && lastHealth.auth && lastHealth.auth.read_required === false);
+        }
+
+        function showAuthOverlay(show, message) {
+            const overlay = document.getElementById('auth-overlay');
+            const err = document.getElementById('auth-error');
+            if (!overlay) return;
+            overlay.classList.toggle('hidden', !show);
+            overlay.setAttribute('aria-hidden', show ? 'false' : 'true');
+            if (err) {
+                if (message) {
+                    err.hidden = false;
+                    err.textContent = message;
+                } else {
+                    err.hidden = true;
+                    err.textContent = '';
+                }
+            }
         }
 
         function showToast(text, kind) {
@@ -360,16 +414,6 @@
             connDot.className = 'conn-dot' + (ok ? ' live' : '');
             connLabel.textContent = label || (ok ? 'Connected' : 'Offline');
             connPill.classList.toggle('visible', ok);
-        }
-
-        function getToken() { return tokenInput.value.trim(); }
-
-        function authHeaders(json) {
-            const t = getToken();
-            if (!t) throw new Error('No token.');
-            const h = { Authorization: 'Bearer ' + t };
-            if (json) h['Content-Type'] = 'application/json';
-            return h;
         }
 
         async function apiRequest(path, opts) {
@@ -481,6 +525,21 @@
             if (viewListBtn) viewListBtn.classList.toggle('active', listMode);
         }
 
+        function targetParts(target) {
+            if (!target) return { host: '—', path: '' };
+            try {
+                if (/^https?:\/\//i.test(target)) {
+                    const u = new URL(target);
+                    const path = (u.pathname || '/') + (u.search || '');
+                    return {
+                        host: u.hostname,
+                        path: path === '/' ? '' : path,
+                    };
+                }
+            } catch (_) {}
+            return { host: '—', path: String(target) };
+        }
+
         function renderListCards(findings) {
             if (!listView) return;
             if (!findings.length) {
@@ -489,11 +548,16 @@
             }
             listView.innerHTML = findings.map(function (f) {
                 const sel = f.id === selectedRawId ? ' selected' : '';
+                const tp = targetParts(f.target);
+                const pathLine = tp.path
+                    ? '<div class="flc-path">' + esc(tp.path) + '</div>'
+                    : '';
                 return '<div class="finding-list-card' + sel + '" data-raw-id="' + esc(f.id) + '">' +
                     '<div class="flc-top"><span class="flc-id">' + esc(displayId(f.id)) + '</span>' +
-                    sevBadge(f.severity) + ' ' + statusPill(f.status) + '</div>' +
+                    '<div class="flc-badges">' + sevBadge(f.severity) + statusPill(f.status) + '</div></div>' +
                     '<div class="flc-rule">' + esc(f.rule_id || '—') + '</div>' +
-                    '<div class="flc-target">' + esc(f.target || '—') + '</div></div>';
+                    '<div class="flc-host">' + esc(tp.host) + '</div>' +
+                    pathLine + '</div>';
             }).join('');
         }
 
@@ -562,8 +626,11 @@
                 findingsCount.textContent = total + ' total' + (triageQueueOn ? ' · triage queue' : '');
                 const bltLabel = await checkIntegrations();
                 const label = data.org_id || 'connected';
-                setConnected(true, bltLabel ? label + ' · ' + bltLabel : label);
-                if (bltLabel === 'BLT-API down') {
+                const connText = isMobileView()
+                    ? label
+                    : (bltLabel ? label + ' · ' + bltLabel : label);
+                setConnected(true, connText);
+                if (!isMobileView() && bltLabel === 'BLT-API down') {
                     showToast('BLT-API unreachable — start: python3 local_dev/blt_api_stub.py', 'error');
                 }
             } catch (err) {
@@ -609,34 +676,18 @@
             }
         }
 
-        async function connect() {
-            const token = getToken();
-            if (!token) {
-                authError.textContent = 'Enter a token.';
-                authError.classList.remove('hidden');
-                return;
-            }
-            authError.classList.add('hidden');
-            writeStoredToken(token);
-            try {
-                await loadList();
-                authOverlay.classList.add('hidden');
-            } catch (err) {
-                setConnected(false, 'Auth failed');
-                authError.textContent = apiErrorMsg(err);
-                authError.classList.remove('hidden');
-                authOverlay.classList.remove('hidden');
-            }
-        }
-
-        if (saveTokenBtn) saveTokenBtn.addEventListener('click', connect);
-        if (tokenInput) {
-            tokenInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') connect(); });
-        }
         if (changeTokenBtn) {
             changeTokenBtn.addEventListener('click', function () {
-                authOverlay.classList.remove('hidden');
-                tokenInput.focus();
+                if (openDemoMode()) {
+                    showToast('Open triage — reads do not require a token in this demo.', 'success');
+                    return;
+                }
+                showAuthOverlay(true);
+                const input = document.getElementById('auth-token-input');
+                if (input) {
+                    input.value = getStoredToken();
+                    input.focus();
+                }
             });
         }
         if (btnAvatar) {
@@ -645,11 +696,11 @@
                     let msg = 'Connected: ' + connLabel.textContent;
                     if (lastHealth && lastHealth.integrations) {
                         const blt = lastHealth.integrations.blt_api;
-                        if (blt) msg += ' | BLT-API configured=' + blt.configured + ' reachable=' + blt.reachable;
+                        if (blt) msg += ' | BLT-API configured=' + blt.configured;
                     }
                     showToast(msg, 'success');
                 } else {
-                    authOverlay.classList.remove('hidden');
+                    showToast('Not connected — check API health.', 'error');
                 }
             });
         }
@@ -685,15 +736,69 @@
             viewListBtn.addEventListener('click', function () { setListViewMode(true); });
         }
 
-        const saved = readStoredToken();
-        if (saved) tokenInput.value = saved;
-        else if (IS_LOCAL) tokenInput.value = DEMO_TOKEN;
-
-        if (tokenInput && tokenInput.value) {
-            connect().catch(function () {});
-        } else if (authOverlay) {
-            authOverlay.classList.remove('hidden');
-            setConnected(false, 'Offline');
+        mobileTabBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                setMobilePanel(btn.getAttribute('data-mobile-panel'));
+            });
+        });
+        if (typeof mobileMq.addEventListener === 'function') {
+            mobileMq.addEventListener('change', applyMobileLayout);
+        } else if (typeof mobileMq.addListener === 'function') {
+            mobileMq.addListener(applyMobileLayout);
         }
+        applyMobileLayout();
+
+        (async function boot() {
+            try {
+                lastHealth = await apiRequest('/api/health');
+                const blt = lastHealth && lastHealth.integrations && lastHealth.integrations.blt_api;
+                const label = blt && blt.configured ? 'BLT-API configured' : 'API live';
+                setConnected(true, label);
+            } catch (_) {
+                lastHealth = null;
+                setConnected(false, 'Offline');
+            }
+
+            const authSubmit = document.getElementById('auth-submit');
+            const authInput = document.getElementById('auth-token-input');
+            if (authSubmit && authInput) {
+                authSubmit.addEventListener('click', async function () {
+                    const token = (authInput.value || '').trim();
+                    if (!token) {
+                        showAuthOverlay(true, 'Token required.');
+                        return;
+                    }
+                    setStoredToken(token);
+                    try {
+                        await loadList();
+                        showAuthOverlay(false);
+                        showToast('Connected with org token.', 'success');
+                    } catch (err) {
+                        setStoredToken('');
+                        showAuthOverlay(true, apiErrorMsg(err));
+                    }
+                });
+            }
+
+            if (openDemoMode()) {
+                // Open-read demo: do not force a token for GET, but keep any stored
+                // token so PATCH/convert still authenticate.
+                showAuthOverlay(false);
+                if (IS_LOCAL && !getStoredToken()) {
+                    setStoredToken('triage-token');
+                }
+                showToast('Open triage — reads do not require a token in this demo.', 'success');
+                loadList().catch(function (err) { showToast(apiErrorMsg(err), 'error'); });
+                return;
+            }
+
+            if (!getStoredToken()) {
+                showAuthOverlay(true);
+                return;
+            }
+            loadList().catch(function (err) {
+                showAuthOverlay(true, apiErrorMsg(err));
+            });
+        })();
     });
 })();
