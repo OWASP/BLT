@@ -157,7 +157,7 @@ tailwind.config = {
       <div class="flex items-center gap-2">
         <span class="blt-status-badge blt-status-success text-[10px] flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-emerald-500" style="box-shadow:0 0 6px rgba(34,197,94,0.5)"></span>
-          SYS_ONLINE
+          <span id="sys-status-label">SYS_ONLINE</span>
         </span>
       </div>
     </div>
@@ -169,72 +169,11 @@ tailwind.config = {
       <div class="lg:col-span-7 blt-card p-5">
         <div class="flex items-center justify-between mb-5">
           <h2 class="font-bold text-base text-[var(--blt-text)]">Room Occupancy</h2>
-          <span class="blt-badge text-[10px]">15 Active Rooms</span>
+          <span class="blt-badge text-[10px]" id="room-count">0 Rooms</span>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <!-- Room 1: Active -->
-          <div class="bg-[var(--blt-surface-muted)] rounded-lg p-3.5 border border-[var(--blt-border)] flex items-center justify-between hover:border-[var(--blt-border-strong)] transition-colors group">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-md bg-[var(--blt-surface)] border border-[var(--blt-border)] flex items-center justify-center font-mono text-xs font-bold text-[var(--blt-primary)] group-hover:border-[var(--blt-primary)] transition-colors">F1</div>
-              <div>
-                <div class="font-semibold text-sm text-[var(--blt-text)]">Main Hall</div>
-                <div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">Capacity: 4/10</div>
-              </div>
-            </div>
-            <div class="flex -space-x-1.5">
-              <div class="w-7 h-7 rounded-full border-2 border-[var(--blt-surface-muted)] bg-[var(--blt-surface)] flex items-center justify-center overflow-hidden">
-                <span class="material-symbols-outlined text-xs text-[var(--blt-text-subtle)]">person</span>
-              </div>
-              <div class="w-7 h-7 rounded-full border-2 border-[var(--blt-surface-muted)] bg-[var(--blt-surface)] flex items-center justify-center overflow-hidden">
-                <span class="material-symbols-outlined text-xs text-[var(--blt-text-subtle)]">person</span>
-              </div>
-              <div class="w-7 h-7 rounded-full border-2 border-[var(--blt-surface-muted)] bg-[var(--blt-surface)] flex items-center justify-center text-[9px] font-mono font-bold text-[var(--blt-text-subtle)]">+2</div>
-            </div>
-          </div>
-
-          <!-- Room 2: High Activity -->
-          <div class="bg-[var(--blt-surface-muted)] rounded-lg p-3.5 border border-[var(--blt-primary)]/40 flex items-center justify-between group" style="box-shadow:inset 0 0 12px color-mix(in srgb, var(--blt-primary) 8%, transparent)">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-md bg-[var(--blt-primary-soft)] border border-[var(--blt-primary)]/50 flex items-center justify-center font-mono text-xs font-bold text-[var(--blt-primary)]">F2</div>
-              <div>
-                <div class="font-semibold text-sm text-[var(--blt-text)]">Server Room B</div>
-                <div class="font-mono text-[10px] text-[var(--blt-primary)]">High Activity</div>
-              </div>
-            </div>
-            <div class="flex -space-x-1.5">
-              <div class="w-7 h-7 rounded-full border-2 border-[var(--blt-primary)]/30 bg-[var(--blt-primary-soft)] flex items-center justify-center">
-                <span class="material-symbols-outlined text-xs text-[var(--blt-primary)]">person</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Room 3: Normal -->
-          <div class="bg-[var(--blt-surface-muted)] rounded-lg p-3.5 border border-[var(--blt-border)] flex items-center justify-between hover:border-[var(--blt-border-strong)] transition-colors group">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-md bg-[var(--blt-surface)] border border-[var(--blt-border)] flex items-center justify-center font-mono text-xs font-bold text-[var(--blt-primary)] group-hover:border-[var(--blt-primary)] transition-colors">F1</div>
-              <div>
-                <div class="font-semibold text-sm text-[var(--blt-text)]">Lounge Alpha</div>
-                <div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">Capacity: 1/5</div>
-              </div>
-            </div>
-            <div class="flex -space-x-1.5">
-              <div class="w-7 h-7 rounded-full border-2 border-[var(--blt-surface-muted)] bg-[var(--blt-surface)] flex items-center justify-center">
-                <span class="material-symbols-outlined text-xs text-[var(--blt-text-subtle)]">person</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Room 4: Empty -->
-          <div class="bg-[var(--blt-surface-muted)]/50 rounded-lg p-3.5 border border-dashed border-[var(--blt-border)] flex items-center justify-between opacity-60">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-md bg-[var(--blt-surface)] border border-[var(--blt-border)] flex items-center justify-center font-mono text-xs text-[var(--blt-text-subtle)]">F3</div>
-              <div>
-                <div class="font-medium text-sm text-[var(--blt-text-muted)]">Quiet Pod 1</div>
-                <div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">Empty</div>
-              </div>
-            </div>
-          </div>
+        <div id="room-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="col-span-2 flex items-center justify-center py-10 text-sm text-[var(--blt-text-subtle)]">Loading rooms...</div>
         </div>
 
         <div class="mt-4 text-center">
@@ -255,7 +194,7 @@ tailwind.config = {
           <div class="flex items-center gap-5 relative z-10">
             <div class="donut-chart" style="background:conic-gradient(#22c55e 85%, var(--blt-surface-muted) 0)">
               <div class="donut-chart-inner">
-                <span class="font-mono font-bold text-lg text-emerald-500">85%</span>
+                <span class="font-mono font-bold text-lg text-emerald-500" id="linkage-pct">--</span>
               </div>
             </div>
             <div>
@@ -263,11 +202,11 @@ tailwind.config = {
               <div class="flex gap-4">
                 <div class="flex items-center gap-1.5">
                   <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                  <span class="text-[11px] text-[var(--blt-text)]">Linked (42)</span>
+                  <span class="text-[11px] text-[var(--blt-text)]" id="linked-count">Linked (--)</span>
                 </div>
                 <div class="flex items-center gap-1.5">
                   <div class="w-2 h-2 rounded-full bg-[var(--blt-surface-muted)]"></div>
-                  <span class="text-[11px] text-[var(--blt-text-muted)]">Pending (8)</span>
+                  <span class="text-[11px] text-[var(--blt-text-muted)]" id="unlinked-count">Pending (--)</span>
                 </div>
               </div>
             </div>
@@ -280,23 +219,23 @@ tailwind.config = {
           <div class="grid grid-cols-2 gap-3">
             <div class="hh-metric-card">
               <span class="material-symbols-outlined text-sm text-amber-500 mb-1.5">bolt</span>
-              <div class="font-mono font-bold text-2xl text-[var(--blt-text)]">142</div>
+              <div class="font-mono font-bold text-2xl text-[var(--blt-text)]" id="pv-events-min">--</div>
               <div class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider">Events/Min</div>
             </div>
             <div class="hh-metric-card">
               <span class="material-symbols-outlined text-sm text-emerald-500 mb-1.5">webhook</span>
-              <div class="font-mono font-bold text-2xl text-emerald-500">89%</div>
+              <div class="font-mono font-bold text-2xl text-emerald-500" id="pv-webhooks">--</div>
               <div class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider">Webhook Succ.</div>
             </div>
             <div class="hh-metric-card">
               <span class="material-symbols-outlined text-sm text-sky-500 mb-1.5">sync</span>
-              <div class="font-mono font-bold text-2xl text-[var(--blt-text)]">12ms</div>
+              <div class="font-mono font-bold text-2xl text-[var(--blt-text)]" id="pv-latency">--</div>
               <div class="font-mono text-[10px] text-[var(--blt-text-subtle)] uppercase tracking-wider">Avg Poll Latency</div>
             </div>
             <div class="hh-metric-card border border-[var(--blt-primary)]/30 relative overflow-hidden" style="background:color-mix(in srgb, var(--blt-primary) 6%, var(--blt-surface-muted))">
               <div class="absolute inset-0 opacity-[0.04]" style="background:var(--blt-primary);animation:hh-pulse-dot 2s ease-in-out infinite"></div>
               <span class="material-symbols-outlined text-sm text-[var(--blt-primary)] mb-1.5 relative z-10">warning</span>
-              <div class="font-mono font-bold text-2xl text-[var(--blt-primary)] relative z-10">3</div>
+              <div class="font-mono font-bold text-2xl text-[var(--blt-primary)] relative z-10" id="pv-errors">--</div>
               <div class="font-mono text-[10px] text-[var(--blt-primary)] uppercase tracking-wider relative z-10">Active Errors</div>
             </div>
           </div>
@@ -313,35 +252,22 @@ tailwind.config = {
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- Webhook -->
-        <div class="hh-health-card">
+        <div class="hh-health-card" id="hc-webhook">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2.5">
-              <span class="hh-health-indicator online"></span>
+              <span class="hh-health-indicator online" data-hc-status="webhook"></span>
               <span class="font-semibold text-sm text-[var(--blt-text)]">Webhook</span>
             </div>
-            <span class="blt-status-badge blt-status-success text-[9px]">operational</span>
+            <span class="blt-status-badge blt-status-success text-[9px]" data-hc-badge="webhook">operational</span>
           </div>
           <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
             <div class="flex justify-between">
-              <span>Uptime</span>
-              <span class="text-[var(--blt-text)]">99.8%</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Latency</span>
-              <span class="text-[var(--blt-text)]">24ms</span>
-            </div>
-            <div class="flex justify-between">
               <span>Last event</span>
-              <span class="text-[var(--blt-text)]">2s ago</span>
+              <span class="text-[var(--blt-text)]" id="hc-webhook-last">--</span>
             </div>
-            <div>
-              <div class="flex justify-between mb-1">
-                <span>Throughput</span>
-                <span class="text-emerald-500">89%</span>
-              </div>
-              <div class="health-bar-track">
-                <div class="health-bar-fill bg-emerald-500" style="width:89%"></div>
-              </div>
+            <div class="flex justify-between">
+              <span>Uptime</span>
+              <span class="text-[var(--blt-text)]" id="uptime-label">--</span>
             </div>
           </div>
         </div>
@@ -350,32 +276,23 @@ tailwind.config = {
         <div class="hh-health-card">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2.5">
-              <span class="hh-health-indicator online"></span>
+              <span class="hh-health-indicator online" data-hc-status="gitlab_gap_detector"></span>
               <span class="font-semibold text-sm text-[var(--blt-text)]">Gap Detector</span>
             </div>
-            <span class="blt-status-badge blt-status-success text-[9px]">operational</span>
+            <span class="blt-status-badge blt-status-success text-[9px]" data-hc-badge="gitlab_gap_detector">--</span>
           </div>
           <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
             <div class="flex justify-between">
-              <span>Uptime</span>
-              <span class="text-[var(--blt-text)]">99.6%</span>
-            </div>
-            <div class="flex justify-between">
               <span>Poll interval</span>
-              <span class="text-[var(--blt-text)]">30s</span>
+              <span class="text-[var(--blt-text)]" id="hc-gap-interval">--</span>
             </div>
             <div class="flex justify-between">
-              <span>Last scan</span>
-              <span class="text-[var(--blt-text)]">8s ago</span>
+              <span>Last poll</span>
+              <span class="text-[var(--blt-text)]" id="hc-gap-last">--</span>
             </div>
-            <div>
-              <div class="flex justify-between mb-1">
-                <span>Coverage</span>
-                <span class="text-emerald-500">97%</span>
-              </div>
-              <div class="health-bar-track">
-                <div class="health-bar-fill bg-emerald-500" style="width:97%"></div>
-              </div>
+            <div class="flex justify-between">
+              <span>Tracked projects</span>
+              <span class="text-[var(--blt-text)]" id="hc-gap-projects">--</span>
             </div>
           </div>
         </div>
@@ -520,5 +437,116 @@ tailwind.config = {
 
   </main>
 </div>
+
+<script>
+(function() {
+  function fmtPct(v) { return Math.round(v * 100) + '%'; }
+
+  function fetchStatus() {
+    fetch('/status')
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        var d = resp.data;
+        if (!d) return;
+
+        // Room occupancy
+        var occ = d.room_occupancy || {};
+        var rooms = Object.keys(occ);
+        document.getElementById('room-count').textContent = rooms.length + ' Rooms';
+        var list = document.getElementById('room-list');
+        if (list) {
+          if (rooms.length === 0) {
+            list.innerHTML = '<div class="col-span-2 flex items-center justify-center py-10 text-sm text-[var(--blt-text-subtle)]">No active rooms</div>';
+          } else {
+            list.innerHTML = rooms.map(function(room) {
+              return '<div class="bg-[var(--blt-surface-muted)] rounded-lg p-3.5 border border-[var(--blt-border)] flex items-center justify-between">' +
+                '<div class="flex items-center gap-3">' +
+                  '<div class="w-9 h-9 rounded-md bg-[var(--blt-surface)] border border-[var(--blt-border)] flex items-center justify-center font-mono text-xs font-bold text-[var(--blt-primary)]">' + room.charAt(0).toUpperCase() + '</div>' +
+                  '<div><div class="font-semibold text-sm text-[var(--blt-text)]">' + room + '</div>' +
+                  '<div class="font-mono text-[10px] text-[var(--blt-text-subtle)]">Occupancy: ' + occ[room] + '</div></div>' +
+                '</div>' +
+              '</div>';
+            }).join('');
+          }
+        }
+
+        // Identity linkage
+        var ident = d.identity_stats || {};
+        var pct = ident.linkage_rate != null ? Math.round(ident.linkage_rate * 100) : 0;
+        document.getElementById('linkage-pct').textContent = pct + '%';
+        document.getElementById('linked-count').textContent = 'Linked (' + (ident.linked_contributors || 0) + ')';
+        document.getElementById('unlinked-count').textContent = 'Pending (' + (ident.unlinked_contributors || 0) + ')';
+        var donut = document.querySelector('.donut-chart');
+        if (donut) donut.style.background = 'conic-gradient(#22c55e ' + pct + '%, var(--blt-surface-muted) 0)';
+
+        // Pipeline velocity
+        var ph = d.pipeline_health || {};
+        document.getElementById('pv-events-min').textContent = ph.events_ingested_last_minute || 0;
+        document.getElementById('pv-webhooks').textContent = (ph.gitlab_webhooks_received || 0) + ' received';
+        document.getElementById('pv-errors').textContent = ph.errors_last_hour || 0;
+        var queueDepth = ph.queue_depth || 0;
+        document.getElementById('pv-latency').textContent = queueDepth ? queueDepth + ' queued' : '0 queued';
+      }).catch(function(err) { console.error('Status fetch failed', err); });
+  }
+
+  function fetchHealth() {
+    fetch('/health')
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        var uptime = resp.uptime_seconds || 0;
+        var hrs = Math.floor(uptime / 3600);
+        var min = Math.floor((uptime % 3600) / 60);
+        document.getElementById('uptime-label').textContent = hrs + 'h ' + min + 'm';
+
+        var comps = resp.components || {};
+        var keys = ['gitlab_webhook', 'gitlab_gap_detector', 'blt_polling', 'database', 'websocket', 'identity_resolver'];
+        keys.forEach(function(key) {
+          var c = comps[key];
+          if (!c) return;
+          var statusEl = document.querySelector('[data-hc-status="' + key + '"]');
+          var badgeEl = document.querySelector('[data-hc-badge="' + key + '"]');
+          if (c.status === 'healthy') {
+            if (statusEl) { statusEl.className = 'hh-health-indicator online'; }
+            if (badgeEl) { badgeEl.className = 'blt-status-badge blt-status-success text-[9px]'; badgeEl.textContent = 'operational'; }
+          } else if (c.status === 'degraded') {
+            if (statusEl) { statusEl.className = 'hh-health-indicator degraded'; }
+            if (badgeEl) { badgeEl.className = 'blt-status-badge blt-status-success text-[9px]'; badgeEl.textContent = 'degraded'; badgeEl.style.background = 'rgba(245,158,11,0.15)'; badgeEl.style.color = '#f59e0b'; }
+          } else {
+            if (statusEl) { statusEl.className = 'hh-health-indicator offline'; }
+            if (badgeEl) { badgeEl.className = 'blt-status-badge blt-status-success text-[9px]'; badgeEl.textContent = c.status; badgeEl.style.background = 'rgba(239,68,68,0.15)'; badgeEl.style.color = '#ef4444'; }
+          }
+        });
+
+        // Webhook specific
+        var wh = comps.gitlab_webhook || {};
+        document.getElementById('hc-webhook-last').textContent = wh.last_event_at ? 'seen' : 'none yet';
+
+        // Gap detector specific
+        var gap = comps.gitlab_gap_detector || {};
+        document.getElementById('hc-gap-last').textContent = gap.last_poll_at ? 'recent' : '--';
+        document.getElementById('hc-gap-interval').textContent = gap.status === 'disabled' ? 'disabled' : 'active';
+        document.getElementById('hc-gap-projects').textContent = gap.tracked_projects || 0;
+
+        // DB
+        var dbComp = comps.database || {};
+        if (dbComp.event_count != null) {
+          document.getElementById('sys-status-label').textContent = 'SYS_ONLINE · ' + dbComp.event_count + ' events';
+        }
+
+        // WS
+        var wsComp = comps.websocket || {};
+        var connCount = wsComp.connected_clients || 0;
+        document.getElementById('sys-status-label').textContent += ' · ' + connCount + ' clients';
+      }).catch(function(err) { console.error('Health fetch failed', err); });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    fetchStatus();
+    fetchHealth();
+    setInterval(fetchStatus, 30000);
+    setInterval(fetchHealth, 30000);
+  });
+})();
+</script>
 </body>
 </html>

@@ -52,6 +52,8 @@ class TestActivityFeedItem:
             source="gitlab",
             event_type="mr_opened",
             actor_name="rudra-rps",
+            contributor_id="",
+            avatar_url="",
             repository="OWASP-BLT/BLT",
             timestamp="2026-07-15T10:22:00",
             metadata={"title": "Add webhook ingestion"},
