@@ -3494,6 +3494,39 @@
         setModalMessage(elements.apiKeyMessage, message, tone);
       }
 
+      function setAccountMessageWithKey(key) {
+        var el = elements.apiKeyMessage;
+        if (!el) return;
+        el.className =
+          "rounded-lg px-3 py-2.5 text-sm border border-green-200 bg-green-50 text-green-700 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-200 flex flex-col gap-2";
+        el.innerHTML =
+          '<div class="flex flex-col gap-1.5">' +
+          '<label for="createdApiKeyInput" class="font-semibold">API Key Created! Copy and save it now:</label>' +
+          '<div class="flex items-center gap-2 mt-1">' +
+          '<input type="text" readonly onfocus="this.select()" value="' +
+          escapeHtml(key) +
+          '" class="flex-1 rounded border border-green-300 bg-white px-2 py-1 text-xs text-gray-800 focus:outline-none dark:border-green-500/50 dark:bg-slate-900 dark:text-slate-100 select-all font-mono" id="createdApiKeyInput" />' +
+          '<button type="button" id="copyCreatedApiKeyButton" class="rounded bg-green-600 hover:bg-green-700 text-white px-2.5 py-1 text-xs font-semibold focus:outline-none transition">Copy</button>' +
+          "</div>" +
+          "</div>";
+        el.classList.remove("hidden");
+
+        var copyBtn = document.getElementById("copyCreatedApiKeyButton");
+        if (copyBtn) {
+          copyBtn.addEventListener("click", function () {
+            copyText(key, "API Key copied to clipboard!");
+            copyBtn.textContent = "Copied!";
+            copyBtn.className =
+              "rounded bg-green-700 text-white px-2.5 py-1 text-xs font-semibold focus:outline-none transition";
+            setTimeout(function () {
+              copyBtn.textContent = "Copy";
+              copyBtn.className =
+                "rounded bg-green-600 hover:bg-green-700 text-white px-2.5 py-1 text-xs font-semibold focus:outline-none transition";
+            }, 2000);
+          });
+        }
+      }
+
       function openAuthModal(tab) {
         switchAuthTab(tab || "signin");
         elements.authModal.classList.remove("hidden");
@@ -3917,10 +3950,7 @@
                 (data.data.key || data.data.api_key || data.data.apiKey)));
           if (createdKey) {
             localStorage.setItem(API_KEY_STORAGE_KEY, createdKey);
-            setAccountMessage(
-              "API key created and saved. Copy it now if needed.",
-              "success",
-            );
+            setAccountMessageWithKey(createdKey);
             updateApiKeyStatus();
           } else {
             setAccountMessage("API key created.", "success");
