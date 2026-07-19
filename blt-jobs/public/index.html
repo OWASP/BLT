@@ -44,6 +44,20 @@
         },
       };
     </script>
+    <script>
+      // Apply the saved (or system) theme before paint to avoid a flash.
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var prefersDark =
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches;
+          if (stored === "dark" || (!stored && prefersDark)) {
+            document.documentElement.classList.add("dark");
+          }
+        } catch (e) {}
+      })();
+    </script></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -208,10 +222,10 @@
     </style>
   </head>
   <body
-    class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
+    class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased transition-colors duration-300 selection:bg-red-100 selection:text-red-700 dark:bg-gray-950 dark:text-gray-100"
   >
     <header
-      class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
+      class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px] dark:border-white/10 dark:bg-gray-950/90"
       id="site-header"
     >
       <div
@@ -227,7 +241,8 @@
             alt="BLT Jobs logo"
             class="h-12 w-12 p-1"
           />
-          <span class="text-lg font-medium tracking-tight text-gray-900"
+          <span
+            class="text-lg font-medium tracking-tight text-gray-900 dark:text-white"
             >BLT Jobs</span
           >
         </a>
@@ -237,27 +252,27 @@
           aria-label="Primary navigation"
         >
           <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
             href="#how-it-works"
             >How it works</a
           >
           <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
             href="./jobs.html"
             >Browse Jobs</a
           >
           <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
             href="./seekers.html"
             >Find Talent</a
           >
           <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
             href="./leaderboard.html"
             >Leaderboard</a
           >
           <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
             href="https://gitlab.com/owasp-blt/blt-jobs"
             target="_blank"
             rel="noopener noreferrer"
@@ -266,8 +281,18 @@
         </nav>
 
         <div class="hidden items-center gap-3 md:flex">
+          <button
+            type="button"
+            id="theme-toggle"
+            class="flex h-9 w-9 items-center justify-center rounded-md text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
+            aria-label="Toggle dark mode"
+            title="Toggle dark mode"
+          >
+            <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+            <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
+          </button>
           <a
-            class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+            class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
             href="./seekers.html"
             >Find Talent</a
           >
@@ -299,32 +324,43 @@
       </div>
 
       <nav
-        class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur-md"
+        class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur-md dark:border-gray-800 dark:bg-gray-950/95"
         id="mobile-menu"
         aria-label="Mobile navigation"
       >
+        <button
+          type="button"
+          id="theme-toggle-mobile"
+          class="flex items-center gap-2 text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+          aria-label="Toggle dark mode"
+        >
+          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+          <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
+          <span class="dark:hidden">Dark mode</span>
+          <span class="hidden dark:inline">Light mode</span>
+        </button>
         <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           href="#how-it-works"
           >How it works</a
         >
         <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           href="./jobs.html"
           >Browse Jobs</a
         >
         <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           href="./seekers.html"
           >Find Talent</a
         >
         <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           href="./leaderboard.html"
           >Leaderboard</a
         >
         <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           href="https://gitlab.com/owasp-blt/blt-jobs"
           target="_blank"
           rel="noopener noreferrer"
@@ -1289,6 +1325,34 @@
             seekersContainer.innerHTML =
               '<p class="col-span-full text-sm text-gray-500 dark:text-gray-400">Unable to load recent job seekers.</p>';
           });
+      })();
+    </script>
+    <script>
+      // Dark/light mode toggle — persists choice to localStorage.
+      (function () {
+        function setTheme(isDark) {
+          document.documentElement.classList.toggle("dark", isDark);
+          try {
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+          } catch (e) {}
+        }
+        function toggle() {
+          setTheme(!document.documentElement.classList.contains("dark"));
+        }
+        ["theme-toggle", "theme-toggle-mobile"].forEach(function (id) {
+          var btn = document.getElementById(id);
+          if (btn) btn.addEventListener("click", toggle);
+        });
+        // Follow system changes only when the user hasn't picked explicitly.
+        if (window.matchMedia) {
+          window
+            .matchMedia("(prefers-color-scheme: dark)")
+            .addEventListener("change", function (e) {
+              try {
+                if (!localStorage.getItem("theme")) setTheme(e.matches);
+              } catch (err) {}
+            });
+        }
       })();
     </script>
     <script>
