@@ -148,10 +148,15 @@ class BLTPoller:
                 )
             except RetryableHTTPError as exc:
                 logger.warning("blt fetch_bugs exhausted", extra={"error": str(exc), "page": page})
+                return []
+
+            if not records:
                 break
 
             all_records.extend(records)
             if len(records) < self.page_size:
+                break
+            if int(records[-1].get("id", 0)) <= last_seen:
                 break
             page += 1
 

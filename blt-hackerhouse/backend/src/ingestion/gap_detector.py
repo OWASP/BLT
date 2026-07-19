@@ -163,7 +163,7 @@ class GitLabGapDetector:
                 )
             except RetryableHTTPError as exc:
                 logger.warning("gap fetch failed", extra={"project_id": project_id, "page": page, "error": str(exc)})
-                break
+                return []
 
             if not events:
                 break
