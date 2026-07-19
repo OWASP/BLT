@@ -21,7 +21,7 @@ from ..broadcast.messages import (
     build_leaderboard_update,
     build_snapshot,
 )
-from ..core.dedup import record_if_absent
+from ..core.dedup import is_duplicate, record_if_absent
 from ..models.contributor import Contributor
 from ..models.event import Event
 from ..models.room import AvatarState
@@ -127,15 +127,11 @@ class PipelineRunner:
                 self.queue.task_done()
 
     async def _process_event(self, event: Event, resolver) -> None:
-        # 1. Dedup + persist
-        inserted = await record_if_absent(self.db, event)
-        if not inserted:
+        # 1. Dedup check (read-only) — defer persist so downstream failures
+        #    don't permanently block the idempotency key from retry.
+        if await is_duplicate(self.db, event):
             logger.debug("pipeline dedup drop", extra={"key": event.idempotency_key})
             return
-
-        async with self._lock:
-            self._sequence += 1
-            await self.events_q.assign_sequence(event.id, self._sequence)
 
         # 2. Identity resolution
         result = await resolver.resolve(event)
@@ -161,7 +157,16 @@ class PipelineRunner:
             contributor.add_score(delta)
             await self.contributors_q.upsert(contributor)
 
-        # 5. Broadcast
+        # 5. Persist + assign sequence — after all DB work succeeds
+        async with self._lock:
+            self._sequence += 1
+            inserted = await record_if_absent(self.db, event)
+            if not inserted:
+                logger.debug("pipeline dedup drop (concurrent)", extra={"key": event.idempotency_key})
+                return
+            await self.events_q.assign_sequence(event.id, self._sequence)
+
+        # 6. Broadcast
         self.hub.record_event()
         await self.hub.broadcast(
             build_avatar_move(event, floor=room.floor, room=room.room)
