@@ -265,8 +265,15 @@ class IdentityQueries:
         )
         async with self.db.conn.execute(sql, params) as cursor:
             await self.db.conn.commit()
-            if mapping.id is None:
-                mapping.id = cursor.lastrowid
+
+        if mapping.id is None:
+            async with self.db.conn.execute(
+                "SELECT id FROM identity_mappings WHERE platform = ? AND platform_user_id = ?",
+                (mapping.platform, mapping.platform_user_id),
+            ) as cursor:
+                row = await cursor.fetchone()
+            if row:
+                mapping.id = int(row["id"])
         return mapping
 
     async def lookup(self, platform: str, platform_user_id: str) -> IdentityMapping | None:
