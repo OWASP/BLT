@@ -25,7 +25,7 @@ except ImportError:
     print("pip install requests beautifulsoup4", file=sys.stderr)
     sys.exit(1)
 
-JOBS_DIR = Path(__file__).resolve().parent.parent / "jobs"
+JOBS_DIR = Path(os.environ.get("BLT_JOBS_DIR", Path(__file__).resolve().parent.parent / "jobs"))
 HEADERS = {
     "User-Agent": "OWASP-BLT-Jobs-Bot/1.0 (https://gitlab.com/owasp-blt/blt-jobs)"
 }
@@ -448,14 +448,25 @@ def scrape_url(url: str) -> tuple[dict, str]:
         "salary_range":            fm_partial.get("salary_range", ""),
         "date_posted":             created,
         "expires_at":              "",
+        "application_mode":         "external_url",
         "application_email":       "",
         "application_url":         fm_partial.get("application_url", url),
         "application_instructions": "",
+        "public_contact_policy":   "external_apply",
         "requirements":            "",
         "created_at":              created,
+        "updated_at":              "",
+        "last_verified_at":        "",
         "views_count":             0,
         "added_by":                os.environ.get("ISSUE_USER", "").strip(),
         "added_by_url":            os.environ.get("ISSUE_USER_URL", "").strip(),
+        "source_platform":         "gitlab",
+        "source_issue_url":        os.environ.get("ISSUE_URL", os.environ.get("CI_JOB_URL", "")).strip(),
+        "source_merge_request_url": "",
+        "source_commit_url":       "",
+        "submission_type":         "issue",
+        "review_status":           "submitted",
+        "reviewed_by":             "",
         "needs_manual_review":     needs_review,
     }
     return fm, description
@@ -501,7 +512,7 @@ def main():
     lines += ["---", "", body]
 
     out_path.write_text("\n".join(lines), encoding="utf-8")
-    print(str(out_path))
+    print(str(out_path.relative_to(JOBS_DIR.parent)))
 
 
 if __name__ == "__main__":

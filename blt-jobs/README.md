@@ -1,8 +1,12 @@
 # BLT Jobs
 
-BLT Jobs is an open source job board for the [OWASP BLT](https://owasp.org/www-project-bug-logging-tool/) ecosystem. Jobs and seeker profiles live in Markdown files in this GitLab repository, so the underlying data is public and reviewable.
+BLT Jobs is a Git-native job platform for the [OWASP BLT](https://owasp.org/www-project-bug-logging-tool/) ecosystem. Jobs and seeker profiles live as Markdown-backed open data in this repository, so the source of truth is public, reviewable, forkable, and auditable through Git history.
 
 **Live site:** [jobs.owaspblt.org](https://jobs.owaspblt.org)
+
+## Architecture
+
+See [docs/git-native-architecture.md](docs/git-native-architecture.md) for the Git-native product contract, current GitLab workflow, future provider abstraction points, public-data boundaries, maintainer review model, and issue/MR -> Markdown -> JSON -> static site flow.
 
 ## How It Works
 
@@ -17,12 +21,14 @@ BLT Jobs is an open source job board for the [OWASP BLT](https://owasp.org/www-p
 
 Use the [Contribute page](https://jobs.owaspblt.org/add.html) or open a GitLab issue with one of the templates in `.gitlab/issue_templates/`:
 
-- `job-posting-from-link`: paste a job URL for automatic scraping.
+- `job-posting-from-link`: paste a public job URL so maintainers can generate a reviewable Markdown draft.
 - `job-posting`: enter a job manually.
 - `job-seeker`: create a transparent public seeker profile.
 - `flag-job-posting`: report a listing that should be removed.
 
 GitLab labels each template through a quick action. The `process_submissions` CI job reads open issues through the GitLab API and recognizes both labels and template headings, so submissions also work for users who cannot apply labels.
+
+Accepted submissions become public Markdown in this repository. Do not submit private applicant notes, private phone numbers, identity documents, secrets, or contact routes that should not be public Git history.
 
 ## Local Development
 
@@ -40,11 +46,15 @@ Useful commands:
 
 ```bash
 npm run build:jobs
+npm test
 npm run validate:jobs
 npm run list:jobs
 npm run expire:jobs
+npm run discover:candidates
 npm run build:worker
 ```
+
+`npm run discover:candidates` writes candidate URLs for maintainer review only. It does not publish jobs and is not part of the canonical submission path.
 
 ## GitLab CI Setup
 
@@ -88,10 +98,11 @@ Configure `jobs.owaspblt.org` as a Cloudflare custom domain for the `blt-jobs` W
 ├── .gitlab/issue_templates/
 ├── .assetsignore
 ├── assets/
+├── docs/
 ├── jobs/
 ├── public/
 ├── seekers/
 ├── scripts/
 ├── wrangler.toml
-└── *.html
+└── package.json
 ```

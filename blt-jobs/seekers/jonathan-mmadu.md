@@ -65,9 +65,3 @@ Example:
 ## What I'm Looking For
 
 I am actively seeking a remote Software Engineering or Frontend Internship where I can contribute to building scalable web applications and distributed systems. I thrive in diverse, collaborative environments where I can leverage my analytical problem-solving skills to engineer high-quality, user-centric software. I am particularly interested in teams that value open-source contributions, modern architectures (like monorepos and edge computing), and an empathetic approach to product development.
-
----
-<!-- 
-Note: Once this issue is created, it will be automatically processed by our GitHub Actions workflow 
-and published as a markdown file in the seekers directory with the naming format: seekers/name.md
--->

@@ -53,4 +53,4 @@ expire_jobs:
     - node scripts/expire-jobs.js
     - npm run build:jobs
     - git add jobs public/data/jobs.json public/data/seekers.json
-    - git diff --cached --quiet || (git commit -m "chore: expire stale jobs" && git push origin HEAD:main)
+    - 'git diff --cached --quiet || (git commit -m "chore: expire stale jobs" && git push origin HEAD:main)'

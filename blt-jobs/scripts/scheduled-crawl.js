@@ -101,6 +101,10 @@ async function pullArbeitnow() {
 }
 
 async function main() {
+  console.error(
+    'Candidate discovery only: this script writes review candidates and does not publish jobs. Accepted jobs must become Markdown through maintainer review.'
+  );
+
   const existing = loadExistingUrls();
 
   const [remoteok, remotive, arbeitnow] = await Promise.allSettled([

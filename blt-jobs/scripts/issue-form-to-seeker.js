@@ -6,7 +6,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const SEEKERS_DIR = path.join(__dirname, "..", "seekers");
+const SEEKERS_DIR = process.env.BLT_SEEKERS_DIR || path.join(__dirname, "..", "seekers");
 
 function parseFormBody(body) {
   const data = {};
@@ -70,6 +70,22 @@ function extractLinks(data) {
   return links;
 }
 
+function inferContactMethod(links) {
+  if (links.email) return "email";
+  if (links.gitlab || links.github || links.linkedin || links.portfolio || links.twitter) return "profile_link";
+  return "not_provided";
+}
+
+function inferPublicContactPolicy(links) {
+  if (links.email) return "public_email";
+  if (links.gitlab || links.github || links.linkedin || links.portfolio || links.twitter) return "public_profile_links";
+  return "not_provided";
+}
+
+function outputRelativePath(filePath) {
+  return path.relative(path.dirname(SEEKERS_DIR), filePath);
+}
+
 function main() {
   const body = process.argv[2] || fs.readFileSync(0, "utf8");
   const d = parseFormBody(body);
@@ -117,7 +133,17 @@ function main() {
     email: links.email || "",
     twitter: links.twitter || "",
     resume_url: links.resume || "",
+    contact_method: inferContactMethod(links),
+    public_contact_policy: inferPublicContactPolicy(links),
+    source_platform: "gitlab",
+    source_issue_url: (process.env.ISSUE_URL || process.env.CI_JOB_URL || "").trim(),
+    source_merge_request_url: "",
+    source_commit_url: "",
+    submission_type: "issue",
+    review_status: "submitted",
+    reviewed_by: "",
     created_at: created,
+    updated_at: "",
   };
 
   const bodyParts = [];
@@ -138,7 +164,17 @@ function main() {
 
   fs.mkdirSync(SEEKERS_DIR, { recursive: true });
   fs.writeFileSync(outPath, lines.join("\n"), "utf8");
-  console.log(path.relative(process.cwd(), outPath));
+  console.log(outputRelativePath(outPath));
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  extractLinks,
+  inferContactMethod,
+  inferPublicContactPolicy,
+  parseFormBody,
+  slugify,
+};

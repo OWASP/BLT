@@ -73,10 +73,3 @@ Im looking for an internship where i can work on a real world project, either ad
 I would be available for 3 whole months from june so i would be able to devote most of my time into the project i would be looking for a remote internship 
 Very high pay is not needed anything between 30 to 50 dollars will work 
 <!-- Describe the type of opportunities you're interested in, preferred work environment, salary expectations, etc. -->
-
-
----
-<!-- 
-Note: Once this issue is created, it will be automatically processed by our GitHub Actions workflow 
-and published as a markdown file in the seekers directory with the naming format: seekers/name.md
--->

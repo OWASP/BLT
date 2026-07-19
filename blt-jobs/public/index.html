@@ -1,23 +1,23 @@
 <!doctype html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="scroll-smooth overflow-x-hidden">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BLT Jobs - Connect Talent with Opportunities</title>
+    <title>BLT Jobs - Git-native Security Jobs</title>
     <meta
       name="description"
-      content="A community-driven job board for the OWASP BLT ecosystem. Post a job or feature your profile to connect with talent."
+      content="A Git-native job platform for the OWASP BLT ecosystem. Jobs and seeker profiles are Markdown-backed open data reviewed through GitLab."
     />
     <link rel="icon" href="./assets/images/blt-logo.png" type="image/png" />
 
     <!-- Open Graph Metadata -->
     <meta
       property="og:title"
-      content="BLT Jobs - Connect Talent with Opportunities"
+      content="BLT Jobs - Git-native Security Jobs"
     />
     <meta
       property="og:description"
-      content="A community-driven job board for the OWASP BLT ecosystem. Post a job or feature your profile to connect with talent."
+      content="A Git-native job platform for the OWASP BLT ecosystem. Jobs and seeker profiles are Markdown-backed open data reviewed through GitLab."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://jobs.owaspblt.org/" />
@@ -26,11 +26,11 @@
     <meta name="twitter:card" content="summary" />
     <meta
       name="twitter:title"
-      content="BLT Jobs - Connect Talent with Opportunities"
+      content="BLT Jobs - Git-native Security Jobs"
     />
     <meta
       name="twitter:description"
-      content="A community-driven job board for the OWASP BLT ecosystem. Post a job or feature your profile to connect with talent."
+      content="A Git-native job platform for the OWASP BLT ecosystem. Jobs and seeker profiles are Markdown-backed open data reviewed through GitLab."
     />
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -225,24 +225,23 @@
     class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased transition-colors duration-300 selection:bg-red-100 selection:text-red-700 dark:bg-gray-950 dark:text-gray-100"
   >
     <header
-      class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px] dark:border-white/10 dark:bg-gray-950/90"
+      class="fixed inset-x-0 top-0 z-50 overflow-x-hidden border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
       id="site-header"
     >
       <div
-        class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-md:px-4"
+        class="mx-auto flex max-w-7xl min-w-0 items-center justify-between gap-6 px-6 py-3 max-md:px-4"
       >
         <a
           href="./index.html"
-          class="inline-flex items-center gap-2.5"
+          class="inline-flex min-w-0 items-center gap-2.5"
           aria-label="BLT Jobs home"
         >
           <img
             src="assets/images/blt-logo.png"
             alt="BLT Jobs logo"
-            class="h-12 w-12 p-1"
+            class="h-10 w-10 p-1"
           />
-          <span
-            class="text-lg font-medium tracking-tight text-gray-900 dark:text-white"
+          <span class="truncate text-lg font-medium tracking-tight text-gray-900"
             >BLT Jobs</span
           >
         </a>
@@ -274,6 +273,7 @@
           <a
             class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
             href="https://gitlab.com/owasp-blt/blt-jobs"
+            data-provider-repository
             target="_blank"
             rel="noopener noreferrer"
             >Source</a
@@ -362,6 +362,7 @@
         <a
           class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           href="https://gitlab.com/owasp-blt/blt-jobs"
+          data-provider-repository
           target="_blank"
           rel="noopener noreferrer"
           >Source</a
@@ -382,11 +383,11 @@
     <main>
       <!-- ─── HERO ─────────────────────────────────────────────────────── -->
       <section
-        class="relative flex min-h-[42rem] items-start justify-center px-4 pb-14 pt-48 max-md:min-h-[36rem] max-md:pt-32"
+        class="relative flex min-h-[34rem] overflow-x-hidden items-start justify-center px-4 pb-10 pt-36 max-md:min-h-[30rem] max-md:pb-8 max-md:pt-28"
         aria-label="Hero"
       >
         <div
-          class="dot-field pointer-events-none absolute inset-x-0 top-16 z-[1] mx-auto h-[38rem] w-[min(94rem,180vw)] opacity-80"
+          class="dot-field pointer-events-none absolute inset-x-0 top-14 z-[1] mx-auto h-[32rem] w-[min(94rem,180vw)] opacity-80 max-md:h-[28rem]"
           aria-hidden="true"
         ></div>
         <div
@@ -402,24 +403,24 @@
               >Open</span
             >
             <span class="truncate"
-              >Community job board powered by GitLab &amp; OWASP BLT.</span
+              >Git-native job board backed by Markdown and GitLab review.</span
             >
           </a>
           <h1
-            class="mt-7 text-[clamp(3.2rem,9.5vw,6.5rem)] font-bold leading-[.93] tracking-[-.05em] text-gray-900 dark:text-white"
+            class="mt-6 text-5xl font-bold leading-[.95] text-gray-900 dark:text-white sm:text-6xl lg:text-7xl"
           >
             Find Your Next.<br /><span class="text-red-600">Post</span> Your
             Best.
           </h1>
           <p
-            class="mt-6 max-w-[42rem] text-[clamp(1rem,1.5vw,1.2rem)] leading-[1.6] text-gray-600 dark:text-gray-400 text-balance"
+            class="mt-5 max-w-[40rem] text-base leading-[1.6] text-gray-600 dark:text-gray-400 text-balance sm:text-lg"
           >
-            A community-driven job board for the OWASP BLT ecosystem — browse
-            open roles, surface your skills, and connect with talent that cares
-            about security.
+            Browse open roles and public seeker profiles stored as reviewable
+            Markdown in Git. The repository is the data layer, and the static
+            site is generated from that open source of truth.
           </p>
           <div
-            class="mt-8 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
+            class="mt-7 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
           >
             <a
               class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-base font-medium text-white shadow-[0_0_0_2px_rgba(0,0,0,.04),0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
@@ -461,13 +462,14 @@
               id="how-heading"
               class="mt-4 text-[clamp(2.1rem,4vw,3rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance dark:text-white"
             >
-              Three steps to connect.
+              Open-source hiring in three steps.
             </h2>
             <p
               class="mx-auto mt-4 max-w-[40rem] text-base leading-[1.6] text-gray-600 dark:text-gray-400"
             >
-              No proprietary dashboards. Just GitLab, markdown, and an automated
-              pipeline that does the heavy lifting.
+              BLT Jobs keeps the workflow visible: proposals happen in Git,
+              listings are stored as Markdown, and the public site is generated
+              from reviewed open data.
             </p>
           </div>
           <div
@@ -482,13 +484,13 @@
                 01
               </div>
               <h3 class="mt-6 text-lg font-semibold dark:text-white">
-                Submit via GitLab
+                Propose in Git
               </h3>
               <p
                 class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-400"
               >
-                Open an issue or paste a job URL. Templates mean you never have
-                to edit raw JSON files.
+                Open a GitLab issue, paste a public job URL, or propose a
+                Markdown change. Every listing starts as a traceable submission.
               </p>
             </article>
             <article
@@ -500,13 +502,13 @@
                 02
               </div>
               <h3 class="mt-6 text-lg font-semibold dark:text-white">
-                Automated Processing
+                Review as Markdown
               </h3>
               <p
                 class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-400"
               >
-                Our CI pipeline builds listing data from markdown and scrapes
-                structured details from supported job-site URLs.
+                Maintainers check the public fields, application route, and
+                source context before accepting anything into the repository.
               </p>
             </article>
             <article
@@ -518,13 +520,101 @@
                 03
               </div>
               <h3 class="mt-6 text-lg font-semibold dark:text-white">
-                Connect &amp; Grow
+                Publish open data
               </h3>
               <p
                 class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-400"
               >
-                Your listing goes live on the site, reaching a community of
-                security-minded engineers and employers.
+                CI builds static JSON from accepted Markdown, and each public
+                page can link back to its source file, issue, or Git history.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── OPEN DATA CONTRACT ─────────────────────────────────────── -->
+      <section
+        class="w-full px-4 pb-20 max-md:pb-14"
+        aria-labelledby="contract-heading"
+      >
+        <div class="mx-auto w-[min(72rem,calc(100%_-_1rem))]">
+          <div class="mb-7 max-w-[42rem]">
+            <h2
+              id="contract-heading"
+              class="section-kicker-bar text-lg font-semibold text-red-500"
+            >
+              Open Data Contract
+            </h2>
+            <p
+              class="mt-2 text-[clamp(1.8rem,3vw,2.4rem)] font-semibold leading-[1.08] tracking-[-.04em] text-balance dark:text-white"
+            >
+              A job board you can inspect, fork, and audit.
+            </p>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <article
+              class="rounded-xl border border-gray-200 bg-white p-5 shadow-[inset_0_0_0_1px_rgba(17,24,39,.04)] dark:border-gray-700 dark:bg-gray-800"
+            >
+              <div
+                class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400"
+              >
+                <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+              </div>
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+                Markdown source
+              </h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">
+                Jobs and seeker profiles live as portable files, not hidden
+                database rows.
+              </p>
+            </article>
+            <article
+              class="rounded-xl border border-gray-200 bg-white p-5 shadow-[inset_0_0_0_1px_rgba(17,24,39,.04)] dark:border-gray-700 dark:bg-gray-800"
+            >
+              <div
+                class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400"
+              >
+                <i class="fa-solid fa-code-branch" aria-hidden="true"></i>
+              </div>
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+                Git history
+              </h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">
+                Changes stay reviewable through commits, issues, merge
+                requests, and source links.
+              </p>
+            </article>
+            <article
+              class="rounded-xl border border-gray-200 bg-white p-5 shadow-[inset_0_0_0_1px_rgba(17,24,39,.04)] dark:border-gray-700 dark:bg-gray-800"
+            >
+              <div
+                class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400"
+              >
+                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+              </div>
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+                Maintainer review
+              </h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">
+                Public fields and contact routes are checked before records are
+                published.
+              </p>
+            </article>
+            <article
+              class="rounded-xl border border-gray-200 bg-white p-5 shadow-[inset_0_0_0_1px_rgba(17,24,39,.04)] dark:border-gray-700 dark:bg-gray-800"
+            >
+              <div
+                class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400"
+              >
+                <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+              </div>
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+                Static delivery
+              </h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">
+                Generated JSON powers a fast static frontend without a private
+                app database.
               </p>
             </article>
           </div>
@@ -544,18 +634,19 @@
               id="quick-add-heading"
               class="section-kicker-bar text-lg font-semibold text-red-500"
             >
-              Job Sites
+              Job URL Drafts
             </h2>
             <p
               class="mt-2 text-[clamp(2rem,3vw,2.5rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance dark:text-white"
             >
-              Auto-import from the platforms you already use.
+              Turn a job link into a reviewable proposal.
             </p>
             <p
               class="mt-4 max-w-[36rem] text-base leading-[1.65] text-gray-600 dark:text-gray-400"
             >
-              Paste a link from any supported job board and we'll open a
-              pre-filled GitLab issue to pull in all the details automatically.
+              Paste a public job link from an ATS or careers page. BLT Jobs
+              creates a GitLab issue draft that can become Markdown after human
+              review.
             </p>
             <div class="mt-8 flex flex-wrap items-center gap-4">
               <a
@@ -683,16 +774,16 @@
               <div class="mb-4 flex items-center justify-between">
                 <span
                   class="font-sans text-sm font-semibold text-gray-900 dark:text-white"
-                  >Quick Add Job URL</span
+                  >Create Job Draft</span
                 >
                 <span
                   class="rounded-full bg-emerald-50 px-2 py-1 text-[.65rem] font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                  >ready</span
+                  >draft only</span
                 >
               </div>
               <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
-                Paste a job link and we'll open a pre-filled GitLab issue to
-                import it.
+                Paste a job link and open a pre-filled GitLab issue. Nothing is
+                published until maintainers review the Markdown.
               </p>
               <form id="quick-add-form" class="flex gap-2" novalidate>
                 <input
@@ -715,6 +806,12 @@
               >
                 Please enter a valid URL.
               </p>
+              <div
+                class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900 dark:border-amber-900/60 dark:bg-amber-900/20 dark:text-amber-200"
+              >
+                No private application data. No auto-publish. The URL only
+                starts a public Git review.
+              </div>
               <div
                 class="mt-4 grid grid-cols-2 gap-2 font-mono text-xs text-gray-500"
               >
@@ -926,8 +1023,8 @@
           <p
             class="m-0 max-w-[31rem] text-sm leading-[1.6] text-gray-500 dark:text-gray-400"
           >
-            Post a role, showcase your skills, or browse opportunities — all
-            driven by open-source tooling you can contribute to.
+            Post a role, showcase your skills, or browse opportunities through
+            open data you can inspect, fork, and improve.
           </p>
           <div
             class="mb-2 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
@@ -976,6 +1073,7 @@
               <p>Project</p>
               <a
                 href="https://gitlab.com/owasp-blt/blt-jobs"
+                data-provider-repository
                 target="_blank"
                 rel="noopener noreferrer"
                 >GitLab</a
@@ -1013,12 +1111,23 @@
       </section>
     </main>
 
+    <script src="assets/js/provider.js"></script>
     <script src="assets/js/saved-jobs.js"></script>
     <script src="assets/js/sanitize.js"></script>
     <script>
       (function () {
         var params = new URLSearchParams(window.location.search);
-        var repo = params.get("repo") || "owasp-blt/blt-jobs";
+        var provider = window.BLTProvider || {
+          issueUrl: function () {
+            var repoParam = params.get("repo");
+            var repo =
+              typeof repoParam === "string" &&
+              /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/.test(repoParam)
+                ? repoParam
+                : "owasp-blt/blt-jobs";
+            return "https://gitlab.com/" + repo + "/-/issues/new";
+          },
+        };
         var form = document.getElementById("quick-add-form");
         var input = document.getElementById("quick-add-url");
         var error = document.getElementById("quick-add-error");
@@ -1034,11 +1143,11 @@
             var description =
               "### Job Posting URL\\n" +
               url +
+              "\\n\\n<!-- This URL is input for a reviewable Markdown draft. Maintainers publish only after review. -->" +
               '\\n\\n/label ~"job-posting-from-link"';
             window.open(
-              "https://gitlab.com/" +
-                repo +
-                "/-/issues/new?issue[title]=" +
+              provider.issueUrl() +
+                "?issue[title]=" +
                 encodeURIComponent("Job Post from Link") +
                 "&issue[description]=" +
                 encodeURIComponent(description),

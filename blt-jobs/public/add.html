@@ -32,8 +32,8 @@
   <div id="navbar-placeholder"></div>
 
   <main class="mx-auto max-w-3xl px-4 pt-28 pb-12 sm:px-6 lg:px-8 space-y-8">
-    <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-gray-100 sm:text-4xl">Contribute to the job board</h1>
-    <p class="mt-2 text-slate-600 dark:text-gray-400">Open an issue — no fork or PR needed. We add the listing and close the issue automatically.</p>
+    <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-gray-100 sm:text-4xl">Contribute Git-managed open data</h1>
+    <p class="mt-2 text-slate-600 dark:text-gray-400">Open a GitLab issue or propose Markdown. Maintainers review public fields before listings and profiles are published.</p>
 
           <!-- Add via issue (primary) -->
           <section class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
@@ -41,7 +41,8 @@
               <span class="text-xs font-semibold uppercase tracking-wide text-[#e74c3c] dark:text-[#e74c3c]">Easiest</span>
             </div>
             <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Post a job from URL</h2>
-            <p class="text-gray-600 dark:text-gray-400 mb-4">Open an issue, paste the job link, and submit. Our bot scrapes it and adds the listing; the issue is closed when done. Works with Greenhouse, Lever, Workable, LinkedIn, Indeed, and most career pages.</p>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">Open an issue and paste a public job link. The link becomes input for a reviewable Markdown draft; maintainers publish only after checking the generated fields.</p>
+            <p class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-900/20 dark:text-amber-200">Do not include private applicant notes, private phone numbers, identity documents, or secrets. Published job data is public Git data.</p>
             <a id="issue-link-job-url" href="https://gitlab.com/owasp-blt/blt-jobs/-/issues/new?issuable_template=job-posting-from-link" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
               <i class="fas fa-link mr-2"></i>Open issue: Post job from URL
             </a>
@@ -55,7 +56,7 @@
 
           <section class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
             <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Post a job (fill the form)</h2>
-            <p class="text-gray-600 dark:text-gray-400 mb-4">Open an issue and fill in company, title, location, description, and how to apply. We turn it into a listing and close the issue.</p>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">Open an issue and fill in company, title, location, description, and how to apply. Maintainers review the issue, then the accepted record is committed as Markdown.</p>
             <a id="issue-link-job-form" href="https://gitlab.com/owasp-blt/blt-jobs/-/issues/new?issuable_template=job-posting" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-[#e74c3c] text-[#e74c3c] dark:border-red-500 dark:text-red-400 rounded-lg font-semibold hover:bg-red-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
               <i class="fas fa-edit mr-2"></i>Open issue: Post job (form)
             </a>
@@ -65,8 +66,9 @@
           <section id="seekers" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
             <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Create a job seeker profile</h2>
             <p class="text-gray-600 dark:text-gray-400 mb-4">
-              Open an issue and fill in your name, headline, skills, and links. Your profile appears on the <a href="seekers.html" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">Find Talent</a> page; we close the issue when done.
+              Open an issue and fill in your name, headline, skills, and links. Your profile is public Markdown once accepted and appears on the <a href="seekers.html" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">Find Talent</a> page.
             </p>
+            <p class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-900/20 dark:text-amber-200">Only include email, resume links, and contact routes you intentionally want published in this repository and static site.</p>
             <a id="issue-link-seeker" href="https://gitlab.com/owasp-blt/blt-jobs/-/issues/new?issuable_template=job-seeker" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-[#e74c3c] text-[#e74c3c] dark:border-red-500 dark:text-red-400 rounded-lg font-semibold hover:bg-red-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
               <i class="fas fa-user-plus mr-2"></i>Open issue: Create seeker profile
             </a>
@@ -95,6 +97,7 @@
   </footer>
   <script src="assets/js/theme.js"></script>
   <script src="assets/js/saved-jobs.js"></script>
+  <script src="assets/js/provider.js"></script>
   <script src="assets/js/navbar.js"></script>
   <script>
     (function () {
@@ -103,20 +106,22 @@
         if (iframe && !iframe.src) el.style.display = "none";
       });
 
-      var params = new URLSearchParams(window.location.search);
-      var repo = params.get('repo') || 'owasp-blt/blt-jobs';
-      var base = 'https://gitlab.com/' + repo + '/-/issues/new';
-      var gl = 'https://gitlab.com/' + repo;
+      var provider = window.BLTProvider || {
+        repositoryUrl: 'https://gitlab.com/owasp-blt/blt-jobs',
+        issueUrl: function (template) {
+          return 'https://gitlab.com/owasp-blt/blt-jobs/-/issues/new' + (template ? '?issuable_template=' + encodeURIComponent(template) : '');
+        }
+      };
       var jobUrl = document.getElementById('issue-link-job-url');
       var jobForm = document.getElementById('issue-link-job-form');
       var seeker = document.getElementById('issue-link-seeker');
       var navGl = document.getElementById('nav-gitlab');
       var footerGl = document.getElementById('footer-gitlab');
-      if (jobUrl) jobUrl.href = base + '?issuable_template=job-posting-from-link';
-      if (jobForm) jobForm.href = base + '?issuable_template=job-posting';
-      if (seeker) seeker.href = base + '?issuable_template=job-seeker';
-      if (navGl) navGl.href = gl;
-      if (footerGl) footerGl.href = gl;
+      if (jobUrl) jobUrl.href = provider.issueUrl('job-posting-from-link');
+      if (jobForm) jobForm.href = provider.issueUrl('job-posting');
+      if (seeker) seeker.href = provider.issueUrl('job-seeker');
+      if (navGl) navGl.href = provider.repositoryUrl;
+      if (footerGl) footerGl.href = provider.repositoryUrl;
     })();
   </script>
 </body>

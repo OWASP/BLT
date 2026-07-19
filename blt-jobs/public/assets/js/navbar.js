@@ -7,16 +7,11 @@
     { name: "Leaderboard", href: "./leaderboard.html" },
   ];
 
-  // Helper to determine the repository URL (standard across pages)
-  const params = new URLSearchParams(window.location.search);
-  const defaultRepo = "owasp-blt/blt-jobs";
-  const repoParam = params.get("repo");
-  const repo =
-    typeof repoParam === "string" &&
-    /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/.test(repoParam)
-      ? repoParam
-      : defaultRepo;
-  const gitlabUrl = "https://gitlab.com/" + repo;
+  const provider = window.BLTProvider || {
+    name: "GitLab",
+    iconClass: "fa-brands fa-gitlab",
+    repositoryUrl: "https://gitlab.com/owasp-blt/blt-jobs",
+  };
 
   // Determine which page is current to highlight the active link
   const currentPath = window.location.pathname.split("/").pop() || "index.html";
@@ -58,9 +53,9 @@
   const mobileLinksHtml = links.map((l) => getLinkHtml(l, true)).join("");
 
   const gitlabLinkHtml = `
-    <a id="nav-gitlab" href="${gitlabUrl}" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-      <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
-      GitLab
+    <a id="nav-gitlab" href="${provider.repositoryUrl}" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+      <i class="${provider.iconClass || "fa-solid fa-code-branch"}" aria-hidden="true"></i>
+      ${provider.name}
     </a>
   `;
 
@@ -90,9 +85,9 @@
           <div class="flex flex-col gap-1">
             ${mobileLinksHtml}
             <div class="px-3 py-2">
-               <a href="${gitlabUrl}" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-                <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
-                GitLab
+               <a href="${provider.repositoryUrl}" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                <i class="${provider.iconClass || "fa-solid fa-code-branch"}" aria-hidden="true"></i>
+                ${provider.name}
               </a>
             </div>
           </div>
