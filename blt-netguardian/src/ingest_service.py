@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Mapping, Optional
 
 from canonicalize import body_digest_hex
@@ -24,6 +24,14 @@ from ng_secrets import lookup_sender_secret
 
 DEFAULT_MAX_BODY = 1_048_576
 DEFAULT_RPM = 60
+DEFAULT_RPH = 1000
+
+
+def _retry_after_hour_seconds(now: datetime) -> int:
+    """Seconds until the next UTC hour boundary (hour-quota back-pressure)."""
+    utc = now.astimezone(timezone.utc)
+    next_hour = utc.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    return max(1, int((next_hour - utc).total_seconds()))
 
 
 @dataclass
@@ -59,6 +67,7 @@ async def process_ingest(
     store = store or IngestStore(db)
     max_body = _env_int(env, "NG_INGEST_MAX_BODY_BYTES", DEFAULT_MAX_BODY)
     rpm = _env_int(env, "NG_INGEST_RPM", DEFAULT_RPM)
+    rph = _env_int(env, "NG_INGEST_RPH", DEFAULT_RPH)
 
     if len(raw_body) > max_body:
         raise IngestError(
@@ -119,9 +128,22 @@ async def process_ingest(
             status=429,
             body={
                 "error": IngestErrorCode.RATE_LIMITED.value,
-                "message": "too many ingest requests for this org",
+                "message": "too many ingest requests for this org (per-minute)",
+                "scope": "minute",
             },
             headers={"Retry-After": "60"},
+        )
+
+    if not await store.check_hour_quota(org_id, limit_per_hour=rph, now=now):
+        retry_after = _retry_after_hour_seconds(now)
+        return IngestResult(
+            status=429,
+            body={
+                "error": IngestErrorCode.RATE_LIMITED.value,
+                "message": "org hourly ingest quota exceeded",
+                "scope": "hour",
+            },
+            headers={"Retry-After": str(retry_after)},
         )
 
     plaintext_payload = envelope.get("payload_plaintext")

@@ -39,21 +39,35 @@ class IngestStore:
             return None
         return {"envelope_id": row_get(row, "id"), "finding_id": row_get(row, "finding_id")}
 
-    async def check_rate_limit(self, org_id: str, *, limit_per_minute: int, now: datetime) -> bool:
-        """Return True if under limit, False if rate limited."""
-        if self.db is None or limit_per_minute <= 0:
-            return True
-        bucket = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M")
+    @staticmethod
+    def _minute_bucket(now: datetime) -> str:
+        return now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M")
+
+    @staticmethod
+    def _hour_bucket(now: datetime) -> str:
+        return now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H")
+
+    async def _metric_count(self, org_id: str, bucket: str) -> int:
         row = d1_row(await self.db.prepare(
             "SELECT ingest_accepted FROM ng_metrics WHERE org_id = ? AND day = ?"
         ).bind(org_id, bucket).first())
-        current = int(row_get(row, "ingest_accepted", 0)) if row else 0
+        return int(row_get(row, "ingest_accepted", 0)) if row else 0
+
+    async def check_rate_limit(self, org_id: str, *, limit_per_minute: int, now: datetime) -> bool:
+        """Return True if under per-minute limit, False if rate limited."""
+        if self.db is None or limit_per_minute <= 0:
+            return True
+        current = await self._metric_count(org_id, self._minute_bucket(now))
         return current < limit_per_minute
 
-    async def record_rate_accept(self, org_id: str, now: datetime) -> None:
-        if self.db is None:
-            return
-        bucket = now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M")
+    async def check_hour_quota(self, org_id: str, *, limit_per_hour: int, now: datetime) -> bool:
+        """Return True if under per-hour quota, False if back-pressured."""
+        if self.db is None or limit_per_hour <= 0:
+            return True
+        current = await self._metric_count(org_id, self._hour_bucket(now))
+        return current < limit_per_hour
+
+    async def _bump_metric(self, org_id: str, bucket: str) -> None:
         await self.db.prepare(
             """
             INSERT INTO ng_metrics (org_id, day, ingest_accepted, ingest_duplicate,
@@ -63,6 +77,13 @@ class IngestStore:
               ingest_accepted = ingest_accepted + 1
             """
         ).bind(org_id, bucket).run()
+
+    async def record_rate_accept(self, org_id: str, now: datetime) -> None:
+        if self.db is None:
+            return
+        # Minute + hour buckets share ng_metrics.day (keyed by precision).
+        await self._bump_metric(org_id, self._minute_bucket(now))
+        await self._bump_metric(org_id, self._hour_bucket(now))
 
     async def insert_accepted(
         self,

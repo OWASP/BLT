@@ -26,7 +26,9 @@ class IngestFakeDB(FakeDB):
         super().__init__()
         self.envelopes = {}
         self.sender_active = sender_active
+        # Default count for any bucket not yet written (used by RPM tests).
         self.rate_count = rate_count
+        self.metrics: dict[str, int] = {}
         self.inserts = []
 
     def prepare(self, sql):
@@ -56,7 +58,9 @@ class IngestPreparedStatement(FakePreparedStatement):
                 return {"id": row["envelope_id"], "finding_id": row["finding_id"]}
             return None
         if "from ng_metrics" in sql:
-            return {"ingest_accepted": self.db.rate_count}
+            bucket = self.params[1]
+            count = self.db.metrics.get(bucket, self.db.rate_count)
+            return {"ingest_accepted": count}
         return None
 
     async def run(self):
@@ -71,7 +75,8 @@ class IngestPreparedStatement(FakePreparedStatement):
                 if row["envelope_id"] == self.params[1]:
                     row["finding_id"] = self.params[0]
         elif "insert into ng_metrics" in sql:
-            self.db.rate_count += 1
+            bucket = self.params[1]
+            self.db.metrics[bucket] = self.db.metrics.get(bucket, self.db.rate_count) + 1
         return {}
 
 
@@ -90,6 +95,7 @@ def env(fixture_data):
     return SimpleNamespace(
         NG_SENDER_SECRETS=json.dumps({"org-demo:scanner-1:k1": fixture_data["secret_hex"]}),
         NG_INGEST_RPM="60",
+        NG_INGEST_RPH="1000",
     )
 
 
@@ -191,4 +197,38 @@ async def test_process_ingest_rate_limited(env, signed_envelope):
 
     assert result.status == 429
     assert result.body["error"] == "rate_limited"
+    assert result.body["scope"] == "minute"
     assert result.headers.get("Retry-After") == "60"
+
+
+@pytest.mark.asyncio
+async def test_process_ingest_hour_quota_exceeded(env, fixture_data, secret):
+    now = datetime(2026, 7, 20, 14, 30, 0, tzinfo=timezone.utc)
+    envelope = dict(fixture_data["envelope_unsigned"])
+    envelope.pop("payload_digest", None)
+    envelope["issued_at"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    envelope["nonce"] = "hour-quota-nonce-1"
+    signed = prepare_signed_envelope(envelope, secret, now=now)
+    body = json.dumps(signed, separators=(",", ":"), ensure_ascii=False).encode()
+
+    db = IngestFakeDB()
+    # Under per-minute, over per-hour for the UTC hour bucket.
+    db.metrics[IngestStore._hour_bucket(now)] = 1000
+    env.NG_INGEST_RPM = "60"
+    env.NG_INGEST_RPH = "1000"
+
+    result = await process_ingest(
+        raw_body=body,
+        body_digest_header=_digest_header(body),
+        envelope=signed,
+        env=env,
+        db=db,
+        store=IngestStore(db),
+        now=now,
+    )
+
+    assert result.status == 429
+    assert result.body["error"] == "rate_limited"
+    assert result.body["scope"] == "hour"
+    # 14:30 → 15:00 = 1800 seconds
+    assert result.headers.get("Retry-After") == "1800"
