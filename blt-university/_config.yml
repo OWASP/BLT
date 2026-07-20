@@ -74,6 +74,9 @@ exclude:
   - public/
   - README.md
   - SETUP.md
+  - schemas/
+  - scripts/
+  - tests/
   - wrangler.toml
   - _config.yml
   - assets/images/courses/README.md
