@@ -42,3 +42,23 @@ Thumbs.db
 .commandcode/
 *.db-wal
 *.db-shm
+
+# Node
+**/node_modules/
+
+# Cloudflare Workers
+**/.wrangler/
+
+# Python runtime
+backend/python_modules/
+python_modules/
+
+# Virtual environments
+**/.venv-workers/
+
+# Logs
+*.log
+
+# Spikes (if not part of the MR)
+backend/spikes/
+spike-1-fastapi/

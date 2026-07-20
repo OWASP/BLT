@@ -91,7 +91,7 @@ class PipelineHealth(BaseModel):
     gitlab_webhooks_received: int = Field(ge=0)
     blt_polls_completed: int = Field(ge=0)
     errors_last_hour: int = Field(ge=0)
-    queue_depth: int = Field(ge=0)
+    queue_depth: int | None = Field(default=None, ge=0)
 
 
 class HealthResponse(BaseModel):

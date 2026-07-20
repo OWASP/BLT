@@ -4,16 +4,16 @@ from __future__ import annotations
 
 import hashlib
 from datetime import datetime, timezone
-from typing import Any
 from uuid import UUID
 
-from ..models.contributor import Contributor
-from ..models.identity import IdentityFlag
-from ..models.event import Event
-from ..models.room import AvatarState
-from ..models.websocket import (
+from models.contributor import Contributor
+from models.event import Event
+from models.identity import IdentityFlag
+from models.websocket import (
     AvatarMoveMessage,
+    IdentityFlagLink,
     IdentityFlagMessage,
+    IdentityFlagSource,
     LeaderboardUpdateMessage,
     SnapshotContributor,
     SnapshotData,
@@ -39,21 +39,21 @@ def _now() -> datetime:
 
 def build_snapshot(
     contributors: list[Contributor],
-    avatars: dict[UUID, AvatarState],
+    avatars: dict[str, dict],
     occupancy: dict[str, int],
 ) -> SnapshotMessage:
     entries = []
     for c in contributors:
-        avatar = avatars.get(c.id)
+        avatar = avatars.get(str(c.id))
         entries.append(
             SnapshotContributor(
                 id=c.id,
                 display_name=c.display_name,
                 avatar_url=avatar_url(c.id),
-                floor=avatar.floor if avatar else 1,
-                room=avatar.room if avatar else "activity_monitor",
+                floor=avatar["floor"] if avatar else 1,
+                room=avatar["room"] if avatar else "activity_monitor",
                 identity_linked=c.is_linked,
-                last_event=avatar.last_event if avatar else None,
+                last_event=avatar["last_event"] if avatar else None,
                 score=c.score,
             )
         )
@@ -78,9 +78,19 @@ def build_avatar_move(event: Event, floor: int, room: str, *, contributor_id: UU
 
 def build_identity_flag(flag: IdentityFlag) -> IdentityFlagMessage:
     return IdentityFlagMessage(
-        suggested_link=flag.model_dump()["suggested_link"]
-        if hasattr(flag.model_dump()["suggested_link"], "model_dump")
-        else flag.model_dump()["suggested_link"],
+        suggested_link=IdentityFlagLink(
+            source_a=IdentityFlagSource(
+                platform=flag.source_a.platform,
+                username=flag.source_a.username,
+                user_id=flag.source_a.user_id,
+            ),
+            source_b=IdentityFlagSource(
+                platform=flag.source_b.platform,
+                username=flag.source_b.username,
+                user_id=flag.source_b.user_id,
+            ),
+            confidence=flag.confidence,
+        ),
         contributor_id=flag.contributor_id,
     )
 
@@ -97,13 +107,3 @@ def build_leaderboard_update(
         delta=delta,
         last_event=last_event,
     )
-
-
-def serialize(message: BaseModel | Any) -> str:
-    """JSON-encode a message using the model's Pydantic dump."""
-    if hasattr(message, "model_dump_json"):
-        return message.model_dump_json()
-    if isinstance(message, dict):
-        import json
-        return json.dumps(message, default=str)
-    raise TypeError(f"Cannot serialize message of type {type(message)!r}")

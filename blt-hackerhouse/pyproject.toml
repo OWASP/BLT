@@ -6,30 +6,29 @@ build-backend = "hatchling.build"
 name = "blt-hackerhouse"
 version = "0.1.0"
 description = "Real-time contributor visualization platform for OWASP BLT"
-readme = "../README.md"
+readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.12"
 
 dependencies = [
     "pydantic>=2.0",
     "pydantic-settings>=2.0",
-    "fastapi>=0.115",
-    "uvicorn[standard]>=0.34",
-    "aiosqlite>=0.20",
-    "rapidfuzz>=3.0",
+    "fastapi>=0.139",
     "httpx>=0.27",
 ]
 
 [project.optional-dependencies]
 dev = [
+    "workers-py",
+    "aiosqlite>=0.20",
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["backend/src"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["src", "scripts"]
+testpaths = ["backend/tests"]
+pythonpath = ["backend/src", "backend/scripts"]
 asyncio_mode = "auto"

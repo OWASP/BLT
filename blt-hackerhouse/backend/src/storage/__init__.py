@@ -1,26 +1,28 @@
-"""SQLite storage layer.
+"""Storage layer — D1 native query helpers.
 
-Provides async database access via aiosqlite, a migration runner,
-and typed query helpers for every table defined in migration 001.
+Typed query helpers for every table. No Database wrapper, no aiosqlite.
+Pass the D1 binding directly to each query class.
 """
 
-from .connection import Database, get_database, reset_database
+from .d1_utils import d1_row, d1_rows, dumps_json, loads_json, parse_utc, utc_now_iso
 from .queries import (
-    EventQueries,
-    ContributorQueries,
     AvatarStateQueries,
-    IdentityQueries,
+    ContributorQueries,
     CursorQueries,
     DeadLetterQueries,
+    EventQueries,
+    IdentityQueries,
 )
 
 __all__ = [
-    "Database",
-    "get_database",
     "EventQueries",
     "ContributorQueries",
     "AvatarStateQueries",
     "IdentityQueries",
     "CursorQueries",
     "DeadLetterQueries",
+    "utc_now_iso",
+    "parse_utc",
+    "dumps_json",
+    "loads_json",
 ]

@@ -12,16 +12,13 @@ import logging
 from dataclasses import dataclass
 from uuid import UUID, uuid4
 
-import aiosqlite
-from rapidfuzz import distance, fuzz
-
-from ..models.contributor import Contributor
-from ..models.event import Event
-from ..models.identity import IdentityFlag, IdentityMapping, PlatformIdentity
-from ..storage import (
+from core.fuzzy import levenshtein_distance, token_set_jaccard
+from models.contributor import Contributor
+from models.event import Event
+from models.identity import IdentityFlag, IdentityMapping, PlatformIdentity
+from storage import (
     AvatarStateQueries,
     ContributorQueries,
-    Database,
     IdentityQueries,
 )
 
@@ -42,13 +39,13 @@ class ResolutionResult:
 class IdentityResolver:
     """Resolve an event's actor to a unified ``Contributor``."""
 
-    def __init__(self, db: Database) -> None:
-        self.db = db
-        self.contributors = ContributorQueries(db)
-        self.identities = IdentityQueries(db)
-        self.avatars = AvatarStateQueries(db)
+    def __init__(self, d1):
+        self._db = d1
+        self.contributors = ContributorQueries(d1)
+        self.identities = IdentityQueries(d1)
+        self.avatars = AvatarStateQueries(d1)
 
-    async def resolve(self, event: Event, conn: aiosqlite.Connection | None = None) -> ResolutionResult:
+    async def resolve(self, event: Event) -> ResolutionResult:
         """Run all four stages and return the resolved contributor."""
         platform = event.source
         platform_user_id = event.actor_id
@@ -75,9 +72,9 @@ class IdentityResolver:
             for username in contributor.usernames:
                 if not username:
                     continue
-                if distance.Levenshtein.distance(actor_lower, username) <= 2:
+                if levenshtein_distance(actor_lower, username) <= 2:
                     flag = await self._record_fuzzy_match(
-                        contributor, platform, platform_user_id, actor_name, 0.75, conn
+                        contributor, platform, platform_user_id, actor_name, 0.75
                     )
                     return ResolutionResult(
                         contributor_id=contributor.id,
@@ -89,10 +86,10 @@ class IdentityResolver:
         # Stage 3: token_set_ratio ≥ 0.6 against aliases
         for contributor in contributors:
             for alias in contributor.aliases + [contributor.display_name]:
-                score = fuzz.token_set_ratio(actor_lower, alias.lower()) / 100.0
+                score = token_set_jaccard(actor_lower, alias.lower())
                 if score >= 0.60:
                     flag = await self._record_fuzzy_match(
-                        contributor, platform, platform_user_id, actor_name, 0.60, conn
+                        contributor, platform, platform_user_id, actor_name, 0.60
                     )
                     return ResolutionResult(
                         contributor_id=contributor.id,
@@ -102,7 +99,7 @@ class IdentityResolver:
                     )
 
         # Stage 4: unlinked fallback
-        return await self._create_unlinked(platform, platform_user_id, actor_name, conn)
+        return await self._create_unlinked(platform, platform_user_id, actor_name)
 
     async def _record_fuzzy_match(
         self,
@@ -111,7 +108,6 @@ class IdentityResolver:
         platform_user_id: str,
         actor_name: str,
         confidence: float,
-        conn: aiosqlite.Connection | None = None,
     ) -> IdentityFlag:
         """Insert the new mapping and emit an identity flag."""
         await self.identities.insert(
@@ -121,11 +117,10 @@ class IdentityResolver:
                 contributor_id=contributor.id,
                 confidence=confidence,
             ),
-            conn=conn,
         )
         contributor.add_username(actor_name)
         contributor.add_platform_id(platform, platform_user_id)
-        await self.contributors.upsert(contributor, conn=conn)
+        await self.contributors.upsert(contributor)
 
         flag = IdentityFlag(
             source_a=PlatformIdentity(platform=platform, user_id=platform_user_id),  # type: ignore[arg-type]
@@ -151,7 +146,6 @@ class IdentityResolver:
         platform: str,
         platform_user_id: str,
         actor_name: str,
-        conn: aiosqlite.Connection | None = None,
     ) -> ResolutionResult:
         contributor = Contributor(
             id=uuid4(),
@@ -162,7 +156,7 @@ class IdentityResolver:
             is_linked=False,
             score=0,
         )
-        await self.contributors.upsert(contributor, conn=conn)
+        await self.contributors.upsert(contributor)
         await self.identities.insert(
             IdentityMapping(
                 platform=platform,  # type: ignore[arg-type]
@@ -170,7 +164,6 @@ class IdentityResolver:
                 contributor_id=contributor.id,
                 confidence=0.0,
             ),
-            conn=conn,
         )
         logger.info(
             "identity unlinked fallback",

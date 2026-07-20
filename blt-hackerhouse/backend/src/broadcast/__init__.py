@@ -1,6 +1,5 @@
-"""Broadcast layer: WebSocket hub and leaderboard accumulator."""
+"""Broadcast layer: leaderboard scoring and message builders."""
 
-from .hub import WebSocketHub, get_hub
 from .leaderboard import LeaderboardAccumulator, SCORING_RULES
 from .messages import (
     build_snapshot,
@@ -10,8 +9,6 @@ from .messages import (
 )
 
 __all__ = [
-    "WebSocketHub",
-    "get_hub",
     "LeaderboardAccumulator",
     "SCORING_RULES",
     "build_snapshot",
