@@ -30,9 +30,47 @@ validate-labs:
         - docs/lab-authoring-guide.md
         - docs/lab-template.md
 
+validate-vulnerability-intel:
+  stage: validate
+  image: python:3.11-slim
+  cache: []
+  script:
+    - python -m pip install jsonschema==4.25.1
+    - python -B scripts/vulnerability_intel/validate.py
+    - python -B -m unittest discover -s tests/vulnerability_intel -p 'test_*.py' -v
+  rules:
+    - changes:
+        - _data/cwe_owasp_lab_mapping.json
+        - _data/vulnerability_intel.json
+        - schemas/vulnerability-intel.schema.json
+        - scripts/vulnerability_intel/update.py
+        - scripts/vulnerability_intel/validate.py
+        - tests/vulnerability_intel/test_pipeline.py
+
+refresh-vulnerability-intel:
+  stage: validate
+  image: python:3.11-slim
+  cache: []
+  before_script:
+    - apt-get update && apt-get install -y --no-install-recommends curl
+  script:
+    - python -m pip install jsonschema==4.25.1
+    - python -B scripts/vulnerability_intel/update.py --days 90
+    - python -B scripts/vulnerability_intel/validate.py
+  artifacts:
+    paths:
+      - _data/vulnerability_intel.json
+    expire_in: 1 day
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
 build_site:
   image: ruby:3.2
   stage: build
+  needs:
+    - job: refresh-vulnerability-intel
+      artifacts: true
+      optional: true
   script:
     - bundle install
     - bundle exec jekyll build -d public
