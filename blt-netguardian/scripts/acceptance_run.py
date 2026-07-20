@@ -4,19 +4,18 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
-from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "tests"))
 
-from test_acceptance_gates import CASES_PATH, run_case  # noqa: E402
+from acceptance_fixtures import CASES_PATH, build_env, run_case  # noqa: E402
 from netguardian_db import open_netguardian_db  # noqa: E402
-import base64  # noqa: E402
-from datetime import datetime, timezone  # noqa: E402
 
 
 async def main() -> int:
@@ -24,15 +23,7 @@ async def main() -> int:
     meta = pack["meta"]
     secret = bytes.fromhex(meta["secret_hex"])
     payload_key = base64.b64decode(meta["payload_key_b64"])
-    env = SimpleNamespace(
-        NG_SENDER_SECRETS=json.dumps({
-            f"{meta['org_id']}:{meta['sender_id']}:{meta['kid']}": meta["secret_hex"],
-        }),
-        NG_ORG_API_TOKENS=json.dumps({"triage-token": meta["org_id"]}),
-        NG_PAYLOAD_KEYS=json.dumps({meta["org_id"]: meta["payload_key_b64"]}),
-        NG_INGEST_RPM="120",
-        NG_INGEST_MAX_BODY_BYTES=str(1_048_576),
-    )
+    env = build_env(pack)
     db = open_netguardian_db(ROOT)
     now = datetime.now(timezone.utc)
     rows = []

@@ -67,23 +67,21 @@ class IngestStore:
         current = await self._metric_count(org_id, self._hour_bucket(now))
         return current < limit_per_hour
 
-    async def _bump_metric(self, org_id: str, bucket: str) -> None:
-        await self.db.prepare(
-            """
+    async def record_rate_accept(self, org_id: str, now: datetime) -> None:
+        if self.db is None:
+            return
+        # Minute + hour buckets share ng_metrics.day (keyed by precision).
+        sql = """
             INSERT INTO ng_metrics (org_id, day, ingest_accepted, ingest_duplicate,
                                     ingest_rejected, findings_open)
             VALUES (?, ?, 1, 0, 0, 0)
             ON CONFLICT(org_id, day) DO UPDATE SET
               ingest_accepted = ingest_accepted + 1
             """
-        ).bind(org_id, bucket).run()
-
-    async def record_rate_accept(self, org_id: str, now: datetime) -> None:
-        if self.db is None:
-            return
-        # Minute + hour buckets share ng_metrics.day (keyed by precision).
-        await self._bump_metric(org_id, self._minute_bucket(now))
-        await self._bump_metric(org_id, self._hour_bucket(now))
+        await self.db.batch([
+            self.db.prepare(sql).bind(org_id, self._minute_bucket(now)),
+            self.db.prepare(sql).bind(org_id, self._hour_bucket(now)),
+        ])
 
     async def insert_accepted(
         self,
