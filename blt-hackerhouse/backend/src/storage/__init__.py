@@ -5,6 +5,7 @@ Pass the D1 binding directly to each query class.
 """
 
 from .d1_utils import d1_row, d1_rows, dumps_json, loads_json, parse_utc, utc_now_iso
+from .health import HealthStateQueries
 from .queries import (
     AvatarStateQueries,
     ContributorQueries,
@@ -21,6 +22,7 @@ __all__ = [
     "IdentityQueries",
     "CursorQueries",
     "DeadLetterQueries",
+    "HealthStateQueries",
     "utc_now_iso",
     "parse_utc",
     "dumps_json",

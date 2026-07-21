@@ -28,8 +28,16 @@ class Default(WorkerEntrypoint):
         pass
 
     async def queue(self, batch, env, ctx):
+        import json as _json
+        from pipeline.consumer import process_pipeline_event
+
+        db = env.HH_DB
         for msg in batch.messages:
-            print("QUEUE", msg.body)
+            try:
+                event_dict = _json.loads(msg.body) if isinstance(msg.body, str) else msg.body
+                await process_pipeline_event(event_dict, db, env)
+            except Exception:
+                raise  # re-raise → msg not acknowledged → queue retry
             msg.ack()
 
     async def _handle_ws(self, request):
