@@ -1,7 +1,12 @@
 """Queue consumer: process every enqueued event through the full pipeline.
 
-Processing order: parse → deduplicate → persist → identity resolve
-→ avatar state update → leaderboard score → DO broadcast → health record.
+Processing order: parse → dedup → identity resolve → avatar state
+→ leaderboard score → DO broadcast → persist (with contributor_id)
+→ health record.
+
+The event is only persisted after all side effects succeed, so the
+dedup check (based on idempotency_key) correctly prevents re-processing
+of completed events while allowing retries of partially-failed ones.
 """
 
 from __future__ import annotations
@@ -40,23 +45,19 @@ async def process_pipeline_event(event_dict: dict[str, Any], db, env) -> bool:
     # 1. Parse
     event = Event.model_validate(event_dict)
 
-    # 2. Dedup
+    # 2. Dedup — check before any side effects so completed events are
+    #    idempotent while failed processing can retry cleanly.
     if await is_duplicate(db, event):
         logger.debug("duplicate event skipped", extra={"idempotency_key": event.idempotency_key})
         return True
 
-    # 3. Persist
-    await EventQueries(db).insert(event)
-
-    # 4. Identity resolution
+    # 3. Identity resolution (creates contributor + identity_mapping
+    #    as needed; both use idempotent ON CONFLICT upserts).
     resolver = IdentityResolver(db)
     result: ResolutionResult = await resolver.resolve(event)
-
-    # Update persisted event with resolved contributor_id
-    await _update_event_contributor(db, str(event.id), str(result.contributor_id))
     event = event.with_contributor(result.contributor_id)
 
-    # 5. Avatar state
+    # 4. Avatar state
     room_entry = resolve_room(event.event_type)
     avatar = AvatarState(
         contributor_id=result.contributor_id,
@@ -66,7 +67,7 @@ async def process_pipeline_event(event_dict: dict[str, Any], db, env) -> bool:
     )
     await AvatarStateQueries(db).upsert(avatar)
 
-    # 6. Leaderboard score
+    # 5. Leaderboard score
     contributor_q = ContributorQueries(db)
     contributor = await contributor_q.get(result.contributor_id)
     if contributor is None:
@@ -80,7 +81,7 @@ async def process_pipeline_event(event_dict: dict[str, Any], db, env) -> bool:
             contributor.add_score(delta)
             await contributor_q.upsert(contributor)
 
-    # 7. Broadcast to DO
+    # 6. Broadcast to DO
     try:
         do_stub = _get_do_stub(env)
         if do_stub is not None:
@@ -88,6 +89,11 @@ async def process_pipeline_event(event_dict: dict[str, Any], db, env) -> bool:
             await _broadcast_to_do(do_stub, broadcast_body)
     except Exception:
         logger.debug("broadcast skipped", exc_info=True)
+
+    # 7. Persist — only after all side effects succeed.  Contributor
+    #    resolution steps 3–5 are idempotent (ON CONFLICT upserts),
+    #    so retries won't create duplicates.
+    await EventQueries(db).insert(event.with_contributor(result.contributor_id))
 
     # 8. Health metrics
     health = HealthStateQueries(db)
@@ -144,9 +150,3 @@ async def _broadcast_to_do(do_stub, body: dict[str, Any]) -> None:
         {"method": "POST", "body": payload, "headers": {"Content-Type": "application/json"}},
     )
     await do_stub.fetch(js_req)
-
-
-async def _update_event_contributor(db, event_id: str, contributor_id: str) -> None:
-    await db.prepare(
-        "UPDATE events SET contributor_id = ? WHERE id = ?"
-    ).bind(contributor_id, event_id).run()
