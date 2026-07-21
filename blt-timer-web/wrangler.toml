@@ -10,11 +10,20 @@ directory = "./public"
 [env.production]
 name = "blt-timer-production"
 
-# D1 database for data storage
+# Local development binding. Wrangler uses this binding for `wrangler dev` and
+# `./migrate.sh dev` with a local D1 database.
 [[d1_databases]]
 binding = "DB"
-database_name = "time_tracker"
-database_id = "f0c8a598-a525-4923-8f9d-ec44a81b4c80"
+database_name = "blt-timer-web"
+database_id = "3b02b4c4-5fcc-4cf9-b69e-6bd78385a6a7"
+migrations_dir = "migrations"
+
+# Environment bindings are not inherited from the top-level configuration.
+# Keep this in sync with the local binding so production receives `env.DB`.
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "blt-timer-web"
+database_id = "3b02b4c4-5fcc-4cf9-b69e-6bd78385a6a7"
 migrations_dir = "migrations"
 
 [observability]
