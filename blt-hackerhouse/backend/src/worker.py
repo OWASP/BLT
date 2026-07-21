@@ -52,12 +52,12 @@ class WebSocketRoom(DurableObject):
         if path == "/internal/broadcast":
             body = await request.json()
             self._broadcast(body)
-            return Response.new("ok", status=200)
+            return Response("ok", status=200)
 
         client, server = WebSocketPair.new().object_values()
         self.ctx.acceptWebSocket(server)
         server.send("Connected")
-        return Response.new(None, status=101, web_socket=client)
+        return Response(None, status=101, web_socket=client)
 
     async def webSocketMessage(self, ws, message):
         pass
