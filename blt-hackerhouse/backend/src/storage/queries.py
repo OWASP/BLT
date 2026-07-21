@@ -88,7 +88,7 @@ class EventQueries:
     async def count_since(self, since: datetime) -> int:
         utc_since = since.astimezone(timezone.utc) if since.tzinfo else since.replace(tzinfo=timezone.utc)
         result = await self._db.prepare(
-            "SELECT COUNT(*) AS c FROM events WHERE datetime(created_at) >= datetime(?)"
+            "SELECT COUNT(*) AS c FROM events WHERE datetime(timestamp) >= datetime(?)"
         ).bind(utc_since.isoformat()).first()
         row = d1_row(result)
         return int(row.get("c", 0))
