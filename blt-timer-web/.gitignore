@@ -1,4 +1,5 @@
 .wrangler/
+.blt-d1/
 *.log
 .env
 .dev.vars
@@ -18,3 +19,7 @@ dist/
 build/
 .venv/
 venv/
+
+#AI
+docs/*
+.superpowers/*

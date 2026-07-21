@@ -8,7 +8,7 @@ workers_dev = true
 directory = "./public"
 
 [env.production]
-name = "fresh-time-tracker-prod"
+name = "blt-timer-production"
 
 # D1 database for data storage
 [[d1_databases]]
