@@ -153,8 +153,9 @@ def run_pipeline(args: argparse.Namespace) -> int:
         encoding="utf-8",
     )
 
+    import json
     Path(args.json).write_text(
-        str(PipelineEvaluator.to_dict(report)),
+        json.dumps(PipelineEvaluator.to_dict(report), indent=2),
         encoding="utf-8",
     )
 
