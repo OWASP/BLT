@@ -54,10 +54,9 @@ def configure_logging(
     if root.handlers:
         root.handlers.clear()
 
-    formatter = logging.Formatter(
-        fmt=DEFAULT_FORMAT,
-        datefmt=DEFAULT_DATE_FORMAT,
-    )
+    from advisory_engine.logging.formatter import StructuredFormatter
+
+    formatter = StructuredFormatter()
 
     # Console handler
     console_handler = logging.StreamHandler(
