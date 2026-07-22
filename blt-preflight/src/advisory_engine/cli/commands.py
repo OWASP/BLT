@@ -30,18 +30,16 @@ from advisory_engine.benchmark.runner import BenchmarkRunner
 # ---------------------------------------------------------------------
 
 
+from advisory_engine.cli.utils import write_text, write_json
+
 def _write(path: str | None, content: str) -> None:
     if path:
-        Path(path).write_text(content, encoding="utf-8")
+        write_text(path, content)
 
 
 def _write_json(path: str | None, data: dict) -> None:
     if path:
-        Path(path).write_text(
-            json.dumps(data, indent=2),
-            encoding="utf-8",
-        )
-
+        write_json(path, data)
 
 # ---------------------------------------------------------------------
 # Commands
