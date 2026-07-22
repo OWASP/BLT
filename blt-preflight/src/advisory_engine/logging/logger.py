@@ -114,33 +114,42 @@ class PipelineLogger:
     def debug(
         self,
         message: str,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
-        self.logger.debug(message)
+        self.logger.debug(message, *args, **kwargs)
 
     def info(
         self,
         message: str,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
-        self.logger.info(message)
+        self.logger.info(message, *args, **kwargs)
 
     def warning(
         self,
         message: str,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
-        self.logger.warning(message)
+        self.logger.warning(message, *args, **kwargs)
 
     def error(
         self,
         message: str,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
-        self.logger.error(message)
+        self.logger.error(message, *args, **kwargs)
 
     def exception(
         self,
         message: str,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
-        self.logger.exception(message)
-
+        self.logger.exception(message, *args, **kwargs)
 
 # Configure a default logger when imported.
 configure_logging()
