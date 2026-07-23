@@ -7,7 +7,6 @@ const {
   advanceSqliSimulationToFix,
   answerExplanation,
   cloneSerializableValue,
-  createMockDocument,
   findButton,
   findDescendant,
   getFixEditor,
@@ -16,6 +15,7 @@ const {
   getStoredLabProgress,
   initializeSqliSimulation,
   loadLabHelpers,
+  renderLabFixture,
   selectCodeLine,
   submitFix,
   validateExplanation,
@@ -47,7 +47,7 @@ describe('SQLi simulation user flow', () => {
     expect(cloneSerializableValue(completionEvents)).toEqual([
       expect.objectContaining({ taskIndex })
     ]);
-    expect(cloneSerializableValue(getStoredLabProgress(storage))).toMatchObject({
+    expect(getStoredLabProgress(storage)).toMatchObject({
       [SQLI_LAB_ID]: {
         [taskIndex]: {
           completed: true,
@@ -105,7 +105,7 @@ describe('SQLi simulation user flow', () => {
   it('does not allow locked stages to be opened before prerequisites pass', () => {
     const { labDocument } = initializeSqliSimulation();
 
-    labDocument.simulationRoot.querySelector('[data-stage-target="fix"]').click();
+    getRequiredElement(labDocument.simulationRoot, '[data-stage-target="fix"]').click();
 
     expect(findButton(labDocument.simulationRoot, 'Validate Selection')).toBeTruthy();
     expect(getFixEditor(labDocument.simulationRoot)).toBeNull();
@@ -117,7 +117,7 @@ describe('SQLi simulation user flow', () => {
     advanceSqliSimulationToFix(labDocument);
     expect(getFixEditor(labDocument.simulationRoot)).toBeTruthy();
 
-    labDocument.simulationRoot.querySelector('[data-stage-target="identify"]').click();
+    getRequiredElement(labDocument.simulationRoot, '[data-stage-target="identify"]').click();
 
     expect(findButton(labDocument.simulationRoot, 'Validate Selection')).toBeTruthy();
     expect(getFixEditor(labDocument.simulationRoot)).toBeNull();
@@ -161,7 +161,7 @@ describe('SQLi simulation user flow', () => {
 describe('open redirect identify-explain-fix simulation', () => {
   it('completes and stores progress without legacy payload simulation', () => {
     const taskIndex = 0;
-    const labDocument = createMockDocument({
+    const labDocument = renderLabFixture({
       labId: 'open-redirect',
       simulationEngine: 'redirect-basic',
       taskIndex,
@@ -183,15 +183,15 @@ describe('open redirect identify-explain-fix simulation', () => {
               ],
               answer: 'raw_redirect'
             },
-            fix_starter_code: "res.redirect(req.query.next);",
+            fix_starter_code: 'res.redirect(req.query.next);',
             hints: ['Find the redirect call.']
           }
         }
       ])
     });
-    const loaded = loadLabHelpers({ document: labDocument, pathname: '/labs/open-redirect/' });
+    const loadedLab = loadLabHelpers({ document: labDocument, pathname: '/labs/open-redirect/' });
 
-    loaded.helpers.initializeLabSimulations();
+    loadedLab.helpers.initializeLabSimulations();
     selectCodeLine(labDocument, 3);
     validateSelection(labDocument);
     getRequiredElement(labDocument.simulationRoot, '[data-answer="raw_redirect"]').click();
@@ -206,7 +206,7 @@ describe('open redirect identify-explain-fix simulation', () => {
       res.redirect(next);
     `);
 
-    expect(getStoredLabProgress(loaded.storage)).toMatchObject({
+    expect(getStoredLabProgress(loadedLab.storage)).toMatchObject({
       'open-redirect': {
         [taskIndex]: {
           completed: true,
