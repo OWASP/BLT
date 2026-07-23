@@ -35,7 +35,7 @@ validate-vulnerability-intel:
   image: python:3.11-slim
   cache: []
   script:
-    - python -m pip install jsonschema==4.25.1
+    - python -m pip install "jsonschema[format-nongpl]==4.25.1"
     - python -B scripts/vulnerability_intel/validate.py
     - python -B -m unittest discover -s tests/vulnerability_intel -p 'test_*.py' -v
   rules:
@@ -54,7 +54,7 @@ refresh-vulnerability-intel:
   before_script:
     - apt-get update && apt-get install -y --no-install-recommends curl
   script:
-    - python -m pip install jsonschema==4.25.1
+    - python -m pip install "jsonschema[format-nongpl]==4.25.1"
     - python -B scripts/vulnerability_intel/update.py --days 90
     - python -B scripts/vulnerability_intel/validate.py
   artifacts:
