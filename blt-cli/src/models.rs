@@ -22,6 +22,10 @@ use serde::{Deserialize, Serialize};
 fn default_repo() -> String {
     "owasp-blt/api".to_string()
 }
+
+fn default_url() -> String {
+    "Unknown URL".to_string()
+}
 fn default_status() -> String {
     "Triage".to_string()
 }
@@ -35,8 +39,8 @@ fn default_author() -> String {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Issue {
     pub id: String,
-    #[serde(default = "default_repo")]
-    pub repository: String,
+    #[serde(default = "default_url")]
+    pub url: String,
     pub title: String,
     pub description: String,
     #[serde(default = "default_status")]
@@ -52,13 +56,13 @@ pub struct Issue {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Repo {
     pub id: String,
+    pub organization_id: Option<u64>,
+    pub project_id: Option<u64>,
     pub name: String,
     #[serde(default)]
-    pub description: String,
-    #[serde(default)]
     pub url: String,
-    #[serde(default)]
-    pub language: String,
+    pub created: Option<String>,
+    pub modified: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

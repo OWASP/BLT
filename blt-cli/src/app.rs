@@ -29,10 +29,10 @@ use crate::models::{Hunt, Issue, Repo, Stats};
 pub enum Tab {
     Issues,
     Hunts,
+    Onboarding,
     Stats,
     Logs,
     Settings,
-    Onboarding,
 }
 
 impl Tab {
@@ -40,10 +40,10 @@ impl Tab {
         match self {
             Tab::Issues => "Issues",
             Tab::Hunts => "Active Hunts",
+            Tab::Onboarding => "Onboarding",
             Tab::Stats => "BLT Stats",
             Tab::Logs => "Logs & Events",
             Tab::Settings => "Settings",
-            Tab::Onboarding => "Onboarding",
         }
     }
 }
@@ -93,10 +93,10 @@ pub enum ActiveOverlay {
     AiTriage,
     SearchInput,
     BulkTriageConfirm,
-    CommandPalette,
     AgentStatus,
     PromptPreview,
     EasterEgg,
+    VisionContext,
 }
 
 pub enum AppEvent {
@@ -158,10 +158,11 @@ pub struct App {
     pub mcp_client:
         Option<std::sync::Arc<tokio::sync::Mutex<crate::mcp_client::McpSubprocessClient>>>,
     pub security_health: Option<crate::scanner::SecurityHealth>,
-    pub command_input: String,
     pub konami_index: usize,
     pub agent_status_data: String,
     pub prompt_preview_data: String,
+    pub vision_context_input: String,
+    pub vision_image_path: String,
 }
 
 impl App {
@@ -224,11 +225,12 @@ impl App {
             is_live: false,
             mcp_client: None,
             security_health: None,
-            command_input: String::new(),
             konami_index: 0,
             agent_status_data: "Agent Status: Idle\nConnected: false\nUptime: 0m\nMemory: 0MB"
                 .to_string(),
             prompt_preview_data: "Loading prompt preview...".to_string(),
+            vision_context_input: String::new(),
+            vision_image_path: String::new(),
         };
         app.load_session();
         app
@@ -240,11 +242,11 @@ impl App {
         }
         self.active_tab = match self.active_tab {
             Tab::Issues => Tab::Hunts,
-            Tab::Hunts => Tab::Stats,
+            Tab::Hunts => Tab::Onboarding,
+            Tab::Onboarding => Tab::Stats,
             Tab::Stats => Tab::Logs,
             Tab::Logs => Tab::Settings,
-            Tab::Settings => Tab::Onboarding,
-            Tab::Onboarding => Tab::Issues,
+            Tab::Settings => Tab::Issues,
         };
         self.status_message = format!("Switched to tab: {}", self.active_tab.name());
     }
@@ -254,12 +256,12 @@ impl App {
             return;
         }
         self.active_tab = match self.active_tab {
-            Tab::Issues => Tab::Onboarding,
+            Tab::Issues => Tab::Settings,
             Tab::Hunts => Tab::Issues,
-            Tab::Stats => Tab::Hunts,
+            Tab::Onboarding => Tab::Hunts,
+            Tab::Stats => Tab::Onboarding,
             Tab::Logs => Tab::Stats,
             Tab::Settings => Tab::Logs,
-            Tab::Onboarding => Tab::Settings,
         };
         self.status_message = format!("Switched to tab: {}", self.active_tab.name());
     }
@@ -270,7 +272,7 @@ impl App {
             if !self.search_query.is_empty() {
                 let q = self.search_query.to_lowercase();
                 if !issue.title.to_lowercase().contains(&q)
-                    && !issue.repository.to_lowercase().contains(&q)
+                    && !issue.url.to_lowercase().contains(&q)
                     && !issue.status.to_lowercase().contains(&q)
                     && !issue.severity.to_lowercase().contains(&q)
                     && !issue.id.to_lowercase().contains(&q)
@@ -543,7 +545,7 @@ mod tests {
         app.next_tab();
         assert_eq!(app.active_tab, Tab::Hunts);
         app.next_tab();
-        assert_eq!(app.active_tab, Tab::Stats);
+        assert_eq!(app.active_tab, Tab::Onboarding);
         app.prev_tab();
         assert_eq!(app.active_tab, Tab::Hunts);
     }
@@ -554,7 +556,7 @@ mod tests {
         app.issues = vec![
             Issue {
                 id: "1".to_string(),
-                repository: "repo".to_string(),
+                url: "url".to_string(),
                 title: "title".to_string(),
                 description: "desc".to_string(),
                 status: "Open".to_string(),
@@ -564,7 +566,7 @@ mod tests {
             },
             Issue {
                 id: "2".to_string(),
-                repository: "repo".to_string(),
+                url: "url".to_string(),
                 title: "title2".to_string(),
                 description: "desc2".to_string(),
                 status: "Open".to_string(),

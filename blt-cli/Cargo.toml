@@ -14,3 +14,5 @@ clap = { version = "4.5", features = ["derive"] }
 dotenvy = "0.15"
 dirs = "6.0.0"
 base64 = "0.22.1"
+arboard = "3.4.0"
+png = "0.17"
