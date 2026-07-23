@@ -13,8 +13,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script>
-        if (localStorage.getItem("theme") === "dark") {
-          document.documentElement.classList.add("dark");
+        // Dark mode theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
         }
     </script>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
@@ -41,8 +42,8 @@
                     }
                 }
             }
-        }
-        </script>
+        };
+    </script>
     <style>
         .dot-field {
             background-image: radial-gradient(rgba(17, 24, 39, 0.18) 1px, transparent 1px);
