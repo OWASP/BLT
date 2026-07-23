@@ -15,6 +15,11 @@
         SimulationStates.COMPLETE
     ];
 
+    const storageKey = 'blt-lab-progress';
+
+    function isPlainObject(value) {
+        return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+    }
 
     function createSimulationState(initialState = SimulationStates.IDENTIFY) {
         let state = orderedStates.includes(initialState) ? initialState : SimulationStates.IDENTIFY;
@@ -30,6 +35,9 @@
 
                 const currentIndex = orderedStates.indexOf(state);
                 const nextIndex = orderedStates.indexOf(nextState);
+                // Learner-driven progress may only stay put or advance exactly one stage: never
+                // skip ahead past unfinished work, never regress. Stage-pill navigation needs
+                // arbitrary jumps, so it calls set() instead.
                 if (nextIndex >= currentIndex && nextIndex <= currentIndex + 1) {
                     state = nextState;
                 }
@@ -56,13 +64,14 @@
             const parsed = JSON.parse(dataElement.textContent || '[]');
             return Array.isArray(parsed) ? parsed : [];
         } catch (_error) {
+            // Malformed embedded JSON should degrade to "no tasks" rather than break the page.
             return [];
         }
     }
 
     function labIdFromPage() {
-        const path = window.location.pathname.replace(/\/$/, '').split('/').filter(Boolean);
-        return path[path.length - 1] || 'lab';
+        const pathSegments = window.location.pathname.replace(/\/$/, '').split('/').filter(Boolean);
+        return pathSegments[pathSegments.length - 1] || 'lab';
     }
 
     function createHintController(hints = []) {
@@ -82,33 +91,33 @@
     }
 
     function getStoredSimulationProgress() {
-        const storageKey = 'blt-lab-progress';
         try {
             const parsed = JSON.parse(localStorage.getItem(storageKey) || '{}');
-            return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+            return isPlainObject(parsed) ? parsed : {};
         } catch (_error) {
+            // Corrupt stored JSON, or localStorage blocked in private browsing: treat progress
+            // as empty so the lab still loads.
             return {};
         }
     }
 
     function getSimulationProgress(labId, taskIndex) {
         const labProgress = getStoredSimulationProgress()[labId];
-        return labProgress && typeof labProgress === 'object' && !Array.isArray(labProgress)
+        return isPlainObject(labProgress)
             ? labProgress[taskIndex] || null
             : null;
     }
 
     function setSimulationProgress(labId, taskIndex, value) {
-        const storageKey = 'blt-lab-progress';
         const progress = getStoredSimulationProgress();
         const existingLabProgress = progress[labId];
-        const labProgress = existingLabProgress && typeof existingLabProgress === 'object' && !Array.isArray(existingLabProgress)
+        const labProgress = isPlainObject(existingLabProgress)
             ? existingLabProgress
             : {};
         const existingTaskProgress = labProgress[taskIndex];
 
         labProgress[taskIndex] = {
-            ...(existingTaskProgress && typeof existingTaskProgress === 'object' && !Array.isArray(existingTaskProgress)
+            ...(isPlainObject(existingTaskProgress)
                 ? existingTaskProgress
                 : {}),
             ...value
@@ -118,6 +127,8 @@
         try {
             localStorage.setItem(storageKey, JSON.stringify(progress));
         } catch (_error) {
+            // Quota exhausted or storage disabled: losing saved progress must not interrupt
+            // the learner mid-simulation, so report failure instead of throwing.
             return false;
         }
 
