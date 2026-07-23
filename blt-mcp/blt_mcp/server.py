@@ -92,7 +92,7 @@ async def list_good_first_issues() -> str:
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(
-                "https://gitlab.com/api/v4/groups/133215711/issues?labels=good%20first%20issue&state=opened&sort=desc&order_by=updated_at",
+                "https://gitlab.com/api/v4/groups/133215711/issues?state=opened&sort=desc&order_by=created_at",
                 headers={"User-Agent": "BLT-MCP"},
             )
             resp.raise_for_status()
@@ -279,7 +279,7 @@ async def triage_vulnerability(prompt: str) -> str:
         "followed by your detailed Recommendation."
     )
 
-    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/@cf/meta/llama-3-8b-instruct"
+    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/@cf/meta/llama-3.1-8b-instruct"
     headers = {
         "Authorization": f"Bearer {api_token}",
         "Content-Type": "application/json",
@@ -319,37 +319,33 @@ async def triage_vulnerability(prompt: str) -> str:
 
 @mcp.tool()
 async def draft_vision_issue(
-    image_path: str, gitlab_project_id: Optional[str] = None
+    image_path: str,
+    gitlab_project_id: Optional[str] = None,
+    context: Optional[str] = None,
 ) -> str:
-    """
-    Draft a vulnerability report (title and description) from a screenshot using Cloudflare Vision AI.
-    Optionally uploads the image to GitLab if GITLAB_API_TOKEN is set.
+    """Analyze a screenshot and draft a vulnerability issue report.
 
     Args:
         image_path: Absolute path to the screenshot image on the local system.
         gitlab_project_id: Optional GitLab project ID to upload the image to.
+        context: Optional user-provided context or hints about the screenshot.
     """
-    allowed_dir = Path.home() / ".blt-mcp" / "images"
-    allowed_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
-    allowed_dir.chmod(0o700)
+    import re
+    import platform
+
+    # Automatically translate Windows drive path to WSL mount path if running in WSL/Linux
+    if platform.system() == "Linux" and re.match(r'^[a-zA-Z]:\\', image_path):
+        drive = image_path[0].lower()
+        rest = image_path[3:].replace("\\", "/")
+        image_path = f"/mnt/{drive}/{rest}"
 
     try:
         resolved_path = Path(image_path).resolve()
-        if not resolved_path.is_relative_to(allowed_dir):
-            raise ValueError(
-                f"Image path must be within the server-owned directory: {allowed_dir}"
-            )
-    except AttributeError:
-        # Fallback for Python versions without is_relative_to
-        try:
-            resolved_path.relative_to(allowed_dir)
-        except ValueError:
-            raise ValueError(
-                f"Image path must be within the server-owned directory: {allowed_dir}"
-            )
+    except Exception as e:
+        raise ValueError(f"Invalid image path: {image_path}") from e
 
     if not resolved_path.exists() or not resolved_path.is_file():
-        raise ValueError(f"Image file not found at {image_path}")
+        raise ValueError(f"Image file not found at {image_path} (resolved as: {resolved_path})")
 
     allowed_exts = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
     if resolved_path.suffix.lower() not in allowed_exts:
@@ -366,7 +362,7 @@ async def draft_vision_issue(
             "Missing Cloudflare credentials (CF_ACCOUNT_ID and CF_API_TOKEN in .env)."
         )
 
-    logger.info(f"Drafting issue from image: {image_path}")
+    logger.info(f"Drafting issue from image: {image_path} with context: {context}")
 
     try:
         with open(resolved_path, "rb") as f:
@@ -383,6 +379,8 @@ async def draft_vision_issue(
         "TITLE: (A brief, clear title for the issue)\n\n"
         "DESCRIPTION: (A detailed explanation of what is wrong and how to reproduce it if apparent)."
     )
+    if context and context.strip():
+        prompt += f"\n\nAdditional user context about this image:\n{context}"
 
     url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/@cf/llava-hf/llava-1.5-7b-hf"
     headers = {

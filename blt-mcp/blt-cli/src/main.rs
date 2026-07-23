@@ -150,7 +150,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 }
                             }
                         }
-
+                        // Attempt to read hunts resource
+                        if let Ok(resp) = client.read_resource("blt://v2/hunts/active").await {
+                            if let Some(contents) = resp
+                                .get("result")
+                                .and_then(|r| r.get("contents"))
+                                .and_then(|c| c.as_array())
+                            {
+                                if let Some(content) = contents.first() {
+                                    if let Some(text) = content.get("text").and_then(|t| t.as_str())
+                                    {
+                                        if let Ok(root) =
+                                            serde_json::from_str::<serde_json::Value>(text)
+                                        {
+                                            app.hunts = crate::api::parse_hunts_from_json(&root);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         // Attempt to read leaderboard resource
                         if let Ok(resp) = client.read_resource("blt://v2/leaderboard").await {
                             if let Some(contents) = resp

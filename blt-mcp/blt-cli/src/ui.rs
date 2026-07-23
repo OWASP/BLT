@@ -79,10 +79,10 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         crate::app::ActiveOverlay::HuntDetail => draw_hunt_details_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::AiTriage => draw_ai_triage_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::BulkTriageConfirm => draw_bulk_triage_modal(f, app, chunks[1]),
-        crate::app::ActiveOverlay::CommandPalette => draw_command_palette_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::AgentStatus => draw_agent_status_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::PromptPreview => draw_prompt_preview_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::EasterEgg => draw_easter_egg_modal(f, chunks[1]),
+        crate::app::ActiveOverlay::VisionContext => draw_vision_context_modal(f, app, chunks[1]),
         _ => {}
     }
 }
@@ -140,18 +140,18 @@ fn draw_header(f: &mut Frame, app: &App, rect: Rect) {
     let tab_titles = vec![
         format!("Issues({})", app.issues.len()),
         format!("Hunts({})", app.hunts.len()),
+        "Onboarding".to_string(),
         "Stats".to_string(),
         "Logs".to_string(),
         "Config".to_string(),
-        "Onboarding".to_string(),
     ];
     let tab_index = match app.active_tab {
         Tab::Issues => 0,
         Tab::Hunts => 1,
-        Tab::Stats => 2,
-        Tab::Logs => 3,
-        Tab::Settings => 4,
-        Tab::Onboarding => 5,
+        Tab::Onboarding => 2,
+        Tab::Stats => 3,
+        Tab::Logs => 4,
+        Tab::Settings => 5,
     };
 
     let tabs = Tabs::new(tab_titles)
@@ -209,7 +209,7 @@ fn draw_issues_tab(f: &mut Frame, app: &App, rect: Rect) {
         f.render_widget(empty_msg, horizontal_layout[0]);
     } else {
         // 1. Draw Issues Table
-        let header_cells = vec!["ID", "Repo", "Severity", "Status", "Title"];
+        let header_cells = vec!["ID", "URL", "Severity", "Status", "Title"];
         let header = Row::new(header_cells)
             .style(
                 Style::default()
@@ -222,7 +222,7 @@ fn draw_issues_tab(f: &mut Frame, app: &App, rect: Rect) {
             if !app.search_query.is_empty() {
                 let q = app.search_query.to_lowercase();
                 if !issue.title.to_lowercase().contains(&q)
-                    && !issue.repository.to_lowercase().contains(&q)
+                    && !issue.url.to_lowercase().contains(&q)
                     && !issue.status.to_lowercase().contains(&q)
                     && !issue.severity.to_lowercase().contains(&q)
                     && !issue.id.to_lowercase().contains(&q)
@@ -265,7 +265,7 @@ fn draw_issues_tab(f: &mut Frame, app: &App, rect: Rect) {
 
             let cells = vec![
                 Cell::from(issue.id.clone()),
-                Cell::from(issue.repository.clone()),
+                Cell::from(issue.url.clone()),
                 Cell::from(Span::styled(
                     severity_badge,
                     Style::default()
@@ -609,9 +609,10 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
     ])
     .block(
         Block::default()
-            .borders(Borders::TOP)
-            .border_style(widget_style)
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(BLT_RED))
             .title(" Issues Counter ")
+            .title_style(Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD))
             .bg(SLATE_SURFACE),
     );
     f.render_widget(card_1_text, card_1_chunks[0]);
@@ -658,9 +659,10 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
     ])
     .block(
         Block::default()
-            .borders(Borders::TOP)
-            .border_style(widget_style)
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Yellow))
             .title(" Active Repos ")
+            .title_style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))
             .bg(SLATE_SURFACE),
     );
     f.render_widget(card_2, row_1[1]);
@@ -678,9 +680,10 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
     ])
     .block(
         Block::default()
-            .borders(Borders::TOP)
-            .border_style(widget_style)
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Cyan))
             .title(" Contributor Community ")
+            .title_style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
             .bg(SLATE_SURFACE),
     );
     f.render_widget(card_3, row_2[0]);
@@ -696,9 +699,10 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
     ])
     .block(
         Block::default()
-            .borders(Borders::TOP)
-            .border_style(widget_style)
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Magenta))
             .title(" Bacon Economy ")
+            .title_style(Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD))
             .bg(SLATE_SURFACE),
     );
     f.render_widget(card_4, row_2[1]);
@@ -947,57 +951,69 @@ fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
 
 fn draw_onboarding_tab(f: &mut Frame, app: &App, rect: Rect) {
     let block = Block::default()
-        .title(" Good First Issues (Cross-Project) ")
+        .title(" GitLab Group Issues (owasp-blt) ")
+        .title_style(Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD))
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Magenta));
+        .border_style(Style::default().fg(Color::Magenta))
+        .bg(SLATE_BG);
 
     if app.good_first_issues.is_empty() {
-        let msg = Paragraph::new("Loading good first issues or none found...")
+        let msg = Paragraph::new("\n\n  No GitLab issues found.\n  These are fetched from the owasp-blt group on GitLab.")
             .block(block)
+            .style(Style::default().fg(MUTED_BORDER))
             .alignment(ratatui::layout::Alignment::Center);
         f.render_widget(msg, rect);
-        return;
-    }
+    } else {
+        let header = Row::new(vec!["Repository", "Title", "Link"])
+            .style(
+                Style::default()
+                    .fg(Color::Magenta)
+                    .add_modifier(Modifier::BOLD),
+            )
+            .bottom_margin(1);
 
-    let rows: Vec<Row> = app
-        .good_first_issues
-        .iter()
-        .map(|issue| {
-            Row::new(vec![
-                issue.repository.clone(),
-                issue.title.clone(),
-                format!("{} 🥓", issue.bacon_estimate),
-                issue.web_url.clone(),
-            ])
-        })
-        .collect();
+        let rows: Vec<Row> = app
+            .good_first_issues
+            .iter()
+            .map(|issue| {
+                let truncated_title = if issue.title.chars().count() > 50 {
+                    format!("{}...", issue.title.chars().take(47).collect::<String>())
+                } else {
+                    issue.title.clone()
+                };
+                let truncated_repo = if issue.repository.chars().count() > 30 {
+                    format!("{}...", issue.repository.chars().take(27).collect::<String>())
+                } else {
+                    issue.repository.clone()
+                };
+                let truncated_url = if issue.web_url.chars().count() > 50 {
+                    format!("{}...", issue.web_url.chars().take(47).collect::<String>())
+                } else {
+                    issue.web_url.clone()
+                };
+                Row::new(vec![
+                    truncated_repo,
+                    truncated_title,
+                    truncated_url,
+                ])
+                .style(Style::default().fg(TEXT_LIGHT))
+            })
+            .collect();
 
-    let widths = [
-        Constraint::Percentage(20),
-        Constraint::Percentage(40),
-        Constraint::Length(15),
-        Constraint::Percentage(25),
-    ];
-
-    let table = Table::new(rows, widths)
-        .header(
-            Row::new(vec!["Repository", "Title", "Est. Bacon", "Link"])
-                .style(
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD),
-                )
-                .bottom_margin(1),
+        let table = Table::new(
+            rows,
+            [
+                Constraint::Percentage(25),
+                Constraint::Percentage(45),
+                Constraint::Percentage(30),
+            ],
         )
+        .header(header)
         .block(block)
-        .row_highlight_style(
-            Style::default()
-                .bg(Color::DarkGray)
-                .add_modifier(Modifier::BOLD),
-        )
-        .highlight_symbol(">> ");
+        .column_spacing(2);
 
-    f.render_widget(table, rect);
+        f.render_widget(table, rect);
+    }
 }
 
 fn draw_footer(f: &mut Frame, app: &App, rect: Rect) {
@@ -1089,6 +1105,11 @@ fn draw_footer(f: &mut Frame, app: &App, rect: Rect) {
 
     legend_spans.extend(vec![
         Span::styled(
+            " [p] ",
+            Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("Paste SS  ", Style::default().fg(TEXT_LIGHT)),
+        Span::styled(
             " [h] ",
             Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD),
         ),
@@ -1119,7 +1140,7 @@ fn draw_help_modal(f: &mut Frame, rect: Rect) {
                 Style::default().fg(Color::Yellow),
             )),
             Cell::from(Span::styled(
-                "Navigate between views (1=Issues, 6=Onboarding)",
+                "Navigate between views (1=Issues, 3=Onboarding, 6=Config)",
                 Style::default().fg(TEXT_LIGHT),
             )),
         ]),
@@ -1180,11 +1201,11 @@ fn draw_help_modal(f: &mut Frame, rect: Rect) {
         ]),
         Row::new(vec![
             Cell::from(Span::styled(
-                ": / Ctrl+P",
+                "p / Ctrl+V",
                 Style::default().fg(Color::Yellow),
             )),
             Cell::from(Span::styled(
-                "Open Command Palette (e.g. for Vision AI)",
+                "Paste clipboard screenshot & run AI Vision draft",
                 Style::default().fg(TEXT_LIGHT),
             )),
         ]),
@@ -1620,8 +1641,78 @@ fn draw_hunt_details_modal(f: &mut Frame, app: &App, rect: Rect) {
     f.render_widget(p, modal_area);
 }
 
+fn parse_inline_markdown(text: &str) -> Vec<Line<'_>> {
+    let mut lines = Vec::new();
+    for raw_line in text.lines() {
+        let mut spans = Vec::new();
+        let trimmed_line = raw_line.trim_start();
+        let indent_len = raw_line.len() - trimmed_line.len();
+        let indent = " ".repeat(indent_len);
+
+        let mut current_text = trimmed_line;
+
+        // Render bullet lists beautifully
+        if current_text.starts_with("* ") {
+            spans.push(Span::styled(format!("{}• ", indent), Style::default().fg(Color::Magenta)));
+            current_text = &current_text[2..];
+        } else if current_text.starts_with("- ") {
+            spans.push(Span::styled(format!("{}• ", indent), Style::default().fg(Color::Magenta)));
+            current_text = &current_text[2..];
+        } else if !indent.is_empty() {
+            spans.push(Span::raw(indent));
+        }
+
+        let mut parts = current_text.split("**");
+        let mut is_bold = false;
+
+        while let Some(part) = parts.next() {
+            if part.is_empty() {
+                is_bold = !is_bold;
+                continue;
+            }
+
+            let mut style = Style::default();
+            if is_bold {
+                style = style.add_modifier(Modifier::BOLD);
+                if part.contains("Severity Suggestion") || part.contains("Recommendation") || part.contains("Mitigation") || part.contains("Input Validation") {
+                    style = style.fg(Color::Cyan);
+                }
+            } else {
+                style = style.fg(TEXT_LIGHT);
+            }
+
+            let trimmed = part.trim();
+            if !is_bold {
+                if trimmed == "Critical" {
+                    spans.push(Span::styled(part.to_string(), Style::default().fg(SEVERITY_CRITICAL).add_modifier(Modifier::BOLD)));
+                    is_bold = !is_bold;
+                    continue;
+                } else if trimmed == "High" {
+                    spans.push(Span::styled(part.to_string(), Style::default().fg(SEVERITY_HIGH).add_modifier(Modifier::BOLD)));
+                    is_bold = !is_bold;
+                    continue;
+                } else if trimmed == "Medium" {
+                    spans.push(Span::styled(part.to_string(), Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)));
+                    is_bold = !is_bold;
+                    continue;
+                } else if trimmed == "Low" {
+                    spans.push(Span::styled(part.to_string(), Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)));
+                    is_bold = !is_bold;
+                    continue;
+                }
+            }
+
+            spans.push(Span::styled(part.to_string(), style));
+            is_bold = !is_bold;
+        }
+
+        lines.push(Line::from(spans));
+    }
+    lines
+}
+
 fn draw_ai_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
-    let modal_area = centered_rect(60, 50, rect);
+    let modal_area = centered_rect(65, 60, rect);
     f.render_widget(Clear, modal_area);
 
     let content = app
@@ -1629,16 +1720,25 @@ fn draw_ai_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
         .clone()
         .unwrap_or_else(|| "Waiting for AI response...".to_string());
 
-    let lines: Vec<Line> = content
-        .split('\n')
-        .map(|s| Line::from(Span::styled(s.to_string(), Style::default().fg(TEXT_LIGHT))))
-        .collect();
+    let mut lines = parse_inline_markdown(&content);
+
+    lines.push(Line::from(""));
+    lines.push(Line::from(" ──────────────────────────────────────────"));
+    lines.push(Line::from(vec![
+        Span::styled(
+            " [Esc] ",
+            Style::default()
+                .fg(Color::Gray)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("Close Dialog", Style::default().fg(TEXT_LIGHT)),
+    ]));
 
     let p = Paragraph::new(lines)
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::Cyan))
+                .border_style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
                 .title(" MCP AI-Assisted Triage Analysis ")
                 .bg(SLATE_SURFACE),
         )
@@ -1716,7 +1816,10 @@ fn draw_logs_tab(f: &mut Frame, app: &App, rect: Rect) {
     let audit_list = List::new(audit_items).block(
         Block::default()
             .borders(Borders::ALL)
-            .title(" Audit Log  (Press [e] to Export) "),
+            .border_style(Style::default().fg(Color::Yellow))
+            .title(" Audit Log  (Press [e] to Export) ")
+            .title_style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))
+            .bg(SLATE_BG),
     );
     f.render_widget(audit_list, chunks[0]);
 
@@ -1733,7 +1836,10 @@ fn draw_logs_tab(f: &mut Frame, app: &App, rect: Rect) {
     let event_list = List::new(event_items).block(
         Block::default()
             .borders(Borders::ALL)
-            .title(" Real-Time Event Feed "),
+            .border_style(Style::default().fg(Color::Cyan))
+            .title(" Real-Time Event Feed ")
+            .title_style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
+            .bg(SLATE_BG),
     );
     f.render_widget(event_list, chunks[1]);
 }
@@ -1764,21 +1870,7 @@ fn draw_bulk_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
     f.render_widget(p, area);
 }
 
-fn draw_command_palette_modal(f: &mut Frame, app: &App, rect: Rect) {
-    let modal_area = centered_rect(50, 10, rect);
-    f.render_widget(Clear, modal_area);
 
-    let text = format!("> {}█", app.command_input);
-    let p = Paragraph::new(Span::styled(text, Style::default().fg(Color::Yellow))).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .border_style(Style::default().fg(BLT_RED))
-            .title(" Command Palette ")
-            .bg(SLATE_SURFACE),
-    );
-
-    f.render_widget(p, modal_area);
-}
 fn draw_agent_status_modal(f: &mut Frame, app: &App, rect: Rect) {
     let modal_area = centered_rect(60, 40, rect);
     f.render_widget(Clear, modal_area);
@@ -1805,6 +1897,28 @@ fn draw_agent_status_modal(f: &mut Frame, app: &App, rect: Rect) {
         .wrap(Wrap { trim: false });
 
     f.render_widget(p, modal_area);
+}
+
+fn draw_vision_context_modal(f: &mut Frame, app: &App, rect: Rect) {
+    let area = centered_rect(60, 16, rect);
+    f.render_widget(Clear, area);
+
+    let text = vec![
+        Line::from(""),
+        Line::from("  Enter optional context/hints for Vision AI (e.g. 'login page error'):"),
+        Line::from(format!("  > {}█", app.vision_context_input)),
+        Line::from(""),
+        Line::from("  [Enter] Start Analysis  |  [Esc] Skip & Start Directly"),
+    ];
+
+    let p = Paragraph::new(text).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD))
+            .title(" Vision AI Context (Optional) ")
+            .bg(SLATE_SURFACE),
+    );
+    f.render_widget(p, area);
 }
 
 fn draw_prompt_preview_modal(f: &mut Frame, app: &App, rect: Rect) {

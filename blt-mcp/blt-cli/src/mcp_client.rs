@@ -178,7 +178,7 @@ impl McpSubprocessClient {
         expected_id: i64,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         let mut line = String::new();
-        let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(10);
+        let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(35);
         loop {
             let now = tokio::time::Instant::now();
             if now >= deadline {
