@@ -122,11 +122,24 @@ document.addEventListener('DOMContentLoaded', function() {
             highestUnlocked = Math.max(highestUnlocked, Math.min(index + 1, tasks.length - 1));
         }
 
+        function isPlainObject(value) {
+            return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+        }
+
         function getStoredProgress() {
             try {
-                return JSON.parse(localStorage.getItem(LAB_PROGRESS_STORAGE_KEY) || '{}');
+                const parsed = JSON.parse(localStorage.getItem(LAB_PROGRESS_STORAGE_KEY) || '{}');
+                return isPlainObject(parsed) ? parsed : {};
             } catch (_error) {
                 return {};
+            }
+        }
+
+        function persistProgress(progress) {
+            try {
+                localStorage.setItem(LAB_PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+            } catch (_error) {
+                // Storage full or disabled: a lost save must not break the page interaction.
             }
         }
 
@@ -136,13 +149,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const progress = getStoredProgress();
-            const labProgress = progress[labId] || {};
+            const labProgress = isPlainObject(progress[labId]) ? progress[labId] : {};
             labProgress[index] = {
-                ...(labProgress[index] || {}),
+                ...(isPlainObject(labProgress[index]) ? labProgress[index] : {}),
                 ...value
             };
             progress[labId] = labProgress;
-            localStorage.setItem(LAB_PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+            persistProgress(progress);
         }
 
         function clearTaskProgressFrom(index) {
@@ -151,14 +164,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const progress = getStoredProgress();
-            const labProgress = progress[labId] || {};
+            const labProgress = isPlainObject(progress[labId]) ? progress[labId] : {};
             Object.keys(labProgress).forEach(taskIndex => {
                 if (Number(taskIndex) >= index) {
                     delete labProgress[taskIndex];
                 }
             });
             progress[labId] = labProgress;
-            localStorage.setItem(LAB_PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+            persistProgress(progress);
         }
 
         function restoreLabProgress() {
