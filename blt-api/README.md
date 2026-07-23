@@ -154,6 +154,8 @@ Legacy `/auth/*` and `/v2/auth/*` API paths are still accepted during the namesp
 | GET | `/bugs` | List all bugs (paginated) |
 | GET | `/bugs/{id}` | Get a specific bug with screenshots and tags |
 | POST | `/bugs` | Create a new bug |
+| PATCH | `/bugs/{id}` | Update bug details |
+| DELETE | `/bugs/{id}` | Delete a bug report |
 | GET | `/bugs/search?q={query}` | Search bugs by URL or description |
 
 #### List Bugs - `GET /bugs`
@@ -405,8 +407,12 @@ Domain endpoints use Cloudflare D1 database. See [docs/DATABASE.md](docs/DATABAS
 |--------|----------|-------------|
 | GET | `/organizations` | List all organizations (paginated) |
 | GET | `/organizations/{id}` | Get a specific organization |
-| GET | `/organizations/{id}/repos` | Get organization repositories |
-| GET | `/organizations/{id}/projects` | Get organization projects |
+| GET | `/organizations/{id}/domains` | Get organization domains |
+| GET | `/organizations/{id}/bugs` | Get bugs from organization domains |
+| GET | `/organizations/{id}/managers` | Get organization managers |
+| GET | `/organizations/{id}/tags` | Get organization tags |
+| GET | `/organizations/{id}/integrations` | Get organization integrations |
+| GET | `/organizations/{id}/stats` | Get organization statistics |
 
 ### Projects
 
@@ -457,6 +463,27 @@ Domain endpoints use Cloudflare D1 database. See [docs/DATABASE.md](docs/DATABAS
 |--------|----------|-------------|
 | GET | `/repos` | List repositories |
 | GET | `/repos/{id}` | Get a specific repository |
+
+### Jobs
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/v2/jobs` | List owned jobs (paginated) |
+| POST | `/v2/jobs` | Create a new job |
+| GET | `/v2/jobs/{id}` | Get details of a job |
+| PATCH | `/v2/jobs/{id}` | Update a job |
+| POST | `/v2/jobs/{id}/view` | Record a view on a job |
+| GET | `/v2/jobs/stats` | Get job post statistics |
+
+### Hackathons
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/v2/hackathons` | List owned hackathons (paginated) |
+| POST | `/v2/hackathons` | Create a new hackathon |
+| GET | `/v2/hackathons/{slug}` | Get details of a hackathon by slug |
+| PATCH | `/v2/hackathons/{id}` | Update a hackathon |
+| POST | `/v2/hackathons/{id}/register` | Register a participant for a hackathon |
 
 ## Response Format
 
