@@ -22,7 +22,7 @@
       "name": "Cryptographic Failures",
       "description": "Sensitive information is exposed when encryption, key management, or transport protection is missing or incorrectly implemented.",
       "defensive_principle": "Minimize sensitive data, use modern cryptography, and protect data both at rest and in transit.",
-      "cwes": ["CWE-259", "CWE-261", "CWE-296", "CWE-310", "CWE-319", "CWE-321", "CWE-322", "CWE-323", "CWE-324", "CWE-325", "CWE-326", "CWE-327", "CWE-328", "CWE-329", "CWE-330", "CWE-331", "CWE-335", "CWE-336", "CWE-337", "CWE-338", "CWE-340", "CWE-347", "CWE-523", "CWE-720", "CWE-757", "CWE-759", "CWE-760", "CWE-780", "CWE-818", "CWE-916"],
+      "cwes": ["CWE-261", "CWE-296", "CWE-310", "CWE-319", "CWE-321", "CWE-322", "CWE-323", "CWE-324", "CWE-325", "CWE-326", "CWE-327", "CWE-328", "CWE-329", "CWE-330", "CWE-331", "CWE-335", "CWE-336", "CWE-337", "CWE-338", "CWE-340", "CWE-347", "CWE-523", "CWE-720", "CWE-757", "CWE-759", "CWE-760", "CWE-780", "CWE-818", "CWE-916"],
       "keywords": ["cryptographic", "encryption", "cleartext", "plaintext", "weak cipher", "hard-coded password", "sensitive data"],
       "labs": [
         {"slug": "sensitive_data_exposure", "title": "Sensitive Data Exposure", "reason": "Practice protecting secrets and sensitive information."}
