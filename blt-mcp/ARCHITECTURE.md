@@ -91,7 +91,7 @@ Resources provide read-only access to BLT data through URI patterns:
 - `contributors` - User profiles and contributions
 - `workflows` - Security workflow definitions
 - `leaderboards` - Ranking and statistics
-- `rewards` - Bacon points and gamification data
+- `rewards` - Contributor points and gamification data
 
 **Implementation**:
 - List handler: Returns all available resource URIs
@@ -118,16 +118,7 @@ Tools enable AI agents to perform actions:
 - Maps to: POST /bugs
 - Note: The BLT API does not natively support a `title` field; the server prepends the title to the `description` payload.
 
-#### award_bacon
-- Purpose: Reward contributors with bacon points
-- Required: contributor_id, points, reason
-- Maps to: POST /rewards
 
-#### update_issue_status
-- Purpose: Change issue workflow status
-- Required: issue_id, status
-- Optional: comment
-- Maps to: PATCH /bugs/{id}
 
 #### add_comment
 - Purpose: Add comments to issues
@@ -168,7 +159,7 @@ Prompts provide AI agents with structured guidance for common tasks:
 - Purpose: Evaluate contributions
 - Input: contribution_id, contribution_type
 - Output: Quality assessment and recommendations
-- Includes: Strengths, improvements, bacon point recommendations
+- Includes: Strengths, improvements, points recommendations
 
 ### Authentication & API Client
 

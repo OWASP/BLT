@@ -26,4 +26,4 @@ We take the security of BLT-MCP seriously. If you believe you have found a secur
 
 - **Protect your API Keys**: Always use environment variables for `BLT_API_KEY`. Never hardcode keys or commit them to your repository.
 - **Run in Isolated Environments**: When testing AI agents with write access to BLT, consider using a staging or test environment first.
-- **Review Tool Calls**: Many MCP clients allow you to review tool calls before they are executed. We recommend enabling this for tools like `submit_issue` or `award_bacon`.
+- **Review Tool Calls**: Many MCP clients allow you to review tool calls before they are executed. We recommend enabling this for tools like `submit_issue` or `add_comment`.

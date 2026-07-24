@@ -17,13 +17,11 @@ Access BLT data through standardized URIs:
 - `blt://workflows` - All workflows
 - `blt://workflows/{id}` - Specific workflow details
 - `blt://leaderboards` - Leaderboard rankings and statistics
-- `blt://rewards` - Rewards and bacon points
+- `blt://rewards` - Rewards and contributor points
 
 ### Tools
 Perform actions on BLT:
 - **submit_issue** - Report new bugs and vulnerabilities directly to the platform
-- **award_bacon** - Award bacon points to contributors (gamification)
-- **update_issue_status** - Change issue status (open, in_progress, resolved, closed, wont_fix)
 - **add_comment** - Add comments to issues
 - **triage_vulnerability** - Use Cloudflare Workers AI to automatically triage vulnerability severity
 - **draft_vision_issue** - Process screenshots through Cloudflare AI and auto-draft GitLab issues
@@ -31,7 +29,7 @@ Perform actions on BLT:
 ### Prompts
 AI-guided workflows for common security tasks:
 - **plan_remediation** - Create comprehensive remediation plans for security issues
-- **review_contribution** - Evaluate contributions with quality assessment and bacon point recommendations
+- **review_contribution** - Evaluate contributions with quality assessment and reward recommendations
 
 ## Core Features
 
@@ -40,7 +38,7 @@ AI-guided workflows for common security tasks:
 - **Cloudflare AI Integration** - Leverages Cloudflare Workers AI for image processing and vulnerability triage
 - **GitLab Vision-to-Issue Pipeline** - Automatically drafts rich Markdown issues from vulnerability screenshots
 - **Interactive TUI (BLT-CLI)** - A rich terminal UI featuring Leaderboards, Issue Onboarding, and bulk triage
-- **Gamification Support** - Built-in support for BLT's bacon point system with pending verifications
+- **Gamification Support** - Built-in support for BLT's point system with pending verifications
 
 ## Installation
 

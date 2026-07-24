@@ -322,14 +322,6 @@
               </li>
               <li class="flex items-center gap-2">
                 <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
-                <span><strong>award_bacon</strong> — gamification &amp; points</span>
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
-                <span><strong>update_issue_status</strong> — manage lifecycle</span>
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
                 <span><strong>add_comment</strong> — add context to issues</span>
               </li>
             </ul>
@@ -406,7 +398,7 @@
           <div class="bg-white rounded-xl p-6 border border-neutral-border">
             <i class="fa-solid fa-trophy text-primary text-2xl mb-4" aria-hidden="true"></i>
             <h3 class="font-semibold text-gray-900 mb-2">Gamification Support</h3>
-            <p class="text-sm text-gray-600">Built-in support for BLT's bacon point system — reward contributors and
+            <p class="text-sm text-gray-600">Built-in support for BLT's contributor point system — reward contributors and
               build a thriving security community.</p>
           </div>
 
@@ -486,7 +478,7 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-1">Your agent takes action</h3>
             <p class="text-gray-600 text-sm leading-relaxed">
               The AI agent receives clean, structured data and can chain multiple calls — triage a bug, assign severity,
-              notify contributors, and award bacon points in one workflow.
+              notify contributors, and track points in one workflow.
             </p>
           </li>
 
@@ -712,86 +704,7 @@
                   </div>
                 </div>
 
-                <!-- award_bacon -->
-                <div class="rounded-lg border border-neutral-border overflow-hidden">
-                  <div class="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-neutral-border">
-                    <code class="font-mono font-semibold text-primary">award_bacon</code>
-                    <span
-                      class="text-xs bg-red-50 text-primary border border-red-100 px-2 py-0.5 rounded-full font-medium">write</span>
-                  </div>
-                  <div class="p-5">
-                    <p class="text-sm text-gray-600 mb-4">Award bacon points to a contributor for their work.</p>
-                    <table class="w-full text-sm">
-                      <thead>
-                        <tr class="text-left text-xs text-gray-500 uppercase tracking-wider">
-                          <th class="pb-2 pr-4 font-medium">Parameter</th>
-                          <th class="pb-2 pr-4 font-medium">Type</th>
-                          <th class="pb-2 font-medium">Description</th>
-                        </tr>
-                      </thead>
-                      <tbody class="divide-y divide-gray-100">
-                        <tr>
-                          <td class="py-2 pr-4"><code class="font-mono text-primary">contributor_id</code> <span
-                              class="text-red-500 text-xs">*</span></td>
-                          <td class="py-2 pr-4 text-gray-500">string</td>
-                          <td class="py-2 text-gray-600">Contributor ID</td>
-                        </tr>
-                        <tr>
-                          <td class="py-2 pr-4"><code class="font-mono text-primary">points</code> <span
-                              class="text-red-500 text-xs">*</span></td>
-                          <td class="py-2 pr-4 text-gray-500">number</td>
-                          <td class="py-2 text-gray-600">Points to award</td>
-                        </tr>
-                        <tr>
-                          <td class="py-2 pr-4"><code class="font-mono text-primary">reason</code> <span
-                              class="text-red-500 text-xs">*</span></td>
-                          <td class="py-2 pr-4 text-gray-500">string</td>
-                          <td class="py-2 text-gray-600">Reason for the award</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
 
-                <!-- update_issue_status -->
-                <div class="rounded-lg border border-neutral-border overflow-hidden">
-                  <div class="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-neutral-border">
-                    <code class="font-mono font-semibold text-primary">update_issue_status</code>
-                    <span
-                      class="text-xs bg-red-50 text-primary border border-red-100 px-2 py-0.5 rounded-full font-medium">write</span>
-                  </div>
-                  <div class="p-5">
-                    <p class="text-sm text-gray-600 mb-4">Change the lifecycle status of a BLT issue.</p>
-                    <table class="w-full text-sm">
-                      <thead>
-                        <tr class="text-left text-xs text-gray-500 uppercase tracking-wider">
-                          <th class="pb-2 pr-4 font-medium">Parameter</th>
-                          <th class="pb-2 pr-4 font-medium">Type</th>
-                          <th class="pb-2 font-medium">Description</th>
-                        </tr>
-                      </thead>
-                      <tbody class="divide-y divide-gray-100">
-                        <tr>
-                          <td class="py-2 pr-4"><code class="font-mono text-primary">issue_id</code> <span
-                              class="text-red-500 text-xs">*</span></td>
-                          <td class="py-2 pr-4 text-gray-500">string</td>
-                          <td class="py-2 text-gray-600">Issue ID</td>
-                        </tr>
-                        <tr>
-                          <td class="py-2 pr-4"><code class="font-mono text-primary">status</code> <span
-                              class="text-red-500 text-xs">*</span></td>
-                          <td class="py-2 pr-4 text-gray-500">enum</td>
-                          <td class="py-2 text-gray-600">open · in_progress · resolved · closed · wont_fix</td>
-                        </tr>
-                        <tr>
-                          <td class="py-2 pr-4"><code class="font-mono text-gray-500">comment</code></td>
-                          <td class="py-2 pr-4 text-gray-500">string</td>
-                          <td class="py-2 text-gray-600">Optional explanation</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
 
               </div>
             </div>
@@ -831,7 +744,7 @@
                     </tr>
                     <tr class="hover:bg-gray-50">
                       <td class="px-5 py-3"><code class="font-mono text-primary text-xs">blt://rewards</code></td>
-                      <td class="px-5 py-3 text-gray-600">Rewards &amp; bacon points</td>
+                      <td class="px-5 py-3 text-gray-600">Rewards &amp; contributor points</td>
                     </tr>
                     <tr class="hover:bg-gray-50">
                       <td class="px-5 py-3"><code class="font-mono text-primary text-xs">blt://workflows</code></td>
@@ -872,7 +785,7 @@
                     <span
                       class="text-xs bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full font-medium">guided</span>
                   </div>
-                  <p class="text-sm text-gray-600">Evaluates contributions with quality assessment and bacon point
+                  <p class="text-sm text-gray-600">Evaluates contributions with quality assessment and point
                     recommendations. Args: <code class="text-primary text-xs">contribution_id</code>* · <code
                       class="text-gray-500 text-xs">contribution_type</code></p>
                 </div>

@@ -109,7 +109,7 @@ async def list_good_first_issues() -> str:
                         ),
                         "web_url": issue.get("web_url"),
                         "description": issue.get("description", "")[:200] + "...",
-                        "bacon_estimate": 100,  # Add Bacon estimate
+                        "points_estimate": 100,  # Add points estimate
                     }
                 )
             return json.dumps({"success": True, "data": results})
