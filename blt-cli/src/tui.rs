@@ -147,6 +147,20 @@ where
                         .push("Security Health Scan complete.".to_string());
                     app.save_session();
                 }
+                crate::app::AppEvent::ClipboardExtracted { result } => {
+                    match result {
+                        Ok(path_str) => {
+                            app.vision_image_path = path_str;
+                            app.vision_context_input.clear();
+                            app.active_overlay = crate::app::ActiveOverlay::VisionContext;
+                            app.status_message = "Specify optional Vision AI context hints and press Enter.".to_string();
+                        }
+                        Err(err_msg) => {
+                            app.status_message = err_msg;
+                        }
+                    }
+                    app.save_session();
+                }
             }
         }
 
@@ -166,6 +180,74 @@ where
             return Ok(());
         }
     }
+}
+
+fn handle_vision_draft(app: &mut App, context: Option<String>) {
+    app.active_overlay = crate::app::ActiveOverlay::None;
+    let path = app.vision_image_path.clone();
+    
+    app.submit_form = crate::app::VulnerabilityForm::default();
+    app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
+    app.submit_form.screenshot_path = path.clone();
+    app.submit_form.url = app.api_base.clone();
+    app.submit_form.description = "Analyzing image with Vision AI...".to_string();
+
+    let mcp_client_clone = app.mcp_client.clone();
+    let sender = app.event_sender.clone();
+
+    tokio::spawn(async move {
+        if let Some(mcp) = mcp_client_clone {
+            let mut client_guard = mcp.lock().await;
+            let mut payload = serde_json::Map::new();
+            payload.insert(
+                "image_path".to_string(),
+                serde_json::Value::String(path),
+            );
+            if let Some(ctx) = context {
+                if !ctx.is_empty() {
+                    payload.insert(
+                        "context".to_string(),
+                        serde_json::Value::String(ctx),
+                    );
+                }
+            }
+
+            match client_guard
+                .call_tool(
+                    "draft_vision_issue",
+                    serde_json::Value::Object(payload),
+                )
+                .await
+            {
+                Ok(res) => {
+                    let (success, content_str) = if let Some(result) = res.get("result") {
+                        let is_err = result.get("isError").and_then(|e| e.as_bool()).unwrap_or(false);
+                        let text = result
+                            .get("content")
+                            .and_then(|c| c.as_array())
+                            .and_then(|c| c.first())
+                            .and_then(|c| c.get("text"))
+                            .and_then(|t| t.as_str())
+                            .unwrap_or("No response from Vision AI")
+                            .to_string();
+                        (!is_err, text)
+                    } else {
+                        (false, "ERROR: Invalid response structure".to_string())
+                    };
+                    let _ = sender.send(crate::app::AppEvent::VisionDraftComplete {
+                        result: content_str,
+                        success,
+                    });
+                }
+                Err(e) => {
+                    let _ = sender.send(crate::app::AppEvent::VisionDraftComplete {
+                        result: format!("ERROR: {}", e),
+                        success: false,
+                    });
+                }
+            }
+        }
+    });
 }
 
 fn handle_keys(key: KeyEvent, app: &mut App) {
@@ -246,63 +328,7 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
         crate::app::ActiveOverlay::VisionContext => {
             match key.code {
                 KeyCode::Esc => {
-                    app.active_overlay = crate::app::ActiveOverlay::None;
-                    let path = app.vision_image_path.clone();
-                    
-                    app.submit_form = crate::app::VulnerabilityForm::default();
-                    app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
-                    app.submit_form.screenshot_path = path.clone();
-                    app.submit_form.url = "http://localhost:8787".to_string();
-                    app.submit_form.description = "Analyzing image with Vision AI...".to_string();
-
-                    let mcp_client_clone = app.mcp_client.clone();
-                    let sender = app.event_sender.clone();
-
-                    tokio::spawn(async move {
-                        if let Some(mcp) = mcp_client_clone {
-                            let mut client_guard = mcp.lock().await;
-                            let mut payload = serde_json::Map::new();
-                            payload.insert(
-                                "image_path".to_string(),
-                                serde_json::Value::String(path),
-                            );
-
-                            match client_guard
-                                .call_tool(
-                                    "draft_vision_issue",
-                                    serde_json::Value::Object(payload),
-                                )
-                                .await
-                            {
-                                Ok(res) => {
-                                    let (success, content_str) = if let Some(result) = res.get("result") {
-                                        let is_err = result.get("isError").and_then(|e| e.as_bool()).unwrap_or(false);
-                                        let text = result
-                                            .get("content")
-                                            .and_then(|c| c.as_array())
-                                            .and_then(|c| c.first())
-                                            .and_then(|c| c.get("text"))
-                                            .and_then(|t| t.as_str())
-                                            .unwrap_or("No response from Vision AI")
-                                            .to_string();
-                                        (!is_err, text)
-                                    } else {
-                                        (false, "ERROR: Invalid response structure".to_string())
-                                    };
-                                    let _ = sender.send(crate::app::AppEvent::VisionDraftComplete {
-                                        result: content_str,
-                                        success,
-                                    });
-                                }
-                                Err(e) => {
-                                    let _ = sender.send(crate::app::AppEvent::VisionDraftComplete {
-                                        result: format!("ERROR: {}", e),
-                                        success: false,
-                                    });
-                                }
-                            }
-                        }
-                    });
+                    handle_vision_draft(app, None);
                 }
                 KeyCode::Backspace => {
                     app.vision_context_input.pop();
@@ -311,70 +337,8 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                     app.vision_context_input.push(c);
                 }
                 KeyCode::Enter => {
-                    app.active_overlay = crate::app::ActiveOverlay::None;
-                    let path = app.vision_image_path.clone();
                     let context = app.vision_context_input.trim().to_string();
-                    
-                    app.submit_form = crate::app::VulnerabilityForm::default();
-                    app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
-                    app.submit_form.screenshot_path = path.clone();
-                    app.submit_form.url = "http://localhost:8787".to_string();
-                    app.submit_form.description = "Analyzing image with Vision AI...".to_string();
-
-                    let mcp_client_clone = app.mcp_client.clone();
-                    let sender = app.event_sender.clone();
-
-                    tokio::spawn(async move {
-                        if let Some(mcp) = mcp_client_clone {
-                            let mut client_guard = mcp.lock().await;
-                            let mut payload = serde_json::Map::new();
-                            payload.insert(
-                                "image_path".to_string(),
-                                serde_json::Value::String(path),
-                            );
-                            if !context.is_empty() {
-                                payload.insert(
-                                    "context".to_string(),
-                                    serde_json::Value::String(context),
-                                );
-                            }
-
-                            match client_guard
-                                .call_tool(
-                                    "draft_vision_issue",
-                                    serde_json::Value::Object(payload),
-                                )
-                                .await
-                            {
-                                Ok(res) => {
-                                    let (success, content_str) = if let Some(result) = res.get("result") {
-                                        let is_err = result.get("isError").and_then(|e| e.as_bool()).unwrap_or(false);
-                                        let text = result
-                                            .get("content")
-                                            .and_then(|c| c.as_array())
-                                            .and_then(|c| c.first())
-                                            .and_then(|c| c.get("text"))
-                                            .and_then(|t| t.as_str())
-                                            .unwrap_or("No response from Vision AI")
-                                            .to_string();
-                                        (!is_err, text)
-                                    } else {
-                                        (false, "ERROR: Invalid response structure".to_string())
-                                    };
-                                    let _ = sender.send(crate::app::AppEvent::VisionDraftComplete {
-                                        result: content_str,
-                                        success,
-                                    });
-                                }
-                                Err(e) => {
-                                    let _ = sender.send(crate::app::AppEvent::VisionDraftComplete {
-                                        result: format!("ERROR: {}", e),
-                                        success: false,
-                                    });
-                                }
-                            }
-                        }
-                    });
+                    handle_vision_draft(app, Some(context));
                 }
                 _ => {}
             }
@@ -850,112 +814,122 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                 || (key.code == KeyCode::Char('v') && key.modifiers.contains(KeyModifiers::CONTROL)) =>
         {
             app.status_message = "Reading image or path from clipboard...".to_string();
-            
-            let mut extracted_path = None;
-            let mut extraction_error = None;
-            
-            // Try extracting from Windows clipboard via powershell (checks for both raw image and file path strings)
-            let output = std::process::Command::new("powershell.exe")
-                .args(&[
-                    "-NoProfile",
-                    "-Command",
-                    "Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; if ([System.Windows.Forms.Clipboard]::ContainsImage()) { $img = [System.Windows.Forms.Clipboard]::GetImage(); $temp = [System.IO.Path]::GetTempFileName() + '.png'; $img.Save($temp, [System.Drawing.Imaging.ImageFormat]::Png); Write-Output \"SUCCESS:$temp\"; } else { if ([System.Windows.Forms.Clipboard]::ContainsText()) { $txt = [System.Windows.Forms.Clipboard]::GetText().Trim().Trim('\"'); if (Test-Path $txt -PathType Leaf) { Write-Output \"SUCCESS:$txt\"; } else { Write-Output 'NO_IMAGE'; } } else { Write-Output 'NO_IMAGE'; } }"
-                ])
-                .output();
+            let sender = app.event_sender.clone();
 
-            match output {
-                Ok(out) => {
-                    let stdout = String::from_utf8_lossy(&out.stdout).trim().to_string();
-                    if stdout.starts_with("SUCCESS:") {
-                        let win_path = stdout["SUCCESS:".len()..].trim().to_string();
-                        let path_str = if cfg!(target_os = "linux") {
-                            if win_path.len() >= 3 && &win_path[1..3] == ":\\" {
-                                let drive = win_path[0..1].to_lowercase();
-                                let rest = win_path[3..].replace('\\', "/");
-                                format!("/mnt/{}/{}", drive, rest)
+            #[cfg(windows)]
+            {
+                tokio::spawn(async move {
+                    let output = tokio::task::spawn_blocking(|| {
+                        std::process::Command::new("powershell.exe")
+                            .args(&[
+                                "-NoProfile",
+                                "-Command",
+                                "Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; if ([System.Windows.Forms.Clipboard]::ContainsImage()) { $img = [System.Windows.Forms.Clipboard]::GetImage(); $temp = [System.IO.Path]::GetTempFileName() + '.png'; $img.Save($temp, [System.Drawing.Imaging.ImageFormat]::Png); Write-Output \"SUCCESS:$temp\"; } else { if ([System.Windows.Forms.Clipboard]::ContainsText()) { $txt = [System.Windows.Forms.Clipboard]::GetText().Trim().Trim('\"'); if (Test-Path $txt -PathType Leaf) { Write-Output \"SUCCESS:$txt\"; } else { Write-Output 'NO_IMAGE'; } } else { Write-Output 'NO_IMAGE'; } }"
+                            ])
+                            .output()
+                    })
+                    .await;
+
+                    let result = match output {
+                        Ok(Ok(out)) => {
+                            let stdout = String::from_utf8_lossy(&out.stdout).trim().to_string();
+                            if stdout.starts_with("SUCCESS:") {
+                                let win_path = stdout["SUCCESS:".len()..].trim().to_string();
+                                let path_str = if cfg!(target_os = "linux") {
+                                    if win_path.as_bytes().get(1..3) == Some(b":\\") {
+                                        let drive = win_path[0..1].to_lowercase();
+                                        let rest = win_path[3..].replace('\\', "/");
+                                        format!("/mnt/{}/{}", drive, rest)
+                                    } else {
+                                        win_path
+                                    }
+                                } else {
+                                    win_path
+                                };
+                                Ok(path_str)
+                            } else if stdout.contains("NO_IMAGE") {
+                                Err("Clipboard does not contain an image or valid image path.".to_string())
                             } else {
-                                win_path
-                            }
-                        } else {
-                            win_path
-                        };
-                        extracted_path = Some(path_str);
-                    } else if stdout.contains("NO_IMAGE") {
-                        extraction_error = Some("Clipboard does not contain an image or valid image path.".to_string());
-                    } else {
-                        extraction_error = Some(format!("PowerShell error: {}", stdout));
-                    }
-                }
-                Err(_) => {
-                    // Fallback to arboard for native Linux/macOS
-                    match arboard::Clipboard::new() {
-                        Ok(mut clipboard) => {
-                            match clipboard.get_image() {
-                                Ok(image) => {
-                                    let home = dirs::home_dir().unwrap_or_default();
-                                    let img_dir = home.join(".blt-mcp").join("images");
-                                    let _ = std::fs::create_dir_all(&img_dir);
-                                    let temp_path = img_dir.join("temp_clipboard.png");
-
-                                    let mut png_bytes = Vec::new();
-                                    let mut encoder = png::Encoder::new(&mut png_bytes, image.width as u32, image.height as u32);
-                                    encoder.set_color(png::ColorType::Rgba);
-                                    encoder.set_depth(png::BitDepth::Eight);
-                                    
-                                    let mut write_success = false;
-                                    if let Ok(mut writer) = encoder.write_header() {
-                                        if writer.write_image_data(&image.bytes).is_ok() {
-                                            write_success = true;
-                                        }
-                                    }
-
-                                    if write_success && std::fs::write(&temp_path, &png_bytes).is_ok() {
-                                        extracted_path = Some(temp_path.to_string_lossy().to_string());
-                                    } else {
-                                        extraction_error = Some("Error: Failed to save clipboard image.".to_string());
-                                    }
-                                }
-                                Err(_) => {
-                                    // Try reading text as path from clipboard
-                                    if let Ok(text) = clipboard.get_text() {
-                                        let trimmed = text.trim().replace('"', "");
-                                        let path_str = if cfg!(target_os = "linux") {
-                                             if trimmed.len() >= 3 && &trimmed[1..3] == ":\\" {
-                                                 let drive = trimmed[0..1].to_lowercase();
-                                                 let rest = trimmed[3..].replace('\\', "/");
-                                                 format!("/mnt/{}/{}", drive, rest)
-                                             } else {
-                                                 trimmed
-                                             }
-                                        } else {
-                                            trimmed
-                                        };
-                                        let p = std::path::Path::new(&path_str);
-                                        if p.exists() && p.is_file() {
-                                            extracted_path = Some(path_str);
-                                        } else {
-                                            extraction_error = Some("Clipboard does not contain an image or valid image path.".to_string());
-                                        }
-                                    } else {
-                                        extraction_error = Some("Clipboard does not contain an image.".to_string());
-                                    }
-                                }
+                                Err(format!("PowerShell error: {}", stdout))
                             }
                         }
-                        Err(e) => {
-                            extraction_error = Some(format!("Error: Clipboard access failed: {}", e));
-                        }
-                    }
-                }
+                        _ => Err("Failed to execute PowerShell command".to_string()),
+                    };
+                    let _ = sender.send(crate::app::AppEvent::ClipboardExtracted { result });
+                });
             }
 
-            if let Some(path_str) = extracted_path {
-                app.vision_image_path = path_str;
-                app.vision_context_input.clear();
-                app.active_overlay = crate::app::ActiveOverlay::VisionContext;
-                app.status_message = "Specify optional Vision AI context hints and press Enter.".to_string();
-            } else if let Some(err_msg) = extraction_error {
-                app.status_message = err_msg;
+            #[cfg(not(windows))]
+            {
+                tokio::spawn(async move {
+                    let result = tokio::task::spawn_blocking(move || {
+                        match arboard::Clipboard::new() {
+                            Ok(mut clipboard) => {
+                                match clipboard.get_image() {
+                                    Ok(image) => {
+                                        let home = dirs::home_dir().unwrap_or_default();
+                                        let img_dir = home.join(".blt-mcp").join("images");
+                                        let _ = std::fs::create_dir_all(&img_dir);
+                                        let temp_path = img_dir.join("temp_clipboard.png");
+
+                                        let mut png_bytes = Vec::new();
+                                        let mut encoder = png::Encoder::new(&mut png_bytes, image.width as u32, image.height as u32);
+                                        encoder.set_color(png::ColorType::Rgba);
+                                        encoder.set_depth(png::BitDepth::Eight);
+                                        
+                                        let mut write_success = false;
+                                        if let Ok(mut writer) = encoder.write_header() {
+                                            if writer.write_image_data(&image.bytes).is_ok() {
+                                                write_success = true;
+                                            }
+                                        }
+
+                                        if write_success && std::fs::write(&temp_path, &png_bytes).is_ok() {
+                                            Ok(temp_path.to_string_lossy().to_string())
+                                        } else {
+                                            Err("Error: Failed to save clipboard image.".to_string())
+                                        }
+                                    }
+                                    Err(_) => {
+                                        // Try reading text as path from clipboard
+                                        if let Ok(text) = clipboard.get_text() {
+                                            let trimmed = text.trim().replace('"', "");
+                                            let path_str = if cfg!(target_os = "linux") {
+                                                 if trimmed.as_bytes().get(1..3) == Some(b":\\") {
+                                                     let drive = trimmed[0..1].to_lowercase();
+                                                     let rest = trimmed[3..].replace('\\', "/");
+                                                     format!("/mnt/{}/{}", drive, rest)
+                                                 } else {
+                                                     trimmed
+                                                 }
+                                            } else {
+                                                trimmed
+                                            };
+                                            let p = std::path::Path::new(&path_str);
+                                            if p.exists() && p.is_file() {
+                                                Ok(path_str)
+                                            } else {
+                                                Err("Clipboard does not contain an image or valid image path.".to_string())
+                                            }
+                                        } else {
+                                            Err("Clipboard does not contain an image.".to_string())
+                                        }
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                Err(format!("Error: Clipboard access failed: {}", e))
+                            }
+                        }
+                    })
+                    .await;
+
+                    let final_res = match result {
+                        Ok(res) => res,
+                        Err(_) => Err("Clipboard extraction task panicked".to_string()),
+                    };
+                    let _ = sender.send(crate::app::AppEvent::ClipboardExtracted { result: final_res });
+                });
             }
         }
         KeyCode::Char(' ') => {
