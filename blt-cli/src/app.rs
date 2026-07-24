@@ -199,7 +199,7 @@ impl App {
                 total_issues: 0,
                 active_repos: 0,
                 total_contributors: 0,
-                bacon_points: 0,
+                points: 0,
             },
             leaderboard: Vec::new(),
             good_first_issues: Vec::new(),

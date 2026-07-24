@@ -77,7 +77,8 @@ pub struct Hunt {
 pub struct LeaderboardEntry {
     pub rank: u32,
     pub name: String,
-    pub bacon_points: u32,
+    #[serde(alias = "bacon_points")]
+    pub points: u32,
     pub reputation: String,
 }
 
@@ -86,7 +87,8 @@ pub struct Stats {
     pub total_issues: u32,
     pub active_repos: u32,
     pub total_contributors: u32,
-    pub bacon_points: u32,
+    #[serde(alias = "bacon_points")]
+    pub points: u32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -96,5 +98,6 @@ pub struct GoodFirstIssue {
     pub repository: String,
     pub web_url: String,
     pub description: String,
-    pub bacon_estimate: u32,
+    #[serde(alias = "bacon_estimate")]
+    pub points_estimate: u32,
 }

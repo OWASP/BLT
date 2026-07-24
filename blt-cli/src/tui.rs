@@ -58,7 +58,7 @@ where
                             issue.comments.push(comment.clone());
                             app.audit_logs.push(comment);
                             app.audit_logs
-                                .push("+10 Bacon Points (Pending Verification)".to_string());
+                                .push("+10 Points (Pending Verification)".to_string());
                         }
                         app.selected_issues.remove(&issue_id);
                     }
