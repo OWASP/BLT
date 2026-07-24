@@ -279,7 +279,8 @@ async def triage_vulnerability(prompt: str) -> str:
         "followed by your detailed Recommendation."
     )
 
-    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/@cf/meta/llama-3.1-8b-instruct"
+    model = os.getenv("CF_MODEL", "@cf/meta/llama-3.1-8b-instruct-fast")
+    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
     headers = {
         "Authorization": f"Bearer {api_token}",
         "Content-Type": "application/json",

@@ -41,9 +41,11 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
 
         # Default mock responses
         status_code = 200
-        content_dict = {"success": True, "data": []}
+        content_dict = {}
+        handled = False
 
         if "api.cloudflare.com" in url_str:
+            handled = True
             content_dict = {
                 "success": True,
                 "result": {
@@ -51,6 +53,7 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
                 }
             }
         elif "gitlab.com" in url_str:
+            handled = True
             content_dict = [
                 {
                     "id": 1,
@@ -62,6 +65,7 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
             ]
         elif path in ("/v2/bugs", "/bugs"):
             if method == "GET":
+                handled = True
                 content_dict = {
                     "success": True,
                     "data": [
@@ -93,19 +97,27 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
                     }
                 }
             elif method == "POST":
+                handled = True
                 content_dict = {"success": True, "id": "Unknown"}
         elif path == "/repos":
-            content_dict = [{"id": 1, "name": "repo1", "description": "repositories"}]
+            if method == "GET":
+                handled = True
+                content_dict = [{"id": 1, "name": "repo1", "description": "repositories"}]
         elif path == "/stats":
-            content_dict = {"total_issues": 10, "active_repos": 2, "statistics": "OWASP BLT Stats"}
+            if method == "GET":
+                handled = True
+                content_dict = {"total_issues": 10, "active_repos": 2, "statistics": "OWASP BLT Stats"}
         elif path == "/bugs/123":
-            content_dict = {
-                "title": "SQL Injection in Login Form",
-                "status": "open",
-                "description": "Found a SQL injection vulnerability in the username field."
-            }
+            if method == "GET":
+                handled = True
+                content_dict = {
+                    "title": "SQL Injection in Login Form",
+                    "status": "open",
+                    "description": "Found a SQL injection vulnerability in the username field."
+                }
         elif path == "/bugs/123/comments":
             if method == "GET":
+                handled = True
                 content_dict = [
                     {
                         "content": "I confirmed this vulnerability.",
@@ -117,9 +129,15 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
                     }
                 ]
             elif method == "POST":
+                handled = True
                 content_dict = {"success": True}
         elif path.startswith("/bugs/") and path.endswith("/comments"):
-            content_dict = {"success": True}
+            if method == "POST":
+                handled = True
+                content_dict = {"success": True}
+
+        if not handled:
+            raise AssertionError(f"Unmatched mock request: {method} {url_str}")
 
         return httpx.Response(
             status_code=status_code,

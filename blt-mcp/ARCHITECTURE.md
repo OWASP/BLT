@@ -113,23 +113,33 @@ Tools enable AI agents to perform actions:
 
 #### submit_issue
 - Purpose: Create new bug reports or vulnerability reports
-- Required: title, description
-- Optional: repo_id, severity, type, confirmed
+- Required: url, title, description
+- Optional: severity, bug_type, steps_to_reproduce, labels, assignee
+- Confirmation: confirmed=true is required for execution
 - Maps to: POST /bugs
 - Note: The BLT API does not natively support a `title` field; the server prepends the title to the `description` payload.
-
-
 
 #### add_comment
 - Purpose: Add comments to issues
 - Required: issue_id, comment_text
-- Optional: confirmed
+- Optional: confirmed (set to `true` for execution)
 - Maps to: POST /bugs/{id}/comments
 
 #### summarize_issue_context
 - Purpose: Generate a structured summary of an issue's context (title, status, description, comments)
 - Required: issue_id
 - Maps to: GET /bugs/{id} and GET /bugs/{id}/comments
+
+#### triage_vulnerability
+- Purpose: Analyze a vulnerability description using Cloudflare Workers AI
+- Required: prompt
+- Maps to: Cloudflare Workers AI model client call
+
+#### draft_vision_issue
+- Purpose: Analyze a screenshot and draft a vulnerability issue report
+- Required: image_path
+- Optional: gitlab_project_id, context
+- Maps to: Cloudflare Vision AI model client call
 
 ### Prompts Layer
 

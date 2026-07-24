@@ -243,7 +243,7 @@ cargo run -- --mcp-path "uv run blt-mcp"
 The CLI will:
 1. Spawn `uv run blt-mcp` as a subprocess
 2. Perform the MCP handshake over stdio
-3. Fetch resources (`blt://v2/bugs`, `blt://v2/repos`, etc.) from the MCP server
+3. Fetch resources (`blt://issues`, `blt://repos`, etc.) from the MCP server
 4. The MCP server calls `http://localhost:8787` using your `.env` key
 5. The TUI renders your local seeded data
 
@@ -291,7 +291,10 @@ This intercepts all external requests made by `httpx.AsyncClient` inside the ser
 * **Recording/Updating Snapshots**:
   You can create a new `.yaml` template manually inside `snapshots/` with the client-to-server (`c2s`) messages and a meta block (specifying a unique 8-character hex `session_id` like `'00000005'`), and then run the update command to auto-generate the server-to-client (`s2c`) responses:
   ```bash
-  $env:BLT_MOCK_HTTP="true"  # On Unix: export BLT_MOCK_HTTP="true"
+  # Unix/macOS/WSL:
+  export BLT_MOCK_HTTP="true"
+  # PowerShell:
+  # $env:BLT_MOCK_HTTP = "true"
   uv run mcp-vcr verify snapshots/ --update -- uv run -m blt_mcp.server
   ```
   Alternatively, you can record a live session interactively:

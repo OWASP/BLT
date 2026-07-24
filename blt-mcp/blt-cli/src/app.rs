@@ -125,6 +125,9 @@ pub enum AppEvent {
     ScanComplete {
         health: crate::scanner::SecurityHealth,
     },
+    ClipboardExtracted {
+        result: Result<String, String>,
+    },
 }
 
 pub struct App {
