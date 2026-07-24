@@ -264,6 +264,46 @@ The CLI will:
 
 ---
 
+## Testing
+
+BLT-MCP uses `pytest` for unit testing and `mcp-vcr` for deterministic integration testing of JSON-RPC sessions.
+
+### Running Tests
+
+To run the complete test suite:
+```bash
+uv run pytest
+```
+
+The test suite will execute the unit tests and then automatically run the `mcp-vcr` verification hook against all golden snapshots in the `snapshots/` directory.
+
+### Deterministic & Offline Testing
+
+To ensure testing is 100% deterministic and runs offline without making real network requests to Cloudflare or the live OWASP BLT API, a mock HTTP layer is automatically activated during `pytest` runs using the environment variable:
+```env
+BLT_MOCK_HTTP=true
+```
+This intercepts all external requests made by `httpx.AsyncClient` inside the server subprocesses and returns stubbed mock data.
+
+### How to Use `mcp-vcr`
+
+`mcp-vcr` records and replays the JSON-RPC communication between the MCP client and the server.
+
+* **Golden Snapshots**: Stored in the `snapshots/` directory.
+* **Recording/Updating Snapshots**:
+  You can create a new `.yaml` template manually inside `snapshots/` with the client-to-server (`c2s`) messages and a meta block (specifying a unique 8-character hex `session_id` like `'00000005'`), and then run the update command to auto-generate the server-to-client (`s2c`) responses:
+  ```bash
+  $env:BLT_MOCK_HTTP="true"  # On Unix: export BLT_MOCK_HTTP="true"
+  uv run mcp-vcr verify snapshots/ --update -- uv run -m blt_mcp.server
+  ```
+  Alternatively, you can record a live session interactively:
+  ```bash
+  uv run mcp-vcr record --name my_test_session -- uv run -m blt_mcp.server
+  ```
+  This will save a recording to `sessions/`, which you can then move to `snapshots/`.
+
+---
+
 ## Usage & Workflows
 
 ### Running the Server Locally

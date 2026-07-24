@@ -24,10 +24,111 @@ import os
 import sys
 import logging
 import httpx
+import json
 from typing import Optional
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
+
+# Mock HTTP environment hook to run tests deterministically and offline
+if os.getenv("BLT_MOCK_HTTP") == "true":
+    original_send = httpx.AsyncClient.send
+
+    async def mock_send(self, request, *args, **kwargs):
+        url_str = str(request.url)
+        path = request.url.path
+        method = request.method
+
+        # Default mock responses
+        status_code = 200
+        content_dict = {"success": True, "data": []}
+
+        if "api.cloudflare.com" in url_str:
+            content_dict = {
+                "success": True,
+                "result": {
+                    "response": "**Severity Suggestion:**\nHigh\n\n**Vulnerability Class:** SQL Injection\n\n**Detailed Recommendation:**\n\n### Immediate Mitigation Steps:\n\n1. **Validate and Sanitize User Input:**\n   - Ensure that the login form inputs (e.g., username and password) are validated and sanitized to prevent any malicious SQL code from being injected.\n   - Use prepared statements or parameterized queries to separate the SQL code from user input.\n\n2. **Use Whitelisting:**\n   - Implement a whitelisting approach to only allow specific characters or patterns in the login form inputs.\n   - This can be achieved by using regular expressions to validate the input data.\n\n3. **Implement Input Validation:**\n   - Validate the length and format of the input data to prevent any potential SQL injection attacks.\n   - For example, you can check if the username is not empty and contains only alphanumeric characters.\n\n4. **Review and Update the Database Schema:**\n   - Review the database schema to ensure that it is not vulnerable to SQL injection attacks.\n   - Consider updating the schema to use stored procedures or views to further secure the database.\n\n5. **Implement a Web Application Firewall (WAF):**\n   - Consider implementing a WAF to detect and prevent SQL injection attacks in real"
+                }
+            }
+        elif "gitlab.com" in url_str:
+            content_dict = [
+                {
+                    "id": 1,
+                    "title": "Good First Issue 1",
+                    "references": {"full": "org/repo1"},
+                    "web_url": "https://gitlab.com/org/repo1/-/issues/1",
+                    "description": "This is a good first issue description."
+                }
+            ]
+        elif path in ("/v2/bugs", "/bugs"):
+            if method == "GET":
+                content_dict = {
+                    "success": True,
+                    "data": [
+                        {
+                            "id": 1,
+                            "url": "https://example.com",
+                            "description": "*Submitted by AI Agent via BLT-MCP*\n\nTesting",
+                            "status": "open",
+                            "verified": 0,
+                            "score": None,
+                            "views": 0,
+                            "created": "2026-07-01 10:33:58",
+                            "modified": "2026-07-01 10:33:58",
+                            "is_hidden": 0,
+                            "rewarded": 0,
+                            "cve_id": None,
+                            "cve_score": None,
+                            "domain": None,
+                            "domain_name": None,
+                            "domain_url": None
+                        }
+                    ],
+                    "pagination": {
+                        "page": 1,
+                        "per_page": 20,
+                        "count": 1,
+                        "total": 1,
+                        "total_pages": 1
+                    }
+                }
+            elif method == "POST":
+                content_dict = {"success": True, "id": "Unknown"}
+        elif path == "/repos":
+            content_dict = [{"id": 1, "name": "repo1", "description": "repositories"}]
+        elif path == "/stats":
+            content_dict = {"total_issues": 10, "active_repos": 2, "statistics": "OWASP BLT Stats"}
+        elif path == "/bugs/123":
+            content_dict = {
+                "title": "SQL Injection in Login Form",
+                "status": "open",
+                "description": "Found a SQL injection vulnerability in the username field."
+            }
+        elif path == "/bugs/123/comments":
+            if method == "GET":
+                content_dict = [
+                    {
+                        "content": "I confirmed this vulnerability.",
+                        "author": "security_researcher"
+                    },
+                    {
+                        "content": "Working on a fix now.",
+                        "author": "developer_bob"
+                    }
+                ]
+            elif method == "POST":
+                content_dict = {"success": True}
+        elif path.startswith("/bugs/") and path.endswith("/comments"):
+            content_dict = {"success": True}
+
+        return httpx.Response(
+            status_code=status_code,
+            content=json.dumps(content_dict).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            request=request
+        )
+
+    httpx.AsyncClient.send = mock_send
 
 # Load environment variables from .env file relative to this file's directory
 env_path = os.path.join(
