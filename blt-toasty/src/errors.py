@@ -122,3 +122,22 @@ class GitLabAPIError(Exception):
     def __init__(self, message: str, *, status_code: int | None = None):
         super().__init__(message)
         self.status_code = status_code
+
+
+class AuditIncompleteError(Exception):
+    """Raised when audit_completeness_check() determines that required audit fields are absent.
+
+    This is the terminal failure state for MCP export gating.  The caller should
+    surface HTTP 424 Failed Dependency to clients along with the ``missing_fields``
+    list so operators can diagnose which pipeline stage did not complete.
+
+    Attributes:
+        event_id: The event whose audit is incomplete.
+        missing_fields: Names of the audit records that are absent from D1
+            (subset of ``["triage_summary", "triage_rationale", "redaction_audit"]``).
+    """
+
+    def __init__(self, message: str, *, event_id: str = "", missing_fields: list[str] | None = None):
+        super().__init__(message)
+        self.event_id = event_id
+        self.missing_fields: list[str] = missing_fields or []

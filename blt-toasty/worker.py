@@ -8,7 +8,8 @@ and status monitoring.
 
 import json
 import urllib.parse
-from js import Response, Headers, console, fetch
+from js import Response, Headers, console
+from src.rationale_builder import audit_completeness_check
 from src.webhook_handler import handle_webhook
 
 # Maximum request body size in bytes (1MB)
@@ -86,6 +87,15 @@ async def on_fetch(request, env):
             return handle_status(request)
         else:
             return create_method_not_allowed_response(path, ["GET", "HEAD"])
+    elif path.startswith("/triage/") and path.endswith("/rationale"):
+        if method == "GET":
+            # Extract event_id from /triage/{event_id}/rationale
+            event_id = path[len("/triage/") : -len("/rationale")]
+            if not event_id:
+                return create_error_response("Missing event_id in path", 400)
+            return await handle_rationale(request, env, event_id)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
     else:
         return create_error_response(f"Not Found: {path}", 404)
 
@@ -129,6 +139,7 @@ def handle_root(request):
             "/api/review": "POST - Submit code for review",
             "/webhook/gitlab": "POST - GitLab webhook receiver",
             "/api/status": "GET - Check service status",
+            "/triage/{event_id}/rationale": "GET - Retrieve structured rationale for a triage event",
         },
     }
 
@@ -249,6 +260,72 @@ async def handle_gitlab_webhook(request, env):
         Response: Webhook processing result
     """
     return await handle_webhook(request, env)
+
+
+async def handle_rationale(request, env, event_id):
+    """
+    Handle GET /triage/{event_id}/rationale requests.
+
+    Returns the full structured rationale for a triage decision,
+    including CWE evidence snippets, duplicate detection reasoning,
+    and the per-component confidence trace.
+
+    If any required audit record is absent from D1 the endpoint returns
+    HTTP 424 Failed Dependency (blocking MCP export) with a ``missing_fields``
+    list so operators can identify which pipeline stage did not complete.
+
+    Args:
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment bindings.
+        event_id: The triage event ID parsed from the URL path.
+
+    Returns:
+        Response: 200 with rationale JSON, 404 if not found, or 424 if
+            audit data is missing.
+    """
+    try:
+        db = env.DB
+
+        # ── Audit completeness gate ───────────────────────────────────────────
+        is_complete, missing_fields = await audit_completeness_check(event_id, db)
+        if not is_complete:
+            return create_json_response(
+                {
+                    "error": "Audit data incomplete — MCP export blocked",
+                    "missing_fields": missing_fields,
+                    "event_id": event_id,
+                },
+                424,
+            )
+
+        # ── Fetch stored rationale from D1 ────────────────────────────────────
+        cursor = await db.execute(
+            "SELECT cwe_rationale, duplicate_rationale, confidence_trace "
+            "FROM triage_rationale WHERE triage_event_id = ? LIMIT 1",
+            [event_id],
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return create_error_response(f"Rationale not found for event {event_id}", 404)
+
+        cwe_rationale_raw = json.loads(row[0])
+        dup_rationale_raw = json.loads(row[1]) if row[1] else None
+        confidence_trace_raw = json.loads(row[2])
+
+        return create_json_response(
+            {
+                "event_id": event_id,
+                "status": "complete",
+                "cwe_rationale": cwe_rationale_raw,
+                "duplicate_rationale": dup_rationale_raw,
+                "confidence_trace": confidence_trace_raw,
+            },
+            200,
+        )
+
+    except Exception as exc:
+        console.error(f"handle_rationale error for {event_id}: {exc}")
+        return create_error_response(f"Internal server error: {exc}", 500)
 
 
 def handle_status(request):
@@ -383,6 +460,8 @@ def create_json_response(data, status_code=200):
     headers.set("Access-Control-Allow-Headers", "Content-Type")
 
     return Response.new(json.dumps(data), status=status_code, headers=headers)
+
+
 def create_text_response(message, status_code=200):
     """
     Create a plain-text response.
