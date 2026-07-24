@@ -266,6 +266,10 @@ TOOL_SCHEMAS = {
                 "type": str,
                 "description": "Optional GitLab project ID to upload the image to.",
             },
+            "context": {
+                "type": str,
+                "description": "Optional user-provided context or hints about the screenshot.",
+            },
         },
     },
 }
