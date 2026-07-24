@@ -153,20 +153,25 @@ async def index_report(
 
     # ── Insert into Vectorize ─────────────────────────────────────────────
     now = datetime.now(timezone.utc).isoformat()
-    await env.VECTORIZE.insert(
-        [
-            {
-                "id": event_id,
-                "values": embedding,
-                "metadata": {
-                    "repo": repo_full_name,
-                    "event_id": event_id,
-                    "model_version": MODEL_VERSION,
-                    "created_at": now,
-                },
-            }
-        ]
-    )
+    try:
+        await env.VECTORIZE.insert(
+            [
+                {
+                    "id": event_id,
+                    "values": embedding,
+                    "metadata": {
+                        "repo": repo_full_name,
+                        "event_id": event_id,
+                        "model_version": MODEL_VERSION,
+                        "created_at": now,
+                    },
+                }
+            ]
+        )
+    except Exception as exc:
+        logger.error("Failed to insert event %s into Vectorize: %s", event_id, exc)
+        await _transition_state(db, event_id, "embedded_pending")
+        raise
 
     # ── Advance state machine ─────────────────────────────────────────────
     await _transition_state(db, event_id, "embedded")

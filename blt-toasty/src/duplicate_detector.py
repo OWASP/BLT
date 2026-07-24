@@ -321,7 +321,6 @@ async def detect_duplicates(
 
     # ── 3-tier scoring ────────────────────────────────────────────────────
     candidates: list[DuplicateCandidate] = []
-    used_llm = False
 
     for match in raw_matches:
         candidate_event_id = match["event_id"]
@@ -354,7 +353,6 @@ async def detect_duplicates(
                 continue
 
             adjudication = await adjudicate_duplicate(redacted_text, candidate_text, env, do_stub)
-            used_llm = True
 
             if adjudication["is_duplicate"] and adjudication["confidence"] >= LLM_CONFIDENCE_THRESHOLD:
                 candidates.append(
@@ -389,7 +387,7 @@ async def detect_duplicates(
     # ── Build result ──────────────────────────────────────────────────────
     if not confirmed:
         overall_method = "no_duplicates"
-    elif used_llm:
+    elif any(c.detection_method == "retrieval_plus_llm" for c in confirmed):
         overall_method = "retrieval_plus_llm"
     else:
         overall_method = "retrieval_only"

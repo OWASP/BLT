@@ -89,10 +89,13 @@ async def on_fetch(request, env):
             return create_method_not_allowed_response(path, ["GET", "HEAD"])
     elif path.startswith("/triage/") and path.endswith("/rationale"):
         if method == "GET":
-            # Extract event_id from /triage/{event_id}/rationale
-            event_id = path[len("/triage/") : -len("/rationale")]
+            # Extract and decode event_id from /triage/{event_id}/rationale
+            raw_event_id = path[len("/triage/") : -len("/rationale")]
+            event_id = urllib.parse.unquote(raw_event_id)
             if not event_id:
                 return create_error_response("Missing event_id in path", 400)
+            if "/" in event_id:
+                return create_error_response("Invalid event_id: must not contain path separators", 400)
             return await handle_rationale(request, env, event_id)
         else:
             return create_method_not_allowed_response(path, ["GET"])
@@ -325,7 +328,7 @@ async def handle_rationale(request, env, event_id):
 
     except Exception as exc:
         console.error(f"handle_rationale error for {event_id}: {exc}")
-        return create_error_response(f"Internal server error: {exc}", 500)
+        return create_error_response("Internal server error", 500)
 
 
 def handle_status(request):

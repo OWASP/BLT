@@ -100,8 +100,10 @@ async def _gitlab_fetch(url: str, options: dict, env) -> object:
     controller = _abort_controller_cls.new()
     try:
         from js import setTimeout  # type: ignore[import-not-found]
+        from pyodide.ffi import create_once_callable  # type: ignore[import-not-found]
 
-        setTimeout(lambda: controller.abort(), GITLAB_TIMEOUT_SECONDS * 1000)
+        abort_cb = create_once_callable(lambda: controller.abort())
+        setTimeout(abort_cb, GITLAB_TIMEOUT_SECONDS * 1000)
     except ImportError:
         pass
 
@@ -183,19 +185,20 @@ async def post_duplicate_comment(
         env,
     )
 
-    if not _check_rate_limit(response):
-        logger.warning(
-            "Rate limit exceeded — duplicate comment NOT posted for issue %d",
-            issue_iid,
-        )
-        return False
-
     status = response.status
     if status != 201:
         error_body = await response.text()
         raise GitLabAPIError(
             f"GitLab POST /notes returned HTTP {status}: {error_body}",
             status_code=status,
+        )
+
+    # Rate-limit is a backoff signal only — the write already succeeded.
+    if not _check_rate_limit(response):
+        logger.warning(
+            "Rate-limit quota low after posting duplicate comment on issue %d — "
+            "consider backing off future requests",
+            issue_iid,
         )
 
     logger.info(
@@ -245,19 +248,19 @@ async def add_duplicate_label(
         env,
     )
 
-    if not _check_rate_limit(response):
-        logger.warning(
-            "Rate limit exceeded — duplicate label NOT added for issue %d",
-            issue_iid,
-        )
-        return False
-
     status = response.status
     if status != 200:
         error_body = await response.text()
         raise GitLabAPIError(
             f"GitLab PUT /issues returned HTTP {status}: {error_body}",
             status_code=status,
+        )
+
+    # Rate-limit is a backoff signal only — the write already succeeded.
+    if not _check_rate_limit(response):
+        logger.warning(
+            "Rate-limit quota low after adding label to issue %d — " "consider backing off future requests",
+            issue_iid,
         )
 
     logger.info(

@@ -161,7 +161,7 @@ class TestPostDuplicateComment:
             env=env,
         )
 
-        assert result is False
+        assert result is True
 
     @pytest.mark.asyncio
     async def test_rate_limit_ok(self):
@@ -248,4 +248,46 @@ class TestAddDuplicateLabel:
             env=env,
         )
 
-        assert result is False
+        assert result is True
+
+    @pytest.mark.asyncio
+    async def test_add_label_non_200_raises_error(self):
+        """HTTP 403 raises GitLabAPIError with correct status_code."""
+        fetch_mock = _make_gitlab_fetch_mock(status=403, ok=False, response_body={"error": "forbidden"})
+        env = _make_env(fetch_mock=fetch_mock)
+
+        with pytest.raises(GitLabAPIError) as exc_info:
+            await add_duplicate_label(
+                access_token="glpat-test-token",
+                project_id=123,
+                issue_iid=42,
+                env=env,
+            )
+
+        assert exc_info.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_network_timeout_mapped_to_408(self):
+        """Abort/Timeout exception maps to 408."""
+
+        async def timeout_fetch(url, options):
+            raise Exception("The operation was aborted.")
+
+        env = _make_env(fetch_mock=AsyncMock(side_effect=timeout_fetch))
+
+        with pytest.raises(GitLabAPIError) as exc_info:
+            await add_duplicate_label(access_token="test", project_id=1, issue_iid=1, env=env)
+        assert exc_info.value.status_code == 408
+
+    @pytest.mark.asyncio
+    async def test_network_error_mapped_to_503(self):
+        """Generic network exception maps to 503."""
+
+        async def network_error_fetch(url, options):
+            raise Exception("Connection refused")
+
+        env = _make_env(fetch_mock=AsyncMock(side_effect=network_error_fetch))
+
+        with pytest.raises(GitLabAPIError) as exc_info:
+            await add_duplicate_label(access_token="test", project_id=1, issue_iid=1, env=env)
+        assert exc_info.value.status_code == 503

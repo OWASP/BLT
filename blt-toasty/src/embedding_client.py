@@ -128,7 +128,14 @@ async def get_embedding(text: str, env) -> list[float]:
             status_code=response.status,
         )
 
-    data = await response.json()
+    try:
+        data = await response.json()
+    except Exception:
+        raise EmbeddingServiceError(
+            "FastEmbed sidecar returned non-JSON response",
+            status_code=500,
+        )
+
     if not isinstance(data, dict) or not isinstance(data.get("embeddings"), list) or not data["embeddings"]:
         raise EmbeddingServiceError(
             "FastEmbed sidecar returned invalid or empty embeddings list",
@@ -136,6 +143,12 @@ async def get_embedding(text: str, env) -> list[float]:
         )
 
     embedding = data["embeddings"][0]
+
+    if not isinstance(embedding, list):
+        raise EmbeddingServiceError(
+            f"FastEmbed sidecar: first embedding is not a list (got {type(embedding).__name__})",
+            status_code=500,
+        )
 
     if len(embedding) != EMBEDDING_DIMENSIONS:
         raise EmbeddingServiceError(

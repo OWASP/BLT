@@ -31,3 +31,8 @@ CREATE INDEX IF NOT EXISTS idx_dup_candidates_event_id
 
 CREATE INDEX IF NOT EXISTS idx_dup_candidates_candidate_id
     ON duplicate_candidates(candidate_event_id);
+
+-- Uniqueness constraint: a given (event, candidate) pair may only be stored
+-- once, so repeated detection runs are idempotent at the database level.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_dup_candidates_unique_pair
+    ON duplicate_candidates(triage_event_id, candidate_event_id);

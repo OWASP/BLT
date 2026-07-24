@@ -13,6 +13,8 @@ from __future__ import annotations
 import asyncio
 import logging
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException
 from fastembed import TextEmbedding
 from pydantic import BaseModel, field_validator
@@ -26,14 +28,27 @@ logger = logging.getLogger("fastembed_sidecar")
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 EMBEDDING_DIMENSIONS = 384
 
+
+# Global reference populated during lifespan
+model: TextEmbedding | None = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global model
+    logger.info("Initializing TextEmbedding model %s...", MODEL_NAME)
+    model = TextEmbedding(MODEL_NAME)
+    logger.info("Model loaded successfully.")
+    yield
+    logger.info("Shutting down FastEmbed sidecar.")
+
+
 app = FastAPI(
     title="FastEmbed Sidecar",
     version="1.0.0",
     description="Generates sentence embeddings for BLT-Toasty duplicate detection.",
+    lifespan=lifespan,
 )
-
-# Load model at startup — singleton for the lifetime of the process.
-model = TextEmbedding(MODEL_NAME)
 
 
 # ---------------------------------------------------------------------------
@@ -92,6 +107,8 @@ async def embed(body: EmbedRequest) -> EmbedResponse:
         A response containing the embedding vectors, model name, and dimensions.
     """
     try:
+        if model is None:
+            raise RuntimeError("Model is not initialized")
         embeddings = await asyncio.to_thread(lambda: [e.tolist() for e in model.embed(body.texts)])
     except Exception as exc:
         logger.error("Embedding generation failed: %s", exc)

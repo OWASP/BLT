@@ -34,7 +34,6 @@ import dataclasses
 import json
 import logging
 import re
-import uuid
 from typing import Any
 
 from src.native_recognizers import apply_native_redaction
@@ -458,9 +457,9 @@ async def audit_completeness_check(event_id: str, db: Any) -> tuple[bool, list[s
     if cursor.fetchone() is None:
         missing.append("triage_rationale")
 
-    # 3. redaction_audit
+    # 3. redaction_audit — uses triage_event_id per migrations/0001_initial.sql
     cursor = await db.execute(
-        "SELECT COUNT(*) FROM redaction_audit WHERE event_id = ?",
+        "SELECT COUNT(*) FROM redaction_audit WHERE triage_event_id = ?",
         [event_id],
     )
     row = cursor.fetchone()
@@ -494,8 +493,8 @@ async def store_rationale(
         duplicate_rationale: A ``DuplicateRationale`` or ``None``.
         confidence_trace: The ``ConfidenceTrace`` for this event.
     """
-    rationale_id = str(uuid.uuid4())
-
+    # id == triage_event_id: deterministic key guarantees INSERT OR REPLACE
+    # targets the same row on every retry rather than always inserting a new row.
     cwe_json = json.dumps(
         [dataclasses.asdict(r) for r in cwe_rationale],
         separators=(",", ":"),
@@ -509,7 +508,7 @@ async def store_rationale(
         "INSERT OR REPLACE INTO triage_rationale "
         "(id, triage_event_id, cwe_rationale, duplicate_rationale, confidence_trace) "
         "VALUES (?, ?, ?, ?, ?)",
-        [rationale_id, event_id, cwe_json, dup_json, trace_json],
+        [event_id, event_id, cwe_json, dup_json, trace_json],
     )
     logger.info("Stored rationale for event %s (%d CWEs)", event_id, len(cwe_rationale))
 
