@@ -1,4 +1,25 @@
+//! Entrypoint and Orchestrator for the OWASP BLT TUI & MCP Subprocess Client.
+//!
+//! This module coordinates the CLI arguments parsing, connections set up, TUI terminal configuration,
+//! and main loop startup sequence.
+//!
+//! Lifecycle Steps:
+//! 1. Parses CLI parameters (`Args`) using `clap` to resolve local MCP subprocess server paths (`--mcp-path`)
+//!    and the target API URL base (`--api-base`).
+//! 2. Spawns and configures the Python MCP subprocess server via stdin/stdout piping if a path is specified.
+//! 3. Queries the initialized server resources (`blt://v2/bugs`, `/repos`, `/stats`, `/leaderboard`, `/good-first-issues`)
+//!    to populate the initial dashboard views.
+//! 4. If no server path is specified, it runs in standalone mode by fetching data directly from the REST API.
+//! 5. Spawns background local security scan routines using tokio threads.
+//! 6. Configures raw terminal input capture modes and installs a custom panic hook to restore standard terminal views on crashes.
+//! 7. Runs the main event runner loop defined in `tui::run_app`.
+//!
+//! Helper Functions:
+//! - `split_arguments(s: &str) -> Vec<String>`: Custom string parser that splits executable shell commands (e.g. `uv run -m blt_mcp`)
+//!   into separate tokens, respecting single and double quotes.
+
 use clap::Parser;
+
 use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},

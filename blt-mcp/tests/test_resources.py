@@ -1,4 +1,27 @@
+"""
+Integration Tests for the Model Context Protocol (MCP) Resource Endpoints.
+
+This module contains integration tests to verify the correctness of resources exposed by the MCP server.
+
+Test Scenarios:
+- `test_resources_list`: Verifies that `resources/list` returns the correct v1 and v2 resources,
+  checking metadata values such as name, URI, and description.
+- `test_resource_templates_list`: Verifies that `resources/templates/list` returns the expected parameterized
+  resource templates (like `blt://repos/{repo_id}/issues` and `blt://v2/users/{id}`).
+- `test_resource_read`: Checks the execution of `resources/read` for resource endpoints.
+- `test_resource_read_parameterized`: Verifies that resource reads support URI parameters.
+- `test_error_handling`: Verifies that requesting resources with missing required fields (e.g. `uri`)
+  correctly returns validation errors.
+
+Design Details:
+- Spawns the Python server as a subprocess.
+- Communicates using stdio JSON-RPC.
+- Uses `tests.utils.read_jsonrpc_response` to verify response payloads.
+"""
+
 import subprocess
+
+
 import json
 import sys
 import os

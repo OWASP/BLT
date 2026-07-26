@@ -1,4 +1,28 @@
+"""
+Integration and Unit Tests for the MCP Tools Endpoints.
+
+This module validates registered tool schemas, call formats, parameter constraints,
+write confirmations, and tool execution logic on the MCP server.
+
+Test Scenarios:
+- `test_tools_list`: Verifies that all V1 and V2 tools are registered and returned by the server.
+- `test_tool_call`: Performs tool execution integration tests.
+- `test_tool_schemas`: Verifies that inputSchemas for tools match requirements (e.g. required fields for
+  `submit_issue`, `add_comment`, `auth_signup`, `create_bug`, etc.).
+- `test_submit_issue_missing_url`, `test_submit_issue_invalid_label_type`, `test_submit_issue_blank_description`:
+  Checks that the custom stdin interception validation middleware rejects invalid parameters with a `code: -32602` error.
+- `test_tool_confirmation_flow`: Verifies that write operations (like `submit_issue` and `create_bug`) fail
+  with an confirmation block message if called with `confirmed=False`.
+- `test_summarize_issue_context_logic` & `test_summarize_issue_context_missing_issue`:
+  Verifies that formatting and error handling logic in the summarizer works correctly.
+
+Design Details:
+- Spawns the local server in a subprocess to run integration checks.
+- Uses unit test mocks to validate tool logic.
+"""
+
 import subprocess
+
 import json
 import sys
 import os

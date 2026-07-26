@@ -1,4 +1,27 @@
+"""
+Command Line Interface (CLI) for the OWASP BLT Model Context Protocol (MCP) Server.
+
+This module uses the `click` library to define the command-line commands for the BLT-MCP server.
+It provides commands for user authentication and running the local server.
+
+Key Commands:
+- `cli`: Parent group command. If invoked without subcommands, it defaults to running the MCP server.
+- `auth login`: Prompts for user credentials (email and password), connects to the BLT auth endpoints
+  to retrieve a JWT token, exchanges the token for a long-lived persistent API key, and saves it locally.
+- `run`: Directly starts the FastMCP server, establishing the stdio communication channel.
+
+Design Details:
+- Supports asynchronous authentication flows using Python's `asyncio` and `httpx.AsyncClient`.
+- Implements secure, long-lived API key provisioning on behalf of the user.
+
+Dependencies:
+- `sys`, `click`, `asyncio`, `logging`, `httpx`
+- Submodules: `blt_mcp.server`, `blt_mcp.auth`, `blt_mcp.server_base`
+"""
+
 import sys
+
+
 import click
 import asyncio
 import getpass

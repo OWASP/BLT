@@ -1,4 +1,36 @@
+"""
+Main OWASP BLT Model Context Protocol (MCP) Server Implementation.
+
+This module sets up the primary FastMCP server instance and registers various resource and tool endpoints.
+It enables LLMs (Large Language Models) to interact with the OWASP BLT vulnerability database.
+
+Key Offerings:
+- **V1 Resources**:
+  - `blt://repos`: Retrieves the list of tracked repositories.
+  - `blt://issues`: Retrieves the global list of reported bugs/vulnerabilities.
+  - `blt://stats`: Retrieves global statistics.
+  - `blt://repos/{repo_id}/issues`: Retrieves issues in a specific repository.
+  - `blt://issues/{issue_id}`: Retrieves details for a specific bug ID.
+  - `blt://good-first-issues`: Fetches good-first-issues from GitLab APIs.
+- **V1 Tools**:
+  - `submit_issue`: Submits a new bug report to the OWASP BLT platform (requires confirmation).
+  - `add_comment`: Adds a discussion comment to an existing bug (requires confirmation).
+  - `summarize_issue_context`: Generates a formatted text summary of an issue's context.
+  - `triage_vulnerability`: Integrates with Cloudflare Workers AI (Llama 3) to analyze, categorize, and prioritize issues.
+  - `draft_vision_issue`: Uses Cloudflare Vision AI (LLaVA) to draft bug reports from local screenshot image files.
+
+Design Details:
+- Integrates modular V2 resource routes (`blt_mcp.v2_resources`) and V2 write operations (`blt_mcp.v2_tools`).
+- Wraps `sys.stdin` with `StdinWrapper` and `InterceptingStdinBuffer` to intercept and validate JSON-RPC parameters
+  before letting the FastMCP server parse the requests.
+
+Entry Point:
+- `main()`: Resolves stdin wrappers and launches the core `mcp.run()` event loop.
+"""
+
 import sys
+
+
 import logging
 import json
 import httpx

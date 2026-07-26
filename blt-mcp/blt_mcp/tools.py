@@ -1,4 +1,22 @@
+"""
+Core Tool Implementations and Utility Helpers for the BLT-MCP Server.
+
+This module provides common utility helper functions and primary execution logic used by MCP tool handlers.
+
+Key Functions:
+- `generate_ai_metadata(tool_name: str) -> Dict[str, Any]`: Computes standard timestamp headers and logs
+  metadata details to identify write transactions generated or initiated by an AI Agent.
+- `summarize_issue_context_impl(issue_id: str, fetch_fn: Callable) -> str`: Orchestrates retrieving raw issue details
+  and discussion threads (comments) from the API, formatting the information into a structured text report.
+
+Design Notes:
+- Divides tools registration from core logic to facilitate unit testing (mocking network request wrappers).
+- Structures issue metadata summaries cleanly to fit within standard LLM prompt context windows.
+"""
+
 import datetime
+
+
 import json
 import logging
 from typing import Any, Callable, Dict, List, Optional

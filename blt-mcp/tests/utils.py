@@ -1,4 +1,23 @@
+"""
+Testing Utilities and Asynchronous Stream Readers for MCP Tests.
+
+This module provides common test helpers to read and parse stdout messages from the spawned MCP server subprocesses
+without locking up the main thread execution.
+
+Key Classes:
+- `MCPResponseReader`: Encapsulates a background worker thread that polls stdout lines from a subprocess.
+  - Automatically filters notifications (have no JSON-RPC `id` field) and logs them into a internal list.
+  - Feeds actual response payloads (containing `id`) into a thread-safe FIFO `queue.Queue`.
+  - Implements thread-safe matching lookup `read_response(expected_id, timeout)` to retrieve responses for a specific ID,
+    re-queuing mismatching payloads.
+
+Key Functions:
+- `read_jsonrpc_response(process, expected_id, timeout=35.0)`: Wrapper that manages the global registry
+  of thread readers to reuse active stream scanners across tests.
+"""
+
 import json
+
 import time
 import queue
 import threading

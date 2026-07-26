@@ -1,4 +1,27 @@
+"""
+Modular Registration of V2 Tools for the OWASP BLT MCP Server.
+
+This module maps the write-operations (POST, PATCH, DELETE) of the OWASP BLT v2 REST API into registered MCP tools,
+enabling LLMs to modify data in the BLT system.
+
+Tools Registered:
+- `auth_signup`: Creates a new user profile/account.
+- `auth_signin`: Logs in a user.
+- `create_bug`: Submits a new vulnerability report.
+- `update_bug`: Modifies fields (title, description, status) of an existing bug.
+- `create_user`: Admin helper tool to create user accounts.
+- `create_job` & `update_job` & `record_job_view`: Manages the job board postings.
+- `create_hackathon` & `update_hackathon` & `register_hackathon_participant`: Manages hackathons.
+
+Safety / Confirmation Flow:
+- Under the MCP specification, all write-operations require an explicit boolean argument `confirmed = True`.
+- If a write-tool is called with `confirmed` set to `False` or omitted, it raises a `ValueError` with a clear explanation,
+  blocking the operation until the user confirms the action in the client UI.
+"""
+
 import logging
+
+
 from typing import List, Optional
 from blt_mcp.server_base import mcp, http_client
 from blt_mcp.tools import generate_ai_metadata

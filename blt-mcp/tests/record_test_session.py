@@ -1,4 +1,22 @@
+"""
+VCR Recording Utility Script for MCP Stdio Interactions.
+
+This script automates recording test sessions against the local Python MCP server using `mcp-vcr`.
+
+Key Functions:
+- `record_session()`: Locates `mcp-vcr` on the system PATH, starts it with recording parameters pointing
+  to the server (`uv run -m blt_mcp.server`), writes mock JSON-RPC requests (init, resources/list)
+  into its stdin stream, and saves the output logs to `sessions/`.
+- `_read_response(stdout, expected_id)`: Helper function to parse JSON-RPC response lines
+  and identify matches to the target ID without hanging on network streams.
+
+Usage:
+- Executed directly: `python -m tests.record_test_session` or `uv run tests/record_test_session.py`.
+"""
+
 import subprocess
+
+
 import json
 import shutil
 import sys

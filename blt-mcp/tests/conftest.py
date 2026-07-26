@@ -1,4 +1,21 @@
+"""
+Pytest Test Hooks and Setup Configurations for BLT-MCP.
+
+This module defines test session hooks that run before/after tests are executed by the pytest framework.
+
+Key Functions:
+- `pytest_sessionfinish(session, exitstatus)`: Executed automatically on test completion.
+  If all test suites pass (`exitstatus == 0`), it looks for golden session recordings under the `snapshots/` folder.
+  If found, it cleans up previous temporary replays, spawns the local FastMCP server in a subprocess (`uv run -m blt_mcp.server`),
+  and runs the `mcp-vcr verify` verification tool to match actual network exchanges against the golden snapshots.
+
+Dependencies:
+- `pytest`, `subprocess`, `shutil`, `sys`, `os`, `pathlib`, `dotenv.load_dotenv`
+"""
+
 import pytest
+
+
 import subprocess
 import shutil
 import sys

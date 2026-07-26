@@ -1,4 +1,26 @@
+"""
+Base Configurations and Shared Initialization Logic for the FastMCP Server.
+
+This module initializes base configurations for the MCP server, including environment loading, logging,
+and network clients. It acts as the shared foundation for all server modules.
+
+Key Responsibilities:
+- **Environment variables loading**: Checks for a local `.env` file in the root workspace folder,
+  and falls back to standard shell variables if none is found.
+- **Log routing**: Installs standard logging pointing to standard error (`sys.stderr`) to prevent
+  corrupting standard out (`sys.stdout`) which is used for the MCP stdio communication channel.
+- **FastMCP server initialization**: Instantiates the global `mcp` server.
+- **Lifespan/lifecycle manager**: Registers `server_lifespan()` context manager to initialize and clean up
+  the asynchronous HTTPX client (`httpx.AsyncClient`) used for all upstream queries to the BLT REST backend.
+
+Shared Functions:
+- `_fetch(path: str, context: Optional[str] = None) -> str`: Generic async helper to perform HTTP GET requests to the BLT backend,
+  using the correct authorization headers, and returning the raw string response.
+"""
+
 import os
+
+
 import sys
 import logging
 import httpx
