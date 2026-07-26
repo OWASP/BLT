@@ -1,4 +1,25 @@
+//! Main Terminal Loop and Input Event Handler.
+//!
+//! This module runs the main event loop for the Ratatui TUI client. It polls input keys
+//! and processes events from background tasks.
+//!
+//! Key Functions:
+//! - `run_app(terminal, app) -> io::Result<()>`: Main application loop. It draws views, polls for
+//!   keystroke events at 100ms intervals, and processes incoming channel notifications (e.g. triage results,
+//!   draft completions, scan status).
+//! - `handle_keys(key, app)`: Handles global commands and navigations:
+//!   - Tab navigation (Tab / BackTab / keys 1-6).
+//!   - List scrolling (Down / Up / j / k).
+//!   - Modals toggling (Help / Search / Command Palette / Easter Egg).
+//!   - Multi-field input focus switching and backspace deletions in the submit form.
+//!
+//! Design details:
+//! - Implements Konami Code check sequence. Triggers an easter egg overlay if keys are entered correctly.
+//! - Integrates Command Palette interpreter (`search`, `triage issue`, `vision <path>`).
+//! - Spawns async tokio tasks to perform write actions (e.g. submit issue, bulk triage) to avoid freezing the UI.
+
 use std::io;
+
 use std::time::{Duration, Instant};
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};

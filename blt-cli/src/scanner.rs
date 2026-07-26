@@ -1,4 +1,26 @@
+//! Local Security Health Vulnerability Scanner Integration.
+//!
+//! This module runs security scanning tools locally.
+//! It spawns background subprocesses to run security tools, parses their outputs,
+//! and compiles finding messages for the TUI client.
+//!
+//! Key Functions:
+//! - `run_scan() -> SecurityHealth`: Spawns concurrent tasks for Trivy, Semgrep, and Bandit,
+//!   and combines their findings into a single report.
+//! - `run_tool(tool, args) -> Result<Output, ToolStatus>`: Low-level wrapper that spawns the executable
+//!   using platform-specific command executors (`cmd /c` on Windows, direct process fork on Unix).
+//!   Implements a 30-second execution timeout.
+//! - `run_trivy()`: Performs secret, vulnerability, and misconfiguration scans on the workspace directory.
+//! - `run_semgrep()`: Scans code structure against standard rules, extracting paths and rule warnings.
+//! - `run_bandit()`: Scans Python codebase directories for vulnerability patterns if a pyproject/requirements file is found.
+//!
+//! Data Structures:
+//! - `ToolStatus`: Enum tracking execution state: `Pending`, `Missing` (binary not found on user path),
+//!   `Error` (nonzero exit or timeout), `Skipped`, or `Success`.
+//! - `SecurityHealth`: Encapsulates statuses and lists of findings.
+
 use tokio::process::Command;
+
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ToolStatus {

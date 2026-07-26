@@ -1,4 +1,22 @@
+//! Rust Client Bindings for the OWASP BLT upstream REST API.
+//!
+//! This module handles direct HTTP network communications with the OWASP BLT REST API backend.
+//! It uses `reqwest` for requests and `serde_json` to parse JSON payloads into Rust data models.
+//!
+//! Key Functions:
+//! - `get_api_key() -> Option<String>`: Resolves the API token from `BLT_API_KEY` env variables or falls back to
+//!   the local credentials file (`~/.blt-mcp/credentials.json`).
+//! - `get_issues(api_base: &str) -> Result<Vec<Issue>, ...>`: Fetches and parses active bug reports from the `/v2/bugs` endpoint.
+//! - `submit_issue(api_base: &str, ...)`: Submits a new vulnerability report (maps and base64 encodes local screenshot files if specified).
+//! - `submit_issue_triage(api_base: &str, issue_id: &str, status: &str)`: Updates the review status of reported bugs.
+//! - `add_comment(api_base: &str, issue_id: &str, text: &str)`: Appends comments/activity entries to issue reports.
+//! - `get_repos()`, `get_hunts()`, `get_stats()`, `get_leaderboard()`: Retrieves statistics and contributor rankings.
+//!
+//! Unit Tests:
+//! - Contains inline unit tests to verify JSON-RPC payload parsing helpers.
+
 use crate::models::{self, Hunt, Issue, Repo, Stats};
+
 use std::sync::OnceLock;
 
 static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
