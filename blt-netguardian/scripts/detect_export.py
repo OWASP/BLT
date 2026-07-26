@@ -54,6 +54,7 @@ API_PATH = "/api/ingest"
 
 
 def _is_loopback(url: str) -> bool:
+    """True for localhost / 127.0.0.1 / ::1 destinations."""
     host = (urlparse(url).hostname or "").lower()
     return host in {"localhost", "127.0.0.1", "::1"}
 
@@ -93,6 +94,7 @@ def fetch_response_headers(url: str, *, timeout: int = 10) -> tuple[int, dict[st
 
 
 def collect_findings(args: argparse.Namespace) -> list[DetectionFinding]:
+    """Run the requested detector packs and return normalized findings."""
     findings: list[DetectionFinding] = []
 
     if args.url:
@@ -120,6 +122,7 @@ def build_envelope(
     payload_key: bytes,
     encrypt: bool,
 ) -> tuple[dict, bytes]:
+    """Sign (and optionally encrypt) one finding into a ztr-finding-1 body."""
     now = datetime.now(timezone.utc)
     payload = finding.to_payload()
     envelope: dict = {
@@ -147,6 +150,7 @@ def build_envelope(
 
 
 def submit(base_url: str, raw: bytes, *, timeout: int = 15) -> tuple[int, str]:
+    """POST a signed envelope to ``/api/ingest``; return status and response body."""
     url = base_url.rstrip("/") + API_PATH
     request = urllib.request.Request(url, data=raw, method="POST")
     request.add_header("Content-Type", "application/json")
@@ -160,6 +164,7 @@ def submit(base_url: str, raw: bytes, *, timeout: int = 15) -> tuple[int, str]:
 
 
 def main() -> int:
+    """CLI entrypoint: detect, optionally dry-run, otherwise submit."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--url", help="URL to run HTTP security-header checks against.")
     parser.add_argument("--semgrep-json", help="Path to a `semgrep --json` report.")

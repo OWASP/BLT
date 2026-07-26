@@ -60,6 +60,7 @@ class DetectionFinding:
     remediation: str = ""
 
     def __post_init__(self) -> None:
+        """Normalize severity and enforce required identity fields."""
         self.severity = normalize_severity(self.severity)
         if not self.rule_id:
             raise ValueError("rule_id is required")
@@ -68,6 +69,7 @@ class DetectionFinding:
 
     @property
     def fingerprint(self) -> str:
+        """Stable issue identity derived from rule, target, and locator."""
         return compute_fingerprint(
             rule_id=self.rule_id, target=self.target, locator=self.locator
         )

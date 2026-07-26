@@ -49,6 +49,7 @@ def parse_semgrep_json(raw: str | bytes) -> list[dict]:
 
 
 def _map_severity(extra: Mapping[str, Any]) -> str:
+    """Map Semgrep severity strings onto the NetGuardian five-level scale."""
     raw = str(extra.get("severity") or "").strip().upper()
     if raw in SEMGREP_SEVERITY_MAP:
         return SEMGREP_SEVERITY_MAP[raw]
@@ -61,6 +62,7 @@ def _map_severity(extra: Mapping[str, Any]) -> str:
 
 
 def _extract_cve(extra: Mapping[str, Any]) -> Optional[str]:
+    """Pull the first CVE id from Semgrep metadata, if any."""
     metadata = extra.get("metadata")
     if not isinstance(metadata, Mapping):
         return None

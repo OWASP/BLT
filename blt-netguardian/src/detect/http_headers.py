@@ -46,10 +46,12 @@ def _get(headers: Mapping[str, str], name: str) -> Optional[str]:
 
 
 def _is_https(url: str) -> bool:
+    """Return True when ``url`` is an https:// target."""
     return url.strip().lower().startswith("https://")
 
 
 def _hsts_findings(url: str, headers: Mapping[str, str]) -> Iterable[DetectionFinding]:
+    """Emit missing/weak HSTS findings for HTTPS targets only."""
     # HSTS is ignored by browsers without TLS; never evaluate it for http://.
     if not _is_https(url):
         return
@@ -81,6 +83,7 @@ def _hsts_findings(url: str, headers: Mapping[str, str]) -> Iterable[DetectionFi
 
 
 def _csp_findings(url: str, headers: Mapping[str, str]) -> Iterable[DetectionFinding]:
+    """Emit missing-CSP and unsafe-directive findings."""
     csp = _get(headers, "Content-Security-Policy")
     if csp is None:
         yield DetectionFinding(
@@ -134,6 +137,7 @@ def _csp_frame_ancestors_protective(csp: str) -> bool:
 
 
 def _clickjacking_findings(url: str, headers: Mapping[str, str]) -> Iterable[DetectionFinding]:
+    """Flag responses with no effective framing defense."""
     xfo = _get(headers, "X-Frame-Options")
     csp = _get(headers, "Content-Security-Policy") or ""
     if _xfo_is_protective(xfo) or _csp_frame_ancestors_protective(csp):
@@ -173,11 +177,13 @@ def _cookie_attribute_names(cookie: str) -> set[str]:
 
 
 def _cookie_name(cookie: str) -> str:
+    """Return the cookie-pair name used in locators and evidence."""
     pair = cookie.split(";", 1)[0]
     return pair.split("=", 1)[0].strip() or "cookie"
 
 
 def _cookie_findings(url: str, headers: Mapping[str, str]) -> Iterable[DetectionFinding]:
+    """Emit one finding per cookie missing Secure and/or HttpOnly."""
     for cookie in _iter_set_cookies(headers):
         attrs = _cookie_attribute_names(cookie)
         missing = [flag for flag in ("secure", "httponly") if flag not in attrs]
