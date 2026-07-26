@@ -12,7 +12,7 @@ Test Scenarios:
 - `test_submit_issue_missing_url`, `test_submit_issue_invalid_label_type`, `test_submit_issue_blank_description`:
   Checks that the custom stdin interception validation middleware rejects invalid parameters with a `code: -32602` error.
 - `test_tool_confirmation_flow`: Verifies that write operations (like `submit_issue` and `create_bug`) fail
-  with an confirmation block message if called with `confirmed=False`.
+  with a confirmation block message if called with `confirmed=False`.
 - `test_summarize_issue_context_logic` & `test_summarize_issue_context_missing_issue`:
   Verifies that formatting and error handling logic in the summarizer works correctly.
 

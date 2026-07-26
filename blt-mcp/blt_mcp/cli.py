@@ -84,6 +84,9 @@ async def _async_login(email: str, password: str):
 
             # 2. Generate persistent API key
             headers = {"Authorization": f"Bearer {jwt_token}"}
+            # NOTE: Wildcard scope is used because the BLT API does not
+            # currently expose a granular scope vocabulary. If the backend adds
+            # fine-grained scopes, narrow this to only what the MCP tools require.
             key_res = await client.post(
                 "/api/auth/api-keys",
                 json={"name": "BLT-MCP CLI", "scopes": ["*"]},
@@ -105,7 +108,8 @@ async def _async_login(email: str, password: str):
             api_key = key_data.get("data", {}).get("api_key")
             if not api_key:
                 click.echo(
-                    f"Error: API key not generated. Response: {key_data}", err=True
+                    "Error: API key not generated. Check your account permissions.",
+                    err=True,
                 )
                 sys.exit(1)
 
@@ -115,7 +119,7 @@ async def _async_login(email: str, password: str):
 
         except httpx.HTTPStatusError as e:
             click.echo(
-                f"Authentication failed: HTTP {e.response.status_code} - {e.response.text}",
+                f"Authentication failed: HTTP {e.response.status_code}. Check your credentials.",
                 err=True,
             )
             sys.exit(1)

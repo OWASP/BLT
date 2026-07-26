@@ -6,7 +6,7 @@ without locking up the main thread execution.
 
 Key Classes:
 - `MCPResponseReader`: Encapsulates a background worker thread that polls stdout lines from a subprocess.
-  - Automatically filters notifications (have no JSON-RPC `id` field) and logs them into a internal list.
+  - Automatically filters notifications (have no JSON-RPC `id` field) and logs them into an internal list.
   - Feeds actual response payloads (containing `id`) into a thread-safe FIFO `queue.Queue`.
   - Implements thread-safe matching lookup `read_response(expected_id, timeout)` to retrieve responses for a specific ID,
     re-queuing mismatching payloads.

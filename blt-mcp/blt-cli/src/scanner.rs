@@ -12,7 +12,7 @@
 //!   Implements a 30-second execution timeout.
 //! - `run_trivy()`: Performs secret, vulnerability, and misconfiguration scans on the workspace directory.
 //! - `run_semgrep()`: Scans code structure against standard rules, extracting paths and rule warnings.
-//! - `run_bandit()`: Scans Python codebase directories for vulnerability patterns if a pyproject/requirements file is found.
+//! - `run_bandit()`: Scans Python codebase directories for vulnerability patterns if a pyproject.toml, requirements.txt, or setup.py file is found.
 //!
 //! Data Structures:
 //! - `ToolStatus`: Enum tracking execution state: `Pending`, `Missing` (binary not found on user path),
@@ -157,6 +157,17 @@ async fn run_trivy() -> (ToolStatus, Vec<String>) {
         Err(status) => return (status, vec![]),
     };
 
+    // Trivy exits non-zero only on scan/report errors (not for findings)
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return (
+            ToolStatus::Error(format!("Trivy scan error (exit {}): {}",
+                output.status.code().unwrap_or(-1),
+                stderr.lines().next().unwrap_or("unknown error"))),
+            vec![],
+        );
+    }
+
     let parsed: serde_json::Value = match serde_json::from_slice(&output.stdout) {
         Ok(v) => v,
         Err(e) => {
@@ -226,6 +237,17 @@ async fn run_semgrep() -> (ToolStatus, Vec<String>) {
         Err(status) => return (status, vec![]),
     };
 
+    // Semgrep exits non-zero only on internal/config errors (not for findings)
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return (
+            ToolStatus::Error(format!("Semgrep scan error (exit {}): {}",
+                output.status.code().unwrap_or(-1),
+                stderr.lines().next().unwrap_or("unknown error"))),
+            vec![],
+        );
+    }
+
     let parsed: serde_json::Value = match serde_json::from_slice(&output.stdout) {
         Ok(v) => v,
         Err(e) => {
@@ -285,6 +307,18 @@ async fn run_bandit() -> (ToolStatus, Vec<String>) {
         Ok(out) => out,
         Err(status) => return (status, vec![]),
     };
+
+    // Bandit exits 1 when findings exist (expected behavior);
+    // treat only other non-zero codes as actual errors
+    let bandit_exit = output.status.code().unwrap_or(-1);
+    if bandit_exit != 0 && bandit_exit != 1 {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return (
+            ToolStatus::Error(format!("Bandit scan error (exit {}): {}",
+                bandit_exit, stderr.lines().next().unwrap_or("unknown error"))),
+            vec![],
+        );
+    }
 
     let parsed: serde_json::Value = match serde_json::from_slice(&output.stdout) {
         Ok(v) => v,

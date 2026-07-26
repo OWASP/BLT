@@ -15,6 +15,8 @@ Design Notes:
 """
 
 import datetime
+import re
+import urllib.parse
 
 
 import json
@@ -42,10 +44,15 @@ async def summarize_issue_context_impl(
     Accepts issue_id and a fetch function (to query the BLT API).
     """
     logger.info(f"Summarizing context for issue: {issue_id}")
+    # Validate issue_id format and sanitize for safe URL path construction
+    issue_id = str(issue_id).strip()
+    if not issue_id or re.search(r'[/?#&]', issue_id):
+        return f"Error: Invalid issue ID '{issue_id}'."
+    safe_id = urllib.parse.quote(issue_id, safe='')
     try:
         try:
             # Fetch issue details
-            issue_raw = await fetch_fn(f"/bugs/{issue_id}", f"issue {issue_id}")
+            issue_raw = await fetch_fn(f"/bugs/{safe_id}", f"issue {issue_id}")
             issue_data = json.loads(issue_raw)
         except Exception as e:
             logger.error(f"Failed to fetch issue {issue_id}: {e}")
@@ -64,16 +71,18 @@ async def summarize_issue_context_impl(
         if comments is None:
             try:
                 comments_raw = await fetch_fn(
-                    f"/bugs/{issue_id}/comments", f"comments for issue {issue_id}"
+                    f"/bugs/{safe_id}/comments", f"comments for issue {issue_id}"
                 )
                 comments = json.loads(comments_raw)
             except Exception as e:
-                logger.debug(f"Failed to fetch comments for issue {issue_id}: {e}")
-                comments = []
+                logger.warning(f"Failed to fetch comments for issue {issue_id}: {e}")
+                comments = None  # Preserve unavailable state distinct from empty
 
         # Format comments
         comments_formatted = ""
-        if isinstance(comments, list) and len(comments) > 0:
+        if comments is None:
+            comments_formatted = "Comments unavailable (failed to retrieve)."
+        elif isinstance(comments, list) and len(comments) > 0:
             formatted_list = []
             for c in comments:
                 if isinstance(c, dict):

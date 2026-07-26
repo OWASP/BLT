@@ -4,9 +4,9 @@
 //! or used to pass arguments to tools. Serde traits are used for serialization and deserialization.
 //!
 //! Key Structures:
-//! - `Issue`: Repesents reported security vulnerabilities, bugs, or anomalies. Includes id, repository,
+//! - `Issue`: Represents reported security vulnerabilities, bugs, or anomalies. Includes id, repository,
 //!   title, description, status (e.g. Triage, In Review, Resolved), severity, author, and comments.
-//! - `Repo`: Repesents tracked codebases on the platform. Includes name, description, URL, and language.
+//! - `Repo`: Represents tracked codebases on the platform. Includes name, description, URL, and language.
 //! - `Hunt`: Represents bug bounty hunts. Includes title, active status, and point rewards.
 //! - `LeaderboardEntry`: Developer rank entries containing bacon scores and reputation titles.
 //! - `Stats`: Platform metrics mapping total issues, tracked repos, and active contributors.

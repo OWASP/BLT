@@ -48,6 +48,9 @@ def save_credentials(api_key: str) -> None:
             flags |= getattr(os, "O_NOFOLLOW")
 
         fd = os.open(creds_path, flags, 0o600)
+        # Enforce permissions even if file already existed (Unix-like systems)
+        if hasattr(os, "fchmod"):
+            os.fchmod(fd, 0o600)
         with open(fd, "w", encoding="utf-8") as f:
             f.write(json.dumps({"BLT_API_KEY": api_key}))
 
