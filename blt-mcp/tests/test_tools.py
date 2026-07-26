@@ -15,6 +15,8 @@ Test Scenarios:
   with a confirmation block message if called with `confirmed=False`.
 - `test_summarize_issue_context_logic` & `test_summarize_issue_context_missing_issue`:
   Verifies that formatting and error handling logic in the summarizer works correctly.
+- `test_summarize_issue_context_regression`: Regression tests validating invalid IDs, URL-encoded ID assertions,
+  comment-fetch exceptions, and comment formatting states.
 
 Design Details:
 - Spawns the local server in a subprocess to run integration checks.
@@ -40,7 +42,7 @@ def test_tools_list():
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
         text=True,
         env=env,
     )
@@ -104,7 +106,7 @@ def test_tool_call():
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
         text=True,
         env=env,
     )
@@ -163,7 +165,7 @@ def test_tool_schemas():
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
         text=True,
         env=env,
     )
@@ -306,7 +308,7 @@ def _init_server_process():
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
         text=True,
         env=env,
     )
@@ -447,7 +449,7 @@ def test_tool_confirmation_flow():
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
         text=True,
         env=env,
     )
@@ -578,3 +580,60 @@ async def test_summarize_issue_context_missing_issue():
 
     summary = await summarize_issue_context_impl("999", mock_fetch)
     assert "Error: Issue with ID '999' not found" in summary
+
+
+@pytest.mark.asyncio
+async def test_summarize_issue_context_regression():
+    """Regression tests for summarize_issue_context_impl validation and comment state branches."""
+
+    # 1. Test invalid IDs containing special URL/query characters
+    invalid_ids = ["123?abc", "abc/def", "123#456", "123&456"]
+    for inv_id in invalid_ids:
+        async def dummy_fetch(path, context=None):
+            return "{}"
+        res = await summarize_issue_context_impl(inv_id, dummy_fetch)
+        assert f"Error: Invalid issue ID '{inv_id}'." in res
+
+    # 2. Test URL-encoded IDs with exact fetch path assertions
+    called_paths = []
+    async def mock_fetch_encoded(path, context=None):
+        called_paths.append(path)
+        if "/comments" in path:
+            return "[]"
+        return json.dumps({
+            "title": "Encoded Issue",
+            "status": "open",
+            "description": "Desc"
+        })
+
+    summary_encoded = await summarize_issue_context_impl("123 spaces", mock_fetch_encoded)
+    assert "/bugs/123%20spaces" in called_paths
+    assert "/bugs/123%20spaces/comments" in called_paths
+    assert "Issue ID: 123 spaces" in summary_encoded
+
+    # 3. Test comments-fetch failure distinguishing from empty list
+    # Scenario A: Comments fetch throws an exception (should yield "Comments unavailable")
+    async def mock_fetch_comments_fail(path, context=None):
+        if "comments" in path:
+            raise RuntimeError("DB Error")
+        return json.dumps({
+            "title": "Title A",
+            "status": "open",
+            "description": "Desc A"
+        })
+
+    summary_fail = await summarize_issue_context_impl("123", mock_fetch_comments_fail)
+    assert "Comments:\nComments unavailable (failed to retrieve)." in summary_fail
+
+    # Scenario B: Comments fetch returns empty list (should yield "No comments.")
+    async def mock_fetch_comments_empty(path, context=None):
+        if "comments" in path:
+            return "[]"
+        return json.dumps({
+            "title": "Title B",
+            "status": "open",
+            "description": "Desc B"
+        })
+
+    summary_empty = await summarize_issue_context_impl("123", mock_fetch_comments_empty)
+    assert "Comments:\nNo comments." in summary_empty
