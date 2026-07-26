@@ -9,7 +9,7 @@
 //! - `initialize()`: Conducts the protocol version negotiation handshake and notifies the server of completion.
 //! - `list_resources()`: Requests the list of resources supported by the server.
 //! - `read_resource(uri)`: Retrieves text contents for a given resource URI string.
-//! - `call_tool(name, arguments)`: Invokes an registered server tool, returns the execution result.
+//! - `call_tool(name, arguments)`: Invokes a registered server tool, returns the execution result.
 //! - `send_request()` & `send_notification()`: Formats and sends standard JSON-RPC packets.
 //! - `read_response(expected_id)`: Asynchronously reads lines from stdout until it captures a matching JSON-RPC response ID.
 //!
