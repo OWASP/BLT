@@ -64,11 +64,11 @@ rather than raising, so a new Semgrep registry value cannot fail a whole scan.
 | Rule | Severity | Notes |
 |------|----------|-------|
 | `http.missing-hsts` | high | HTTPS targets only — meaningless over plain HTTP |
-| `http.weak-hsts-max-age` | medium | `max-age` under 15552000 (180 days) |
+| `http.weak-hsts-max-age` | medium | HTTPS only; `max-age` under 15552000 (180 days) |
 | `http.missing-csp` | medium | |
 | `http.unsafe-csp-directive` | medium | `unsafe-inline` / `unsafe-eval` present |
-| `http.missing-clickjacking-protection` | medium | Only when *both* `X-Frame-Options` and CSP `frame-ancestors` are absent |
-| `http.insecure-cookie-flags` | high / medium | `high` when `Secure` is missing |
+| `http.missing-clickjacking-protection` | medium | Neither protective `X-Frame-Options` (`DENY`/`SAMEORIGIN`) nor a non-`*` CSP `frame-ancestors` |
+| `http.insecure-cookie-flags` | high / medium | Attribute names matched exactly (not substrings); `high` when `Secure` is missing |
 | `http.missing-x-content-type-options` | low | |
 | `http.server-version-disclosure` | low | Only when the value contains a version number |
 | `http.missing-referrer-policy` | info | |

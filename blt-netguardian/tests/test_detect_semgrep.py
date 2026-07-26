@@ -119,3 +119,31 @@ def test_same_result_rescanned_keeps_fingerprint():
     first = scan_semgrep_results(REPORT["results"], target=TARGET)
     second = scan_semgrep_results(REPORT["results"], target=TARGET)
     assert [f.fingerprint for f in first] == [f.fingerprint for f in second]
+
+
+def test_line_less_results_remain_distinct():
+    """path:0 would merge two distinct matches; locators must stay unique."""
+    results = [
+        {
+            "check_id": "python.lang.security.audit.dangerous-subprocess-use",
+            "path": "src/runner.py",
+            "extra": {"message": "call A", "severity": "ERROR", "lines": "subprocess.call(a)"},
+        },
+        {
+            "check_id": "python.lang.security.audit.dangerous-subprocess-use",
+            "path": "src/runner.py",
+            "extra": {"message": "call B", "severity": "ERROR", "lines": "subprocess.call(b)"},
+        },
+    ]
+    findings = scan_semgrep_results(results, target=TARGET)
+    assert len(findings) == 2
+    assert findings[0].fingerprint != findings[1].fingerprint
+    assert not any(f.locator.endswith(":0") for f in findings)
+
+
+def test_results_without_path_are_skipped():
+    findings = scan_semgrep_results(
+        [{"check_id": "r", "extra": {"severity": "INFO", "message": "x"}}],
+        target=TARGET,
+    )
+    assert findings == []

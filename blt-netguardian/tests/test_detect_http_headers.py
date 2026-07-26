@@ -42,6 +42,14 @@ def test_hsts_not_flagged_over_plain_http():
     assert "http.missing-hsts" not in rules
 
 
+def test_weak_hsts_not_flagged_over_plain_http():
+    """Even a short max-age on http:// must not emit weak-HSTS (HTTPS-only rule)."""
+    headers = {**SECURE_HEADERS, "Strict-Transport-Security": "max-age=60"}
+    rules = _rules(scan_headers("http://app.example", headers))
+    assert "http.missing-hsts" not in rules
+    assert "http.weak-hsts-max-age" not in rules
+
+
 def test_short_hsts_max_age_is_flagged():
     headers = {**SECURE_HEADERS, "Strict-Transport-Security": "max-age=3600"}
     findings = [f for f in scan_headers(URL, headers) if f.rule_id == "http.weak-hsts-max-age"]
@@ -66,12 +74,38 @@ def test_x_frame_options_alone_satisfies_clickjacking_rule():
     assert "http.missing-clickjacking-protection" not in _rules(scan_headers(URL, headers))
 
 
+def test_ineffective_xfo_allowall_is_not_protection():
+    headers = {
+        **SECURE_HEADERS,
+        "Content-Security-Policy": "default-src 'self'",
+        "X-Frame-Options": "ALLOWALL",
+    }
+    assert "http.missing-clickjacking-protection" in _rules(scan_headers(URL, headers))
+
+
+def test_permissive_frame_ancestors_star_is_not_protection():
+    headers = {
+        **SECURE_HEADERS,
+        "Content-Security-Policy": "default-src 'self'; frame-ancestors *",
+    }
+    assert "http.missing-clickjacking-protection" in _rules(scan_headers(URL, headers))
+
+
 def test_insecure_cookie_flags():
     headers = {**SECURE_HEADERS, "Set-Cookie": "sid=abc; Path=/"}
     findings = [f for f in scan_headers(URL, headers) if f.rule_id == "http.insecure-cookie-flags"]
     assert len(findings) == 1
     assert findings[0].severity == "high"
     assert set(findings[0].evidence["missing_flags"]) == {"secure", "httponly"}
+    assert findings[0].locator == "Set-Cookie:sid"
+
+
+def test_cookie_value_containing_secure_substring_is_still_flagged():
+    """Attribute match must be exact — 'notsecure' must not satisfy Secure."""
+    headers = {**SECURE_HEADERS, "Set-Cookie": "sid=notsecure; HttpOnly"}
+    findings = [f for f in scan_headers(URL, headers) if f.rule_id == "http.insecure-cookie-flags"]
+    assert len(findings) == 1
+    assert findings[0].evidence["missing_flags"] == ["secure"]
 
 
 def test_secure_httponly_cookie_is_not_flagged():

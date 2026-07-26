@@ -58,14 +58,25 @@ def _is_loopback(url: str) -> bool:
     return host in {"localhost", "127.0.0.1", "::1"}
 
 
-def _resolve_credentials(base_url: str, *, secret_hex: str | None, payload_key: bytes | None):
-    """Demo keys are committed, so they must never be used against a remote host."""
+def _resolve_credentials(
+    base_url: str,
+    *,
+    secret_hex: str | None,
+    payload_key: bytes | None,
+    encrypt: bool,
+):
+    """Demo keys are committed, so they must never be used against a remote host.
+
+    ``payload_key`` is only required when encryption is enabled; plaintext remote
+    submissions still need ``secret_hex`` for HMAC.
+    """
     if _is_loopback(base_url):
-        return secret_hex or DEMO_SECRET_HEX, payload_key or DEMO_PAYLOAD_KEY
-    if not secret_hex or payload_key is None:
+        return secret_hex or DEMO_SECRET_HEX, payload_key or (DEMO_PAYLOAD_KEY if encrypt else None)
+    if not secret_hex or (encrypt and payload_key is None):
         raise SystemExit(
-            "Remote destinations require --secret-hex and --payload-key-b64 "
-            "(demo defaults are loopback-only)."
+            "Remote destinations require --secret-hex"
+            + (" and --payload-key-b64" if encrypt else "")
+            + " (demo defaults are loopback-only)."
         )
     return secret_hex, payload_key
 
@@ -181,10 +192,10 @@ def main() -> int:
         return 0
 
     payload_key = base64.b64decode(args.payload_key_b64) if args.payload_key_b64 else None
-    secret_hex, payload_key = _resolve_credentials(
-        args.base_url, secret_hex=args.secret_hex, payload_key=payload_key
-    )
     encrypt = not args.plaintext
+    secret_hex, payload_key = _resolve_credentials(
+        args.base_url, secret_hex=args.secret_hex, payload_key=payload_key, encrypt=encrypt
+    )
 
     created = duplicate = merged = failed = 0
     print(f"\nSubmitting to {args.base_url}{API_PATH} ({'encrypted' if encrypt else 'plaintext'}):")
@@ -195,7 +206,7 @@ def main() -> int:
             sender_id=args.sender_id,
             kid=args.kid,
             secret_hex=secret_hex,
-            payload_key=payload_key,
+            payload_key=payload_key or b"",
             encrypt=encrypt,
         )
         try:

@@ -50,18 +50,20 @@ def _is_https(url: str) -> bool:
 
 
 def _hsts_findings(url: str, headers: Mapping[str, str]) -> Iterable[DetectionFinding]:
+    # HSTS is ignored by browsers without TLS; never evaluate it for http://.
+    if not _is_https(url):
+        return
+
     hsts = _get(headers, "Strict-Transport-Security")
     if hsts is None:
-        # HSTS is only meaningful over TLS; flagging plain HTTP would be noise.
-        if _is_https(url):
-            yield DetectionFinding(
-                rule_id="http.missing-hsts",
-                severity="high",
-                title="Missing Strict-Transport-Security header",
-                target=url,
-                locator="Strict-Transport-Security",
-                remediation="Send Strict-Transport-Security with max-age of at least 15552000.",
-            )
+        yield DetectionFinding(
+            rule_id="http.missing-hsts",
+            severity="high",
+            title="Missing Strict-Transport-Security header",
+            target=url,
+            locator="Strict-Transport-Security",
+            remediation="Send Strict-Transport-Security with max-age of at least 15552000.",
+        )
         return
 
     match = _MAX_AGE.search(hsts)
@@ -104,35 +106,91 @@ def _csp_findings(url: str, headers: Mapping[str, str]) -> Iterable[DetectionFin
         )
 
 
+_PROTECTIVE_XFO = frozenset({"deny", "sameorigin"})
+_FRAME_ANCESTORS = re.compile(
+    r"(?:^|;)\s*frame-ancestors\s+([^;]+)",
+    re.IGNORECASE,
+)
+
+
+def _xfo_is_protective(value: Optional[str]) -> bool:
+    """True only for DENY / SAMEORIGIN — not ALLOWALL or empty presence."""
+    if value is None:
+        return False
+    token = value.strip().split(None, 1)[0].lower()
+    return token in _PROTECTIVE_XFO
+
+
+def _csp_frame_ancestors_protective(csp: str) -> bool:
+    """True when frame-ancestors is present and does not allow unrestricted framing."""
+    match = _FRAME_ANCESTORS.search(csp)
+    if not match:
+        return False
+    sources = match.group(1).split()
+    if not sources:
+        return False
+    # '*' (with or without quotes) permits any ancestor — not protection.
+    return not any(src.strip("'\"") == "*" for src in sources)
+
+
 def _clickjacking_findings(url: str, headers: Mapping[str, str]) -> Iterable[DetectionFinding]:
     xfo = _get(headers, "X-Frame-Options")
     csp = _get(headers, "Content-Security-Policy") or ""
-    # Either mechanism is sufficient; only flag when both are absent.
-    if xfo is None and "frame-ancestors" not in csp.lower():
-        yield DetectionFinding(
-            rule_id="http.missing-clickjacking-protection",
-            severity="medium",
-            title="No clickjacking protection (X-Frame-Options or frame-ancestors)",
-            target=url,
-            locator="X-Frame-Options",
-            remediation="Set X-Frame-Options: DENY or a CSP frame-ancestors directive.",
-        )
+    if _xfo_is_protective(xfo) or _csp_frame_ancestors_protective(csp):
+        return
+    yield DetectionFinding(
+        rule_id="http.missing-clickjacking-protection",
+        severity="medium",
+        title="No clickjacking protection (X-Frame-Options or frame-ancestors)",
+        target=url,
+        locator="X-Frame-Options",
+        remediation="Set X-Frame-Options: DENY or a CSP frame-ancestors directive that is not '*'.",
+    )
+
+
+def _iter_set_cookies(headers: Mapping[str, str]) -> list[str]:
+    """Return every Set-Cookie value (multi-header aware when the mapping supports it)."""
+    if hasattr(headers, "get_all"):
+        values = headers.get_all("Set-Cookie") or headers.get_all("set-cookie") or []
+        if values:
+            return [str(v) for v in values if v is not None and str(v).strip()]
+    single = _get(headers, "Set-Cookie")
+    if single is None:
+        return []
+    # Some stacks join multiple cookies with newlines when collapsing headers.
+    return [part.strip() for part in single.split("\n") if part.strip()]
+
+
+def _cookie_attribute_names(cookie: str) -> set[str]:
+    """Exact attribute names after the cookie-pair (semicolon-delimited, not substrings)."""
+    names: set[str] = set()
+    parts = cookie.split(";")
+    for attr in parts[1:]:
+        name = attr.strip().split("=", 1)[0].strip().lower()
+        if name:
+            names.add(name)
+    return names
+
+
+def _cookie_name(cookie: str) -> str:
+    pair = cookie.split(";", 1)[0]
+    return pair.split("=", 1)[0].strip() or "cookie"
 
 
 def _cookie_findings(url: str, headers: Mapping[str, str]) -> Iterable[DetectionFinding]:
-    cookie = _get(headers, "Set-Cookie")
-    if cookie is None:
-        return
-    lowered = cookie.lower()
-    missing = [flag for flag in ("secure", "httponly") if flag not in lowered]
-    if missing:
+    for cookie in _iter_set_cookies(headers):
+        attrs = _cookie_attribute_names(cookie)
+        missing = [flag for flag in ("secure", "httponly") if flag not in attrs]
+        if not missing:
+            continue
+        name = _cookie_name(cookie)
         yield DetectionFinding(
             rule_id="http.insecure-cookie-flags",
             severity="high" if "secure" in missing else "medium",
             title="Set-Cookie is missing security flags",
             target=url,
-            locator="Set-Cookie",
-            evidence={"missing_flags": missing},
+            locator=f"Set-Cookie:{name}",
+            evidence={"cookie": name, "missing_flags": missing},
             remediation="Add Secure and HttpOnly (and a SameSite policy) to session cookies.",
         )
 

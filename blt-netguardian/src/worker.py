@@ -868,11 +868,11 @@ class BLTWorker:
 
     def extract_auth_token(self, request) -> Optional[str]:
         """Read API key from X-API-Key or Authorization Bearer header."""
-        api_key = self.get_request_header(request, 'X-API-Key') or self.get_request_header(request, 'x-api-key')
+        api_key = self.get_request_header(request, 'X-API-Key')
         if api_key:
             return api_key
 
-        authorization = self.get_request_header(request, 'Authorization') or self.get_request_header(request, 'authorization')
+        authorization = self.get_request_header(request, 'Authorization')
         if not authorization:
             return None
 

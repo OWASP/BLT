@@ -12,6 +12,7 @@ the newer ``CRITICAL/HIGH/...`` values working, since rule registries emit both.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from typing import Any, Iterable, Mapping, Optional
 
@@ -106,9 +107,30 @@ def scan_semgrep_results(
                 line = int(start.get("line") or 0)
             except (TypeError, ValueError):
                 line = 0
-        # Line-level locator: moving code re-fingerprints, which is the correct
-        # trade-off here versus silently merging two distinct call sites.
-        locator = f"{path}:{line}" if path else check_id
+        if line < 1:
+            end = result.get("end")
+            if isinstance(end, Mapping):
+                try:
+                    line = int(end.get("line") or 0)
+                except (TypeError, ValueError):
+                    line = 0
+
+        # Never invent path:0 — that collapses distinct line-less matches into one
+        # fingerprint. Prefer path:line; otherwise a stable per-match digest.
+        if not path:
+            continue
+        if line >= 1:
+            locator = f"{path}:{line}"
+        else:
+            snippet = str((extra.get("lines") if isinstance(extra, Mapping) else "") or "")
+            col = 0
+            if isinstance(start, Mapping):
+                try:
+                    col = int(start.get("col") or 0)
+                except (TypeError, ValueError):
+                    col = 0
+            material = f"{check_id}\0{col}\0{snippet}"
+            locator = f"{path}#{hashlib.sha256(material.encode()).hexdigest()[:12]}"
 
         evidence: dict[str, Any] = {}
         snippet = extra.get("lines")
