@@ -99,6 +99,8 @@ async def on_fetch(request, env):
             return await handle_rationale(request, env, event_id)
         else:
             return create_method_not_allowed_response(path, ["GET"])
+    elif path.startswith("/conversations/"):
+        return await _route_conversation(path, method, request, env)
     else:
         return create_error_response(f"Not Found: {path}", 404)
 
@@ -143,6 +145,9 @@ def handle_root(request):
             "/webhook/gitlab": "POST - GitLab webhook receiver",
             "/api/status": "GET - Check service status",
             "/triage/{event_id}/rationale": "GET - Retrieve structured rationale for a triage event",
+            "/conversations/{triage_id}/reply": "POST - Append a turn to a triage conversation",
+            "/conversations/{triage_id}/history": "GET - Retrieve conversation history",
+            "/conversations/{triage_id}": "DELETE - Close and archive a conversation",
         },
     }
 
@@ -522,3 +527,185 @@ def create_method_not_allowed_response(path, allowed_methods):
     error_data = {"error": "Method Not Allowed", "message": message, "status": 405}
 
     return Response.new(json.dumps(error_data), status=405, headers=headers)
+
+
+# ---------------------------------------------------------------------------
+# Conversation routes
+# ---------------------------------------------------------------------------
+
+
+def _extract_triage_id(path: str, prefix: str, suffix: str = "") -> str | None:
+    """Extract and validate triage_id from a conversation URL path.
+
+    Args:
+        path: The full URL path.
+        prefix: The path prefix before the triage_id.
+        suffix: The path suffix after the triage_id (optional).
+
+    Returns:
+        The decoded triage_id, or ``None`` if invalid.
+    """
+    raw = path[len(prefix) :]
+    if suffix:
+        raw = raw[: -len(suffix)]
+    decoded = urllib.parse.unquote(raw)
+    if not decoded or "/" in decoded:
+        return None
+    return decoded
+
+
+async def _route_conversation(path, method, request, env):
+    """Route /conversations/* requests to the appropriate handler.
+
+    Args:
+        path: The cleaned URL path.
+        method: The HTTP method.
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment.
+
+    Returns:
+        Response: The handler's HTTP response.
+    """
+    if path.endswith("/reply"):
+        if method != "POST":
+            return create_method_not_allowed_response(path, ["POST"])
+        triage_id = _extract_triage_id(path, "/conversations/", "/reply")
+        if not triage_id:
+            return create_error_response("Invalid or missing triage_id", 400)
+        return await handle_conversation_reply(request, env, triage_id)
+    elif path.endswith("/history"):
+        if method != "GET":
+            return create_method_not_allowed_response(path, ["GET"])
+        triage_id = _extract_triage_id(path, "/conversations/", "/history")
+        if not triage_id:
+            return create_error_response("Invalid or missing triage_id", 400)
+        return await handle_conversation_history(request, env, triage_id)
+    else:
+        # DELETE /conversations/{triage_id}
+        if method != "DELETE":
+            return create_method_not_allowed_response(path, ["DELETE"])
+        triage_id = _extract_triage_id(path, "/conversations/")
+        if not triage_id:
+            return create_error_response("Invalid or missing triage_id", 400)
+        return await handle_conversation_close(request, env, triage_id)
+
+
+async def _get_do_stub(env, triage_id):
+    """Get the Durable Object stub for a conversation.
+
+    Args:
+        env: The Cloudflare Worker environment with CONVERSATION_DO binding.
+        triage_id: The triage event ID to use as the DO name.
+
+    Returns:
+        The Durable Object stub.
+
+    Raises:
+        AttributeError: If CONVERSATION_DO binding is not configured.
+    """
+    do_namespace = env.CONVERSATION_DO
+    do_id = do_namespace.idFromName(triage_id)
+    return do_namespace.get(do_id)
+
+
+async def handle_conversation_reply(request, env, triage_id):
+    """Handle POST /conversations/{triage_id}/reply.
+
+    Forwards the request body (with triage_id injected) to the
+    ConversationDO for turn appending.
+
+    Args:
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment.
+        triage_id: The triage event ID.
+
+    Returns:
+        Response: The DO's response (turn_count, conversation_id).
+    """
+    try:
+        body_text = await request.text()
+        if not body_text:
+            return create_error_response("Request body is required", 400)
+
+        try:
+            body = json.loads(body_text)
+        except json.JSONDecodeError:
+            return create_error_response("Invalid JSON in request body", 400)
+
+        if not isinstance(body, dict):
+            return create_error_response("Request body must be a JSON object", 400)
+
+        # Inject triage_id into the body for the DO
+        body["triage_id"] = triage_id
+
+        stub = await _get_do_stub(env, triage_id)
+        # Forward as a new Request to the DO
+        from js import Request as JSRequest
+
+        do_request = JSRequest.new(
+            "https://do-internal/reply",
+            {"method": "POST", "body": json.dumps(body)},
+        )
+        return await stub.fetch(do_request)
+
+    except Exception as exc:
+        console.error(f"handle_conversation_reply error for {triage_id}: {exc}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_conversation_history(request, env, triage_id):
+    """Handle GET /conversations/{triage_id}/history.
+
+    Forwards the request to the ConversationDO to retrieve turn history.
+
+    Args:
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment.
+        triage_id: The triage event ID.
+
+    Returns:
+        Response: The DO's response (turns, turn_count, status).
+    """
+    try:
+        stub = await _get_do_stub(env, triage_id)
+        # Forward the original request URL so the DO can read ?full=true
+        from js import Request as JSRequest
+
+        do_url = "https://do-internal/history"
+        # Preserve query params from the original request
+        parsed_url = urllib.parse.urlparse(request.url)
+        if parsed_url.query:
+            do_url += f"?{parsed_url.query}"
+
+        do_request = JSRequest.new(do_url, {"method": "GET"})
+        return await stub.fetch(do_request)
+
+    except Exception as exc:
+        console.error(f"handle_conversation_history error for {triage_id}: {exc}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_conversation_close(request, env, triage_id):
+    """Handle DELETE /conversations/{triage_id}.
+
+    Forwards the request to the ConversationDO to close and archive
+    the conversation.
+
+    Args:
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment.
+        triage_id: The triage event ID.
+
+    Returns:
+        Response: The DO's response (archived, turns_archived).
+    """
+    try:
+        stub = await _get_do_stub(env, triage_id)
+        from js import Request as JSRequest
+
+        do_request = JSRequest.new("https://do-internal/archive", {"method": "DELETE"})
+        return await stub.fetch(do_request)
+
+    except Exception as exc:
+        console.error(f"handle_conversation_close error for {triage_id}: {exc}")
+        return create_error_response("Internal server error", 500)

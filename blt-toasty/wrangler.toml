@@ -52,10 +52,14 @@ database_id = "local-db-placeholder"
 binding = "TOASTY_KV"
 id = "local-kv-placeholder"
 
-# Durable Objects (if needed for stateful operations)
-# [[durable_objects.bindings]]
-# name = "TOASTY_DO"
-# class_name = "ToastyDurableObject"
+# Durable Objects for stateful conversation management
+[[durable_objects.bindings]]
+name = "CONVERSATION_DO"
+class_name = "ConversationDO"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["ConversationDO"]
 
 # R2 Buckets (if needed for file storage)
 # [[r2_buckets]]

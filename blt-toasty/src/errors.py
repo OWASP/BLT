@@ -141,3 +141,18 @@ class AuditIncompleteError(Exception):
         super().__init__(message)
         self.event_id = event_id
         self.missing_fields: list[str] = missing_fields or []
+
+
+class ConversationError(Exception):
+    """Raised when a conversation operation fails.
+
+    Used by the ``ConversationDO`` Durable Object when a conversation
+    turn cannot be appended, archived, or retrieved.
+
+    Attributes:
+        status_code: The HTTP status code to surface to the client.
+    """
+
+    def __init__(self, message: str = "Conversation operation failed", *, status_code: int = 500):
+        super().__init__(message)
+        self.status_code = status_code
