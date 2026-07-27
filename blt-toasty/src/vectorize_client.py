@@ -206,14 +206,18 @@ async def find_duplicates(
         logger.warning("Sidecar unavailable for duplicate search — returning empty: %s", exc)
         return []
 
-    result = await env.VECTORIZE.query(
-        embedding,
-        {
-            "topK": top_k,
-            "filter": {"repo": repo_full_name},
-            "returnMetadata": "all",
-        },
-    )
+    try:
+        result = await env.VECTORIZE.query(
+            embedding,
+            {
+                "topK": top_k,
+                "filter": {"repo": repo_full_name},
+                "returnMetadata": "all",
+            },
+        )
+    except Exception as exc:
+        logger.warning("Vectorize query failed for duplicate search — returning empty: %s", exc)
+        return []
 
     matches = []
     for match in result.matches:

@@ -81,7 +81,7 @@ class ConversationDO:
         new_turn = {"role": role, "content": content, "timestamp": str(Date.now()), "turn_index": turn_count}
         turns.append(new_turn)
 
-        if len(turns) > MAX_ACTIVE_TURNS:
+        while len(turns) > MAX_ACTIVE_TURNS:
             oldest_turn = turns[0]
             try:
                 # Archive to D1
@@ -102,6 +102,7 @@ class ConversationDO:
                 turns.pop(0)
             except Exception as e:
                 logger.warning("Failed to archive turn to D1, keeping in DO: %s", e)
+                break
 
         # Save state
         await self.storage.put("turns", json.dumps(turns))
@@ -163,6 +164,7 @@ class ConversationDO:
         conversation_id = await self.storage.get("conversation_id")
 
         archived_count = 0
+        failed_turns = []
         if conversation_id and turns:
             for turn in turns:
                 try:
@@ -182,9 +184,10 @@ class ConversationDO:
                     archived_count += 1
                 except Exception as e:
                     logger.warning("Failed to archive turn during DELETE: %s", e)
+                    failed_turns.append(turn)
 
         await self.storage.put("status", "closed")
-        await self.storage.put("turns", "[]")
+        await self.storage.put("turns", json.dumps(failed_turns))
 
         await self.storage.setAlarm(Date.now() + TTL_CLEANUP_MS)
 
@@ -192,7 +195,7 @@ class ConversationDO:
 
     async def alarm(self) -> None:
         status = await self.storage.get("status")
-        if status == "closed":
-            await self.storage.deleteAll()
-        elif status == "active":
+        if status == "active":
             await self.storage.setAlarm(Date.now() + TTL_30_DAYS_MS)
+        else:
+            await self.storage.deleteAll()

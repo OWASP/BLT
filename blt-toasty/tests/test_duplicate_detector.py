@@ -287,6 +287,6 @@ class TestDetectDuplicates:
 
         await detect_duplicates("evt-001", "redacted text", "owasp/blt", env, db, do_stub)
 
-        # Find INSERT INTO duplicate_candidates calls
-        insert_calls = [c for c in db.execute.call_args_list if "INSERT INTO duplicate_candidates" in str(c)]
+        # Find INSERT OR REPLACE INTO duplicate_candidates calls
+        insert_calls = [c for c in db.execute.call_args_list if "INSERT OR REPLACE INTO duplicate_candidates" in str(c)]
         assert len(insert_calls) == 2  # One high-score, one borderline (both stored)

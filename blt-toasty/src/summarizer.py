@@ -273,14 +273,25 @@ def build_triage_messages(
         user_content_parts.append(f"\nDUPLICATE_CONTEXT:\n{duplicate_context}")
 
     if conversation_turns:
-        turn_lines = []
-        for turn in conversation_turns:
+        retained_lines = []
+        current_tokens = 0
+        for turn in reversed(conversation_turns):
             role = turn.get("role", "unknown")
             content = turn.get("content", "")
-            turn_lines.append(f"[{role}] {content}")
-        conversation_text = "\n".join(turn_lines)
-        truncated_conversation = truncate_to_token_budget(conversation_text, CONVERSATION_TOKEN_BUDGET)
-        user_content_parts.append(f"\nCONVERSATION_CONTEXT:\n{truncated_conversation}")
+            turn_line = f"[{role}] {content}"
+
+            line_tokens = estimate_tokens(turn_line)
+            if current_tokens + line_tokens > CONVERSATION_TOKEN_BUDGET:
+                if not retained_lines:
+                    retained_lines.append(truncate_to_token_budget(turn_line, CONVERSATION_TOKEN_BUDGET))
+                break
+
+            retained_lines.append(turn_line)
+            current_tokens += line_tokens
+
+        retained_lines.reverse()
+        conversation_text = "\n".join(retained_lines)
+        user_content_parts.append(f"\nCONVERSATION_CONTEXT:\n{conversation_text}")
 
     user_content = "\n".join(user_content_parts)
 

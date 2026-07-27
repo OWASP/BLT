@@ -117,7 +117,7 @@ def handle_options(request):
     """
     headers = Headers.new()
     headers.set("Access-Control-Allow-Origin", "*")
-    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, DELETE")
     headers.set("Access-Control-Allow-Headers", "Content-Type")
     headers.set("Access-Control-Max-Age", "86400")
 
@@ -464,7 +464,7 @@ def create_json_response(data, status_code=200):
     headers = Headers.new()
     headers.set("Content-Type", "application/json")
     headers.set("Access-Control-Allow-Origin", "*")
-    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, DELETE")
     headers.set("Access-Control-Allow-Headers", "Content-Type")
 
     return Response.new(json.dumps(data), status=status_code, headers=headers)
@@ -520,7 +520,7 @@ def create_method_not_allowed_response(path, allowed_methods):
     headers = Headers.new()
     headers.set("Content-Type", "application/json")
     headers.set("Access-Control-Allow-Origin", "*")
-    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, DELETE")
     headers.set("Access-Control-Allow-Headers", "Content-Type")
     headers.set("Allow", ", ".join(allowed_methods))
 
@@ -644,9 +644,10 @@ async def handle_conversation_reply(request, env, triage_id):
 
         do_request = JSRequest.new(
             "https://do-internal/reply",
-            {"method": "POST", "body": json.dumps(body)},
+            {"method": "POST", "body": json.dumps(body), "headers": {"Content-Type": "application/json"}},
         )
-        return await stub.fetch(do_request)
+        do_response = await stub.fetch(do_request)
+        return create_json_response(json.loads(await do_response.text()), do_response.status)
 
     except Exception as exc:
         console.error(f"handle_conversation_reply error for {triage_id}: {exc}")
@@ -678,7 +679,8 @@ async def handle_conversation_history(request, env, triage_id):
             do_url += f"?{parsed_url.query}"
 
         do_request = JSRequest.new(do_url, {"method": "GET"})
-        return await stub.fetch(do_request)
+        do_response = await stub.fetch(do_request)
+        return create_json_response(json.loads(await do_response.text()), do_response.status)
 
     except Exception as exc:
         console.error(f"handle_conversation_history error for {triage_id}: {exc}")
@@ -704,7 +706,8 @@ async def handle_conversation_close(request, env, triage_id):
         from js import Request as JSRequest
 
         do_request = JSRequest.new("https://do-internal/archive", {"method": "DELETE"})
-        return await stub.fetch(do_request)
+        do_response = await stub.fetch(do_request)
+        return create_json_response(json.loads(await do_response.text()), do_response.status)
 
     except Exception as exc:
         console.error(f"handle_conversation_close error for {triage_id}: {exc}")

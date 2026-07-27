@@ -26,7 +26,6 @@ from __future__ import annotations
 import dataclasses
 import json
 import logging
-import uuid
 from typing import Any
 
 from src.errors import LLMUnavailableError
@@ -186,9 +185,9 @@ async def _store_candidates(db: Any, event_id: str, candidates: list[DuplicateCa
         candidates: The candidates to persist.
     """
     for candidate in candidates:
-        row_id = str(uuid.uuid4())
+        row_id = f"{event_id}_{candidate.event_id}"
         await db.execute(
-            "INSERT INTO duplicate_candidates "
+            "INSERT OR REPLACE INTO duplicate_candidates "
             "(id, triage_event_id, candidate_event_id, similarity_score, "
             "llm_confirmed, llm_confidence, llm_rationale, detection_method) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",

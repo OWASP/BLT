@@ -25,6 +25,15 @@ from src.gitlab_linker import (
 )
 
 
+@pytest.fixture(autouse=True)
+def clear_js_mocks():
+    """Clear polluted js module imports from other tests so env mocks are used."""
+    from unittest.mock import patch
+
+    with patch("src.gitlab_linker.fetch", None), patch("src.gitlab_linker.AbortController", None):
+        yield
+
+
 # ---------------------------------------------------------------------------
 # Helpers: mock objects
 # ---------------------------------------------------------------------------
@@ -146,8 +155,8 @@ class TestPostDuplicateComment:
         assert "Toasty Triage" in comment
 
     @pytest.mark.asyncio
-    async def test_rate_limit_backoff(self):
-        """When RateLimit-Remaining < 100, returns False without raising."""
+    async def test_rate_limit_backoff(self, caplog):
+        """When RateLimit-Remaining < 100, logs a warning and returns True."""
         fetch_mock = _make_gitlab_fetch_mock(status=201, rate_limit_remaining=50)
         env = _make_env(fetch_mock=fetch_mock)
 
@@ -162,6 +171,7 @@ class TestPostDuplicateComment:
         )
 
         assert result is True
+        assert "Rate-limit quota low after posting duplicate comment" in caplog.text
 
     @pytest.mark.asyncio
     async def test_rate_limit_ok(self):
@@ -236,8 +246,8 @@ class TestAddDuplicateLabel:
         assert body["add_labels"] == "possible-duplicate"
 
     @pytest.mark.asyncio
-    async def test_add_label_rate_limit_backoff(self):
-        """When RateLimit-Remaining < 100, returns False."""
+    async def test_add_label_rate_limit_backoff(self, caplog):
+        """When RateLimit-Remaining < 100, logs a warning and returns True."""
         fetch_mock = _make_gitlab_fetch_mock(status=200, rate_limit_remaining=50)
         env = _make_env(fetch_mock=fetch_mock)
 
@@ -249,6 +259,7 @@ class TestAddDuplicateLabel:
         )
 
         assert result is True
+        assert "Rate-limit quota low after adding label" in caplog.text
 
     @pytest.mark.asyncio
     async def test_add_label_non_200_raises_error(self):

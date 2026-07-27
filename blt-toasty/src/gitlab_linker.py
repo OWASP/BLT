@@ -131,6 +131,44 @@ async def _gitlab_fetch(url: str, options: dict, env) -> object:
 # ---------------------------------------------------------------------------
 
 
+async def _gitlab_write(
+    url: str,
+    method: str,
+    body: str,
+    access_token: str,
+    expected_status: int,
+    env,
+) -> bool:
+    """Execute a GitLab API write operation and return True if rate limit is OK."""
+    import urllib.parse
+
+    response = await _gitlab_fetch(
+        url,
+        {
+            "method": method,
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {access_token}",
+            },
+            "body": body,
+        },
+        env,
+    )
+
+    status = response.status
+    if status != expected_status:
+        error_body = await response.text()
+        path = urllib.parse.urlparse(url).path
+        if "/api/v4" in path:
+            path = path.split("/api/v4")[-1]
+        raise GitLabAPIError(
+            f"GitLab {method} {path} returned HTTP {status}: {error_body}",
+            status_code=status,
+        )
+
+    return _check_rate_limit(response)
+
+
 async def post_duplicate_comment(
     access_token: str,
     project_id: int,
@@ -155,8 +193,8 @@ async def post_duplicate_comment(
         env: Cloudflare Worker environment for fetch mock injection.
 
     Returns:
-        ``True`` if the comment was posted successfully.
-        ``False`` if the request was suppressed due to rate limiting.
+        ``True`` if the comment was posted successfully. The write is always attempted.
+        The post-write rate-limit check is advisory and only logs a warning.
 
     Raises:
         GitLabAPIError: On non-201 HTTP response.
@@ -172,29 +210,17 @@ async def post_duplicate_comment(
 
     body = json.dumps({"body": comment_body})
 
-    response = await _gitlab_fetch(
-        url,
-        {
-            "method": "POST",
-            "headers": {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {access_token}",
-            },
-            "body": body,
-        },
-        env,
+    rate_limit_ok = await _gitlab_write(
+        url=url,
+        method="POST",
+        body=body,
+        access_token=access_token,
+        expected_status=201,
+        env=env,
     )
 
-    status = response.status
-    if status != 201:
-        error_body = await response.text()
-        raise GitLabAPIError(
-            f"GitLab POST /notes returned HTTP {status}: {error_body}",
-            status_code=status,
-        )
-
     # Rate-limit is a backoff signal only — the write already succeeded.
-    if not _check_rate_limit(response):
+    if not rate_limit_ok:
         logger.warning(
             "Rate-limit quota low after posting duplicate comment on issue %d — "
             "consider backing off future requests",
@@ -225,8 +251,8 @@ async def add_duplicate_label(
         env: Cloudflare Worker environment for fetch mock injection.
 
     Returns:
-        ``True`` if the label was added successfully.
-        ``False`` if the request was suppressed due to rate limiting.
+        ``True`` if the label was added successfully. The write is always attempted.
+        The post-write rate-limit check is advisory and only logs a warning.
 
     Raises:
         GitLabAPIError: On non-200 HTTP response.
@@ -235,29 +261,17 @@ async def add_duplicate_label(
 
     body = json.dumps({"add_labels": "possible-duplicate"})
 
-    response = await _gitlab_fetch(
-        url,
-        {
-            "method": "PUT",
-            "headers": {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {access_token}",
-            },
-            "body": body,
-        },
-        env,
+    rate_limit_ok = await _gitlab_write(
+        url=url,
+        method="PUT",
+        body=body,
+        access_token=access_token,
+        expected_status=200,
+        env=env,
     )
 
-    status = response.status
-    if status != 200:
-        error_body = await response.text()
-        raise GitLabAPIError(
-            f"GitLab PUT /issues returned HTTP {status}: {error_body}",
-            status_code=status,
-        )
-
     # Rate-limit is a backoff signal only — the write already succeeded.
-    if not _check_rate_limit(response):
+    if not rate_limit_ok:
         logger.warning(
             "Rate-limit quota low after adding label to issue %d — " "consider backing off future requests",
             issue_iid,

@@ -12,8 +12,5 @@ CREATE TABLE IF NOT EXISTS conversation_archive (
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_conversation_archive_event
-    ON conversation_archive (triage_event_id);
-
 CREATE INDEX IF NOT EXISTS idx_conversation_archive_event_turn
     ON conversation_archive (triage_event_id, turn_index);
