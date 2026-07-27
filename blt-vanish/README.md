@@ -5,6 +5,9 @@
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Security: Zero PII](https://img.shields.io/badge/Security-Zero%20PII-green.svg)](./SECURITY.md)
 
+### Live Link 👉 [Launch Web App](https://vanish.owaspblt.org)
+
+
 ## 🎯 Design Goal
 
 BLT-Vanish helps individuals identify, manage, and remove their personal data from data brokers—**without ever sharing personal information with any external service.**
