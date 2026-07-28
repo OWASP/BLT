@@ -20,7 +20,7 @@ Key Offerings:
   - `draft_vision_issue`: Uses Cloudflare Vision AI (LLaVA) to draft bug reports from local screenshot image files.
 
 Design Details:
-- Integrates modular V2 resource routes (`blt_mcp.v2_resources`) and V2 write operations (`blt_mcp.v2_tools`).
+- Integrates modular V2 resource routes (`blt_mcp.v2_resources`), V2 write operations (`blt_mcp.v2_tools`), and Prompts (`blt_mcp.prompts`).
 - Wraps `sys.stdin` with `StdinWrapper` and `InterceptingStdinBuffer` to intercept and validate JSON-RPC parameters
   before letting the FastMCP server parse the requests.
 
@@ -39,8 +39,9 @@ from urllib.parse import quote
 import anyio
 import httpx
 
-# Import v2 modular resources and tools to register them on the mcp instance
+# Import v2 modular resources, tools and prompts to register them on the mcp instance
 from blt_mcp import server_base, v2_resources, v2_tools  # noqa: F401
+import blt_mcp.prompts  # noqa: F401
 from blt_mcp.server_base import _fetch, logger, mcp
 from blt_mcp.tools import generate_ai_metadata, summarize_issue_context_impl
 from blt_mcp.validation import InterceptingStdinBuffer, StdinWrapper
@@ -499,15 +500,76 @@ async def upload_screenshot(
         raise RuntimeError(f"Failed to upload image to GitLab: {e!s}") from e
 
 
-def main() -> None:
+def main(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8080) -> None:
     """Entry point for the BLT-MCP server."""
     try:
-        logger.info("Starting BLT-MCP server...")
-        sys.stdin = StdinWrapper(sys.stdin, InterceptingStdinBuffer(sys.stdin.buffer))
-        mcp.run()
+        logger.info(
+            f"Starting BLT-MCP server (transport={transport}, bind={host}:{port})..."
+        )
+        mcp.settings.host = host
+        mcp.settings.port = port
+
+        # Monkeypatch the Starlette apps to inject token-based auth middleware if configured
+        _apply_token_auth_middleware()
+
+        if transport == "stdio":
+            sys.stdin = StdinWrapper(
+                sys.stdin, InterceptingStdinBuffer(sys.stdin.buffer)
+            )
+        mcp.run(transport=transport)
     except KeyboardInterrupt:
         logger.info("Server stopped by user.")
         return
+
+
+def _apply_token_auth_middleware() -> None:
+    import os
+
+    from starlette.middleware.base import BaseHTTPMiddleware
+    from starlette.responses import JSONResponse
+
+    class MCPTokenAuthMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request, call_next):
+            if request.method == "OPTIONS":
+                return await call_next(request)
+
+            expected_token = os.getenv("BLT_MCP_TOKEN")
+            if not expected_token:
+                return await call_next(request)
+
+            auth_header = request.headers.get("Authorization")
+            token = None
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header[7:]
+            else:
+                token = request.query_params.get("token")
+
+            if token != expected_token:
+                return JSONResponse(
+                    {"error": "Unauthorized: Invalid or missing BLT_MCP_TOKEN"},
+                    status_code=401,
+                )
+
+            return await call_next(request)
+
+    # Wrap sse_app and streamable_http_app methods
+    orig_sse_app = mcp.sse_app
+
+    def wrapped_sse_app(mount_path=None):
+        app = orig_sse_app(mount_path)
+        app.add_middleware(MCPTokenAuthMiddleware)
+        return app
+
+    mcp.sse_app = wrapped_sse_app
+
+    orig_http_app = mcp.streamable_http_app
+
+    def wrapped_http_app():
+        app = orig_http_app()
+        app.add_middleware(MCPTokenAuthMiddleware)
+        return app
+
+    mcp.streamable_http_app = wrapped_http_app
 
 
 if __name__ == "__main__":

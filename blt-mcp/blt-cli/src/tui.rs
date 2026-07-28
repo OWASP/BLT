@@ -160,6 +160,26 @@ where
                     }
                     app.save_session();
                 }
+                crate::app::AppEvent::WatchdogStatus { event } => {
+                    match event {
+                        crate::watchdog::WatchdogEvent::Degraded { consecutive_failures } => {
+                            app.status_message = format!("⚠ MCP: {} ping failures", consecutive_failures);
+                        }
+                        crate::watchdog::WatchdogEvent::Disconnected { reason } => {
+                            app.status_message = format!("🔴 MCP disconnected: {}. Restarting...", reason);
+                            app.is_live = false;
+                        }
+                        crate::watchdog::WatchdogEvent::Reconnected { attempt } => {
+                            app.status_message = format!("🟢 MCP reconnected (attempt #{})", attempt);
+                            app.is_live = true;
+                        }
+                        crate::watchdog::WatchdogEvent::Fatal { reason } => {
+                            app.status_message = format!("❌ MCP watchdog gave up: {}", reason);
+                            app.is_live = false;
+                        }
+                    }
+                    app.save_session();
+                }
             }
         }
 
@@ -299,8 +319,6 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
         crate::app::ActiveOverlay::Help => {
             if key.code == KeyCode::Esc
                 || key.code == KeyCode::Char(' ')
-                || key.code == KeyCode::Char('h')
-                || key.code == KeyCode::Char('?')
             {
                 app.active_overlay = crate::app::ActiveOverlay::None;
             }
@@ -988,8 +1006,10 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
             }
         }
         KeyCode::Char('s') => {
-            app.submit_form = crate::app::VulnerabilityForm::default();
-            app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
+            if key.modifiers.is_empty() {
+                app.submit_form = crate::app::VulnerabilityForm::default();
+                app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
+            }
         }
         KeyCode::Char('A') => app.toggle_agent_status(),
         KeyCode::Char('P') => app.toggle_prompt_preview(),

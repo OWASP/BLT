@@ -7,7 +7,6 @@ This module is responsible for persisting, loading, and locating the long-lived 
 Key Responsibilities:
 - Resolving the system path to locate the local credentials file in the user's home folder (`~/.blt-mcp/credentials.json`).
 - Safely saving generated API keys with restricted owner-only read/write privileges (0o600 file permissions).
-- Loading the key from credentials file on server start or CLI configuration updates.
 
 Key Functions:
 - `get_credentials_path() -> Path`: Resolves the absolute platform-independent config directory and returns the path to `credentials.json`.
@@ -35,7 +34,7 @@ def get_credentials_path() -> Path:
     return config_dir / "credentials.json"
 
 
-def save_credentials(api_key: str) -> None:
+def save_credentials(api_key: str, auth_type: str = "api_key") -> None:
     """Save the API key to the credentials file."""
     creds_path = get_credentials_path()
     try:
@@ -49,7 +48,7 @@ def save_credentials(api_key: str) -> None:
         if hasattr(os, "fchmod"):
             os.fchmod(fd, 0o600)
         with open(fd, "w", encoding="utf-8") as f:
-            f.write(json.dumps({"BLT_API_KEY": api_key}))
+            f.write(json.dumps({"BLT_API_KEY": api_key, "auth_type": auth_type}))
 
         logger.info(f"Credentials saved to {creds_path}")
     except Exception as e:

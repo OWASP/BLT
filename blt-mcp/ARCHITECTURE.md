@@ -56,6 +56,7 @@ The Rust CLI is an interactive Terminal User Interface (TUI) built using `ratatu
 - **`mcp_client.rs`**: The JSON-RPC client used in *MCP Mode*. It manages the Python subprocess and routes resource requests to it over `stdio`.
 - **`scanner.rs`**: An asynchronous background security health scanner that runs independently alongside the UI. Each subprocess scan (Trivy, Semgrep, Bandit) is bounded by a **30-second timeout**; the process is killed on expiry.
 - **`models.rs`**: Core data structures defining the shapes of issues, repos, and users.
+- **`watchdog.rs`**: Background connection monitor task for the MCP subprocess. Pings the server using lightweight JSON-RPC requests, detecting freezes or crashes. Performs automatic hot-reloading/respawning to recover connection context without UI interruption.
 
 ---
 
@@ -68,7 +69,7 @@ The remainder of this document focuses specifically on the architecture and desi
 
 The protocol layer handles all MCP-specific communication:
 
-- **Transport**: Stdio-based transport for process-to-process communication
+- **Transport**: Stdio-based transport for process-to-process communication, or streamable HTTP/SSE remote transport for client-server communication with optional Bearer Token authentication (configured via `BLT_MCP_TOKEN`).
 - **Protocol**: JSON-RPC 2.0 for request/response handling
 - **Schemas**: Type-safe schema validation using Pydantic and FastMCP
 

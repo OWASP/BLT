@@ -319,6 +319,39 @@ blt-mcp
 python -m blt_mcp.server
 ```
 
+### Remote Transport (SSE / HTTP)
+
+The server also exposes an HTTP / Server-Sent Events (SSE) transport for remote network client interactions:
+
+```bash
+# Run server with SSE transport (binds to 127.0.0.1:8080 by default)
+python -m blt_mcp.cli run --transport sse --host 127.0.0.1 --port 8080
+```
+
+#### Token Authentication (SSE / HTTP)
+To prevent unauthorized remote access, set the `BLT_MCP_TOKEN` environment variable. When configured, incoming SSE and POST message requests must supply a matching Bearer Token:
+- **Authorization header**: `Authorization: Bearer <your-token>`
+- **Query Parameter**: `?token=<your-token>`
+
+### Authentication Commands
+
+BLT-MCP provides CLI commands to manage persistent tokens:
+
+- **JWT Login**: Log in with standard email/password to retrieve a JWT and generate persistent API keys:
+  ```bash
+  python -m blt_mcp.cli auth login
+  ```
+- **OAuth 2.0 PKCE Login**: Stubbed client-side interactive PKCE login callback server:
+  ```bash
+  python -m blt_mcp.cli auth login-pkce --port 9876
+  ```
+
+### CLI-to-Server Connection Watchdog
+When launching the TUI in **MCP Mode**, a background watchdog monitors the spawned subprocess's health using JSON-RPC `ping` requests. If the subprocess crashes or halts:
+1. The watchdog detects the failure (status: degraded -> disconnected).
+2. It auto-terminates the stale child and hot-reloads a fresh server process.
+3. The TUI re-establishes connection context without locking the interface or requiring a TUI restart. Status is printed directly to the status bar.
+
 ### Bug Reporting Workflows
 
 BLT-MCP supports two distinct workflows for reporting bugs and processing vulnerability images:

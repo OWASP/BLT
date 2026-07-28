@@ -29,6 +29,8 @@ pub struct McpSubprocessClient {
     stdin: ChildStdin,
     stdout_reader: BufReader<ChildStdout>,
     request_id: i64,
+    pub cmd_name: String,
+    pub cmd_args: Vec<String>,
 }
 
 impl McpSubprocessClient {
@@ -72,6 +74,8 @@ impl McpSubprocessClient {
             stdin,
             stdout_reader,
             request_id: 1,
+            cmd_name: cmd_name.to_string(),
+            cmd_args: args.to_vec(),
         })
     }
 
@@ -224,5 +228,28 @@ impl McpSubprocessClient {
                 }
             }
         }
+    }
+
+    /// Check if the subprocess is still running.
+    pub fn is_alive(&mut self) -> bool {
+        match self._child.try_wait() {
+            Ok(None) => true, // Still running
+            _ => false,       // Terminated or failed
+        }
+    }
+
+    /// Send a lightweight MCP ping request.
+    pub async fn ping(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let req = json!({
+            "jsonrpc": "2.0",
+            "id": self.request_id,
+            "method": "ping",
+            "params": {}
+        });
+
+        self.send_request(req).await?;
+        let _resp = self.read_response(self.request_id).await?;
+        self.request_id += 1;
+        Ok(())
     }
 }
