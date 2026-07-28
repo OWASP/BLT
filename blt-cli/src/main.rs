@@ -34,6 +34,7 @@ mod models;
 mod scanner;
 mod tui;
 mod ui;
+mod watchdog;
 
 use app::App;
 
@@ -236,6 +237,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 "MCP connected, but failed to load primary resources.".to_string();
                             println!("WARNING: Connected to MCP server, but failed to load primary resources.");
                         }
+
+                        // Spawn the watchdog task
+                        let watchdog_client = app.mcp_client.clone().unwrap();
+                        let watchdog_sender = app.event_sender.clone();
+                        let wd_cmd = executable.to_string();
+                        let wd_args = args_slice.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+                        tokio::spawn(async move {
+                            crate::watchdog::run_watchdog(
+                                watchdog_client,
+                                wd_cmd,
+                                wd_args,
+                                crate::watchdog::WatchdogConfig::default(),
+                                watchdog_sender,
+                            ).await;
+                        });
                     }
                     Err(e) => {
                         app.status_message = format!("MCP Init failed: {}", e);

@@ -53,7 +53,8 @@ pub fn get_api_key() -> Option<String> {
         }
     }
 
-    None
+    // Public static showcase fallback key from backend (api_key.py)
+    Some("f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051".to_string())
 }
 
 pub fn parse_issues_from_json(root: &serde_json::Value) -> Result<Vec<Issue>, String> {
