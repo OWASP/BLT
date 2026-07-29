@@ -68,8 +68,8 @@ directory = "../UI"
 ```bash
 pywrangler dev
 curl http://localhost:8787/avatars/avatar-0.png  # Expect PNG binary
-curl http://localhost:8787/html/activity_feed.html  # Expect HTML
-curl http://localhost:8787/html/assets/css/...  # Expect CSS
+curl http://localhost:8787/activity_feed.html  # Expect HTML
+curl http://localhost:8787/assets/css/...  # Expect CSS
 ```
 
 **Verify:** All 5 HTML pages load. All 10 avatars load. CSS/JS assets load. Paths match legacy.
@@ -170,16 +170,16 @@ pywrangler dev
 
 4. **Inventory static assets (use actual paths)**
    ```
-   /html/activity_feed.html
-   /html/hackerhouse_state.html
-   /html/leaderboard.html
-   /html/status_health.html
-   /html/threejs.html
-   /html/assets/css/*
-   /html/assets/js/*
+   /index.html
+   /activity_feed.html
+   /leaderboard.html
+   /status_health.html
+   /threejs.html
+   /assets/css/*
+   /assets/js/*
    /avatars/avatar-0.png through avatar-9.png
    ```
-   No `/index.html` exists. If a landing page is desired, add it explicitly later.
+   `/index.html` serves as the homepage (HackerHouse dashboard).
 
 5. **Write compatibility checklist** (`docs/fixtures/COMPATIBILITY.md`)
    - Every endpoint path and HTTP method
@@ -403,9 +403,9 @@ pywrangler dev
     ```
 
 12. **Verify UI against staging**
-    - Open each HTML page: `/html/activity_feed.html`, `/html/leaderboard.html`, etc.
+    - Open each HTML page: `/activity_feed.html`, `/leaderboard.html`, etc. (homepage at `/`)
     - Verify all 10 avatars load at `/avatars/avatar-N.png`
-    - Verify CSS/JS assets load at `/html/assets/css/*` and `/html/assets/js/*`
+    - Verify CSS/JS assets load at `/assets/css/*` and `/assets/js/*`
     - Verify API endpoints return data matching Phase 0 fixtures
 
 ### Exit gate

@@ -64,7 +64,7 @@ class WebSocketRoom(DurableObject):
 
         client, server = WebSocketPair.new().object_values()
         self.ctx.acceptWebSocket(server)
-        server.send("Connected")
+        server.send(json.dumps({"type": "connected", "message": "Connected"}))
         return Response(None, status=101, web_socket=client)
 
     async def webSocketMessage(self, ws, message):

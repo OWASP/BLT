@@ -229,26 +229,26 @@ All existing routes in `src/api/routes.py` stay. The ASGI layer handles Worker R
 
 **Actual files in UI/:**
 ```
-UI/html/activity_feed.html
-UI/html/hackerhouse_state.html
-UI/html/leaderboard.html
-UI/html/status_health.html
-UI/html/threejs.html
-UI/html/assets/css/*
-UI/html/assets/js/*
+UI/index.html  (→ homepage, HackerHouse dashboard)
+UI/activity_feed.html
+UI/leaderboard.html
+UI/status_health.html
+UI/threejs.html
+UI/assets/css/*
+UI/assets/js/*
 UI/avatars/avatar-0.png ... avatar-9.png
 ```
 
-**No `index.html` exists.** The current FastAPI `StaticFiles(directory=ui_dir, html=True)` mount serves these at their exact paths. Wrangler `[assets]` preserves these:
+Wrangler `[assets]` serves these at their root-relative paths:
 
 ```toml
 [assets]
 directory = "./UI"
 ```
 
-This serves `/html/activity_feed.html`, `/avatars/avatar-0.png`, `/html/assets/css/...` etc. — exactly the same paths.
+This serves `/index.html`, `/activity_feed.html`, `/avatars/avatar-0.png`, `/assets/css/...` etc.
 
-**Do not** add a `Path.read_text()` route for `/`. Workers filesystem is not the repo filesystem. If a landing page is needed later, add it explicitly.
+**Do not** add a `Path.read_text()` route for `/`. Workers filesystem is not the repo filesystem. Workers Assets handles static file serving.
 
 ---
 
@@ -321,7 +321,7 @@ The `/status` response keeps `queue_depth` as a field. Value is the current Queu
 | Spike | Verify |
 |---|---|
 | FastAPI ASGI | `import asgi; asgi.fetch(app, request, env)` serves a health route |
-| Static assets | `[assets]` serves `/avatars/avatar-0.png` and `/html/activity_feed.html` |
+| Static assets | `[assets]` serves `/avatars/avatar-0.png` and `/activity_feed.html` |
 | D1 query | `env.HH_DB.prepare("SELECT 1").first()` returns data |
 | Queue send/consume | `env.QUEUE.send({...})` → `queue(batch)` receives it |
 | DO WebSocket | `getByName()` → `fetch()` upgrade → `acceptWebSocket()` → snapshot → broadcast |
