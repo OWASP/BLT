@@ -39,12 +39,15 @@ def clean_env():
 
     yield
 
-    if orig_base is not None:
-        os.environ["BLT_API_BASE"] = orig_base
-    if orig_key is not None:
-        os.environ["BLT_API_KEY"] = orig_key
-    if orig_token is not None:
-        os.environ["BLT_MCP_TOKEN"] = orig_token
+    for name, value in (
+        ("BLT_API_BASE", orig_base),
+        ("BLT_API_KEY", orig_key),
+        ("BLT_MCP_TOKEN", orig_token),
+    ):
+        if value is None:
+            os.environ.pop(name, None)
+        else:
+            os.environ[name] = value
 
 
 def pytest_sessionfinish(session, exitstatus):

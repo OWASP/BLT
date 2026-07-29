@@ -16,9 +16,13 @@ Key Functions:
   of thread readers to reuse active stream scanners across tests.
 """
 
+import contextlib
 import json
 import logging
+import os
 import queue
+import subprocess
+import sys
 import threading
 import time
 from typing import Any
@@ -130,3 +134,52 @@ def read_jsonrpc_response(process, expected_id, timeout=35.0):
     if process not in _readers:
         _readers[process] = MCPResponseReader(process)
     return _readers[process].read_response(expected_id, timeout)
+
+
+@contextlib.contextmanager
+def mcp_server_process(cmd=None, env=None):
+    """
+    Context manager to run the MCP server subprocess, capture its stderr,
+    and print stderr to sys.stderr on exception/failure.
+    """
+    if cmd is None:
+        cmd = [sys.executable, "-m", "blt_mcp.server"]
+    if env is None:
+        env = os.environ.copy()
+
+    process = subprocess.Popen(
+        cmd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=env,
+    )
+
+    stderr_lines = []
+
+    def drain_stderr():
+        try:
+            for line in process.stderr:
+                stderr_lines.append(line)
+        except Exception:
+            pass
+
+    t = threading.Thread(target=drain_stderr, daemon=True)
+    t.start()
+
+    try:
+        yield process
+    except Exception:
+        t.join(timeout=0.2)
+        err_output = "".join(stderr_lines)
+        if err_output:
+            print(err_output, file=sys.stderr)
+        raise
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
