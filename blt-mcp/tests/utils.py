@@ -48,8 +48,9 @@ class MCPResponseReader:
 
     def _read_loop(self, pipe):
         try:
-            for line in pipe:
-                if not line or self._stopped:
+            while not self._stopped:
+                line = pipe.readline()
+                if not line:
                     break
                 line = line.strip()
                 if not line:

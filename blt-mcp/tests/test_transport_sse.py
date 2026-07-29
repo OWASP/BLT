@@ -45,6 +45,12 @@ def test_sse_transport_unauthenticated():
             )
             assert resp_bad.status_code == 401
 
+            # Request with valid token in query parameter (should be rejected since query-param fallback is removed)
+            resp_qp = client.get(
+                "http://127.0.0.1:8085/sse?token=super-secret-token"
+            )
+            assert resp_qp.status_code == 401
+
             # Request with correct token
             with client.stream(
                 "GET",

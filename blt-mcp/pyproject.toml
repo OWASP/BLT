@@ -33,7 +33,7 @@ build-backend = "setuptools.build_meta"
 
 [dependency-groups]
 dev = [
-    "mcp-vcr>=0.1.3",
+    "mcp-vcr>=0.1.5",
 ]
 
 [tool.pytest.ini_options]

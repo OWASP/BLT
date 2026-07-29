@@ -182,6 +182,9 @@ logger = logging.getLogger("blt-mcp")
 BLT_API_BASE = os.getenv("BLT_API_BASE", "https://api.owaspblt.org")
 BLT_API_KEY = os.getenv("BLT_API_KEY")
 
+# Public static showcase fallback key from backend (api_key.py)
+PUBLIC_BLT_API_KEY = "f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051"
+
 if not BLT_API_KEY:
     try:
         from blt_mcp.auth import load_credentials
@@ -193,10 +196,9 @@ if not BLT_API_KEY:
         pass
 
 if not BLT_API_KEY:
-    # Public static showcase fallback key from backend (api_key.py)
-    PUBLIC_BLT_API_KEY = "f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051"
     BLT_API_KEY = PUBLIC_BLT_API_KEY
     logger.info("BLT_API_KEY not configured. Falling back to public showcase API key.")
+
 
 
 # Shared HTTPX client

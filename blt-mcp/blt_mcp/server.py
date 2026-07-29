@@ -38,6 +38,10 @@ from urllib.parse import quote
 
 import anyio
 import httpx
+import asyncio
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 # Import v2 modular resources, tools and prompts to register them on the mcp instance
 from blt_mcp import server_base, v2_resources, v2_tools  # noqa: F401
@@ -324,7 +328,8 @@ async def triage_vulnerability(prompt: str) -> str:
         "messages": [
             {"role": "system", "content": system_msg},
             {"role": "user", "content": prompt},
-        ]
+        ],
+        "max_tokens": 1024,
     }
 
     logger.info("Sending prompt to Cloudflare Workers AI")
@@ -341,7 +346,11 @@ async def triage_vulnerability(prompt: str) -> str:
 
             result = response.json()
             if result.get("success"):
-                return result["result"]["response"]
+                response_text = result["result"]["response"]
+                trimmed = response_text.strip()
+                if not any(trimmed.endswith(ext) for ext in (".", "!", "?", "```", "**", "*")):
+                    raise RuntimeError("Cloudflare AI response was truncated (incomplete output).")
+                return response_text
             else:
                 raise RuntimeError(
                     f"Cloudflare AI returned an error: {result.get('errors')}"
@@ -509,6 +518,19 @@ def main(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8080) ->
         mcp.settings.host = host
         mcp.settings.port = port
 
+        # Security check: remote transport must have BLT_MCP_TOKEN configured
+        if transport != "stdio" and not os.getenv("BLT_MCP_TOKEN"):
+            msg = (
+                "\n"
+                "========================================================================\n"
+                "⚠️  SECURITY WARNING: Remote transport is enabled, but BLT_MCP_TOKEN    \n"
+                "   environment variable is not set. The server will run WITHOUT        \n"
+                "   authentication! Secure your server by setting BLT_MCP_TOKEN.         \n"
+                "========================================================================\n"
+            )
+            print(msg, file=sys.stderr)
+            logger.warning(msg.strip())
+
         # Monkeypatch the Starlette apps to inject token-based auth middleware if configured
         _apply_token_auth_middleware()
 
@@ -538,13 +560,15 @@ def _apply_token_auth_middleware() -> None:
                 return await call_next(request)
 
             auth_header = request.headers.get("Authorization")
-            token = None
-            if auth_header and auth_header.startswith("Bearer "):
-                token = auth_header[7:]
-            else:
-                token = request.query_params.get("token")
+            token = (
+                auth_header[7:]
+                if auth_header and auth_header.startswith("Bearer ")
+                else None
+            )
 
-            if token != expected_token:
+            import hmac
+
+            if not token or not hmac.compare_digest(token, expected_token):
                 return JSONResponse(
                     {"error": "Unauthorized: Invalid or missing BLT_MCP_TOKEN"},
                     status_code=401,

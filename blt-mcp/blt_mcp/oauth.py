@@ -31,6 +31,7 @@ async def pkce_login(
     """Run the full PKCE flow. Returns the access token."""
     verifier = generate_code_verifier()
     challenge = generate_code_challenge(verifier)
+    state = secrets.token_urlsafe(32)
     redirect_uri = f"http://127.0.0.1:{redirect_port}/callback"
 
     params = {
@@ -40,6 +41,7 @@ async def pkce_login(
         "code_challenge": challenge,
         "code_challenge_method": "S256",
         "scope": scopes,
+        "state": state,
     }
     login_url = f"{authorize_url}?{urlencode(params)}"
 
@@ -54,13 +56,28 @@ async def pkce_login(
         request_text = data.decode("utf-8", errors="ignore")
 
         code = None
+        state_received = None
         if "GET " in request_text:
             parts = request_text.split(" ")
             if len(parts) > 1:
                 qs = parse_qs(urlparse(parts[1]).query)
                 code = qs.get("code", [None])[0]
+                state_received = qs.get("state", [None])[0]
 
-        if code:
+        if not state_received or state_received != state:
+            if not code_future.done():
+                code_future.set_exception(
+                    RuntimeError(
+                        "State parameter mismatch or missing in OAuth callback."
+                    )
+                )
+            response = (
+                "HTTP/1.1 400 Bad Request\r\n"
+                "Content-Type: text/plain\r\n"
+                "Connection: close\r\n\r\n"
+                "Error: State validation failed."
+            )
+        elif code:
             if not code_future.done():
                 code_future.set_result(code)
             response = (

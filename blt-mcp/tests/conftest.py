@@ -18,11 +18,33 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+import pytest
 
 from dotenv import load_dotenv
 
 # Enable HTTP mock layer globally for all test server subprocesses
 os.environ["BLT_MOCK_HTTP"] = "true"
+
+
+@pytest.fixture(autouse=True)
+def clean_env():
+    # Isolate tests from local development environment overrides
+    orig_base = os.environ.get("BLT_API_BASE")
+    orig_key = os.environ.get("BLT_API_KEY")
+    orig_token = os.environ.get("BLT_MCP_TOKEN")
+
+    os.environ.pop("BLT_API_BASE", None)
+    os.environ.pop("BLT_API_KEY", None)
+    os.environ.pop("BLT_MCP_TOKEN", None)
+
+    yield
+
+    if orig_base is not None:
+        os.environ["BLT_API_BASE"] = orig_base
+    if orig_key is not None:
+        os.environ["BLT_API_KEY"] = orig_key
+    if orig_token is not None:
+        os.environ["BLT_MCP_TOKEN"] = orig_token
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -33,6 +55,12 @@ def pytest_sessionfinish(session, exitstatus):
         # Load .env file from project root
         root_dir = Path(__file__).parent.parent
         load_dotenv(dotenv_path=root_dir / ".env")
+
+        # Snapshot verification replays requests against the live API, so
+        # results are non-deterministic. Only run when explicitly opted in.
+        verify_env = os.getenv("BLT_VERIFY_SNAPSHOTS", "false").lower()
+        if verify_env not in ("true", "1", "yes"):
+            return
 
         if not os.getenv("BLT_API_KEY"):
             print(
@@ -61,6 +89,7 @@ def pytest_sessionfinish(session, exitstatus):
                 "--",
                 "uv",
                 "run",
+                "--no-sync",
                 "-m",
                 "blt_mcp.server",
             ]
