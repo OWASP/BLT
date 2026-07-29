@@ -37,6 +37,11 @@ where
     let tick_rate = Duration::from_millis(100);
     let mut last_tick = Instant::now();
 
+    // Drain any leftover keyboard events (like Enter pressed in terminal to run the app)
+    while event::poll(Duration::from_millis(0))? {
+        let _ = event::read()?;
+    }
+
     loop {
         terminal.draw(|f| ui::draw(f, &mut app))?;
 
@@ -185,8 +190,10 @@ where
 
         if event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
-                // Handle key inputs
-                handle_keys(key, &mut app);
+                if key.kind == event::KeyEventKind::Press {
+                    // Handle key inputs
+                    handle_keys(key, &mut app);
+                }
             }
         }
 
