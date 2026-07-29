@@ -192,16 +192,6 @@ tailwind.config = {
         <!-- Ecosystem Status Strip -->
         <div class="flex items-center gap-3 text-xs font-mono text-[var(--blt-text-subtle)] px-1">
           <span class="flex items-center gap-1.5">
-            <span class="hh-occupancy-fill" style="width:8px;height:8px;border-radius:2px;background:var(--blt-primary)"></span>
-            <span id="total-events-label">0 events</span>
-          </span>
-          <span class="w-px h-3 bg-[var(--blt-border)]"></span>
-          <span class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-sm" style="background:var(--blt-text-subtle)"></span>
-            <span id="queue-label">queue: 0</span>
-          </span>
-          <span class="w-px h-3 bg-[var(--blt-border)]"></span>
-          <span class="flex items-center gap-1.5">
             <span class="blt-status-badge blt-status-success" style="font-size:9px;padding:1px 6px">system online</span>
           </span>
         </div>
@@ -316,10 +306,8 @@ tailwind.config = {
   var contributorMap = {};
 
   function getWsUrl() {
-    var p = new URLSearchParams(window.location.search);
-    var tok = p.get('token') || 'test-secret-123';
     var proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return proto + '//' + window.location.host + '/ws?token=' + encodeURIComponent(tok);
+    return proto + '//' + window.location.host + '/ws';
   }
 
   function updateWsIndicator(connected) {
@@ -374,8 +362,6 @@ tailwind.config = {
     var contributors = msg.data.contributors || [];
     var occupancy = msg.data.room_occupancy || {};
     document.getElementById('online-count').textContent = contributors.length + ' online';
-    document.getElementById('total-events-label').textContent = (msg.data.total_events || 0) + ' events';
-    document.getElementById('queue-label').textContent = 'queue: ' + (msg.data.queue_length || 0);
 
     [1,2,3].forEach(function(f) {
       var g = document.getElementById('floor-' + f + '-grid');
@@ -508,68 +494,151 @@ tailwind.config = {
   function renderLB(contributors) {
     var container = document.getElementById('leaderboard-body');
     if (!container) return;
+    container.textContent = '';
     var sorted = contributors.slice().sort(function(a,b) { return (b.score||0)-(a.score||0); });
     var top = sorted.slice(0, 10);
     if (top.length === 0) {
-      container.innerHTML = '<div class="flex items-center justify-center h-full text-sm text-[var(--blt-text-subtle)]">No contributors yet</div>';
+      var empty = document.createElement('div');
+      empty.className = 'flex items-center justify-center h-full text-sm text-[var(--blt-text-subtle)]';
+      empty.textContent = 'No contributors yet';
+      container.appendChild(empty);
       return;
     }
     var medals = ['#FFD700', '#C0C0C0', '#CD7F32'];
-    var html = '';
+    var colors = ['#0ea5e9', '#f43f5e', '#22c55e'];
     top.forEach(function(c, i) {
       var m = i < 3 ? medals[i] : null;
-      var colors = ['#0ea5e9', '#f43f5e', '#22c55e'];
       var dotColor = colors[i % 3];
-      var rankBadge = m
-        ? '<span class="w-5 text-center text-xs font-bold" style="color:' + m + '">' + (i+1) + '</span>'
-        : '<span class="w-5 text-center text-xs text-[var(--blt-text-subtle)]">' + (i+1) + '</span>';
-      var crown = i === 0 ? '<span class="material-symbols-outlined absolute -top-1 -right-1 text-amber-400 text-xs" style="font-variation-settings:\'FILL\' 1">stars</span>' : '';
-      var avatarImg = c.avatar_url
-        ? '<img src="' + c.avatar_url + '" class="w-full h-full rounded-full object-cover" alt="' + c.display_name + '" loading="lazy" onerror="this.style.display=\'none\'">'
-        : '<span class="text-xs font-bold" style="color:' + dotColor + '">' + c.display_name.charAt(0).toUpperCase() + '</span>';
-      html += '<div class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[var(--blt-surface-muted)] transition-colors cursor-pointer" id="lb-' + c.id + '">' +
-        rankBadge +
-        '<div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold relative overflow-hidden" style="background:' + dotColor + '15;border:1.5px solid ' + dotColor + '">' +
-          crown + avatarImg +
-        '</div>' +
-        '<div class="flex-1 font-medium text-xs text-[var(--blt-text)] truncate">' + c.display_name + '</div>' +
-        '<div class="text-right">' +
-          '<div class="font-mono text-xs text-[var(--blt-text)] lb-score">' + (c.score||0).toLocaleString() + '</div>' +
-        '</div>' +
-      '</div>';
+
+      var row = document.createElement('div');
+      row.className = 'flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[var(--blt-surface-muted)] transition-colors cursor-pointer';
+      row.id = 'lb-' + c.id;
+
+      // Rank badge
+      var rank = document.createElement('span');
+      rank.className = 'w-5 text-center text-xs font-bold';
+      rank.textContent = String(i + 1);
+      if (m) { rank.style.color = m; }
+      else { rank.className = 'w-5 text-center text-xs text-[var(--blt-text-subtle)]'; }
+      row.appendChild(rank);
+
+      // Avatar wrapper
+      var avatarWrap = document.createElement('div');
+      avatarWrap.className = 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold relative overflow-hidden';
+      avatarWrap.style.background = dotColor + '15';
+      avatarWrap.style.border = '1.5px solid ' + dotColor;
+
+      if (c.avatar_url) {
+        var img = document.createElement('img');
+        img.src = c.avatar_url;
+        img.alt = c.display_name;
+        img.className = 'w-full h-full rounded-full object-cover';
+        img.loading = 'lazy';
+        img.onerror = function() { this.style.display = 'none'; };
+        avatarWrap.appendChild(img);
+      } else {
+        var initial = document.createElement('span');
+        initial.className = 'text-xs font-bold';
+        initial.style.color = dotColor;
+        initial.textContent = c.display_name.charAt(0).toUpperCase();
+        avatarWrap.appendChild(initial);
+      }
+
+      // Crown for rank 1
+      if (i === 0) {
+        var crown = document.createElement('span');
+        crown.className = 'material-symbols-outlined absolute -top-1 -right-1 text-amber-400 text-xs';
+        crown.style.fontVariationSettings = "'FILL' 1";
+        crown.textContent = 'stars';
+        avatarWrap.appendChild(crown);
+      }
+
+      row.appendChild(avatarWrap);
+
+      // Name
+      var nameSpan = document.createElement('div');
+      nameSpan.className = 'flex-1 font-medium text-xs text-[var(--blt-text)] truncate';
+      nameSpan.textContent = c.display_name;
+      row.appendChild(nameSpan);
+
+      // Score
+      var scoreWrap = document.createElement('div');
+      scoreWrap.className = 'text-right';
+      var score = document.createElement('div');
+      score.className = 'font-mono text-xs text-[var(--blt-text)] lb-score';
+      score.textContent = (c.score || 0).toLocaleString();
+      scoreWrap.appendChild(score);
+      row.appendChild(scoreWrap);
+
+      container.appendChild(row);
     });
-    container.innerHTML = html;
   }
 
   function renderFeed(contributors) {
     var container = document.getElementById('activity-feed-list');
     if (!container) return;
+    container.textContent = '';
     var recent = contributors.filter(function(c) { return c.last_event; }).slice(0, 30);
     if (recent.length === 0) {
-      container.innerHTML = '<div class="flex items-center justify-center h-full text-sm text-[var(--blt-text-subtle)]">Waiting for activity\u2026</div>';
+      var empty = document.createElement('div');
+      empty.className = 'flex items-center justify-center h-full text-sm text-[var(--blt-text-subtle)]';
+      empty.textContent = 'Waiting for activity\u2026';
+      container.appendChild(empty);
       return;
     }
-    var html = '';
+    var icons = {issue_opened: 'bug_report', mr_opened: 'merge', mr_merged: 'merge_type', pipeline_run: 'play_circle', bug_bounty_submitted: 'rewarded_ads', note_added: 'chat', review_requested: 'rate_review'};
+    var colors = ['#0ea5e9', '#f43f5e', '#22c55e'];
     recent.forEach(function(c) {
       var ev = (c.last_event || 'active').replace(/_/g, ' ');
-      var colors = ['#0ea5e9', '#f43f5e', '#22c55e'];
       var dotColor = colors[Math.floor(Math.random() * 3)];
-      var icons = {issue_opened: 'bug_report', mr_opened: 'merge', mr_merged: 'merge_type', pipeline_run: 'play_circle', bug_bounty_submitted: 'rewarded_ads', note_added: 'chat', review_requested: 'rate_review'};
       var icon = icons[c.last_event] || 'circle';
-      var avatarImg = c.avatar_url
-        ? '<img src="' + c.avatar_url + '" class="w-full h-full rounded-full object-cover" alt="' + c.display_name + '" onerror="this.style.display=\'none\'">'
-        : '<span class="material-symbols-outlined text-sm" style="color:' + dotColor + '">' + icon + '</span>';
-      html += '<div class="hh-feed-item flex gap-2 p-2 rounded-md hover:bg-[var(--blt-surface-muted)] transition-colors cursor-pointer">' +
-        '<div class="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center overflow-hidden" style="background:' + dotColor + '12">' +
-          avatarImg +
-        '</div>' +
-        '<div class="flex-1 min-w-0">' +
-          '<p class="text-xs text-[var(--blt-text)] truncate"><span class="font-semibold">' + c.display_name + '</span> ' + ev + '</p>' +
-          '<p class="text-[10px] font-mono text-[var(--blt-text-subtle)] mt-0.5">' + (c.score||0) + ' pts</p>' +
-        '</div>' +
-      '</div>';
+
+      var row = document.createElement('div');
+      row.className = 'hh-feed-item flex gap-2 p-2 rounded-md hover:bg-[var(--blt-surface-muted)] transition-colors cursor-pointer';
+
+      // Avatar wrapper
+      var avatarWrap = document.createElement('div');
+      avatarWrap.className = 'flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center overflow-hidden';
+      avatarWrap.style.background = dotColor + '12';
+
+      if (c.avatar_url) {
+        var img = document.createElement('img');
+        img.src = c.avatar_url;
+        img.alt = c.display_name;
+        img.className = 'w-full h-full rounded-full object-cover';
+        img.onerror = function() { this.style.display = 'none'; };
+        avatarWrap.appendChild(img);
+      } else {
+        var iconSpan = document.createElement('span');
+        iconSpan.className = 'material-symbols-outlined text-sm';
+        iconSpan.style.color = dotColor;
+        iconSpan.textContent = icon;
+        avatarWrap.appendChild(iconSpan);
+      }
+
+      row.appendChild(avatarWrap);
+
+      // Text content
+      var textWrap = document.createElement('div');
+      textWrap.className = 'flex-1 min-w-0';
+
+      var line1 = document.createElement('p');
+      line1.className = 'text-xs text-[var(--blt-text)] truncate';
+      var nameBold = document.createElement('span');
+      nameBold.className = 'font-semibold';
+      nameBold.textContent = c.display_name;
+      line1.appendChild(nameBold);
+      line1.appendChild(document.createTextNode(' ' + ev));
+      textWrap.appendChild(line1);
+
+      var line2 = document.createElement('p');
+      line2.className = 'text-[10px] font-mono text-[var(--blt-text-subtle)] mt-0.5';
+      line2.textContent = (c.score || 0) + ' pts';
+      textWrap.appendChild(line2);
+
+      row.appendChild(textWrap);
+      container.appendChild(row);
     });
-    container.innerHTML = html;
   }
 
   function renderOcc(occupancy, total) {
