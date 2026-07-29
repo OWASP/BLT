@@ -180,7 +180,7 @@ impl App {
             .or_else(|_| std::env::var("USERNAME"))
             .unwrap_or_else(|_| "Local User".to_string());
         let is_public_showcase = crate::api::get_api_key()
-            .map(|k| k == "f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051")
+            .map(|k| k == crate::api::PUBLIC_SHOWCASE_KEY)
             .unwrap_or(false);
 
         let auth_user = if is_public_showcase {
