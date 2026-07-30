@@ -71,7 +71,7 @@ requires-dist = [
 provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "mcp-vcr", specifier = ">=0.1.4" }]
+dev = [{ name = "mcp-vcr", specifier = ">=0.1.5" }]
 
 [[package]]
 name = "certifi"
@@ -283,7 +283,7 @@ wheels = [
 
 [[package]]
 name = "mcp-vcr"
-version = "0.1.4"
+version = "0.1.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -291,9 +291,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/be/c3/946a6027c0f0ff7851671f7904e2e1db9ebfecd8c7c923bfcecc70f98a25/mcp_vcr-0.1.4.tar.gz", hash = "sha256:2263e61ed60fd94a832322a1210c3bf77834e207d48d69980785308ba699f937", size = 49416, upload-time = "2026-07-29T12:56:38.374Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/64/76/a4858254cef031ab459fa645f75f3e48d69520e38df9f1f0cfba17dec0cd/mcp_vcr-0.1.5.tar.gz", hash = "sha256:677afad9285bafbfd2b391daa791d8903ea0ae0242381d1934a54ca1e6d3bfe9", size = 49488, upload-time = "2026-07-29T13:30:05.04Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ad/f8/3f6cb316048d4b7a49c0af41284537cdc6125bdde2330333badfce1eb6b5/mcp_vcr-0.1.4-py3-none-any.whl", hash = "sha256:63a3407ac35326b075e8ff49c320cd19b9f9f9183b85463983974d88f3693e08", size = 32120, upload-time = "2026-07-29T12:56:36.408Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/e5/af29899529ccc10cc427241d75cde2788e0cb97596dcafca3e27f49efb9b/mcp_vcr-0.1.5-py3-none-any.whl", hash = "sha256:9b557be0decae6fec9a730ee6e16b3ddd6c3559dc235f100a25312228a397909", size = 32226, upload-time = "2026-07-29T13:30:02.673Z" },
 ]
 
 [[package]]
