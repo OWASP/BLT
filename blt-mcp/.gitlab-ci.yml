@@ -149,7 +149,9 @@ upload-release-assets:
 
 upload-nightly-assets:
   stage: deploy
-  image: curlimages/curl:latest
+  image:
+    name: curlimages/curl:latest
+    entrypoint: [""]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
   script:
@@ -157,7 +159,8 @@ upload-nightly-assets:
       for FILE in bin/*; do
         FILENAME=$(basename "$FILE")
         echo "Uploading nightly $FILENAME to generic package registry..."
-        curl --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        curl --fail-with-body --show-error \
+             --header "JOB-TOKEN: $CI_JOB_TOKEN" \
              --upload-file "$FILE" \
              "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/nightly/${FILENAME}"
       done
@@ -168,7 +171,7 @@ upload-nightly-assets:
 
 create-gitlab-release:
   stage: release
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  image: registry.gitlab.com/gitlab-org/cli:v1.44.0
   rules:
     - if: $CI_COMMIT_TAG
   script:
