@@ -7,7 +7,7 @@ edition = "2021"
 ratatui = { version = "0.30", features = ["serde"] }
 crossterm = { version = "0.27.0", features = ["event-stream"] }
 tokio = { version = "1.38", features = ["full"] }
-reqwest = { version = "0.12", features = ["json"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls-native-roots"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 clap = { version = "4.5", features = ["derive"] }
