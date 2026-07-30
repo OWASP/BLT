@@ -1,21 +1,190 @@
-default:
-  image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
-
-variables:
-  UV_CACHE_DIR: ".uv-cache"
-
-cache:
-  key:
-    files:
-      - uv.lock
-  paths:
-    - $UV_CACHE_DIR
-
 stages:
   - test
+  - build
+  - deploy
+  - release
 
-run-tests:
+# Global workflow rules to prevent duplicate pipelines (e.g., branch and merge request pipelines running concurrently)
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+
+# ==========================================
+# 1. Test Stage (Python & Rust Tests)
+# ==========================================
+
+python-tests:
   stage: test
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+  variables:
+    UV_CACHE_DIR: ".uv-cache"
+  cache:
+    key:
+      files:
+        - uv.lock
+    paths:
+      - $UV_CACHE_DIR
   script:
     - uv sync --all-extras
     - uv run pytest tests/
+
+rust-tests-linux:
+  stage: test
+  image: rust:latest
+  variables:
+    CARGO_HOME: $CI_PROJECT_DIR/.cargo
+  cache:
+    key: rust-linux-cache
+    paths:
+      - .cargo/bin/
+      - .cargo/registry/index/
+      - .cargo/registry/cache/
+      - .cargo/git/db/
+      - blt-cli/target/
+  script:
+    - cd blt-cli
+    - cargo check --verbose
+    - cargo test --verbose
+
+# ==========================================
+# 2. Build Stage (Multi-platform Binaries)
+# ==========================================
+
+build-rust-linux-windows:
+  stage: build
+  image: rust:latest
+  variables:
+    CARGO_HOME: $CI_PROJECT_DIR/.cargo
+  cache:
+    key: rust-linux-windows-cache
+    paths:
+      - .cargo/bin/
+      - .cargo/registry/index/
+      - .cargo/registry/cache/
+      - .cargo/git/db/
+      - blt-cli/target/
+  before_script:
+    - apt-get update && apt-get install -y gcc-aarch64-linux-gnu mingw-w64
+    - rustup target add x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu x86_64-pc-windows-gnu
+  script:
+    - cd blt-cli
+    # Build Linux x86_64
+    - cargo build --release --target x86_64-unknown-linux-gnu
+    # Build Linux aarch64
+    - export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+    - cargo build --release --target aarch64-unknown-linux-gnu
+    # Build Windows x86_64
+    - cargo build --release --target x86_64-pc-windows-gnu
+    # Organize outputs
+    - mkdir -p ../bin
+    - cp target/x86_64-unknown-linux-gnu/release/blt-cli ../bin/blt-cli-linux-x86_64
+    - cp target/aarch64-unknown-linux-gnu/release/blt-cli ../bin/blt-cli-linux-aarch64
+    - cp target/x86_64-pc-windows-gnu/release/blt-cli.exe ../bin/blt-cli-windows-x86_64.exe
+  artifacts:
+    name: "blt-cli-linux-windows-$CI_COMMIT_REF_NAME"
+    paths:
+      - bin/
+    expire_in: 7 days
+
+# NOTE: macOS build is not available for now due to lack of macOS runner resources/access.
+# To enable this in the future, uncomment this job and assign a macOS runner tag (e.g., saas-macos-medium-m1).
+# build-rust-macos:
+#   stage: build
+#   tags:
+#     - saas-macos-medium-m1
+#   variables:
+#     CARGO_HOME: $CI_PROJECT_DIR/.cargo
+#   cache:
+#     key: rust-macos-cache
+#     paths:
+#       - .cargo/bin/
+#       - .cargo/registry/index/
+#       - .cargo/registry/cache/
+#       - .cargo/git/db/
+#       - blt-cli/target/
+#   before_script:
+#     - rustup target add aarch64-apple-darwin x86_64-apple-darwin
+#   script:
+#     - cd blt-cli
+#     # Build macOS Apple Silicon
+#     - cargo build --release --target aarch64-apple-darwin
+#     # Build macOS Intel
+#     - cargo build --release --target x86_64-apple-darwin
+#     # Organize outputs
+#     - mkdir -p ../bin
+#     - cp target/aarch64-apple-darwin/release/blt-cli ../bin/blt-cli-macos-arm64
+#     - cp target/x86_64-apple-darwin/release/blt-cli ../bin/blt-cli-macos-x86_64
+#   artifacts:
+#     name: "blt-cli-macos-$CI_COMMIT_REF_NAME"
+#     paths:
+#       - bin/
+#     expire_in: 7 days
+
+# ==========================================
+# 3. Deploy Stage (Upload Artifacts/Packages)
+# ==========================================
+
+upload-release-assets:
+  stage: deploy
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - |
+      for FILE in bin/*; do
+        FILENAME=$(basename "$FILE")
+        echo "Uploading $FILENAME to generic package registry..."
+        curl --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+             --upload-file "$FILE" \
+             "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/${FILENAME}"
+      done
+
+upload-nightly-assets:
+  stage: deploy
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  script:
+    - |
+      for FILE in bin/*; do
+        FILENAME=$(basename "$FILE")
+        echo "Uploading nightly $FILENAME to generic package registry..."
+        curl --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+             --upload-file "$FILE" \
+             "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/nightly/${FILENAME}"
+      done
+
+# ==========================================
+# 4. Release Stage (Official Version Release)
+# ==========================================
+
+create-gitlab-release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - echo "Creating release for tag $CI_COMMIT_TAG"
+  release:
+    name: 'Release $CI_COMMIT_TAG'
+    description: 'Automated release of version $CI_COMMIT_TAG'
+    tag_name: '$CI_COMMIT_TAG'
+    ref: '$CI_COMMIT_SHA'
+    assets:
+      links:
+        - name: 'blt-cli-linux-x86_64'
+          url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/blt-cli-linux-x86_64'
+        - name: 'blt-cli-linux-aarch64'
+          url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/blt-cli-linux-aarch64'
+        # macOS binaries are commented out as macOS builds are not available for now.
+        # - name: 'blt-cli-macos-arm64'
+        #   url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/blt-cli-macos-arm64'
+        # - name: 'blt-cli-macos-x86_64'
+        #   url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/blt-cli-macos-x86_64'
+        - name: 'blt-cli-windows-x86_64.exe'
+          url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/blt-cli-windows-x86_64.exe'
