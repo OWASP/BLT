@@ -30,8 +30,8 @@ python-tests:
     paths:
       - $UV_CACHE_DIR
   script:
-    - uv sync --all-extras
-    - uv run pytest tests/
+    - uv sync --locked --all-extras
+    - uv run --locked pytest tests/
 
 rust-tests-linux:
   stage: test
@@ -48,8 +48,8 @@ rust-tests-linux:
       - blt-cli/target/
   script:
     - cd blt-cli
-    - cargo check --verbose
-    - cargo test --verbose
+    - cargo check --locked --verbose
+    - cargo test --locked --verbose
 
 # ==========================================
 # 2. Build Stage (Multi-platform Binaries)
@@ -74,12 +74,12 @@ build-rust-linux-windows:
   script:
     - cd blt-cli
     # Build Linux x86_64
-    - cargo build --release --target x86_64-unknown-linux-gnu
+    - cargo build --locked --release --target x86_64-unknown-linux-gnu
     # Build Linux aarch64
     - export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
-    - cargo build --release --target aarch64-unknown-linux-gnu
+    - cargo build --locked --release --target aarch64-unknown-linux-gnu
     # Build Windows x86_64
-    - cargo build --release --target x86_64-pc-windows-gnu
+    - cargo build --locked --release --target x86_64-pc-windows-gnu
     # Organize outputs
     - mkdir -p ../bin
     - cp target/x86_64-unknown-linux-gnu/release/blt-cli ../bin/blt-cli-linux-x86_64
@@ -112,9 +112,9 @@ build-rust-linux-windows:
 #   script:
 #     - cd blt-cli
 #     # Build macOS Apple Silicon
-#     - cargo build --release --target aarch64-apple-darwin
+#     - cargo build --locked --release --target aarch64-apple-darwin
 #     # Build macOS Intel
-#     - cargo build --release --target x86_64-apple-darwin
+#     - cargo build --locked --release --target x86_64-apple-darwin
 #     # Organize outputs
 #     - mkdir -p ../bin
 #     - cp target/aarch64-apple-darwin/release/blt-cli ../bin/blt-cli-macos-arm64
