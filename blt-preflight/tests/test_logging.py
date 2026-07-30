@@ -265,7 +265,7 @@ def test_json_formatter_exception():
 
         raise RuntimeError("Boom")
 
-    except RuntimeError:
+    except RuntimeError as exc:
 
         record = logging.LogRecord(
             "pipeline",
@@ -277,9 +277,11 @@ def test_json_formatter_exception():
             None,
         )
 
-        record.exc_info = True.__class__, RuntimeError(
-            "Boom"
-        ), None
+        record.exc_info = (
+            type(exc),
+            exc,
+            exc.__traceback__,
+        )
 
         output = formatter.format(record)
 
