@@ -90,7 +90,7 @@ tailwind.config = {
   <!-- ═══ SIDEBAR ═══ -->
   <aside class="hidden lg:flex lg:flex-col lg:h-screen lg:sticky lg:top-0 bg-[var(--blt-surface)] border-r border-[var(--blt-border)] overflow-y-auto" aria-label="Main navigation">
     <div class="flex items-center justify-between px-4 pt-5 pb-4">
-      <a class="flex items-center gap-2.5" href="#">
+      <a class="flex items-center gap-2.5" href="landing.html">
         <div class="w-8 h-8 rounded-md bg-[var(--blt-primary)] flex items-center justify-center text-white font-extrabold text-sm">B</div>
         <div>
           <span class="text-sm font-semibold tracking-tight text-[var(--blt-text)]">BLT HackerHouse</span>
@@ -100,6 +100,10 @@ tailwind.config = {
     </div>
     <div class="h-px bg-[var(--blt-border)] mx-4 mb-3"></div>
     <nav class="flex-1 px-3 space-y-0.5" aria-label="Pages">
+      <a class="sidebar-link" href="landing.html">
+        <span class="material-symbols-outlined nav-icon text-lg">info</span>
+        About
+      </a>
       <a class="sidebar-link" href="index.html">
         <span class="material-symbols-outlined nav-icon text-lg">home</span>
         HackerHouse
@@ -133,7 +137,31 @@ tailwind.config = {
   </aside>
 
   <!-- ═══ MAIN ═══ -->
-  <main class="blt-page-main px-4 py-6 sm:px-6 lg:px-8 min-h-screen">
+  <main class="blt-page-main flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="hh-header flex-none flex items-center justify-between px-4 lg:px-6 h-14 border-b border-[var(--blt-border)] bg-[var(--blt-surface)]/80 backdrop-blur-md z-30">
+      <div class="flex items-center gap-4">
+        <button class="lg:hidden p-1.5 rounded-md text-[var(--blt-text-muted)] hover:text-[var(--blt-text)] hover:bg-[var(--blt-surface-muted)] transition-colors" onclick="document.querySelector('aside').classList.toggle('hidden')">
+          <span class="material-symbols-outlined text-lg">menu</span>
+        </button>
+        <nav class="hidden sm:flex items-center gap-1.5 hh-breadcrumbs" aria-label="Breadcrumb">
+          <a href="index.html" class="hover:text-[var(--blt-text)] transition-colors">HackerHouse</a>
+          <span class="material-symbols-outlined text-xs">chevron_right</span>
+          <span class="current">Leaderboard</span>
+        </nav>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="hh-user-pill hidden sm:flex">
+          <div class="hh-user-avatar">B</div>
+          <span class="hh-user-name">BLT Node</span>
+          <span class="material-symbols-outlined text-sm text-[var(--blt-text-subtle)]">expand_more</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="flex-1 overflow-y-auto hh-scrollbar px-4 py-6 sm:px-6 lg:px-8">
 
     <!-- Header -->
     <section class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
@@ -206,6 +234,34 @@ tailwind.config = {
       </div>
     </section>
 
+    <!-- Podium -->
+    <div class="hh-podium" id="lb-podium">
+      <div class="hh-podium-card" data-rank="2">
+        <div class="hh-podium-medal">🥈</div>
+        <div class="hh-podium-avatar">
+          <span class="material-symbols-outlined text-lg">person</span>
+        </div>
+        <div class="hh-podium-name" id="podium-2-name">—</div>
+        <div class="hh-podium-score" id="podium-2-score">—</div>
+      </div>
+      <div class="hh-podium-card" data-rank="1">
+        <div class="hh-podium-medal">🥇</div>
+        <div class="hh-podium-avatar">
+          <span class="material-symbols-outlined text-lg">person</span>
+        </div>
+        <div class="hh-podium-name" id="podium-1-name">—</div>
+        <div class="hh-podium-score" id="podium-1-score">—</div>
+      </div>
+      <div class="hh-podium-card" data-rank="3">
+        <div class="hh-podium-medal">🥉</div>
+        <div class="hh-podium-avatar">
+          <span class="material-symbols-outlined text-lg">person</span>
+        </div>
+        <div class="hh-podium-name" id="podium-3-name">—</div>
+        <div class="hh-podium-score" id="podium-3-score">—</div>
+      </div>
+    </div>
+
     <!-- Leaderboard Table -->
     <section class="blt-card overflow-hidden">
       <!-- Table Header -->
@@ -262,8 +318,48 @@ tailwind.config = {
       </div>
     </section>
 
+    </div><!-- /Page Content -->
+
+    <!-- Footer -->
+    <footer class="hh-footer flex-none">
+      <span><span class="hh-footer-dot"></span> All Systems Operational</span>
+      <span>BLT HackerHouse v0.4 · <span id="footer-events">0</span> events</span>
+      <span id="footer-uptime">Uptime: --</span>
+    </footer>
+
   </main>
 </div>
+
+<!-- Scroll to top -->
+<button class="hh-scroll-top" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">
+  <span class="material-symbols-outlined">arrow_upward</span>
+</button>
+
+<!-- Mobile Bottom Nav -->
+<nav class="hh-bottom-nav" aria-label="Mobile navigation">
+  <div class="hh-bottom-nav-inner">
+    <a class="hh-bottom-nav-link" href="landing.html">
+      <span class="material-symbols-outlined">info</span>
+      About
+    </a>
+    <a class="hh-bottom-nav-link" href="index.html">
+      <span class="material-symbols-outlined">home</span>
+      Home
+    </a>
+    <a class="hh-bottom-nav-link" href="activity_feed.html">
+      <span class="material-symbols-outlined">rss_feed</span>
+      Feed
+    </a>
+    <a class="hh-bottom-nav-link active" href="leaderboard.html" aria-current="page">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">leaderboard</span>
+      Board
+    </a>
+    <a class="hh-bottom-nav-link" href="status_health.html">
+      <span class="material-symbols-outlined">sensors</span>
+      Status
+    </a>
+  </div>
+</nav>
 
 <script>
 function toggleDetail(detailId) {
@@ -328,6 +424,29 @@ function toggleDetail(detailId) {
     }
     tbody.innerHTML = entries.map(renderRow).join('');
     document.getElementById('total-label').textContent = entries.length.toLocaleString() + ' contributors';
+
+    // Update podium top 3
+    var sorted = entries.slice().sort(function(a, b) { return (b.score || 0) - (a.score || 0); });
+    [1, 2, 3].forEach(function(r) {
+      var c = sorted[r - 1];
+      var nameEl = document.getElementById('podium-' + r + '-name');
+      var scoreEl = document.getElementById('podium-' + r + '-score');
+      if (nameEl && c) {
+        nameEl.textContent = c.display_name;
+        scoreEl.textContent = (c.score || 0).toLocaleString() + ' pts';
+        // Update avatar
+        var card = document.querySelector('.hh-podium-card[data-rank="' + r + '"]');
+        if (card) {
+          var avatarWrap = card.querySelector('.hh-podium-avatar');
+          if (avatarWrap && c.avatar_url) {
+            avatarWrap.innerHTML = '<img src="' + c.avatar_url + '" class="w-full h-full object-cover" alt="' + c.display_name + '" onerror="this.innerHTML=\\'<span class=\\\'material-symbols-outlined text-lg\\\'>person</span>\\'">';
+          }
+        }
+      } else if (nameEl) {
+        nameEl.textContent = '—';
+        scoreEl.textContent = '—';
+      }
+    });
   }
 
   function fetchLeaderboard() {
@@ -341,7 +460,20 @@ function toggleDetail(detailId) {
       });
   }
 
-  document.addEventListener('DOMContentLoaded', fetchLeaderboard);
+  document.addEventListener('DOMContentLoaded', function() {
+    fetchLeaderboard();
+
+    // Header scroll shadow + scroll-to-top
+    var scrollTop = document.getElementById('scroll-top-btn');
+    var pageContent = document.querySelector('.blt-page-main > .flex-1.overflow-y-auto');
+    var header = document.querySelector('.hh-header');
+    if (pageContent && header) {
+      pageContent.addEventListener('scroll', function() {
+        header.classList.toggle('scrolled', pageContent.scrollTop > 4);
+        if (scrollTop) scrollTop.classList.toggle('visible', pageContent.scrollTop > 200);
+      });
+    }
+  });
 })();
 </script>
 </body>
