@@ -81,16 +81,17 @@ async def transition_state(db, event_id: str, to_status: str) -> None:
         raise StateTransitionError("Concurrent modification detected")
 
 
-async def quarantine_event(db, event_id: str, reason: str, env=None) -> None:
+async def quarantine_event(db, event_id: str, reason: str, env=None, has_vector: bool = True) -> None:
     """
     Quarantine an event and log the reason to the audit log.
-    If env is provided, deletes the associated vector from Vectorize.
+    If has_vector is True, deletes the associated vector from Vectorize and requires env.VECTORIZE.
 
     Args:
         db: The D1 database binding.
         event_id (str): The ID of the triage event.
         reason (str): The reason for quarantining the event.
-        env: The Cloudflare Worker environment (optional).
+        env: The Cloudflare Worker environment (optional if has_vector=False).
+        has_vector: Whether the event has been vectorized and needs cleanup.
 
     Raises:
         StateTransitionError: If the transition is invalid or a concurrent modification occurs.
@@ -98,15 +99,20 @@ async def quarantine_event(db, event_id: str, reason: str, env=None) -> None:
     # 1. Update the state to quarantined (this will enforce valid transitions)
     await transition_state(db, event_id, "quarantined")
 
+    # 1a. Set quarantine_reason
+    query = "UPDATE triage_events SET quarantine_reason = ? WHERE id = ?"
+    await db.execute(query, [reason, event_id])
+
     # 2. Insert into the audit log
     audit_id = secrets.token_hex(16)
     query = "INSERT INTO triage_audit_log (id, event_id, action, reason) VALUES (?, ?, ?, ?)"
     stmt = db.prepare(query).bind(audit_id, event_id, "quarantine", reason)
     await stmt.run()
 
-    # 3. Explicitly purge the vector payload if env is provided
-    if env and hasattr(env, "VECTORIZE"):
-        try:
-            await env.VECTORIZE.deleteByIds([event_id])
-        except Exception:
-            pass  # Fail gracefully if vector deletion fails or doesn't exist
+    # 3. Explicitly purge the vector payload if it has one
+    if has_vector:
+        if not env or not hasattr(env, "VECTORIZE"):
+            raise ValueError("env.VECTORIZE is required to cleanup a vectorized event")
+        from src.vectorize_client import delete_vector
+
+        await delete_vector(event_id, env)

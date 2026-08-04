@@ -365,8 +365,15 @@ class TestRedactionEngine:
     async def test_unexpected_error_quarantines_event(self, mock_env):
         """If the DB raises during audit storage, the event is quarantined."""
         broken_db = AsyncMock()
-        # First call (INSERT) raises, second call (quarantine UPDATE) succeeds.
+        # First call (INSERT) raises, subsequent calls succeed.
         broken_db.execute.side_effect = [RuntimeError("D1 unavailable"), MagicMock(), MagicMock()]
+
+        mock_stmt = MagicMock()
+        mock_stmt.bind.return_value = mock_stmt
+        mock_stmt.first = AsyncMock(return_value={"status": "pending"})
+        mock_stmt.run = AsyncMock(return_value=MagicMock(meta={"changes": 1}))
+        broken_db.prepare = MagicMock(return_value=mock_stmt)
+
         with pytest.raises(RedactionFailedError):
             await redact("Email: admin@example.com", mock_env, "evt-err", broken_db)
 

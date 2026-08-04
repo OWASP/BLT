@@ -263,11 +263,11 @@ async def _store_redaction_audit(db: Any, event_id: str, redaction_map: list[dic
 
 async def _quarantine_event(db: Any, event_id: str, reason: str) -> None:
     """Mark an event as quarantined in D1."""
-    await db.execute(
-        "UPDATE triage_events SET status = 'quarantined', quarantine_reason = ? WHERE id = ?",
-        [reason, event_id],
-    )
-    logger.warning("Event %s quarantined: %s", event_id, reason)
+    from src.state_machine import quarantine_event
+
+    # redaction happens before vectorization, so there is no vector to delete
+    # we pass env=None which safely skips vector deletion while preserving the audit trail
+    await quarantine_event(db, event_id, reason, env=None, has_vector=False)
 
 
 async def _transition_state(db: Any, event_id: str, new_status: str) -> None:
