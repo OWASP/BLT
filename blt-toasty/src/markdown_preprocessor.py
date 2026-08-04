@@ -58,6 +58,9 @@ def extract_plain_text(markdown: str) -> str:
     # 1. Remove HTML comments entirely — they carry no user-facing text.
     text = _HTML_COMMENT.sub("", text)
 
+    # 1a. Strip zero-width characters used for adversarial PII obfuscation.
+    text = re.sub(r"[\u200b\u200c\u200d\ufeff\u00ad\u2060]", "", text)
+
     # 2. Fenced code blocks → keep the body (credentials hide here).
     text = _FENCED_CODE_BLOCK.sub(r" \1 ", text)
 
