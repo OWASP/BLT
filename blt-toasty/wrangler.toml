@@ -35,7 +35,7 @@ name = "toasty-backend-staging"
 name = "toasty-backend-dev"
 
 [env.development.vars]
-
+FASTEMBED_URL = "http://fastembed_sidecar:8000"
 # Routes for the worker (configure based on your domain)
 # [[routes]]
 # pattern = "api.toasty.example.com/*"
@@ -74,7 +74,6 @@ index_name = "toasty-embeddings"
 [vars]
 ENVIRONMENT = "development"
 LOG_LEVEL = "info"
-FASTEMBED_URL = "http://fastembed_sidecar:8000"
 
 # [placement]
 # mode = "smart" # Uncomment this to enable Smart Placement when deploying to Cloudflare
