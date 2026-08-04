@@ -87,7 +87,7 @@ tailwind.config = {
   <!-- ═══ SIDEBAR ═══ -->
   <aside class="hidden lg:flex lg:flex-col lg:h-screen lg:sticky lg:top-0 bg-[var(--blt-surface)] border-r border-[var(--blt-border)] overflow-y-auto" aria-label="Main navigation">
     <div class="flex items-center justify-between px-4 pt-5 pb-4">
-      <a class="flex items-center gap-2.5" href="#">
+      <a class="flex items-center gap-2.5" href="landing.html">
         <div class="w-8 h-8 rounded-md bg-[var(--blt-primary)] flex items-center justify-center text-white font-extrabold text-sm">B</div>
         <div>
           <span class="text-sm font-semibold tracking-tight text-[var(--blt-text)]">BLT HackerHouse</span>
@@ -97,6 +97,10 @@ tailwind.config = {
     </div>
     <div class="h-px bg-[var(--blt-border)] mx-4 mb-3"></div>
     <nav class="flex-1 px-3 space-y-0.5" aria-label="Pages">
+      <a class="sidebar-link" href="landing.html">
+        <span class="material-symbols-outlined nav-icon text-lg">info</span>
+        About
+      </a>
       <a class="sidebar-link" href="hackerhouse_state.html">
         <span class="material-symbols-outlined nav-icon text-lg">home</span>
         HackerHouse
@@ -130,7 +134,31 @@ tailwind.config = {
   </aside>
 
   <!-- ═══ MAIN ═══ -->
-  <main class="blt-page-main px-4 py-6 sm:px-6 lg:px-8 min-h-screen">
+  <main class="blt-page-main flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="hh-header flex-none flex items-center justify-between px-4 lg:px-6 h-14 border-b border-[var(--blt-border)] bg-[var(--blt-surface)]/80 backdrop-blur-md z-30">
+      <div class="flex items-center gap-4">
+        <button class="lg:hidden p-1.5 rounded-md text-[var(--blt-text-muted)] hover:text-[var(--blt-text)] hover:bg-[var(--blt-surface-muted)] transition-colors" onclick="document.querySelector('aside').classList.toggle('hidden')">
+          <span class="material-symbols-outlined text-lg">menu</span>
+        </button>
+        <nav class="hidden sm:flex items-center gap-1.5 hh-breadcrumbs" aria-label="Breadcrumb">
+          <a href="hackerhouse_state.html" class="hover:text-[var(--blt-text)] transition-colors">HackerHouse</a>
+          <span class="material-symbols-outlined text-xs">chevron_right</span>
+          <span class="current">Activity Feed</span>
+        </nav>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="hh-user-pill hidden sm:flex">
+          <div class="hh-user-avatar">B</div>
+          <span class="hh-user-name">BLT Node</span>
+          <span class="material-symbols-outlined text-sm text-[var(--blt-text-subtle)]">expand_more</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="flex-1 overflow-y-auto hh-scrollbar px-4 py-6 sm:px-6 lg:px-8">
 
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
@@ -178,7 +206,10 @@ tailwind.config = {
 
     <!-- Event List (populated by JS) -->
     <div id="activity-list" class="space-y-3 mb-8">
-      <div class="flex items-center justify-center py-16 text-sm text-[var(--blt-text-subtle)]">Loading activity…</div>
+      <div class="hh-empty-state">
+        <span class="material-symbols-outlined">rss_feed</span>
+        <span class="hh-empty-state-text">Loading activity…</span>
+      </div>
     </div>
 
     <!-- Skeleton Loading (shown during fetch) -->
@@ -222,8 +253,48 @@ tailwind.config = {
       </button>
     </div>
 
+    </div><!-- /Page Content -->
+
+    <!-- Footer -->
+    <footer class="hh-footer flex-none">
+      <span><span class="hh-footer-dot"></span> All Systems Operational</span>
+      <span>BLT HackerHouse v0.4 · <span id="footer-events">0</span> events</span>
+      <span id="footer-uptime">Uptime: --</span>
+    </footer>
+
   </main>
 </div>
+
+<!-- Scroll to top -->
+<button class="hh-scroll-top" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">
+  <span class="material-symbols-outlined">arrow_upward</span>
+</button>
+
+<!-- Mobile Bottom Nav -->
+<nav class="hh-bottom-nav" aria-label="Mobile navigation">
+  <div class="hh-bottom-nav-inner">
+    <a class="hh-bottom-nav-link" href="landing.html">
+      <span class="material-symbols-outlined">info</span>
+      About
+    </a>
+    <a class="hh-bottom-nav-link" href="hackerhouse_state.html">
+      <span class="material-symbols-outlined">home</span>
+      Home
+    </a>
+    <a class="hh-bottom-nav-link active" href="activity_feed.html" aria-current="page">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">rss_feed</span>
+      Feed
+    </a>
+    <a class="hh-bottom-nav-link" href="leaderboard.html">
+      <span class="material-symbols-outlined">leaderboard</span>
+      Board
+    </a>
+    <a class="hh-bottom-nav-link" href="status_health.html">
+      <span class="material-symbols-outlined">sensors</span>
+      Status
+    </a>
+  </div>
+</nav>
 
 <script>
 (function() {
@@ -320,6 +391,33 @@ tailwind.config = {
     '</div>';
   }
 
+  function dateLabel(iso) {
+    var d = new Date(iso);
+    var now = new Date();
+    var yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    if (d.toDateString() === now.toDateString()) return 'Today';
+    if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function renderWithDateGroups(data) {
+    var html = '';
+    var lastDate = '';
+    data.forEach(function(ev) {
+      var dateLabel = ev.timestamp ? dateLabel(ev.timestamp) : '';
+      if (dateLabel && dateLabel !== lastDate) {
+        lastDate = dateLabel;
+        html += '<div class="flex items-center gap-3 my-6 first:mt-0">' +
+          '<div class="flex-1 h-px bg-[var(--blt-border)]"></div>' +
+          '<span class="font-mono text-[11px] text-[var(--blt-text-subtle)] font-semibold shrink-0">' + lastDate + '</span>' +
+          '<div class="flex-1 h-px bg-[var(--blt-border)]"></div>' +
+        '</div>';
+      }
+      html += renderCard(ev);
+    });
+    return html;
+  }
+
   function fetchActivity(page) {
     var list = document.getElementById('activity-list');
     var skel = document.getElementById('activity-skeleton');
@@ -338,10 +436,10 @@ tailwind.config = {
 
         var data = resp.data || [];
         if (data.length === 0) {
-          list.innerHTML = '<div class="flex items-center justify-center py-16 text-sm text-[var(--blt-text-subtle)]">No activity yet. Events will appear here as they arrive.</div>';
+          list.innerHTML = '<div class="hh-empty-state"><span class="material-symbols-outlined">rss_feed</span><span class="hh-empty-state-text">No activity yet. Events will appear here as they arrive.</span></div>';
           return;
         }
-        list.innerHTML = data.map(renderCard).join('');
+        list.innerHTML = renderWithDateGroups(data);
 
         if (resp.pagination) {
           currentPage = resp.pagination.page;
@@ -356,7 +454,7 @@ tailwind.config = {
       .catch(function(err) {
         if (skel) skel.classList.add('hidden');
         list.classList.remove('hidden');
-        list.innerHTML = '<div class="flex items-center justify-center py-16 text-sm text-[var(--blt-text-subtle)]">Failed to load activity. Is the backend running?</div>';
+        list.innerHTML = '<div class="hh-empty-state"><span class="material-symbols-outlined">error</span><span class="hh-empty-state-text">Failed to load activity. Is the backend running?</span></div>';
         console.error('Activity fetch failed', err);
       });
   }
@@ -389,7 +487,20 @@ tailwind.config = {
   });
 
   setupPagination();
-  document.addEventListener('DOMContentLoaded', function() { fetchActivity(1); });
+  document.addEventListener('DOMContentLoaded', function() {
+    fetchActivity(1);
+
+    // Header scroll shadow + scroll-to-top
+    var scrollTop = document.getElementById('scroll-top-btn');
+    var pageContent = document.querySelector('.blt-page-main > .flex-1.overflow-y-auto');
+    var header = document.querySelector('.hh-header');
+    if (pageContent && header) {
+      pageContent.addEventListener('scroll', function() {
+        header.classList.toggle('scrolled', pageContent.scrollTop > 4);
+        if (scrollTop) scrollTop.classList.toggle('visible', pageContent.scrollTop > 200);
+      });
+    }
+  });
 
   // Fallback for broken avatar images
   document.addEventListener('error', function(e) {
