@@ -275,7 +275,7 @@ async def handle_gitlab_webhook(request, env):
                 return create_error_response(f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes", 413)
         except ValueError:
             pass  # Invalid Content-Length, let it proceed or fail down the line
-    
+
     return await handle_webhook(request, env)
 
 
@@ -632,7 +632,19 @@ async def handle_conversation_reply(request, env, triage_id):
         Response: The DO's response (turn_count, conversation_id).
     """
     try:
+        content_length_header = request.headers.get("content-length")
+        if content_length_header:
+            try:
+                content_length = int(content_length_header)
+                if content_length > MAX_BODY_SIZE:
+                    return create_error_response(f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes", 413)
+            except ValueError:
+                pass
+
         body_text = await request.text()
+        if len(body_text) > MAX_BODY_SIZE:
+            return create_error_response(f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes", 413)
+            
         if not body_text:
             return create_error_response("Request body is required", 400)
 
