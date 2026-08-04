@@ -1,27 +1,12 @@
 """Tests for conversation route parsing and dispatch.
 
 These tests validate that the worker correctly routes conversation
-endpoints and sanitizes triage IDs, without requiring the Cloudflare
 Workers runtime.
 """
 
 import urllib.parse
 
-
-def parse_path(url):
-    """Copy of worker.py's parse_path for testing.
-
-    ⚠️  KEEP IN SYNC WITH worker.py parse_path() ⚠️
-    """
-    parsed = urllib.parse.urlparse(url)
-    path = parsed.path
-    if not path or path == "":
-        path = "/"
-    elif not path.startswith("/"):
-        path = "/" + path
-    if len(path) > 1 and path.endswith("/"):
-        path = path[:-1]
-    return path
+from tests.utils import parse_path
 
 
 class TestConversationRouteMatching:

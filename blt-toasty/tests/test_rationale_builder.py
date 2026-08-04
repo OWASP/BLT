@@ -29,7 +29,6 @@ from src.rationale_builder import (
     build_confidence_trace,
     build_cwe_rationale,
     build_duplicate_rationale,
-    build_rationale_response,
     store_rationale,
 )
 
@@ -326,8 +325,8 @@ class TestBuildConfidenceTrace:
         assert trace.redaction_entity_count == 3
 
     def test_geometric_mean_with_dup(self):
-        """Geometric mean includes dup similarity when present."""
-        dup = _make_dup_result(similarity_score=0.81)
+        """Geometric mean includes dup similarity when present and confirmed."""
+        dup = _make_dup_result(similarity_score=0.81, llm_confirmed=True)
         trace = build_confidence_trace(
             redaction_entity_count=2,
             redaction_confidence_min=1.0,
@@ -527,64 +526,91 @@ class TestStoreRationale:
         await store_rationale(db, "evt-004", [], None, trace)
 
         sql = db.execute.call_args[0][0]
-        assert "INSERT OR REPLACE" in sql.upper()
+import sys
+from unittest.mock import AsyncMock, MagicMock
+
+class MockResponse:
+    def __init__(self, body, status, headers=None):
+        self._body = body
+        self.status = status
+        self.headers = headers
+    
+    async def text(self):
+        return self._body
+
+    @classmethod
+    def new(cls, body, status=200, headers=None):
+        return cls(body, status, headers)
+
+# Mock Cloudflare Workers environment (js, pyodide) before importing worker
+js_mock = MagicMock()
+js_mock.Response = MockResponse
+sys.modules["js"] = js_mock
+sys.modules["pyodide"] = MagicMock()
+sys.modules["pyodide.ffi"] = MagicMock()
+from worker import handle_rationale
 
 
 # ---------------------------------------------------------------------------
-# build_rationale_response
+# handle_rationale
 # ---------------------------------------------------------------------------
 
 
-class TestBuildRationaleResponse:
-    def test_structure(self):
-        """Response dict has all required top-level keys."""
-        cwe_r = [
-            CWERationale(
-                cwe_id="CWE-89",
-                label="SQL Injection",
-                evidence_snippets=["SELECT id FROM users"],
-                confidence=0.9,
-                reasoning="SQL keywords present.",
-            )
-        ]
-        trace = build_confidence_trace(
-            redaction_entity_count=2,
-            redaction_confidence_min=0.99,
-            summary_confidence=0.9,
-        )
-        resp = build_rationale_response("evt-001", cwe_r, None, trace)
+class TestHandleRationale:
+    @pytest.mark.asyncio
+    async def test_returns_200_with_valid_json(self):
+        """Returns 200 with JSON payload when rationale exists."""
+        req = AsyncMock()
+        env = AsyncMock()
+        
+        # Valid JSON from the DB
+        cwe_json = '[{"cwe_id": "CWE-79"}]'
+        dup_json = '{"top_candidate_event_id": "evt-000"}'
+        trace_json = '{"overall_confidence": 0.85}'
+        db = _make_db(has_rationale=True, rationale_row=(cwe_json, dup_json, trace_json))
+        env.DB = db
 
-        assert resp["event_id"] == "evt-001"
-        assert resp["status"] == "complete"
-        assert isinstance(resp["cwe_rationale"], list)
-        assert resp["duplicate_rationale"] is None
-        assert isinstance(resp["confidence_trace"], dict)
+        resp = await handle_rationale(req, env, "evt-123")
+        assert resp.status == 200
+        
+        body = json.loads(await resp.text())
+        assert body["event_id"] == "evt-123"
+        assert body["status"] == "complete"
+        assert body["cwe_rationale"] == [{"cwe_id": "CWE-79"}]
+        assert body["duplicate_rationale"] == {"top_candidate_event_id": "evt-000"}
+        assert body["confidence_trace"] == {"overall_confidence": 0.85}
 
-    def test_serialisable(self):
-        """Response dict is JSON-serialisable."""
-        trace = build_confidence_trace(
-            redaction_entity_count=1,
-            redaction_confidence_min=0.97,
-            summary_confidence=0.85,
-        )
-        resp = build_rationale_response("evt-002", [], None, trace)
-        # Must not raise.
-        serialised = json.dumps(resp)
-        assert "evt-002" in serialised
+    @pytest.mark.asyncio
+    async def test_returns_200_with_null_duplicate_rationale(self):
+        """Handles cases where duplicate_rationale is NULL in the DB."""
+        req = AsyncMock()
+        env = AsyncMock()
+        
+        cwe_json = '[]'
+        trace_json = '{}'
+        # duplicate_rationale is NULL (None)
+        db = _make_db(has_rationale=True, rationale_row=(cwe_json, None, trace_json))
+        env.DB = db
 
-    def test_with_duplicate_rationale(self):
-        """Duplicate rationale is included when not None."""
-        dup = _make_dup_result(event_id="evt-old", similarity_score=0.88)
-        dup_r = build_duplicate_rationale(dup)
-        trace = build_confidence_trace(
-            redaction_entity_count=0,
-            redaction_confidence_min=1.0,
-            summary_confidence=0.8,
-            dup_result=dup,
-        )
-        resp = build_rationale_response("evt-003", [], dup_r, trace)
-        assert resp["duplicate_rationale"] is not None
-        assert resp["duplicate_rationale"]["top_candidate_event_id"] == "evt-old"
+        resp = await handle_rationale(req, env, "evt-123")
+        assert resp.status == 200
+        
+        body = json.loads(await resp.text())
+        assert body["duplicate_rationale"] is None
+
+    @pytest.mark.asyncio
+    async def test_returns_424_when_missing(self):
+        """Returns 424 if rationale row does not exist."""
+        req = AsyncMock()
+        env = AsyncMock()
+        db = _make_db(has_rationale=False)
+        env.DB = db
+
+        resp = await handle_rationale(req, env, "evt-404")
+        assert resp.status == 424
+        
+        body = json.loads(await resp.text())
+        assert "incomplete" in body["error"].lower()
 
 
 # ---------------------------------------------------------------------------

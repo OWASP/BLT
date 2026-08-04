@@ -324,9 +324,10 @@ class TestDeleteArchive:
         data = _parse_response(resp_del)
         assert data["archived"] is True
         assert data["turns_archived"] == 3
-        assert state.storage._data.get("status") == "closed"
-        # Alarm should be set for cleanup
-        state.storage.setAlarm.assert_called()
+
+        # State should be entirely deleted upon successful archive
+        state.storage.deleteAll.assert_called_once()
+        assert not state.storage._data
 
 
 # ---------------------------------------------------------------------------
@@ -372,3 +373,25 @@ class TestAlarm:
         # Should be ~30 days from Date.now() (1700000000000)
         expected = 1700000000000 + 30 * 24 * 60 * 60 * 1000
         assert alarm_time == expected
+
+    @pytest.mark.asyncio
+    async def test_alarm_archive_failure_reschedules_alarm(self):
+        """alarm() with unarchived turns and DB failure \u2192 reschedules alarm for 1 min."""
+        state = _make_state()
+        state.storage._data["status"] = "closed"
+        state.storage._data["turns"] = json.dumps([{"role": "developer", "content": "hi", "turn_index": 1}])
+        state.storage._data["conversation_id"] = "evt-001"
+
+        env = _make_env(db_run_side_effect=Exception("DB Error"))
+        do = ConversationDO(state, env)
+
+        await do.alarm()
+
+        # Turn stays in DO state
+        turns_left = json.loads(state.storage._data["turns"])
+        assert len(turns_left) == 1
+
+        # Alarm scheduled for 60s
+        state.storage.setAlarm.assert_called_once()
+        alarm_time = state.storage.setAlarm.call_args[0][0]
+        assert alarm_time == 1700000000000 + 60000

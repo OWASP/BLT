@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import logging
 import secrets
+from datetime import datetime, timezone
 from typing import Any
 
 from js import Date, Headers, Response, URL
@@ -65,6 +66,8 @@ class ConversationDO:
             return _json_response({"error": f"Invalid role, must be one of {VALID_ROLES}"}, status=400)
         if not content or not isinstance(content, str):
             return _json_response({"error": "Content must be a non-empty string"}, status=400)
+        if len(content) > 20000:
+            return _json_response({"error": "Content exceeds maximum allowed length of 20000 characters"}, status=400)
         if not triage_id:
             return _json_response({"error": "triage_id is required"}, status=400)
 
@@ -78,7 +81,10 @@ class ConversationDO:
 
         # Increment turn count
         turn_count += 1
-        new_turn = {"role": role, "content": content, "timestamp": str(Date.now()), "turn_index": turn_count}
+        iso_now = datetime.now(timezone.utc).isoformat()
+        if not iso_now.endswith("Z"):
+            iso_now = iso_now.replace("+00:00", "Z")
+        new_turn = {"role": role, "content": content, "timestamp": iso_now, "turn_index": turn_count}
         turns.append(new_turn)
 
         while len(turns) > MAX_ACTIVE_TURNS:
@@ -93,7 +99,7 @@ class ConversationDO:
                 id_hex = secrets.token_hex(16)
                 await self.env.DB.prepare(sql).bind(
                     id_hex,
-                    triage_id,
+                    triage_id,  # Use triage_id passed in the request
                     oldest_turn["role"],
                     oldest_turn["content"],
                     oldest_turn["turn_index"],
@@ -127,23 +133,27 @@ class ConversationDO:
         full_history = url.searchParams.get("full") == "true"
         if full_history and conversation_id:
             try:
+                turn_cursor = int(url.searchParams.get("cursor") or 0)
                 sql = (
                     "SELECT role, content, created_at as timestamp, turn_index "
                     "FROM conversation_archive "
-                    "WHERE triage_event_id = ? "
-                    "ORDER BY turn_index ASC"
+                    "WHERE triage_event_id = ? AND turn_index > ? "
+                    "ORDER BY turn_index ASC LIMIT 50"
                 )
-                result = await self.env.DB.prepare(sql).bind(conversation_id).all()
+                result = await self.env.DB.prepare(sql).bind(conversation_id, turn_cursor).all()
                 archived_turns_raw = getattr(result, "results", []) or []
 
                 formatted_archived = []
                 for row in archived_turns_raw:
-                    # `row` might be a JS Object, so we convert it to dict or dict-like
+                    # Normalize SQL timestamp to ISO-8601
+                    ts = row.timestamp
+                    if ts and not ts.endswith("Z"):
+                        ts = ts.replace(" ", "T") + "Z"
                     formatted_archived.append(
                         {
                             "role": row.role,
                             "content": row.content,
-                            "timestamp": row.timestamp,
+                            "timestamp": ts,
                             "turn_index": row.turn_index,
                         }
                     )
@@ -187,15 +197,24 @@ class ConversationDO:
                     failed_turns.append(turn)
 
         await self.storage.put("status", "closed")
-        await self.storage.put("turns", json.dumps(failed_turns))
+        if failed_turns:
+            await self.storage.put("turns", json.dumps(failed_turns))
+            await self.storage.setAlarm(Date.now() + 60000)  # Retry in 1 minute
+            return _json_response(
+                {"archived": False, "turns_archived": archived_count, "failed_count": len(failed_turns)}
+            )
 
-        await self.storage.setAlarm(Date.now() + TTL_CLEANUP_MS)
-
+        await self.storage.deleteAll()
         return _json_response({"archived": True, "turns_archived": archived_count})
 
     async def alarm(self) -> None:
         status = await self.storage.get("status")
+        turns_str = await self.storage.get("turns")
+        turns = json.loads(turns_str) if turns_str else []
+
         if status == "active":
             await self.storage.setAlarm(Date.now() + TTL_30_DAYS_MS)
+        elif turns:
+            await self._handle_archive()
         else:
             await self.storage.deleteAll()

@@ -245,14 +245,15 @@ def _extract_snippets_for_cwe(cwe_id: str, redacted_text: str) -> list[str]:
             seen_starts.add(start)
 
             raw_snippet = redacted_text[start:end].strip()
-            # Truncate to MAX_SNIPPET_CHARS.
-            if len(raw_snippet) > MAX_SNIPPET_CHARS:
-                raw_snippet = raw_snippet[:MAX_SNIPPET_CHARS]
-
-            # PII safety gate — drop the snippet if any PII is detected.
+            
+            # PII safety gate — drop the snippet if any PII is detected in the full window.
             if not _is_pii_free(raw_snippet):
                 logger.debug("Dropped tainted snippet for %s at offset %d", cwe_id, start)
                 continue
+
+            # Truncate to MAX_SNIPPET_CHARS.
+            if len(raw_snippet) > MAX_SNIPPET_CHARS:
+                raw_snippet = raw_snippet[:MAX_SNIPPET_CHARS]
 
             snippets.append(raw_snippet)
             if len(snippets) >= MAX_EVIDENCE_SNIPPETS:
@@ -388,7 +389,7 @@ def build_confidence_trace(
         max(0.0, min(1.0, float(redaction_confidence_min))),
         max(0.0, min(1.0, float(summary_confidence))),
     ]
-    if dup_sim is not None:
+    if dup_sim is not None and dup_result and dup_result.top_candidate and dup_result.top_candidate.llm_confirmed:
         component_scores.append(max(0.0, min(1.0, float(dup_sim))))
     if dup_llm_conf is not None:
         component_scores.append(max(0.0, min(1.0, float(dup_llm_conf))))
@@ -419,7 +420,7 @@ def build_confidence_trace(
 async def audit_completeness_check(event_id: str, db: Any) -> tuple[bool, list[str]]:
     """Verify that all required audit records exist in D1 for *event_id*.
 
-    Queries three tables in parallel (sequential awaits on the D1 driver):
+    Queries three tables sequentially:
 
     1. ``triage_summaries`` — the summarizer must have run.
     2. ``triage_rationale`` — this module must have persisted a rationale.
@@ -518,30 +519,4 @@ async def store_rationale(
 # ---------------------------------------------------------------------------
 
 
-def build_rationale_response(
-    event_id: str,
-    cwe_rationale: list[CWERationale],
-    duplicate_rationale: DuplicateRationale | None,
-    confidence_trace: ConfidenceTrace,
-) -> dict[str, Any]:
-    """Assemble the JSON-serialisable rationale response dict.
 
-    The response intentionally omits raw ``redaction_map`` content — only
-    aggregate counts and entity types are exposed.
-
-    Args:
-        event_id: The triage event ID.
-        cwe_rationale: List of ``CWERationale`` dataclasses.
-        duplicate_rationale: A ``DuplicateRationale`` or ``None``.
-        confidence_trace: The ``ConfidenceTrace`` for this event.
-
-    Returns:
-        A dict ready for ``json.dumps()``.
-    """
-    return {
-        "event_id": event_id,
-        "status": "complete",
-        "cwe_rationale": [dataclasses.asdict(r) for r in cwe_rationale],
-        "duplicate_rationale": dataclasses.asdict(duplicate_rationale) if duplicate_rationale else None,
-        "confidence_trace": dataclasses.asdict(confidence_trace),
-    }

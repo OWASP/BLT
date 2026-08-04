@@ -130,6 +130,27 @@ class TestPostDuplicateComment:
         assert f"{GITLAB_API_BASE}/projects/123/issues/42/notes" == url
 
     @pytest.mark.asyncio
+    async def test_post_comment_headers_format(self):
+        """Outbound request includes PRIVATE-TOKEN and Content-Type."""
+        env = _make_env()
+
+        await post_duplicate_comment(
+            access_token="glpat-test-token",
+            project_id=123,
+            issue_iid=42,
+            duplicate_of_iid=10,
+            confidence=0.92,
+            rationale="Same XSS in login form.",
+            env=env,
+        )
+
+        call_args = env._fetch_impl.call_args
+        options = call_args[0][1]
+        headers = options["headers"]
+        assert headers["Authorization"] == "Bearer glpat-test-token"
+        assert headers["Content-Type"] == "application/json"
+
+    @pytest.mark.asyncio
     async def test_post_comment_body_format(self):
         """Comment body contains issue number, confidence percentage, and rationale."""
         env = _make_env()

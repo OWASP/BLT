@@ -211,7 +211,10 @@ async def find_duplicates(
             embedding,
             {
                 "topK": top_k,
-                "filter": {"repo": repo_full_name},
+                "filter": {
+                    "repo": repo_full_name,
+                    "model_version": MODEL_VERSION,
+                },
                 "returnMetadata": "all",
             },
         )

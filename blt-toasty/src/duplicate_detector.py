@@ -132,7 +132,9 @@ def validate_adjudication_output(data: dict) -> tuple[bool, list[str]]:
         errors.append("is_duplicate: missing or not a boolean")
 
     conf = data.get("confidence")
-    if conf is None:
+    if isinstance(conf, bool):
+        errors.append("confidence: missing or not a number")
+    elif conf is None:
         errors.append("confidence: missing")
     elif not isinstance(conf, (int, float)):
         errors.append(f"confidence: not a number (got {type(conf).__name__})")
@@ -184,14 +186,16 @@ async def _store_candidates(db: Any, event_id: str, candidates: list[DuplicateCa
         event_id: The query event ID.
         candidates: The candidates to persist.
     """
+    queries = []
     for candidate in candidates:
         row_id = f"{event_id}_{candidate.event_id}"
-        await db.execute(
-            "INSERT OR REPLACE INTO duplicate_candidates "
-            "(id, triage_event_id, candidate_event_id, similarity_score, "
-            "llm_confirmed, llm_confidence, llm_rationale, detection_method) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [
+        queries.append(
+            db.prepare(
+                "INSERT OR REPLACE INTO duplicate_candidates "
+                "(id, triage_event_id, candidate_event_id, similarity_score, "
+                "llm_confirmed, llm_confidence, llm_rationale, detection_method) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+            ).bind(
                 row_id,
                 event_id,
                 candidate.event_id,
@@ -200,8 +204,11 @@ async def _store_candidates(db: Any, event_id: str, candidates: list[DuplicateCa
                 candidate.llm_confidence,
                 candidate.llm_rationale,
                 candidate.detection_method,
-            ],
+            )
         )
+    
+    if queries:
+        await db.batch(queries)
 
 
 # ---------------------------------------------------------------------------
@@ -320,6 +327,10 @@ async def detect_duplicates(
 
     # ── 3-tier scoring ────────────────────────────────────────────────────
     candidates: list[DuplicateCandidate] = []
+    adjudications_performed = 0
+    MAX_ADJUDICATIONS = 3
+    
+    raw_matches.sort(key=lambda m: m["score"], reverse=True)
 
     for match in raw_matches:
         candidate_event_id = match["event_id"]
@@ -342,6 +353,9 @@ async def detect_duplicates(
                 )
             )
         elif score >= ADJUDICATION_THRESHOLD:
+            if adjudications_performed >= MAX_ADJUDICATIONS:
+                continue
+                
             # Tier 2: Borderline — LLM adjudication required
             candidate_text = await _get_candidate_summary_text(candidate_event_id, db)
             if candidate_text is None:
@@ -352,6 +366,7 @@ async def detect_duplicates(
                 continue
 
             adjudication = await adjudicate_duplicate(redacted_text, candidate_text, env, do_stub)
+            adjudications_performed += 1
 
             if adjudication["is_duplicate"] and adjudication["confidence"] >= LLM_CONFIDENCE_THRESHOLD:
                 candidates.append(

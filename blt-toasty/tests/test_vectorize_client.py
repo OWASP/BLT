@@ -163,9 +163,11 @@ class TestIndexReport:
 
         await index_report("evt-001", "redacted text", "owasp/blt", env, db)
 
-        # The last db.execute call should be the transition to 'embedded'
-        transition_calls = [c for c in db.execute.call_args_list if "UPDATE" in str(c) and "embedded" in str(c)]
-        assert len(transition_calls) >= 1
+        # Inspect bound parameters instead of stringified call args
+        calls = [c for c in db.execute.call_args_list if "UPDATE" in c[0][0]]
+        assert len(calls) == 1
+        params = calls[-1][0][1]
+        assert params == ["embedded", "evt-001"]
 
     @pytest.mark.asyncio
     @patch("src.vectorize_client.get_embedding", new_callable=AsyncMock)
@@ -178,11 +180,31 @@ class TestIndexReport:
         # Should NOT raise
         await index_report("evt-001", "redacted text", "owasp/blt", env, db)
 
-        # Verify state was set to embedded_pending
-        transition_calls = [c for c in db.execute.call_args_list if "embedded_pending" in str(c)]
-        assert len(transition_calls) >= 1
+        # Inspect bound parameters
+        calls = [c for c in db.execute.call_args_list if "UPDATE" in c[0][0]]
+        assert len(calls) == 1
+        params = calls[-1][0][1]
+        assert params == ["embedded_pending", "evt-001"]
+        
         # Verify Vectorize.insert was NOT called
         env.VECTORIZE.insert.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    @patch("src.vectorize_client.get_embedding", new_callable=AsyncMock)
+    async def test_generic_exception_sets_embedded_pending(self, mock_get_embedding):
+        """On generic Exception during Vectorize API call, state becomes 'embedded_pending' and raises."""
+        mock_get_embedding.return_value = [0.1] * 384
+        db = _make_db(status="summarized")
+        env = _make_env()
+        env.VECTORIZE.insert.side_effect = Exception("Generic insert error")
+
+        with pytest.raises(Exception, match="Generic insert error"):
+            await index_report("evt-001", "redacted text", "owasp/blt", env, db)
+
+        calls = [c for c in db.execute.call_args_list if "UPDATE" in c[0][0]]
+        assert len(calls) == 1
+        params = calls[-1][0][1]
+        assert params == ["embedded_pending", "evt-001"]
 
     @pytest.mark.asyncio
     async def test_guard_blocks_non_summarized(self):
@@ -224,7 +246,7 @@ class TestFindDuplicates:
 
         env.VECTORIZE.query.assert_awaited_once()
         query_args = env.VECTORIZE.query.call_args
-        assert query_args[0][1]["filter"] == {"repo": "owasp/blt"}
+        assert query_args[0][1]["filter"] == {"repo": "owasp/blt", "model_version": "all-MiniLM-L6-v2"}
         assert len(results) == 1
         assert results[0]["event_id"] == "evt-001"
 

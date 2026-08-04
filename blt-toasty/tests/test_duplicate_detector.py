@@ -61,6 +61,12 @@ def _make_db(*, status="redaction_passed", row_exists=True, summary_text="Mock e
         return MockCursor(row=None)
 
     db.execute = AsyncMock(side_effect=mock_execute)
+    db.batch = AsyncMock()
+    
+    mock_stmt = MagicMock()
+    mock_stmt.bind.return_value = mock_stmt
+    db.prepare = MagicMock(return_value=mock_stmt)
+    
     return db
 
 
@@ -255,6 +261,25 @@ class TestDetectDuplicates:
     @pytest.mark.asyncio
     @patch("src.duplicate_detector.call_llm", new_callable=AsyncMock)
     @patch("src.duplicate_detector.find_duplicates", new_callable=AsyncMock)
+    async def test_missing_summary_skips_adjudication(self, mock_find_duplicates, mock_call_llm):
+        """Candidate with missing executive summary skips LLM adjudication."""
+        mock_find_duplicates.return_value = [
+            {"event_id": "evt-dup", "score": 0.82, "metadata": {"repo": "owasp/blt"}},
+        ]
+        # Return None for summary
+        db = _make_db(status="redaction_passed", summary_text=None)
+        env = _make_env()
+        do_stub = _make_do_stub()
+
+        result = await detect_duplicates("evt-001", "redacted text", "owasp/blt", env, db, do_stub)
+
+        mock_call_llm.assert_not_awaited()
+        assert len(result.candidates) == 0
+        assert result.top_candidate is None
+
+    @pytest.mark.asyncio
+    @patch("src.duplicate_detector.call_llm", new_callable=AsyncMock)
+    @patch("src.duplicate_detector.find_duplicates", new_callable=AsyncMock)
     async def test_llm_unavailable_fails_safe(self, mock_find_duplicates, mock_call_llm):
         """LLMUnavailableError → candidate NOT promoted (fail-safe)."""
         mock_find_duplicates.return_value = [
@@ -287,6 +312,7 @@ class TestDetectDuplicates:
 
         await detect_duplicates("evt-001", "redacted text", "owasp/blt", env, db, do_stub)
 
-        # Find INSERT OR REPLACE INTO duplicate_candidates calls
-        insert_calls = [c for c in db.execute.call_args_list if "INSERT OR REPLACE INTO duplicate_candidates" in str(c)]
-        assert len(insert_calls) == 2  # One high-score, one borderline (both stored)
+        # Ensure batch was called
+        db.batch.assert_awaited_once()
+        batch_args = db.batch.call_args[0][0]
+        assert len(batch_args) == 2  # One high-score, one borderline

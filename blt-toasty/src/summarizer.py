@@ -157,8 +157,7 @@ class TriageSummary:
 def estimate_tokens(text: str) -> int:
     """Estimate the token count for a text string.
 
-    Uses a conservative word-based heuristic: each word maps to
-    approximately 1.3 tokens on average for English text.
+    Uses a conservative byte-based heuristic: 4 bytes per token.
 
     Args:
         text: The input text to estimate.
@@ -168,7 +167,7 @@ def estimate_tokens(text: str) -> int:
     """
     if not text or not text.strip():
         return 0
-    return math.ceil(len(text.split()) * TOKEN_MULTIPLIER)
+    return math.ceil(len(text.encode("utf-8")) / 4)
 
 
 def truncate_to_token_budget(text: str, max_tokens: int) -> str:
@@ -190,11 +189,12 @@ def truncate_to_token_budget(text: str, max_tokens: int) -> str:
     if estimate_tokens(text) <= max_tokens:
         return text
 
-    # Convert token budget to approximate word count.
-    max_words = int(max_tokens / TOKEN_MULTIPLIER)
-    words = text.split()
-    truncated_words = words[:max_words]
-    truncated = " ".join(truncated_words)
+    # Convert token budget to approximate byte count.
+    max_bytes = max_tokens * 4
+    
+    encoded = text.encode("utf-8")
+    truncated_bytes = encoded[:max_bytes]
+    truncated = truncated_bytes.decode("utf-8", errors="ignore")
 
     # Try to break on a sentence boundary (last sentence-ending punctuation).
     last_sentence_end = max(
@@ -243,12 +243,12 @@ def build_triage_messages(
 ) -> list[dict[str, str]]:
     """Build an OpenAI-format messages list for the triage summarizer.
 
-    Enforces strict token budgets:
+    Enforces strict token budgets using a hard byte-length ceiling (approx 4 bytes/token):
         - ``redacted_text``: ≤ 550 tokens (reduced to 350 when conversation context present)
         - ``duplicate_snippets``: ≤ 250 tokens total
         - ``conversation_turns``: ≤ 200 tokens (when provided)
         - System prompt: ~200 tokens (fixed)
-        - Total input: ≤ 1200 tokens
+        - Total input: ≤ 1200 tokens (approx 4800 bytes)
 
     Args:
         redacted_text: The PII-redacted vulnerability report text.

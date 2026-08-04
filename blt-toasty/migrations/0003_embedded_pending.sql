@@ -14,7 +14,7 @@
 -- copy all existing rows (quarantine_reason defaults to NULL for old rows),
 -- and restore every original index so existing queries remain intact.
 
-PRAGMA foreign_keys = OFF;
+PRAGMA defer_foreign_keys = TRUE;
 
 -- Step 1: Create new table with the expanded CHECK constraint.
 CREATE TABLE triage_events_new (
@@ -59,4 +59,3 @@ CREATE INDEX IF NOT EXISTS idx_triage_events_status
 CREATE INDEX IF NOT EXISTS idx_triage_events_delivery
     ON triage_events(delivery_id);
 
-PRAGMA foreign_keys = ON;

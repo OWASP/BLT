@@ -71,10 +71,13 @@ new_classes = ["ConversationDO"]
 binding = "VECTORIZE"
 index_name = "toasty-embeddings"
 
-# Environment variables (secrets should be set via wrangler secret put)
 [vars]
 ENVIRONMENT = "development"
 LOG_LEVEL = "info"
+FASTEMBED_URL = "http://fastembed_sidecar:8000"
+
+# [placement]
+# mode = "smart" # Uncomment this to enable Smart Placement when deploying to Cloudflare
 
 
 [observability]

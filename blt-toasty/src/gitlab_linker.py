@@ -201,10 +201,13 @@ async def post_duplicate_comment(
     """
     url = f"{GITLAB_API_BASE}/projects/{project_id}/issues/{issue_iid}/notes"
 
+    # Sanitize rationale to prevent GitLab quick action injection
+    sanitized_rationale = " ".join(line.lstrip(" /") for line in rationale.splitlines()).strip()
+
     comment_body = (
         f"\U0001f916 **Toasty Triage:** This issue may be a duplicate of #{duplicate_of_iid}.\n\n"
         f"**Confidence:** {confidence:.0%}\n\n"
-        f"**Rationale:** {rationale}\n\n"
+        f"**Rationale:** {sanitized_rationale}\n\n"
         f"*Please review and confirm or dismiss.*"
     )
 

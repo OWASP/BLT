@@ -81,14 +81,16 @@ async def transition_state(db, event_id: str, to_status: str) -> None:
         raise StateTransitionError("Concurrent modification detected")
 
 
-async def quarantine_event(db, event_id: str, reason: str) -> None:
+async def quarantine_event(db, event_id: str, reason: str, env=None) -> None:
     """
     Quarantine an event and log the reason to the audit log.
+    If env is provided, deletes the associated vector from Vectorize.
 
     Args:
         db: The D1 database binding.
         event_id (str): The ID of the triage event.
         reason (str): The reason for quarantining the event.
+        env: The Cloudflare Worker environment (optional).
 
     Raises:
         StateTransitionError: If the transition is invalid or a concurrent modification occurs.
@@ -101,3 +103,10 @@ async def quarantine_event(db, event_id: str, reason: str) -> None:
     query = "INSERT INTO triage_audit_log (id, event_id, action, reason) VALUES (?, ?, ?, ?)"
     stmt = db.prepare(query).bind(audit_id, event_id, "quarantine", reason)
     await stmt.run()
+
+    # 3. Explicitly purge the vector payload if env is provided
+    if env and hasattr(env, "VECTORIZE"):
+        try:
+            await env.VECTORIZE.deleteByIds([event_id])
+        except Exception:
+            pass  # Fail gracefully if vector deletion fails or doesn't exist

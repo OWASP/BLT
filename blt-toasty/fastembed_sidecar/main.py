@@ -66,6 +66,11 @@ class EmbedRequest(BaseModel):
     def texts_must_not_be_empty(cls, v: list[str]) -> list[str]:
         if not v:
             raise ValueError("texts list must contain at least one string")
+        if len(v) > 32:
+            raise ValueError("batch size exceeds maximum of 32")
+        for i, text in enumerate(v):
+            if len(text) > 8192:
+                raise ValueError(f"text at index {i} exceeds maximum length of 8192 characters")
         return v
 
 
@@ -93,6 +98,8 @@ class HealthResponse(BaseModel):
 @app.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
     """Readiness probe returning model metadata."""
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model is initializing")
     return HealthResponse(status="ok", model=MODEL_NAME, dimensions=EMBEDDING_DIMENSIONS)
 
 
@@ -111,8 +118,8 @@ async def embed(body: EmbedRequest) -> EmbedResponse:
             raise RuntimeError("Model is not initialized")
         embeddings = await asyncio.to_thread(lambda: [e.tolist() for e in model.embed(body.texts)])
     except Exception as exc:
-        logger.error("Embedding generation failed: %s", exc)
-        raise HTTPException(status_code=500, detail=f"Embedding generation failed: {exc}") from exc
+        logger.error("Embedding generation failed", exc_info=exc)
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     dims = len(embeddings[0]) if embeddings else EMBEDDING_DIMENSIONS
     return EmbedResponse(

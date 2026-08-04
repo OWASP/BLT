@@ -26,8 +26,28 @@ as known limitations.
 from __future__ import annotations
 
 
+import pytest
 from src.markdown_preprocessor import extract_plain_text
 from src.native_recognizers import apply_native_redaction
+
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(params=["raw", "fenced_code", "blockquote", "list_item"])
+def markdown_wrapper(request):
+    """Provides different markdown contexts to wrap injected text."""
+    if request.param == "raw":
+        return lambda text: text
+    elif request.param == "fenced_code":
+        return lambda text: f"```\n{text}\n```"
+    elif request.param == "blockquote":
+        return lambda text: f"> {text}"
+    elif request.param == "list_item":
+        return lambda text: f"- {text}"
+    return lambda text: text
 
 
 # ---------------------------------------------------------------------------
@@ -35,19 +55,33 @@ from src.native_recognizers import apply_native_redaction
 # ---------------------------------------------------------------------------
 
 
-def _assert_entity_detected(text: str, expected_type: str) -> None:
-    """Assert that applying redaction detects the expected entity type."""
-    # We must preprocess if there's markdown, but for direct tests scan_text is often enough.
-    # We will test apply_native_redaction which does not do markdown prep.
-    # Wait, the full pipeline does both. Let's test the native engine directly here.
-    _, matches = apply_native_redaction(text)
+def _assert_entity_redacted(text: str, expected_type: str, markdown_wrapper=None) -> None:
+    """Assert that applying redaction detects the expected entity and strips ZWS/ZWJ."""
+    # Wrap in markdown if requested
+    if markdown_wrapper:
+        text = markdown_wrapper(text)
+
+    # Process through pipeline
+    plain = extract_plain_text(text)
+    redacted, matches = apply_native_redaction(plain)
+    
     types = [m["entity_type"] for m in matches]
     assert expected_type in types, f"Failed to detect {expected_type} in {repr(text)}"
+    
+    # Assert that the zero-width characters are NOT in the final redacted text
+    # They should have been stripped by the preprocessor/scanner
+    assert "\u200b" not in redacted
+    assert "\u200c" not in redacted
+    assert "\u200d" not in redacted
+    
+    # Assert that the entity type placeholder is actually in the text
+    assert f"[{expected_type}]" in redacted
 
 
 def _assert_not_detected(text: str) -> None:
     """Assert that no PII is detected (used for documenting limitations)."""
-    _, matches = apply_native_redaction(text)
+    plain = extract_plain_text(text)
+    _, matches = apply_native_redaction(plain)
     assert not matches, f"Expected no matches, but got: {matches}"
 
 
@@ -63,48 +97,46 @@ class TestPIIEvasion:
     # Detected Vectors (Hardened)
     # -----------------------------------------------------------------------
 
-    def test_zero_width_space_email(self):
+    def test_zero_width_space_email(self, markdown_wrapper):
         """Attempt: Insert U+200B (ZWS) inside an email."""
         text = "Contact te\u200bst@ex\u200bample.c\u200bom immediately."
-        _assert_entity_detected(text, "EMAIL_ADDRESS")
+        _assert_entity_redacted(text, "EMAIL_ADDRESS", markdown_wrapper)
 
-    def test_zero_width_non_joiner_email(self):
+    def test_zero_width_non_joiner_email(self, markdown_wrapper):
         """Attempt: Insert U+200C (ZWNJ) inside an email."""
         text = "Contact te\u200cst@exa\u200cmple.com immediately."
-        _assert_entity_detected(text, "EMAIL_ADDRESS")
+        _assert_entity_redacted(text, "EMAIL_ADDRESS", markdown_wrapper)
 
-    def test_zero_width_joiner_email(self):
+    def test_zero_width_joiner_email(self, markdown_wrapper):
         """Attempt: Insert U+200D (ZWJ) inside an email."""
         text = "Contact te\u200dst@exa\u200dmple.com immediately."
-        _assert_entity_detected(text, "EMAIL_ADDRESS")
+        _assert_entity_redacted(text, "EMAIL_ADDRESS", markdown_wrapper)
 
-    def test_zero_width_in_ip_octets(self):
+    def test_zero_width_in_ip_octets(self, markdown_wrapper):
         """Attempt: Insert ZWS into an IP address."""
         text = "Server IP is 192.\u200b168.\u200b1.\u200b1 for internal access."
-        _assert_entity_detected(text, "IP_ADDRESS")
+        _assert_entity_redacted(text, "IP_ADDRESS", markdown_wrapper)
 
-    def test_zero_width_in_github_token(self):
+    def test_zero_width_in_github_token(self, markdown_wrapper):
         """Attempt: Insert ZWS into a GitHub token."""
         # Must be at least 36 characters after ghp_
         text = "Auth using ghp_abc\u200bdef\u200bghi\u200bjklmnopqr\u200bstuvwxyz0123456789"
-        _assert_entity_detected(text, "GITHUB_TOKEN")
+        _assert_entity_redacted(text, "GITHUB_TOKEN", markdown_wrapper)
 
-    def test_bom_prefix_evasion(self):
+    def test_bom_prefix_evasion(self, markdown_wrapper):
         """Attempt: Prefix an email with U+FEFF (BOM)."""
         text = "Admin email: \ufeffadmin@example.com"
-        _assert_entity_detected(text, "EMAIL_ADDRESS")
+        _assert_entity_redacted(text, "EMAIL_ADDRESS", markdown_wrapper)
 
     def test_markdown_image_alt_text(self):
         """Attempt: Hide email in image alt text."""
         md = "![test@example.com](image.png)"
-        plain = extract_plain_text(md)
-        _assert_entity_detected(plain, "EMAIL_ADDRESS")
+        _assert_entity_redacted(md, "EMAIL_ADDRESS")
 
     def test_markdown_inline_code(self):
         """Attempt: Hide email in inline code."""
         md = "Email is `admin@secret.internal`."
-        plain = extract_plain_text(md)
-        _assert_entity_detected(plain, "EMAIL_ADDRESS")
+        _assert_entity_redacted(md, "EMAIL_ADDRESS")
 
     # -----------------------------------------------------------------------
     # Known Limitations (Undetected Vectors)
