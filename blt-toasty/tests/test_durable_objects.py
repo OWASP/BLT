@@ -325,9 +325,9 @@ class TestDeleteArchive:
         assert data["archived"] is True
         assert data["turns_archived"] == 3
 
-        # State should be entirely deleted upon successful archive
+        # State should be cleared except for status=closed marker
         state.storage.deleteAll.assert_called_once()
-        assert not state.storage._data
+        assert state.storage._data == {"status": "closed"}
 
 
 # ---------------------------------------------------------------------------

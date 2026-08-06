@@ -94,7 +94,8 @@ class ConversationDO:
                 sql = (
                     "INSERT INTO conversation_archive "
                     "(id, triage_event_id, role, content, turn_index) "
-                    "VALUES (?, ?, ?, ?, ?)"
+                    "VALUES (?, ?, ?, ?, ?) "
+                    "ON CONFLICT(triage_event_id, turn_index) DO NOTHING"
                 )
                 id_hex = secrets.token_hex(16)
                 await self.env.DB.prepare(sql).bind(
@@ -133,7 +134,7 @@ class ConversationDO:
         full_history = url.searchParams.get("full") == "true"
         if full_history and conversation_id:
             try:
-                turn_cursor = int(url.searchParams.get("cursor") or 0)
+                turn_cursor = max(0, int(url.searchParams.get("cursor") or 0))
                 sql = (
                     "SELECT role, content, created_at as timestamp, turn_index "
                     "FROM conversation_archive "
@@ -158,15 +159,23 @@ class ConversationDO:
                         }
                     )
 
+                next_cursor = formatted_archived[-1]["turn_index"] if formatted_archived else None
+
                 all_turns = formatted_archived + turns
                 all_turns.sort(key=lambda t: t.get("turn_index", 0))
                 turns = all_turns
             except Exception as e:
                 logger.warning("Failed to fetch archived history from D1: %s", e)
 
-        return _json_response(
-            {"conversation_id": conversation_id, "turns": turns, "turn_count": turn_count, "status": status}
-        )
+        response_data: dict[str, Any] = {
+            "conversation_id": conversation_id,
+            "turns": turns,
+            "turn_count": turn_count,
+            "status": status,
+        }
+        if full_history and conversation_id:
+            response_data["next_cursor"] = next_cursor
+        return _json_response(response_data)
 
     async def _handle_archive(self) -> Response:
         turns_str = await self.storage.get("turns")
@@ -181,7 +190,8 @@ class ConversationDO:
                     sql = (
                         "INSERT INTO conversation_archive "
                         "(id, triage_event_id, role, content, turn_index) "
-                        "VALUES (?, ?, ?, ?, ?)"
+                        "VALUES (?, ?, ?, ?, ?) "
+                        "ON CONFLICT(triage_event_id, turn_index) DO NOTHING"
                     )
                     id_hex = secrets.token_hex(16)
                     await self.env.DB.prepare(sql).bind(
@@ -205,19 +215,32 @@ class ConversationDO:
             )
 
         await self.storage.deleteAll()
+        await self.storage.put("status", "closed")
         return _json_response({"archived": True, "turns_archived": archived_count})
 
     async def alarm(self) -> None:
         status = await self.storage.get("status")
         turns_str = await self.storage.get("turns")
         turns = json.loads(turns_str) if turns_str else []
+        retry_count = await self.storage.get("alarm_retry_count") or 0
 
         if status == "active":
             await self.storage.setAlarm(Date.now() + TTL_30_DAYS_MS)
         elif turns:
+            if retry_count >= 3:
+                logger.warning("Max alarm retries reached, discarding %d turns", len(turns))
+                await self.storage.deleteAll()
+                await self.storage.put("status", "closed")
+                return
+            await self.storage.put("alarm_retry_count", retry_count + 1)
             await self._handle_archive()
         else:
             await self.storage.deleteAll()
+            await self.storage.put("status", "closed")
+
+
+RATE_LIMIT_MAX_REQUESTS = 100
+RATE_LIMIT_WINDOW_MS = 60_000
 
 
 class RateLimiterDO:
@@ -242,15 +265,18 @@ class RateLimiterDO:
         now_ms = Date.now()
 
         if record:
-            record = json.loads(record)
-            if now_ms - record["window_start"] > 60000:
+            try:
+                record = json.loads(record)
+            except (json.JSONDecodeError, TypeError):
+                record = {"count": 1, "window_start": now_ms}
+            if now_ms - record["window_start"] >= RATE_LIMIT_WINDOW_MS:
                 record = {"count": 1, "window_start": now_ms}
             else:
-                if record["count"] >= 100:
+                if record["count"] >= RATE_LIMIT_MAX_REQUESTS:
                     return _json_response({"error": "rate_limit_exceeded", "retry_after": 60}, 429)
                 record["count"] += 1
         else:
             record = {"count": 1, "window_start": now_ms}
 
         await self.storage.put(key, json.dumps(record))
-        return _json_response({"allowed": True, "remaining": 100 - record["count"]}, 200)
+        return _json_response({"allowed": True, "remaining": RATE_LIMIT_MAX_REQUESTS - record["count"]}, 200)

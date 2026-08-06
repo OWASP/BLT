@@ -12,6 +12,8 @@ from js import Response, Headers, console
 from src.rationale_builder import audit_completeness_check
 from src.webhook_handler import handle_webhook
 from src.mcp_export import handle_mcp_export
+from src.auth import verify_agent_jwt
+from src.errors import JWTExpiredError, JWTInvalidError
 
 # Maximum request body size in bytes (1MB)
 MAX_BODY_SIZE = 1024 * 1024
@@ -60,7 +62,7 @@ async def on_fetch(request, env):
 
     # Handle CORS preflight requests
     if method == "OPTIONS":
-        return handle_options(request)
+        return handle_options(request, env)
 
     # Route requests based on path and method
     if path == "/" or path == "":
@@ -117,20 +119,27 @@ async def on_fetch(request, env):
         return create_error_response(f"Not Found: {path}", 404)
 
 
-def handle_options(request):
+def handle_options(request, env=None):
     """
     Handle CORS preflight OPTIONS requests.
 
     Args:
         request: The incoming HTTP request
+        env: The environment (optional)
 
     Returns:
         Response: 204 No Content with CORS headers
     """
     headers = Headers.new()
-    headers.set("Access-Control-Allow-Origin", "*")
+    req_method = request.headers.get("Access-Control-Request-Method")
+    if req_method in ("POST", "PUT", "DELETE", "PATCH"):
+        trusted = getattr(env, "TRUSTED_ORIGINS", "https://gitlab.com") if env else "https://gitlab.com"
+        headers.set("Access-Control-Allow-Origin", trusted)
+    else:
+        headers.set("Access-Control-Allow-Origin", "*")
+
     headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, DELETE")
-    headers.set("Access-Control-Allow-Headers", "Content-Type")
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
     headers.set("Access-Control-Max-Age", "86400")
 
     return Response.new("", status=204, headers=headers)
@@ -157,6 +166,7 @@ def handle_root(request):
             "/webhook/gitlab": "POST - GitLab webhook receiver",
             "/api/status": "GET - Check service status",
             "/triage/{event_id}/rationale": "GET - Retrieve structured rationale for a triage event",
+            "/mcp/triage/{triage_id}": "GET - JWT-authenticated canonical MCP triage export",
             "/conversations/{triage_id}/reply": "POST - Append a turn to a triage conversation",
             "/conversations/{triage_id}/history": "GET - Retrieve conversation history",
             "/conversations/{triage_id}": "DELETE - Close and archive a conversation",
@@ -291,6 +301,21 @@ async def handle_gitlab_webhook(request, env):
     return await handle_webhook(request, env)
 
 
+async def _authenticate_request(request, env):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None, create_error_response("Missing or malformed Authorization header", 401)
+
+    token = auth_header[len("Bearer ") :].strip()
+    try:
+        claims = await verify_agent_jwt(token, env)
+        return claims, None
+    except JWTExpiredError as e:
+        return None, create_error_response(f"Token expired: {e}", 401)
+    except JWTInvalidError as e:
+        return None, create_error_response(f"Unauthorized: {e}", 401)
+
+
 async def handle_rationale(request, env, event_id):
     """
     Handle GET /triage/{event_id}/rationale requests.
@@ -312,6 +337,10 @@ async def handle_rationale(request, env, event_id):
         Response: 200 with rationale JSON, 404 if not found, or 424 if
             audit data is missing.
     """
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+
     try:
         db = env.DB
 
@@ -493,7 +522,7 @@ def create_json_response(data, status_code=200):
     headers.set("Content-Type", "application/json")
     headers.set("Access-Control-Allow-Origin", "*")
     headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, DELETE")
-    headers.set("Access-Control-Allow-Headers", "Content-Type")
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
     return Response.new(json.dumps(data), status=status_code, headers=headers)
 
@@ -549,7 +578,7 @@ def create_method_not_allowed_response(path, allowed_methods):
     headers.set("Content-Type", "application/json")
     headers.set("Access-Control-Allow-Origin", "*")
     headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, DELETE")
-    headers.set("Access-Control-Allow-Headers", "Content-Type")
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
     headers.set("Allow", ", ".join(allowed_methods))
 
     error_data = {"error": "Method Not Allowed", "message": message, "status": 405}
@@ -594,6 +623,10 @@ async def _route_conversation(path, method, request, env):
     Returns:
         Response: The handler's HTTP response.
     """
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+
     if path.endswith("/reply"):
         if method != "POST":
             return create_method_not_allowed_response(path, ["POST"])

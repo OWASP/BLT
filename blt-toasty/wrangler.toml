@@ -28,38 +28,71 @@ run_worker_first = ["/api/*", "/health", "/mcp/*"]
 [env.production]
 name = "toasty-backend-prod"
 
+[env.production.vars]
+FASTEMBED_URL = "https://fastembed.internal" # Documented: Set this to the production sidecar URL or leave unset if disabled
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "toasty-db"
+database_id = "prod-db-placeholder"
+
+[[env.production.durable_objects.bindings]]
+name = "CONVERSATION_DO"
+class_name = "ConversationDO"
+
+[[env.production.durable_objects.bindings]]
+name = "RATE_LIMITER_DO"
+class_name = "RateLimiterDO"
+
+[[env.production.vectorize]]
+binding = "VECTORIZE"
+index_name = "toasty-embeddings"
+
 [env.staging]
 name = "toasty-backend-staging"
+
+[env.staging.vars]
+FASTEMBED_URL = "https://fastembed-staging.internal"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "toasty-db-staging"
+database_id = "staging-db-placeholder"
+
+[[env.staging.durable_objects.bindings]]
+name = "CONVERSATION_DO"
+class_name = "ConversationDO"
+
+[[env.staging.durable_objects.bindings]]
+name = "RATE_LIMITER_DO"
+class_name = "RateLimiterDO"
+
+[[env.staging.vectorize]]
+binding = "VECTORIZE"
+index_name = "toasty-embeddings-staging"
 
 [env.development]
 name = "toasty-backend-dev"
 
 [env.development.vars]
-FASTEMBED_URL = "http://fastembed_sidecar:8000"
-# Routes for the worker (configure based on your domain)
-# [[routes]]
-# pattern = "api.toasty.example.com/*"
-# zone_name = "example.com"
+FASTEMBED_URL = "http://localhost:5003"
 
-# D1 Databases for storage
-[[d1_databases]]
+[[env.development.d1_databases]]
 binding = "DB"
 database_name = "toasty-db"
 database_id = "local-db-placeholder"
 
-# KV Namespaces for storage (if needed)
-[[kv_namespaces]]
-binding = "TOASTY_KV"
-id = "local-kv-placeholder"
-
-# Durable Objects for stateful conversation management
-[[durable_objects.bindings]]
+[[env.development.durable_objects.bindings]]
 name = "CONVERSATION_DO"
 class_name = "ConversationDO"
 
-[[durable_objects.bindings]]
+[[env.development.durable_objects.bindings]]
 name = "RATE_LIMITER_DO"
 class_name = "RateLimiterDO"
+
+[[env.development.vectorize]]
+binding = "VECTORIZE"
+index_name = "toasty-embeddings"
 
 [[migrations]]
 tag = "v1"
@@ -68,16 +101,6 @@ new_classes = ["ConversationDO"]
 [[migrations]]
 tag = "v2"
 new_classes = ["RateLimiterDO"]
-
-# R2 Buckets (if needed for file storage)
-# [[r2_buckets]]
-# binding = "TOASTY_BUCKET"
-# bucket_name = "toasty-files"
-
-# Vectorize index for semantic duplicate detection
-[[vectorize]]
-binding = "VECTORIZE"
-index_name = "toasty-embeddings"
 
 [vars]
 ENVIRONMENT = "development"

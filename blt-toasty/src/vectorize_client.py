@@ -44,17 +44,23 @@ MODEL_VERSION = "all-MiniLM-L6-v2"
 # ---------------------------------------------------------------------------
 
 
-async def _transition_state(db: Any, event_id: str, new_status: str) -> None:
+async def _transition_state(db: Any, event_id: str, new_status: str, expected_status: str | None = None) -> None:
     """Advance the triage event state machine to *new_status*.
 
     Args:
         db: A Cloudflare D1 database handle.
         event_id: The event to transition.
         new_status: The target state (e.g. ``"embedded"``).
+        expected_status: If provided, only update when current status matches (optimistic concurrency).
     """
-    await db.prepare("UPDATE triage_events SET status = ?, updated_at = datetime('now') WHERE id = ?").bind(
-        new_status, event_id
-    ).run()
+    if expected_status:
+        await db.prepare(
+            "UPDATE triage_events SET status = ?, updated_at = datetime('now') WHERE id = ? AND status = ?"
+        ).bind(new_status, event_id, expected_status).run()
+    else:
+        await db.prepare("UPDATE triage_events SET status = ?, updated_at = datetime('now') WHERE id = ?").bind(
+            new_status, event_id
+        ).run()
 
 
 # ---------------------------------------------------------------------------
@@ -149,7 +155,7 @@ async def index_report(
     # ── Insert into Vectorize ─────────────────────────────────────────────
     now = datetime.now(timezone.utc).isoformat()
     try:
-        await env.VECTORIZE.insert(
+        await env.VECTORIZE.upsert(
             [
                 {
                     "id": event_id,
@@ -218,7 +224,8 @@ async def find_duplicates(
         return []
 
     matches = []
-    for match in result.matches:
+    raw_matches = getattr(result, "matches", None) or []
+    for match in raw_matches:
         score = match.score
         metadata = match.metadata or {}
         if score >= DUPLICATE_SCORE_THRESHOLD and metadata.get("repo") == repo_full_name:
@@ -244,5 +251,9 @@ async def delete_vector(event_id: str, env: Any) -> None:
         event_id: The triage event ID whose vector should be deleted.
         env: Cloudflare Worker environment with ``VECTORIZE`` binding.
     """
-    await env.VECTORIZE.deleteByIds([event_id])
-    logger.info("Deleted vector for event %s from Vectorize", event_id)
+    try:
+        await env.VECTORIZE.deleteByIds([event_id])
+        logger.info("Deleted vector for event %s from Vectorize", event_id)
+    except Exception as exc:
+        logger.error("Failed to delete vector for event %s: %s", event_id, exc)
+        raise

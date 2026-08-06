@@ -5,8 +5,12 @@ Enforces strict state transitions using optimistic concurrency control
 with Cloudflare D1.
 """
 
-from src.errors import StateTransitionError
+import logging
 import secrets
+
+from src.errors import StateTransitionError
+
+logger = logging.getLogger("toasty.state_machine")
 
 VALID_TRANSITIONS = {
     "pending": ["redaction_passed", "redaction_failed", "quarantined"],
@@ -114,4 +118,10 @@ async def quarantine_event(db, event_id: str, reason: str, env=None, has_vector:
             raise ValueError("env.VECTORIZE is required to cleanup a vectorized event")
         from src.vectorize_client import delete_vector
 
-        await delete_vector(event_id, env)
+        try:
+            await delete_vector(event_id, env)
+        except Exception as exc:
+            logger.warning("Vector cleanup failed for %s, marking pending_cleanup: %s", event_id, exc)
+            await db.prepare("UPDATE triage_events SET quarantine_reason = ? WHERE id = ?").bind(
+                f"{reason}; vector_cleanup_pending", event_id
+            ).run()

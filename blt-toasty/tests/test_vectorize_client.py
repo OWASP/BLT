@@ -141,10 +141,10 @@ class TestIndexReport:
 
         await index_report("evt-001", "redacted text", "owasp/blt", env, db)
 
-        env.VECTORIZE.insert.assert_awaited_once()
-        insert_args = env.VECTORIZE.insert.call_args[0][0]
-        assert len(insert_args) == 1
-        vec = insert_args[0]
+        env.VECTORIZE.upsert.assert_awaited_once()
+        upsert_args = env.VECTORIZE.upsert.call_args[0][0]
+        assert len(upsert_args) == 1
+        vec = upsert_args[0]
         assert vec["id"] == "evt-001"
         assert len(vec["values"]) == 384
         assert vec["metadata"]["repo"] == "owasp/blt"
@@ -183,8 +183,8 @@ class TestIndexReport:
         bind_calls = [str(c) for c in stmt.bind.call_args_list if "embedded_pending" in str(c)]
         assert len(bind_calls) >= 1
 
-        # Verify Vectorize.insert was NOT called
-        env.VECTORIZE.insert.assert_not_awaited()
+        # Verify Vectorize.upsert was NOT called
+        env.VECTORIZE.upsert.assert_not_awaited()
 
     @pytest.mark.asyncio
     @patch("src.vectorize_client.get_embedding", new_callable=AsyncMock)
@@ -193,9 +193,9 @@ class TestIndexReport:
         mock_get_embedding.return_value = [0.1] * 384
         db = _make_db(status="summarized")
         env = _make_env()
-        env.VECTORIZE.insert.side_effect = Exception("Generic insert error")
+        env.VECTORIZE.upsert.side_effect = Exception("Generic upsert error")
 
-        with pytest.raises(Exception, match="Generic insert error"):
+        with pytest.raises(Exception, match="Generic upsert error"):
             await index_report("evt-001", "redacted text", "owasp/blt", env, db)
 
         stmt = db.prepare.return_value

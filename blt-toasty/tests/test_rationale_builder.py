@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -550,14 +550,14 @@ class MockResponse:
 
 
 # Mock Cloudflare Workers environment (js, pyodide) before importing worker
-import sys
+import sys  # noqa: E402
 
 js_mock = MagicMock()
 js_mock.Response = MockResponse
 sys.modules["js"] = js_mock
 sys.modules["pyodide"] = MagicMock()
 sys.modules["pyodide.ffi"] = MagicMock()
-from worker import handle_rationale
+from worker import handle_rationale  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -567,7 +567,8 @@ from worker import handle_rationale
 
 class TestHandleRationale:
     @pytest.mark.asyncio
-    async def test_returns_200_with_valid_json(self):
+    @patch("worker._authenticate_request", new_callable=AsyncMock, return_value=({"sub": "agent-test"}, None))
+    async def test_returns_200_with_valid_json(self, _mock_auth):
         """Returns 200 with JSON payload when rationale exists."""
         req = AsyncMock()
         env = AsyncMock()
@@ -590,7 +591,8 @@ class TestHandleRationale:
         assert body["confidence_trace"] == {"overall_confidence": 0.85}
 
     @pytest.mark.asyncio
-    async def test_returns_200_with_null_duplicate_rationale(self):
+    @patch("worker._authenticate_request", new_callable=AsyncMock, return_value=({"sub": "agent-test"}, None))
+    async def test_returns_200_with_null_duplicate_rationale(self, _mock_auth):
         """Handles cases where duplicate_rationale is NULL in the DB."""
         req = AsyncMock()
         env = AsyncMock()
@@ -608,7 +610,8 @@ class TestHandleRationale:
         assert body["duplicate_rationale"] is None
 
     @pytest.mark.asyncio
-    async def test_returns_424_when_missing(self):
+    @patch("worker._authenticate_request", new_callable=AsyncMock, return_value=({"sub": "agent-test"}, None))
+    async def test_returns_424_when_missing(self, _mock_auth):
         """Returns 424 if rationale row does not exist."""
         req = AsyncMock()
         env = AsyncMock()

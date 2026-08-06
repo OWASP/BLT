@@ -37,7 +37,7 @@ model: TextEmbedding | None = None
 async def lifespan(app: FastAPI):
     global model
     logger.info("Initializing TextEmbedding model %s...", MODEL_NAME)
-    model = TextEmbedding(MODEL_NAME)
+    model = TextEmbedding(MODEL_NAME, cache_dir="/app/cache")
     logger.info("Model loaded successfully.")
     yield
     logger.info("Shutting down FastEmbed sidecar.")
@@ -113,9 +113,9 @@ async def embed(body: EmbedRequest) -> EmbedResponse:
     Returns:
         A response containing the embedding vectors, model name, and dimensions.
     """
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model is initializing")
     try:
-        if model is None:
-            raise RuntimeError("Model is not initialized")
         embeddings = await asyncio.to_thread(lambda: [e.tolist() for e in model.embed(body.texts)])
     except Exception as exc:
         logger.error("Embedding generation failed", exc_info=exc)

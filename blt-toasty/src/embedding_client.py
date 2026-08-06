@@ -89,10 +89,11 @@ async def get_embedding(text: str, env) -> list[float]:
     controller = _abort_controller_cls.new()
     # Schedule the abort after EMBEDDING_TIMEOUT_SECONDS.
     # In Pyodide: ``setTimeout`` is on the global scope.
+    timer_id = None
     try:
-        from js import setTimeout  # type: ignore[import-not-found]
+        from js import setTimeout, clearTimeout  # type: ignore[import-not-found]
 
-        setTimeout(lambda: controller.abort(), EMBEDDING_TIMEOUT_SECONDS * 1000)
+        timer_id = setTimeout(lambda: controller.abort(), EMBEDDING_TIMEOUT_SECONDS * 1000)
     except ImportError:
         # Running under CPython tests — mock will handle timeout behaviour.
         pass
@@ -120,6 +121,12 @@ async def get_embedding(text: str, env) -> list[float]:
             f"FastEmbed sidecar unreachable: {exc}",
             status_code=503,
         ) from exc
+    finally:
+        if timer_id is not None:
+            try:
+                clearTimeout(timer_id)
+            except Exception:
+                pass  # nosec B110
 
     if not response.ok:
         error_body = await response.text()
