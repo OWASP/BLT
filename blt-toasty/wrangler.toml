@@ -34,7 +34,7 @@ FASTEMBED_URL = "https://fastembed.internal" # Documented: Set this to the produ
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "toasty-db"
-database_id = "prod-db-placeholder"
+database_id = "00000000-0000-0000-0000-000000000001"
 
 [[env.production.durable_objects.bindings]]
 name = "CONVERSATION_DO"
@@ -57,7 +57,7 @@ FASTEMBED_URL = "https://fastembed-staging.internal"
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "toasty-db-staging"
-database_id = "staging-db-placeholder"
+database_id = "00000000-0000-0000-0000-000000000002"
 
 [[env.staging.durable_objects.bindings]]
 name = "CONVERSATION_DO"
@@ -80,7 +80,7 @@ FASTEMBED_URL = "http://localhost:5003"
 [[env.development.d1_databases]]
 binding = "DB"
 database_name = "toasty-db"
-database_id = "local-db-placeholder"
+database_id = "00000000-0000-0000-0000-000000000003"
 
 [[env.development.durable_objects.bindings]]
 name = "CONVERSATION_DO"
@@ -92,7 +92,7 @@ class_name = "RateLimiterDO"
 
 [[env.development.vectorize]]
 binding = "VECTORIZE"
-index_name = "toasty-embeddings"
+index_name = "toasty-embeddings-dev"
 
 [[migrations]]
 tag = "v1"

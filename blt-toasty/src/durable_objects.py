@@ -132,6 +132,7 @@ class ConversationDO:
         turns = json.loads(turns_str) if turns_str else []
 
         full_history = url.searchParams.get("full") == "true"
+        next_cursor = None
         if full_history and conversation_id:
             try:
                 turn_cursor = max(0, int(url.searchParams.get("cursor") or 0))
@@ -139,10 +140,14 @@ class ConversationDO:
                     "SELECT role, content, created_at as timestamp, turn_index "
                     "FROM conversation_archive "
                     "WHERE triage_event_id = ? AND turn_index > ? "
-                    "ORDER BY turn_index ASC LIMIT 50"
+                    "ORDER BY turn_index ASC LIMIT 51"
                 )
                 result = await self.env.DB.prepare(sql).bind(conversation_id, turn_cursor).all()
                 archived_turns_raw = getattr(result, "results", []) or []
+
+                has_more = len(archived_turns_raw) > 50
+                if has_more:
+                    archived_turns_raw = archived_turns_raw[:50]
 
                 formatted_archived = []
                 for row in archived_turns_raw:
@@ -159,11 +164,14 @@ class ConversationDO:
                         }
                     )
 
-                next_cursor = formatted_archived[-1]["turn_index"] if formatted_archived else None
-
-                all_turns = formatted_archived + turns
-                all_turns.sort(key=lambda t: t.get("turn_index", 0))
-                turns = all_turns
+                if has_more:
+                    next_cursor = formatted_archived[-1]["turn_index"]
+                    turns = formatted_archived
+                else:
+                    next_cursor = None
+                    all_turns = formatted_archived + turns
+                    all_turns.sort(key=lambda t: t.get("turn_index", 0))
+                    turns = all_turns
             except Exception as e:
                 logger.warning("Failed to fetch archived history from D1: %s", e)
 
@@ -214,7 +222,8 @@ class ConversationDO:
                 {"archived": False, "turns_archived": archived_count, "failed_count": len(failed_turns)}
             )
 
-        await self.storage.deleteAll()
+        await self.storage.delete("turns")
+        await self.storage.delete("alarm_retry_count")
         await self.storage.put("status", "closed")
         return _json_response({"archived": True, "turns_archived": archived_count})
 
@@ -225,17 +234,19 @@ class ConversationDO:
         retry_count = await self.storage.get("alarm_retry_count") or 0
 
         if status == "active":
-            await self.storage.setAlarm(Date.now() + TTL_30_DAYS_MS)
+            await self._handle_archive()
         elif turns:
             if retry_count >= 3:
                 logger.warning("Max alarm retries reached, discarding %d turns", len(turns))
-                await self.storage.deleteAll()
+                await self.storage.delete("turns")
+                await self.storage.delete("alarm_retry_count")
                 await self.storage.put("status", "closed")
                 return
             await self.storage.put("alarm_retry_count", retry_count + 1)
             await self._handle_archive()
         else:
-            await self.storage.deleteAll()
+            await self.storage.delete("turns")
+            await self.storage.delete("alarm_retry_count")
             await self.storage.put("status", "closed")
 
 

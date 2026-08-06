@@ -44,23 +44,31 @@ MODEL_VERSION = "all-MiniLM-L6-v2"
 # ---------------------------------------------------------------------------
 
 
-async def _transition_state(db: Any, event_id: str, new_status: str, expected_status: str | None = None) -> None:
+async def _transition_state(db: Any, event_id: str, new_status: str, expected_status: str) -> None:
     """Advance the triage event state machine to *new_status*.
 
     Args:
         db: A Cloudflare D1 database handle.
         event_id: The event to transition.
         new_status: The target state (e.g. ``"embedded"``).
-        expected_status: If provided, only update when current status matches (optimistic concurrency).
+        expected_status: The expected current status to enforce optimistic concurrency.
     """
-    if expected_status:
+    result = (
         await db.prepare(
             "UPDATE triage_events SET status = ?, updated_at = datetime('now') WHERE id = ? AND status = ?"
-        ).bind(new_status, event_id, expected_status).run()
-    else:
-        await db.prepare("UPDATE triage_events SET status = ?, updated_at = datetime('now') WHERE id = ?").bind(
-            new_status, event_id
-        ).run()
+        )
+        .bind(new_status, event_id, expected_status)
+        .run()
+    )
+
+    meta = result.meta if hasattr(result, "meta") else result.get("meta", {})
+    changes = getattr(meta, "changes", meta.get("changes", 0))
+    if changes == 0:
+        raise StateTransitionError(
+            f"Failed to transition event {event_id} to {new_status} (expected {expected_status})",
+            event_id=event_id,
+            current_status="unknown_or_concurrent_modification",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -98,9 +106,9 @@ async def assert_summarized_before_embedding(event_id: str, db: Any) -> None:
         )
 
     status = row["status"] if hasattr(row, "__getitem__") else row[0]
-    if status != "summarized":
+    if status not in ("summarized", "embedded_pending"):
         raise StateTransitionError(
-            f"Event {event_id} has status '{status}'; expected 'summarized'. "
+            f"Event {event_id} has status '{status}'; expected 'summarized' or 'embedded_pending'. "
             f"Embedding is blocked until summarization completes.",
             event_id=event_id,
             current_status=status,
@@ -149,7 +157,12 @@ async def index_report(
             event_id,
             exc,
         )
-        await _transition_state(db, event_id, "embedded_pending")
+        # expected_status could be summarized or embedded_pending, we don't strictly know which without querying,
+        # but the only valid entry points are those two. For simplicity, we just use the expected state transition.
+        # Actually, let's fetch current status to be safe.
+        row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
+        current_status = row["status"] if hasattr(row, "__getitem__") else row[0]
+        await _transition_state(db, event_id, "embedded_pending", expected_status=current_status)
         return  # Do NOT re-raise — Cron Trigger will retry.
 
     # ── Insert into Vectorize ─────────────────────────────────────────────
@@ -171,11 +184,24 @@ async def index_report(
         )
     except Exception as exc:
         logger.error("Failed to insert event %s into Vectorize: %s", event_id, exc)
-        await _transition_state(db, event_id, "embedded_pending")
+        row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
+        current_status = row["status"] if hasattr(row, "__getitem__") else row[0]
+        await _transition_state(db, event_id, "embedded_pending", expected_status=current_status)
         raise
 
     # ── Advance state machine ─────────────────────────────────────────────
-    await _transition_state(db, event_id, "embedded")
+    try:
+        row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
+        current_status = row["status"] if hasattr(row, "__getitem__") else row[0]
+        await _transition_state(db, event_id, "embedded", expected_status=current_status)
+    except StateTransitionError:
+        logger.error("State transition failed after Vectorize insert for event %s. Cleaning up vector.", event_id)
+        try:
+            await env.VECTORIZE.deleteByIds([event_id])
+        except Exception as cleanup_exc:
+            logger.error("Failed to cleanup vector for event %s after transition failure: %s", event_id, cleanup_exc)
+        raise
+
     logger.info("Indexed event %s in Vectorize (repo=%s)", event_id, repo_full_name)
 
 

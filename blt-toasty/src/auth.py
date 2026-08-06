@@ -45,6 +45,8 @@ async def verify_agent_jwt(token: str, env: Any) -> dict:
     try:
         payload_bytes = _base64url_decode(payload_b64)
         claims = json.loads(payload_bytes.decode("utf-8"))
+        if not isinstance(claims, dict):
+            raise ValueError("Payload is not a JSON object")
     except Exception as e:
         raise JWTInvalidError(f"Malformed payload: {e}")
 
