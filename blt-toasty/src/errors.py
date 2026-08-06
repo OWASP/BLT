@@ -143,6 +143,14 @@ class AuditIncompleteError(Exception):
         self.missing_fields: list[str] = missing_fields or []
 
 
+class JWTExpiredError(Exception):
+    """Raised when the JWT `exp` claim has elapsed."""
+
+
+class JWTInvalidError(Exception):
+    """Raised when JWT signature, structure, or claims are invalid."""
+
+
 class ConversationError(Exception):
     """Raised when a conversation operation fails.
 

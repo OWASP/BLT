@@ -245,7 +245,7 @@ def _extract_snippets_for_cwe(cwe_id: str, redacted_text: str) -> list[str]:
             seen_starts.add(start)
 
             raw_snippet = redacted_text[start:end].strip()
-            
+
             # PII safety gate — drop the snippet if any PII is detected in the full window.
             if not _is_pii_free(raw_snippet):
                 logger.debug("Dropped tainted snippet for %s at offset %d", cwe_id, start)
@@ -443,28 +443,21 @@ async def audit_completeness_check(event_id: str, db: Any) -> tuple[bool, list[s
     missing: list[str] = []
 
     # 1. triage_summaries
-    cursor = await db.execute(
-        "SELECT id FROM triage_summaries WHERE triage_event_id = ? LIMIT 1",
-        [event_id],
-    )
-    if cursor.fetchone() is None:
+    row = await db.prepare("SELECT id FROM triage_summaries WHERE triage_event_id = ? LIMIT 1").bind(event_id).first()
+    if row is None:
         missing.append("triage_summary")
 
     # 2. triage_rationale
-    cursor = await db.execute(
-        "SELECT id FROM triage_rationale WHERE triage_event_id = ? LIMIT 1",
-        [event_id],
-    )
-    if cursor.fetchone() is None:
+    row = await db.prepare("SELECT id FROM triage_rationale WHERE triage_event_id = ? LIMIT 1").bind(event_id).first()
+    if row is None:
         missing.append("triage_rationale")
 
-    # 3. redaction_audit — uses triage_event_id per migrations/0001_initial.sql
-    cursor = await db.execute(
-        "SELECT COUNT(*) FROM redaction_audit WHERE triage_event_id = ?",
-        [event_id],
+    # 3. redaction_audit — COUNT(*) via .first() returns the first (and only) result row
+    row = (
+        await db.prepare("SELECT COUNT(*) AS cnt FROM redaction_audit WHERE triage_event_id = ?").bind(event_id).first()
     )
-    row = cursor.fetchone()
-    if row is None or row[0] == 0:
+    count = row["cnt"] if (row and hasattr(row, "__getitem__")) else (row[0] if row else 0)
+    if not count:
         missing.append("redaction_audit")
 
     return (len(missing) == 0, missing)
@@ -505,18 +498,14 @@ async def store_rationale(
     )
     trace_json = json.dumps(dataclasses.asdict(confidence_trace), separators=(",", ":"))
 
-    await db.execute(
+    await db.prepare(
         "INSERT OR REPLACE INTO triage_rationale "
         "(id, triage_event_id, cwe_rationale, duplicate_rationale, confidence_trace) "
-        "VALUES (?, ?, ?, ?, ?)",
-        [event_id, event_id, cwe_json, dup_json, trace_json],
-    )
+        "VALUES (?, ?, ?, ?, ?)"
+    ).bind(event_id, event_id, cwe_json, dup_json, trace_json).run()
     logger.info("Stored rationale for event %s (%d CWEs)", event_id, len(cwe_rationale))
 
 
 # ---------------------------------------------------------------------------
 # Route response helpers
 # ---------------------------------------------------------------------------
-
-
-

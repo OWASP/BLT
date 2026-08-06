@@ -64,16 +64,16 @@ def _assert_entity_redacted(text: str, expected_type: str, markdown_wrapper=None
     # Process through pipeline
     plain = extract_plain_text(text)
     redacted, matches = apply_native_redaction(plain)
-    
+
     types = [m["entity_type"] for m in matches]
     assert expected_type in types, f"Failed to detect {expected_type} in {repr(text)}"
-    
+
     # Assert that the zero-width characters are NOT in the final redacted text
     # They should have been stripped by the preprocessor/scanner
     assert "\u200b" not in redacted
     assert "\u200c" not in redacted
     assert "\u200d" not in redacted
-    
+
     # Assert that the entity type placeholder is actually in the text
     assert f"[{expected_type}]" in redacted
 

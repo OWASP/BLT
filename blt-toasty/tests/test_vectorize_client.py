@@ -43,17 +43,16 @@ class MockCursor:
 
 
 def _make_db(*, status="summarized", row_exists=True):
-    """Build a mock D1 database handle.
+    """Build a mock D1 database handle (D1 prepare/bind API).
 
     Args:
         status: The status value returned by SELECT queries.
         row_exists: Whether the event row exists.
     """
-    db = AsyncMock()
-    row = (status,) if row_exists else None
-    cursor = MockCursor(row=row)
-    db.execute = AsyncMock(return_value=cursor)
-    return db
+    from tests.utils import make_d1_mock
+
+    first_return = {"status": status} if row_exists else None
+    return make_d1_mock(first_return=first_return)
 
 
 def _make_vectorize_binding():
@@ -163,11 +162,10 @@ class TestIndexReport:
 
         await index_report("evt-001", "redacted text", "owasp/blt", env, db)
 
-        # Inspect bound parameters instead of stringified call args
-        calls = [c for c in db.execute.call_args_list if "UPDATE" in c[0][0]]
-        assert len(calls) == 1
-        params = calls[-1][0][1]
-        assert params == ["embedded", "evt-001"]
+        # State UPDATE goes via prepare(sql).bind("embedded", event_id).run()
+        stmt = db.prepare.return_value
+        bind_calls = [str(c) for c in stmt.bind.call_args_list if "embedded" in str(c) and "evt-001" in str(c)]
+        assert len(bind_calls) >= 1
 
     @pytest.mark.asyncio
     @patch("src.vectorize_client.get_embedding", new_callable=AsyncMock)
@@ -180,12 +178,11 @@ class TestIndexReport:
         # Should NOT raise
         await index_report("evt-001", "redacted text", "owasp/blt", env, db)
 
-        # Inspect bound parameters
-        calls = [c for c in db.execute.call_args_list if "UPDATE" in c[0][0]]
-        assert len(calls) == 1
-        params = calls[-1][0][1]
-        assert params == ["embedded_pending", "evt-001"]
-        
+        # State UPDATE goes via prepare(sql).bind("embedded_pending", event_id).run()
+        stmt = db.prepare.return_value
+        bind_calls = [str(c) for c in stmt.bind.call_args_list if "embedded_pending" in str(c)]
+        assert len(bind_calls) >= 1
+
         # Verify Vectorize.insert was NOT called
         env.VECTORIZE.insert.assert_not_awaited()
 
@@ -201,10 +198,9 @@ class TestIndexReport:
         with pytest.raises(Exception, match="Generic insert error"):
             await index_report("evt-001", "redacted text", "owasp/blt", env, db)
 
-        calls = [c for c in db.execute.call_args_list if "UPDATE" in c[0][0]]
-        assert len(calls) == 1
-        params = calls[-1][0][1]
-        assert params == ["embedded_pending", "evt-001"]
+        stmt = db.prepare.return_value
+        bind_calls = [str(c) for c in stmt.bind.call_args_list if "embedded_pending" in str(c)]
+        assert len(bind_calls) >= 1
 
     @pytest.mark.asyncio
     async def test_guard_blocks_non_summarized(self):

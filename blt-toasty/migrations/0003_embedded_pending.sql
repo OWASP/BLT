@@ -58,4 +58,3 @@ CREATE INDEX IF NOT EXISTS idx_triage_events_status
     ON triage_events(status);
 CREATE INDEX IF NOT EXISTS idx_triage_events_delivery
     ON triage_events(delivery_id);
-

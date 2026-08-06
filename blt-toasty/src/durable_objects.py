@@ -218,3 +218,39 @@ class ConversationDO:
             await self._handle_archive()
         else:
             await self.storage.deleteAll()
+
+
+class RateLimiterDO:
+    """Enforces 100 req/min limits per agent."""
+
+    def __init__(self, state: Any, env: Any) -> None:
+        self.storage = state.storage
+        self.env = env
+
+    async def fetch(self, request: Any) -> Response:
+        try:
+            body = json.loads(await request.text())
+            agent_id = body.get("agent_id")
+            if not agent_id:
+                return _json_response({"error": "missing agent_id"}, 400)
+        except Exception:
+            return _json_response({"error": "invalid json"}, 400)
+
+        # Storage keys: "rl:{agent_id}" -> {"count": int, "window_start": int_ms}
+        key = f"rl:{agent_id}"
+        record = await self.storage.get(key)
+        now_ms = Date.now()
+
+        if record:
+            record = json.loads(record)
+            if now_ms - record["window_start"] > 60000:
+                record = {"count": 1, "window_start": now_ms}
+            else:
+                if record["count"] >= 100:
+                    return _json_response({"error": "rate_limit_exceeded", "retry_after": 60}, 429)
+                record["count"] += 1
+        else:
+            record = {"count": 1, "window_start": now_ms}
+
+        await self.storage.put(key, json.dumps(record))
+        return _json_response({"allowed": True, "remaining": 100 - record["count"]}, 200)

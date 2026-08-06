@@ -24,11 +24,9 @@ Pipeline stages
 
 Cloudflare D1 interface
 -----------------------
-The ``db`` parameter is expected to implement the raw async D1 driver
-style::
+The ``db`` parameter uses the Cloudflare D1 ``prepare().bind()`` API::
 
-    cursor = await db.execute("SELECT status FROM triage_events WHERE id = ?", [event_id])
-    row = cursor.fetchone()
+    result = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
 """
 
 from __future__ import annotations
@@ -197,11 +195,7 @@ async def assert_redacted_before_downstream(event_id: str, db: Any) -> None:
     Raises:
         StateTransitionError: If the event status is not ``redaction_passed``.
     """
-    cursor = await db.execute(
-        "SELECT status FROM triage_events WHERE id = ?",
-        [event_id],
-    )
-    row = cursor.fetchone()
+    row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
 
     if row is None:
         raise StateTransitionError(
@@ -211,7 +205,7 @@ async def assert_redacted_before_downstream(event_id: str, db: Any) -> None:
             http_status=404,
         )
 
-    status = row[0]
+    status = row["status"] if hasattr(row, "__getitem__") else row[0]
     if status != "redaction_passed":
         raise StateTransitionError(
             f"Event {event_id} has status '{status}'; expected 'redaction_passed'. "
@@ -245,20 +239,19 @@ def _build_redaction_map(matches: list[RecogniserMatch]) -> list[dict[str, Any]]
 async def _store_redaction_audit(db: Any, event_id: str, redaction_map: list[dict[str, Any]]) -> None:
     """INSERT each entry of the redaction map into the D1 ``redaction_audit`` table."""
     for entry in redaction_map:
-        await db.execute(
+        await db.prepare(
             "INSERT INTO redaction_audit "
             "(event_id, entity_type, detector, confidence, byte_start, byte_end, original_length) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [
-                event_id,
-                entry["entity_type"],
-                entry["detector"],
-                entry["confidence"],
-                entry["byte_start"],
-                entry["byte_end"],
-                entry["original_length"],
-            ],
-        )
+            "VALUES (?, ?, ?, ?, ?, ?, ?)"
+        ).bind(
+            event_id,
+            entry["entity_type"],
+            entry["detector"],
+            entry["confidence"],
+            entry["byte_start"],
+            entry["byte_end"],
+            entry["original_length"],
+        ).run()
 
 
 async def _quarantine_event(db: Any, event_id: str, reason: str) -> None:
@@ -272,7 +265,4 @@ async def _quarantine_event(db: Any, event_id: str, reason: str) -> None:
 
 async def _transition_state(db: Any, event_id: str, new_status: str) -> None:
     """Advance the triage event state machine to *new_status*."""
-    await db.execute(
-        "UPDATE triage_events SET status = ? WHERE id = ?",
-        [new_status, event_id],
-    )
+    await db.prepare("UPDATE triage_events SET status = ? WHERE id = ?").bind(new_status, event_id).run()

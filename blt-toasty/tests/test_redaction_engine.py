@@ -36,12 +36,10 @@ from src.redaction_engine import (
 
 @pytest.fixture()
 def mock_db():
-    """Provide a mock Cloudflare D1 database handle."""
-    db = AsyncMock()
-    cursor = MagicMock()
-    cursor.fetchone.return_value = ("pending",)
-    db.execute.return_value = cursor
-    return db
+    """Provide a mock Cloudflare D1 database handle (D1 prepare/bind API)."""
+    from tests.utils import make_d1_mock
+
+    return make_d1_mock(first_return={"status": "pending"})
 
 
 @pytest.fixture()
@@ -327,16 +325,20 @@ class TestRedactionEngine:
     @pytest.mark.asyncio
     async def test_redaction_map_stored_in_d1(self, mock_db, mock_env):
         await redact("Email: admin@example.com", mock_env, "evt-005", mock_db)
-        # Verify at least one INSERT into redaction_audit was called.
-        insert_calls = [call for call in mock_db.execute.call_args_list if "INSERT INTO redaction_audit" in str(call)]
+        # Verify at least one INSERT into redaction_audit was called via prepare/bind.
+        insert_calls = [
+            str(call) for call in mock_db.prepare.call_args_list if "INSERT INTO redaction_audit" in str(call)
+        ]
         assert len(insert_calls) >= 1
 
     @pytest.mark.asyncio
     async def test_state_transitions_to_redaction_passed(self, mock_db, mock_env):
         await redact("Email: admin@example.com", mock_env, "evt-006", mock_db)
-        # Verify state transition call.
-        update_calls = [call for call in mock_db.execute.call_args_list if "redaction_passed" in str(call)]
-        assert len(update_calls) == 1
+        # The state UPDATE is issued via prepare(sql).bind("redaction_passed", event_id).run()
+        # Check that bind was called with "redaction_passed" at least once.
+        stmt = mock_db.prepare.return_value
+        bind_args = [str(call) for call in stmt.bind.call_args_list]
+        assert any("redaction_passed" in a for a in bind_args)
 
     @pytest.mark.asyncio
     async def test_no_entities_still_passes(self, mock_db, mock_env):
@@ -364,14 +366,26 @@ class TestRedactionEngine:
     @pytest.mark.asyncio
     async def test_unexpected_error_quarantines_event(self, mock_env):
         """If the DB raises during audit storage, the event is quarantined."""
-        broken_db = AsyncMock()
-        # First call (INSERT) raises, subsequent calls succeed.
-        broken_db.execute.side_effect = [RuntimeError("D1 unavailable"), MagicMock(), MagicMock()]
+        # run() raises on the first call, then succeeds.
+        mock_run_ok = MagicMock()
+        mock_run_ok.meta = MagicMock()
+        mock_run_ok.meta.changes = 1
+
+        call_count = 0
+
+        def run_side_effect(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise RuntimeError("D1 unavailable")
+            return mock_run_ok
 
         mock_stmt = MagicMock()
-        mock_stmt.bind.return_value = mock_stmt
+        mock_stmt.bind = MagicMock(return_value=mock_stmt)
         mock_stmt.first = AsyncMock(return_value={"status": "pending"})
-        mock_stmt.run = AsyncMock(return_value=MagicMock(meta={"changes": 1}))
+        mock_stmt.run = AsyncMock(side_effect=run_side_effect)
+
+        broken_db = MagicMock()
         broken_db.prepare = MagicMock(return_value=mock_stmt)
 
         with pytest.raises(RedactionFailedError):
@@ -388,11 +402,9 @@ class TestAssertRedactedBeforeDownstream:
 
     @pytest.mark.asyncio
     async def test_raises_on_pending_event(self):
-        db = AsyncMock()
-        cursor = MagicMock()
-        cursor.fetchone.return_value = ("pending",)
-        db.execute.return_value = cursor
+        from tests.utils import make_d1_mock
 
+        db = make_d1_mock(first_return={"status": "pending"})
         with pytest.raises(StateTransitionError) as exc_info:
             await assert_redacted_before_downstream("evt-guard-1", db)
         assert exc_info.value.http_status == 423
@@ -400,42 +412,34 @@ class TestAssertRedactedBeforeDownstream:
 
     @pytest.mark.asyncio
     async def test_raises_on_quarantined_event(self):
-        db = AsyncMock()
-        cursor = MagicMock()
-        cursor.fetchone.return_value = ("quarantined",)
-        db.execute.return_value = cursor
+        from tests.utils import make_d1_mock
 
+        db = make_d1_mock(first_return={"status": "quarantined"})
         with pytest.raises(StateTransitionError):
             await assert_redacted_before_downstream("evt-guard-2", db)
 
     @pytest.mark.asyncio
     async def test_raises_on_missing_event(self):
-        db = AsyncMock()
-        cursor = MagicMock()
-        cursor.fetchone.return_value = None
-        db.execute.return_value = cursor
+        from tests.utils import make_d1_mock
 
+        db = make_d1_mock(first_return=None)
         with pytest.raises(StateTransitionError) as exc_info:
             await assert_redacted_before_downstream("evt-missing", db)
         assert exc_info.value.http_status == 404
 
     @pytest.mark.asyncio
     async def test_passes_on_redaction_passed(self):
-        db = AsyncMock()
-        cursor = MagicMock()
-        cursor.fetchone.return_value = ("redaction_passed",)
-        db.execute.return_value = cursor
+        from tests.utils import make_d1_mock
 
+        db = make_d1_mock(first_return={"status": "redaction_passed"})
         # Should NOT raise.
         await assert_redacted_before_downstream("evt-ok", db)
 
     @pytest.mark.asyncio
     async def test_raises_on_redaction_failed(self):
-        db = AsyncMock()
-        cursor = MagicMock()
-        cursor.fetchone.return_value = ("redaction_failed",)
-        db.execute.return_value = cursor
+        from tests.utils import make_d1_mock
 
+        db = make_d1_mock(first_return={"status": "redaction_failed"})
         with pytest.raises(StateTransitionError):
             await assert_redacted_before_downstream("evt-failed", db)
 

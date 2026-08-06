@@ -191,7 +191,7 @@ def truncate_to_token_budget(text: str, max_tokens: int) -> str:
 
     # Convert token budget to approximate byte count.
     max_bytes = max_tokens * 4
-    
+
     encoded = text.encode("utf-8")
     truncated_bytes = encoded[:max_bytes]
     truncated = truncated_bytes.decode("utf-8", errors="ignore")
@@ -504,25 +504,24 @@ async def _store_summary(db: Any, summary: TriageSummary) -> None:
         summary: The summary to persist.
     """
     summary_id = str(uuid.uuid4())
-    await db.execute(
+    await db.prepare(
         "INSERT INTO triage_summaries "
         "(id, triage_event_id, executive_summary, reviewer_pack, "
         "cwe_hints, repro_steps, confidence, model_used, "
         "prompt_tokens, completion_tokens) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [
-            summary_id,
-            summary.event_id,
-            summary.executive_summary,
-            summary.reviewer_pack,
-            json.dumps(summary.cwe_hints),
-            json.dumps(summary.repro_steps),
-            summary.confidence,
-            summary.model_used,
-            summary.token_usage.get("prompt_tokens", 0),
-            summary.token_usage.get("completion_tokens", 0),
-        ],
-    )
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    ).bind(
+        summary_id,
+        summary.event_id,
+        summary.executive_summary,
+        summary.reviewer_pack,
+        json.dumps(summary.cwe_hints),
+        json.dumps(summary.repro_steps),
+        summary.confidence,
+        summary.model_used,
+        summary.token_usage.get("prompt_tokens", 0),
+        summary.token_usage.get("completion_tokens", 0),
+    ).run()
 
 
 async def _transition_state(db: Any, event_id: str, new_status: str) -> None:
@@ -533,10 +532,7 @@ async def _transition_state(db: Any, event_id: str, new_status: str) -> None:
         event_id: The event to transition.
         new_status: The target state (e.g. ``"summarized"``).
     """
-    await db.execute(
-        "UPDATE triage_events SET status = ? WHERE id = ?",
-        [new_status, event_id],
-    )
+    await db.prepare("UPDATE triage_events SET status = ? WHERE id = ?").bind(new_status, event_id).run()
 
 
 # ---------------------------------------------------------------------------

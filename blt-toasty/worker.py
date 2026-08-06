@@ -11,6 +11,7 @@ import urllib.parse
 from js import Response, Headers, console
 from src.rationale_builder import audit_completeness_check
 from src.webhook_handler import handle_webhook
+from src.mcp_export import handle_mcp_export
 
 # Maximum request body size in bytes (1MB)
 MAX_BODY_SIZE = 1024 * 1024
@@ -87,6 +88,17 @@ async def on_fetch(request, env):
             return handle_status(request)
         else:
             return create_method_not_allowed_response(path, ["GET", "HEAD"])
+    elif path.startswith("/mcp/triage/"):
+        if method == "GET":
+            raw_triage_id = path[len("/mcp/triage/") :]
+            triage_id = urllib.parse.unquote(raw_triage_id)
+            if not triage_id:
+                return create_error_response("Missing triage_id in path", 400)
+            if "/" in triage_id:
+                return create_error_response("Invalid triage_id: must not contain path separators", 400)
+            return await handle_mcp_export(request, env, triage_id)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
     elif path.startswith("/triage/") and path.endswith("/rationale"):
         if method == "GET":
             # Extract and decode event_id from /triage/{event_id}/rationale
@@ -316,18 +328,25 @@ async def handle_rationale(request, env, event_id):
             )
 
         # ── Fetch stored rationale from D1 ────────────────────────────────────
-        cursor = await db.execute(
-            "SELECT cwe_rationale, duplicate_rationale, confidence_trace "
-            "FROM triage_rationale WHERE triage_event_id = ? LIMIT 1",
-            [event_id],
+        row = (
+            await db.prepare(
+                "SELECT cwe_rationale, duplicate_rationale, confidence_trace "
+                "FROM triage_rationale WHERE triage_event_id = ? LIMIT 1"
+            )
+            .bind(event_id)
+            .first()
         )
-        row = cursor.fetchone()
+
         if row is None:
             return create_error_response(f"Rationale not found for event {event_id}", 404)
 
-        cwe_rationale_raw = json.loads(row[0])
-        dup_rationale_raw = json.loads(row[1]) if row[1] else None
-        confidence_trace_raw = json.loads(row[2])
+        def get_val(key, idx):
+            return row[key] if hasattr(row, "__getitem__") and key in row else row[idx]
+
+        cwe_rationale_raw = json.loads(get_val("cwe_rationale", 0))
+        dup_val = get_val("duplicate_rationale", 1)
+        dup_rationale_raw = json.loads(dup_val) if dup_val else None
+        confidence_trace_raw = json.loads(get_val("confidence_trace", 2))
 
         return create_json_response(
             {
@@ -644,7 +663,7 @@ async def handle_conversation_reply(request, env, triage_id):
         body_text = await request.text()
         if len(body_text) > MAX_BODY_SIZE:
             return create_error_response(f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes", 413)
-            
+
         if not body_text:
             return create_error_response("Request body is required", 400)
 

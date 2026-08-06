@@ -43,32 +43,37 @@ def _make_db(
     has_summary: bool = True,
     has_rationale: bool = True,
     audit_count: int = 1,
-    rationale_row: tuple | None = None,
-) -> AsyncMock:
-    """Build a mock D1 database handle for testing."""
+    rationale_row: dict | None = None,
+) -> MagicMock:
+    """Build a mock D1 database handle for testing (D1 prepare/bind API)."""
 
-    async def execute(sql: str, params: list) -> MagicMock:
-        cursor = MagicMock()
+    def make_stmt(first_val):
+        mock_run = MagicMock()
+        mock_run.meta = MagicMock()
+        mock_run.meta.changes = 1
+        stmt = MagicMock()
+        stmt.bind = MagicMock(return_value=stmt)
+        stmt.first = AsyncMock(return_value=first_val)
+        stmt.run = AsyncMock(return_value=mock_run)
+        stmt.all = AsyncMock(return_value=MagicMock(results=[]))
+        return stmt
+
+    def prepare_side_effect(sql: str):
         sql_lower = sql.strip().lower()
-
-        if "triage_summaries" in sql_lower:
-            cursor.fetchone.return_value = ("sum-001",) if has_summary else None
+        if "triage_summaries" in sql_lower and "select id" in sql_lower:
+            first_val = {"id": "sum-001"} if has_summary else None
         elif "triage_rationale" in sql_lower and "select id" in sql_lower:
-            cursor.fetchone.return_value = ("rat-001",) if has_rationale else None
-        elif "triage_rationale" in sql_lower and ("insert" in sql_lower or "replace" in sql_lower):
-            cursor.fetchone.return_value = None  # write — not used
+            first_val = {"id": "rat-001"} if has_rationale else None
+        elif "count(*) as cnt" in sql_lower and "redaction_audit" in sql_lower:
+            first_val = {"cnt": audit_count}
         elif "triage_rationale" in sql_lower:
-            # Fetch stored rationale
-            cursor.fetchone.return_value = rationale_row
-        elif "redaction_audit" in sql_lower and "count" in sql_lower:
-            cursor.fetchone.return_value = (audit_count,)
+            first_val = rationale_row
         else:
-            cursor.fetchone.return_value = None
+            first_val = None
+        return make_stmt(first_val)
 
-        return cursor
-
-    db = AsyncMock()
-    db.execute = execute
+    db = MagicMock()
+    db.prepare = MagicMock(side_effect=prepare_side_effect)
     return db
 
 
@@ -440,10 +445,10 @@ class TestAuditCompletenessCheck:
 class TestStoreRationale:
     @pytest.mark.asyncio
     async def test_insert_called_with_correct_arity(self):
-        """INSERT OR REPLACE is called with 5 positional params."""
-        db = AsyncMock()
-        db.execute = AsyncMock(return_value=MagicMock())
+        """INSERT OR REPLACE is called with 5 positional params via bind."""
+        from tests.utils import make_d1_mock
 
+        db = make_d1_mock()
         cwe_r = [
             CWERationale(
                 cwe_id="CWE-89",
@@ -453,27 +458,25 @@ class TestStoreRationale:
                 reasoning="Report mentions raw SQL query.",
             )
         ]
-        dup_r = None
         trace = build_confidence_trace(
             redaction_entity_count=2,
             redaction_confidence_min=0.99,
             summary_confidence=0.9,
         )
+        await store_rationale(db, "evt-001", cwe_r, None, trace)
 
-        await store_rationale(db, "evt-001", cwe_r, dup_r, trace)
-
-        db.execute.assert_called_once()
-        call_args = db.execute.call_args
-        # Positional params list should have 5 items.
-        params_list = call_args[0][1]
-        assert len(params_list) == 5
+        # prepare() called with INSERT OR REPLACE sql; bind() receives 5 args
+        stmt = db.prepare.return_value
+        assert stmt.bind.called
+        bind_args = stmt.bind.call_args[0]
+        assert len(bind_args) == 5
 
     @pytest.mark.asyncio
     async def test_null_dup_rationale_stored_as_none(self):
-        """None duplicate_rationale stores NULL (None) in D1."""
-        db = AsyncMock()
-        db.execute = AsyncMock(return_value=MagicMock())
+        """None duplicate_rationale stores NULL (None) in D1 via bind 4th arg."""
+        from tests.utils import make_d1_mock
 
+        db = make_d1_mock()
         trace = build_confidence_trace(
             redaction_entity_count=0,
             redaction_confidence_min=1.0,
@@ -481,16 +484,17 @@ class TestStoreRationale:
         )
         await store_rationale(db, "evt-002", [], None, trace)
 
-        params_list = db.execute.call_args[0][1]
-        # Index 3 is dup_json — should be None.
-        assert params_list[3] is None
+        stmt = db.prepare.return_value
+        bind_args = stmt.bind.call_args[0]
+        # bind_args: (id, triage_event_id, cwe_json, dup_json, trace_json) — index 3 is dup_json
+        assert bind_args[3] is None
 
     @pytest.mark.asyncio
     async def test_cwe_rationale_serialised_as_json_array(self):
         """cwe_rationale param is a valid JSON array string."""
-        db = AsyncMock()
-        db.execute = AsyncMock(return_value=MagicMock())
+        from tests.utils import make_d1_mock
 
+        db = make_d1_mock()
         cwe_r = [
             CWERationale(
                 cwe_id="CWE-79",
@@ -507,8 +511,9 @@ class TestStoreRationale:
         )
         await store_rationale(db, "evt-003", cwe_r, None, trace)
 
-        params_list = db.execute.call_args[0][1]
-        cwe_json = params_list[2]
+        stmt = db.prepare.return_value
+        bind_args = stmt.bind.call_args[0]
+        cwe_json = bind_args[2]
         parsed = json.loads(cwe_json)
         assert isinstance(parsed, list)
         assert parsed[0]["cwe_id"] == "CWE-79"
@@ -516,8 +521,9 @@ class TestStoreRationale:
     @pytest.mark.asyncio
     async def test_uses_insert_or_replace(self):
         """SQL statement uses INSERT OR REPLACE for idempotency."""
-        db = AsyncMock()
-        db.execute = AsyncMock(return_value=MagicMock())
+        from tests.utils import make_d1_mock
+
+        db = make_d1_mock()
         trace = build_confidence_trace(
             redaction_entity_count=0,
             redaction_confidence_min=1.0,
@@ -525,16 +531,16 @@ class TestStoreRationale:
         )
         await store_rationale(db, "evt-004", [], None, trace)
 
-        sql = db.execute.call_args[0][0]
-import sys
-from unittest.mock import AsyncMock, MagicMock
+        sql = db.prepare.call_args[0][0]
+        assert "INSERT OR REPLACE" in sql
+
 
 class MockResponse:
     def __init__(self, body, status, headers=None):
         self._body = body
         self.status = status
         self.headers = headers
-    
+
     async def text(self):
         return self._body
 
@@ -542,7 +548,10 @@ class MockResponse:
     def new(cls, body, status=200, headers=None):
         return cls(body, status, headers)
 
+
 # Mock Cloudflare Workers environment (js, pyodide) before importing worker
+import sys
+
 js_mock = MagicMock()
 js_mock.Response = MockResponse
 sys.modules["js"] = js_mock
@@ -562,7 +571,7 @@ class TestHandleRationale:
         """Returns 200 with JSON payload when rationale exists."""
         req = AsyncMock()
         env = AsyncMock()
-        
+
         # Valid JSON from the DB
         cwe_json = '[{"cwe_id": "CWE-79"}]'
         dup_json = '{"top_candidate_event_id": "evt-000"}'
@@ -572,7 +581,7 @@ class TestHandleRationale:
 
         resp = await handle_rationale(req, env, "evt-123")
         assert resp.status == 200
-        
+
         body = json.loads(await resp.text())
         assert body["event_id"] == "evt-123"
         assert body["status"] == "complete"
@@ -585,16 +594,16 @@ class TestHandleRationale:
         """Handles cases where duplicate_rationale is NULL in the DB."""
         req = AsyncMock()
         env = AsyncMock()
-        
-        cwe_json = '[]'
-        trace_json = '{}'
+
+        cwe_json = "[]"
+        trace_json = "{}"
         # duplicate_rationale is NULL (None)
         db = _make_db(has_rationale=True, rationale_row=(cwe_json, None, trace_json))
         env.DB = db
 
         resp = await handle_rationale(req, env, "evt-123")
         assert resp.status == 200
-        
+
         body = json.loads(await resp.text())
         assert body["duplicate_rationale"] is None
 
@@ -608,7 +617,7 @@ class TestHandleRationale:
 
         resp = await handle_rationale(req, env, "evt-404")
         assert resp.status == 424
-        
+
         body = json.loads(await resp.text())
         assert "incomplete" in body["error"].lower()
 

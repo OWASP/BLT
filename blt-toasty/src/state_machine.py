@@ -100,8 +100,7 @@ async def quarantine_event(db, event_id: str, reason: str, env=None, has_vector:
     await transition_state(db, event_id, "quarantined")
 
     # 1a. Set quarantine_reason
-    query = "UPDATE triage_events SET quarantine_reason = ? WHERE id = ?"
-    await db.execute(query, [reason, event_id])
+    await db.prepare("UPDATE triage_events SET quarantine_reason = ? WHERE id = ?").bind(reason, event_id).run()
 
     # 2. Insert into the audit log
     audit_id = secrets.token_hex(16)

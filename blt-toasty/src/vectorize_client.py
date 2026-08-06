@@ -52,10 +52,9 @@ async def _transition_state(db: Any, event_id: str, new_status: str) -> None:
         event_id: The event to transition.
         new_status: The target state (e.g. ``"embedded"``).
     """
-    await db.execute(
-        "UPDATE triage_events SET status = ?, updated_at = datetime('now') WHERE id = ?",
-        [new_status, event_id],
-    )
+    await db.prepare("UPDATE triage_events SET status = ?, updated_at = datetime('now') WHERE id = ?").bind(
+        new_status, event_id
+    ).run()
 
 
 # ---------------------------------------------------------------------------
@@ -82,11 +81,7 @@ async def assert_summarized_before_embedding(event_id: str, db: Any) -> None:
     Raises:
         StateTransitionError: If the event status is not ``summarized``.
     """
-    cursor = await db.execute(
-        "SELECT status FROM triage_events WHERE id = ?",
-        [event_id],
-    )
-    row = cursor.fetchone()
+    row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
 
     if row is None:
         raise StateTransitionError(
@@ -96,7 +91,7 @@ async def assert_summarized_before_embedding(event_id: str, db: Any) -> None:
             http_status=404,
         )
 
-    status = row[0]
+    status = row["status"] if hasattr(row, "__getitem__") else row[0]
     if status != "summarized":
         raise StateTransitionError(
             f"Event {event_id} has status '{status}'; expected 'summarized'. "

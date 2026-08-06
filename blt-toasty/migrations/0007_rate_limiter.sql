@@ -1,0 +1,3 @@
+-- Migration: 0007_rate_limiter.sql
+-- No D1 schema changes required for RateLimiterDO.
+-- Rate limiting state is held in Durable Object storage.

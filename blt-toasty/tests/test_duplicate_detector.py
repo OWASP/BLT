@@ -42,31 +42,39 @@ class MockCursor:
 
 
 def _make_db(*, status="redaction_passed", row_exists=True, summary_text="Mock executive summary"):
-    """Build a mock D1 database handle.
+    """Build a mock D1 database handle (D1 prepare/bind API).
 
-    The mock supports two query patterns:
-    - SELECT status FROM triage_events → returns (status,)
-    - SELECT executive_summary FROM triage_summaries → returns (summary_text,)
-    - INSERT INTO duplicate_candidates → no-op
+    Routes queries by SQL content:
+    - SELECT status FROM triage_events → {"status": status}
+    - SELECT executive_summary FROM triage_summaries → {"executive_summary": summary_text}
+    - INSERT/UPDATE → run() returning meta.changes=1
     """
-    db = AsyncMock()
+    from unittest.mock import AsyncMock, MagicMock
 
-    async def mock_execute(sql, params=None):
-        if "SELECT status FROM triage_events" in sql:
-            row = (status,) if row_exists else None
-            return MockCursor(row=row)
-        if "SELECT executive_summary FROM triage_summaries" in sql:
-            return MockCursor(row=(summary_text,) if summary_text else None)
-        # INSERT or UPDATE — return a no-op cursor
-        return MockCursor(row=None)
+    def make_stmt(first_val):
+        mock_run = MagicMock()
+        mock_run.meta = MagicMock()
+        mock_run.meta.changes = 1
+        stmt = MagicMock()
+        stmt.bind = MagicMock(return_value=stmt)
+        stmt.first = AsyncMock(return_value=first_val)
+        stmt.run = AsyncMock(return_value=mock_run)
+        stmt.all = AsyncMock(return_value=MagicMock(results=[]))
+        return stmt
 
-    db.execute = AsyncMock(side_effect=mock_execute)
+    def prepare_side_effect(sql):
+        sql_lower = sql.strip().lower()
+        if "select status from triage_events" in sql_lower:
+            first_val = {"status": status} if row_exists else None
+        elif "executive_summary from triage_summaries" in sql_lower:
+            first_val = {"executive_summary": summary_text} if summary_text else None
+        else:
+            first_val = None
+        return make_stmt(first_val)
+
+    db = MagicMock()
+    db.prepare = MagicMock(side_effect=prepare_side_effect)
     db.batch = AsyncMock()
-    
-    mock_stmt = MagicMock()
-    mock_stmt.bind.return_value = mock_stmt
-    db.prepare = MagicMock(return_value=mock_stmt)
-    
     return db
 
 
