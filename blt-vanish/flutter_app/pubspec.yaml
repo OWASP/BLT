@@ -37,6 +37,7 @@ dependencies:
   archive: ^4.0.9
   
   # Utilities
+  crypto: ^3.0.6
   uuid: ^4.2.2
   intl: ^0.20.2
   url_launcher: ^6.2.2
