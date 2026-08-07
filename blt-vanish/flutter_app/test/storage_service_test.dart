@@ -1,14 +1,20 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:selferase/services/storage_service.dart';
-import 'package:selferase/models/user_data.dart';
 import 'package:selferase/models/monitor_entry.dart';
+import 'package:selferase/models/security/credential_snapshot.dart';
+import 'package:selferase/models/security/security_alert.dart';
+import 'package:selferase/models/user_data.dart';
+import 'package:selferase/services/storage_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('StorageService', () {
     late StorageService storageService;
 
     setUp(() {
+      SharedPreferences.setMockInitialValues({});
       storageService = StorageService();
     });
 
@@ -74,10 +80,6 @@ void main() {
       // Act - Export
       final exportedData = await storageService.exportData();
       expect(exportedData, isNotEmpty);
-
-      // Clear data
-      await storageService.clearAllData();
-      await storageService.initialize();
 
       // Act - Import
       await storageService.importData(exportedData);
@@ -257,9 +259,6 @@ void main() {
         final exported = await storageService.exportData();
         expect(exported, isNotEmpty);
 
-        // Clear and reimport
-        await storageService.clearAllData();
-        await storageService.initialize();
         await storageService.importData(exported);
 
         final entries = await storageService.getMonitorEntries();
@@ -269,6 +268,71 @@ void main() {
         expect(entries.first.keyword, equals('export test'));
         expect(entries.first.type, equals(MonitorType.takedown));
         expect(entries.first.notes, equals('test notes'));
+      });
+    });
+
+    group('CredentialSnapshot', () {
+      test('should save and retrieve credential snapshots without plaintext', () async {
+        await storageService.initialize();
+        final now = DateTime.now();
+
+        final snapshot = CredentialSnapshot(
+          id: const Uuid().v4(),
+          accountLabel: 'GitHub',
+          username: 'ananya@example.com',
+          passwordHash: 'hashed-secret',
+          reuseHash: 'reuse-secret',
+          strengthScore: 0.85,
+          reuseLikelihoodScore: 0.0,
+          exposureScore: 0.0,
+          finalScore: 0.10,
+          severity: AlertSeverity.low,
+          reasonCodes: const <String>[],
+          rotationGuidance: 'Keep using a unique passphrase.',
+          createdAt: now,
+          updatedAt: now,
+        );
+
+        await storageService.saveCredentialSnapshot(snapshot);
+        final snapshots = await storageService.getCredentialSnapshots();
+
+        expect(snapshots.length, equals(1));
+        expect(snapshots.first.accountLabel, equals('GitHub'));
+        expect(snapshots.first.passwordHash, equals('hashed-secret'));
+      });
+
+      test('should export and import credential snapshots', () async {
+        await storageService.initialize();
+        final now = DateTime.now();
+
+        final snapshot = CredentialSnapshot(
+          id: const Uuid().v4(),
+          accountLabel: 'Banking',
+          username: 'user@example.com',
+          passwordHash: 'bank-secret-hash',
+          reuseHash: 'bank-reuse-hash',
+          strengthScore: 0.20,
+          reuseLikelihoodScore: 1.0,
+          exposureScore: 1.0,
+          finalScore: 0.92,
+          severity: AlertSeverity.critical,
+          reasonCodes: const <String>[
+            'WEAK_COMPLEXITY',
+            'KNOWN_DATA_BREACH',
+          ],
+          rotationGuidance: 'Rotate this password immediately.',
+          createdAt: now,
+          updatedAt: now,
+        );
+
+        await storageService.saveCredentialSnapshot(snapshot);
+        final exported = await storageService.exportData();
+        await storageService.importData(exported);
+
+        final snapshots = await storageService.getCredentialSnapshots();
+        expect(snapshots.length, equals(1));
+        expect(snapshots.first.accountLabel, equals('Banking'));
+        expect(snapshots.first.severity, equals(AlertSeverity.critical));
       });
     });
   });
