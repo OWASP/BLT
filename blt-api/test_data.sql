@@ -15,7 +15,16 @@ DELETE FROM organization_integrations;
 DELETE FROM organization_tags;
 DELETE FROM organization_managers;
 DELETE FROM domains;
+DELETE FROM contributors;
+DELETE FROM repositories;
+DELETE FROM projects;
 DELETE FROM organization;
+DELETE FROM user_api_keys;
+DELETE FROM hackathon_registrations;
+DELETE FROM hackathons;
+DELETE FROM jobs;
+DELETE FROM user_auth_identities;
+DELETE FROM hunts;
 DELETE FROM users;
 DELETE FROM tags;
 
@@ -35,7 +44,16 @@ WHERE name IN (
     'organization_tags',
     'organization_managers',
     'domains',
+    'contributors',
+    'repositories',
+    'projects',
     'organization',
+    'user_api_keys',
+    'hackathon_registrations',
+    'hackathons',
+    'jobs',
+    'user_auth_identities',
+    'hunts',
     'users',
     'tags'
 );
@@ -51,11 +69,12 @@ INSERT INTO tags (name) VALUES
 -- Insert test users
 -- Note: In production, passwords should be properly hashed (bcrypt, argon2, etc.)
 -- These are placeholder hashed passwords for testing
-INSERT INTO users (username, password, email, title, user_avatar, description, winnings, total_score, is_active) VALUES
+INSERT INTO users (username, password, email_encrypted, email_hash, title, user_avatar_encrypted, description_encrypted, winnings, total_score, is_active) VALUES
     (
         'alice_hunter',
         'pbkdf2_sha256$260000$test_hash_alice',
-        'alice@example.com',
+        'encrypted_alice@example.com',
+        'hash_alice@example.com',
         3,
         'https://avatars.example.com/alice.jpg',
         'Security researcher specializing in web application vulnerabilities. OSCP certified.',
@@ -66,7 +85,8 @@ INSERT INTO users (username, password, email, title, user_avatar, description, w
     (
         'bob_security',
         'pbkdf2_sha256$260000$test_hash_bob',
-        'bob@example.com',
+        'encrypted_bob@example.com',
+        'hash_bob@example.com',
         2,
         'https://avatars.example.com/bob.jpg',
         'Penetration tester and bug bounty hunter. Love finding SQLi vulnerabilities.',
@@ -77,7 +97,8 @@ INSERT INTO users (username, password, email, title, user_avatar, description, w
     (
         'charlie_dev',
         'pbkdf2_sha256$260000$test_hash_charlie',
-        'charlie@example.com',
+        'encrypted_charlie@example.com',
+        'hash_charlie@example.com',
         1,
         'https://avatars.example.com/charlie.jpg',
         'Full-stack developer interested in application security.',
@@ -88,7 +109,8 @@ INSERT INTO users (username, password, email, title, user_avatar, description, w
     (
         'diana_admin',
         'pbkdf2_sha256$260000$test_hash_diana',
-        'diana@example.com',
+        'encrypted_diana@example.com',
+        'hash_diana@example.com',
         4,
         'https://avatars.example.com/diana.jpg',
         'Security team lead at OWASP. Bug bounty program manager.',
@@ -99,7 +121,8 @@ INSERT INTO users (username, password, email, title, user_avatar, description, w
     (
         'eve_newbie',
         'pbkdf2_sha256$260000$test_hash_eve',
-        'eve@example.com',
+        'encrypted_eve@example.com',
+        'hash_eve@example.com',
         1,
         NULL,
         'New to bug bounties, learning the ropes!',
@@ -209,11 +232,17 @@ INSERT INTO domain_tags (domain_id, tag_id) VALUES
     (3, 1), -- Test Domain -> security
     (3, 5); -- Test Domain -> api
 
+-- Insert test bug hunts
+INSERT INTO hunts (title, description, starts_at, ends_at, is_active) VALUES
+    ('OWASP BLT Active Bug Hunt', 'Currently active bug hunt.', datetime('now', '-5 days'), datetime('now', '+5 days'), 1),
+    ('OWASP BLT Previous Bug Hunt', 'Past bug hunt.', datetime('now', '-15 days'), datetime('now', '-10 days'), 1),
+    ('OWASP BLT Upcoming Bug Hunt', 'Upcoming bug hunt.', datetime('now', '+10 days'), datetime('now', '+15 days'), 1);
+
 -- Insert test bugs
 INSERT INTO bugs (
     url, description, markdown_description, label, views, verified, score, 
     status, user_agent, screenshot, github_url, is_hidden, rewarded, 
-    reporter_ip_address, cve_id, cve_score, domain, user, closed_by
+    reporter_ip_address, cve_id, cve_score, hunt, domain, user, closed_by
 ) VALUES
     (
         'https://blt.owasp.org/login',
@@ -232,6 +261,7 @@ INSERT INTO bugs (
         '192.168.1.100',
         'CVE-2024-1234',
         '7.5',
+        1,
         1,
         1,
         NULL
@@ -255,6 +285,7 @@ INSERT INTO bugs (
         '9.8',
         2,
         2,
+        2,
         4
     ),
     (
@@ -272,6 +303,7 @@ INSERT INTO bugs (
         0,
         0,
         '172.16.0.25',
+        NULL,
         NULL,
         NULL,
         3,
@@ -296,6 +328,7 @@ INSERT INTO bugs (
         NULL,
         NULL,
         1,
+        1,
         4,
         NULL
     ),
@@ -316,6 +349,7 @@ INSERT INTO bugs (
         '198.51.100.42',
         NULL,
         NULL,
+        3,
         2,
         1,
         NULL
@@ -397,7 +431,7 @@ INSERT INTO user_bug_flags (user_id, bug_id, flag_reason) VALUES
 
 -- Display inserted data
 SELECT 'Users:' as info;
-SELECT id, username, email, total_score, winnings, is_active FROM users;
+SELECT id, username, email_encrypted, total_score, winnings, is_active FROM users;
 
 SELECT 'Domains:' as info;
 SELECT d.id, d.name, d.url, u.username as submitted_by FROM domains d
@@ -547,3 +581,85 @@ FROM user_bug_flags ubf
 JOIN users u ON ubf.user_id = u.id
 JOIN bugs b ON ubf.bug_id = b.id
 ORDER BY u.username;
+
+-- Insert test projects
+INSERT INTO projects (id, organization_id, name, description) 
+VALUES 
+(1, 1, 'BLT Frontend', 'The Next.js frontend'),
+(2, 1, 'BLT API', 'The Cloudflare Workers API');
+
+-- Insert test repositories
+INSERT INTO repositories (id, organization_id, project_id, name, url) 
+VALUES 
+(1, 1, 1, 'owasp-blt/frontend', 'https://github.com/owasp-blt/frontend'),
+(2, 1, 2, 'owasp-blt/api', 'https://github.com/owasp-blt/api');
+
+-- Insert test contributors for the leaderboard (users 1 and 2 already exist)
+INSERT INTO contributors (user_id, project_id, repository_id, score) VALUES (1, 1, 1, 500);
+INSERT INTO contributors (user_id, project_id, repository_id, score) VALUES (2, 1, 2, 350);
+
+-- Insert a test bug to check the new CLI url field
+INSERT INTO bugs (url, title, description, severity, status) 
+VALUES ('https://example.com/vuln', 'SQL Injection', 'Found a SQLi in the login form', 'critical', 'open');
+
+
+-- Insert user API keys
+-- The hashes are derived from raw keys:
+-- 'blt_live_alicehunterkey12345' (hash: 9ac7e67ca61babd365e903baebb347d7c5410a9b479399640ab045a10993f23c)
+-- 'blt_live_bobsecuritykey12345' (hash: b992442068c827971f8e5639673fa629a08e6dcd4264b2cfbe1f984e575463c1)
+-- 'blt_live_charliedevkey12345' (hash: 43e92ced11044f3613ba09ea39066e902fe00d7c38b5de561bc712a81436000a)
+INSERT INTO user_api_keys (user_id, name, key_prefix, key_hash, scopes, is_active) VALUES
+    (1, 'Alice Live Key', 'blt_live_alicehunter', '9ac7e67ca61babd365e903baebb347d7c5410a9b479399640ab045a10993f23c', '["read:bugs", "write:bugs", "read:jobs", "write:jobs"]', 1),
+    (2, 'Bob Live Key', 'blt_live_bobsecurity', 'b992442068c827971f8e5639673fa629a08e6dcd4264b2cfbe1f984e575463c1', '["read:bugs", "write:bugs", "read:jobs", "write:jobs"]', 1),
+    (3, 'Charlie Live Key', 'blt_live_charliedev', '43e92ced11044f3613ba09ea39066e902fe00d7c38b5de561bc712a81436000a', '["read:bugs", "write:bugs", "read:jobs", "write:jobs"]', 1);
+
+-- Insert test jobs
+INSERT INTO jobs (created_by_user_id, title, description, company_name, location, url, apply_url, job_type, salary_range, status, is_active, views) VALUES
+    (1, 'Senior Security Engineer', 'We are looking for a Senior Security Engineer to join our team.', 'OWASP Foundation', 'Remote', 'https://owasp.org', 'https://owasp.org/apply', 'full-time', '$120,000 - $150,000', 'open', 1, 45),
+    (2, 'Penetration Tester', 'Contract role for conducting network and application penetration testing.', 'SecureCorp Inc', 'San Francisco, CA', 'https://securecorp.example.com', 'https://securecorp.example.com/apply', 'contract', '$80 - $100 / hour', 'open', 1, 12),
+    (3, 'AppSec Intern', 'Summer internship position for aspiring AppSec professionals.', 'University of Technology', 'London, UK', 'https://unitech.edu', 'https://unitech.edu/apply', 'internship', 'Paid', 'open', 1, 3);
+
+-- Insert test hackathons
+INSERT INTO hackathons (created_by_user_id, title, slug, description, starts_at, ends_at, location, url, capacity, is_published) VALUES
+    (1, 'OWASP Summer Hackathon 2026', 'owasp-summer-2026', 'A global hackathon to build secure open-source applications.', datetime('now', '+10 days'), datetime('now', '+12 days'), 'Remote', 'https://owasp.org/hackathon', 250, 1),
+    (2, 'SecureCorp CTF & Hack', 'securecorp-ctf-2026', 'Test your skills in our annual CTF and hackathon challenge.', datetime('now', '+30 days'), datetime('now', '+31 days'), 'San Francisco, CA', 'https://securecorp.example.com/ctf', 100, 1);
+
+-- Insert test hackathon registrations
+INSERT INTO hackathon_registrations (hackathon_id, created_by_user_id, registrant_user_id, participant_name, participant_email_encrypted, participant_email_hash, status) VALUES
+    (1, 1, 2, 'Bob Security', 'encrypted_bob@example.com', 'hash_bob@example.com', 'registered'),
+    (1, 1, 3, 'Charlie Dev', 'encrypted_charlie@example.com', 'hash_charlie@example.com', 'registered'),
+    (2, 2, 1, 'Alice Hunter', 'encrypted_alice@example.com', 'hash_alice@example.com', 'registered');
+
+-- Insert test user auth identities
+INSERT INTO user_auth_identities (user_id, provider, provider_user_id, provider_username_encrypted, provider_email_encrypted, provider_email_hash) VALUES
+    (1, 'local', 'alice_hunter', 'encrypted_alice_hunter', 'encrypted_alice@example.com', 'hash_alice@example.com'),
+    (2, 'local', 'bob_security', 'encrypted_bob_security', 'encrypted_bob@example.com', 'hash_bob@example.com'),
+    (3, 'local', 'charlie_dev', 'encrypted_charlie_dev', 'encrypted_charlie@example.com', 'hash_charlie@example.com');
+
+-- Display newly inserted data
+SELECT 'Projects:' as info;
+SELECT * FROM projects;
+
+SELECT 'Repositories:' as info;
+SELECT * FROM repositories;
+
+SELECT 'Contributors:' as info;
+SELECT * FROM contributors;
+
+SELECT 'Hunts:' as info;
+SELECT * FROM hunts;
+
+SELECT 'User API Keys:' as info;
+SELECT * FROM user_api_keys;
+
+SELECT 'Jobs:' as info;
+SELECT * FROM jobs;
+
+SELECT 'Hackathons:' as info;
+SELECT * FROM hackathons;
+
+SELECT 'Hackathon Registrations:' as info;
+SELECT * FROM hackathon_registrations;
+
+SELECT 'User Auth Identities:' as info;
+SELECT * FROM user_auth_identities;
