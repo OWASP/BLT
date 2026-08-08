@@ -54,25 +54,25 @@
         });
 
         stage.innerHTML = `
-            <div class="space-y-4">
+            <div data-stage-body class="space-y-4">
                 <div>
                     <h4 class="m-0 text-base font-bold text-gray-900 dark:text-white">Step 1: Identify Vulnerability</h4>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">${escapeHtml(messages.identifyPrompt)}</p>
                 </div>
             </div>
         `;
-        stage.querySelector('.space-y-4').append(codeMount, feedback, validateButton);
+        stage.querySelector('[data-stage-body]').append(codeMount, feedback, validateButton);
     }
 
-    function renderExplain(stage, config, state, rerender, messages, model) {
+    function renderExplain(stage, config, state, rerender, messages, explainState) {
         const explain = config.explain || {};
         const feedback = document.createElement('p');
         feedback.className = 'hidden';
 
-        const options = document.createElement('div');
-        options.className = 'space-y-3';
+        const answerButtons = document.createElement('div');
+        answerButtons.className = 'space-y-3';
         (explain.options || []).forEach(option => {
-            const isSelected = model.selectedAnswer === option.id;
+            const isSelected = explainState.selectedAnswer === option.id;
             const button = document.createElement('button');
             button.type = 'button';
             button.dataset.answer = option.id;
@@ -88,10 +88,10 @@
                 </span>
             `;
             button.addEventListener('click', () => {
-                model.selectedAnswer = option.id;
+                explainState.selectedAnswer = option.id;
                 rerender();
             });
-            options.append(button);
+            answerButtons.append(button);
         });
 
         const validateButton = document.createElement('button');
@@ -99,8 +99,8 @@
         validateButton.className = buttonClasses();
         validateButton.textContent = 'Validate Explanation';
         validateButton.addEventListener('click', () => {
-            if (validateExplainAnswer(model.selectedAnswer, explain.answer)) {
-                model.explainDone = true;
+            if (validateExplainAnswer(explainState.selectedAnswer, explain.answer)) {
+                explainState.explainDone = true;
                 state.transition(SimulationStates.FIX);
                 rerender();
             } else {
@@ -109,14 +109,14 @@
         });
 
         stage.innerHTML = `
-            <div class="space-y-4">
+            <div data-stage-body class="space-y-4">
                 <div>
                     <h4 class="m-0 text-base font-bold text-gray-900 dark:text-white">Step 2: Explain</h4>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">${escapeHtml(explain.question || 'Why is this vulnerable?')}</p>
                 </div>
             </div>
         `;
-        stage.querySelector('.space-y-4').append(options, feedback, validateButton);
+        stage.querySelector('[data-stage-body]').append(answerButtons, feedback, validateButton);
     }
 
     function renderFixGuidance(messages, fixGuidance = []) {
@@ -191,13 +191,13 @@
         return wrapper;
     }
 
-    function renderFix(stage, config, context, state, rerender, options, hintController) {
+    function renderFix(stage, config, context, state, rerender, simulation, hintController) {
         const editor = renderCodeEditor(config.fix_starter_code || '');
         const feedback = document.createElement('div');
         feedback.className = 'hidden';
         const checksList = document.createElement('div');
         checksList.className = 'space-y-2';
-        const initialChecks = options.validateFix(config.fix_starter_code || '', config).checks;
+        const initialChecks = simulation.validateFix(config.fix_starter_code || '', config).checks;
         const { hintButton, hintBox } = createHintElements(hintController);
 
         const validateButton = document.createElement('button');
@@ -205,7 +205,7 @@
         validateButton.className = buttonClasses();
         validateButton.innerHTML = '<i class="ph-bold ph-play"></i> Run Validation';
         validateButton.addEventListener('click', () => {
-            const result = options.validateFix(editor.value, config);
+            const result = simulation.validateFix(editor.value, config);
             checksList.innerHTML = result.checks.map(check => `
                 <div class="flex items-center gap-2 text-sm ${check.passed ? 'text-green-600 dark:text-green-300' : 'text-bltRed dark:text-red-300'}">
                     <span class="flex h-5 w-5 items-center justify-center rounded-full ${check.passed ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}">${check.passed ? '✓' : '×'}</span>
@@ -217,14 +217,14 @@
                 state.transition(SimulationStates.COMPLETE);
                 setSimulationProgress(context.labId, context.taskIndex, {
                     completed: true,
-                    engine: options.engine,
+                    engine: simulation.engine,
                     state: SimulationStates.COMPLETE,
                     score: 100
                 });
                 context.completeTask();
                 rerender();
             } else {
-                renderFeedback(feedback, options.messages.fixError, 'error');
+                renderFeedback(feedback, simulation.messages.fixError, 'error');
             }
         });
 
@@ -243,17 +243,17 @@
             <div class="space-y-5">
                 <div>
                     <h4 class="m-0 text-lg font-bold text-gray-900 dark:text-white">Step 3: Fix</h4>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">${escapeHtml(options.messages.fixPrompt)}</p>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">${escapeHtml(simulation.messages.fixPrompt)}</p>
                 </div>
-                ${renderFixOverview(options.messages, initialChecks)}
+                ${renderFixOverview(simulation.messages, initialChecks)}
                 <div data-fix-editor class="space-y-4"></div>
-                ${renderFixGuidance(options.messages, options.fixGuidance || config.fix_guidance || [])}
+                ${renderFixGuidance(simulation.messages, simulation.fixGuidance || config.fix_guidance || [])}
             </div>
         `;
         const actionRow = document.createElement('div');
         actionRow.className = 'flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center';
         actionRow.append(validateButton, resetButton, hintButton);
-        stage.querySelector('[data-fix-editor]').append(renderEditorChrome(editor, options.language || 'JS'), actionRow, hintBox, checksList, feedback);
+        stage.querySelector('[data-fix-editor]').append(renderEditorChrome(editor, simulation.language || 'JS'), actionRow, hintBox, checksList, feedback);
     }
 
     function renderCodeFixSimulation(container, config, context, options) {
@@ -261,14 +261,14 @@
         const state = createSimulationState(savedProgress?.completed ? SimulationStates.COMPLETE : SimulationStates.IDENTIFY);
         const selectedLines = new Set();
         const hintController = createHintController(config.hints || []);
-        const model = {
+        const explainState = {
             selectedAnswer: null,
             explainDone: Boolean(savedProgress?.completed)
         };
 
         function rerender() {
             const identifyDone = validateLineSelection([...selectedLines], config.vulnerable_lines || []);
-            const explainDone = identifyDone && (model.explainDone || [SimulationStates.FIX, SimulationStates.COMPLETE].includes(state.value));
+            const explainDone = identifyDone && (explainState.explainDone || [SimulationStates.FIX, SimulationStates.COMPLETE].includes(state.value));
             const navigation = {
                 identifyDone,
                 explainDone,
@@ -281,7 +281,7 @@
             if (state.value === SimulationStates.IDENTIFY) {
                 renderIdentify(stage, config, selectedLines, state, rerender, options.messages);
             } else if (state.value === SimulationStates.EXPLAIN) {
-                renderExplain(stage, config, state, rerender, options.messages, model);
+                renderExplain(stage, config, state, rerender, options.messages, explainState);
             } else if (state.value === SimulationStates.FIX) {
                 renderFix(stage, config, context, state, rerender, options, hintController);
             } else {
@@ -293,6 +293,8 @@
                 `;
             }
 
+            // FIX is excluded because renderFix already places its own hint button inline in
+            // the action row; appending here would show a second one.
             if (state.value !== SimulationStates.COMPLETE && state.value !== SimulationStates.FIX) {
                 renderHints(stage, hintController);
             }

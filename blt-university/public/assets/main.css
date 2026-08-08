@@ -89,7 +89,7 @@ a {
   text-decoration: none;
 }
 a:visited {
-  color: rgb(22.9483471074, 86.2541322314, 168.5516528926);
+  color: rgb(8.9993518068%, 33.8251498947%, 66.0986874088%);
 }
 a:hover {
   color: #111;
@@ -194,20 +194,20 @@ table {
   margin-bottom: 30px;
   width: 100%;
   text-align: left;
-  color: rgb(62.9, 62.9, 62.9);
+  color: rgb(24.6666666667%, 24.6666666667%, 24.6666666667%);
   border-collapse: collapse;
   border: 1px solid #e8e8e8;
 }
 table tr:nth-child(even) {
-  background-color: rgb(247.3, 247.3, 247.3);
+  background-color: rgb(96.9803921569%, 96.9803921569%, 96.9803921569%);
 }
 table th, table td {
   padding: 9.999999999px 15px;
 }
 table th {
-  background-color: rgb(239.65, 239.65, 239.65);
-  border: 1px solid rgb(221.8, 221.8, 221.8);
-  border-bottom-color: rgb(201.4, 201.4, 201.4);
+  background-color: rgb(93.9803921569%, 93.9803921569%, 93.9803921569%);
+  border: 1px solid rgb(86.9803921569%, 86.9803921569%, 86.9803921569%);
+  border-bottom-color: rgb(78.9803921569%, 78.9803921569%, 78.9803921569%);
 }
 table td {
   border: 1px solid #e8e8e8;
@@ -217,7 +217,7 @@ table td {
  * Site header
  */
 .site-header {
-  border-top: 5px solid rgb(66.25, 66.25, 66.25);
+  border-top: 5px solid rgb(25.9803921569%, 25.9803921569%, 25.9803921569%);
   border-bottom: 1px solid #e8e8e8;
   min-height: 55.95px;
   position: relative;
@@ -232,7 +232,7 @@ table td {
   float: left;
 }
 .site-title, .site-title:visited {
-  color: rgb(66.25, 66.25, 66.25);
+  color: rgb(25.9803921569%, 25.9803921569%, 25.9803921569%);
 }
 
 .site-nav {
@@ -280,7 +280,7 @@ table td {
     text-align: center;
   }
   .site-nav .menu-icon > svg {
-    fill: rgb(66.25, 66.25, 66.25);
+    fill: rgb(25.9803921569%, 25.9803921569%, 25.9803921569%);
   }
   .site-nav input ~ .trigger {
     clear: both;

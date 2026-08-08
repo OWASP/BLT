@@ -1,8 +1,8 @@
 const {
-  createMockDocument,
   findButton,
   getFixEditor,
-  loadLabHelpers
+  loadLabHelpers,
+  renderLabFixture
 } = require('./helpers');
 
 describe('simulation state machine', () => {
@@ -56,7 +56,7 @@ describe('simulation state machine', () => {
 
 describe('lab simulation initialization', () => {
   it('renders a safe placeholder when a simulation engine is unknown', () => {
-    const labDocument = createMockDocument({
+    const labDocument = renderLabFixture({
       labDataText: JSON.stringify([{ simulation: { engine: 'missing-engine' } }]),
       simulationEngine: 'missing-engine'
     });
@@ -70,14 +70,14 @@ describe('lab simulation initialization', () => {
   });
 
   describe.each([
-    ['malformed JSON', '{ no valid json'],
-    ['empty array', JSON.stringify([])],
-    ['null', JSON.stringify(null)],
-    ['string', JSON.stringify('hello')],
-    ['number', JSON.stringify(123)]
-  ])('fallback lab data: %s', (_name, labDataText) => {
+    { name: 'malformed JSON', labDataText: '{ no valid json' },
+    { name: 'empty array', labDataText: JSON.stringify([]) },
+    { name: 'null', labDataText: JSON.stringify(null) },
+    { name: 'string', labDataText: JSON.stringify('hello') },
+    { name: 'number', labDataText: JSON.stringify(123) }
+  ])('fallback lab data: $name', ({ labDataText }) => {
     it('still renders a usable simulation shell', () => {
-      const labDocument = createMockDocument({
+      const labDocument = renderLabFixture({
         labDataText,
         simulationEngine: 'sqli-login'
       });

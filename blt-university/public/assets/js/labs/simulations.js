@@ -567,7 +567,6 @@
         });
     }
 
-
     const SimulationRegistry = {
         'sqli-login': renderSqliLoginSimulation,
         'sqli-union': renderSqliUnionSimulation,

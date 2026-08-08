@@ -3,9 +3,9 @@ const {
   SQLI_LAB_ID,
   SQLI_LOGIN_ENGINE,
   cloneSerializableValue,
-  createMockDocument,
   getStoredLabProgress,
-  loadLabHelpers
+  loadLabHelpers,
+  renderLabFixture
 } = require('./helpers');
 
 describe('simulation progress storage', () => {
@@ -65,11 +65,11 @@ describe('simulation progress storage', () => {
   });
 
   describe.each([
-    ['null', 'null'],
-    ['array', '[]'],
-    ['string', '"progress"'],
-    ['number', '42']
-  ])('shape-safe storage recovery: %s', (_name, storedValue) => {
+    { name: 'null', storedValue: 'null' },
+    { name: 'array', storedValue: '[]' },
+    { name: 'string', storedValue: '"progress"' },
+    { name: 'number', storedValue: '42' }
+  ])('shape-safe storage recovery: $name', ({ storedValue }) => {
     it('recovers with an empty object', () => {
       const { helpers, storage } = loadLabHelpers();
 
@@ -101,7 +101,7 @@ describe('simulation progress storage', () => {
 
   it('restores a completed simulation without dropping other labs from storage', () => {
     const taskIndex = 0;
-    const labDocument = createMockDocument({
+    const labDocument = renderLabFixture({
       taskIndex,
       labDataText: JSON.stringify([
         {
@@ -139,7 +139,7 @@ describe('simulation progress storage', () => {
     helpers.initializeLabSimulations();
 
     expect(labDocument.simulationRoot.textContent).toContain('Simulation Complete');
-    expect(cloneSerializableValue(getStoredLabProgress(storage)['xss-lab'])).toEqual({
+    expect(getStoredLabProgress(storage)['xss-lab']).toEqual({
       2: {
         completed: true,
         engine: 'xss-reflected'
