@@ -34,6 +34,9 @@ name = "toasty-backend-staging"
 [env.development]
 name = "toasty-backend-dev"
 
+[env.development.vars]
+FASTEMBED_URL = "http://localhost:5003"
+
 # Routes for the worker (configure based on your domain)
 # [[routes]]
 # pattern = "api.toasty.example.com/*"
@@ -59,6 +62,11 @@ id = "local-kv-placeholder"
 # [[r2_buckets]]
 # binding = "TOASTY_BUCKET"
 # bucket_name = "toasty-files"
+
+# Vectorize index for semantic duplicate detection
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "toasty-embeddings"
 
 # Environment variables (secrets should be set via wrangler secret put)
 [vars]

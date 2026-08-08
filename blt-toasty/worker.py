@@ -6,8 +6,9 @@ It provides endpoints for code analysis, health checks, webhook ingestion,
 and status monitoring.
 """
 
-from js import Response, Headers, console, fetch
 import json
+import urllib.parse
+from js import Response, Headers, console, fetch
 from src.webhook_handler import handle_webhook
 
 # Maximum request body size in bytes (1MB)
@@ -24,25 +25,14 @@ def parse_path(url):
     Returns:
         str: The path component of the URL
     """
-    # Extract path from URL (handle query params and fragments)
-    # Format: https://domain.com/path?query#fragment
-    url_without_protocol = url.split("://", 1)[1] if "://" in url else url
-    path_start = url_without_protocol.find("/")
-
-    if path_start == -1:
+    parsed = urllib.parse.urlparse(url)
+    path = parsed.path
+    if not path or path == "":
         path = "/"
-    else:
-        # Get everything after the domain
-        path_with_query = url_without_protocol[path_start:]
-        # Remove query parameters and fragments
-        path = path_with_query.split("?")[0].split("#")[0]
-        # Ensure path starts with /
-        if not path.startswith("/"):
-            path = "/" + path
-        # Remove trailing slash for consistent matching (except root)
-        if len(path) > 1 and path.endswith("/"):
-            path = path[:-1]
-
+    elif not path.startswith("/"):
+        path = "/" + path
+    if len(path) > 1 and path.endswith("/"):
+        path = path[:-1]
     return path
 
 
@@ -200,6 +190,9 @@ async def handle_review(request, env):
         except json.JSONDecodeError:
             return create_error_response("Invalid JSON in request body", 400)
 
+        if not isinstance(data, dict):
+            return create_error_response("Request body must be a JSON object", 400)
+
         # Validate required fields
         if "code" not in data:
             return create_error_response("Missing required field: 'code'", 400)
@@ -214,6 +207,7 @@ async def handle_review(request, env):
             return create_error_response("Field 'code' cannot be empty", 400)
 
         language = data.get("language", "unknown")
+        _context = data.get("context", "")
 
         # Placeholder for actual AI review logic
         # In production, this would call AI services, perform static analysis, etc.
@@ -389,8 +383,6 @@ def create_json_response(data, status_code=200):
     headers.set("Access-Control-Allow-Headers", "Content-Type")
 
     return Response.new(json.dumps(data), status=status_code, headers=headers)
-
-
 def create_text_response(message, status_code=200):
     """
     Create a plain-text response.
