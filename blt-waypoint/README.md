@@ -2,7 +2,7 @@
 
 A live interactive dashboard for exploring OWASP-BLT GitHub and GitLab repositories, migration progress, and repository statistics.
 
-**Live Demo:** [github.owaspblt.org](http://github.owaspblt.org/)
+**Live Demo:** [waypoint.owaspblt.org](https://waypoint.owaspblt.org/)
 
 ---
 
