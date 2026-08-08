@@ -42,25 +42,39 @@ class MockCursor:
 
 
 def _make_db(*, status="redaction_passed", row_exists=True, summary_text="Mock executive summary"):
-    """Build a mock D1 database handle.
+    """Build a mock D1 database handle (D1 prepare/bind API).
 
-    The mock supports two query patterns:
-    - SELECT status FROM triage_events → returns (status,)
-    - SELECT executive_summary FROM triage_summaries → returns (summary_text,)
-    - INSERT INTO duplicate_candidates → no-op
+    Routes queries by SQL content:
+    - SELECT status FROM triage_events → {"status": status}
+    - SELECT executive_summary FROM triage_summaries → {"executive_summary": summary_text}
+    - INSERT/UPDATE → run() returning meta.changes=1
     """
-    db = AsyncMock()
+    from unittest.mock import AsyncMock, MagicMock
 
-    async def mock_execute(sql, params=None):
-        if "SELECT status FROM triage_events" in sql:
-            row = (status,) if row_exists else None
-            return MockCursor(row=row)
-        if "SELECT executive_summary FROM triage_summaries" in sql:
-            return MockCursor(row=(summary_text,) if summary_text else None)
-        # INSERT or UPDATE — return a no-op cursor
-        return MockCursor(row=None)
+    def make_stmt(first_val):
+        mock_run = MagicMock()
+        mock_run.meta = MagicMock()
+        mock_run.meta.changes = 1
+        stmt = MagicMock()
+        stmt.bind = MagicMock(return_value=stmt)
+        stmt.first = AsyncMock(return_value=first_val)
+        stmt.run = AsyncMock(return_value=mock_run)
+        stmt.all = AsyncMock(return_value=MagicMock(results=[]))
+        return stmt
 
-    db.execute = AsyncMock(side_effect=mock_execute)
+    def prepare_side_effect(sql):
+        sql_lower = sql.strip().lower()
+        if "select status from triage_events" in sql_lower:
+            first_val = {"status": status} if row_exists else None
+        elif "executive_summary from triage_summaries" in sql_lower:
+            first_val = {"executive_summary": summary_text} if summary_text else None
+        else:
+            first_val = None
+        return make_stmt(first_val)
+
+    db = MagicMock()
+    db.prepare = MagicMock(side_effect=prepare_side_effect)
+    db.batch = AsyncMock()
     return db
 
 
@@ -255,6 +269,25 @@ class TestDetectDuplicates:
     @pytest.mark.asyncio
     @patch("src.duplicate_detector.call_llm", new_callable=AsyncMock)
     @patch("src.duplicate_detector.find_duplicates", new_callable=AsyncMock)
+    async def test_missing_summary_skips_adjudication(self, mock_find_duplicates, mock_call_llm):
+        """Candidate with missing executive summary skips LLM adjudication."""
+        mock_find_duplicates.return_value = [
+            {"event_id": "evt-dup", "score": 0.82, "metadata": {"repo": "owasp/blt"}},
+        ]
+        # Return None for summary
+        db = _make_db(status="redaction_passed", summary_text=None)
+        env = _make_env()
+        do_stub = _make_do_stub()
+
+        result = await detect_duplicates("evt-001", "redacted text", "owasp/blt", env, db, do_stub)
+
+        mock_call_llm.assert_not_awaited()
+        assert len(result.candidates) == 0
+        assert result.top_candidate is None
+
+    @pytest.mark.asyncio
+    @patch("src.duplicate_detector.call_llm", new_callable=AsyncMock)
+    @patch("src.duplicate_detector.find_duplicates", new_callable=AsyncMock)
     async def test_llm_unavailable_fails_safe(self, mock_find_duplicates, mock_call_llm):
         """LLMUnavailableError → candidate NOT promoted (fail-safe)."""
         mock_find_duplicates.return_value = [
@@ -287,6 +320,7 @@ class TestDetectDuplicates:
 
         await detect_duplicates("evt-001", "redacted text", "owasp/blt", env, db, do_stub)
 
-        # Find INSERT INTO duplicate_candidates calls
-        insert_calls = [c for c in db.execute.call_args_list if "INSERT INTO duplicate_candidates" in str(c)]
-        assert len(insert_calls) == 2  # One high-score, one borderline (both stored)
+        # Ensure batch was called
+        db.batch.assert_awaited_once()
+        batch_args = db.batch.call_args[0][0]
+        assert len(batch_args) == 2  # One high-score, one borderline

@@ -55,19 +55,14 @@ VALID_LLM_RESPONSE = json.dumps(
 
 
 def _make_mock_db(*, status="redaction_passed"):
-    """Create a mock D1 database handle.
+    """Create a mock D1 database handle (D1 prepare/bind API).
 
-    The mock returns the given *status* for any SELECT on triage_events.
-    The row is returned as a tuple (matching D1 raw cursor ``row[0]``
-    index access) and records all execute() calls.
+    Returns a status row for SELECT queries and records all prepare() calls.
     """
-    db = AsyncMock()
+    from tests.utils import make_d1_mock
 
-    mock_cursor = MagicMock()
-    mock_cursor.fetchone.return_value = (status,) if status else None
-
-    db.execute.return_value = mock_cursor
-    return db
+    first_return = {"status": status} if status else None
+    return make_d1_mock(first_return=first_return)
 
 
 def _make_mock_env():
@@ -355,9 +350,10 @@ class TestSummarize:
         with patch("src.summarizer.call_llm", new_callable=AsyncMock, return_value=VALID_LLM_RESPONSE):
             await summarize("Report text", env, db, do_stub, "evt-002")
 
-        # Find the UPDATE call that transitions state.
-        update_calls = [c for c in db.execute.call_args_list if "UPDATE triage_events SET status" in str(c)]
-        assert any("summarized" in str(c) for c in update_calls)
+        # The state UPDATE is done via prepare(sql).bind("summarized", event_id).run()
+        stmt = db.prepare.return_value
+        bind_args = [str(call) for call in stmt.bind.call_args_list]
+        assert any("summarized" in a for a in bind_args)
 
     @pytest.mark.asyncio
     async def test_guard_blocks_non_redacted_event(self):
@@ -483,5 +479,5 @@ class TestSummarize:
         with patch("src.summarizer.call_llm", new_callable=AsyncMock, return_value=VALID_LLM_RESPONSE):
             await summarize("Report", env, db, do_stub, "evt-009")
 
-        insert_calls = [c for c in db.execute.call_args_list if "INSERT INTO triage_summaries" in str(c)]
+        insert_calls = [str(c) for c in db.prepare.call_args_list if "INSERT INTO triage_summaries" in str(c)]
         assert len(insert_calls) >= 1

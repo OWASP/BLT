@@ -26,7 +26,6 @@ from __future__ import annotations
 import dataclasses
 import json
 import logging
-import uuid
 from typing import Any
 
 from src.errors import LLMUnavailableError
@@ -133,7 +132,9 @@ def validate_adjudication_output(data: dict) -> tuple[bool, list[str]]:
         errors.append("is_duplicate: missing or not a boolean")
 
     conf = data.get("confidence")
-    if conf is None:
+    if isinstance(conf, bool):
+        errors.append("confidence: missing or not a number")
+    elif conf is None:
         errors.append("confidence: missing")
     elif not isinstance(conf, (int, float)):
         errors.append(f"confidence: not a number (got {type(conf).__name__})")
@@ -167,14 +168,14 @@ async def _get_candidate_summary_text(candidate_event_id: str, db: Any) -> str |
     Returns:
         The executive summary string, or ``None`` if not found.
     """
-    cursor = await db.execute(
-        "SELECT executive_summary FROM triage_summaries WHERE triage_event_id = ?",
-        [candidate_event_id],
+    row = (
+        await db.prepare("SELECT executive_summary FROM triage_summaries WHERE triage_event_id = ?")
+        .bind(candidate_event_id)
+        .first()
     )
-    row = cursor.fetchone()
     if row is None:
         return None
-    return row[0]
+    return row["executive_summary"] if hasattr(row, "__getitem__") else row[0]
 
 
 async def _store_candidates(db: Any, event_id: str, candidates: list[DuplicateCandidate]) -> None:
@@ -185,14 +186,16 @@ async def _store_candidates(db: Any, event_id: str, candidates: list[DuplicateCa
         event_id: The query event ID.
         candidates: The candidates to persist.
     """
+    queries = []
     for candidate in candidates:
-        row_id = str(uuid.uuid4())
-        await db.execute(
-            "INSERT INTO duplicate_candidates "
-            "(id, triage_event_id, candidate_event_id, similarity_score, "
-            "llm_confirmed, llm_confidence, llm_rationale, detection_method) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [
+        row_id = f"{event_id}_{candidate.event_id}"
+        queries.append(
+            db.prepare(
+                "INSERT OR REPLACE INTO duplicate_candidates "
+                "(id, triage_event_id, candidate_event_id, similarity_score, "
+                "llm_confirmed, llm_confidence, llm_rationale, detection_method) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+            ).bind(
                 row_id,
                 event_id,
                 candidate.event_id,
@@ -201,8 +204,11 @@ async def _store_candidates(db: Any, event_id: str, candidates: list[DuplicateCa
                 candidate.llm_confidence,
                 candidate.llm_rationale,
                 candidate.detection_method,
-            ],
+            )
         )
+
+    if queries:
+        await db.batch(queries)
 
 
 # ---------------------------------------------------------------------------
@@ -321,7 +327,10 @@ async def detect_duplicates(
 
     # ── 3-tier scoring ────────────────────────────────────────────────────
     candidates: list[DuplicateCandidate] = []
-    used_llm = False
+    adjudications_performed = 0
+    MAX_ADJUDICATIONS = 3
+
+    raw_matches.sort(key=lambda m: m["score"], reverse=True)
 
     for match in raw_matches:
         candidate_event_id = match["event_id"]
@@ -344,6 +353,9 @@ async def detect_duplicates(
                 )
             )
         elif score >= ADJUDICATION_THRESHOLD:
+            if adjudications_performed >= MAX_ADJUDICATIONS:
+                continue
+
             # Tier 2: Borderline — LLM adjudication required
             candidate_text = await _get_candidate_summary_text(candidate_event_id, db)
             if candidate_text is None:
@@ -354,7 +366,7 @@ async def detect_duplicates(
                 continue
 
             adjudication = await adjudicate_duplicate(redacted_text, candidate_text, env, do_stub)
-            used_llm = True
+            adjudications_performed += 1
 
             if adjudication["is_duplicate"] and adjudication["confidence"] >= LLM_CONFIDENCE_THRESHOLD:
                 candidates.append(
@@ -389,7 +401,7 @@ async def detect_duplicates(
     # ── Build result ──────────────────────────────────────────────────────
     if not confirmed:
         overall_method = "no_duplicates"
-    elif used_llm:
+    elif any(c.detection_method == "retrieval_plus_llm" for c in confirmed):
         overall_method = "retrieval_plus_llm"
     else:
         overall_method = "retrieval_only"

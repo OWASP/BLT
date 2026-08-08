@@ -25,6 +25,15 @@ from src.gitlab_linker import (
 )
 
 
+@pytest.fixture(autouse=True)
+def clear_js_mocks():
+    """Clear polluted js module imports from other tests so env mocks are used."""
+    from unittest.mock import patch
+
+    with patch("src.gitlab_linker.fetch", None), patch("src.gitlab_linker.AbortController", None):
+        yield
+
+
 # ---------------------------------------------------------------------------
 # Helpers: mock objects
 # ---------------------------------------------------------------------------
@@ -121,6 +130,27 @@ class TestPostDuplicateComment:
         assert f"{GITLAB_API_BASE}/projects/123/issues/42/notes" == url
 
     @pytest.mark.asyncio
+    async def test_post_comment_headers_format(self):
+        """Outbound request includes PRIVATE-TOKEN and Content-Type."""
+        env = _make_env()
+
+        await post_duplicate_comment(
+            access_token="glpat-test-token",
+            project_id=123,
+            issue_iid=42,
+            duplicate_of_iid=10,
+            confidence=0.92,
+            rationale="Same XSS in login form.",
+            env=env,
+        )
+
+        call_args = env._fetch_impl.call_args
+        options = call_args[0][1]
+        headers = options["headers"]
+        assert headers["Authorization"] == "Bearer glpat-test-token"
+        assert headers["Content-Type"] == "application/json"
+
+    @pytest.mark.asyncio
     async def test_post_comment_body_format(self):
         """Comment body contains issue number, confidence percentage, and rationale."""
         env = _make_env()
@@ -146,8 +176,8 @@ class TestPostDuplicateComment:
         assert "Toasty Triage" in comment
 
     @pytest.mark.asyncio
-    async def test_rate_limit_backoff(self):
-        """When RateLimit-Remaining < 100, returns False without raising."""
+    async def test_rate_limit_backoff(self, caplog):
+        """When RateLimit-Remaining < 100, logs a warning and returns True."""
         fetch_mock = _make_gitlab_fetch_mock(status=201, rate_limit_remaining=50)
         env = _make_env(fetch_mock=fetch_mock)
 
@@ -161,7 +191,8 @@ class TestPostDuplicateComment:
             env=env,
         )
 
-        assert result is False
+        assert result is True
+        assert "Rate-limit quota low after posting duplicate comment" in caplog.text
 
     @pytest.mark.asyncio
     async def test_rate_limit_ok(self):
@@ -236,8 +267,8 @@ class TestAddDuplicateLabel:
         assert body["add_labels"] == "possible-duplicate"
 
     @pytest.mark.asyncio
-    async def test_add_label_rate_limit_backoff(self):
-        """When RateLimit-Remaining < 100, returns False."""
+    async def test_add_label_rate_limit_backoff(self, caplog):
+        """When RateLimit-Remaining < 100, logs a warning and returns True."""
         fetch_mock = _make_gitlab_fetch_mock(status=200, rate_limit_remaining=50)
         env = _make_env(fetch_mock=fetch_mock)
 
@@ -248,4 +279,47 @@ class TestAddDuplicateLabel:
             env=env,
         )
 
-        assert result is False
+        assert result is True
+        assert "Rate-limit quota low after adding label" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_add_label_non_200_raises_error(self):
+        """HTTP 403 raises GitLabAPIError with correct status_code."""
+        fetch_mock = _make_gitlab_fetch_mock(status=403, ok=False, response_body={"error": "forbidden"})
+        env = _make_env(fetch_mock=fetch_mock)
+
+        with pytest.raises(GitLabAPIError) as exc_info:
+            await add_duplicate_label(
+                access_token="glpat-test-token",
+                project_id=123,
+                issue_iid=42,
+                env=env,
+            )
+
+        assert exc_info.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_network_timeout_mapped_to_408(self):
+        """Abort/Timeout exception maps to 408."""
+
+        async def timeout_fetch(url, options):
+            raise Exception("The operation was aborted.")
+
+        env = _make_env(fetch_mock=AsyncMock(side_effect=timeout_fetch))
+
+        with pytest.raises(GitLabAPIError) as exc_info:
+            await add_duplicate_label(access_token="test", project_id=1, issue_iid=1, env=env)
+        assert exc_info.value.status_code == 408
+
+    @pytest.mark.asyncio
+    async def test_network_error_mapped_to_503(self):
+        """Generic network exception maps to 503."""
+
+        async def network_error_fetch(url, options):
+            raise Exception("Connection refused")
+
+        env = _make_env(fetch_mock=AsyncMock(side_effect=network_error_fetch))
+
+        with pytest.raises(GitLabAPIError) as exc_info:
+            await add_duplicate_label(access_token="test", project_id=1, issue_iid=1, env=env)
+        assert exc_info.value.status_code == 503

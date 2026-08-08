@@ -43,17 +43,16 @@ class MockCursor:
 
 
 def _make_db(*, status="summarized", row_exists=True):
-    """Build a mock D1 database handle.
+    """Build a mock D1 database handle (D1 prepare/bind API).
 
     Args:
         status: The status value returned by SELECT queries.
         row_exists: Whether the event row exists.
     """
-    db = AsyncMock()
-    row = (status,) if row_exists else None
-    cursor = MockCursor(row=row)
-    db.execute = AsyncMock(return_value=cursor)
-    return db
+    from tests.utils import make_d1_mock
+
+    first_return = {"status": status} if row_exists else None
+    return make_d1_mock(first_return=first_return)
 
 
 def _make_vectorize_binding():
@@ -142,10 +141,10 @@ class TestIndexReport:
 
         await index_report("evt-001", "redacted text", "owasp/blt", env, db)
 
-        env.VECTORIZE.insert.assert_awaited_once()
-        insert_args = env.VECTORIZE.insert.call_args[0][0]
-        assert len(insert_args) == 1
-        vec = insert_args[0]
+        env.VECTORIZE.upsert.assert_awaited_once()
+        upsert_args = env.VECTORIZE.upsert.call_args[0][0]
+        assert len(upsert_args) == 1
+        vec = upsert_args[0]
         assert vec["id"] == "evt-001"
         assert len(vec["values"]) == 384
         assert vec["metadata"]["repo"] == "owasp/blt"
@@ -163,9 +162,10 @@ class TestIndexReport:
 
         await index_report("evt-001", "redacted text", "owasp/blt", env, db)
 
-        # The last db.execute call should be the transition to 'embedded'
-        transition_calls = [c for c in db.execute.call_args_list if "UPDATE" in str(c) and "embedded" in str(c)]
-        assert len(transition_calls) >= 1
+        # State UPDATE goes via prepare(sql).bind("embedded", event_id).run()
+        stmt = db.prepare.return_value
+        bind_calls = [str(c) for c in stmt.bind.call_args_list if "embedded" in str(c) and "evt-001" in str(c)]
+        assert len(bind_calls) >= 1
 
     @pytest.mark.asyncio
     @patch("src.vectorize_client.get_embedding", new_callable=AsyncMock)
@@ -178,11 +178,29 @@ class TestIndexReport:
         # Should NOT raise
         await index_report("evt-001", "redacted text", "owasp/blt", env, db)
 
-        # Verify state was set to embedded_pending
-        transition_calls = [c for c in db.execute.call_args_list if "embedded_pending" in str(c)]
-        assert len(transition_calls) >= 1
-        # Verify Vectorize.insert was NOT called
-        env.VECTORIZE.insert.assert_not_awaited()
+        # State UPDATE goes via prepare(sql).bind("embedded_pending", event_id).run()
+        stmt = db.prepare.return_value
+        bind_calls = [str(c) for c in stmt.bind.call_args_list if "embedded_pending" in str(c)]
+        assert len(bind_calls) >= 1
+
+        # Verify Vectorize.upsert was NOT called
+        env.VECTORIZE.upsert.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    @patch("src.vectorize_client.get_embedding", new_callable=AsyncMock)
+    async def test_generic_exception_sets_embedded_pending(self, mock_get_embedding):
+        """On generic Exception during Vectorize API call, state becomes 'embedded_pending' and raises."""
+        mock_get_embedding.return_value = [0.1] * 384
+        db = _make_db(status="summarized")
+        env = _make_env()
+        env.VECTORIZE.upsert.side_effect = Exception("Generic upsert error")
+
+        with pytest.raises(Exception, match="Generic upsert error"):
+            await index_report("evt-001", "redacted text", "owasp/blt", env, db)
+
+        stmt = db.prepare.return_value
+        bind_calls = [str(c) for c in stmt.bind.call_args_list if "embedded_pending" in str(c)]
+        assert len(bind_calls) >= 1
 
     @pytest.mark.asyncio
     async def test_guard_blocks_non_summarized(self):
@@ -224,7 +242,7 @@ class TestFindDuplicates:
 
         env.VECTORIZE.query.assert_awaited_once()
         query_args = env.VECTORIZE.query.call_args
-        assert query_args[0][1]["filter"] == {"repo": "owasp/blt"}
+        assert query_args[0][1]["filter"] == {"repo": "owasp/blt", "model_version": "all-MiniLM-L6-v2"}
         assert len(results) == 1
         assert results[0]["event_id"] == "evt-001"
 

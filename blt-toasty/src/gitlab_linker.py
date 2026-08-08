@@ -100,8 +100,10 @@ async def _gitlab_fetch(url: str, options: dict, env) -> object:
     controller = _abort_controller_cls.new()
     try:
         from js import setTimeout  # type: ignore[import-not-found]
+        from pyodide.ffi import create_once_callable  # type: ignore[import-not-found]
 
-        setTimeout(lambda: controller.abort(), GITLAB_TIMEOUT_SECONDS * 1000)
+        abort_cb = create_once_callable(lambda: controller.abort())
+        setTimeout(abort_cb, GITLAB_TIMEOUT_SECONDS * 1000)
     except ImportError:
         pass
 
@@ -129,6 +131,44 @@ async def _gitlab_fetch(url: str, options: dict, env) -> object:
 # ---------------------------------------------------------------------------
 
 
+async def _gitlab_write(
+    url: str,
+    method: str,
+    body: str,
+    access_token: str,
+    expected_status: int,
+    env,
+) -> bool:
+    """Execute a GitLab API write operation and return True if rate limit is OK."""
+    import urllib.parse
+
+    response = await _gitlab_fetch(
+        url,
+        {
+            "method": method,
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {access_token}",
+            },
+            "body": body,
+        },
+        env,
+    )
+
+    status = response.status
+    if status != expected_status:
+        error_body = await response.text()
+        path = urllib.parse.urlparse(url).path
+        if "/api/v4" in path:
+            path = path.split("/api/v4")[-1]
+        raise GitLabAPIError(
+            f"GitLab {method} {path} returned HTTP {status}: {error_body}",
+            status_code=status,
+        )
+
+    return _check_rate_limit(response)
+
+
 async def post_duplicate_comment(
     access_token: str,
     project_id: int,
@@ -153,49 +193,41 @@ async def post_duplicate_comment(
         env: Cloudflare Worker environment for fetch mock injection.
 
     Returns:
-        ``True`` if the comment was posted successfully.
-        ``False`` if the request was suppressed due to rate limiting.
+        ``True`` if the comment was posted successfully. The write is always attempted.
+        The post-write rate-limit check is advisory and only logs a warning.
 
     Raises:
         GitLabAPIError: On non-201 HTTP response.
     """
     url = f"{GITLAB_API_BASE}/projects/{project_id}/issues/{issue_iid}/notes"
 
+    # Sanitize rationale to prevent GitLab quick action injection
+    sanitized_rationale = " ".join(line.lstrip(" /") for line in rationale.splitlines()).strip()
+
     comment_body = (
         f"\U0001f916 **Toasty Triage:** This issue may be a duplicate of #{duplicate_of_iid}.\n\n"
         f"**Confidence:** {confidence:.0%}\n\n"
-        f"**Rationale:** {rationale}\n\n"
+        f"**Rationale:** {sanitized_rationale}\n\n"
         f"*Please review and confirm or dismiss.*"
     )
 
     body = json.dumps({"body": comment_body})
 
-    response = await _gitlab_fetch(
-        url,
-        {
-            "method": "POST",
-            "headers": {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {access_token}",
-            },
-            "body": body,
-        },
-        env,
+    rate_limit_ok = await _gitlab_write(
+        url=url,
+        method="POST",
+        body=body,
+        access_token=access_token,
+        expected_status=201,
+        env=env,
     )
 
-    if not _check_rate_limit(response):
+    # Rate-limit is a backoff signal only — the write already succeeded.
+    if not rate_limit_ok:
         logger.warning(
-            "Rate limit exceeded — duplicate comment NOT posted for issue %d",
+            "Rate-limit quota low after posting duplicate comment on issue %d — "
+            "consider backing off future requests",
             issue_iid,
-        )
-        return False
-
-    status = response.status
-    if status != 201:
-        error_body = await response.text()
-        raise GitLabAPIError(
-            f"GitLab POST /notes returned HTTP {status}: {error_body}",
-            status_code=status,
         )
 
     logger.info(
@@ -222,8 +254,8 @@ async def add_duplicate_label(
         env: Cloudflare Worker environment for fetch mock injection.
 
     Returns:
-        ``True`` if the label was added successfully.
-        ``False`` if the request was suppressed due to rate limiting.
+        ``True`` if the label was added successfully. The write is always attempted.
+        The post-write rate-limit check is advisory and only logs a warning.
 
     Raises:
         GitLabAPIError: On non-200 HTTP response.
@@ -232,32 +264,20 @@ async def add_duplicate_label(
 
     body = json.dumps({"add_labels": "possible-duplicate"})
 
-    response = await _gitlab_fetch(
-        url,
-        {
-            "method": "PUT",
-            "headers": {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {access_token}",
-            },
-            "body": body,
-        },
-        env,
+    rate_limit_ok = await _gitlab_write(
+        url=url,
+        method="PUT",
+        body=body,
+        access_token=access_token,
+        expected_status=200,
+        env=env,
     )
 
-    if not _check_rate_limit(response):
+    # Rate-limit is a backoff signal only — the write already succeeded.
+    if not rate_limit_ok:
         logger.warning(
-            "Rate limit exceeded — duplicate label NOT added for issue %d",
+            "Rate-limit quota low after adding label to issue %d — " "consider backing off future requests",
             issue_iid,
-        )
-        return False
-
-    status = response.status
-    if status != 200:
-        error_body = await response.text()
-        raise GitLabAPIError(
-            f"GitLab PUT /issues returned HTTP {status}: {error_body}",
-            status_code=status,
         )
 
     logger.info(

@@ -122,3 +122,45 @@ class GitLabAPIError(Exception):
     def __init__(self, message: str, *, status_code: int | None = None):
         super().__init__(message)
         self.status_code = status_code
+
+
+class AuditIncompleteError(Exception):
+    """Raised when audit_completeness_check() determines that required audit fields are absent.
+
+    This is the terminal failure state for MCP export gating.  The caller should
+    surface HTTP 424 Failed Dependency to clients along with the ``missing_fields``
+    list so operators can diagnose which pipeline stage did not complete.
+
+    Attributes:
+        event_id: The event whose audit is incomplete.
+        missing_fields: Names of the audit records that are absent from D1
+            (subset of ``["triage_summary", "triage_rationale", "redaction_audit"]``).
+    """
+
+    def __init__(self, message: str, *, event_id: str = "", missing_fields: list[str] | None = None):
+        super().__init__(message)
+        self.event_id = event_id
+        self.missing_fields: list[str] = missing_fields or []
+
+
+class JWTExpiredError(Exception):
+    """Raised when the JWT `exp` claim has elapsed."""
+
+
+class JWTInvalidError(Exception):
+    """Raised when JWT signature, structure, or claims are invalid."""
+
+
+class ConversationError(Exception):
+    """Raised when a conversation operation fails.
+
+    Used by the ``ConversationDO`` Durable Object when a conversation
+    turn cannot be appended, archived, or retrieved.
+
+    Attributes:
+        status_code: The HTTP status code to surface to the client.
+    """
+
+    def __init__(self, message: str = "Conversation operation failed", *, status_code: int = 500):
+        super().__init__(message)
+        self.status_code = status_code

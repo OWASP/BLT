@@ -84,6 +84,19 @@ def _make_env(*, fetch_mock=None, sidecar_url="http://localhost:5003"):
 class TestGetEmbedding:
     """Tests for the get_embedding function."""
 
+    @pytest.fixture(autouse=True)
+    def reset_module_mocks(self):
+        """Ensure leaked 'js' mocks from other tests don't break the fallback."""
+        import src.embedding_client
+
+        original_fetch = src.embedding_client.fetch
+        original_abort = src.embedding_client.AbortController
+        src.embedding_client.fetch = None
+        src.embedding_client.AbortController = None
+        yield
+        src.embedding_client.fetch = original_fetch
+        src.embedding_client.AbortController = original_abort
+
     @pytest.mark.asyncio
     async def test_returns_384_dimensions(self):
         """Successful call returns a list of exactly 384 floats."""
@@ -170,3 +183,51 @@ class TestGetEmbedding:
             await get_embedding("test", env)
         assert exc_info.value.status_code == 500
         assert "invalid or empty embeddings list" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_invalid_json_response(self):
+        """Non-JSON response raises EmbeddingServiceError with status 500."""
+
+        async def bad_json_fetch(url, options):
+            resp = MagicMock()
+            resp.ok = True
+            resp.status = 200
+            resp.json = AsyncMock(side_effect=ValueError("Invalid JSON"))
+            return resp
+
+        env = _make_env(fetch_mock=AsyncMock(side_effect=bad_json_fetch))
+        with pytest.raises(EmbeddingServiceError) as exc_info:
+            await get_embedding("test text", env)
+        assert exc_info.value.status_code == 500
+        assert "non-JSON" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_first_embedding_not_a_list(self):
+        """First embedding not a list raises EmbeddingServiceError with status 500."""
+
+        async def bad_embedding_fetch(url, options):
+            resp = MagicMock()
+            resp.ok = True
+            resp.status = 200
+            resp.json = AsyncMock(return_value={"embeddings": ["not a list"], "model": "m", "dimensions": 384})
+            return resp
+
+        env = _make_env(fetch_mock=AsyncMock(side_effect=bad_embedding_fetch))
+        with pytest.raises(EmbeddingServiceError) as exc_info:
+            await get_embedding("test text", env)
+        assert exc_info.value.status_code == 500
+        assert "is not a list" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_post_body_payload_formats_text_as_list(self):
+        """Test that the POST body JSON wraps the string input in a list."""
+        fetch_mock = _make_sidecar_fetch_mock()
+        env = _make_env(fetch_mock=fetch_mock)
+
+        await get_embedding("this is a single string test", env)
+
+        fetch_mock.assert_awaited_once()
+        options = fetch_mock.call_args[0][1]
+        body = json.loads(options["body"])
+        assert "texts" in body
+        assert body["texts"] == ["this is a single string test"]

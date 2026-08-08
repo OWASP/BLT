@@ -21,13 +21,18 @@ CREATE TABLE IF NOT EXISTS duplicate_candidates (
     llm_confirmed INTEGER DEFAULT 0,
     llm_confidence REAL,
     llm_rationale TEXT,
-    detection_method TEXT NOT NULL,
+    detection_method TEXT NOT NULL CHECK(detection_method IN ('retrieval_only', 'retrieval_plus_llm', 'llm_rejected')),
     gitlab_note_posted INTEGER DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    CHECK (similarity_score >= 0.0 AND similarity_score <= 1.0),
+    CHECK (llm_confidence IS NULL OR (llm_confidence >= 0.0 AND llm_confidence <= 1.0))
 );
-
-CREATE INDEX IF NOT EXISTS idx_dup_candidates_event_id
-    ON duplicate_candidates(triage_event_id);
 
 CREATE INDEX IF NOT EXISTS idx_dup_candidates_candidate_id
     ON duplicate_candidates(candidate_event_id);
+
+-- Uniqueness constraint: a given (event, candidate) pair may only be stored
+-- once. Upserts (INSERT OR REPLACE) use this to overwrite existing records,
+-- making duplicate detection retries idempotent at the database level.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_dup_candidates_unique_pair
+    ON duplicate_candidates(triage_event_id, candidate_event_id);

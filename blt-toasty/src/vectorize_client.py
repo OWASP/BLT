@@ -44,18 +44,31 @@ MODEL_VERSION = "all-MiniLM-L6-v2"
 # ---------------------------------------------------------------------------
 
 
-async def _transition_state(db: Any, event_id: str, new_status: str) -> None:
+async def _transition_state(db: Any, event_id: str, new_status: str, expected_status: str) -> None:
     """Advance the triage event state machine to *new_status*.
 
     Args:
         db: A Cloudflare D1 database handle.
         event_id: The event to transition.
         new_status: The target state (e.g. ``"embedded"``).
+        expected_status: The expected current status to enforce optimistic concurrency.
     """
-    await db.execute(
-        "UPDATE triage_events SET status = ?, updated_at = datetime('now') WHERE id = ?",
-        [new_status, event_id],
+    result = (
+        await db.prepare(
+            "UPDATE triage_events SET status = ?, updated_at = datetime('now') WHERE id = ? AND status = ?"
+        )
+        .bind(new_status, event_id, expected_status)
+        .run()
     )
+
+    meta = result.meta if hasattr(result, "meta") else result.get("meta", {})
+    changes = getattr(meta, "changes", meta.get("changes", 0))
+    if changes == 0:
+        raise StateTransitionError(
+            f"Failed to transition event {event_id} to {new_status} (expected {expected_status})",
+            event_id=event_id,
+            current_status="unknown_or_concurrent_modification",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -82,11 +95,7 @@ async def assert_summarized_before_embedding(event_id: str, db: Any) -> None:
     Raises:
         StateTransitionError: If the event status is not ``summarized``.
     """
-    cursor = await db.execute(
-        "SELECT status FROM triage_events WHERE id = ?",
-        [event_id],
-    )
-    row = cursor.fetchone()
+    row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
 
     if row is None:
         raise StateTransitionError(
@@ -96,10 +105,10 @@ async def assert_summarized_before_embedding(event_id: str, db: Any) -> None:
             http_status=404,
         )
 
-    status = row[0]
-    if status != "summarized":
+    status = row["status"] if hasattr(row, "__getitem__") else row[0]
+    if status not in ("summarized", "embedded_pending"):
         raise StateTransitionError(
-            f"Event {event_id} has status '{status}'; expected 'summarized'. "
+            f"Event {event_id} has status '{status}'; expected 'summarized' or 'embedded_pending'. "
             f"Embedding is blocked until summarization completes.",
             event_id=event_id,
             current_status=status,
@@ -148,28 +157,51 @@ async def index_report(
             event_id,
             exc,
         )
-        await _transition_state(db, event_id, "embedded_pending")
+        # expected_status could be summarized or embedded_pending, we don't strictly know which without querying,
+        # but the only valid entry points are those two. For simplicity, we just use the expected state transition.
+        # Actually, let's fetch current status to be safe.
+        row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
+        current_status = row["status"] if hasattr(row, "__getitem__") else row[0]
+        await _transition_state(db, event_id, "embedded_pending", expected_status=current_status)
         return  # Do NOT re-raise — Cron Trigger will retry.
 
     # ── Insert into Vectorize ─────────────────────────────────────────────
     now = datetime.now(timezone.utc).isoformat()
-    await env.VECTORIZE.insert(
-        [
-            {
-                "id": event_id,
-                "values": embedding,
-                "metadata": {
-                    "repo": repo_full_name,
-                    "event_id": event_id,
-                    "model_version": MODEL_VERSION,
-                    "created_at": now,
-                },
-            }
-        ]
-    )
+    try:
+        await env.VECTORIZE.upsert(
+            [
+                {
+                    "id": event_id,
+                    "values": embedding,
+                    "metadata": {
+                        "repo": repo_full_name,
+                        "event_id": event_id,
+                        "model_version": MODEL_VERSION,
+                        "created_at": now,
+                    },
+                }
+            ]
+        )
+    except Exception as exc:
+        logger.error("Failed to insert event %s into Vectorize: %s", event_id, exc)
+        row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
+        current_status = row["status"] if hasattr(row, "__getitem__") else row[0]
+        await _transition_state(db, event_id, "embedded_pending", expected_status=current_status)
+        raise
 
     # ── Advance state machine ─────────────────────────────────────────────
-    await _transition_state(db, event_id, "embedded")
+    try:
+        row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
+        current_status = row["status"] if hasattr(row, "__getitem__") else row[0]
+        await _transition_state(db, event_id, "embedded", expected_status=current_status)
+    except StateTransitionError:
+        logger.error("State transition failed after Vectorize insert for event %s. Cleaning up vector.", event_id)
+        try:
+            await env.VECTORIZE.deleteByIds([event_id])
+        except Exception as cleanup_exc:
+            logger.error("Failed to cleanup vector for event %s after transition failure: %s", event_id, cleanup_exc)
+        raise
+
     logger.info("Indexed event %s in Vectorize (repo=%s)", event_id, repo_full_name)
 
 
@@ -201,17 +233,25 @@ async def find_duplicates(
         logger.warning("Sidecar unavailable for duplicate search — returning empty: %s", exc)
         return []
 
-    result = await env.VECTORIZE.query(
-        embedding,
-        {
-            "topK": top_k,
-            "filter": {"repo": repo_full_name},
-            "returnMetadata": "all",
-        },
-    )
+    try:
+        result = await env.VECTORIZE.query(
+            embedding,
+            {
+                "topK": top_k,
+                "filter": {
+                    "repo": repo_full_name,
+                    "model_version": MODEL_VERSION,
+                },
+                "returnMetadata": "all",
+            },
+        )
+    except Exception as exc:
+        logger.warning("Vectorize query failed for duplicate search — returning empty: %s", exc)
+        return []
 
     matches = []
-    for match in result.matches:
+    raw_matches = getattr(result, "matches", None) or []
+    for match in raw_matches:
         score = match.score
         metadata = match.metadata or {}
         if score >= DUPLICATE_SCORE_THRESHOLD and metadata.get("repo") == repo_full_name:
@@ -237,5 +277,9 @@ async def delete_vector(event_id: str, env: Any) -> None:
         event_id: The triage event ID whose vector should be deleted.
         env: Cloudflare Worker environment with ``VECTORIZE`` binding.
     """
-    await env.VECTORIZE.deleteByIds([event_id])
-    logger.info("Deleted vector for event %s from Vectorize", event_id)
+    try:
+        await env.VECTORIZE.deleteByIds([event_id])
+        logger.info("Deleted vector for event %s from Vectorize", event_id)
+    except Exception as exc:
+        logger.error("Failed to delete vector for event %s: %s", event_id, exc)
+        raise

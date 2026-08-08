@@ -89,10 +89,11 @@ async def get_embedding(text: str, env) -> list[float]:
     controller = _abort_controller_cls.new()
     # Schedule the abort after EMBEDDING_TIMEOUT_SECONDS.
     # In Pyodide: ``setTimeout`` is on the global scope.
+    timer_id = None
     try:
-        from js import setTimeout  # type: ignore[import-not-found]
+        from js import setTimeout, clearTimeout  # type: ignore[import-not-found]
 
-        setTimeout(lambda: controller.abort(), EMBEDDING_TIMEOUT_SECONDS * 1000)
+        timer_id = setTimeout(lambda: controller.abort(), EMBEDDING_TIMEOUT_SECONDS * 1000)
     except ImportError:
         # Running under CPython tests — mock will handle timeout behaviour.
         pass
@@ -120,6 +121,12 @@ async def get_embedding(text: str, env) -> list[float]:
             f"FastEmbed sidecar unreachable: {exc}",
             status_code=503,
         ) from exc
+    finally:
+        if timer_id is not None:
+            try:
+                clearTimeout(timer_id)
+            except Exception:
+                pass  # nosec B110
 
     if not response.ok:
         error_body = await response.text()
@@ -128,7 +135,14 @@ async def get_embedding(text: str, env) -> list[float]:
             status_code=response.status,
         )
 
-    data = await response.json()
+    try:
+        data = await response.json()
+    except Exception:
+        raise EmbeddingServiceError(
+            "FastEmbed sidecar returned non-JSON response",
+            status_code=500,
+        )
+
     if not isinstance(data, dict) or not isinstance(data.get("embeddings"), list) or not data["embeddings"]:
         raise EmbeddingServiceError(
             "FastEmbed sidecar returned invalid or empty embeddings list",
@@ -136,6 +150,12 @@ async def get_embedding(text: str, env) -> list[float]:
         )
 
     embedding = data["embeddings"][0]
+
+    if not isinstance(embedding, list):
+        raise EmbeddingServiceError(
+            f"FastEmbed sidecar: first embedding is not a list (got {type(embedding).__name__})",
+            status_code=500,
+        )
 
     if len(embedding) != EMBEDDING_DIMENSIONS:
         raise EmbeddingServiceError(

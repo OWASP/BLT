@@ -8,8 +8,12 @@ and status monitoring.
 
 import json
 import urllib.parse
-from js import Response, Headers, console, fetch
+from js import Response, Headers, console
+from src.rationale_builder import audit_completeness_check
 from src.webhook_handler import handle_webhook
+from src.mcp_export import handle_mcp_export
+from src.auth import verify_agent_jwt
+from src.errors import JWTExpiredError, JWTInvalidError
 
 # Maximum request body size in bytes (1MB)
 MAX_BODY_SIZE = 1024 * 1024
@@ -58,7 +62,7 @@ async def on_fetch(request, env):
 
     # Handle CORS preflight requests
     if method == "OPTIONS":
-        return handle_options(request)
+        return handle_options(request, env)
 
     # Route requests based on path and method
     if path == "/" or path == "":
@@ -86,24 +90,56 @@ async def on_fetch(request, env):
             return handle_status(request)
         else:
             return create_method_not_allowed_response(path, ["GET", "HEAD"])
+    elif path.startswith("/mcp/triage/"):
+        if method == "GET":
+            raw_triage_id = path[len("/mcp/triage/") :]
+            triage_id = urllib.parse.unquote(raw_triage_id)
+            if not triage_id:
+                return create_error_response("Missing triage_id in path", 400)
+            if "/" in triage_id:
+                return create_error_response("Invalid triage_id: must not contain path separators", 400)
+            return await handle_mcp_export(request, env, triage_id)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path.startswith("/triage/") and path.endswith("/rationale"):
+        if method == "GET":
+            # Extract and decode event_id from /triage/{event_id}/rationale
+            raw_event_id = path[len("/triage/") : -len("/rationale")]
+            event_id = urllib.parse.unquote(raw_event_id)
+            if not event_id:
+                return create_error_response("Missing event_id in path", 400)
+            if "/" in event_id:
+                return create_error_response("Invalid event_id: must not contain path separators", 400)
+            return await handle_rationale(request, env, event_id)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path.startswith("/conversations/"):
+        return await _route_conversation(path, method, request, env)
     else:
         return create_error_response(f"Not Found: {path}", 404)
 
 
-def handle_options(request):
+def handle_options(request, env=None):
     """
     Handle CORS preflight OPTIONS requests.
 
     Args:
         request: The incoming HTTP request
+        env: The environment (optional)
 
     Returns:
         Response: 204 No Content with CORS headers
     """
     headers = Headers.new()
-    headers.set("Access-Control-Allow-Origin", "*")
-    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
-    headers.set("Access-Control-Allow-Headers", "Content-Type")
+    req_method = request.headers.get("Access-Control-Request-Method")
+    if req_method in ("POST", "PUT", "DELETE", "PATCH"):
+        trusted = getattr(env, "TRUSTED_ORIGINS", "https://gitlab.com") if env else "https://gitlab.com"
+        headers.set("Access-Control-Allow-Origin", trusted)
+    else:
+        headers.set("Access-Control-Allow-Origin", "*")
+
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, DELETE")
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
     headers.set("Access-Control-Max-Age", "86400")
 
     return Response.new("", status=204, headers=headers)
@@ -129,6 +165,11 @@ def handle_root(request):
             "/api/review": "POST - Submit code for review",
             "/webhook/gitlab": "POST - GitLab webhook receiver",
             "/api/status": "GET - Check service status",
+            "/triage/{event_id}/rationale": "GET - Retrieve structured rationale for a triage event",
+            "/mcp/triage/{triage_id}": "GET - JWT-authenticated canonical MCP triage export",
+            "/conversations/{triage_id}/reply": "POST - Append a turn to a triage conversation",
+            "/conversations/{triage_id}/history": "GET - Retrieve conversation history",
+            "/conversations/{triage_id}": "DELETE - Close and archive a conversation",
         },
     }
 
@@ -248,7 +289,108 @@ async def handle_gitlab_webhook(request, env):
     Returns:
         Response: Webhook processing result
     """
+    content_length_header = request.headers.get("content-length")
+    if content_length_header:
+        try:
+            content_length = int(content_length_header)
+            if content_length > MAX_BODY_SIZE:
+                return create_error_response(f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes", 413)
+        except ValueError:
+            pass  # Invalid Content-Length, let it proceed or fail down the line
+
     return await handle_webhook(request, env)
+
+
+async def _authenticate_request(request, env):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None, create_error_response("Missing or malformed Authorization header", 401)
+
+    token = auth_header[len("Bearer ") :].strip()
+    try:
+        claims = await verify_agent_jwt(token, env)
+        return claims, None
+    except JWTExpiredError as e:
+        return None, create_error_response(f"Token expired: {e}", 401)
+    except JWTInvalidError as e:
+        return None, create_error_response(f"Unauthorized: {e}", 401)
+
+
+async def handle_rationale(request, env, event_id):
+    """
+    Handle GET /triage/{event_id}/rationale requests.
+
+    Returns the full structured rationale for a triage decision,
+    including CWE evidence snippets, duplicate detection reasoning,
+    and the per-component confidence trace.
+
+    If any required audit record is absent from D1 the endpoint returns
+    HTTP 424 Failed Dependency (blocking MCP export) with a ``missing_fields``
+    list so operators can identify which pipeline stage did not complete.
+
+    Args:
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment bindings.
+        event_id: The triage event ID parsed from the URL path.
+
+    Returns:
+        Response: 200 with rationale JSON, 404 if not found, or 424 if
+            audit data is missing.
+    """
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+
+    try:
+        db = env.DB
+
+        # ── Audit completeness gate ───────────────────────────────────────────
+        is_complete, missing_fields = await audit_completeness_check(event_id, db)
+        if not is_complete:
+            return create_json_response(
+                {
+                    "error": "Audit data incomplete — MCP export blocked",
+                    "missing_fields": missing_fields,
+                    "event_id": event_id,
+                },
+                424,
+            )
+
+        # ── Fetch stored rationale from D1 ────────────────────────────────────
+        row = (
+            await db.prepare(
+                "SELECT cwe_rationale, duplicate_rationale, confidence_trace "
+                "FROM triage_rationale WHERE triage_event_id = ? LIMIT 1"
+            )
+            .bind(event_id)
+            .first()
+        )
+
+        if row is None:
+            return create_error_response(f"Rationale not found for event {event_id}", 404)
+
+        def get_val(key, idx):
+            return row[key] if hasattr(row, "__getitem__") and key in row else row[idx]
+
+        cwe_rationale_raw = json.loads(get_val("cwe_rationale", 0))
+        dup_val = get_val("duplicate_rationale", 1)
+        dup_rationale_raw = json.loads(dup_val) if dup_val else None
+        confidence_trace_raw = json.loads(get_val("confidence_trace", 2))
+
+        return create_json_response(
+            {
+                "event_id": event_id,
+                "status": "complete",
+                "cwe_rationale": cwe_rationale_raw,
+                "duplicate_rationale": dup_rationale_raw,
+                "confidence_trace": confidence_trace_raw,
+            },
+            200,
+        )
+
+    except Exception as exc:
+        console.error(f"handle_rationale error for {event_id}: {exc}")
+        return create_error_response("Internal server error", 500)
 
 
 def handle_status(request):
@@ -379,10 +521,12 @@ def create_json_response(data, status_code=200):
     headers = Headers.new()
     headers.set("Content-Type", "application/json")
     headers.set("Access-Control-Allow-Origin", "*")
-    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
-    headers.set("Access-Control-Allow-Headers", "Content-Type")
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, DELETE")
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
     return Response.new(json.dumps(data), status=status_code, headers=headers)
+
+
 def create_text_response(message, status_code=200):
     """
     Create a plain-text response.
@@ -433,10 +577,211 @@ def create_method_not_allowed_response(path, allowed_methods):
     headers = Headers.new()
     headers.set("Content-Type", "application/json")
     headers.set("Access-Control-Allow-Origin", "*")
-    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
-    headers.set("Access-Control-Allow-Headers", "Content-Type")
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, DELETE")
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
     headers.set("Allow", ", ".join(allowed_methods))
 
     error_data = {"error": "Method Not Allowed", "message": message, "status": 405}
 
     return Response.new(json.dumps(error_data), status=405, headers=headers)
+
+
+# ---------------------------------------------------------------------------
+# Conversation routes
+# ---------------------------------------------------------------------------
+
+
+def _extract_triage_id(path: str, prefix: str, suffix: str = "") -> str | None:
+    """Extract and validate triage_id from a conversation URL path.
+
+    Args:
+        path: The full URL path.
+        prefix: The path prefix before the triage_id.
+        suffix: The path suffix after the triage_id (optional).
+
+    Returns:
+        The decoded triage_id, or ``None`` if invalid.
+    """
+    raw = path[len(prefix) :]
+    if suffix:
+        raw = raw[: -len(suffix)]
+    decoded = urllib.parse.unquote(raw)
+    if not decoded or "/" in decoded:
+        return None
+    return decoded
+
+
+async def _route_conversation(path, method, request, env):
+    """Route /conversations/* requests to the appropriate handler.
+
+    Args:
+        path: The cleaned URL path.
+        method: The HTTP method.
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment.
+
+    Returns:
+        Response: The handler's HTTP response.
+    """
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+
+    if path.endswith("/reply"):
+        if method != "POST":
+            return create_method_not_allowed_response(path, ["POST"])
+        triage_id = _extract_triage_id(path, "/conversations/", "/reply")
+        if not triage_id:
+            return create_error_response("Invalid or missing triage_id", 400)
+        return await handle_conversation_reply(request, env, triage_id)
+    elif path.endswith("/history"):
+        if method != "GET":
+            return create_method_not_allowed_response(path, ["GET"])
+        triage_id = _extract_triage_id(path, "/conversations/", "/history")
+        if not triage_id:
+            return create_error_response("Invalid or missing triage_id", 400)
+        return await handle_conversation_history(request, env, triage_id)
+    else:
+        # DELETE /conversations/{triage_id}
+        if method != "DELETE":
+            return create_method_not_allowed_response(path, ["DELETE"])
+        triage_id = _extract_triage_id(path, "/conversations/")
+        if not triage_id:
+            return create_error_response("Invalid or missing triage_id", 400)
+        return await handle_conversation_close(request, env, triage_id)
+
+
+async def _get_do_stub(env, triage_id):
+    """Get the Durable Object stub for a conversation.
+
+    Args:
+        env: The Cloudflare Worker environment with CONVERSATION_DO binding.
+        triage_id: The triage event ID to use as the DO name.
+
+    Returns:
+        The Durable Object stub.
+
+    Raises:
+        AttributeError: If CONVERSATION_DO binding is not configured.
+    """
+    do_namespace = env.CONVERSATION_DO
+    do_id = do_namespace.idFromName(triage_id)
+    return do_namespace.get(do_id)
+
+
+async def handle_conversation_reply(request, env, triage_id):
+    """Handle POST /conversations/{triage_id}/reply.
+
+    Forwards the request body (with triage_id injected) to the
+    ConversationDO for turn appending.
+
+    Args:
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment.
+        triage_id: The triage event ID.
+
+    Returns:
+        Response: The DO's response (turn_count, conversation_id).
+    """
+    try:
+        content_length_header = request.headers.get("content-length")
+        if content_length_header:
+            try:
+                content_length = int(content_length_header)
+                if content_length > MAX_BODY_SIZE:
+                    return create_error_response(f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes", 413)
+            except ValueError:
+                pass
+
+        body_text = await request.text()
+        if len(body_text) > MAX_BODY_SIZE:
+            return create_error_response(f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes", 413)
+
+        if not body_text:
+            return create_error_response("Request body is required", 400)
+
+        try:
+            body = json.loads(body_text)
+        except json.JSONDecodeError:
+            return create_error_response("Invalid JSON in request body", 400)
+
+        if not isinstance(body, dict):
+            return create_error_response("Request body must be a JSON object", 400)
+
+        # Inject triage_id into the body for the DO
+        body["triage_id"] = triage_id
+
+        stub = await _get_do_stub(env, triage_id)
+        # Forward as a new Request to the DO
+        from js import Request as JSRequest
+
+        do_request = JSRequest.new(
+            "https://do-internal/reply",
+            {"method": "POST", "body": json.dumps(body), "headers": {"Content-Type": "application/json"}},
+        )
+        do_response = await stub.fetch(do_request)
+        return create_json_response(json.loads(await do_response.text()), do_response.status)
+
+    except Exception as exc:
+        console.error(f"handle_conversation_reply error for {triage_id}: {exc}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_conversation_history(request, env, triage_id):
+    """Handle GET /conversations/{triage_id}/history.
+
+    Forwards the request to the ConversationDO to retrieve turn history.
+
+    Args:
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment.
+        triage_id: The triage event ID.
+
+    Returns:
+        Response: The DO's response (turns, turn_count, status).
+    """
+    try:
+        stub = await _get_do_stub(env, triage_id)
+        # Forward the original request URL so the DO can read ?full=true
+        from js import Request as JSRequest
+
+        do_url = "https://do-internal/history"
+        # Preserve query params from the original request
+        parsed_url = urllib.parse.urlparse(request.url)
+        if parsed_url.query:
+            do_url += f"?{parsed_url.query}"
+
+        do_request = JSRequest.new(do_url, {"method": "GET"})
+        do_response = await stub.fetch(do_request)
+        return create_json_response(json.loads(await do_response.text()), do_response.status)
+
+    except Exception as exc:
+        console.error(f"handle_conversation_history error for {triage_id}: {exc}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_conversation_close(request, env, triage_id):
+    """Handle DELETE /conversations/{triage_id}.
+
+    Forwards the request to the ConversationDO to close and archive
+    the conversation.
+
+    Args:
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment.
+        triage_id: The triage event ID.
+
+    Returns:
+        Response: The DO's response (archived, turns_archived).
+    """
+    try:
+        stub = await _get_do_stub(env, triage_id)
+        from js import Request as JSRequest
+
+        do_request = JSRequest.new("https://do-internal/archive", {"method": "DELETE"})
+        do_response = await stub.fetch(do_request)
+        return create_json_response(json.loads(await do_response.text()), do_response.status)
+
+    except Exception as exc:
+        console.error(f"handle_conversation_close error for {triage_id}: {exc}")
+        return create_error_response("Internal server error", 500)

@@ -31,6 +31,33 @@ import re
 from typing import TypedDict
 
 # ---------------------------------------------------------------------------
+# Zero-width character stripping — adversarial hardening
+# ---------------------------------------------------------------------------
+# Adversaries insert invisible Unicode characters into PII (e.g.
+# te\u200bst@example.com) to break regex patterns.  We strip them
+# before scanning and map match offsets back to the original text.
+
+_ZERO_WIDTH_CHARS = re.compile(r"[\u200b\u200c\u200d\ufeff\u00ad\u2060]")
+
+
+def _strip_zero_width(text: str) -> tuple[str, list[int]]:
+    """Strip zero-width characters and build an offset map.
+
+    Returns:
+        A 2-tuple of *(stripped_text, offset_map)* where *offset_map[i]*
+        gives the index in the **original** text corresponding to
+        position *i* in *stripped_text*.
+    """
+    offset_map: list[int] = []
+    chars: list[str] = []
+    for i, ch in enumerate(text):
+        if not _ZERO_WIDTH_CHARS.match(ch):
+            chars.append(ch)
+            offset_map.append(i)
+    return "".join(chars), offset_map
+
+
+# ---------------------------------------------------------------------------
 # Public types
 # ---------------------------------------------------------------------------
 
@@ -244,24 +271,41 @@ def scan_text(text: str) -> list[RecogniserMatch]:
     any redaction is applied.  Use ``apply_native_redaction`` for the
     full pipeline (scan → deduplicate → replace → return).
 
+    Zero-width characters (U+200B, U+200C, U+200D, U+FEFF, U+00AD,
+    U+2060) are stripped before scanning so that adversarial insertions
+    like ``te\\u200bst@example.com`` are still detected.  Match offsets
+    in the returned list refer to the **original** text.
+
     Args:
         text: The plain-text content to scan.
 
     Returns:
         A deduplicated, sorted list of ``RecogniserMatch`` dicts.
     """
+    # Strip zero-width chars and build an offset map back to original text.
+    stripped, offset_map = _strip_zero_width(text)
+
     raw_matches: list[RecogniserMatch] = []
 
-    # 1. Regex-pattern recognisers.
+    def _map_offset(pos: int) -> int:
+        """Map a position in *stripped* back to the original text."""
+        if pos < len(offset_map):
+            return offset_map[pos]
+        # Past the end — return the position after the last original char.
+        return offset_map[-1] + 1 if offset_map else pos
+
+    # 1. Regex-pattern recognisers (run on stripped text).
     for entity_type, pattern in _RECOGNISER_PATTERNS:
-        for m in pattern.finditer(text):
-            if _is_denied(text, m.start(), m.end()):
+        for m in pattern.finditer(stripped):
+            orig_start = _map_offset(m.start())
+            orig_end = _map_offset(m.end())
+            if _is_denied(text, orig_start, orig_end):
                 continue
             raw_matches.append(
                 RecogniserMatch(
                     entity_type=entity_type,
-                    start=m.start(),
-                    end=m.end(),
+                    start=orig_start,
+                    end=orig_end,
                     confidence=0.99,
                     detector="native_recognizer",
                 )
@@ -273,9 +317,9 @@ def scan_text(text: str) -> list[RecogniserMatch]:
         ("USERNAME", _USERNAME_CONTEXT),
         ("API_TOKEN", _API_TOKEN_CONTEXT),
     ]:
-        for m in pattern.finditer(text):
-            value_start = m.start(1)
-            value_end = m.end(1)
+        for m in pattern.finditer(stripped):
+            value_start = _map_offset(m.start(1))
+            value_end = _map_offset(m.end(1))
             if _is_denied(text, value_start, value_end):
                 continue
             raw_matches.append(
@@ -289,9 +333,11 @@ def scan_text(text: str) -> list[RecogniserMatch]:
             )
 
     # 3. Credential-pair recogniser (user:password format).
-    for m in _CREDENTIAL_PAIR.finditer(text):
-        username_start, username_end = m.start(1), m.end(1)
-        password_start, password_end = m.start(2), m.end(2)
+    for m in _CREDENTIAL_PAIR.finditer(stripped):
+        username_start = _map_offset(m.start(1))
+        username_end = _map_offset(m.end(1))
+        password_start = _map_offset(m.start(2))
+        password_end = _map_offset(m.end(2))
         raw_matches.append(
             RecogniserMatch(
                 entity_type="USERNAME",
