@@ -21,7 +21,7 @@ from ..broadcast.messages import (
     build_leaderboard_update,
     build_snapshot,
 )
-from ..core.dedup import record_if_absent
+from ..core.dedup import is_duplicate, record_if_absent
 from ..models.contributor import Contributor
 from ..models.event import Event
 from ..models.room import AvatarState
@@ -76,6 +76,8 @@ class PipelineRunner:
         if self._task is not None and not self._task.done():
             return
         self._stop_event.clear()
+        self._sequence = await self.events_q.max_sequence_number()
+        logger.info("pipeline sequence seeded", extra={"seq": self._sequence})
         self._task = asyncio.create_task(self._run(), name="pipeline-runner")
         logger.info("pipeline runner started")
 
@@ -87,6 +89,10 @@ class PipelineRunner:
             await asyncio.wait_for(self._task, timeout=5.0)
         except asyncio.TimeoutError:
             self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
         self._task = None
         logger.info("pipeline runner stopped")
 
@@ -143,7 +149,7 @@ class PipelineRunner:
             logger.warning("pipeline missing contributor", extra={"id": str(result.contributor_id)})
             return
 
-        # 3. Update avatar state
+        # 4. Update avatar state
         room = resolve_room(event.event_type)
         avatar = AvatarState(
             contributor_id=contributor.id,
@@ -160,10 +166,10 @@ class PipelineRunner:
             contributor.add_score(delta)
             await self.contributors_q.upsert(contributor)
 
-        # 5. Broadcast
+        # 6. Broadcast
         self.hub.record_event()
         await self.hub.broadcast(
-            build_avatar_move(event, floor=room.floor, room=room.room)
+            build_avatar_move(event, floor=room.floor, room=room.room, contributor_id=contributor.id)
         )
         if result.flag is not None:
             try:

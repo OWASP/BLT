@@ -80,7 +80,7 @@ def _map_object_kind(
         return "unknown", {"status": status, **(obj_attrs or {})}
 
     if object_kind == "note":
-        return "note_added", _note_metadata(obj_attrs, payload)
+        return "note_added", _note_metadata(obj_attrs)
 
     return "unknown", {"raw_object_kind": object_kind}
 
@@ -119,13 +119,12 @@ def _pipeline_metadata(obj_attrs: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _note_metadata(obj_attrs: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
-    target_type = payload.get("noteable_type")
+def _note_metadata(obj_attrs: dict[str, Any]) -> dict[str, Any]:
     return {
         "body": obj_attrs.get("note"),
         "url": obj_attrs.get("url"),
-        "noteable_type": target_type,
-        "noteable_id": payload.get("noteable_id"),
+        "noteable_type": obj_attrs.get("noteable_type"),
+        "noteable_id": obj_attrs.get("noteable_id"),
     }
 
 

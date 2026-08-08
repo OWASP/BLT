@@ -32,11 +32,12 @@ class EventQueries:
     async def insert(self, event: Event) -> bool:
         """Insert an event. Returns True if inserted, False if duplicate."""
         sql = """
-            INSERT OR IGNORE INTO events (
+            INSERT INTO events (
                 id, source, event_type, actor_id, actor_name,
                 contributor_id, repository, timestamp, metadata,
                 idempotency_key
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(idempotency_key) DO NOTHING
         """
         params = (
             str(event.id),
@@ -102,6 +103,14 @@ class EventQueries:
         ) as cursor:
             row = await cursor.fetchone()
         return int(row["c"]) if row else 0
+
+    async def max_sequence_number(self) -> int:
+        """Return the highest sequence_number in the events table, or 0 if empty."""
+        async with self.db.conn.execute(
+            "SELECT COALESCE(MAX(sequence_number), 0) AS m FROM events"
+        ) as cursor:
+            row = await cursor.fetchone()
+        return int(row["m"]) if row else 0
 
 
 class ContributorQueries:
@@ -256,8 +265,15 @@ class IdentityQueries:
         )
         async with self.db.conn.execute(sql, params) as cursor:
             await self.db.conn.commit()
-            if mapping.id is None:
-                mapping.id = cursor.lastrowid
+
+        if mapping.id is None:
+            async with self.db.conn.execute(
+                "SELECT id FROM identity_mappings WHERE platform = ? AND platform_user_id = ?",
+                (mapping.platform, mapping.platform_user_id),
+            ) as cursor:
+                row = await cursor.fetchone()
+            if row:
+                mapping.id = int(row["id"])
         return mapping
 
     async def lookup(self, platform: str, platform_user_id: str) -> IdentityMapping | None:

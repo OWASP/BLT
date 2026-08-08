@@ -149,8 +149,8 @@ def create_app() -> FastAPI:
     # WebSocket route must be registered before the static mount
     # to prevent StaticFiles from intercepting WS upgrade requests.
     @app.websocket("/ws")
-    async def _ws(websocket: WebSocket, token: str | None = None) -> None:
-        await websocket_endpoint(websocket, app.state.hub, app.state.runner, token=token)
+    async def _ws(websocket: WebSocket) -> None:
+        await websocket_endpoint(websocket, app.state.hub, app.state.runner)
 
     # Serve UI HTML files for local testing (keep at end of routes)
     from pathlib import Path
