@@ -1,4 +1,29 @@
+"""
+Command Line Interface (CLI) for the OWASP BLT Model Context Protocol (MCP) Server.
+
+This module uses the `click` library to define the command-line commands for the BLT-MCP server.
+It provides commands for user authentication and running the local server.
+
+Key Commands:
+- `cli`: Parent group command. If invoked without subcommands, it defaults to running the MCP server.
+- `auth login`: Prompts for user credentials (email and password), connects to the BLT auth endpoints
+  to retrieve a JWT token, warns and requests confirmation before generating a broad wildcard API key,
+  exchanges the token for a long-lived persistent key, and saves it locally.
+- `run`: Directly starts the FastMCP server, establishing the stdio communication channel.
+
+Design Details:
+- Supports asynchronous authentication flows using Python's `asyncio` and `httpx.AsyncClient`.
+- Implements secure, long-lived API key provisioning on behalf of the user.
+- Provides operation-specific error handling to distinguish between sign-in failures and API key generation failures.
+
+Dependencies:
+- `sys`, `click`, `asyncio`, `logging`, `httpx`
+- Submodules: `blt_mcp.server`, `blt_mcp.auth`, `blt_mcp.server_base`
+"""
+
 import sys
+
+
 import click
 import asyncio
 import getpass
@@ -41,6 +66,7 @@ def login(email: str, password: str):
 
 async def _async_login(email: str, password: str):
     click.echo(f"Logging in to {BLT_API_BASE}...")
+    current_op = "sign-in"
     async with httpx.AsyncClient(
         base_url=BLT_API_BASE, follow_redirects=True
     ) as client:
@@ -57,10 +83,24 @@ async def _async_login(email: str, password: str):
                 click.echo("Error: Login successful but no token received.", err=True)
                 sys.exit(1)
 
-            click.echo("Login successful! Generating long-lived API key...")
+            # Wildcard API key warning and user confirmation
+            click.echo(
+                "\nWARNING: Generating an API key with wildcard scopes ['*'] is required by the BLT API.\n"
+                "This key is long-lived and provides broad access to all features on your account.\n"
+                "Currently, the BLT API does not support narrower, fine-grained scopes for the MCP server."
+            )
+            if not click.confirm("Do you want to generate this wildcard API key?", default=False):
+                click.echo("Aborted API key generation.", err=True)
+                sys.exit(1)
+
+            click.echo("Generating long-lived API key...")
+            current_op = "api-key"
 
             # 2. Generate persistent API key
             headers = {"Authorization": f"Bearer {jwt_token}"}
+            # NOTE: Wildcard scope is used because the BLT API does not
+            # currently expose a granular scope vocabulary. If the backend adds
+            # fine-grained scopes, narrow this to only what the MCP tools require.
             key_res = await client.post(
                 "/api/auth/api-keys",
                 json={"name": "BLT-MCP CLI", "scopes": ["*"]},
@@ -82,7 +122,8 @@ async def _async_login(email: str, password: str):
             api_key = key_data.get("data", {}).get("api_key")
             if not api_key:
                 click.echo(
-                    f"Error: API key not generated. Response: {key_data}", err=True
+                    "Error: API key not generated. Check your account permissions.",
+                    err=True,
                 )
                 sys.exit(1)
 
@@ -91,10 +132,16 @@ async def _async_login(email: str, password: str):
             click.echo("Successfully generated and saved API key.")
 
         except httpx.HTTPStatusError as e:
-            click.echo(
-                f"Authentication failed: HTTP {e.response.status_code} - {e.response.text}",
-                err=True,
-            )
+            if current_op == "sign-in":
+                click.echo(
+                    f"Sign-in failed: HTTP {e.response.status_code}. Check your credentials.",
+                    err=True,
+                )
+            else:
+                click.echo(
+                    f"API-key generation failed: HTTP {e.response.status_code}. Check your account permissions.",
+                    err=True,
+                )
             sys.exit(1)
         except Exception as e:
             click.echo(f"An error occurred: {e}", err=True)

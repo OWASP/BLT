@@ -1,4 +1,24 @@
+//! Client Library to Communicate with a Local Python MCP Server Subprocess.
+//!
+//! This module implements JSON-RPC communication over piped stdio streams with the local
+//! Python-based FastMCP server subprocess.
+//!
+//! Key Functions and Methods:
+//! - `McpSubprocessClient::spawn(executable, args)`: Spawns the subprocess (e.g. `uv` or `python`), redirection loops,
+//!   and opens stderr file handlers pointing to `~/.blt-mcp/mcp_error.log`.
+//! - `initialize()`: Conducts the protocol version negotiation handshake and notifies the server of completion.
+//! - `list_resources()`: Requests the list of resources supported by the server.
+//! - `read_resource(uri)`: Retrieves text contents for a given resource URI string.
+//! - `call_tool(name, arguments)`: Invokes a registered server tool, returns the execution result.
+//! - `send_request()` & `send_notification()`: Formats and sends standard JSON-RPC packets.
+//! - `read_response(expected_id)`: Asynchronously reads lines from stdout until it captures a matching JSON-RPC response ID.
+//!
+//! Error Handling:
+//! - Performs timeouts (10 seconds) on reads to prevent blocking the TUI thread.
+//! - Parses and propagates server errors.
+
 #![allow(dead_code)]
+
 use serde_json::json;
 use std::process::Stdio;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};

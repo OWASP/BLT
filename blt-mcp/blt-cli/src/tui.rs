@@ -1,4 +1,25 @@
+//! Main Terminal Loop and Input Event Handler.
+//!
+//! This module runs the main event loop for the Ratatui TUI client. It polls input keys
+//! and processes events from background tasks.
+//!
+//! Key Functions:
+//! - `run_app(terminal, app) -> io::Result<()>`: Main application loop. It draws views, polls for
+//!   keystroke events at 100ms intervals, and processes incoming channel notifications (e.g. triage results,
+//!   draft completions, scan status).
+//! - `handle_keys(key, app)`: Handles global commands and navigations:
+//!   - Tab navigation (Tab / BackTab / keys 1-6).
+//!   - List scrolling (Down / Up / j / k).
+//!   - Modals toggling (Help / Search / Command Palette / Easter Egg).
+//!   - Multi-field input focus switching and backspace deletions in the submit form.
+//!
+//! Design details:
+//! - Implements Konami Code check sequence. Triggers an easter egg overlay if keys are entered correctly.
+//! - Integrates Command Palette interpreter (`search`, `triage issue`, `vision <path>`).
+//! - Spawns async tokio tasks to perform write actions (e.g. submit issue, bulk triage) to avoid freezing the UI.
+
 use std::io;
+
 use std::time::{Duration, Instant};
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
@@ -58,6 +79,8 @@ where
                 }
                 crate::app::AppEvent::IssuesRefreshed { issues, total } => {
                     app.issues = issues;
+                    // Clamp to prevent stale index from causing out-of-bounds panics
+                    app.selected_issue_index = app.selected_issue_index.min(app.issues.len().saturating_sub(1));
                     app.event_feed
                         .push(format!("Refreshed issues. Total: {}", total));
                     app.audit_logs
@@ -208,6 +231,9 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
 
                 if app.run_mode == crate::app::RunMode::Mcp {
                     desc = format!("*Submitted by AI Agent via BLT-MCP*\n\n{}", desc);
+                    if !screenshot.is_empty() {
+                        desc = format!("{}\n\n[Note: Screenshot '{}' was not included \u{2014} MCP submissions do not support screenshot uploads.]", desc, screenshot);
+                    }
                 }
 
                 let api_base = app.api_base.clone();
@@ -479,14 +505,10 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                     let visible_issues = app.get_visible_issue_indices();
                     if !visible_issues.is_empty() {
                         app.selected_issue_index = visible_issues[0];
-                    } else {
-                        app.selected_issue_index = 0;
                     }
                     let visible_hunts = app.get_visible_hunt_indices();
                     if !visible_hunts.is_empty() {
                         app.selected_hunt_index = visible_hunts[0];
-                    } else {
-                        app.selected_hunt_index = 0;
                     }
                 }
                 KeyCode::Backspace => {
@@ -614,19 +636,15 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
 
                     // Command execution logic
                     if cmd.starts_with("search ") {
-                        app.search_query = cmd.replace("search ", "");
+                        app.search_query = cmd.strip_prefix("search ").unwrap_or(&cmd).to_string();
                         app.active_tab = Tab::Issues;
                         let visible_issues = app.get_visible_issue_indices();
                         if !visible_issues.is_empty() {
                             app.selected_issue_index = visible_issues[0];
-                        } else {
-                            app.selected_issue_index = 0;
                         }
                         let visible_hunts = app.get_visible_hunt_indices();
                         if !visible_hunts.is_empty() {
                             app.selected_hunt_index = visible_hunts[0];
-                        } else {
-                            app.selected_hunt_index = 0;
                         }
                     } else if cmd == "triage issue" {
                         app.active_tab = Tab::Issues;
@@ -636,7 +654,7 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                     } else if cmd == "open hunt" {
                         app.active_tab = Tab::Hunts;
                     } else if cmd.starts_with("vision ") {
-                        let args = cmd.replace("vision ", "");
+                        let args = cmd.strip_prefix("vision ").unwrap_or(&cmd).to_string();
                         let mut parts = args.split_whitespace();
                         if let Some(path) = parts.next() {
                             let path = path.to_string();
@@ -805,7 +823,9 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
             app.active_overlay = crate::app::ActiveOverlay::CommandPalette;
         }
         KeyCode::Char(' ') => {
-            if app.active_tab == Tab::Issues && !app.issues.is_empty() {
+            if app.active_tab == Tab::Issues && !app.issues.is_empty()
+                && app.get_visible_issue_indices().contains(&app.selected_issue_index)
+            {
                 let id = app.issues[app.selected_issue_index].id.clone();
                 if app.selected_issues.contains(&id) {
                     app.selected_issues.remove(&id);
@@ -823,9 +843,13 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
             }
         }
         KeyCode::Enter => {
-            if app.active_tab == Tab::Hunts && !app.hunts.is_empty() {
+            if app.active_tab == Tab::Hunts && !app.hunts.is_empty()
+                && app.get_visible_hunt_indices().contains(&app.selected_hunt_index)
+            {
                 app.active_overlay = crate::app::ActiveOverlay::HuntDetail;
-            } else if app.active_tab == Tab::Issues && !app.issues.is_empty() {
+            } else if app.active_tab == Tab::Issues && !app.issues.is_empty()
+                && app.get_visible_issue_indices().contains(&app.selected_issue_index)
+            {
                 app.trigger_triage();
             } else if app.active_tab == Tab::Settings {
                 if let Some(health) = &app.security_health {
@@ -851,7 +875,9 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
         KeyCode::Char('A') => app.toggle_agent_status(),
         KeyCode::Char('P') => app.toggle_prompt_preview(),
         KeyCode::Char('a') => {
-            if app.active_tab == Tab::Issues && !app.issues.is_empty() {
+            if app.active_tab == Tab::Issues && !app.issues.is_empty()
+                && app.get_visible_issue_indices().contains(&app.selected_issue_index)
+            {
                 app.active_overlay = crate::app::ActiveOverlay::AiTriage;
                 app.ai_triage_result =
                     Some("Analyzing vulnerability using MCP AI tool...".to_string());

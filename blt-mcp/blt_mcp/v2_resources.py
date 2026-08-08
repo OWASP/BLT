@@ -1,4 +1,34 @@
+"""
+Modular Registration of V2 Resources for the OWASP BLT MCP Server.
+
+This module maps the read-only REST endpoints of the OWASP BLT v2 API into the MCP resource namespace.
+It enables LLMs to query various parts of the BLT system.
+
+Resources Registered:
+- `blt://v2/auth/verify-email/{token}`: Verifies email confirmation links.
+- `blt://v2/bugs` & `blt://v2/bugs/{id}`: Lists and details active bug reports.
+- `blt://v2/bugs/search/{query}`: Searches bugs using text filters.
+- `blt://v2/users` & `blt://v2/users/{id}` & `{id}/profile` & `{id}/bugs` & `{id}/domains` & `{id}/followers` & `{id}/following`:
+  Retrieves detailed info about users, their tracked domains, followers, and associated bug reports.
+- `blt://v2/domains` & `blt://v2/domains/{id}` & `{id}/tags`: Lists and details verified domains and tags.
+- `blt://v2/organizations` & `blt://v2/organizations/{id}` & `{id}/domains` & `{id}/bugs` & `{id}/managers` & `{id}/tags` & `{id}/integrations` & `{id}/stats`:
+  Retrieves organization metrics, integrations, stats, and member profiles.
+- `blt://v2/jobs` & `blt://v2/jobs/{id}` & `blt://v2/jobs/stats`: Retrieves active tech job board postings.
+- `blt://v2/hackathons` & `blt://v2/hackathons/{slug}`: Retrieves details about active security hackathons.
+- `blt://v2/hunts` & `blt://v2/hunts/active` & `previous` & `upcoming` & `hunts/{id}`: Retrieves active bug bounty hunts.
+- `blt://v2/projects` & `blt://v2/projects/{id}` & `{id}/contributors`: Lists projects and developers contributing to them.
+- `blt://v2/repos` & `blt://v2/repos/{id}`: Lists tracking repositories.
+- `blt://v2/leaderboard` & `/monthly` & `/organizations`: Retrieves global statistics and ranking profiles.
+- `blt://v2/stats`: Overall stats metrics.
+- `blt://v2/contributors` & `blt://v2/contributors/{id}`: Lists all platform contributors.
+
+Design Notes:
+- Inherits the FastMCP global server instance (`mcp`) and fetch utility (`_fetch`) from `blt_mcp.server_base`.
+"""
+
 import logging
+
+
 from blt_mcp.server_base import mcp, _fetch
 
 logger = logging.getLogger("blt-mcp.v2_resources")

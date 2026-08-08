@@ -1,4 +1,24 @@
+"""
+Stdio Transport and JSON-RPC Protocol Tests.
+
+This module validates that the MCP server complies with standard JSON-RPC 2.0 communication requirements
+over stdout/stdin pipes.
+
+Test Scenarios:
+- `test_initialize_handshake`: Verifies that the handshake (`initialize` and `notifications/initialized`) works,
+  and checks that protocol versions, server name, and server capabilities are configured correctly.
+- `test_capability_negotiation`: Verifies that server features (tools, resources, prompts) are correctly negotiated
+  independent of what client capabilities are requested.
+- `test_malformed_input`: Verifies that writing invalid JSON structures (e.g. `{malformed_json`) into the stdin stream
+  does not crash the server loop, and that the server remains responsive to subsequent queries.
+
+Design Details:
+- Spawns the MCP server as a subprocess.
+- Performs raw writes to stdin and uses `tests.utils` to parse response packets.
+"""
+
 import subprocess
+
 import json
 import sys
 import os
@@ -16,7 +36,7 @@ def test_initialize_handshake():
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
         text=True,
         env=env,
     )
@@ -77,7 +97,7 @@ def test_capability_negotiation():
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
         text=True,
         env=env,
     )
@@ -132,7 +152,7 @@ def test_malformed_input():
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
         text=True,
         env=env,
     )

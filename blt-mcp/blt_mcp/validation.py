@@ -1,4 +1,24 @@
+"""
+Input Validation and Protocol Interception Middleware for the BLT-MCP Server.
+
+This module provides input validation schemas (`TOOL_SCHEMAS`) and stream interception classes
+(`StdinWrapper`, `InterceptingStdinBuffer`) to validate JSON-RPC parameters before they reach the FastMCP server parser.
+
+Key Offerings:
+- **Parameter Validation**: Exposes `validate_tool_arguments(tool_name, arguments)` to validate tool calls
+  against defined schemas (checks for required parameters, types, non-blank strings, and arrays).
+- **JSON-RPC Interception**: Implements `InterceptingStdinBuffer` to intercept JSON-RPC stdin reads.
+  - Returns clean client-visible JSON-RPC error frames (`code: -32602`) for invalid requests.
+  - Automatically translates rejected payloads into dummy `ping` messages to prevent the MCP subprocess loop from crashing.
+
+Schemas Defined:
+- Includes schemas for `submit_issue`, `add_comment`, `summarize_issue_context`, `triage_vulnerability`, `draft_vision_issue`,
+  and the entire set of V2 write tools.
+"""
+
 import sys
+
+
 import json
 import io
 import logging

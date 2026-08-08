@@ -1,4 +1,28 @@
+//! Application State Management and Event Coordination for the TUI Client.
+//!
+//! This module defines the main `App` state machine and coordinating event structures
+//! that drive the Ratatui TUI client application.
+//!
+//! Key Data Types:
+//! - `Tab`: Enum representing the current active dashboard view: `Issues`, `Hunts`, `Stats`, `Logs`, `Settings`, or `Onboarding`.
+//! - `ActiveOverlay`: Enum for overlapping modal screens: `Help`, `Triage`, `SubmitForm`, `HuntDetail`, `AiTriage`, `CommandPalette`, etc.
+//! - `FormField`: Enum indicating which input textbox has active focus in the submission form.
+//! - `VulnerabilityForm`: Captures fields for title, url, severity, type, description, and local screenshot file path.
+//! - `AppEvent`: Internal events dispatched by asynchronous tokio tasks (e.g. scanner completions, tool call responses, API refreshes).
+//! - `App`: Main orchestrator structure. Manages loaded issues, active hunts, audit logs, communication channels (`UnboundedSender`/`UnboundedReceiver`),
+//!   the local subprocess `McpSubprocessClient` pointer, and local session details.
+//!
+//! Key Functions:
+//! - `App::new(mcp_path, api_base)`: Initializes channel communication buffers and loads system info.
+//! - `App::save_session()` & `load_session()`: Persists audit logs and event history into `blt_session.json` to keep state between restarts.
+//! - `App::export_logs()`: Outputs execution histories into `blt_export.log`.
+//! - `App::confirm_triage()`: Spawns async tokio tasks to invoke issues triage commands.
+//!
+//! Unit Tests:
+//! - Includes module tests to verify navigation tabs and modal toggle operations.
+
 #![allow(dead_code)]
+
 use crate::models::{Hunt, Issue, Repo, Stats};
 
 #[derive(Copy, Clone, Debug, PartialEq)]

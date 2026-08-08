@@ -1,4 +1,23 @@
+//! Core Domain Model Schema Definitions for the OWASP BLT System.
+//!
+//! This module defines Rust structures representing the domain model objects returned by the API
+//! or used to pass arguments to tools. Serde traits are used for serialization and deserialization.
+//!
+//! Key Structures:
+//! - `Issue`: Represents reported security vulnerabilities, bugs, or anomalies. Includes id, repository,
+//!   title, description, status (e.g. Triage, In Review, Resolved), severity, author, and comments.
+//! - `Repo`: Represents tracked codebases on the platform. Includes name, description, URL, and language.
+//! - `Hunt`: Represents bug bounty hunts. Includes title, active status, and point rewards.
+//! - `LeaderboardEntry`: Developer rank entries containing bacon scores and reputation titles.
+//! - `Stats`: Platform metrics mapping total issues, tracked repos, and active contributors.
+//! - `GoodFirstIssue`: Struct representing issues labeled for onboarding new developers.
+//!
+//! Default Handlers:
+//! - Implements standard deserialization fallback functions (`default_repo`, `default_status`,
+//!   `default_severity`, `default_author`) to handle missing JSON keys safely.
+
 use serde::{Deserialize, Serialize};
+
 
 fn default_repo() -> String {
     "owasp-blt/api".to_string()

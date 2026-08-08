@@ -1,4 +1,27 @@
+//! User Interface Rendering and Layout Engine.
+//!
+//! This module defines drawing functions using the `ratatui` UI layout framework.
+//! It builds layouts, styles text block lines, maps badge icons, and aligns modal popups.
+//!
+//! Key Functions:
+//! - `draw(frame, app)`: Root rendering method. Sets the background, splits the frame area into
+//!   header, content, and footer, calls the appropriate tab renderer, and draws overlay modals if active.
+//! - `draw_header()` & `draw_footer()`: Renders the top brand header, navigation tab states, active severity counters,
+//!   and the bottom status message/help shortcut guide.
+//! - `draw_issues_tab()` & `draw_hunts_tab()`: Renders table rows representing vulnerabilities and bounty hunts,
+//!   and splits the view to draw detailed descriptions and activity/comment logs.
+//! - `draw_stats_tab()`: Renders dashboard cards and a `BarChart` based on active severity statistics,
+//!   along with the contributor ranking leaderboard.
+//! - `draw_logs_tab()`, `draw_settings_tab()`, `draw_onboarding_tab()`: Renders execution logs, configurations,
+//!   and keyboard shortcut checklists.
+//! - Modals (`draw_help_modal`, `draw_triage_modal`, `draw_submit_form_modal`, `draw_hunt_details_modal`, `draw_command_palette_modal`, etc.):
+//!   Render centered overlay popup boxes with borders and inputs, cleaning background areas using `Clear`.
+//!
+//! Style Constants:
+//! - Defines brand palette colors: `BLT_RED`, `SLATE_BG`, `SLATE_SURFACE`, `MUTED_BORDER`, `TEXT_LIGHT`.
+
 use ratatui::{
+
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
