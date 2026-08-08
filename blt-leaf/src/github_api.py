@@ -815,9 +815,8 @@ async def verify_github_signature(request, payload_body, secret):
         bool: True if signature is valid, False otherwise
     """
     if not secret:
-        # If no secret is configured, skip verification (development mode)
-        print("WARNING: Webhook secret not configured - skipping signature verification")
-        return True
+        print("ERROR: Webhook secret not configured - rejecting unsigned webhook request")
+        return False
     
     signature_header = request.headers.get('x-hub-signature-256')
     if not signature_header:
