@@ -589,9 +589,7 @@ class BLTWorker:
             ))
             return self.json_response(result.body, status=result.status, headers=result.headers)
 
-        digest_header = self.get_request_header(request, 'X-BLT-Body-Digest') or self.get_request_header(
-            request, 'x-blt-body-digest'
-        )
+        digest_header = self.get_request_header(request, 'X-BLT-Body-Digest')
 
         try:
             envelope = json.loads(raw_body.decode('utf-8'))
@@ -765,8 +763,22 @@ class BLTWorker:
         return min(limit, self.MAX_LIMIT)
 
     def get_request_header(self, request, key: str) -> Optional[str]:
-        """Safely read a request header from test doubles and worker requests."""
-        return self.get_request_headers(request).get(key)
+        """Read a request header, matching the name case-insensitively.
+
+        HTTP field names are case-insensitive (RFC 7230 §3.2), and clients do
+        not agree on casing — Python's ``urllib`` sends ``X-blt-body-digest``,
+        for example. An exact-key lookup silently drops headers that were in
+        fact present, so senders get rejected for a header they did send.
+        """
+        headers = self.get_request_headers(request)
+        value = headers.get(key)
+        if value is not None:
+            return value
+        target = key.lower()
+        for name, candidate in headers.items():
+            if str(name).lower() == target:
+                return candidate
+        return None
 
     def get_request_headers(self, request) -> Dict[str, str]:
         """Return request headers as a plain dict."""
@@ -856,11 +868,11 @@ class BLTWorker:
 
     def extract_auth_token(self, request) -> Optional[str]:
         """Read API key from X-API-Key or Authorization Bearer header."""
-        api_key = self.get_request_header(request, 'X-API-Key') or self.get_request_header(request, 'x-api-key')
+        api_key = self.get_request_header(request, 'X-API-Key')
         if api_key:
             return api_key
 
-        authorization = self.get_request_header(request, 'Authorization') or self.get_request_header(request, 'authorization')
+        authorization = self.get_request_header(request, 'Authorization')
         if not authorization:
             return None
 
