@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/storage_service.dart';
-import '../services/broker_service.dart';
-import '../models/user_data.dart';
+
 import '../models/opt_out_request.dart';
+import '../models/user_data.dart';
+import '../services/storage_service.dart';
+import '../theme/blt_theme.dart';
 import 'brokers_screen.dart';
+import 'credential_hygiene_screen.dart';
 import 'monitor_screen.dart';
 import 'profile_screen.dart';
 import 'requests_screen.dart';
+import 'security_center_screen.dart';
+import 'unified_triage_screen.dart';
 
+/// Main authenticated home shell with dashboard and app navigation.
 class HomeScreen extends StatefulWidget {
+  /// Creates the home screen.
   const HomeScreen({super.key});
 
   @override
@@ -59,11 +65,51 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SelfErase'),
+        titleSpacing: 20,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: BltColors.red,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: BltColors.red.withValues(alpha: 0.22),
+                    blurRadius: 24,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.visibility_off_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('BLT Vanish'),
+                Text(
+                  'Privacy Tool',
+                  style: TextStyle(
+                    color: BltColors.muted,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    height: 1,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
@@ -99,6 +145,11 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Monitor',
           ),
           NavigationDestination(
+            icon: Icon(Icons.timeline_outlined),
+            selectedIcon: Icon(Icons.timeline),
+            label: 'Triage',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
             label: 'Profile',
@@ -119,6 +170,8 @@ class _HomeScreenState extends State<HomeScreen> {
       case 3:
         return const MonitorScreen();
       case 4:
+        return const UnifiedTriageScreen();
+      case 5:
         return ProfileScreen(onProfileUpdated: _loadData);
       default:
         return _buildDashboard();
@@ -128,72 +181,100 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildDashboard() {
     return RefreshIndicator(
       onRefresh: _loadData,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildWelcomeCard(),
-          const SizedBox(height: 16),
-          _buildStatsCard(),
-          const SizedBox(height: 16),
-          _buildQuickActionsCard(),
-          const SizedBox(height: 16),
-          _buildPrivacyTipsCard(),
-        ],
+      child: BltPageShell(
+        padding: EdgeInsets.zero,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 28, 16, 24),
+          children: [
+            _buildHeroCard(),
+            const SizedBox(height: 18),
+            _buildStatsCard(),
+            const SizedBox(height: 18),
+            _buildQuickActionsCard(),
+            const SizedBox(height: 18),
+            _buildPrivacyTipsCard(),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildWelcomeCard() {
+  Widget _buildHeroCard() {
+    final name = _userData?.firstName;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Icon(Icons.security, size: 32, color: Colors.deepPurple),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _userData != null
-                            ? 'Welcome back, ${_userData!.firstName}!'
-                            : 'Welcome to SelfErase',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Your privacy, your control',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey[600],
-                            ),
-                      ),
-                    ],
+            const BltKicker('Open source'),
+            const SizedBox(height: 18),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: name != null ? 'Welcome back,\n' : 'Make your\n'),
+                  TextSpan(
+                    text: name != null ? '$name.' : 'data vanish.',
+                    style: const TextStyle(color: BltColors.red),
                   ),
+                ],
+              ),
+              style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                    fontSize: 48,
+                  ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Remove personal data from brokers, monitor privacy exposure, and keep the workflow encrypted on this device.',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                FilledButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _selectedIndex = _userData == null ? 5 : 1;
+                    });
+                  },
+                  icon: const Icon(Icons.person_outline),
+                  label: Text(_userData == null ? 'Create Profile' : 'Find Brokers'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const SecurityCenterScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.security_outlined),
+                  label: const Text('Launch Security Center'),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.green[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.green[200]!),
+                color: BltColors.redTint,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFFECACA)),
               ),
-              child: Row(
+              child: const Row(
                 children: [
-                  Icon(Icons.lock, color: Colors.green[700], size: 20),
-                  const SizedBox(width: 8),
+                  BltIconBox(Icons.lock_outline, size: 34),
+                  SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'All your data is encrypted and stored only on this device',
+                      'Local-first. No server. Your data never leaves your device.',
                       style: TextStyle(
-                        color: Colors.green[900],
-                        fontSize: 12,
+                        color: BltColors.ink,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        height: 1.35,
                       ),
                     ),
                   ),
@@ -224,6 +305,11 @@ class _HomeScreenState extends State<HomeScreen> {
               'Your Privacy Progress',
               style: Theme.of(context).textTheme.titleLarge,
             ),
+            const SizedBox(height: 6),
+            Text(
+              'Broker removal progress, tracked locally.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(height: 20),
             Row(
               children: [
@@ -232,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Total Requests',
                     totalRequests.toString(),
                     Icons.assignment_outlined,
-                    Colors.blue,
+                    BltColors.red,
                   ),
                 ),
                 Expanded(
@@ -240,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Completed',
                     completedRequests.toString(),
                     Icons.check_circle_outline,
-                    Colors.green,
+                    const Color(0xFF059669),
                   ),
                 ),
                 Expanded(
@@ -248,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Pending',
                     pendingRequests.toString(),
                     Icons.hourglass_empty,
-                    Colors.orange,
+                    const Color(0xFFD97706),
                   ),
                 ),
               ],
@@ -296,25 +382,44 @@ class _HomeScreenState extends State<HomeScreen> {
               'Quick Actions',
               style: Theme.of(context).textTheme.titleLarge,
             ),
+            const SizedBox(height: 6),
+            Text(
+              'Same workflow modules as the web client, shaped for native use.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(height: 16),
             if (_userData == null)
               _buildQuickActionButton(
                 'Set Up Profile',
                 'Add your information to get started',
                 Icons.person_add,
-                Colors.deepPurple,
+                BltColors.red,
                 () {
                   setState(() {
-                    _selectedIndex = 4;
+                    _selectedIndex = 5;
                   });
                 },
               )
             else ...[
               _buildQuickActionButton(
+                'Scan Suspicious Link',
+                'Open the Security Center phishing workflow',
+                Icons.security,
+                BltColors.red,
+                () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const SecurityCenterScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildQuickActionButton(
                 'Find Brokers',
                 'Search for data brokers',
                 Icons.search,
-                Colors.blue,
+                BltColors.red,
                 () {
                   setState(() {
                     _selectedIndex = 1;
@@ -323,10 +428,36 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 12),
               _buildQuickActionButton(
+                'Check Credentials',
+                'Analyze password strength and reuse locally',
+                Icons.password_outlined,
+                BltColors.red,
+                () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const CredentialHygieneScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildQuickActionButton(
+                'Open Triage Queue',
+                'Rank scans, credential findings, and remediation tasks',
+                Icons.timeline,
+                BltColors.red,
+                () {
+                  setState(() {
+                    _selectedIndex = 4;
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildQuickActionButton(
                 'View Requests',
                 'Check your opt-out requests',
                 Icons.assignment,
-                Colors.green,
+                BltColors.red,
                 () {
                   setState(() {
                     _selectedIndex = 2;
@@ -338,7 +469,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 'Manage Monitors',
                 'Track keywords and personal info',
                 Icons.monitor,
-                Colors.orange,
+                BltColors.red,
                 () {
                   setState(() {
                     _selectedIndex = 3;
@@ -365,18 +496,20 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey[300]!),
-          borderRadius: BorderRadius.circular(8),
+          color: Colors.white,
+          border: Border.all(color: BltColors.border),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: BltColors.redTint,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: BltColors.border),
               ),
-              child: Icon(icon, color: color),
+              child: Icon(icon, color: BltColors.red),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -417,7 +550,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.lightbulb_outline, color: Colors.amber),
+                const BltIconBox(Icons.lightbulb_outline, size: 36),
                 const SizedBox(width: 8),
                 Text(
                   'Privacy Tip',
@@ -428,7 +561,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 12),
             Text(
               'Your data never leaves this device. SelfErase uses end-to-end encryption to keep your personal information secure.',
-              style: TextStyle(color: Colors.grey[700]),
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
         ),
@@ -439,9 +572,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showAboutDialog(BuildContext context) {
     showAboutDialog(
       context: context,
-      applicationName: 'SelfErase',
+      applicationName: 'BLT Vanish',
       applicationVersion: '1.0.0',
-      applicationIcon: const Icon(Icons.security, size: 48, color: Colors.deepPurple),
+      applicationIcon: const Icon(Icons.visibility_off, size: 48, color: BltColors.red),
       applicationLegalese: '© 2025 OWASP BLT Project\n\nLicensed under AGPL-3.0',
       children: [
         const SizedBox(height: 16),
