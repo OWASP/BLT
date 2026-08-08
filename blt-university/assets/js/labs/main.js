@@ -60,25 +60,26 @@
         });
     }
 
+    // Test-only surface: the jest suites drive these directly rather than through the DOM.
     if (window.__BLT_LAB_TEST_MODE__ === true) {
         window.__BLT_LAB_TESTING__ = {
             SimulationStates,
             createSimulationState,
             getSimulationProgress,
             getStoredSimulationProgress,
+            initializeLabSimulations,
             setSimulationProgress,
-            validateCsrfFix,
             validateAuthFix,
             validateCommandFix,
+            validateCsrfFix,
             validateExplainAnswer,
             validateIdorFix,
+            validateLineSelection,
             validateRedirectFix,
             validateSensitiveDataFix,
-            validateLineSelection,
-            initializeLabSimulations,
+            validateSqliFix,
             validateSsrfFix,
             validateUploadFix,
-            validateSqliFix,
             validateXssFix
         };
     }

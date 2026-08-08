@@ -48,7 +48,7 @@ function getStoredLabProgress(storage) {
   return JSON.parse(storage.get(LAB_PROGRESS_STORAGE_KEY));
 }
 
-function createMockDocument({
+function renderLabFixture({
   labDataText = '[]',
   labId = SQLI_LAB_ID,
   simulationEngine = SQLI_LOGIN_ENGINE,
@@ -92,7 +92,7 @@ function loadLabHelpers(overrides = {}) {
   }
 
   if (!overrides.document) {
-    createMockDocument();
+    renderLabFixture();
   }
 
   Object.defineProperty(document, 'readyState', {
@@ -107,6 +107,8 @@ function loadLabHelpers(overrides = {}) {
     window
   };
 
+  // Load order matters: core.js seeds the BltLabs namespace that the rest extend, and
+  // main.js destructures from it, so it must run last.
   const modularScriptNames = [
     'core.js',
     'validators.js',
@@ -115,11 +117,8 @@ function loadLabHelpers(overrides = {}) {
     'simulations.js',
     'main.js'
   ];
-  const scriptNames = fs.existsSync(path.join(__dirname, '..', 'assets/js/labs/core.js'))
-    ? modularScriptNames
-    : ['main.js'];
 
-  scriptNames.forEach((scriptName) => {
+  modularScriptNames.forEach((scriptName) => {
     const scriptPath = path.join(__dirname, '..', 'assets/js/labs', scriptName);
     const labEngineSource = fs.readFileSync(scriptPath, 'utf8');
     vm.runInNewContext(labEngineSource, browserSandbox, { filename: `assets/js/labs/${scriptName}` });
@@ -180,8 +179,8 @@ function createSqliLoginTask(overrides = {}) {
   };
 }
 
-function createSqliSimulationDocument(taskIndex = 0, taskOverrides = {}) {
-  return createMockDocument({
+function renderSqliLabFixture(taskIndex = 0, taskOverrides = {}) {
+  return renderLabFixture({
     taskIndex,
     labDataText: JSON.stringify([
       createSqliLoginTask(taskOverrides)
@@ -190,13 +189,13 @@ function createSqliSimulationDocument(taskIndex = 0, taskOverrides = {}) {
 }
 
 function initializeSqliSimulation(taskIndex = 0, taskOverrides = {}) {
-  const labDocument = createSqliSimulationDocument(taskIndex, taskOverrides);
-  const loaded = loadLabHelpers({ document: labDocument });
+  const labDocument = renderSqliLabFixture(taskIndex, taskOverrides);
+  const loadedLab = loadLabHelpers({ document: labDocument });
 
-  loaded.helpers.initializeLabSimulations();
+  loadedLab.helpers.initializeLabSimulations();
 
   return {
-    ...loaded,
+    ...loadedLab,
     labDocument
   };
 }
@@ -240,9 +239,7 @@ module.exports = {
   advanceSqliSimulationToFix,
   answerExplanation,
   cloneSerializableValue,
-  createMockDocument,
   createSqliLoginTask,
-  createSqliSimulationDocument,
   findButton,
   findDescendant,
   getFixEditor,
@@ -251,6 +248,8 @@ module.exports = {
   getStoredLabProgress,
   initializeSqliSimulation,
   loadLabHelpers,
+  renderLabFixture,
+  renderSqliLabFixture,
   selectCodeLine,
   submitFix,
   validateExplanation,

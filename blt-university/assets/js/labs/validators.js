@@ -1,6 +1,9 @@
 (function () {
     window.BltLabs = window.BltLabs || {};
     const BltLabs = window.BltLabs;
+
+
+    // Identify and explain step validation.
     function normalizeLines(lines = []) {
         return lines.map(Number).filter(Number.isFinite).sort((a, b) => a - b);
     }
@@ -19,7 +22,7 @@
         return Boolean(selected) && Boolean(expected) && selected === expected;
     }
 
-    // Regex-based validation.
+    // SQL injection validation helpers.
     function hasParameterizedQuery(code) {
         return /(\?|:\w+|\$\d+)/.test(code) && /\b(execute|query|prepare|preparedstatement)\b/i.test(code);
     }
@@ -224,7 +227,7 @@
 
     function encodesHtml(code) {
         return /escapeHTML|encodeHTML|sanitize|DOMPurify|replace\s*\(\s*\/\[&<>"'\]/i.test(code) ||
-            /replace\s*\([^)]*&/i.test(code) && /replace\s*\([^)]*</i.test(code);
+            (/replace\s*\([^)]*&/i.test(code) && /replace\s*\([^)]*</i.test(code));
     }
 
     function xssPayloadStillExecutes(code, payloads = []) {
@@ -257,18 +260,25 @@
     }
 
     // CSRF validation helpers.
+    // Shared by the presence check and the ordering check below so the two can never drift
+    // apart. Carries no /g flag, so reusing one object across .test() and .search() is safe.
+    const CSRF_VALIDATION_PATTERN = /(validate|verify|check|compare)[\s\S]{0,40}csrf[_-]?token|csrf[_-]?token[\s\S]{0,40}(validate|verify|check|compare)/i;
+
     function includesCsrfToken(code) {
         return /csrf[_-]?token/i.test(code);
     }
 
     function validatesCsrfToken(code) {
-        return /(validate|verify|check|compare)[\s\S]{0,40}csrf[_-]?token|csrf[_-]?token[\s\S]{0,40}(validate|verify|check|compare)/i.test(code);
+        return CSRF_VALIDATION_PATTERN.test(code);
     }
 
     function verifiesCsrfBeforeStateChange(code) {
-        const validationIndex = code.search(/(validate|verify|check|compare)[\s\S]{0,40}csrf[_-]?token|csrf[_-]?token[\s\S]{0,40}(validate|verify|check|compare)/i);
+        const validationIndex = code.search(CSRF_VALIDATION_PATTERN);
         const stateChangeIndex = code.search(/\b(update|delete|transfer|change|reset|create|save)[A-Za-z0-9_$]*\s*\(|\.\s*(perform|run|apply|execute)?(Update|Delete|Transfer|Change|Reset|Create|Save)[A-Za-z0-9_$]*\s*\(/i);
 
+        // Deliberately lenient: with no recognizable state-changing call to order against,
+        // token presence alone passes rather than failing a learner for a naming style the
+        // pattern above does not cover.
         if (stateChangeIndex === -1) {
             return validationIndex !== -1;
         }
@@ -340,6 +350,9 @@
         const checkIndex = authorizationCheckIndex(code);
         const responseIndex = dataResponseIndex(code);
 
+        // The responseIndex === -1 branch accepts submissions that never return the resource
+        // inline: ordering cannot be judged when there is nothing to order against, so an
+        // ownership check anywhere is enough.
         return checkIndex !== -1 && (responseIndex === -1 || checkIndex < responseIndex);
     }
 
@@ -350,6 +363,8 @@
         ]);
         const responseIndex = dataResponseIndex(code);
 
+        // Same leniency as above: a submission that never returns the resource inline passes
+        // on the presence of a rejection path alone.
         return rejectionIndex !== -1 && (responseIndex === -1 || rejectionIndex < responseIndex);
     }
 
@@ -385,7 +400,7 @@
         };
     }
 
-    // Additional security validators.
+    // Open redirect validation helpers. usesAllowlist is also reused by the SSRF group below.
     function usesAllowlist(code) {
         return /\ballowed(?:Hosts|Domains|Paths|Redirects|Origins)?\b|allowlist|whitelist/i.test(code);
     }
@@ -434,6 +449,7 @@
         };
     }
 
+    // Command injection validation helpers.
     function invokesShellWithUserInput(code) {
         return /\b(exec|execSync|system|popen|shell_exec|passthru)\s*\([^)]*(req|request|input|ip|host|cmd|target)[^)]*\)/i.test(code) ||
             /\b(spawn|execFile)\s*\([^)]*\+\s*(req|request|input|ip|host|cmd|target)/i.test(code);
@@ -486,6 +502,7 @@
         };
     }
 
+    // File upload validation helpers.
     function restrictsFileType(code) {
         return /allowed(?:Extensions|MimeTypes|Types)|\.includes\s*\(|mime|magic|file-type|extension/i.test(code);
     }
@@ -528,6 +545,7 @@
         };
     }
 
+    // Sensitive data exposure validation helpers.
     function removesSensitiveOutput(code) {
         return /redact|sanitize|mask|safeError|generic.*error|delete\s+.*(password|secret|token|key)/i.test(code);
     }
@@ -541,6 +559,8 @@
     }
 
     function avoidsSecretLogging(code) {
+        // Inverted default on purpose: redaction is only required of submissions that log at
+        // all, so code with no logging has nothing to leak and passes trivially.
         return /logger|console|log/i.test(code) ? /redact|mask|sanitize/i.test(code) : true;
     }
 
@@ -576,6 +596,7 @@
         };
     }
 
+    // SSRF validation helpers.
     function validatesOutboundUrl(code) {
         return /new\s+URL\s*\(|urlparse\s*\(|parseUrl\s*\(/i.test(code) && usesAllowlist(code);
     }
@@ -624,6 +645,7 @@
         };
     }
 
+    // Broken authentication validation helpers.
     function strengthensCredentials(code) {
         return /forcePasswordChange|passwordPolicy|bcrypt|argon2|mfa|multiFactor|default.*disabled/i.test(code);
     }

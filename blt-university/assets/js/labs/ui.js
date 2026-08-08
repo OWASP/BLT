@@ -2,6 +2,7 @@
     window.BltLabs = window.BltLabs || {};
     const BltLabs = window.BltLabs;
     const { SimulationStates } = BltLabs;
+
     function buttonClasses(kind = 'primary') {
         if (kind === 'secondary') {
             return 'inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800';
@@ -84,7 +85,7 @@
         return wrapper;
     }
 
-    function stagePill(stateName, label, isActive, isDone, canVisit) {
+    function renderStagePill(stateName, label, isActive, isDone, canVisit) {
         return `<button type="button" data-stage-target="${stateName}" ${canVisit ? '' : 'disabled'} class="rounded-full px-4 py-1.5 text-xs font-bold transition ${isDone
                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                 : isActive
@@ -102,9 +103,9 @@
                         <h3 class="m-0 text-xl font-bold text-gray-900 dark:text-white">${escapeHtml(title)}</h3>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        ${stagePill(SimulationStates.IDENTIFY, 'Identify', state.value === SimulationStates.IDENTIFY, navigation.identifyDone, true)}
-                        ${stagePill(SimulationStates.EXPLAIN, 'Explain', state.value === SimulationStates.EXPLAIN, navigation.explainDone, navigation.canVisitExplain)}
-                        ${stagePill(SimulationStates.FIX, 'Fix', state.value === SimulationStates.FIX, navigation.fixDone, navigation.canVisitFix)}
+                        ${renderStagePill(SimulationStates.IDENTIFY, 'Identify', state.value === SimulationStates.IDENTIFY, navigation.identifyDone, true)}
+                        ${renderStagePill(SimulationStates.EXPLAIN, 'Explain', state.value === SimulationStates.EXPLAIN, navigation.explainDone, navigation.canVisitExplain)}
+                        ${renderStagePill(SimulationStates.FIX, 'Fix', state.value === SimulationStates.FIX, navigation.fixDone, navigation.canVisitFix)}
                     </div>
                 </div>
                 <div data-code-fix-stage></div>
@@ -127,10 +128,10 @@
 
     function renderHints(container, hintController) {
         const { hintButton, hintBox } = createHintElements(hintController);
-        const row = document.createElement('div');
-        row.className = 'mt-5 space-y-3';
-        row.append(hintButton, hintBox);
-        container.append(row);
+        const hintStack = document.createElement('div');
+        hintStack.className = 'mt-5 space-y-3';
+        hintStack.append(hintButton, hintBox);
+        container.append(hintStack);
     }
 
     Object.assign(BltLabs, {

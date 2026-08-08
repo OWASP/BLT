@@ -1,28 +1,32 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const mobileToggle = document.getElementById("mobile-toggle");
-    const mobileMenu = document.getElementById("mobile-menu");
+    // Shared with assets/js/labs/core.js and assets/js/dashboard.js. Each is a separate
+    // top-level script with no module system, so the key is repeated rather than imported.
+    const LAB_PROGRESS_STORAGE_KEY = 'blt-lab-progress';
+
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
 
     if (mobileToggle && mobileMenu) {
-        mobileToggle.addEventListener("click", function () {
-            const open = !mobileMenu.classList.contains("open");
-            mobileMenu.classList.toggle("open", open);
-            mobileToggle.classList.toggle("active", open);
-            mobileToggle.setAttribute("aria-expanded", String(open));
+        mobileToggle.addEventListener('click', () => {
+            const open = !mobileMenu.classList.contains('open');
+            mobileMenu.classList.toggle('open', open);
+            mobileToggle.classList.toggle('active', open);
+            mobileToggle.setAttribute('aria-expanded', String(open));
         });
 
-        mobileMenu.querySelectorAll("a").forEach(function (link) {
-            link.addEventListener("click", function () {
-                mobileMenu.classList.remove("open");
-                mobileToggle.classList.remove("active");
-                mobileToggle.setAttribute("aria-expanded", "false");
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('open');
+                mobileToggle.classList.remove('active');
+                mobileToggle.setAttribute('aria-expanded', 'false');
             });
         });
 
         document.addEventListener('keydown', event => {
             if (event.key === 'Escape') {
-                mobileMenu.classList.remove("open");
-                mobileToggle.classList.remove("active");
-                mobileToggle.setAttribute("aria-expanded", "false");
+                mobileMenu.classList.remove('open');
+                mobileToggle.classList.remove('active');
+                mobileToggle.setAttribute('aria-expanded', 'false');
             }
         });
     }
@@ -36,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const clearCourseFilters = document.querySelector('[data-clear-course-filters]');
 
     if (categoryFilter && levelFilter && searchFilter && coursesGrid) {
+
         function filterCourses() {
             const categoryValue = (categoryFilter.value || '').toLowerCase();
             const levelValue = (levelFilter.value || '').toLowerCase();
@@ -82,7 +87,6 @@ document.addEventListener('DOMContentLoaded', function() {
             filterCourses();
         });
 
-        // Initial filter
         filterCourses();
     }
 
@@ -113,14 +117,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function completeTask(index) {
             completedTasks.add(index);
+            // Clamp to the last task so finishing the final one does not push the
+            // unlock pointer past the end of the list.
             highestUnlocked = Math.max(highestUnlocked, Math.min(index + 1, tasks.length - 1));
+        }
+
+        function isPlainObject(value) {
+            return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
         }
 
         function getStoredProgress() {
             try {
-                return JSON.parse(localStorage.getItem('blt-lab-progress') || '{}');
+                const parsed = JSON.parse(localStorage.getItem(LAB_PROGRESS_STORAGE_KEY) || '{}');
+                return isPlainObject(parsed) ? parsed : {};
             } catch (_error) {
                 return {};
+            }
+        }
+
+        function persistProgress(progress) {
+            try {
+                localStorage.setItem(LAB_PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+            } catch (_error) {
+                // Storage full or disabled: a lost save must not break the page interaction.
             }
         }
 
@@ -130,13 +149,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const progress = getStoredProgress();
-            const labProgress = progress[labId] || {};
+            const labProgress = isPlainObject(progress[labId]) ? progress[labId] : {};
             labProgress[index] = {
-                ...(labProgress[index] || {}),
+                ...(isPlainObject(labProgress[index]) ? labProgress[index] : {}),
                 ...value
             };
             progress[labId] = labProgress;
-            localStorage.setItem('blt-lab-progress', JSON.stringify(progress));
+            persistProgress(progress);
         }
 
         function clearTaskProgressFrom(index) {
@@ -145,14 +164,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const progress = getStoredProgress();
-            const labProgress = progress[labId] || {};
+            const labProgress = isPlainObject(progress[labId]) ? progress[labId] : {};
             Object.keys(labProgress).forEach(taskIndex => {
                 if (Number(taskIndex) >= index) {
                     delete labProgress[taskIndex];
                 }
             });
             progress[labId] = labProgress;
-            localStorage.setItem('blt-lab-progress', JSON.stringify(progress));
+            persistProgress(progress);
         }
 
         function restoreLabProgress() {
@@ -227,6 +246,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             if (nextButton) {
                 const needsCompletion = taskRequiresCompletion(currentIndex) && !isTaskComplete(currentIndex);
+                // Blocked either because this task is unfinished, or because the lab
+                // is over: on the last task the button becomes a spent "Complete".
                 nextButton.disabled = needsCompletion || (currentIndex === tasks.length - 1 && isTaskComplete(currentIndex));
                 nextButton.title = needsCompletion ? 'Complete this task correctly to continue.' : '';
                 nextButton.innerHTML = currentIndex === tasks.length - 1
@@ -308,6 +329,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         completeTask(currentIndex);
                         saveTaskProgress(currentIndex, { completed: true });
                     } else {
+                        // A wrong answer forfeits everything past this task, in memory
+                        // and in storage, so the learner cannot keep credit earned
+                        // beyond a step they have not actually passed.
                         lockAfter(currentIndex);
                         clearTaskProgressFrom(currentIndex);
                     }
@@ -335,6 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const labNoResults = document.getElementById('lab-no-results');
 
     if (labCategoryFilter && labLevelFilter && labSearchFilter && labsGrid) {
+
         function filterLabs() {
             const categoryValue = (labCategoryFilter.value || '').toLowerCase();
             const levelValue = (labLevelFilter.value || '').toLowerCase();
@@ -386,10 +411,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
+        // Kept as a `function` expression: the body reads `this` as the clicked anchor.
+        anchor.addEventListener('click', function (event) {
+            event.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
                 target.scrollIntoView({
@@ -399,5 +424,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
 });
