@@ -275,13 +275,13 @@ uv run pytest
 
 The test suite will execute the unit tests and then automatically run the `mcp-vcr` verification hook against all golden snapshots in the `snapshots/` directory.
 
-### Deterministic & Offline Testing
+### Deterministic Test Mocking
 
-To ensure testing is 100% deterministic and runs offline without making real network requests to Cloudflare or the live OWASP BLT API, a mock HTTP layer is automatically activated during `pytest` runs using the environment variable:
+To ensure testing is 100% deterministic and runs without making real network requests to Cloudflare or the live OWASP BLT API during development checks, a test mock HTTP layer is automatically activated during `pytest` runs using the environment variable:
 ```env
 BLT_MOCK_HTTP=true
 ```
-This intercepts all external requests made by `httpx.AsyncClient` inside the server subprocesses and returns stubbed mock data.
+This intercepts all external requests made by `httpx.AsyncClient` inside the server subprocesses and returns stubbed mock data for test assertions.
 
 ### How to Use `mcp-vcr`
 

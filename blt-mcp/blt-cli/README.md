@@ -20,7 +20,6 @@ A high-performance terminal user interface (TUI) client for the OWASP Bug Loggin
 * **Dual-Mode execution:**
   * **Standalone Mode:** Connects directly to the REST endpoints of the BLT API.
   * **MCP Mode:** Acts as an MCP host, spawning the Python `blt-mcp` server in a subprocess.
-* **Offline Sandbox (`--offline`):** Loaded with full mock datasets for completely offline UI iteration without API credentials.
 
 ---
 
@@ -29,9 +28,6 @@ A high-performance terminal user interface (TUI) client for the OWASP Bug Loggin
 Configure execution modes directly via command-line arguments:
 
 ```bash
-# Launch with local mock database datasets (Offline Mode)
-blt-cli --offline
-
 # Spawn Python MCP server subprocess to invoke protocol tools
 blt-cli --mcp-path ../blt_mcp/server.py
 
@@ -41,7 +37,6 @@ blt-cli --api-base https://staging.owaspblt.org
 
 | Flag | Short | Environment Fallback | Description | Default |
 | :--- | :--- | :--- | :--- | :--- |
-| `--offline` | `-o` | - | Runs with mock data; bypasses networking. | `false` |
 | `--mcp-path` | `-m` | `BLT_MCP_PATH` | Path to spawn the local Python MCP server. | `None` |
 | `--api-base` | `-a` | `BLT_API_BASE` | Base URL path for the unified BLT REST API. | `https://api.owaspblt.org` |
 
@@ -76,8 +71,8 @@ cd blt-cli
 cargo fmt --check
 cargo clippy -- -D warnings
 
-# 3. Compile and execute in debug mode (default to offline)
-cargo run -- --offline
+# 3. Compile and execute in debug mode
+cargo run
 
 # 4. Build optimized release binary
 cargo build --release

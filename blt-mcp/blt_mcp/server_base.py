@@ -28,7 +28,7 @@ import httpx
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
-# Mock HTTP environment hook to run tests deterministically and offline
+# Test Mocking: Hooked internally by pytest / mcp-vcr to run test suites deterministically
 if os.getenv("BLT_MOCK_HTTP") == "true":
     original_send = httpx.AsyncClient.send
 
@@ -195,7 +195,7 @@ async def server_lifespan(server: FastMCP):
     http_client = httpx.AsyncClient(
         base_url=BLT_API_BASE,
         headers={"X-BLT-API-Key": BLT_API_KEY} if BLT_API_KEY else {},
-        timeout=30.0,
+        timeout=httpx.Timeout(15.0, connect=2.0),
         follow_redirects=True,
     )
     try:
