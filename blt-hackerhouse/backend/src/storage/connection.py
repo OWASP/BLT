@@ -88,12 +88,16 @@ class Database:
                     continue
 
             logger.info("Applying migration %s", sql_file.name)
-            sql = sql_file.read_text(encoding="utf-8")
-            await self.conn.executescript(sql)
-            await self.conn.execute(
-                "INSERT INTO _migrations (name) VALUES (?)", (sql_file.name,)
-            )
-            await self.conn.commit()
+            sql_text = sql_file.read_text(encoding="utf-8")
+            statements = [s.strip() for s in sql_text.split(";") if s.strip()]
+
+            async with self.transaction():
+                for stmt in statements:
+                    await self.conn.execute(stmt)
+                await self.conn.execute(
+                    "INSERT INTO _migrations (name) VALUES (?)", (sql_file.name,)
+                )
+
             applied_count += 1
 
         logger.info("Migrations complete: %d new applied", applied_count)

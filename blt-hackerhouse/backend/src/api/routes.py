@@ -106,7 +106,11 @@ async def gitlab_webhook(
         raise HTTPException(status_code=400, detail="Could not normalize payload")
 
     queue: EventQueue = request.app.state.event_queue
-    await queue.put(event)
+    try:
+        await asyncio.wait_for(queue.put(event), timeout=5.0)
+    except asyncio.TimeoutError:
+        logger.warning("webhook queue full, rejecting event")
+        raise HTTPException(status_code=503, detail="Queue full, please retry")
     hub.record_event()
     logger.info(
         "webhook enqueued",

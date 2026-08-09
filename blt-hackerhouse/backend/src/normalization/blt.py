@@ -30,7 +30,8 @@ def normalize_blt_bug(
         or record.get("reported_by")
         or "unknown"
     )
-    hunt = record.get("hunt") or {}
+    raw_hunt = record.get("hunt")
+    hunt: dict[str, Any] = raw_hunt if isinstance(raw_hunt, dict) else {}
     repo = (
         record.get("repo")
         or hunt.get("repo")
