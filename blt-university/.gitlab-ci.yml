@@ -40,6 +40,7 @@ validate-vulnerability-intel:
     - python -B -m unittest discover -s tests/vulnerability_intel -p 'test_*.py' -v
   rules:
     - changes:
+        - _labs/**/*
         - _data/cwe_owasp_lab_mapping.json
         - _data/vulnerability_intel.json
         - schemas/vulnerability-intel.schema.json
