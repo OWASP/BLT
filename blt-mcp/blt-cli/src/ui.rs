@@ -434,7 +434,7 @@ fn draw_hunts_tab(f: &mut Frame, app: &App, rect: Rect) {
             .style(Style::default().fg(MUTED_BORDER));
         f.render_widget(empty_msg, horizontal_layout[0]);
     } else {
-        let header_cells = vec!["Hunt Title", "Goal", "Reward", "Status"];
+        let header_cells = vec!["Hunt Title", "Goal", "Bacon", "Status"];
         let header = Row::new(header_cells)
             .style(
                 Style::default()
@@ -529,7 +529,7 @@ fn draw_hunts_tab(f: &mut Frame, app: &App, rect: Rect) {
                 ),
             ]),
             Line::from(vec![
-                Span::styled("Reward: ", Style::default().fg(Color::Gray)),
+                Span::styled("Bacon: ", Style::default().fg(Color::Gray)),
                 Span::styled(
                     &hunt.reward,
                     Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD),
@@ -706,13 +706,13 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
             format!("  {} 🏆", app.stats.points),
             Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD),
         )),
-        Line::from("  Rewards Points"),
+        Line::from("  Bacon Score"),
     ])
     .block(
         Block::default()
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Magenta))
-            .title(" Points & Score ")
+            .title(" Bacon & Score ")
             .title_style(
                 Style::default()
                     .fg(Color::Magenta)
@@ -723,7 +723,7 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
     f.render_widget(card_4, row_2[1]);
 
     // Right Panel: Live Leaderboard
-    let header_cells = vec!["Rank", "Hacker", "Rep", "Points"];
+    let header_cells = vec!["Rank", "Hacker", "Rep", "Bacon"];
     let header = Row::new(header_cells)
         .style(
             Style::default()
@@ -1537,7 +1537,7 @@ fn draw_hunt_details_modal(f: &mut Frame, app: &App, rect: Rect) {
             Span::styled(hunt.status.clone(), Style::default().fg(Color::Green)),
         ]),
         Line::from(vec![
-            Span::styled(" Reward: ", Style::default().fg(Color::Gray)),
+            Span::styled(" Bacon: ", Style::default().fg(Color::Gray)),
             Span::styled(
                 hunt.reward.clone(),
                 Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD),
@@ -1965,7 +1965,7 @@ fn draw_easter_egg_modal(f: &mut Frame, rect: Rect) {
         )),
         Line::from(""),
         Line::from(Span::styled(
-            "* You found the BLT Konami Code! Extra points 🏆 for you! *",
+            "* You found the BLT Konami Code! Extra bacon 🏆 for you! *",
             Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),

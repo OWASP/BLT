@@ -297,7 +297,7 @@ pub fn parse_hunts_from_json(root: &serde_json::Value) -> Result<Vec<Hunt>, Stri
             .get("reward")
             .or_else(|| item.get("points"))
             .and_then(|v| v.as_str())
-            .unwrap_or("50 Points")
+            .unwrap_or("50 Bacon")
             .to_string();
 
         hunts.push(Hunt {
@@ -701,7 +701,7 @@ mod tests {
                     "name": "Hunt 1",
                     "description": "Desc 1",
                     "status": "Active",
-                    "reward": "100 Points"
+                    "reward": "100 Bacon"
                 }
             ]
         });
