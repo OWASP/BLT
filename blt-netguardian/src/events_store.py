@@ -91,25 +91,39 @@ class EventsStore:
             return self._row_to_item(existing), False
 
         payload_json = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
-        await self.db.prepare(
-            """
-            INSERT INTO events_outbox (
-              id, org_id, event_type, dedupe_key, payload_json,
-              status, attempts, last_error, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, 0, NULL, ?, ?)
-            """
-        ).bind(
-            event_id,
-            org_id,
-            event_type,
-            dedupe_key,
-            payload_json,
-            status,
-            created_at_unix,
-            created_at_unix,
-        ).run()
+        try:
+            await self.db.prepare(
+                """
+                INSERT INTO events_outbox (
+                  id, org_id, event_type, dedupe_key, payload_json,
+                  status, attempts, last_error, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, 0, NULL, ?, ?)
+                """
+            ).bind(
+                event_id,
+                org_id,
+                event_type,
+                dedupe_key,
+                payload_json,
+                status,
+                created_at_unix,
+                created_at_unix,
+            ).run()
+        except Exception:  # noqa: BLE001 - unique-index race on concurrent emit
+            raced = d1_row(
+                await self.db.prepare(
+                    """
+                    SELECT id, org_id, event_type, dedupe_key, payload_json, status,
+                           attempts, last_error, created_at, updated_at
+                    FROM events_outbox
+                    WHERE org_id = ? AND dedupe_key = ?
+                    """
+                ).bind(org_id, dedupe_key).first()
+            )
+            if raced is not None:
+                return self._row_to_item(raced), False
+            raise
 
-        # Race-safe: unique index may have rejected a parallel insert.
         row = d1_row(
             await self.db.prepare(
                 """

@@ -180,18 +180,23 @@ paths:
           schema:
             type: integer
             default: 50
+            minimum: 1
+            maximum: 100
         - name: offset
           in: query
           schema:
             type: integer
             default: 0
+            minimum: 0
       responses:
         "200":
           description: Paginated event list
         "400":
           description: Invalid query
         "401":
-          description: Missing or invalid org API token
+          description: Missing or invalid org API token (always required; no default-org fallback)
+        "503":
+          description: Events storage (D1) not configured
 
   /api/events/{id}:
     get:
@@ -208,9 +213,11 @@ paths:
         "200":
           description: Event detail
         "401":
-          description: Missing or invalid org API token
+          description: Missing or invalid org API token (always required; no default-org fallback)
         "404":
           description: Not found
+        "503":
+          description: Events storage (D1) not configured
 
 components:
   securitySchemes:

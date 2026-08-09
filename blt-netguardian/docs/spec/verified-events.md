@@ -46,7 +46,9 @@ Table: `events_outbox` (created in `migrations/0002_ingest_core.sql`).
 - `GET /api/events` — org-scoped list (`event_type`, `finding_id`, `status`, `limit`, `offset`)
 - `GET /api/events/{id}` — org-scoped detail
 
-Auth: same org Bearer tokens as triage (`NG_ORG_API_TOKENS`).
+Auth: org Bearer tokens (`NG_ORG_API_TOKENS`) are **always required** for
+`/api/events` — unlike some triage read paths, there is no `NG_DEFAULT_ORG`
+fallback when `AUTHENTICATE_READ_ENDPOINTS=false`.
 
 ## Webhook delivery
 
@@ -84,5 +86,7 @@ Behavior:
 - URL set but secret missing → `failed`.
 - HTTP 2xx → `delivered`.
 - Other / transport error → stay `pending` until `attempts >= 5`, then `failed`.
+- Delivery uses Workers JS `fetch` in production and urllib locally.
+- Convert/resolve still succeed if outbox emit fails (`event_error: emit_failed`).
 
 NetGuardian does **not** implement downstream scoring — only emit + document consumption.

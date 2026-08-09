@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
-from urllib.request import Request, urlopen
 
-from auth import AuthError, require_org_auth, resolve_org_auth
+from auth import AuthError, require_org_auth
 from canonicalize import hmac_sha256_hex
 from d1_compat import row_get
 from events_store import (
@@ -79,10 +81,37 @@ def build_webhook_envelope(event_row: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _urllib_fetch(url: str, method: str, headers: Mapping[str, str], body: bytes) -> tuple[int, str]:
+    req = urllib.request.Request(url, data=body, method=method, headers=dict(headers))
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:  # noqa: S310 - operator-configured webhook URL
+            return int(getattr(resp, "status", 200) or 200), resp.read().decode("utf-8", errors="replace")
+    except urllib.error.HTTPError as exc:
+        return int(exc.code), exc.read().decode("utf-8", errors="replace")
+
+
+async def _js_fetch(url: str, method: str, headers: Mapping[str, str], body: bytes) -> tuple[int, str]:
+    from js import fetch  # type: ignore[import-not-found]
+
+    resp = await fetch(
+        url,
+        {
+            "method": method,
+            "headers": dict(headers),
+            "body": body.decode("utf-8"),
+        },
+    )
+    text = await resp.text()
+    return int(resp.status), str(text)
+
+
 async def _default_fetch(url: str, method: str, headers: Mapping[str, str], body: bytes) -> tuple[int, str]:
-    req = Request(url, data=body, method=method, headers=dict(headers))
-    with urlopen(req, timeout=10) as resp:  # noqa: S310 - URL from operator-configured secret
-        return int(resp.status), resp.read().decode("utf-8", errors="replace")
+    """Prefer Workers JS fetch; fall back to urllib for local/dev Python."""
+    try:
+        from js import fetch  # noqa: F401
+        return await _js_fetch(url, method, headers, body)
+    except ImportError:
+        return await asyncio.to_thread(_urllib_fetch, url, method, headers, body)
 
 
 async def deliver_event_webhook(
@@ -330,7 +359,8 @@ async def list_events_for_request(
     store: Optional[EventsStore] = None,
 ) -> EventsApiResult:
     try:
-        auth = resolve_org_auth(env, headers)
+        # Always require a real org token — never fall back to NG_DEFAULT_ORG.
+        auth = require_org_auth(env, headers)
     except AuthError as exc:
         return EventsApiResult(status=exc.status, body=exc.to_response_body())
 
@@ -367,8 +397,8 @@ async def get_event_for_request(
     store: Optional[EventsStore] = None,
 ) -> EventsApiResult:
     try:
-        # Detail is read-path; still org-scoped.
-        auth = resolve_org_auth(env, headers)
+        # Always require a real org token — never fall back to NG_DEFAULT_ORG.
+        auth = require_org_auth(env, headers)
     except AuthError as exc:
         return EventsApiResult(status=exc.status, body=exc.to_response_body())
 

@@ -315,3 +315,48 @@ async def test_emit_converted_direct_idempotent(env, db):
     assert first["created"] is True
     assert second["created"] is False
     assert first["event"]["id"] == second["event"]["id"]
+
+
+@pytest.mark.asyncio
+async def test_events_require_bearer_even_when_read_auth_disabled(env, db):
+    """Events never fall back to NG_DEFAULT_ORG when AUTHENTICATE_READ_ENDPOINTS=false."""
+    env.AUTHENTICATE_READ_ENDPOINTS = "false"
+
+    missing = await list_events_for_request(env=env, db=db, headers={}, query_params={})
+    assert missing.status == 401
+
+    unknown = await list_events_for_request(
+        env=env, db=db, headers={"Authorization": "Bearer nope"}, query_params={},
+    )
+    assert unknown.status == 401
+
+    detail_missing = await get_event_for_request(env=env, db=db, headers={}, event_id="evt-x")
+    assert detail_missing.status == 401
+
+    detail_unknown = await get_event_for_request(
+        env=env, db=db, headers={"Authorization": "Bearer nope"}, event_id="evt-x",
+    )
+    assert detail_unknown.status == 401
+
+
+@pytest.mark.asyncio
+async def test_convert_survives_event_emit_failure(env, db, fixture_data, secret, monkeypatch):
+    finding_id = await _ingest_one(
+        env, db, fixture_data, secret, fingerprint="fp-events-emit-fail", nonce="nonce-events-5",
+    )
+
+    async def boom(**_kwargs):
+        raise RuntimeError("outbox down")
+
+    monkeypatch.setattr("findings_service.emit_converted_event", boom)
+    result = await convert_to_issue_for_request(
+        env=env,
+        db=db,
+        headers={"Authorization": "Bearer triage-token"},
+        finding_id=finding_id,
+        new_id=_sequential_ids(),
+    )
+    assert result.status == 201
+    assert result.body["blt_issue_id"]
+    assert result.body["event_error"] == "emit_failed"
+    assert "event_id" not in result.body
