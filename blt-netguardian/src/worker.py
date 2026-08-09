@@ -33,6 +33,7 @@ from blt_api_client import is_blt_api_configured
 from errors import IngestError, IngestErrorCode
 from findings_service import (
     convert_to_issue_for_request,
+    disclosure_for_request,
     export_csv_for_request,
     findings_error_response,
     get_finding_for_request,
@@ -688,6 +689,15 @@ class BLTWorker:
                     new_id=lambda label: self.generate_id(
                         f'{label}-{parts[0]}-{datetime.now(timezone.utc).isoformat()}'
                     ),
+                )
+            elif len(parts) == 2 and parts[1] == 'disclosure':
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await disclosure_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    finding_id=parts[0],
                 )
             else:
                 return self.json_response({'error': 'Not found'}, status=404)

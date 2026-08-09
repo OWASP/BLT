@@ -12,6 +12,7 @@ from typing import Any, Mapping, Optional
 from auth import AuthError, require_org_auth, resolve_org_auth
 from blt_api_client import BltApiError, create_bug_from_finding, is_blt_api_configured
 from d1_compat import row_get
+from disclosure import disclosure_for_finding_row
 from findings_store import (
     ALLOWED_SORT_FIELDS,
     ALLOWED_STATUSES,
@@ -240,6 +241,34 @@ async def get_finding_for_request(
                 "recent": access_logs,
             },
         },
+    )
+
+
+async def disclosure_for_request(
+    *,
+    env: Any,
+    db: Any,
+    headers: Mapping[str, str],
+    finding_id: str,
+    store: Optional[FindingsStore] = None,
+    fetch_impl: Any = None,
+) -> FindingsListResult:
+    """GET /api/findings/{id}/disclosure — security.txt discovery for the finding target."""
+    auth = _auth_or_error(env, headers)
+    if db is None:
+        return FindingsListResult(
+            status=503,
+            body={"error": "service_unavailable", "message": "findings storage not configured"},
+        )
+    store = store or FindingsStore(db)
+    row = await store.get_finding_detail(auth.org_id, finding_id)
+    if row is None:
+        return FindingsListResult(status=404, body={"error": "not_found", "message": "finding not found"})
+
+    disclosure = await disclosure_for_finding_row(row, fetch_impl=fetch_impl)
+    return FindingsListResult(
+        status=200,
+        body={"finding_id": finding_id, "disclosure": disclosure},
     )
 
 
