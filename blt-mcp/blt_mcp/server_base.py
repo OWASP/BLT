@@ -21,6 +21,7 @@ Shared Functions:
 import json
 import logging
 import os
+import re
 import sys
 from contextlib import asynccontextmanager
 
@@ -43,24 +44,33 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
         handled = False
 
         if "api.cloudflare.com" in url_str:
-            handled = True
-            content_dict = {
-                "success": True,
-                "result": {
-                    "response": "**Severity Suggestion:**\nHigh\n\n**Vulnerability Class:** SQL Injection\n\n**Detailed Recommendation:**\n\n### Immediate Mitigation Steps:\n\n1. **Validate and Sanitize User Input:**\n   - Ensure that the login form inputs (e.g., username and password) are validated and sanitized to prevent any malicious SQL code from being injected.\n   - Use prepared statements or parameterized queries to separate the SQL code from user input.\n\n2. **Use Whitelisting:**\n   - Implement a whitelisting approach to only allow specific characters or patterns in the login form inputs.\n   - This can be achieved by using regular expressions to validate the input data.\n\n3. **Implement Input Validation:**\n   - Validate the length and format of the input data to prevent any potential SQL injection attacks.\n   - For example, you can check if the username is not empty and contains only alphanumeric characters.\n\n4. **Review and Update the Database Schema:**\n   - Review the database schema to ensure that it is not vulnerable to SQL injection attacks.\n   - Consider updating the schema to use stored procedures or views to further secure the database.\n\n5. **Implement a Web Application Firewall (WAF):**\n   - Consider implementing a WAF to detect and prevent SQL injection attacks in real"
-                },
-            }
-        elif "gitlab.com" in url_str:
-            handled = True
-            content_dict = [
-                {
-                    "id": 1,
-                    "title": "Good First Issue 1",
-                    "references": {"full": "org/repo1"},
-                    "web_url": "https://gitlab.com/org/repo1/-/issues/1",
-                    "description": "This is a good first issue description.",
+            if method == "POST" and re.match(
+                r"^/client/v4/accounts/[^/]+/ai/run/.+$", path
+            ):
+                handled = True
+                content_dict = {
+                    "success": True,
+                    "result": {
+                        "response": "**Severity Suggestion:**\nHigh\n\n**Vulnerability Class:** SQL Injection\n\n**Detailed Recommendation:**\n\n### Immediate Mitigation Steps:\n\n1. **Validate and Sanitize User Input:**\n   - Ensure that the login form inputs (e.g., username and password) are validated and sanitized to prevent any malicious SQL code from being injected.\n   - Use prepared statements or parameterized queries to separate the SQL code from user input.\n\n2. **Use Whitelisting:**\n   - Implement a whitelisting approach to only allow specific characters or patterns in the login form inputs.\n   - This can be achieved by using regular expressions to validate the input data.\n\n3. **Implement Input Validation:**\n   - Validate the length and format of the input data to prevent any potential SQL injection attacks.\n   - For example, you can check if the username is not empty and contains only alphanumeric characters.\n\n4. **Review and Update the Database Schema:**\n   - Review the database schema to ensure that it is not vulnerable to SQL injection attacks.\n   - Consider updating the schema to use stored procedures or views to further secure the database.\n\n5. **Implement a Web Application Firewall (WAF):**\n   - Consider implementing a WAF to detect and prevent SQL injection attacks in real"
+                    },
                 }
-            ]
+        elif "gitlab.com" in url_str:
+            if method == "GET" and re.match(r"^/api/v4/groups/[^/]+/issues$", path):
+                handled = True
+                content_dict = [
+                    {
+                        "id": 1,
+                        "title": "Good First Issue 1",
+                        "references": {"full": "org/repo1"},
+                        "web_url": "https://gitlab.com/org/repo1/-/issues/1",
+                        "description": "This is a good first issue description.",
+                    }
+                ]
+            elif method == "POST" and re.match(
+                r"^/api/v4/projects/[^/]+/uploads$", path
+            ):
+                handled = True
+                content_dict = {"markdown": "![vuln](/uploads/vuln.png)"}
         elif path in ("/v2/bugs", "/bugs"):
             if method == "GET":
                 handled = True
@@ -132,10 +142,13 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
             elif method == "POST":
                 handled = True
                 content_dict = {"success": True}
-        elif path.startswith("/bugs/") and path.endswith("/comments"):
-            if method == "POST":
-                handled = True
-                content_dict = {"success": True}
+        elif (
+            path.startswith("/bugs/")
+            and path.endswith("/comments")
+            and method == "POST"
+        ):
+            handled = True
+            content_dict = {"success": True}
 
         if not handled:
             raise AssertionError(f"Unmatched mock request: {method} {url_str}")

@@ -259,14 +259,24 @@ TOOL_SCHEMAS = {
                 "type": str,
                 "description": "Absolute path to the screenshot image on the local system.",
             },
-            "gitlab_project_id": {
-                "type": str,
-                "description": "Optional GitLab project ID to upload the image to.",
-            },
             "context": {
                 "type": str,
                 "description": "Optional user-provided context or hints about the screenshot.",
                 "allow_blank": True,
+                "max_length": 1000,
+            },
+        },
+    },
+    "upload_screenshot": {
+        "required": ["image_path", "gitlab_project_id"],
+        "properties": {
+            "image_path": {
+                "type": str,
+                "description": "Absolute path to the screenshot image on the local system.",
+            },
+            "gitlab_project_id": {
+                "type": str,
+                "description": "GitLab project ID to upload the image to.",
             },
         },
     },
@@ -312,6 +322,13 @@ def validate_tool_arguments(tool_name: str, arguments: dict) -> str | None:
                 for idx, item in enumerate(val):
                     if not isinstance(item, item_type):
                         return f"Item at index {idx} in parameter '{key}' must be of type {item_type.__name__}, got {type(item).__name__}"
+
+        if (
+            expected_type is str
+            and "max_length" in prop
+            and len(val) > prop["max_length"]
+        ):
+            return f"Parameter '{key}' exceeds maximum length of {prop['max_length']} characters"
 
         if (
             expected_type is str

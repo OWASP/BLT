@@ -315,43 +315,34 @@ async def triage_vulnerability(prompt: str) -> str:
 @mcp.tool()
 async def draft_vision_issue(
     image_path: str,
-    gitlab_project_id: str | None = None,
     context: str | None = None,
 ) -> str:
     """Analyze a screenshot and draft a vulnerability issue report.
 
     Args:
         image_path: Absolute path to the screenshot image on the local system.
-        gitlab_project_id: Optional GitLab project ID to upload the image to.
         context: Optional user-provided context or hints about the screenshot.
     """
-    import platform
-    import re
-
-    # Automatically translate Windows drive path to WSL mount path if running in WSL/Linux
-    if platform.system() == "Linux" and re.match(r"^[a-zA-Z]:\\", image_path):
-        drive = image_path[0].lower()
-        rest = image_path[3:].replace("\\", "/")
-        image_path = f"/mnt/{drive}/{rest}"
-
+    # 1. Resolve approved root
     approved_root_env = os.getenv("BLT_APPROVED_ROOT")
     if approved_root_env:
-        approved_root = Path(os.path.abspath(approved_root_env))
+        approved_root = Path(approved_root_env).resolve()
     else:
-        approved_root = Path(os.path.abspath(os.getcwd()))
+        approved_root = Path(os.getcwd()).resolve()
 
-    abs_path = Path(os.path.abspath(image_path))
-    try:
-        abs_path.relative_to(approved_root)
-    except ValueError as e:
-        raise ValueError(
-            "Access denied: Path is outside the approved root directory."
-        ) from e
-
+    # 2. Resolve image path
     try:
         resolved_path = Path(image_path).resolve()
     except Exception as e:
         raise ValueError(f"Invalid image path: {image_path}") from e
+
+    # 3. Path boundary check
+    try:
+        resolved_path.relative_to(approved_root)
+    except ValueError as e:
+        raise ValueError(
+            "Access denied: Path is outside the approved root directory."
+        ) from e
 
     if not resolved_path.exists() or not resolved_path.is_file():
         raise ValueError(
@@ -375,7 +366,7 @@ async def draft_vision_issue(
 
     logger.info(
         "Drafting issue from image %s; context_supplied=%s",
-        os.path.basename(image_path),
+        os.path.basename(str(resolved_path)),
         bool(context and context.strip()),
     )
 
@@ -385,7 +376,6 @@ async def draft_vision_issue(
     except Exception as e:
         raise RuntimeError(f"Failed to read image file: {e!s}") from e
 
-    # Cloudflare expects the image as an array of integers
     image_array = list(image_bytes)
 
     prompt = (
@@ -397,7 +387,12 @@ async def draft_vision_issue(
     if context and context.strip():
         prompt += f"\n\nAdditional user context about this image:\n{context}"
 
-    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/@cf/llava-hf/llava-1.5-7b-hf"
+    model = (
+        os.getenv("CF_VISION_MODEL")
+        or os.getenv("CF_MODEL")
+        or "@cf/llava-hf/llava-1.5-7b-hf"
+    )
+    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
     headers = {
         "Authorization": f"Bearer {api_token}",
         "Content-Type": "application/json",
@@ -436,38 +431,87 @@ async def draft_vision_issue(
         logger.error(f"Exception calling CF Vision AI: {e!s}")
         raise RuntimeError(f"Failed to call Cloudflare Vision AI: {e!s}") from e
 
-    # Optional GitLab Upload phase
-    image_markdown = ""
+    return analysis_text
+
+
+@mcp.tool()
+async def upload_screenshot(
+    image_path: str,
+    gitlab_project_id: str,
+) -> str:
+    """Upload a screenshot/image to a GitLab project and return the markdown link.
+
+    Args:
+        image_path: Absolute path to the screenshot image on the local system.
+        gitlab_project_id: GitLab project ID to upload the image to.
+    """
+    # 1. Resolve approved root
+    approved_root_env = os.getenv("BLT_APPROVED_ROOT")
+    if approved_root_env:
+        approved_root = Path(approved_root_env).resolve()
+    else:
+        approved_root = Path(os.getcwd()).resolve()
+
+    # 2. Resolve image path
+    try:
+        resolved_path = Path(image_path).resolve()
+    except Exception as e:
+        raise ValueError(f"Invalid image path: {image_path}") from e
+
+    # 3. Path boundary check
+    try:
+        resolved_path.relative_to(approved_root)
+    except ValueError as e:
+        raise ValueError(
+            "Access denied: Path is outside the approved root directory."
+        ) from e
+
+    if not resolved_path.exists() or not resolved_path.is_file():
+        raise ValueError(
+            f"Image file not found at {image_path} (resolved as: {resolved_path})"
+        )
+
+    allowed_exts = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
+    if resolved_path.suffix.lower() not in allowed_exts:
+        raise ValueError("Invalid image type. Allowed: png, jpg, jpeg, gif, webp")
+
+    if resolved_path.stat().st_size > 10 * 1024 * 1024:
+        raise ValueError("Image file exceeds maximum size of 10MB")
+
     gl_token = os.getenv("GITLAB_API_TOKEN")
-    if gitlab_project_id and gl_token:
-        gl_url = f"https://gitlab.com/api/v4/projects/{gitlab_project_id}/uploads"
-        gl_headers = {"PRIVATE-TOKEN": gl_token}
+    if not gl_token:
+        raise ValueError("Missing GitLab API Token (GITLAB_API_TOKEN in .env).")
 
-        try:
-            logger.info("Uploading image to GitLab...")
-            filename = os.path.basename(image_path)
-            files = {"file": (filename, image_bytes, "image/png")}
-            async with httpx.AsyncClient() as client:
-                res = await client.post(
-                    gl_url, headers=gl_headers, files=files, timeout=30.0
-                )
-                if res.status_code == 201:
-                    upload_data = res.json()
-                    image_markdown = upload_data.get("markdown", "")
-                else:
-                    logger.warning(f"GitLab upload failed: {res.text}")
-                    image_markdown = f"\n> [!WARNING]\n> Failed to upload image to GitLab (Status {res.status_code})"
-        except Exception as e:  # noqa: BLE001
-            logger.warning(f"GitLab upload exception: {e!s}")
-            image_markdown = (
-                f"\n> [!WARNING]\n> Failed to upload image to GitLab: {e!s}"
+    try:
+        with open(resolved_path, "rb") as f:  # noqa: ASYNC230
+            image_bytes = f.read()
+    except Exception as e:
+        raise RuntimeError(f"Failed to read image file: {e!s}") from e
+
+    gl_url = f"https://gitlab.com/api/v4/projects/{gitlab_project_id}/uploads"
+    gl_headers = {"PRIVATE-TOKEN": gl_token}
+
+    try:
+        logger.info("Uploading image to GitLab...")
+        filename = os.path.basename(str(resolved_path))
+        files = {"file": (filename, image_bytes, "image/png")}
+        async with httpx.AsyncClient() as client:
+            res = await client.post(
+                gl_url, headers=gl_headers, files=files, timeout=30.0
             )
-
-    final_output = analysis_text
-    if image_markdown:
-        final_output += f"\n\n### Attached Screenshot\n{image_markdown}"
-
-    return final_output
+            if res.status_code == 201:
+                upload_data = res.json()
+                return upload_data.get("markdown", "")
+            else:
+                logger.error(f"GitLab upload failed: {res.text}")
+                raise RuntimeError(
+                    f"GitLab upload failed with status {res.status_code}: {res.text}"
+                )
+    except Exception as e:
+        if isinstance(e, (ValueError, RuntimeError)):
+            raise
+        logger.error(f"GitLab upload exception: {e!s}")
+        raise RuntimeError(f"Failed to upload image to GitLab: {e!s}") from e
 
 
 def main() -> None:
