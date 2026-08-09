@@ -1622,6 +1622,26 @@ fn parse_inline_markdown(text: &str) -> Vec<Line<'_>> {
                 continue;
             }
 
+            let trimmed = part.trim();
+
+            // Apply severity colors regardless of bold state
+            let severity_color = match trimmed {
+                "Critical" => Some(SEVERITY_CRITICAL),
+                "High" => Some(SEVERITY_HIGH),
+                "Medium" => Some(Color::Yellow),
+                "Low" => Some(Color::Green),
+                _ => None,
+            };
+
+            if let Some(color) = severity_color {
+                spans.push(Span::styled(
+                    part.to_string(),
+                    Style::default().fg(color).add_modifier(Modifier::BOLD),
+                ));
+                is_bold = !is_bold;
+                continue;
+            }
+
             let mut style = Style::default();
             if is_bold {
                 style = style.add_modifier(Modifier::BOLD);
@@ -1634,47 +1654,6 @@ fn parse_inline_markdown(text: &str) -> Vec<Line<'_>> {
                 }
             } else {
                 style = style.fg(TEXT_LIGHT);
-            }
-
-            let trimmed = part.trim();
-            if !is_bold {
-                if trimmed == "Critical" {
-                    spans.push(Span::styled(
-                        part.to_string(),
-                        Style::default()
-                            .fg(SEVERITY_CRITICAL)
-                            .add_modifier(Modifier::BOLD),
-                    ));
-                    is_bold = !is_bold;
-                    continue;
-                } else if trimmed == "High" {
-                    spans.push(Span::styled(
-                        part.to_string(),
-                        Style::default()
-                            .fg(SEVERITY_HIGH)
-                            .add_modifier(Modifier::BOLD),
-                    ));
-                    is_bold = !is_bold;
-                    continue;
-                } else if trimmed == "Medium" {
-                    spans.push(Span::styled(
-                        part.to_string(),
-                        Style::default()
-                            .fg(Color::Yellow)
-                            .add_modifier(Modifier::BOLD),
-                    ));
-                    is_bold = !is_bold;
-                    continue;
-                } else if trimmed == "Low" {
-                    spans.push(Span::styled(
-                        part.to_string(),
-                        Style::default()
-                            .fg(Color::Green)
-                            .add_modifier(Modifier::BOLD),
-                    ));
-                    is_bold = !is_bold;
-                    continue;
-                }
             }
 
             spans.push(Span::styled(part.to_string(), style));
@@ -1998,5 +1977,55 @@ mod tests {
         let text = "# Header\n## Subheader\n- List item\nNormal text";
         let lines = parse_markdown(text);
         assert_eq!(lines.len(), 4);
+    }
+
+    #[test]
+    fn test_severity_plain_critical() {
+        // Plain "Critical" should get SEVERITY_CRITICAL color + BOLD
+        let lines = parse_inline_markdown("Critical");
+        assert_eq!(lines.len(), 1);
+        let spans = &lines[0].spans;
+        assert_eq!(spans.len(), 1);
+        assert_eq!(spans[0].style.fg, Some(SEVERITY_CRITICAL));
+        assert!(spans[0].style.add_modifier.contains(Modifier::BOLD));
+    }
+
+    #[test]
+    fn test_severity_bold_high() {
+        // Bold "**High**" should also get SEVERITY_HIGH color + BOLD
+        let lines = parse_inline_markdown("**High**");
+        assert_eq!(lines.len(), 1);
+        // The split by ** produces ["", "High", ""] — empty parts toggle bold,
+        // "High" is the content token.
+        let severity_spans: Vec<_> = lines[0]
+            .spans
+            .iter()
+            .filter(|s| s.content.trim() == "High")
+            .collect();
+        assert_eq!(severity_spans.len(), 1);
+        assert_eq!(severity_spans[0].style.fg, Some(SEVERITY_HIGH));
+        assert!(severity_spans[0]
+            .style
+            .add_modifier
+            .contains(Modifier::BOLD));
+    }
+
+    #[test]
+    fn test_severity_bold_medium() {
+        let lines = parse_inline_markdown("**Medium**");
+        let severity_spans: Vec<_> = lines[0]
+            .spans
+            .iter()
+            .filter(|s| s.content.trim() == "Medium")
+            .collect();
+        assert_eq!(severity_spans.len(), 1);
+        assert_eq!(severity_spans[0].style.fg, Some(Color::Yellow));
+    }
+
+    #[test]
+    fn test_severity_plain_low() {
+        let lines = parse_inline_markdown("Low");
+        assert_eq!(lines[0].spans.len(), 1);
+        assert_eq!(lines[0].spans[0].style.fg, Some(Color::Green));
     }
 }
