@@ -163,7 +163,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                         if let Ok(root) =
                                             serde_json::from_str::<serde_json::Value>(text)
                                         {
-                                            app.hunts = crate::api::parse_hunts_from_json(&root);
+                                            if let Ok(hunts) =
+                                                crate::api::parse_hunts_from_json(&root)
+                                            {
+                                                app.hunts = hunts;
+                                            }
                                         }
                                     }
                                 }
@@ -378,9 +382,7 @@ fn split_arguments(s: &str) -> Vec<String> {
     let mut current = String::new();
     let mut in_double_quotes = false;
     let mut in_single_quotes = false;
-    let mut chars = s.chars().peekable();
-
-    for c in chars {
+    for c in s.chars() {
         match c {
             '"' if !in_single_quotes => {
                 in_double_quotes = !in_double_quotes;

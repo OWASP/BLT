@@ -18,6 +18,8 @@
 //! - Integrates Command Palette interpreter (`search`, `triage issue`, `vision <path>`).
 //! - Spawns async tokio tasks to perform write actions (e.g. submit issue, bulk triage) to avoid freezing the UI.
 
+#![allow(clippy::manual_strip, clippy::unnecessary_unwrap)]
+
 use std::io;
 
 use std::time::{Duration, Instant};
@@ -101,14 +103,9 @@ where
                             } else if upper_line.starts_with("DESCRIPTION:") {
                                 in_desc = true;
                                 description = line["DESCRIPTION:".len()..].trim().to_string();
-                            } else if in_desc {
+                            } else if in_desc || !line.trim().is_empty() {
                                 description.push('\n');
                                 description.push_str(line);
-                            } else {
-                                if !line.trim().is_empty() {
-                                    description.push('\n');
-                                    description.push_str(line);
-                                }
                             }
                         }
 
@@ -495,14 +492,12 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                                     }
                                 }
                             }
-                        } else {
-                            if let Ok(fresh_issues) = crate::api::get_issues(&api_base).await {
-                                let total = fresh_issues.len() as u32;
-                                let _ = sender.send(crate::app::AppEvent::IssuesRefreshed {
-                                    issues: fresh_issues,
-                                    total,
-                                });
-                            }
+                        } else if let Ok(fresh_issues) = crate::api::get_issues(&api_base).await {
+                            let total = fresh_issues.len() as u32;
+                            let _ = sender.send(crate::app::AppEvent::IssuesRefreshed {
+                                issues: fresh_issues,
+                                total,
+                            });
                         }
                     }
                 });
@@ -785,18 +780,14 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
             app.status_message = "Switched to tab: Active Hunts".to_string();
         }
         KeyCode::Char('3') => {
-            app.active_tab = Tab::Onboarding;
-            app.status_message = "Switched to tab: Onboarding".to_string();
-        }
-        KeyCode::Char('4') => {
             app.active_tab = Tab::Stats;
             app.status_message = "Switched to tab: BLT Stats".to_string();
         }
-        KeyCode::Char('5') => {
+        KeyCode::Char('4') => {
             app.active_tab = Tab::Logs;
             app.status_message = "Switched to tab: Logs & Events".to_string();
         }
-        KeyCode::Char('6') => {
+        KeyCode::Char('5') => {
             app.active_tab = Tab::Settings;
             app.status_message = "Switched to tab: Settings".to_string();
         }

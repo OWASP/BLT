@@ -14,6 +14,10 @@
 //!
 //! Unit Tests:
 //! - Contains inline unit tests to verify JSON-RPC payload parsing helpers.
+//!
+//! TODO: move unit tests to a separate test module
+
+#![allow(clippy::too_many_arguments, clippy::explicit_counter_loop)]
 
 use crate::models::{self, Hunt, Issue, Repo, Stats};
 
@@ -257,7 +261,7 @@ pub async fn get_repos(api_base: &str) -> Result<Vec<Repo>, Box<dyn std::error::
     Ok(repos)
 }
 
-pub fn parse_hunts_from_json(root: &serde_json::Value) -> Vec<Hunt> {
+pub fn parse_hunts_from_json(root: &serde_json::Value) -> Result<Vec<Hunt>, String> {
     let raw_arr = if let Some(data) = root.get("data") {
         data.as_array()
     } else {
@@ -265,7 +269,7 @@ pub fn parse_hunts_from_json(root: &serde_json::Value) -> Vec<Hunt> {
     };
 
     let Some(arr) = raw_arr else {
-        return Vec::new();
+        return Err("Payload is not an array".to_string());
     };
 
     let mut hunts = Vec::new();
@@ -303,7 +307,7 @@ pub fn parse_hunts_from_json(root: &serde_json::Value) -> Vec<Hunt> {
             reward,
         });
     }
-    hunts
+    Ok(hunts)
 }
 
 pub async fn get_hunts(api_base: &str) -> Result<Vec<Hunt>, Box<dyn std::error::Error>> {
@@ -318,7 +322,8 @@ pub async fn get_hunts(api_base: &str) -> Result<Vec<Hunt>, Box<dyn std::error::
     let resp = req.send().await?.error_for_status()?;
     let root = resp.json::<serde_json::Value>().await?;
 
-    Ok(parse_hunts_from_json(&root))
+    let hunts = parse_hunts_from_json(&root).map_err(Box::<dyn std::error::Error>::from)?;
+    Ok(hunts)
 }
 
 pub fn parse_stats_from_json(root: &serde_json::Value) -> Stats {
@@ -686,5 +691,26 @@ mod tests {
         assert_eq!(repos[0].url, "https://github.com/OWASP-BLT/BLT");
         assert_eq!(repos[0].created.as_deref(), Some("2026-07-01"));
         assert_eq!(repos[0].modified.as_deref(), Some("2026-07-02"));
+    }
+
+    #[test]
+    fn test_parse_hunts_from_json() {
+        let json_data = json!({
+            "data": [
+                {
+                    "name": "Hunt 1",
+                    "description": "Desc 1",
+                    "status": "Active",
+                    "reward": "100 Points"
+                }
+            ]
+        });
+
+        let hunts = parse_hunts_from_json(&json_data).unwrap();
+        assert_eq!(hunts.len(), 1);
+        assert_eq!(hunts[0].name, "Hunt 1");
+
+        let malformed = json!({"not_data": 123});
+        assert!(parse_hunts_from_json(&malformed).is_err());
     }
 }
