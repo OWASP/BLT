@@ -113,6 +113,33 @@ paths:
         "401":
           description: Missing or invalid org API token
 
+  /api/findings/export.pdf:
+    get:
+      summary: Export findings as PDF (org-scoped; no plaintext secrets)
+      security:
+        - bearerOrgToken: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: severity
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PDF attachment (pure-Python, Workers-safe)
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Missing or invalid org API token
+        "503":
+          description: Findings storage not configured
+
   /api/findings/{id}:
     get:
       summary: Finding detail with redacted payload snippet and access audit
@@ -131,6 +158,32 @@ paths:
           description: Missing or invalid org API token
         "404":
           description: Not found (or wrong org)
+
+  /api/findings/{id}/export.pdf:
+    get:
+      summary: Export one finding as PDF with redacted evidence snippet
+      security:
+        - bearerOrgToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PDF attachment; access logged as export_pdf
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Missing or invalid org API token
+        "404":
+          description: Not found
+        "503":
+          description: Findings storage not configured
 
   /api/findings/{id}/convert-to-issue:
     post:
