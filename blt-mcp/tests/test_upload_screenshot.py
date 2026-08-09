@@ -1,28 +1,40 @@
 import os
+import re
 from pathlib import Path
 from unittest.mock import patch
 
 import httpx
 import pytest
 
-from blt_mcp import server_base
 from blt_mcp.server import upload_screenshot
 
 
 @pytest.fixture(autouse=True)
 async def setup_http_client():
-    """Setup a mock http_client for server_base."""
-    original_client = server_base.http_client
-    server_base.http_client = httpx.AsyncClient()
-
+    """Setup a mocked AsyncClient send function to intercept GitLab upload requests."""
     # Ensure GITLAB_API_TOKEN is set for testing
     old_token = os.environ.get("GITLAB_API_TOKEN")
     os.environ["GITLAB_API_TOKEN"] = "test-token"
 
-    yield
+    async def mock_send(self, request, *args, **kwargs):
+        url_str = str(request.url)
+        path = request.url.path
+        method = request.method
+        if (
+            "gitlab.com" in url_str
+            and method == "POST"
+            and re.match(r"^/api/v4/projects/.+/uploads$", path)
+        ):
+            return httpx.Response(
+                status_code=201,
+                json={"markdown": "![vuln](/uploads/vuln.png)"},
+                request=request,
+            )
+        return httpx.Response(status_code=404, json={}, request=request)
 
-    await server_base.http_client.aclose()
-    server_base.http_client = original_client
+    with patch.object(httpx.AsyncClient, "send", mock_send):
+        yield
+
     if old_token is not None:
         os.environ["GITLAB_API_TOKEN"] = old_token
     else:
