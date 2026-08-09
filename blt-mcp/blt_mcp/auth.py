@@ -12,10 +12,10 @@ Key Responsibilities:
 Key Functions:
 - `get_credentials_path() -> Path`: Resolves the absolute platform-independent config directory and returns the path to `credentials.json`.
 - `save_credentials(api_key: str) -> None`: Safely writes the API key into the credentials file as a JSON map, using secure file open flags.
-- `load_credentials() -> Optional[str]`: Loads and returns the raw API key if it exists, logging warnings if errors occur.
+- `load_credentials() -> str | None`: Loads and returns the raw API key if it exists, logging warnings if errors occur.
 
 Dependencies:
-- `os`, `json`, `logging`, `pathlib.Path`, `typing.Optional`
+- `os`, `json`, `logging`, `pathlib.Path`, `str | None`
 """
 
 import json
@@ -66,6 +66,6 @@ def load_credentials() -> str | None:
     try:
         data = json.loads(creds_path.read_text(encoding="utf-8"))
         return data.get("BLT_API_KEY")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Failed to load credentials from {creds_path}: {e}")
         return None

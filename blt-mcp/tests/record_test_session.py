@@ -41,8 +41,8 @@ def _read_response(stdout, expected_id, timeout=30.0):
         # Time-bounded readline using a daemon thread
         result = [None]
 
-        def _readline():
-            result[0] = stdout.readline()
+        def _readline(res=result):
+            res[0] = stdout.readline()
 
         t = threading.Thread(target=_readline, daemon=True)
         t.start()

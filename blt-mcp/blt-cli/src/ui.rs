@@ -12,13 +12,20 @@
 //!   and splits the view to draw detailed descriptions and activity/comment logs.
 //! - `draw_stats_tab()`: Renders dashboard cards and a `BarChart` based on active severity statistics,
 //!   along with the contributor ranking leaderboard.
-//! - `draw_logs_tab()`, `draw_settings_tab()`, `draw_onboarding_tab()`: Renders execution logs, configurations,
+//! - `draw_logs_tab()`, `draw_settings_tab()`: Renders execution logs, configurations,
 //!   and keyboard shortcut checklists.
 //! - Modals (`draw_help_modal`, `draw_triage_modal`, `draw_submit_form_modal`, `draw_hunt_details_modal`, `draw_command_palette_modal`, etc.):
 //!   Render centered overlay popup boxes with borders and inputs, cleaning background areas using `Clear`.
 //!
 //! Style Constants:
 //! - Defines brand palette colors: `BLT_RED`, `SLATE_BG`, `SLATE_SURFACE`, `MUTED_BORDER`, `TEXT_LIGHT`.
+//!
+//! Unit Tests:
+//! - Contains inline unit tests to verify markdown parsing helpers.
+//!
+//! TODO: move unit tests to a separate test module
+
+#![allow(clippy::manual_strip, clippy::if_same_then_else)]
 
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
@@ -64,7 +71,6 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         Tab::Stats => draw_stats_tab(f, app, chunks[1]),
         Tab::Logs => draw_logs_tab(f, app, chunks[1]),
         Tab::Settings => draw_settings_tab(f, app, chunks[1]),
-        Tab::Onboarding => draw_onboarding_tab(f, app, chunks[1]),
     }
 
     // 3. Draw Footer / Status Bar
@@ -139,7 +145,6 @@ fn draw_header(f: &mut Frame, app: &App, rect: Rect) {
     let tab_titles = vec![
         format!("Issues({})", app.issues.len()),
         format!("Hunts({})", app.hunts.len()),
-        "Onboarding".to_string(),
         "Stats".to_string(),
         "Logs".to_string(),
         "Config".to_string(),
@@ -147,10 +152,9 @@ fn draw_header(f: &mut Frame, app: &App, rect: Rect) {
     let tab_index = match app.active_tab {
         Tab::Issues => 0,
         Tab::Hunts => 1,
-        Tab::Onboarding => 2,
-        Tab::Stats => 3,
-        Tab::Logs => 4,
-        Tab::Settings => 5,
+        Tab::Stats => 2,
+        Tab::Logs => 3,
+        Tab::Settings => 4,
     };
 
     let tabs = Tabs::new(tab_titles)
@@ -960,76 +964,6 @@ fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
     f.render_widget(h, chunks[1]);
 }
 
-fn draw_onboarding_tab(f: &mut Frame, app: &App, rect: Rect) {
-    let block = Block::default()
-        .title(" GitLab Group Issues (owasp-blt) ")
-        .title_style(
-            Style::default()
-                .fg(Color::Magenta)
-                .add_modifier(Modifier::BOLD),
-        )
-        .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Magenta))
-        .bg(SLATE_BG);
-
-    if app.good_first_issues.is_empty() {
-        let msg = Paragraph::new("\n\n  No GitLab issues found.\n  These are fetched from the owasp-blt group on GitLab.")
-            .block(block)
-            .style(Style::default().fg(MUTED_BORDER))
-            .alignment(ratatui::layout::Alignment::Center);
-        f.render_widget(msg, rect);
-    } else {
-        let header = Row::new(vec!["Repository", "Title", "Link"])
-            .style(
-                Style::default()
-                    .fg(Color::Magenta)
-                    .add_modifier(Modifier::BOLD),
-            )
-            .bottom_margin(1);
-
-        let rows: Vec<Row> = app
-            .good_first_issues
-            .iter()
-            .map(|issue| {
-                let truncated_title = if issue.title.chars().count() > 50 {
-                    format!("{}...", issue.title.chars().take(47).collect::<String>())
-                } else {
-                    issue.title.clone()
-                };
-                let truncated_repo = if issue.repository.chars().count() > 30 {
-                    format!(
-                        "{}...",
-                        issue.repository.chars().take(27).collect::<String>()
-                    )
-                } else {
-                    issue.repository.clone()
-                };
-                let truncated_url = if issue.web_url.chars().count() > 50 {
-                    format!("{}...", issue.web_url.chars().take(47).collect::<String>())
-                } else {
-                    issue.web_url.clone()
-                };
-                Row::new(vec![truncated_repo, truncated_title, truncated_url])
-                    .style(Style::default().fg(TEXT_LIGHT))
-            })
-            .collect();
-
-        let table = Table::new(
-            rows,
-            [
-                Constraint::Percentage(25),
-                Constraint::Percentage(45),
-                Constraint::Percentage(30),
-            ],
-        )
-        .header(header)
-        .block(block)
-        .column_spacing(2);
-
-        f.render_widget(table, rect);
-    }
-}
-
 fn draw_footer(f: &mut Frame, app: &App, rect: Rect) {
     let footer_chunks = Layout::default()
         .direction(Direction::Horizontal)
@@ -1150,11 +1084,11 @@ fn draw_help_modal(f: &mut Frame, rect: Rect) {
     let rows = vec![
         Row::new(vec![
             Cell::from(Span::styled(
-                "Tab / 1-6",
+                "Tab / 1-5",
                 Style::default().fg(Color::Yellow),
             )),
             Cell::from(Span::styled(
-                "Navigate between views (1=Issues, 3=Onboarding, 6=Config)",
+                "Navigate between views (1=Issues, 3=Stats, 5=Config)",
                 Style::default().fg(TEXT_LIGHT),
             )),
         ]),
@@ -1679,7 +1613,7 @@ fn parse_inline_markdown(text: &str) -> Vec<Line<'_>> {
             spans.push(Span::raw(indent));
         }
 
-        let mut parts = current_text.split("**");
+        let parts = current_text.split("**");
         let mut is_bold = false;
 
         for part in parts {

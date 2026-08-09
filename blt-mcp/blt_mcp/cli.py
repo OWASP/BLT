@@ -142,7 +142,7 @@ async def _async_login(email: str, password: str):
                     err=True,
                 )
             sys.exit(1)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             click.echo(f"An error occurred: {e}", err=True)
             sys.exit(1)
 

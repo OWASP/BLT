@@ -65,7 +65,7 @@ def pytest_sessionfinish(session, exitstatus):
                 "blt_mcp.server",
             ]
             result = subprocess.run(
-                cmd, env=os.environ.copy(), capture_output=True, text=True
+                cmd, env=os.environ.copy(), capture_output=True, text=True, check=False
             )
             print(result.stdout)
             if result.returncode != 0:

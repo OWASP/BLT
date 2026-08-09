@@ -4,7 +4,7 @@ Core Tool Implementations and Utility Helpers for the BLT-MCP Server.
 This module provides common utility helper functions and primary execution logic used by MCP tool handlers.
 
 Key Functions:
-- `generate_ai_metadata(tool_name: str) -> Dict[str, Any]`: Computes standard timestamp headers and logs
+- `generate_ai_metadata(tool_name: str) -> dict[str, Any]`: Computes standard timestamp headers and logs
   metadata details to identify write transactions generated or initiated by an AI Agent.
 - `summarize_issue_context_impl(issue_id: str, fetch_fn: Callable) -> str`: Orchestrates retrieving raw issue details
   and discussion threads (comments) from the API, formatting the information into a structured text report.
@@ -53,7 +53,7 @@ async def summarize_issue_context_impl(
             # Fetch issue details
             issue_raw = await fetch_fn(f"/bugs/{safe_id}", f"issue {issue_id}")
             issue_data = json.loads(issue_raw)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch issue {issue_id}: {e}")
             return f"Error: Issue with ID '{issue_id}' not found or could not be retrieved."
 
@@ -73,7 +73,7 @@ async def summarize_issue_context_impl(
                     f"/bugs/{safe_id}/comments", f"comments for issue {issue_id}"
                 )
                 comments = json.loads(comments_raw)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to fetch comments for issue {issue_id}: {e}")
                 comments = None  # Preserve unavailable state distinct from empty
 
@@ -113,6 +113,6 @@ async def summarize_issue_context_impl(
             f"Comments:\n{comments_formatted}"
         )
         return summary
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error generating summary for issue {issue_id}: {e}")
         return f"Error: Failed to generate summary for issue '{issue_id}' due to an internal error."

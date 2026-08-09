@@ -266,6 +266,7 @@ TOOL_SCHEMAS = {
             "context": {
                 "type": str,
                 "description": "Optional user-provided context or hints about the screenshot.",
+                "allow_blank": True,
             },
         },
     },
@@ -312,7 +313,11 @@ def validate_tool_arguments(tool_name: str, arguments: dict) -> str | None:
                     if not isinstance(item, item_type):
                         return f"Item at index {idx} in parameter '{key}' must be of type {item_type.__name__}, got {type(item).__name__}"
 
-        if expected_type is str and not val.strip():
+        if (
+            expected_type is str
+            and not val.strip()
+            and not prop.get("allow_blank", False)
+        ):
             return f"Parameter '{key}' cannot be blank"
 
     return None
@@ -475,8 +480,8 @@ class InterceptingStdinBuffer(io.BufferedIOBase):
 
                 except json.JSONDecodeError:
                     pass
-                except Exception as e:
-                    logger.exception("Unexpected error while intercepting stdin: %s", e)
+                except Exception:
+                    logger.exception("Unexpected error while intercepting stdin")
             processed_lines.append(line)
 
         self.buffer = b"\n".join(processed_lines)

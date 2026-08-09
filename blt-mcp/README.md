@@ -37,7 +37,7 @@ AI-guided workflows for common security tasks:
 - **Authentication** - Secure access to BLT endpoints via API Keys
 - **Cloudflare AI Integration** - Leverages Cloudflare Workers AI for image processing and vulnerability triage
 - **GitLab Vision-to-Issue Pipeline** - Automatically drafts rich Markdown issues from vulnerability screenshots
-- **Interactive TUI (BLT-CLI)** - A rich terminal UI featuring Leaderboards, Issue Onboarding, and bulk triage
+- **Interactive TUI (BLT-CLI)** - A rich terminal UI featuring Leaderboards and bulk triage
 - **Gamification Support** - Built-in support for BLT's point system with pending verifications
 
 ## Installation

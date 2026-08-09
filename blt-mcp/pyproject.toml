@@ -41,10 +41,4 @@ asyncio_mode = "auto"
 
 [tool.ruff]
 # Ignore minor style/warning rules that are pre-existing in this codebase
-lint.ignore = [
-    "BLE001",   # Do not catch blind exception (Exception)
-    "ASYNC230",  # Async functions should not open files with blocking methods
-    "TRY401",   # Redundant exception object in logging.exception
-    "PLW1510",  # subprocess.run without explicit check argument
-    "B023",     # Function definition does not bind loop variable
-]
+lint.ignore = []

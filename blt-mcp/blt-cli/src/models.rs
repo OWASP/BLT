@@ -18,6 +18,7 @@
 
 use serde::{Deserialize, Serialize};
 
+#[allow(dead_code)]
 fn default_repo() -> String {
     "owasp-blt/api".to_string()
 }

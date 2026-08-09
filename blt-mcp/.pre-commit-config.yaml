@@ -5,6 +5,8 @@
 #   2. Register hooks: pre-commit install
 #   3. (Optional) Run on all files: pre-commit run --all-files
 
+minimum_pre_commit_version: "4.4.0"
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -19,7 +21,7 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.2
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [ --fix ]
       - id: ruff-format
 
@@ -29,14 +31,14 @@ repos:
         name: cargo fmt
         description: Check Rust code formatting
         entry: cargo fmt --manifest-path blt-cli/Cargo.toml -- --check
-        language: system
-        files: \.rs$
+        language: unsupported
+        files: (^|/)(Cargo\.toml|Cargo\.lock|.*\.rs)$
         pass_filenames: false
 
       - id: cargo-clippy
         name: cargo clippy
         description: Run clippy lints on Rust code
-        entry: cargo clippy --manifest-path blt-cli/Cargo.toml --all-targets
-        language: system
-        files: \.rs$
+        entry: cargo clippy --manifest-path blt-cli/Cargo.toml --all-targets -- -Dwarnings
+        language: unsupported
+        files: (^|/)(Cargo\.toml|Cargo\.lock|.*\.rs)$
         pass_filenames: false

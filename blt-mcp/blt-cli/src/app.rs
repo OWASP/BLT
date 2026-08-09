@@ -4,7 +4,7 @@
 //! that drive the Ratatui TUI client application.
 //!
 //! Key Data Types:
-//! - `Tab`: Enum representing the current active dashboard view: `Issues`, `Hunts`, `Stats`, `Logs`, `Settings`, or `Onboarding`.
+//! - `Tab`: Enum representing the current active dashboard view: `Issues`, `Hunts`, `Stats`, `Logs`, or `Settings`.
 //! - `ActiveOverlay`: Enum for overlapping modal screens: `Help`, `Triage`, `SubmitForm`, `HuntDetail`, `AiTriage`, `CommandPalette`, etc.
 //! - `FormField`: Enum indicating which input textbox has active focus in the submission form.
 //! - `VulnerabilityForm`: Captures fields for title, url, severity, type, description, and local screenshot file path.
@@ -20,6 +20,9 @@
 //!
 //! Unit Tests:
 //! - Includes module tests to verify navigation tabs and modal toggle operations.
+//!
+//! TODO: move unit tests to a separate test module
+// Todo: Move to tests
 
 #![allow(dead_code)]
 
@@ -29,7 +32,6 @@ use crate::models::{Hunt, Issue, Repo, Stats};
 pub enum Tab {
     Issues,
     Hunts,
-    Onboarding,
     Stats,
     Logs,
     Settings,
@@ -40,7 +42,6 @@ impl Tab {
         match self {
             Tab::Issues => "Issues",
             Tab::Hunts => "Active Hunts",
-            Tab::Onboarding => "Onboarding",
             Tab::Stats => "BLT Stats",
             Tab::Logs => "Logs & Events",
             Tab::Settings => "Settings",
@@ -240,8 +241,7 @@ impl App {
         }
         self.active_tab = match self.active_tab {
             Tab::Issues => Tab::Hunts,
-            Tab::Hunts => Tab::Onboarding,
-            Tab::Onboarding => Tab::Stats,
+            Tab::Hunts => Tab::Stats,
             Tab::Stats => Tab::Logs,
             Tab::Logs => Tab::Settings,
             Tab::Settings => Tab::Issues,
@@ -256,8 +256,7 @@ impl App {
         self.active_tab = match self.active_tab {
             Tab::Issues => Tab::Settings,
             Tab::Hunts => Tab::Issues,
-            Tab::Onboarding => Tab::Hunts,
-            Tab::Stats => Tab::Onboarding,
+            Tab::Stats => Tab::Hunts,
             Tab::Logs => Tab::Stats,
             Tab::Settings => Tab::Logs,
         };
@@ -555,7 +554,7 @@ mod tests {
         app.next_tab();
         assert_eq!(app.active_tab, Tab::Hunts);
         app.next_tab();
-        assert_eq!(app.active_tab, Tab::Onboarding);
+        assert_eq!(app.active_tab, Tab::Stats);
         app.prev_tab();
         assert_eq!(app.active_tab, Tab::Hunts);
     }

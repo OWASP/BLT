@@ -35,12 +35,11 @@ from pathlib import Path
 
 import httpx
 
-from blt_mcp import server_base
+# Import v2 modular resources and tools to register them on the mcp instance
+from blt_mcp import server_base, v2_resources, v2_tools  # noqa: F401
 from blt_mcp.server_base import _fetch, logger, mcp
 from blt_mcp.tools import generate_ai_metadata, summarize_issue_context_impl
 from blt_mcp.validation import InterceptingStdinBuffer, StdinWrapper
-
-# Import v2 modular resources and tools to register them on the mcp instance
 
 # --- Original V1 Resources ---
 
@@ -87,7 +86,7 @@ async def list_good_first_issues() -> str:
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(
-                "https://gitlab.com/api/v4/groups/133215711/issues?state=opened&sort=desc&order_by=created_at",
+                "https://gitlab.com/api/v4/groups/133215711/issues?labels=good first issue&state=opened&sort=desc&order_by=created_at",
                 headers={"User-Agent": "BLT-MCP"},
             )
             resp.raise_for_status()
@@ -108,7 +107,7 @@ async def list_good_first_issues() -> str:
                     }
                 )
             return json.dumps({"success": True, "data": results})
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to fetch good first issues: {e}")
         return json.dumps({"success": False, "error": str(e)})
 
@@ -274,7 +273,7 @@ async def triage_vulnerability(prompt: str) -> str:
         "followed by your detailed Recommendation."
     )
 
-    model = os.getenv("CF_MODEL", "@cf/meta/llama-3.1-8b-instruct-fast")
+    model = os.getenv("CF_MODEL") or "@cf/meta/llama-3.1-8b-instruct-fast"
     url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
     headers = {
         "Authorization": f"Bearer {api_token}",
@@ -335,6 +334,20 @@ async def draft_vision_issue(
         rest = image_path[3:].replace("\\", "/")
         image_path = f"/mnt/{drive}/{rest}"
 
+    approved_root_env = os.getenv("BLT_APPROVED_ROOT")
+    if approved_root_env:
+        approved_root = Path(os.path.abspath(approved_root_env))
+    else:
+        approved_root = Path(os.path.abspath(os.getcwd()))
+
+    abs_path = Path(os.path.abspath(image_path))
+    try:
+        abs_path.relative_to(approved_root)
+    except ValueError as e:
+        raise ValueError(
+            "Access denied: Path is outside the approved root directory."
+        ) from e
+
     try:
         resolved_path = Path(image_path).resolve()
     except Exception as e:
@@ -360,10 +373,14 @@ async def draft_vision_issue(
             "Missing Cloudflare credentials (CF_ACCOUNT_ID and CF_API_TOKEN in .env)."
         )
 
-    logger.info(f"Drafting issue from image: {image_path} with context: {context}")
+    logger.info(
+        "Drafting issue from image %s; context_supplied=%s",
+        os.path.basename(image_path),
+        bool(context and context.strip()),
+    )
 
     try:
-        with open(resolved_path, "rb") as f:
+        with open(resolved_path, "rb") as f:  # noqa: ASYNC230
             image_bytes = f.read()
     except Exception as e:
         raise RuntimeError(f"Failed to read image file: {e!s}") from e
@@ -440,7 +457,7 @@ async def draft_vision_issue(
                 else:
                     logger.warning(f"GitLab upload failed: {res.text}")
                     image_markdown = f"\n> [!WARNING]\n> Failed to upload image to GitLab (Status {res.status_code})"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"GitLab upload exception: {e!s}")
             image_markdown = (
                 f"\n> [!WARNING]\n> Failed to upload image to GitLab: {e!s}"
