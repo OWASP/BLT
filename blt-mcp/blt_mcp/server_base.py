@@ -66,10 +66,9 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
                         "description": "This is a good first issue description.",
                     }
                 ]
-            elif method == "POST" and re.match(
-                r"^/api/v4/projects/[^/]+/uploads$", path
-            ):
+            elif method == "POST" and re.match(r"^/api/v4/projects/.+/uploads$", path):
                 handled = True
+                status_code = 201
                 content_dict = {"markdown": "![vuln](/uploads/vuln.png)"}
         elif path in ("/v2/bugs", "/bugs"):
             if method == "GET":

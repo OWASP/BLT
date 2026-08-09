@@ -36,6 +36,7 @@ import sys
 from pathlib import Path
 from urllib.parse import quote
 
+import anyio
 import httpx
 
 # Import v2 modular resources and tools to register them on the mcp instance
@@ -379,8 +380,7 @@ async def draft_vision_issue(
     )
 
     try:
-        with open(resolved_path, "rb") as f:  # noqa: ASYNC230
-            image_bytes = f.read()
+        image_bytes = await anyio.to_thread.run_sync(resolved_path.read_bytes)
     except Exception as e:
         raise RuntimeError(f"Failed to read image file: {e!s}") from e
 
@@ -455,12 +455,6 @@ async def upload_screenshot(
     if not gl_token:
         raise ValueError("Missing GitLab API Token (GITLAB_API_TOKEN in .env).")
 
-    try:
-        with open(resolved_path, "rb") as f:  # noqa: ASYNC230
-            image_bytes = f.read()
-    except Exception as e:
-        raise RuntimeError(f"Failed to read image file: {e!s}") from e
-
     # GitLab accepts a numeric ID or a URL-encoded "namespace/project" path.
     if not re.fullmatch(
         r"[0-9]+|[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)+", gitlab_project_id
@@ -468,6 +462,11 @@ async def upload_screenshot(
         raise ValueError("Invalid GitLab project ID.")
     project_ref = quote(gitlab_project_id, safe="")
     gl_url = f"https://gitlab.com/api/v4/projects/{project_ref}/uploads"
+
+    try:
+        image_bytes = await anyio.to_thread.run_sync(resolved_path.read_bytes)
+    except Exception as e:
+        raise RuntimeError(f"Failed to read image file: {e!s}") from e
     gl_headers = {"PRIVATE-TOKEN": gl_token}
 
     try:
@@ -481,7 +480,13 @@ async def upload_screenshot(
             )
             if res.status_code == 201:
                 upload_data = res.json()
-                return upload_data.get("markdown", "")
+                markdown = upload_data.get("markdown")
+                if not markdown:
+                    logger.error("GitLab upload response missing 'markdown' field.")
+                    raise RuntimeError(
+                        "GitLab upload succeeded but returned no markdown link."
+                    )
+                return markdown
             else:
                 logger.error(f"GitLab upload failed: {res.text}")
                 raise RuntimeError(
