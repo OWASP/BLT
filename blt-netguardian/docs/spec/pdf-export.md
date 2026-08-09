@@ -22,3 +22,4 @@ Auth: org Bearer token (same as triage reads).
 - `src/pdf_report.py` — layout + PDF serializer
 - Suitable for Cloudflare Python Workers (stdlib only)
 - UI: triage detail panel **Export PDF** button
+
