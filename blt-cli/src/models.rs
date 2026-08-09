@@ -22,7 +22,6 @@ use serde::{Deserialize, Serialize};
 fn default_repo() -> String {
     "owasp-blt/api".to_string()
 }
-
 fn default_url() -> String {
     "Unknown URL".to_string()
 }
@@ -77,8 +76,8 @@ pub struct Hunt {
 pub struct LeaderboardEntry {
     pub rank: u32,
     pub name: String,
-    #[serde(alias = "bacon_points")]
-    pub points: u32,
+    #[serde(alias = "bacon_points", alias = "total_score")]
+    pub bacon: u32,
     pub reputation: String,
 }
 
@@ -88,7 +87,7 @@ pub struct Stats {
     pub active_repos: u32,
     pub total_contributors: u32,
     #[serde(alias = "bacon_points")]
-    pub points: u32,
+    pub bacon: u32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -99,5 +98,5 @@ pub struct GoodFirstIssue {
     pub web_url: String,
     pub description: String,
     #[serde(alias = "bacon_estimate")]
-    pub points_estimate: u32,
+    pub bacon_estimate: u32,
 }
