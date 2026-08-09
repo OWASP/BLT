@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: NetGuardian Worker API
-  version: 0.2.0-midterm
-  description: Midterm slice — ingest, list, detail, CSV export, convert-to-issue via BLT-API.
+  version: 0.3.0-events
+  description: Ingest, triage, convert-to-issue, and verified events outbox/webhook.
 
 paths:
   /api/health:
@@ -154,6 +154,63 @@ paths:
           description: Not found
         "502":
           description: BLT-API error
+
+  /api/events:
+    get:
+      summary: List verified events (org-scoped outbox)
+      security:
+        - bearerOrgToken: []
+      parameters:
+        - name: event_type
+          in: query
+          schema:
+            type: string
+            enum: [finding.converted, finding.resolved]
+        - name: finding_id
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, delivered, skipped, failed]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Paginated event list
+        "400":
+          description: Invalid query
+        "401":
+          description: Missing or invalid org API token
+
+  /api/events/{id}:
+    get:
+      summary: Verified event detail
+      security:
+        - bearerOrgToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event detail
+        "401":
+          description: Missing or invalid org API token
+        "404":
+          description: Not found
 
 components:
   securitySchemes:
