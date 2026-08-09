@@ -160,8 +160,8 @@ python -B scripts/vulnerability_intel/update.py --days 90
 python -B scripts/vulnerability_intel/validate.py
 ```
 
-Set `NVD_API_KEY` to use the NVD API's authenticated rate limit. Review and
-commit the updated `_data/vulnerability_intel.json` in the merge request.
+Optionally set `NVD_API_KEY` before running the update. Commit the updated
+`_data/vulnerability_intel.json` to your branch.
 
 ## 📖 Documentation
 
