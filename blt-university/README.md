@@ -150,6 +150,19 @@ bundle exec jekyll serve
 # Visit http://localhost:4000/BLT-University/
 ```
 
+### Vulnerability intelligence refresh
+
+Refresh the committed vulnerability-intelligence dataset when newer CVE data is needed:
+
+```bash
+python -m pip install "jsonschema[format-nongpl]==4.25.1"
+python -B scripts/vulnerability_intel/update.py --days 90
+python -B scripts/vulnerability_intel/validate.py
+```
+
+Set `NVD_API_KEY` to use the NVD API's authenticated rate limit. Review and
+commit the updated `_data/vulnerability_intel.json` in the merge request.
+
 ## 📖 Documentation
 
 - **[Course Creation Guide](contributing.html)**: How to create a course
