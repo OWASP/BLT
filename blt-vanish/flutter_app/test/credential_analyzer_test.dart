@@ -17,6 +17,7 @@ void main() {
 
       expect(snapshot.severity, AlertSeverity.low);
       expect(snapshot.reasonCodes, isEmpty);
+      expect(snapshot.passwordHash, isNotEmpty);
       expect(snapshot.passwordHash, isNot('Longer Passphrase 2026!'));
     });
 
