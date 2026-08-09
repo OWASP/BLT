@@ -2028,4 +2028,18 @@ mod tests {
         assert_eq!(lines[0].spans.len(), 1);
         assert_eq!(lines[0].spans[0].style.fg, Some(Color::Green));
     }
+
+    #[test]
+    fn test_severity_token_in_mixed_line() {
+        let lines = parse_inline_markdown("Severity: **Critical** — patch now");
+        let spans = &lines[0].spans;
+        let sev = spans
+            .iter()
+            .find(|s| s.content.trim() == "Critical")
+            .expect("severity span");
+        assert_eq!(sev.style.fg, Some(SEVERITY_CRITICAL));
+        // Text after the closing ** must not stay bold.
+        let tail = spans.last().unwrap();
+        assert!(!tail.style.add_modifier.contains(Modifier::BOLD));
+    }
 }
