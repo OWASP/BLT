@@ -46,9 +46,10 @@ Table: `events_outbox` (created in `migrations/0002_ingest_core.sql`).
 - `GET /api/events` — org-scoped list (`event_type`, `finding_id`, `status`, `limit`, `offset`)
 - `GET /api/events/{id}` — org-scoped detail
 
-Auth: org Bearer tokens (`NG_ORG_API_TOKENS`) are **always required** for
-`/api/events` — unlike some triage read paths, there is no `NG_DEFAULT_ORG`
-fallback when `AUTHENTICATE_READ_ENDPOINTS=false`.
+Auth: both `GET /api/events` and `GET /api/events/{id}` require
+`Authorization: Bearer <token>` (`NG_ORG_API_TOKENS`). Neither endpoint falls
+back to `NG_DEFAULT_ORG` when `AUTHENTICATE_READ_ENDPOINTS=false` (unlike some
+triage read paths).
 
 ## Webhook delivery
 
