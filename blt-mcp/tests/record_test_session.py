@@ -14,15 +14,13 @@ Usage:
 - Executed directly: `python -m tests.record_test_session` or `uv run tests/record_test_session.py`.
 """
 
-import subprocess
 import json
-import shutil
-import sys
 import os
-import time
+import shutil
+import subprocess
+import sys
 import threading
-import queue as queue_mod
-
+import time
 
 MAX_RESPONSE_LINES = 200
 

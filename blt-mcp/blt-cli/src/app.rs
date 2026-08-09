@@ -54,8 +54,9 @@ pub enum RunMode {
     Live,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub enum FormField {
+    #[default]
     Title,
     Url,
     Severity,
@@ -63,12 +64,6 @@ pub enum FormField {
     Description,
     StepsToReproduce,
     Screenshot,
-}
-
-impl Default for FormField {
-    fn default() -> Self {
-        FormField::Title
-    }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -314,7 +309,10 @@ impl App {
             Tab::Issues => {
                 let visible = self.get_visible_issue_indices();
                 if !visible.is_empty() {
-                    let current_pos = visible.iter().position(|&x| x == self.selected_issue_index).unwrap_or(0);
+                    let current_pos = visible
+                        .iter()
+                        .position(|&x| x == self.selected_issue_index)
+                        .unwrap_or(0);
                     let next_pos = (current_pos + 1) % visible.len();
                     self.selected_issue_index = visible[next_pos];
                 }
@@ -322,7 +320,10 @@ impl App {
             Tab::Hunts => {
                 let visible = self.get_visible_hunt_indices();
                 if !visible.is_empty() {
-                    let current_pos = visible.iter().position(|&x| x == self.selected_hunt_index).unwrap_or(0);
+                    let current_pos = visible
+                        .iter()
+                        .position(|&x| x == self.selected_hunt_index)
+                        .unwrap_or(0);
                     let next_pos = (current_pos + 1) % visible.len();
                     self.selected_hunt_index = visible[next_pos];
                 }
@@ -339,7 +340,10 @@ impl App {
             Tab::Issues => {
                 let visible = self.get_visible_issue_indices();
                 if !visible.is_empty() {
-                    let current_pos = visible.iter().position(|&x| x == self.selected_issue_index).unwrap_or(0);
+                    let current_pos = visible
+                        .iter()
+                        .position(|&x| x == self.selected_issue_index)
+                        .unwrap_or(0);
                     let next_pos = if current_pos == 0 {
                         visible.len() - 1
                     } else {
@@ -351,7 +355,10 @@ impl App {
             Tab::Hunts => {
                 let visible = self.get_visible_hunt_indices();
                 if !visible.is_empty() {
-                    let current_pos = visible.iter().position(|&x| x == self.selected_hunt_index).unwrap_or(0);
+                    let current_pos = visible
+                        .iter()
+                        .position(|&x| x == self.selected_hunt_index)
+                        .unwrap_or(0);
                     let next_pos = if current_pos == 0 {
                         visible.len() - 1
                     } else {

@@ -31,6 +31,26 @@ This guide will help you get started with your first contribution.
    cargo build
    ```
 
+### Pre-Commit Hooks Setup
+
+We use `pre-commit` to automatically run formatters and linters (like Ruff, `cargo fmt`, and `cargo clippy`) before each commit, preventing syntax issues  from being committed.
+
+To set it up:
+1. Ensure your virtual environment is active, then install `pre-commit`:
+   ```bash
+   pip install pre-commit
+   # Or using uv:
+   uv pip install pre-commit
+   ```
+2. Install the Git hooks:
+   ```bash
+   pre-commit install
+   ```
+3. (Optional) Run the hooks manually on all files:
+   ```bash
+   pre-commit run --all-files
+   ```
+
 ## Development Workflow
 
 ### Python Coding Standards (`blt_mcp`)

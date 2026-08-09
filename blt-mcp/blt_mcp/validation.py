@@ -16,13 +16,10 @@ Schemas Defined:
   and the entire set of V2 write tools.
 """
 
-import sys
-
-
-import json
 import io
+import json
 import logging
-from typing import Any, Dict, List, Optional
+import sys
 
 logger = logging.getLogger("blt-mcp.validation")
 
@@ -275,7 +272,7 @@ TOOL_SCHEMAS = {
 }
 
 
-def validate_tool_arguments(tool_name: str, arguments: dict) -> Optional[str]:
+def validate_tool_arguments(tool_name: str, arguments: dict) -> str | None:
     """
     Validate tool arguments against defined tool schemas.
     Returns None if valid, or an error message string if invalid.

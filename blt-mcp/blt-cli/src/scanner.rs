@@ -21,20 +21,14 @@
 
 use tokio::process::Command;
 
-
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub enum ToolStatus {
+    #[default]
     Pending,
     Missing,
     Error(String),
     Skipped,
     Success,
-}
-
-impl Default for ToolStatus {
-    fn default() -> Self {
-        ToolStatus::Pending
-    }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -90,7 +84,9 @@ async fn run_tool(tool: &str, args: &[&str]) -> Result<std::process::Output, Too
             Err(e) => return Err(ToolStatus::Error(format!("Spawn failed: {}", e))),
         };
 
-        match tokio::time::timeout(std::time::Duration::from_secs(30), child.wait_with_output()).await {
+        match tokio::time::timeout(std::time::Duration::from_secs(30), child.wait_with_output())
+            .await
+        {
             Ok(Ok(output)) => {
                 let stderr = String::from_utf8_lossy(&output.stderr);
                 if !output.status.success() && stderr.contains("is not recognized") {
@@ -100,9 +96,7 @@ async fn run_tool(tool: &str, args: &[&str]) -> Result<std::process::Output, Too
                 }
             }
             Ok(Err(e)) => Err(ToolStatus::Error(format!("Execution failed: {}", e))),
-            Err(_) => {
-                Err(ToolStatus::Error("Execution timed out".to_string()))
-            }
+            Err(_) => Err(ToolStatus::Error("Execution timed out".to_string())),
         }
     }
     #[cfg(not(target_os = "windows"))]
@@ -125,12 +119,12 @@ async fn run_tool(tool: &str, args: &[&str]) -> Result<std::process::Output, Too
             }
         };
 
-        match tokio::time::timeout(std::time::Duration::from_secs(30), child.wait_with_output()).await {
+        match tokio::time::timeout(std::time::Duration::from_secs(30), child.wait_with_output())
+            .await
+        {
             Ok(Ok(output)) => Ok(output),
             Ok(Err(e)) => Err(ToolStatus::Error(format!("Execution failed: {}", e))),
-            Err(_) => {
-                Err(ToolStatus::Error("Execution timed out".to_string()))
-            }
+            Err(_) => Err(ToolStatus::Error("Execution timed out".to_string())),
         }
     }
 }
@@ -161,9 +155,11 @@ async fn run_trivy() -> (ToolStatus, Vec<String>) {
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         return (
-            ToolStatus::Error(format!("Trivy scan error (exit {}): {}",
+            ToolStatus::Error(format!(
+                "Trivy scan error (exit {}): {}",
                 output.status.code().unwrap_or(-1),
-                stderr.lines().next().unwrap_or("unknown error"))),
+                stderr.lines().next().unwrap_or("unknown error")
+            )),
             vec![],
         );
     }
@@ -241,9 +237,11 @@ async fn run_semgrep() -> (ToolStatus, Vec<String>) {
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         return (
-            ToolStatus::Error(format!("Semgrep scan error (exit {}): {}",
+            ToolStatus::Error(format!(
+                "Semgrep scan error (exit {}): {}",
                 output.status.code().unwrap_or(-1),
-                stderr.lines().next().unwrap_or("unknown error"))),
+                stderr.lines().next().unwrap_or("unknown error")
+            )),
             vec![],
         );
     }
@@ -314,8 +312,11 @@ async fn run_bandit() -> (ToolStatus, Vec<String>) {
     if bandit_exit != 0 && bandit_exit != 1 {
         let stderr = String::from_utf8_lossy(&output.stderr);
         return (
-            ToolStatus::Error(format!("Bandit scan error (exit {}): {}",
-                bandit_exit, stderr.lines().next().unwrap_or("unknown error"))),
+            ToolStatus::Error(format!(
+                "Bandit scan error (exit {}): {}",
+                bandit_exit,
+                stderr.lines().next().unwrap_or("unknown error")
+            )),
             vec![],
         );
     }

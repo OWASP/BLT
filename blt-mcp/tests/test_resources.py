@@ -19,12 +19,11 @@ Design Details:
 - Uses `tests.utils.read_jsonrpc_response` to verify response payloads.
 """
 
-import subprocess
-
-
 import json
-import sys
 import os
+import subprocess
+import sys
+
 from tests.utils import read_jsonrpc_response
 
 

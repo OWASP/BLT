@@ -18,15 +18,13 @@ Shared Functions:
   using the correct authorization headers, and returning the raw string response.
 """
 
-import os
-
-
-import sys
-import logging
-import httpx
 import json
-from typing import Optional
+import logging
+import os
+import sys
 from contextlib import asynccontextmanager
+
+import httpx
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
@@ -50,7 +48,7 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
                 "success": True,
                 "result": {
                     "response": "**Severity Suggestion:**\nHigh\n\n**Vulnerability Class:** SQL Injection\n\n**Detailed Recommendation:**\n\n### Immediate Mitigation Steps:\n\n1. **Validate and Sanitize User Input:**\n   - Ensure that the login form inputs (e.g., username and password) are validated and sanitized to prevent any malicious SQL code from being injected.\n   - Use prepared statements or parameterized queries to separate the SQL code from user input.\n\n2. **Use Whitelisting:**\n   - Implement a whitelisting approach to only allow specific characters or patterns in the login form inputs.\n   - This can be achieved by using regular expressions to validate the input data.\n\n3. **Implement Input Validation:**\n   - Validate the length and format of the input data to prevent any potential SQL injection attacks.\n   - For example, you can check if the username is not empty and contains only alphanumeric characters.\n\n4. **Review and Update the Database Schema:**\n   - Review the database schema to ensure that it is not vulnerable to SQL injection attacks.\n   - Consider updating the schema to use stored procedures or views to further secure the database.\n\n5. **Implement a Web Application Firewall (WAF):**\n   - Consider implementing a WAF to detect and prevent SQL injection attacks in real"
-                }
+                },
             }
         elif "gitlab.com" in url_str:
             handled = True
@@ -60,7 +58,7 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
                     "title": "Good First Issue 1",
                     "references": {"full": "org/repo1"},
                     "web_url": "https://gitlab.com/org/repo1/-/issues/1",
-                    "description": "This is a good first issue description."
+                    "description": "This is a good first issue description.",
                 }
             ]
         elif path in ("/v2/bugs", "/bugs"):
@@ -85,7 +83,7 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
                             "cve_score": None,
                             "domain": None,
                             "domain_name": None,
-                            "domain_url": None
+                            "domain_url": None,
                         }
                     ],
                     "pagination": {
@@ -93,8 +91,8 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
                         "per_page": 20,
                         "count": 1,
                         "total": 1,
-                        "total_pages": 1
-                    }
+                        "total_pages": 1,
+                    },
                 }
             elif method == "POST":
                 handled = True
@@ -102,18 +100,24 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
         elif path == "/repos":
             if method == "GET":
                 handled = True
-                content_dict = [{"id": 1, "name": "repo1", "description": "repositories"}]
+                content_dict = [
+                    {"id": 1, "name": "repo1", "description": "repositories"}
+                ]
         elif path == "/stats":
             if method == "GET":
                 handled = True
-                content_dict = {"total_issues": 10, "active_repos": 2, "statistics": "OWASP BLT Stats"}
+                content_dict = {
+                    "total_issues": 10,
+                    "active_repos": 2,
+                    "statistics": "OWASP BLT Stats",
+                }
         elif path == "/bugs/123":
             if method == "GET":
                 handled = True
                 content_dict = {
                     "title": "SQL Injection in Login Form",
                     "status": "open",
-                    "description": "Found a SQL injection vulnerability in the username field."
+                    "description": "Found a SQL injection vulnerability in the username field.",
                 }
         elif path == "/bugs/123/comments":
             if method == "GET":
@@ -121,12 +125,9 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
                 content_dict = [
                     {
                         "content": "I confirmed this vulnerability.",
-                        "author": "security_researcher"
+                        "author": "security_researcher",
                     },
-                    {
-                        "content": "Working on a fix now.",
-                        "author": "developer_bob"
-                    }
+                    {"content": "Working on a fix now.", "author": "developer_bob"},
                 ]
             elif method == "POST":
                 handled = True
@@ -143,7 +144,7 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
             status_code=status_code,
             content=json.dumps(content_dict).encode("utf-8"),
             headers={"Content-Type": "application/json"},
-            request=request
+            request=request,
         )
 
     httpx.AsyncClient.send = mock_send
@@ -184,7 +185,7 @@ if not BLT_API_KEY:
 
 
 # Shared HTTPX client
-http_client: Optional[httpx.AsyncClient] = None
+http_client: httpx.AsyncClient | None = None
 
 
 @asynccontextmanager
@@ -209,7 +210,7 @@ async def server_lifespan(server: FastMCP):
 mcp = FastMCP("blt-mcp", dependencies=["click", "mcp"], lifespan=server_lifespan)
 
 
-async def _fetch(path: str, context: Optional[str] = None) -> str:
+async def _fetch(path: str, context: str | None = None) -> str:
     try:
         response = await http_client.get(path)
         response.raise_for_status()

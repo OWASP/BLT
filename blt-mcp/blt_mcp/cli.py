@@ -21,16 +21,14 @@ Dependencies:
 - Submodules: `blt_mcp.server`, `blt_mcp.auth`, `blt_mcp.server_base`
 """
 
+import asyncio
+import logging
 import sys
 
-
 import click
-import asyncio
-import getpass
-import logging
 import httpx
-from blt_mcp.server import mcp
-from blt_mcp.auth import save_credentials, load_credentials
+
+from blt_mcp.auth import save_credentials
 from blt_mcp.server_base import BLT_API_BASE
 
 logging.basicConfig(level=logging.INFO)
@@ -51,7 +49,6 @@ def cli(ctx):
 @cli.group()
 def auth():
     """Authentication commands"""
-    pass
 
 
 @auth.command()
@@ -89,7 +86,9 @@ async def _async_login(email: str, password: str):
                 "This key is long-lived and provides broad access to all features on your account.\n"
                 "Currently, the BLT API does not support narrower, fine-grained scopes for the MCP server."
             )
-            if not click.confirm("Do you want to generate this wildcard API key?", default=False):
+            if not click.confirm(
+                "Do you want to generate this wildcard API key?", default=False
+            ):
                 click.echo("Aborted API key generation.", err=True)
                 sys.exit(1)
 

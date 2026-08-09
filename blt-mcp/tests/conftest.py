@@ -13,19 +13,16 @@ Dependencies:
 - `pytest`, `subprocess`, `shutil`, `sys`, `os`, `pathlib`, `dotenv.load_dotenv`
 """
 
-import pytest
-
-
-import subprocess
-import shutil
-import sys
 import os
+import shutil
+import subprocess
+import sys
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Enable HTTP mock layer globally for all test server subprocesses
 os.environ["BLT_MOCK_HTTP"] = "true"
-
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -67,7 +64,9 @@ def pytest_sessionfinish(session, exitstatus):
                 "-m",
                 "blt_mcp.server",
             ]
-            result = subprocess.run(cmd, env=os.environ.copy(), capture_output=True, text=True)
+            result = subprocess.run(
+                cmd, env=os.environ.copy(), capture_output=True, text=True
+            )
             print(result.stdout)
             if result.returncode != 0:
                 print(

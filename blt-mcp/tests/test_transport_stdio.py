@@ -17,11 +17,11 @@ Design Details:
 - Performs raw writes to stdin and uses `tests.utils` to parse response packets.
 """
 
-import subprocess
-
 import json
-import sys
 import os
+import subprocess
+import sys
+
 from tests.utils import read_jsonrpc_response
 
 

@@ -170,8 +170,7 @@ pub async fn get_issues(api_base: &str) -> Result<Vec<Issue>, Box<dyn std::error
     let resp = req.send().await?.error_for_status()?;
     let root = resp.json::<serde_json::Value>().await?;
 
-    let issues =
-        parse_issues_from_json(&root).map_err(|e| Box::<dyn std::error::Error>::from(e))?;
+    let issues = parse_issues_from_json(&root).map_err(Box::<dyn std::error::Error>::from)?;
 
     Ok(issues)
 }
@@ -218,8 +217,14 @@ pub fn parse_repos_from_json(root: &serde_json::Value) -> Result<Vec<Repo>, Stri
             .unwrap_or("")
             .to_string();
 
-        let created = item.get("created").and_then(|v| v.as_str()).map(|s| s.to_string());
-        let modified = item.get("modified").and_then(|v| v.as_str()).map(|s| s.to_string());
+        let created = item
+            .get("created")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+        let modified = item
+            .get("modified")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
 
         repos.push(Repo {
             id,
@@ -247,7 +252,7 @@ pub async fn get_repos(api_base: &str) -> Result<Vec<Repo>, Box<dyn std::error::
     let resp = req.send().await?.error_for_status()?;
     let root = resp.json::<serde_json::Value>().await?;
 
-    let repos = parse_repos_from_json(&root).map_err(|e| Box::<dyn std::error::Error>::from(e))?;
+    let repos = parse_repos_from_json(&root).map_err(Box::<dyn std::error::Error>::from)?;
 
     Ok(repos)
 }

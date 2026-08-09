@@ -15,29 +15,28 @@ Design Notes:
 """
 
 import datetime
-import re
-import urllib.parse
-
-
 import json
 import logging
-from typing import Any, Callable, Dict, List, Optional
+import re
+import urllib.parse
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger("blt-mcp.tools")
 
 
-def generate_ai_metadata(tool_name: str) -> Dict[str, Any]:
+def generate_ai_metadata(tool_name: str) -> dict[str, Any]:
     """
     Generate AI metadata for write operations and log the operation.
     """
-    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    timestamp = datetime.datetime.now(datetime.UTC).isoformat()
     metadata = {"ai_generated": True, "timestamp": timestamp, "source": "BLT-MCP"}
     logger.info(f"Tagged write operation '{tool_name}' with AI metadata: {metadata}")
     return metadata
 
 
 async def summarize_issue_context_impl(
-    issue_id: str, fetch_fn: Callable[[str, Optional[str]], Any]
+    issue_id: str, fetch_fn: Callable[[str, str | None], Any]
 ) -> str:
     """
     Core implementation of the summarize_issue_context tool.
@@ -46,9 +45,9 @@ async def summarize_issue_context_impl(
     logger.info(f"Summarizing context for issue: {issue_id}")
     # Validate issue_id format and sanitize for safe URL path construction
     issue_id = str(issue_id).strip()
-    if not issue_id or re.search(r'[/?#&]', issue_id):
+    if not issue_id or re.search(r"[/?#&]", issue_id):
         return f"Error: Invalid issue ID '{issue_id}'."
-    safe_id = urllib.parse.quote(issue_id, safe='')
+    safe_id = urllib.parse.quote(issue_id, safe="")
     try:
         try:
             # Fetch issue details

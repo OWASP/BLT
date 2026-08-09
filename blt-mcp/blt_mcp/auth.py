@@ -18,13 +18,10 @@ Dependencies:
 - `os`, `json`, `logging`, `pathlib.Path`, `typing.Optional`
 """
 
-import os
-
-
 import json
 import logging
+import os
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger("blt-mcp.auth")
 
@@ -45,7 +42,7 @@ def save_credentials(api_key: str) -> None:
         # Save securely with read/write only for owner
         flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
         if hasattr(os, "O_NOFOLLOW"):
-            flags |= getattr(os, "O_NOFOLLOW")
+            flags |= os.O_NOFOLLOW
 
         fd = os.open(creds_path, flags, 0o600)
         # Enforce permissions even if file already existed (Unix-like systems)
@@ -60,7 +57,7 @@ def save_credentials(api_key: str) -> None:
         raise
 
 
-def load_credentials() -> Optional[str]:
+def load_credentials() -> str | None:
     """Load the API key from the credentials file."""
     creds_path = get_credentials_path()
     if not creds_path.exists():

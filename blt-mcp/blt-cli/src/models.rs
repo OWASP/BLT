@@ -18,7 +18,6 @@
 
 use serde::{Deserialize, Serialize};
 
-
 fn default_repo() -> String {
     "owasp-blt/api".to_string()
 }

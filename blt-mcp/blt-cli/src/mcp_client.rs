@@ -33,7 +33,10 @@ pub struct McpSubprocessClient {
 
 impl McpSubprocessClient {
     /// Spawn the Python MCP server as a subprocess.
-    pub async fn spawn(cmd_name: &str, args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
+    pub async fn spawn(
+        cmd_name: &str,
+        args: &[String],
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         if cmd_name.trim().is_empty() {
             return Err("Empty MCP server path provided".into());
         }
@@ -101,7 +104,9 @@ impl McpSubprocessClient {
         Ok(())
     }
 
-    pub async fn list_resources(&mut self) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    pub async fn list_resources(
+        &mut self,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         let req = json!({
             "jsonrpc": "2.0",
             "id": self.request_id,
@@ -156,7 +161,10 @@ impl McpSubprocessClient {
         Ok(resp)
     }
 
-    async fn send_request(&mut self, req: serde_json::Value) -> Result<(), Box<dyn std::error::Error>> {
+    async fn send_request(
+        &mut self,
+        req: serde_json::Value,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let line = serde_json::to_string(&req)? + "\n";
         self.stdin.write_all(line.as_bytes()).await?;
         self.stdin.flush().await?;
@@ -188,12 +196,11 @@ impl McpSubprocessClient {
             let remaining = deadline - now;
             line.clear();
             let read_fut = self.stdout_reader.read_line(&mut line);
-            let bytes_read =
-                match tokio::time::timeout(remaining, read_fut).await {
-                    Ok(Ok(n)) => n,
-                    Ok(Err(e)) => return Err(e.into()),
-                    Err(_) => return Err("MCP Subprocess read timeout".into()),
-                };
+            let bytes_read = match tokio::time::timeout(remaining, read_fut).await {
+                Ok(Ok(n)) => n,
+                Ok(Err(e)) => return Err(e.into()),
+                Err(_) => return Err("MCP Subprocess read timeout".into()),
+            };
 
             if bytes_read == 0 {
                 return Err(

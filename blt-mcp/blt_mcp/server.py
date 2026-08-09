@@ -28,24 +28,19 @@ Entry Point:
 - `main()`: Resolves stdin wrappers and launches the core `mcp.run()` event loop.
 """
 
-import sys
-
-
-import logging
 import json
-import httpx
 import os
+import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-from blt_mcp import server_base
-from blt_mcp.server_base import mcp, _fetch, logger
 
-from blt_mcp.validation import StdinWrapper, InterceptingStdinBuffer
+import httpx
+
+from blt_mcp import server_base
+from blt_mcp.server_base import _fetch, logger, mcp
 from blt_mcp.tools import generate_ai_metadata, summarize_issue_context_impl
+from blt_mcp.validation import InterceptingStdinBuffer, StdinWrapper
 
 # Import v2 modular resources and tools to register them on the mcp instance
-import blt_mcp.v2_resources
-import blt_mcp.v2_tools
 
 # --- Original V1 Resources ---
 
@@ -126,11 +121,11 @@ async def submit_issue(
     url: str,
     title: str,
     description: str,
-    severity: Optional[str] = None,
-    bug_type: Optional[str] = None,
-    steps_to_reproduce: Optional[str] = None,
-    labels: Optional[List[str]] = None,
-    assignee: Optional[str] = None,
+    severity: str | None = None,
+    bug_type: str | None = None,
+    steps_to_reproduce: str | None = None,
+    labels: list[str] | None = None,
+    assignee: str | None = None,
     confirmed: bool = False,
 ) -> str:
     """
@@ -314,15 +309,15 @@ async def triage_vulnerability(prompt: str) -> str:
     except Exception as e:
         if isinstance(e, (ValueError, RuntimeError)):
             raise
-        logger.error(f"Exception calling CF AI: {str(e)}")
-        raise RuntimeError(f"Failed to call Cloudflare AI: {str(e)}") from e
+        logger.error(f"Exception calling CF AI: {e!s}")
+        raise RuntimeError(f"Failed to call Cloudflare AI: {e!s}") from e
 
 
 @mcp.tool()
 async def draft_vision_issue(
     image_path: str,
-    gitlab_project_id: Optional[str] = None,
-    context: Optional[str] = None,
+    gitlab_project_id: str | None = None,
+    context: str | None = None,
 ) -> str:
     """Analyze a screenshot and draft a vulnerability issue report.
 
@@ -331,11 +326,11 @@ async def draft_vision_issue(
         gitlab_project_id: Optional GitLab project ID to upload the image to.
         context: Optional user-provided context or hints about the screenshot.
     """
-    import re
     import platform
+    import re
 
     # Automatically translate Windows drive path to WSL mount path if running in WSL/Linux
-    if platform.system() == "Linux" and re.match(r'^[a-zA-Z]:\\', image_path):
+    if platform.system() == "Linux" and re.match(r"^[a-zA-Z]:\\", image_path):
         drive = image_path[0].lower()
         rest = image_path[3:].replace("\\", "/")
         image_path = f"/mnt/{drive}/{rest}"
@@ -346,7 +341,9 @@ async def draft_vision_issue(
         raise ValueError(f"Invalid image path: {image_path}") from e
 
     if not resolved_path.exists() or not resolved_path.is_file():
-        raise ValueError(f"Image file not found at {image_path} (resolved as: {resolved_path})")
+        raise ValueError(
+            f"Image file not found at {image_path} (resolved as: {resolved_path})"
+        )
 
     allowed_exts = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
     if resolved_path.suffix.lower() not in allowed_exts:
@@ -369,7 +366,7 @@ async def draft_vision_issue(
         with open(resolved_path, "rb") as f:
             image_bytes = f.read()
     except Exception as e:
-        raise RuntimeError(f"Failed to read image file: {str(e)}") from e
+        raise RuntimeError(f"Failed to read image file: {e!s}") from e
 
     # Cloudflare expects the image as an array of integers
     image_array = list(image_bytes)
@@ -419,8 +416,8 @@ async def draft_vision_issue(
     except Exception as e:
         if isinstance(e, (ValueError, RuntimeError)):
             raise
-        logger.error(f"Exception calling CF Vision AI: {str(e)}")
-        raise RuntimeError(f"Failed to call Cloudflare Vision AI: {str(e)}") from e
+        logger.error(f"Exception calling CF Vision AI: {e!s}")
+        raise RuntimeError(f"Failed to call Cloudflare Vision AI: {e!s}") from e
 
     # Optional GitLab Upload phase
     image_markdown = ""
@@ -444,9 +441,9 @@ async def draft_vision_issue(
                     logger.warning(f"GitLab upload failed: {res.text}")
                     image_markdown = f"\n> [!WARNING]\n> Failed to upload image to GitLab (Status {res.status_code})"
         except Exception as e:
-            logger.warning(f"GitLab upload exception: {str(e)}")
+            logger.warning(f"GitLab upload exception: {e!s}")
             image_markdown = (
-                f"\n> [!WARNING]\n> Failed to upload image to GitLab: {str(e)}"
+                f"\n> [!WARNING]\n> Failed to upload image to GitLab: {e!s}"
             )
 
     final_output = analysis_text
