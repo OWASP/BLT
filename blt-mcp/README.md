@@ -17,7 +17,7 @@ Access BLT data through standardized URIs:
 - `blt://workflows` - All workflows
 - `blt://workflows/{id}` - Specific workflow details
 - `blt://leaderboards` - Leaderboard rankings and statistics
-- `blt://rewards` - Rewards and contributor points
+- `blt://rewards` - Rewards and contributor bacon
 
 ### Tools
 Perform actions on BLT:
@@ -38,7 +38,7 @@ AI-guided workflows for common security tasks:
 - **Cloudflare AI Integration** - Leverages Cloudflare Workers AI for image processing and vulnerability triage
 - **GitLab Vision-to-Issue Pipeline** - Automatically drafts rich Markdown issues from vulnerability screenshots
 - **Interactive TUI (BLT-CLI)** - A rich terminal UI featuring Leaderboards and bulk triage
-- **Gamification Support** - Built-in support for BLT's point system with pending verifications
+- **Gamification Support** - Built-in support for BLT's bacon system with pending verifications
 
 ## Installation
 

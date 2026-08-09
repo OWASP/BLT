@@ -347,9 +347,8 @@ pub fn parse_stats_from_json(root: &serde_json::Value) -> Stats {
         .and_then(|v| v.as_u64())
         .unwrap_or(0) as u32;
 
-    let points = data
+    let bacon = data
         .get("bacon_points")
-        .or_else(|| data.get("points"))
         .and_then(|v| v.as_u64())
         .unwrap_or(0) as u32;
 
@@ -357,7 +356,7 @@ pub fn parse_stats_from_json(root: &serde_json::Value) -> Stats {
         total_issues,
         active_repos,
         total_contributors,
-        points,
+        bacon,
     }
 }
 
@@ -525,9 +524,8 @@ pub fn parse_leaderboard_from_json(root: &serde_json::Value) -> Vec<models::Lead
             .unwrap_or("Unknown")
             .to_string();
 
-        let points = item
+        let bacon = item
             .get("bacon_points")
-            .or_else(|| item.get("points"))
             .or_else(|| item.get("total_score"))
             .and_then(|v| v.as_u64())
             .unwrap_or(0) as u32;
@@ -542,7 +540,7 @@ pub fn parse_leaderboard_from_json(root: &serde_json::Value) -> Vec<models::Lead
         leaderboard.push(models::LeaderboardEntry {
             rank,
             name,
-            points,
+            bacon,
             reputation,
         });
         current_rank += 1;
@@ -585,9 +583,8 @@ pub fn parse_good_first_issues_from_json(root: &serde_json::Value) -> Vec<models
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
-        let points_estimate = item
+        let bacon_estimate = item
             .get("bacon_estimate")
-            .or_else(|| item.get("points_estimate"))
             .and_then(|v| v.as_u64())
             .unwrap_or(100) as u32;
 
@@ -597,7 +594,7 @@ pub fn parse_good_first_issues_from_json(root: &serde_json::Value) -> Vec<models
             repository,
             web_url,
             description,
-            points_estimate,
+            bacon_estimate,
         });
     }
 
@@ -632,12 +629,12 @@ mod tests {
 
         assert_eq!(leaderboard[0].rank, 1);
         assert_eq!(leaderboard[0].name, "Alice");
-        assert_eq!(leaderboard[0].points, 100);
+        assert_eq!(leaderboard[0].bacon, 100);
         assert_eq!(leaderboard[0].reputation, "Admin");
 
         assert_eq!(leaderboard[1].rank, 2); // Auto-incremented rank
         assert_eq!(leaderboard[1].name, "Bob");
-        assert_eq!(leaderboard[1].points, 50);
+        assert_eq!(leaderboard[1].bacon, 50);
         assert_eq!(leaderboard[1].reputation, "Contributor");
     }
 
@@ -663,7 +660,7 @@ mod tests {
             issues[0].web_url,
             "https://gitlab.com/owasp-blt/blt-university/-/issues/1"
         );
-        assert_eq!(issues[0].points_estimate, 10);
+        assert_eq!(issues[0].bacon_estimate, 10);
     }
 
     #[test]

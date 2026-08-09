@@ -703,7 +703,7 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
     let card_4 = Paragraph::new(vec![
         Line::from(""),
         Line::from(Span::styled(
-            format!("  {} 🏆", app.stats.points),
+            format!("  {} 🏆", app.stats.bacon),
             Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD),
         )),
         Line::from("  Bacon Score"),
@@ -748,7 +748,7 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
             Cell::from(entry.name.clone()),
             Cell::from(entry.reputation.clone()),
             Cell::from(Span::styled(
-                format!("{} 🏆", entry.points),
+                format!("{} 🏆", entry.bacon),
                 Style::default().fg(BLT_RED),
             )),
         ];

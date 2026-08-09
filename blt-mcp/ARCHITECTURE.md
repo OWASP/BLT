@@ -91,7 +91,7 @@ Resources provide read-only access to BLT data through URI patterns:
 - `contributors` - User profiles and contributions
 - `workflows` - Security workflow definitions
 - `leaderboards` - Ranking and statistics
-- `rewards` - Contributor points and gamification data
+- `rewards` - Contributor bacon and gamification data
 
 **Implementation**:
 - List handler: Returns all available resource URIs
@@ -169,7 +169,7 @@ Prompts provide AI agents with structured guidance for common tasks:
 - Purpose: Evaluate contributions
 - Input: contribution_id, contribution_type
 - Output: Quality assessment and recommendations
-- Includes: Strengths, improvements, points recommendations
+- Includes: Strengths, improvements, bacon recommendations
 
 ### Authentication & API Client
 

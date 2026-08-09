@@ -15,7 +15,7 @@ A high-performance terminal user interface (TUI) client for the OWASP Bug Loggin
 * **Log Exporting:** Instantly dump your session's action history to a local text file (`blt_export.log`) at the press of a key.
 * **Vulnerability Submission:** Quickly submit new vulnerability reports directly from the TUI with an interactive multi-field form.
 * **Bounty Hunts Hub:** Browse active bug bounty hunts, view detailed rules/rewards, and seamlessly launch pre-filled vulnerability forms for specific targets.
-* **Dynamic Leaderboard:** View the active top contributors and their accrued points in the statistics dashboard.
+* **Dynamic Leaderboard:** View the active top contributors and their accrued bacon in the statistics dashboard.
 * **AI-Assisted Triage:** Leverage an integrated MCP (Model Context Protocol) tool to run AI analysis on vulnerabilities, fetching real-time suggestions and duplicate checks.
 * **Dual-Mode execution:**
   * **Standalone Mode:** Connects directly to the REST endpoints of the BLT API.
