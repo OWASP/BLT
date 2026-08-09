@@ -1471,10 +1471,11 @@
     <!-- Auth overlay: shown only when AUTHENTICATE_READ_ENDPOINTS requires a token. -->
     <div id="auth-overlay" class="auth-overlay hidden" aria-hidden="true">
         <div class="auth-modal">
-            <h2>API token</h2>
-            <p>Enter an org Bearer token to use triage. Demo deploys with open reads skip this screen.</p>
-            <input id="auth-token-input" type="password" autocomplete="off" placeholder="triage-token" aria-label="API token" />
-            <button id="auth-submit" type="button" class="auth-submit">Connect</button>
+            <h2>Sign in</h2>
+            <p>Use GitHub OAuth (PKCE) or an org Bearer token. Demo deploys with open reads skip this screen.</p>
+            <a id="auth-github" class="auth-submit" href="/api/auth/github/login?redirect_to=/triage.html" style="display:block;text-align:center;text-decoration:none;margin-bottom:12px;">Sign in with GitHub</a>
+            <input id="auth-token-input" type="password" autocomplete="off" placeholder="Bearer token (optional)" aria-label="API token" />
+            <button id="auth-submit" type="button" class="auth-submit">Connect with token</button>
             <p id="auth-error" class="auth-error" hidden></p>
         </div>
     </div>

@@ -41,6 +41,12 @@ from findings_service import (
 )
 from ingest_service import ingest_error_response, process_ingest
 from ingest_store import IngestStore
+from oauth_github import (
+    current_session,
+    handle_github_callback,
+    logout_session,
+    start_github_login,
+)
 
 
 class BLTWorker:
@@ -117,6 +123,8 @@ class BLTWorker:
                 response = await self.handle_ingest(request)
             elif path == 'api/findings' or path.startswith('api/findings/'):
                 response = await self.handle_findings(request, path)
+            elif path == 'api/auth' or path.startswith('api/auth/'):
+                response = await self.handle_auth(request, path)
             else:
                 response = self.json_response({'error': 'Not found'}, status=404)
             
@@ -703,6 +711,45 @@ class BLTWorker:
             return Response(result.body['csv'], status=result.status, headers=headers)
         return self.json_response(result.body, status=result.status, headers=result.headers)
 
+    async def handle_auth(self, request, path: str = 'api/auth'):
+        """GitHub OAuth PKCE login/callback + session me/logout."""
+        subpath = path[len('api/auth'):].lstrip('/')
+        parts = [p for p in subpath.split('/') if p]
+        db = getattr(self.env, 'DB', None)
+        headers = self.get_request_headers(request)
+        query = self.get_query_params(request)
+
+        if parts == ['github', 'login'] and request.method == 'GET':
+            result = await start_github_login(
+                env=self.env,
+                db=db,
+                request_url=request.url,
+                redirect_to=query.get('redirect_to') or '/triage.html',
+            )
+            return self._oauth_response(result)
+        if parts == ['github', 'callback'] and request.method == 'GET':
+            result = await handle_github_callback(
+                env=self.env,
+                db=db,
+                request_url=request.url,
+                query=query,
+            )
+            return self._oauth_response(result)
+        if parts == ['me'] and request.method == 'GET':
+            result = await current_session(env=self.env, db=db, headers=headers)
+            return self._oauth_response(result)
+        if parts == ['logout'] and request.method in ('POST', 'GET'):
+            result = await logout_session(db=db, headers=headers, request_url=request.url)
+            return self._oauth_response(result)
+        return self.json_response({'error': 'Not found'}, status=404)
+
+    def _oauth_response(self, result):
+        headers = dict(result.headers or {})
+        if result.redirect_url:
+            headers['Location'] = result.redirect_url
+            return Response('', status=result.status, headers=headers)
+        return self.json_response(result.body or {}, status=result.status, headers=headers)
+
     async def _read_request_body(self, request) -> bytes:
         text = getattr(request, 'body', None)
         if isinstance(text, bytes):
@@ -851,7 +898,11 @@ class BLTWorker:
 
     def requires_authentication(self, path: str, method: str) -> bool:
         """Protect API routes; reads can be toggled with AUTHENTICATE_READ_ENDPOINTS."""
-        if path in ('api/health', 'api/ingest') or path.startswith('api/findings'):
+        if (
+            path in ('api/health', 'api/ingest')
+            or path.startswith('api/findings')
+            or path.startswith('api/auth')
+        ):
             return False
         if not path.startswith('api/'):
             return False

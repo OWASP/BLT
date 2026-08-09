@@ -18,6 +18,12 @@ NG_DEFAULT_ORG = "org-demo"
 # Set via wrangler secret (production/staging):
 #   BLT_API_BASE_URL = https://api.owaspblt.org/v2
 #   BLT_API_KEY      = <X-BLT-API-Key value>
+# Optional GitHub OAuth + PKCE (browser sessions; Bearer tokens still work):
+#   GITHUB_CLIENT_ID
+#   GITHUB_CLIENT_SECRET
+#   GITHUB_OAUTH_REDIRECT_URI = https://netguardian.owaspblt.org/api/auth/github/callback
+#   NG_GITHUB_ORG_MAP = {"your-gh-login":"org-demo"}
+#   NG_GITHUB_DEFAULT_ORG = org-demo
 
 [observability]
 enabled = false
