@@ -22,6 +22,7 @@ from findings_store import (
 )
 from payload_crypto import PayloadCryptoError, decrypt_payload, get_org_key, is_wrapped_ciphertext
 from payload_redact import redact_payload
+from remediation import lookup_remediation
 
 DEFAULT_LIMIT = 50
 MAX_LIMIT = 100
@@ -220,12 +221,17 @@ async def get_finding_for_request(
     access_logs = await store.list_access_logs(auth.org_id, finding_id, limit=5)
 
     finding = finding_row_to_item(row)
+    remediation = lookup_remediation(
+        row_get(row, "rule_id"),
+        cve_id=row_get(row, "cve_id"),
+    )
 
     return FindingsListResult(
         status=200,
         body={
             "finding": finding,
             "payload_snippet": redact_payload(payload_raw),
+            "remediation": remediation,
             "evidence": {
                 "encrypted_at_rest": encrypted_at_rest,
                 "decrypted": decrypted,

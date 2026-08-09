@@ -164,6 +164,30 @@
             }).join('');
         }
 
+        function renderRemediationPanel(remediation) {
+            if (!remediation) {
+                return '<div class="field-label">No remediation guidance available.</div>';
+            }
+            const why = esc(remediation.why || '');
+            // Trusted static markdown from the API — escape then keep line breaks.
+            const md = esc(remediation.markdown || '').replace(/\n/g, '<br>');
+            const owasp = (remediation.owasp_links || []).map(function (url) {
+                return '<li><a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + '</a></li>';
+            }).join('');
+            const cve = (remediation.cve_links || []).map(function (url) {
+                return '<li><a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + '</a></li>';
+            }).join('');
+            return (
+                '<div class="reason-box"><div class="field-label">Why this matters</div>' +
+                '<div class="summary-text">' + why + '</div></div>' +
+                '<div class="evidence-section" style="margin-top:12px">' +
+                '<div class="evidence-label">Remediation</div>' +
+                '<div class="summary-text">' + md + '</div></div>' +
+                (owasp ? '<div class="field-label" style="margin-top:12px">OWASP</div><ul class="risk-list">' + owasp + '</ul>' : '') +
+                (cve ? '<div class="field-label" style="margin-top:12px">CVE advisories</div><ul class="risk-list">' + cve + '</ul>' : '')
+            );
+        }
+
         function cveUrl(cveId) {
             if (!cveId || cveId === '—') return '';
             const id = String(cveId).trim().toUpperCase();
@@ -232,6 +256,7 @@
                 <div class="detail-tabs">
                   <span class="detail-tab active" data-tab="evidence">Evidence</span>
                   <span class="detail-tab" data-tab="risk">Risk</span>
+                  <span class="detail-tab" data-tab="fix">Fix</span>
                   <span class="detail-tab" data-tab="status">Status</span>
                 </div>
                 <div class="detail-tab-panels">
@@ -266,6 +291,9 @@
                       <div class="field-label">Reason</div>
                       <div class="summary-text">${esc(rule)} on ${esc(target)}. Severity ${esc(severity)}, status ${esc(statusLabel)}.${bltIssue ? ' Linked to BLT issue ' + esc(bltIssue) + '.' : ''}</div>
                     </div>
+                  </div>
+                  <div class="detail-tab-panel" data-panel="fix">
+                    ${renderRemediationPanel(data.remediation)}
                   </div>
                   <div class="detail-tab-panel" data-panel="status">
                     <div class="field-label">Triage Status</div>
