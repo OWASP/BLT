@@ -380,7 +380,7 @@ fn split_arguments(s: &str) -> Vec<String> {
     let mut in_single_quotes = false;
     let mut chars = s.chars().peekable();
 
-    while let Some(c) = chars.next() {
+    for c in chars {
         match c {
             '"' if !in_single_quotes => {
                 in_double_quotes = !in_double_quotes;
