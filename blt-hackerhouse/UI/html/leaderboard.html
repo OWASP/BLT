@@ -439,7 +439,19 @@ function toggleDetail(detailId) {
         if (card) {
           var avatarWrap = card.querySelector('.hh-podium-avatar');
           if (avatarWrap && c.avatar_url) {
-            avatarWrap.innerHTML = '<img src="' + c.avatar_url + '" class="w-full h-full object-cover" alt="' + c.display_name + '" onerror="this.innerHTML=\\'<span class=\\\'material-symbols-outlined text-lg\\\'>person</span>\\'">';
+            avatarWrap.innerHTML = '';
+            var img = document.createElement('img');
+            img.src = c.avatar_url;
+            img.className = 'w-full h-full object-cover';
+            img.alt = c.display_name;
+            img.onerror = function() {
+              avatarWrap.innerHTML = '';
+              var fb = document.createElement('span');
+              fb.className = 'material-symbols-outlined text-lg';
+              fb.textContent = 'person';
+              avatarWrap.appendChild(fb);
+            };
+            avatarWrap.appendChild(img);
           }
         }
       } else if (nameEl) {

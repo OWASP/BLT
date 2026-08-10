@@ -404,9 +404,9 @@ tailwind.config = {
     var html = '';
     var lastDate = '';
     data.forEach(function(ev) {
-      var dateLabel = ev.timestamp ? dateLabel(ev.timestamp) : '';
-      if (dateLabel && dateLabel !== lastDate) {
-        lastDate = dateLabel;
+      var dayLabel = ev.timestamp ? dateLabel(ev.timestamp) : '';
+      if (dayLabel && dayLabel !== lastDate) {
+        lastDate = dayLabel;
         html += '<div class="flex items-center gap-3 my-6 first:mt-0">' +
           '<div class="flex-1 h-px bg-[var(--blt-border)]"></div>' +
           '<span class="font-mono text-[11px] text-[var(--blt-text-subtle)] font-semibold shrink-0">' + lastDate + '</span>' +
