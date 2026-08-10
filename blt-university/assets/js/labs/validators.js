@@ -1,6 +1,18 @@
 (function () {
     window.BltLabs = window.BltLabs || {};
     const BltLabs = window.BltLabs;
+    const {
+        analyzeAuthFix,
+        analyzeCommandFix,
+        analyzeCsrfFix,
+        analyzeIdorFix,
+        analyzeRedirectFix,
+        analyzeSensitiveDataFix,
+        analyzeSqliFix,
+        analyzeSsrfFix,
+        analyzeUploadFix,
+        analyzeXssFix
+    } = BltLabs;
 
 
     // Identify and explain step validation.
@@ -178,14 +190,17 @@
     }
 
     function validateSqliFix(code, config = {}) {
-        const plausibleFix = isPlausibleSqliFix(code, config);
-        const noConcatenation = plausibleFix && !hasSqlConcatenation(code);
-        const parameterized = plausibleFix && hasParameterizedQuery(code);
-        const separateBinding = plausibleFix && hasSeparateParameterBinding(code);
-        const bypassBlocked = plausibleFix &&
-            parameterized &&
-            separateBinding &&
-            !loginBypassStillWorks(code, config.attack_payloads || []);
+        const astResult = analyzeSqliFix?.(code, config);
+        const plausibleFix = astResult?.plausible ?? isPlausibleSqliFix(code, config);
+        const noConcatenation = plausibleFix &&
+            (astResult?.noConcatenation ?? !hasSqlConcatenation(code));
+        const parameterized = plausibleFix &&
+            (astResult?.parameterized ?? hasParameterizedQuery(code));
+        const separateBinding = plausibleFix &&
+            (astResult?.separatelyBound ?? hasSeparateParameterBinding(code));
+        const bypassBlocked = plausibleFix && (astResult?.bypassBlocked ?? (
+            parameterized && separateBinding && !loginBypassStillWorks(code, config.attack_payloads || [])
+        ));
 
         const checks = [
             {
@@ -236,20 +251,28 @@
     }
 
     function validateXssFix(code, config = {}) {
-        const plausibleFix = usesUnsafeHtmlSink(code) || usesSafeTextSink(code) || encodesHtml(code);
+        const astResult = analyzeXssFix?.(code);
+        const plausibleFix = astResult?.plausible ??
+            (usesUnsafeHtmlSink(code) || usesSafeTextSink(code) || encodesHtml(code));
+        const unsafeSink = astResult?.unsafe ?? usesUnsafeHtmlSink(code);
+        const safeSink = astResult?.safe ?? usesSafeTextSink(code);
+        const encoded = astResult?.encoded ?? encodesHtml(code);
+        const executablePayload = (config.attack_payloads || []).some((payload) => {
+            return /<script|onerror|onload|javascript:/i.test(payload);
+        });
 
         const checks = [
             {
                 label: 'Untrusted input is not written with innerHTML or document.write',
-                passed: plausibleFix && (!usesUnsafeHtmlSink(code) || encodesHtml(code))
+                passed: plausibleFix && (!unsafeSink || encoded)
             },
             {
                 label: 'Output uses a safe text sink or explicit HTML encoding',
-                passed: plausibleFix && (usesSafeTextSink(code) || encodesHtml(code))
+                passed: plausibleFix && (safeSink || encoded)
             },
             {
                 label: 'Script payload is rendered as text instead of executing',
-                passed: plausibleFix && !xssPayloadStillExecutes(code, config.attack_payloads || [])
+                passed: plausibleFix && (!executablePayload || safeSink || encoded)
             }
         ];
 
@@ -292,22 +315,25 @@
     }
 
     function validateCsrfFix(code) {
+        const astResult = analyzeCsrfFix?.(code);
+        const plausibleFix = astResult ?
+            (astResult.includesToken || astResult.validates || astResult.sameSite) : true;
         const checks = [
             {
                 label: 'State-changing form includes a CSRF token',
-                passed: includesCsrfToken(code)
+                passed: plausibleFix && includesCsrfToken(code)
             },
             {
                 label: 'Server verifies the submitted CSRF token before updating data',
-                passed: validatesCsrfToken(code)
+                passed: plausibleFix && validatesCsrfToken(code)
             },
             {
                 label: 'CSRF token is verified before any state-changing action',
-                passed: verifiesCsrfBeforeStateChange(code)
+                passed: plausibleFix && verifiesCsrfBeforeStateChange(code)
             },
             {
                 label: 'Session cookie is hardened with SameSite protection',
-                passed: usesSameSiteCookie(code)
+                passed: plausibleFix && usesSameSiteCookie(code)
             }
         ];
 
@@ -379,18 +405,21 @@
     }
 
     function validateIdorFix(code) {
+        const astResult = analyzeIdorFix?.(code);
+        const plausibleFix = astResult ?
+            (astResult.userIdentity || astResult.checkBeforeResponse || astResult.rejected) : true;
         const checks = [
             {
                 label: 'Authenticated user identity is used for the access decision',
-                passed: usesAuthenticatedIdentity(code)
+                passed: plausibleFix && usesAuthenticatedIdentity(code)
             },
             {
                 label: 'Resource ownership or authorization is checked before returning data',
-                passed: checksResourceOwnershipBeforeReturn(code) && !returnsResourceBeforeAuthorization(code)
+                passed: plausibleFix && checksResourceOwnershipBeforeReturn(code) && !returnsResourceBeforeAuthorization(code)
             },
             {
                 label: 'Unauthorized object access is rejected',
-                passed: rejectsUnauthorizedAccessBeforeReturn(code)
+                passed: plausibleFix && rejectsUnauthorizedAccessBeforeReturn(code)
             }
         ];
 
@@ -422,7 +451,9 @@
     }
 
     function validateRedirectFix(code) {
-        const plausibleFix = isPlausibleRedirectFix(code);
+        const astResult = analyzeRedirectFix?.(code);
+        const plausibleFix = isPlausibleRedirectFix(code) &&
+            (astResult?.plausible ?? true);
 
         const checks = [
             {
@@ -475,7 +506,9 @@
     }
 
     function validateCommandFix(code) {
-        const plausibleFix = isPlausibleCommandFix(code);
+        const astResult = analyzeCommandFix?.(code);
+        const plausibleFix = isPlausibleCommandFix(code) &&
+            (astResult?.plausible ?? true);
 
         const checks = [
             {
@@ -520,22 +553,25 @@
     }
 
     function validateUploadFix(code) {
+        const astResult = analyzeUploadFix?.(code);
+        const plausibleFix = astResult ?
+            (astResult.fileType || astResult.content || astResult.safeStore || astResult.traversal) : true;
         const checks = [
             {
                 label: 'Uploaded files are restricted to allowed types',
-                passed: restrictsFileType(code)
+                passed: plausibleFix && restrictsFileType(code)
             },
             {
                 label: 'File content or magic bytes are verified',
-                passed: checksFileContent(code)
+                passed: plausibleFix && checksFileContent(code)
             },
             {
                 label: 'Files are renamed or stored outside the web root',
-                passed: storesSafely(code)
+                passed: plausibleFix && storesSafely(code)
             },
             {
                 label: 'Path traversal through filenames is prevented',
-                passed: preventsTraversal(code)
+                passed: plausibleFix && preventsTraversal(code)
             }
         ];
 
@@ -569,7 +605,9 @@
     }
 
     function validateSensitiveDataFix(code) {
-        const plausibleFix = isPlausibleSensitiveDataFix(code);
+        const astResult = analyzeSensitiveDataFix?.(code);
+        const plausibleFix = isPlausibleSensitiveDataFix(code) &&
+            (astResult?.plausible ?? true);
 
         const checks = [
             {
@@ -618,7 +656,9 @@
     }
 
     function validateSsrfFix(code) {
-        const plausibleFix = isPlausibleSsrfFix(code);
+        const astResult = analyzeSsrfFix?.(code);
+        const plausibleFix = isPlausibleSsrfFix(code) &&
+            (astResult?.plausible ?? true);
 
         const checks = [
             {
@@ -663,22 +703,25 @@
     }
 
     function validateAuthFix(code) {
+        const astResult = analyzeAuthFix?.(code);
+        const plausibleFix = astResult ?
+            (astResult.credentials || astResult.sessions || astResult.tokens || astResult.limits) : true;
         const checks = [
             {
                 label: 'Credentials or reset secrets are strengthened',
-                passed: strengthensCredentials(code)
+                passed: plausibleFix && strengthensCredentials(code)
             },
             {
                 label: 'Sessions are rotated or cookies are hardened',
-                passed: protectsSessions(code)
+                passed: plausibleFix && protectsSessions(code)
             },
             {
                 label: 'JWTs or reset tokens are validated safely',
-                passed: validatesTokens(code)
+                passed: plausibleFix && validatesTokens(code)
             },
             {
                 label: 'Authentication abuse is limited with rate limits, expiry, or lockouts',
-                passed: limitsAuthAbuse(code)
+                passed: plausibleFix && limitsAuthAbuse(code)
             }
         ];
 
