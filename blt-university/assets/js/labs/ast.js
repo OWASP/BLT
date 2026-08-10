@@ -26,7 +26,11 @@
         visit(node);
         Object.values(node).forEach((value) => {
             if (Array.isArray(value)) {
-                value.forEach((child) => walk(child, visit));
+                value.forEach((child) => {
+                    if (child?.type) {
+                        walk(child, visit);
+                    }
+                });
             } else if (value?.type) {
                 walk(value, visit);
             }
@@ -184,6 +188,7 @@
         const firstValidation = Math.min(...validationCalls.map((call) => call.start));
         const firstStateChange = Math.min(...stateCalls.map((call) => call.start));
         return {
+            plausible: hasName(parsed.ast, /csrf[_-]?token/i) || validationCalls.length > 0 || sameSite,
             includesToken: hasName(parsed.ast, /csrf[_-]?token/i),
             validates: validationCalls.length > 0,
             beforeStateChange: validationCalls.length > 0 &&
@@ -221,6 +226,8 @@
                 });
         });
         return {
+            plausible: ownershipChecks.length > 0 || responseCalls.length > 0 ||
+                hasName(parsed.ast, /^(req|request|currentUser|authenticatedUser)$/),
             userIdentity: hasName(parsed.ast, /^(req|request|currentUser|authenticatedUser)$/) &&
                 /\.(?:user|session)\.(?:id|userId)\b/.test(String(code)),
             checkBeforeResponse,
@@ -286,14 +293,13 @@
             return null;
         }
 
-        return {
-            fileType: hasName(parsed.ast, /allowedExtensions|allowedMimeTypes|allowedTypes|mime|magic|extension/i),
-            content: parsed.allCalls.some((call) => /(?:fileTypeFromBuffer|detectMime|scan)/i.test(callName(call))) ||
-                hasName(parsed.ast, /magic|signature|virus|malware/i),
-            safeStore: hasName(parsed.ast, /privateUploads|storagePath|randomUUID|uuid|basename|normalize/i),
-            traversal: hasName(parsed.ast, /basename|normalize|safeJoin|traversal/) ||
-                hasName(parsed.ast, /\.\./)
-        };
+        const fileType = hasName(parsed.ast, /allowedExtensions|allowedMimeTypes|allowedTypes|mime|magic|extension/i);
+        const content = parsed.allCalls.some((call) => /(?:fileTypeFromBuffer|detectMime|scan)/i.test(callName(call))) ||
+            hasName(parsed.ast, /magic|signature|virus|malware/i);
+        const safeStore = hasName(parsed.ast, /privateUploads|storagePath|randomUUID|uuid|basename|normalize/i);
+        const traversal = hasName(parsed.ast, /basename|normalize|safeJoin|traversal/) ||
+            hasName(parsed.ast, /\.\./);
+        return { plausible: fileType || content || safeStore || traversal, fileType, content, safeStore, traversal };
     }
 
     function analyzeSensitiveDataFix(code) {
@@ -322,10 +328,13 @@
         const fetchCalls = parsed.allCalls.filter((call) => /(?:fetch|request|get|axios)$/.test(callName(call)));
         let redirectsDisabled = false;
         walk(parsed.ast, (node) => {
+            if (node.type !== 'Property') {
+                return;
+            }
             const redirectSetting = /maxRedirects|followRedirects|redirect/.test(propertyName(node));
             const disabled = node.value?.value === 0 || node.value?.value === false ||
                 node.value?.value === 'manual';
-            if (node.type === 'Property' && redirectSetting && disabled) {
+            if (redirectSetting && disabled) {
                 redirectsDisabled = true;
             }
         });
@@ -349,12 +358,11 @@
         }
 
         const names = (pattern) => hasName(parsed.ast, pattern);
-        return {
-            credentials: names(/forcePasswordChange|passwordPolicy|bcrypt|argon2|mfa|multiFactor|default.*disabled/i),
-            sessions: names(/regenerate|rotateSession|httpOnly|secure|sameSite/i),
-            tokens: names(/jwt|validateSignature|algorithms|expiresIn|singleUse|random/i),
-            limits: names(/rateLimit|lockout|throttle|attempts|progressiveDelay|singleUse|expires/i)
-        };
+        const credentials = names(/forcePasswordChange|passwordPolicy|bcrypt|argon2|mfa|multiFactor|default.*disabled/i);
+        const sessions = names(/regenerate|rotateSession|httpOnly|secure|sameSite/i);
+        const tokens = names(/jwt|validateSignature|algorithms|expiresIn|singleUse|random/i);
+        const limits = names(/rateLimit|lockout|throttle|attempts|progressiveDelay|singleUse|expires/i);
+        return { plausible: credentials || sessions || tokens || limits, credentials, sessions, tokens, limits };
     }
 
     function analyzeSqliFix(code, config = {}) {

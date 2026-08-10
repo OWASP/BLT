@@ -1,20 +1,6 @@
 (function () {
     window.BltLabs = window.BltLabs || {};
     const BltLabs = window.BltLabs;
-    const {
-        analyzeAuthFix,
-        analyzeCommandFix,
-        analyzeCsrfFix,
-        analyzeIdorFix,
-        analyzeRedirectFix,
-        analyzeSensitiveDataFix,
-        analyzeSqliFix,
-        analyzeSsrfFix,
-        analyzeUploadFix,
-        analyzeXssFix
-    } = BltLabs;
-
-
     // Identify and explain step validation.
     function normalizeLines(lines = []) {
         return lines.map(Number).filter(Number.isFinite).sort((a, b) => a - b);
@@ -190,7 +176,7 @@
     }
 
     function validateSqliFix(code, config = {}) {
-        const astResult = analyzeSqliFix?.(code, config);
+        const astResult = BltLabs.analyzeSqliFix?.(code, config);
         const plausibleFix = astResult?.plausible ?? isPlausibleSqliFix(code, config);
         const noConcatenation = plausibleFix &&
             (astResult?.noConcatenation ?? !hasSqlConcatenation(code));
@@ -198,9 +184,9 @@
             (astResult?.parameterized ?? hasParameterizedQuery(code));
         const separateBinding = plausibleFix &&
             (astResult?.separatelyBound ?? hasSeparateParameterBinding(code));
-        const bypassBlocked = plausibleFix && (astResult?.bypassBlocked ?? (
-            parameterized && separateBinding && !loginBypassStillWorks(code, config.attack_payloads || [])
-        ));
+        const structurallyBlocked = astResult?.bypassBlocked ?? (parameterized && separateBinding);
+        const bypassBlocked = plausibleFix && structurallyBlocked &&
+            !loginBypassStillWorks(code, config.attack_payloads || []);
 
         const checks = [
             {
@@ -251,7 +237,7 @@
     }
 
     function validateXssFix(code, config = {}) {
-        const astResult = analyzeXssFix?.(code);
+        const astResult = BltLabs.analyzeXssFix?.(code);
         const plausibleFix = astResult?.plausible ??
             (usesUnsafeHtmlSink(code) || usesSafeTextSink(code) || encodesHtml(code));
         const unsafeSink = astResult?.unsafe ?? usesUnsafeHtmlSink(code);
@@ -315,9 +301,8 @@
     }
 
     function validateCsrfFix(code) {
-        const astResult = analyzeCsrfFix?.(code);
-        const plausibleFix = astResult ?
-            (astResult.includesToken || astResult.validates || astResult.sameSite) : true;
+        const astResult = BltLabs.analyzeCsrfFix?.(code);
+        const plausibleFix = astResult?.plausible ?? true;
         const checks = [
             {
                 label: 'State-changing form includes a CSRF token',
@@ -405,9 +390,8 @@
     }
 
     function validateIdorFix(code) {
-        const astResult = analyzeIdorFix?.(code);
-        const plausibleFix = astResult ?
-            (astResult.userIdentity || astResult.checkBeforeResponse || astResult.rejected) : true;
+        const astResult = BltLabs.analyzeIdorFix?.(code);
+        const plausibleFix = astResult?.plausible ?? true;
         const checks = [
             {
                 label: 'Authenticated user identity is used for the access decision',
@@ -451,7 +435,7 @@
     }
 
     function validateRedirectFix(code) {
-        const astResult = analyzeRedirectFix?.(code);
+        const astResult = BltLabs.analyzeRedirectFix?.(code);
         const plausibleFix = isPlausibleRedirectFix(code) &&
             (astResult?.plausible ?? true);
 
@@ -506,7 +490,7 @@
     }
 
     function validateCommandFix(code) {
-        const astResult = analyzeCommandFix?.(code);
+        const astResult = BltLabs.analyzeCommandFix?.(code);
         const plausibleFix = isPlausibleCommandFix(code) &&
             (astResult?.plausible ?? true);
 
@@ -553,9 +537,8 @@
     }
 
     function validateUploadFix(code) {
-        const astResult = analyzeUploadFix?.(code);
-        const plausibleFix = astResult ?
-            (astResult.fileType || astResult.content || astResult.safeStore || astResult.traversal) : true;
+        const astResult = BltLabs.analyzeUploadFix?.(code);
+        const plausibleFix = astResult?.plausible ?? true;
         const checks = [
             {
                 label: 'Uploaded files are restricted to allowed types',
@@ -605,7 +588,7 @@
     }
 
     function validateSensitiveDataFix(code) {
-        const astResult = analyzeSensitiveDataFix?.(code);
+        const astResult = BltLabs.analyzeSensitiveDataFix?.(code);
         const plausibleFix = isPlausibleSensitiveDataFix(code) &&
             (astResult?.plausible ?? true);
 
@@ -656,7 +639,7 @@
     }
 
     function validateSsrfFix(code) {
-        const astResult = analyzeSsrfFix?.(code);
+        const astResult = BltLabs.analyzeSsrfFix?.(code);
         const plausibleFix = isPlausibleSsrfFix(code) &&
             (astResult?.plausible ?? true);
 
@@ -703,9 +686,8 @@
     }
 
     function validateAuthFix(code) {
-        const astResult = analyzeAuthFix?.(code);
-        const plausibleFix = astResult ?
-            (astResult.credentials || astResult.sessions || astResult.tokens || astResult.limits) : true;
+        const astResult = BltLabs.analyzeAuthFix?.(code);
+        const plausibleFix = astResult?.plausible ?? true;
         const checks = [
             {
                 label: 'Credentials or reset secrets are strengthened',

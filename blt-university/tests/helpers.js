@@ -109,8 +109,8 @@ function loadLabHelpers(overrides = {}) {
     window
   };
 
-  // Load order matters: core.js seeds the BltLabs namespace that the rest extend, and
-  // main.js destructures from it, so it must run last.
+  // Load the AST module before validators and the public test surface so every
+  // analyzer is available when those modules initialize.
   const modularScriptNames = [
     'ast.js',
     'core.js',
