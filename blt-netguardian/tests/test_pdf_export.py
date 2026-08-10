@@ -15,7 +15,13 @@ from findings_service import export_finding_pdf_for_request, export_pdf_for_requ
 from ingest_service import process_ingest
 from ingest_store import IngestStore
 from netguardian_db import open_netguardian_db
-from pdf_report import build_findings_pdf, pdf_contains_plaintext_secret, render_pdf
+from pdf_report import (
+    build_findings_pdf,
+    pdf_contains_plaintext_secret,
+    presentation_finding,
+    render_pdf,
+    sanitize_target,
+)
 from test_worker_api import BLTWorker, FakeRequest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -91,6 +97,39 @@ def test_redacted_snippet_never_leaks_secret_literals():
     assert leaked == []
     assert b"[REDACTED]" in pdf
     assert b"visible" in pdf
+
+
+def test_sanitize_target_strips_credentials_query_and_fragment():
+    assert (
+        sanitize_target(f"https://user:pass@example.com/a/b?token={SECRET_PLAIN}#frag")
+        == "https://example.com/a/b"
+    )
+
+
+def test_metadata_redaction_keeps_secret_plain_out_of_pdf():
+    finding = {
+        "id": "f-meta",
+        "org_id": "org-demo",
+        "rule_id": "http.missing-hsts",
+        "severity": "high",
+        "title": f"Leak token={SECRET_PLAIN} in title",
+        "target": f"https://user:{SECRET_PLAIN}@example.com/path?api_key={SECRET_PLAIN}#x",
+        "fingerprint": f"token={SECRET_PLAIN}",
+        "status": "open",
+        "cve_id": None,
+        "cve_score": None,
+    }
+    safe = presentation_finding(finding)
+    assert SECRET_PLAIN not in safe["title"]
+    assert SECRET_PLAIN not in safe["target"]
+    assert SECRET_PLAIN not in safe["fingerprint"]
+    assert safe["target"] == "https://example.com/path"
+    assert "token=[REDACTED]" in safe["title"]
+
+    pdf = build_findings_pdf([finding], org_id="org-demo")
+    assert pdf_contains_plaintext_secret(pdf, [SECRET_PLAIN]) == []
+    assert b"https://example.com/path" in pdf
+    assert b"token=[REDACTED]" in pdf
 
 
 @pytest.mark.asyncio

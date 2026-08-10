@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Iterable, Mapping, Optional, Sequence
+from urllib.parse import urlsplit, urlunsplit
 
-from payload_redact import redact_payload
+from payload_redact import REDACT_KEYS, redact_payload
 
 PAGE_WIDTH = 612
 PAGE_HEIGHT = 792
@@ -15,6 +17,12 @@ LINE_HEIGHT = 14
 MAX_LINES_PER_PAGE = 48
 MAX_FINDINGS = 200
 MAX_LINE_CHARS = 95
+
+_SECRET_KV_RE = re.compile(
+    r"(?i)\b(" + "|".join(re.escape(k) for k in sorted(REDACT_KEYS, key=len, reverse=True)) + r")"
+    r"\b\s*[=:]\s*\S+"
+)
+_URL_IN_TEXT_RE = re.compile(r"(?i)\b[a-z][a-z0-9+.-]*://[^\s<>\"']+")
 
 
 def _pdf_escape(text: str) -> str:
@@ -51,20 +59,71 @@ def _wrap(text: str, width: int = MAX_LINE_CHARS) -> list[str]:
     return lines
 
 
+def sanitize_target(target: Any) -> str:
+    """Strip URL credentials, query strings, and fragments from a finding target."""
+    raw = str(target or "").strip()
+    if not raw:
+        return ""
+    parts = urlsplit(raw)
+    if parts.scheme and parts.netloc:
+        netloc = parts.netloc.rsplit("@", 1)[-1]
+        return urlunsplit((parts.scheme, netloc, parts.path, "", ""))
+    # Non-URL / relative locators: still drop query/fragment and userinfo-looking prefixes.
+    without_frag = raw.split("#", 1)[0]
+    without_query = without_frag.split("?", 1)[0]
+    if "@" in without_query and "://" not in without_query:
+        without_query = without_query.rsplit("@", 1)[-1]
+    return without_query
+
+
+def redact_secret_bearing_text(value: Any) -> str:
+    """Redact key=value secret patterns and sanitize embedded URLs in free text."""
+    text = str(value or "")
+    if not text:
+        return ""
+
+    def _replace_url(match: re.Match[str]) -> str:
+        return sanitize_target(match.group(0))
+
+    text = _URL_IN_TEXT_RE.sub(_replace_url, text)
+    text = _SECRET_KV_RE.sub(lambda m: f"{m.group(1)}=[REDACTED]", text)
+    return text
+
+
+def presentation_finding(finding: Mapping[str, Any]) -> dict[str, Any]:
+    """Return a PDF-safe copy of finding metadata (never mutates the input)."""
+    return {
+        "id": finding.get("id"),
+        "org_id": finding.get("org_id"),
+        "severity": finding.get("severity"),
+        "status": finding.get("status"),
+        "cve_id": finding.get("cve_id"),
+        "cve_score": finding.get("cve_score"),
+        "blt_issue_id": finding.get("blt_issue_id"),
+        "created_at": finding.get("created_at"),
+        "updated_at": finding.get("updated_at"),
+        "title": redact_secret_bearing_text(finding.get("title")),
+        "rule_id": redact_secret_bearing_text(finding.get("rule_id")),
+        "target": sanitize_target(finding.get("target")),
+        "fingerprint": redact_secret_bearing_text(finding.get("fingerprint") or "—"),
+    }
+
+
 def finding_lines(finding: Mapping[str, Any], *, include_snippet: Optional[Mapping[str, Any]] = None) -> list[str]:
     """Render one finding as report lines (metadata only; secrets redacted)."""
+    safe = presentation_finding(finding)
     lines = [
-        f"Finding: {finding.get('id') or ''}",
-        f"Title: {_clip(finding.get('title') or '')}",
-        f"Rule: {_clip(finding.get('rule_id') or '')}",
-        f"Severity: {finding.get('severity') or ''}",
-        f"Status: {finding.get('status') or ''}",
-        f"Target: {_clip(finding.get('target') or '')}",
-        f"CVE: {finding.get('cve_id') or '—'}  score={finding.get('cve_score') if finding.get('cve_score') is not None else '—'}",
-        f"Issue: {finding.get('blt_issue_id') or '—'}",
-        f"Org: {finding.get('org_id') or ''}",
-        f"Fingerprint: {_clip(finding.get('fingerprint') or '—')}",
-        f"Created: {finding.get('created_at') or ''}  Updated: {finding.get('updated_at') or ''}",
+        f"Finding: {safe.get('id') or ''}",
+        f"Title: {_clip(safe.get('title') or '')}",
+        f"Rule: {_clip(safe.get('rule_id') or '')}",
+        f"Severity: {safe.get('severity') or ''}",
+        f"Status: {safe.get('status') or ''}",
+        f"Target: {_clip(safe.get('target') or '')}",
+        f"CVE: {safe.get('cve_id') or '—'}  score={safe.get('cve_score') if safe.get('cve_score') is not None else '—'}",
+        f"Issue: {safe.get('blt_issue_id') or '—'}",
+        f"Org: {safe.get('org_id') or ''}",
+        f"Fingerprint: {_clip(safe.get('fingerprint') or '—')}",
+        f"Created: {safe.get('created_at') or ''}  Updated: {safe.get('updated_at') or ''}",
     ]
     if include_snippet is not None:
         redacted = redact_payload(dict(include_snippet))

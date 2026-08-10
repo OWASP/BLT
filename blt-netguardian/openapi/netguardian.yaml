@@ -48,44 +48,21 @@ paths:
       security:
         - bearerOrgToken: []
       parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-        - name: severity
-          in: query
-          schema:
-            type: string
-        - name: cve_id
-          in: query
-          schema:
-            type: string
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 50
-            maximum: 100
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            default: 0
-        - name: sort
-          in: query
-          schema:
-            type: string
-            enum: [updated_at, created_at, severity, rule_id]
-            default: updated_at
-        - name: order
-          in: query
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: desc
+        - $ref: "#/components/parameters/FindingsStatus"
+        - $ref: "#/components/parameters/FindingsSeverity"
+        - $ref: "#/components/parameters/FindingsCveId"
+        - $ref: "#/components/parameters/FindingsCreatedFrom"
+        - $ref: "#/components/parameters/FindingsCreatedTo"
+        - $ref: "#/components/parameters/FindingsTriageQueue"
+        - $ref: "#/components/parameters/FindingsLimit"
+        - $ref: "#/components/parameters/FindingsOffset"
+        - $ref: "#/components/parameters/FindingsSort"
+        - $ref: "#/components/parameters/FindingsOrder"
       responses:
         "200":
           description: Paginated findings for authenticated org
+        "400":
+          description: Invalid findings query (`invalid_query`)
         "401":
           description: Missing or invalid org API token
 
@@ -95,14 +72,16 @@ paths:
       security:
         - bearerOrgToken: []
       parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-        - name: severity
-          in: query
-          schema:
-            type: string
+        - $ref: "#/components/parameters/FindingsStatus"
+        - $ref: "#/components/parameters/FindingsSeverity"
+        - $ref: "#/components/parameters/FindingsCveId"
+        - $ref: "#/components/parameters/FindingsCreatedFrom"
+        - $ref: "#/components/parameters/FindingsCreatedTo"
+        - $ref: "#/components/parameters/FindingsTriageQueue"
+        - $ref: "#/components/parameters/FindingsLimit"
+        - $ref: "#/components/parameters/FindingsOffset"
+        - $ref: "#/components/parameters/FindingsSort"
+        - $ref: "#/components/parameters/FindingsOrder"
       responses:
         "200":
           description: CSV attachment
@@ -110,8 +89,12 @@ paths:
             text/csv:
               schema:
                 type: string
+        "400":
+          description: Invalid findings query (`invalid_query`)
         "401":
           description: Missing or invalid org API token
+        "503":
+          description: Findings storage not configured
 
   /api/findings/export.pdf:
     get:
@@ -119,14 +102,16 @@ paths:
       security:
         - bearerOrgToken: []
       parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-        - name: severity
-          in: query
-          schema:
-            type: string
+        - $ref: "#/components/parameters/FindingsStatus"
+        - $ref: "#/components/parameters/FindingsSeverity"
+        - $ref: "#/components/parameters/FindingsCveId"
+        - $ref: "#/components/parameters/FindingsCreatedFrom"
+        - $ref: "#/components/parameters/FindingsCreatedTo"
+        - $ref: "#/components/parameters/FindingsTriageQueue"
+        - $ref: "#/components/parameters/FindingsLimit"
+        - $ref: "#/components/parameters/FindingsOffset"
+        - $ref: "#/components/parameters/FindingsSort"
+        - $ref: "#/components/parameters/FindingsOrder"
       responses:
         "200":
           description: PDF attachment (pure-Python, Workers-safe)
@@ -135,6 +120,8 @@ paths:
               schema:
                 type: string
                 format: binary
+        "400":
+          description: Invalid findings query (`invalid_query`)
         "401":
           description: Missing or invalid org API token
         "503":
@@ -214,6 +201,67 @@ components:
       type: http
       scheme: bearer
       description: Org-scoped API token (NG_ORG_API_TOKENS)
+  parameters:
+    FindingsStatus:
+      name: status
+      in: query
+      schema:
+        type: string
+    FindingsSeverity:
+      name: severity
+      in: query
+      schema:
+        type: string
+    FindingsCveId:
+      name: cve_id
+      in: query
+      schema:
+        type: string
+    FindingsCreatedFrom:
+      name: created_from
+      in: query
+      description: Inclusive lower bound (unix seconds)
+      schema:
+        type: integer
+    FindingsCreatedTo:
+      name: created_to
+      in: query
+      description: Inclusive upper bound (unix seconds)
+      schema:
+        type: integer
+    FindingsTriageQueue:
+      name: triage_queue
+      in: query
+      description: When true, restrict to findings needing triage
+      schema:
+        type: boolean
+    FindingsLimit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 50
+        maximum: 100
+    FindingsOffset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        default: 0
+    FindingsSort:
+      name: sort
+      in: query
+      schema:
+        type: string
+        enum: [updated_at, created_at, severity, rule_id]
+        default: updated_at
+    FindingsOrder:
+      name: order
+      in: query
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
   schemas:
     ZtrEnvelope:
       allOf:
