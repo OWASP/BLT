@@ -29,3 +29,4 @@ Static “why this matters” + markdown fix guidance keyed by `rule_id`, with o
 - Fragments are trusted static content authored in-repo (not scanner/user input).
 - Triage UI escapes markdown before inserting into the DOM (no raw HTML render).
 
+
