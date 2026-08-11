@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS shadow_predictions (
     matched INTEGER DEFAULT NULL,    -- 1 = prediction matched, 0 = mismatch, NULL = not yet compared
     shadow_event_id TEXT,            -- triage_event_id created during shadow run
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    compared_at TEXT                 -- timestamp of when comparison was performed
+    compared_at TEXT,                -- timestamp of when comparison was performed
+    UNIQUE(project_id, issue_iid)
 );
 
 CREATE INDEX IF NOT EXISTS idx_shadow_predictions_created

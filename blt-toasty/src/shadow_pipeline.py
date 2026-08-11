@@ -192,7 +192,7 @@ async def run_shadow_triage(issue: dict, env: Any, db: Any) -> dict:
     try:
         from src.vectorize_client import index_report
 
-        repo_name = f"shadow/{issue['project_id']}"
+        repo_name = str(issue["project_id"])
         await index_report(
             event_id=event_id,
             redacted_text=redacted_text,
@@ -278,7 +278,16 @@ async def compare_and_store(db: Any, issue: dict, shadow_result: dict) -> dict:
         "(id, gitlab_issue_url, project_id, issue_iid, predicted_cwe, "
         "predicted_duplicate_of, predicted_confidence, actual_labels, "
         "actual_state, matched, shadow_event_id, compared_at) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+        "ON CONFLICT(project_id, issue_iid) DO UPDATE SET "
+        "predicted_cwe=excluded.predicted_cwe, "
+        "predicted_duplicate_of=excluded.predicted_duplicate_of, "
+        "predicted_confidence=excluded.predicted_confidence, "
+        "actual_labels=excluded.actual_labels, "
+        "actual_state=excluded.actual_state, "
+        "matched=excluded.matched, "
+        "shadow_event_id=excluded.shadow_event_id, "
+        "compared_at=excluded.compared_at"
     ).bind(
         prediction_id,
         issue.get("web_url", ""),
