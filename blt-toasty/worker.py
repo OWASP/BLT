@@ -92,6 +92,9 @@ async def on_fetch(request, env):
             return create_method_not_allowed_response(path, ["GET", "HEAD"])
     elif path == "/admin/shadow-report":
         if method == "GET":
+            claims, err_resp = await _authenticate_request(request, env)
+            if err_resp:
+                return err_resp
             return await handle_shadow_report(request, env)
         else:
             return create_method_not_allowed_response(path, ["GET"])
