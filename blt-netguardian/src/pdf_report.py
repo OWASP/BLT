@@ -18,9 +18,13 @@ MAX_LINES_PER_PAGE = 48
 MAX_FINDINGS = 200
 MAX_LINE_CHARS = 95
 
+_SECRET_KEY_ALT = "|".join(
+    re.escape(k) for k in sorted(REDACT_KEYS, key=len, reverse=True)
+)
+# Optional matching quotes around the key; quoted or unquoted values (incl. spaces).
 _SECRET_KV_RE = re.compile(
-    r"(?i)\b(" + "|".join(re.escape(k) for k in sorted(REDACT_KEYS, key=len, reverse=True)) + r")"
-    r"\b\s*[=:]\s*\S+"
+    rf'(?i)(?:(["\'])({_SECRET_KEY_ALT})\1|\b({_SECRET_KEY_ALT})\b)\s*[=:]\s*'
+    r'(?:"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|\S+)'
 )
 _URL_IN_TEXT_RE = re.compile(r"(?i)\b[a-z][a-z0-9+.-]*://[^\s<>\"']+")
 
@@ -86,7 +90,12 @@ def redact_secret_bearing_text(value: Any) -> str:
         return sanitize_target(match.group(0))
 
     text = _URL_IN_TEXT_RE.sub(_replace_url, text)
-    text = _SECRET_KV_RE.sub(lambda m: f"{m.group(1)}=[REDACTED]", text)
+
+    def _replace_kv(match: re.Match[str]) -> str:
+        key = match.group(2) or match.group(3) or "secret"
+        return f"{key}=[REDACTED]"
+
+    text = _SECRET_KV_RE.sub(_replace_kv, text)
     return text
 
 

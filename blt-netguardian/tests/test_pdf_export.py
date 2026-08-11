@@ -132,6 +132,33 @@ def test_metadata_redaction_keeps_secret_plain_out_of_pdf():
     assert b"token=[REDACTED]" in pdf
 
 
+def test_quoted_secret_assignments_redacted_from_pdf():
+    spaced = "two word secret"
+    finding = {
+        "id": "f-quoted",
+        "org_id": "org-demo",
+        "rule_id": f'"api_key":"{SECRET_PLAIN}"',
+        "severity": "high",
+        "title": f'JSON "token":"{SECRET_PLAIN}" and token="{spaced}"',
+        "target": "https://example.com/report",
+        "fingerprint": f"password='{spaced}'",
+        "status": "open",
+        "cve_id": None,
+        "cve_score": None,
+    }
+    safe = presentation_finding(finding)
+    assert SECRET_PLAIN not in safe["title"]
+    assert SECRET_PLAIN not in safe["rule_id"]
+    assert spaced not in safe["title"]
+    assert spaced not in safe["fingerprint"]
+    assert "token=[REDACTED]" in safe["title"]
+    assert "api_key=[REDACTED]" in safe["rule_id"]
+    assert "password=[REDACTED]" in safe["fingerprint"]
+
+    pdf = build_findings_pdf([finding], org_id="org-demo")
+    assert pdf_contains_plaintext_secret(pdf, [SECRET_PLAIN, spaced]) == []
+
+
 @pytest.mark.asyncio
 async def test_export_pdf_list_and_detail(env, db, fixture_data, secret):
     body = dict(fixture_data["envelope_unsigned"])
