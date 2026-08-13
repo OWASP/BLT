@@ -436,6 +436,31 @@ describe('lab fix validators', () => {
       });
     });
 
+    it('fails closed on valid but unrelated JavaScript for every lab', () => {
+      const unrelatedCode = `
+        const greeting = 'hello';
+        const numbers = [1, 2, 3];
+        numbers.map((number) => number * 2);
+      `;
+      const validators = [
+        'validateSqliFix',
+        'validateXssFix',
+        'validateCsrfFix',
+        'validateRedirectFix',
+        'validateCommandFix',
+        'validateUploadFix',
+        'validateSensitiveDataFix',
+        'validateSsrfFix',
+        'validateAuthFix',
+        'validateIdorFix'
+      ];
+
+      validators.forEach((name) => {
+        const result = loadLabHelpers().helpers[name](unrelatedCode);
+        expect(result.passed).toBe(false);
+      });
+    });
+
     it('accepts secure open redirect handling', () => {
       const { validateRedirectFix } = loadLabHelpers().helpers;
       const result = validateRedirectFix(`

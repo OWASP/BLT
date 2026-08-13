@@ -83,6 +83,7 @@ function loadLabHelpers(overrides = {}) {
   window.localStorage.clear();
   delete window.__BLT_LAB_TESTING__;
   delete window.BltLabs;
+  window.acorn = require('acorn');
   window.__BLT_LAB_TEST_MODE__ = true;
 
   if (overrides.pathname) {
@@ -101,15 +102,17 @@ function loadLabHelpers(overrides = {}) {
   });
 
   const browserSandbox = {
+    acorn: require('acorn'),
     CustomEvent: window.CustomEvent,
     document,
     localStorage: window.localStorage,
     window
   };
 
-  // Load order matters: core.js seeds the BltLabs namespace that the rest extend, and
-  // main.js destructures from it, so it must run last.
+  // Load the AST module before validators and the public test surface so every
+  // analyzer is available when those modules initialize.
   const modularScriptNames = [
+    'ast.js',
     'core.js',
     'validators.js',
     'ui.js',
@@ -128,6 +131,7 @@ function loadLabHelpers(overrides = {}) {
   expect(window.__BLT_LAB_TESTING__).toBeTruthy();
 
   return {
+    analyzers: window.BltLabs,
     helpers: window.__BLT_LAB_TESTING__,
     storage: {
       get(key) {
