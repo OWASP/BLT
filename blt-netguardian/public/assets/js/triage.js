@@ -253,11 +253,11 @@
             panel.innerHTML = `
               <div class="finding-card">
                 <div class="finding-card-title">${esc(id)} · ${esc(rule)}</div>
-                <div class="detail-tabs">
-                  <span class="detail-tab active" data-tab="evidence">Evidence</span>
-                  <span class="detail-tab" data-tab="risk">Risk</span>
-                  <span class="detail-tab" data-tab="fix">Fix</span>
-                  <span class="detail-tab" data-tab="status">Status</span>
+                <div class="detail-tabs" role="tablist">
+                  <button type="button" class="detail-tab active" role="tab" data-tab="evidence" aria-selected="true">Evidence</button>
+                  <button type="button" class="detail-tab" role="tab" data-tab="risk" aria-selected="false">Risk</button>
+                  <button type="button" class="detail-tab" role="tab" data-tab="fix" aria-selected="false">Fix</button>
+                  <button type="button" class="detail-tab" role="tab" data-tab="status" aria-selected="false">Status</button>
                 </div>
                 <div class="detail-tab-panels">
                   <div class="detail-tab-panel active" data-panel="evidence">
@@ -344,7 +344,9 @@
                 tab.addEventListener('click', function () {
                     const name = tab.getAttribute('data-tab');
                     panel.querySelectorAll('.detail-tab').forEach(function (t) {
-                        t.classList.toggle('active', t.getAttribute('data-tab') === name);
+                        const on = t.getAttribute('data-tab') === name;
+                        t.classList.toggle('active', on);
+                        t.setAttribute('aria-selected', on ? 'true' : 'false');
                     });
                     panel.querySelectorAll('.detail-tab-panel').forEach(function (p) {
                         p.classList.toggle('active', p.getAttribute('data-panel') === name);

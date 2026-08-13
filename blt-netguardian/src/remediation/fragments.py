@@ -6,7 +6,10 @@ render as text/markdown safely (no raw HTML injection into the DOM).
 
 from __future__ import annotations
 
+import re
 from typing import Any, Optional
+
+_CVE_ID_RE = re.compile(r"CVE-\d{4}-\d{4,}")
 
 # Exact rule_id → fragment. Keep short; OWASP links are the deep references.
 _FRAGMENTS: dict[str, dict[str, Any]] = {
@@ -181,7 +184,7 @@ def lookup_remediation(rule_id: Optional[str], *, cve_id: Optional[str] = None) 
     }
     if cve_id:
         cve = str(cve_id).strip().upper()
-        if cve.startswith("CVE-"):
+        if _CVE_ID_RE.fullmatch(cve):
             result["cve_links"] = [
                 f"https://nvd.nist.gov/vuln/detail/{cve}",
                 f"https://www.cve.org/CVERecord?id={cve}",

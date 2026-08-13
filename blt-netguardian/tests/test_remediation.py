@@ -44,6 +44,9 @@ def test_lookup_exact_and_prefix_and_cve():
     with_cve = lookup_remediation("http.missing-csp", cve_id="cve-2024-1234")
     assert with_cve["cve_links"][0].endswith("CVE-2024-1234")
 
+    invalid = lookup_remediation("http.missing-csp", cve_id="CVE-invalid")
+    assert invalid["cve_links"] == []
+
 
 def test_lookup_unknown_has_safe_default():
     unknown = lookup_remediation("custom.weird-rule")
