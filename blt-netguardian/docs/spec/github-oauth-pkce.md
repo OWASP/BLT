@@ -33,3 +33,5 @@ Mutations require Bearer **or** session (no demo fallback).
 ## Tables
 
 See `migrations/0004_oauth_sessions.sql` (`oauth_states`, `auth_sessions`).
+
+
