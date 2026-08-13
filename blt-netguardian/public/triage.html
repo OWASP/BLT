@@ -925,14 +925,18 @@
             border-bottom: 1px solid rgba(255, 170, 0, 0.25);
         }
         .detail-tab {
+            appearance: none;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
             padding: 5px 10px;
+            font: inherit;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.06em;
             color: var(--text-muted);
             cursor: pointer;
-            border-bottom: 2px solid transparent;
             margin-bottom: -1px;
         }
         .detail-tab.active {
@@ -940,6 +944,10 @@
             border-bottom-color: #ffaa00;
         }
         .detail-tab:hover { color: #ffcc55; }
+        .detail-tab:focus-visible {
+            outline: 2px solid #ffaa00;
+            outline-offset: 2px;
+        }
 
         /* Likelihood / Impact two-column block */
         .risk-row {
