@@ -89,7 +89,7 @@ tailwind.config = {
   <aside class="hidden lg:flex lg:flex-col lg:h-screen lg:sticky lg:top-0 bg-[var(--blt-surface)] border-r border-[var(--blt-border)] overflow-y-auto" aria-label="Main navigation">
     <!-- Brand -->
     <div class="flex items-center justify-between px-4 pt-5 pb-4">
-      <a class="flex items-center gap-2.5" href="#">
+      <a class="flex items-center gap-2.5" href="landing.html">
         <div class="w-8 h-8 rounded-md bg-[var(--blt-primary)] flex items-center justify-center text-white font-extrabold text-sm">B</div>
         <div>
           <span class="text-sm font-semibold tracking-tight text-[var(--blt-text)]">BLT HackerHouse</span>
@@ -102,6 +102,10 @@ tailwind.config = {
 
     <!-- Navigation -->
     <nav class="flex-1 px-3 space-y-0.5" aria-label="Pages">
+      <a class="sidebar-link" href="landing.html">
+        <span class="material-symbols-outlined nav-icon text-lg">info</span>
+        About
+      </a>
       <a class="sidebar-link active" aria-current="page" href="#">
         <span class="material-symbols-outlined nav-icon text-lg" style="font-variation-settings:'FILL' 1">home</span>
         HackerHouse
@@ -142,36 +146,39 @@ tailwind.config = {
   <main class="blt-page-main flex flex-col h-screen overflow-hidden">
 
     <!-- ── Top Bar ── -->
-    <header class="flex-none flex items-center justify-between px-4 lg:px-6 h-14 border-b border-[var(--blt-border)] bg-[var(--blt-surface)]/80 backdrop-blur-md z-30">
+    <header class="hh-header flex-none flex items-center justify-between px-4 lg:px-6 h-14 border-b border-[var(--blt-border)] bg-[var(--blt-surface)]/80 backdrop-blur-md z-30">
       <div class="flex items-center gap-4">
         <!-- Mobile hamburger -->
         <button class="lg:hidden p-1.5 rounded-md text-[var(--blt-text-muted)] hover:text-[var(--blt-text)] hover:bg-[var(--blt-surface-muted)] transition-colors" onclick="document.querySelector('aside').classList.toggle('hidden')">
           <span class="material-symbols-outlined text-lg">menu</span>
         </button>
-        <div class="flex items-center gap-3">
-          <span class="blt-badge text-[10px]">
-            <span class="w-1.5 h-1.5 rounded-full bg-[var(--blt-primary)]" style="animation:hh-pulse-dot 1.5s ease-in-out infinite"></span>
-            <span id="live-label">LIVE</span>
-          </span>
-          <span class="font-mono text-[11px] text-[var(--blt-text-subtle)]" id="online-count">0 online</span>
-        </div>
+        <nav class="hidden sm:flex items-center gap-1.5 hh-breadcrumbs" aria-label="Breadcrumb">
+          <a href="hackerhouse_state.html" class="hover:text-[var(--blt-text)] transition-colors">HackerHouse</a>
+          <span class="material-symbols-outlined text-xs">chevron_right</span>
+          <span class="current">Digital Twin</span>
+        </nav>
       </div>
       <div class="flex items-center gap-2">
         <span class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold font-mono text-[var(--blt-text-subtle)] bg-[var(--blt-surface-muted)]">
           <span class="hh-ws-status w-1.5 h-1.5 rounded-full bg-[var(--blt-text-subtle)]" id="ws-indicator"></span>
           <span id="ws-label">connecting…</span>
         </span>
-        <a href="activity_feed.html" class="p-2 rounded-md text-[var(--blt-text-muted)] hover:text-[var(--blt-text)] hover:bg-[var(--blt-surface-muted)] transition-colors" title="Activity Feed">
-          <span class="material-symbols-outlined text-lg">rss_feed</span>
-        </a>
-        <a href="leaderboard.html" class="p-2 rounded-md text-[var(--blt-text-muted)] hover:text-[var(--blt-text)] hover:bg-[var(--blt-surface-muted)] transition-colors" title="Leaderboard">
-          <span class="material-symbols-outlined text-lg">leaderboard</span>
-        </a>
-        <a href="status_health.html" class="p-2 rounded-md text-[var(--blt-text-muted)] hover:text-[var(--blt-text)] hover:bg-[var(--blt-surface-muted)] transition-colors" title="Status">
-          <span class="material-symbols-outlined text-lg">sensors</span>
-        </a>
+        <div class="hh-user-pill hidden sm:flex">
+          <div class="hh-user-avatar">B</div>
+          <span class="hh-user-name">BLT Node</span>
+          <span class="material-symbols-outlined text-sm text-[var(--blt-text-subtle)]">expand_more</span>
+        </div>
       </div>
     </header>
+
+    <!-- ── Live indicator below header ── -->
+    <div class="flex-none flex items-center gap-2 px-4 lg:px-6 py-1.5 border-b border-[var(--blt-border)] bg-[var(--blt-surface-muted)]/60">
+      <span class="blt-badge text-[10px]">
+        <span class="w-1.5 h-1.5 rounded-full bg-[var(--blt-primary)]" style="animation:hh-pulse-dot 1.5s ease-in-out infinite"></span>
+        <span id="live-label">LIVE</span>
+      </span>
+      <span class="font-mono text-[11px] text-[var(--blt-text-subtle)]" id="online-count">0 online</span>
+    </div>
 
     <!-- ── Main Content Area ── -->
     <div class="flex-1 flex overflow-hidden">
@@ -210,7 +217,7 @@ tailwind.config = {
         <div class="flex-1 flex flex-col gap-2.5 min-h-0">
 
           <!-- Floor 3 -->
-          <div class="hh-floor flex-1 flex flex-col min-h-0">
+          <div class="hh-floor flex-1 flex flex-col min-h-0" data-floor="3">
             <div class="hh-floor-header">
               <span class="font-mono font-bold text-[10px] text-[var(--blt-text-muted)] tracking-widest uppercase">Floor 3 <span class="text-[var(--blt-text-subtle)]">· Review &amp; QA</span></span>
               <span class="font-mono text-[10px] text-emerald-500" id="floor-3-rate">0 ev/hr</span>
@@ -219,7 +226,7 @@ tailwind.config = {
           </div>
 
           <!-- Floor 2 -->
-          <div class="hh-floor flex-[2] flex flex-col min-h-0">
+          <div class="hh-floor flex-[2] flex flex-col min-h-0" data-floor="2">
             <div class="hh-floor-header">
               <span class="font-mono font-bold text-[10px] text-[var(--blt-text-muted)] tracking-widest uppercase">Floor 2 <span class="text-[var(--blt-text-subtle)]">· Development Core</span></span>
               <span class="font-mono text-[10px] text-sky-500" id="floor-2-rate">0 ev/hr</span>
@@ -228,7 +235,7 @@ tailwind.config = {
           </div>
 
           <!-- Floor 1 -->
-          <div class="hh-floor flex-1 flex flex-col min-h-0">
+          <div class="hh-floor flex-1 flex flex-col min-h-0" data-floor="1">
             <div class="hh-floor-header">
               <span class="font-mono font-bold text-[10px] text-[var(--blt-text-muted)] tracking-widest uppercase">Floor 1 <span class="text-[var(--blt-text-subtle)]">· Operations</span></span>
               <span class="font-mono text-[10px] text-rose-400" id="floor-1-rate">0 ev/hr</span>
@@ -252,7 +259,10 @@ tailwind.config = {
             <span class="blt-badge text-[10px]">realtime</span>
           </div>
           <div id="activity-feed-list" class="flex-1 overflow-y-auto p-2 space-y-0.5 hh-scrollbar">
-            <div class="flex items-center justify-center h-full text-sm text-[var(--blt-text-subtle)]">Waiting for activity…</div>
+            <div class="hh-empty-state">
+              <span class="material-symbols-outlined">timeline</span>
+              <span class="hh-empty-state-text">Waiting for activity…</span>
+            </div>
           </div>
         </div>
 
@@ -265,7 +275,10 @@ tailwind.config = {
             </h2>
           </div>
           <div id="leaderboard-body" class="flex-1 overflow-y-auto p-2 space-y-1 hh-scrollbar">
-            <div class="flex items-center justify-center h-full text-sm text-[var(--blt-text-subtle)]">No contributors yet</div>
+            <div class="hh-empty-state">
+              <span class="material-symbols-outlined">military_tech</span>
+              <span class="hh-empty-state-text">No contributors yet</span>
+            </div>
           </div>
         </div>
 
@@ -305,8 +318,47 @@ tailwind.config = {
 
       </aside>
     </div>
+
+    <!-- Footer -->
+    <footer class="hh-footer flex-none">
+      <span><span class="hh-footer-dot"></span> All Systems Operational</span>
+      <span>BLT HackerHouse v0.4 · <span id="footer-events">0</span> events</span>
+      <span id="footer-uptime">Uptime: --</span>
+    </footer>
+
   </main>
 </div>
+
+<!-- Scroll to top -->
+<button class="hh-scroll-top" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">
+  <span class="material-symbols-outlined">arrow_upward</span>
+</button>
+
+<!-- Mobile Bottom Nav -->
+<nav class="hh-bottom-nav" aria-label="Mobile navigation">
+  <div class="hh-bottom-nav-inner">
+    <a class="hh-bottom-nav-link" href="landing.html">
+      <span class="material-symbols-outlined">info</span>
+      About
+    </a>
+    <a class="hh-bottom-nav-link active" href="hackerhouse_state.html" aria-current="page">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">home</span>
+      Home
+    </a>
+    <a class="hh-bottom-nav-link" href="activity_feed.html">
+      <span class="material-symbols-outlined">rss_feed</span>
+      Feed
+    </a>
+    <a class="hh-bottom-nav-link" href="leaderboard.html">
+      <span class="material-symbols-outlined">leaderboard</span>
+      Board
+    </a>
+    <a class="hh-bottom-nav-link" href="status_health.html">
+      <span class="material-symbols-outlined">sensors</span>
+      Status
+    </a>
+  </div>
+</nav>
 
 <script>
 (function() {
@@ -383,7 +435,7 @@ tailwind.config = {
       g.innerHTML = '';
       for (var i = 0; i < 5; i++) {
         var cell = document.createElement('div');
-        cell.className = 'hh-room';
+        cell.className = 'hh-room hh-room-glass';
         cell.dataset.deco = 'true';
         g.appendChild(cell);
       }
@@ -511,7 +563,17 @@ tailwind.config = {
     var sorted = contributors.slice().sort(function(a,b) { return (b.score||0)-(a.score||0); });
     var top = sorted.slice(0, 10);
     if (top.length === 0) {
-      container.innerHTML = '<div class="flex items-center justify-center h-full text-sm text-[var(--blt-text-subtle)]">No contributors yet</div>';
+      var empty = document.createElement('div');
+      empty.className = 'hh-empty-state';
+      var icon = document.createElement('span');
+      icon.className = 'material-symbols-outlined';
+      icon.textContent = 'military_tech';
+      empty.appendChild(icon);
+      var text = document.createElement('span');
+      text.className = 'hh-empty-state-text';
+      text.textContent = 'No contributors yet';
+      empty.appendChild(text);
+      container.appendChild(empty);
       return;
     }
     var medals = ['#FFD700', '#C0C0C0', '#CD7F32'];
@@ -546,7 +608,17 @@ tailwind.config = {
     if (!container) return;
     var recent = contributors.filter(function(c) { return c.last_event; }).slice(0, 30);
     if (recent.length === 0) {
-      container.innerHTML = '<div class="flex items-center justify-center h-full text-sm text-[var(--blt-text-subtle)]">Waiting for activity\u2026</div>';
+      var empty = document.createElement('div');
+      empty.className = 'hh-empty-state';
+      var icon = document.createElement('span');
+      icon.className = 'material-symbols-outlined';
+      icon.textContent = 'timeline';
+      empty.appendChild(icon);
+      var text = document.createElement('span');
+      text.className = 'hh-empty-state-text';
+      text.textContent = 'Waiting for activity\u2026';
+      empty.appendChild(text);
+      container.appendChild(empty);
       return;
     }
     var html = '';
@@ -592,7 +664,32 @@ tailwind.config = {
   }
 
   // ── Boot ──
-  document.addEventListener('DOMContentLoaded', connect);
+  document.addEventListener('DOMContentLoaded', function() {
+    connect();
+
+    // Header scroll shadow + scroll-to-top
+    var header = document.querySelector('.hh-header');
+    var scrollTop = document.getElementById('scroll-top-btn');
+    var mainArea = document.querySelector('.blt-page-main > .flex-1.overflow-hidden') || document.querySelector('.blt-page-main .flex-1');
+    if (mainArea && header) {
+      mainArea.addEventListener('scroll', function() {
+        header.classList.toggle('scrolled', mainArea.scrollTop > 4);
+        if (scrollTop) scrollTop.classList.toggle('visible', mainArea.scrollTop > 200);
+      });
+    }
+
+    // Footer stats update — called from snapshot handler
+    window._updateFooter = function(totalEvents, uptimeSec) {
+      var evEl = document.getElementById('footer-events');
+      if (evEl) evEl.textContent = totalEvents || '0';
+      var upEl = document.getElementById('footer-uptime');
+      if (upEl && uptimeSec != null) {
+        var h = Math.floor(uptimeSec / 3600);
+        var m = Math.floor((uptimeSec % 3600) / 60);
+        upEl.textContent = 'Uptime: ' + h + 'h ' + m + 'm';
+      }
+    };
+  });
 })();
 </script>
 </body>

@@ -1,0 +1,1 @@
+ookay so the app works fairly well now, but the ui as of now doesn't looks any good. suggest me some ways or designs to improve the ui you may play around with footers, headers, some animations but make sure the ui is intact with the design principles. Do not write any of the code now just tell me what can be made better in the ui and how can we improve it.
