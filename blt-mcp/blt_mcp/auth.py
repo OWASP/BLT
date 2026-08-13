@@ -12,19 +12,16 @@ Key Responsibilities:
 Key Functions:
 - `get_credentials_path() -> Path`: Resolves the absolute platform-independent config directory and returns the path to `credentials.json`.
 - `save_credentials(api_key: str) -> None`: Safely writes the API key into the credentials file as a JSON map, using secure file open flags.
-- `load_credentials() -> Optional[str]`: Loads and returns the raw API key if it exists, logging warnings if errors occur.
+- `load_credentials() -> str | None`: Loads and returns the raw API key if it exists, logging warnings if errors occur.
 
 Dependencies:
-- `os`, `json`, `logging`, `pathlib.Path`, `typing.Optional`
+- `os`, `json`, `logging`, `pathlib.Path`, `str | None`
 """
-
-import os
-
 
 import json
 import logging
+import os
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger("blt-mcp.auth")
 
@@ -45,7 +42,7 @@ def save_credentials(api_key: str) -> None:
         # Save securely with read/write only for owner
         flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
         if hasattr(os, "O_NOFOLLOW"):
-            flags |= getattr(os, "O_NOFOLLOW")
+            flags |= os.O_NOFOLLOW
 
         fd = os.open(creds_path, flags, 0o600)
         # Enforce permissions even if file already existed (Unix-like systems)
@@ -60,7 +57,7 @@ def save_credentials(api_key: str) -> None:
         raise
 
 
-def load_credentials() -> Optional[str]:
+def load_credentials() -> str | None:
     """Load the API key from the credentials file."""
     creds_path = get_credentials_path()
     if not creds_path.exists():
@@ -69,6 +66,6 @@ def load_credentials() -> Optional[str]:
     try:
         data = json.loads(creds_path.read_text(encoding="utf-8"))
         return data.get("BLT_API_KEY")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Failed to load credentials from {creds_path}: {e}")
         return None

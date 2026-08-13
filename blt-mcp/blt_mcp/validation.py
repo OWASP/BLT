@@ -16,13 +16,10 @@ Schemas Defined:
   and the entire set of V2 write tools.
 """
 
-import sys
-
-
-import json
 import io
+import json
 import logging
-from typing import Any, Dict, List, Optional
+import sys
 
 logger = logging.getLogger("blt-mcp.validation")
 
@@ -262,16 +259,31 @@ TOOL_SCHEMAS = {
                 "type": str,
                 "description": "Absolute path to the screenshot image on the local system.",
             },
+            "context": {
+                "type": str,
+                "description": "Optional user-provided context or hints about the screenshot.",
+                "allow_blank": True,
+                "max_length": 1000,
+            },
+        },
+    },
+    "upload_screenshot": {
+        "required": ["image_path", "gitlab_project_id"],
+        "properties": {
+            "image_path": {
+                "type": str,
+                "description": "Absolute path to the screenshot image on the local system.",
+            },
             "gitlab_project_id": {
                 "type": str,
-                "description": "Optional GitLab project ID to upload the image to.",
+                "description": "GitLab project ID to upload the image to.",
             },
         },
     },
 }
 
 
-def validate_tool_arguments(tool_name: str, arguments: dict) -> Optional[str]:
+def validate_tool_arguments(tool_name: str, arguments: dict) -> str | None:
     """
     Validate tool arguments against defined tool schemas.
     Returns None if valid, or an error message string if invalid.
@@ -311,7 +323,18 @@ def validate_tool_arguments(tool_name: str, arguments: dict) -> Optional[str]:
                     if not isinstance(item, item_type):
                         return f"Item at index {idx} in parameter '{key}' must be of type {item_type.__name__}, got {type(item).__name__}"
 
-        if expected_type is str and not val.strip():
+        if (
+            expected_type is str
+            and "max_length" in prop
+            and len(val) > prop["max_length"]
+        ):
+            return f"Parameter '{key}' exceeds maximum length of {prop['max_length']} characters"
+
+        if (
+            expected_type is str
+            and not val.strip()
+            and not prop.get("allow_blank", False)
+        ):
             return f"Parameter '{key}' cannot be blank"
 
     return None
@@ -474,8 +497,8 @@ class InterceptingStdinBuffer(io.BufferedIOBase):
 
                 except json.JSONDecodeError:
                     pass
-                except Exception as e:
-                    logger.exception("Unexpected error while intercepting stdin: %s", e)
+                except Exception:
+                    logger.exception("Unexpected error while intercepting stdin")
             processed_lines.append(line)
 
         self.buffer = b"\n".join(processed_lines)

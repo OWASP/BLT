@@ -21,9 +21,7 @@ Safety / Confirmation Flow:
 
 import logging
 
-
-from typing import List, Optional
-from blt_mcp.server_base import mcp, http_client
+from blt_mcp.server_base import http_client, mcp
 from blt_mcp.tools import generate_ai_metadata
 
 logger = logging.getLogger("blt-mcp.v2_tools")
@@ -85,9 +83,9 @@ async def auth_signin(email: str, password: str) -> str:
 async def create_bug(
     title: str,
     description: str,
-    repo_id: Optional[str] = None,
-    labels: Optional[List[str]] = None,
-    assignee: Optional[str] = None,
+    repo_id: str | None = None,
+    labels: list[str] | None = None,
+    assignee: str | None = None,
     confirmed: bool = False,
 ) -> str:
     """
@@ -125,9 +123,9 @@ async def create_bug(
 @mcp.tool()
 async def update_bug(
     id: str,
-    title: Optional[str] = None,
-    description: Optional[str] = None,
-    status: Optional[str] = None,
+    title: str | None = None,
+    description: str | None = None,
+    status: str | None = None,
     confirmed: bool = False,
 ) -> str:
     """
@@ -169,7 +167,7 @@ async def create_user(
     username: str,
     email: str,
     password: str,
-    profile_info: Optional[str] = None,
+    profile_info: str | None = None,
     confirmed: bool = False,
 ) -> str:
     """
@@ -210,7 +208,7 @@ async def create_job(
     title: str,
     description: str,
     company: str,
-    location: Optional[str] = None,
+    location: str | None = None,
     confirmed: bool = False,
 ) -> str:
     """
@@ -249,10 +247,10 @@ async def create_job(
 @mcp.tool()
 async def update_job(
     id: str,
-    title: Optional[str] = None,
-    description: Optional[str] = None,
-    company: Optional[str] = None,
-    location: Optional[str] = None,
+    title: str | None = None,
+    description: str | None = None,
+    company: str | None = None,
+    location: str | None = None,
     confirmed: bool = False,
 ) -> str:
     """
@@ -324,8 +322,8 @@ async def record_job_view(id: str, confirmed: bool = False) -> str:
 async def create_hackathon(
     name: str,
     description: str,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
     confirmed: bool = False,
 ) -> str:
     """
@@ -363,8 +361,8 @@ async def create_hackathon(
 @mcp.tool()
 async def update_hackathon(
     id: str,
-    name: Optional[str] = None,
-    description: Optional[str] = None,
+    name: str | None = None,
+    description: str | None = None,
     confirmed: bool = False,
 ) -> str:
     """

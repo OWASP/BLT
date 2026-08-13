@@ -17,13 +17,11 @@ Access BLT data through standardized URIs:
 - `blt://workflows` - All workflows
 - `blt://workflows/{id}` - Specific workflow details
 - `blt://leaderboards` - Leaderboard rankings and statistics
-- `blt://rewards` - Rewards and bacon points
+- `blt://rewards` - Rewards and contributor bacon
 
 ### Tools
 Perform actions on BLT:
 - **submit_issue** - Report new bugs and vulnerabilities directly to the platform
-- **award_bacon** - Award bacon points to contributors (gamification)
-- **update_issue_status** - Change issue status (open, in_progress, resolved, closed, wont_fix)
 - **add_comment** - Add comments to issues
 - **triage_vulnerability** - Use Cloudflare Workers AI to automatically triage vulnerability severity
 - **draft_vision_issue** - Process screenshots through Cloudflare AI and auto-draft GitLab issues
@@ -31,7 +29,7 @@ Perform actions on BLT:
 ### Prompts
 AI-guided workflows for common security tasks:
 - **plan_remediation** - Create comprehensive remediation plans for security issues
-- **review_contribution** - Evaluate contributions with quality assessment and bacon point recommendations
+- **review_contribution** - Evaluate contributions with quality assessment and reward recommendations
 
 ## Core Features
 
@@ -39,8 +37,8 @@ AI-guided workflows for common security tasks:
 - **Authentication** - Secure access to BLT endpoints via API Keys
 - **Cloudflare AI Integration** - Leverages Cloudflare Workers AI for image processing and vulnerability triage
 - **GitLab Vision-to-Issue Pipeline** - Automatically drafts rich Markdown issues from vulnerability screenshots
-- **Interactive TUI (BLT-CLI)** - A rich terminal UI featuring Leaderboards, Issue Onboarding, and bulk triage
-- **Gamification Support** - Built-in support for BLT's bacon point system with pending verifications
+- **Interactive TUI (BLT-CLI)** - A rich terminal UI featuring Leaderboards and bulk triage
+- **Gamification Support** - Built-in support for BLT's bacon system with pending verifications
 
 ## Installation
 
@@ -129,6 +127,183 @@ To use this server with an MCP client (like Claude Desktop, Cursor, or Cline), a
   }
 }
 ```
+
+## Local Development (Full Stack)
+
+This section walks you through running the **complete BLT stack locally**: `blt-api` (Cloudflare Worker + D1) → `BLT-MCP` (Python MCP server) → `blt-cli` (Rust TUI).
+
+> **Platform note:** The CLI and MCP server must be run from **WSL** (or Linux/macOS) to avoid `.venv` symlink issues on Windows.
+
+---
+
+### Step 1 — Set Up the Local API (`blt-api`)
+
+Clone the `blt-api` repository alongside this one:
+
+```bash
+git clone https://gitlab.com/owasp-blt/blt-api.git
+cd blt-api
+npm install
+```
+
+#### 1a — Configure the D1 Database Binding
+
+Open `wrangler.toml` and update the `[[d1_databases]]` block to point to your local database name. For example, if you created a local D1 called `team_db`:
+
+```toml
+[[d1_databases]]
+binding = "team_db"
+database_name = "team_db"
+database_id = "<your-local-database-id>"
+migrations_dir = "migrations"
+migrations_table = "d1_migrations"
+```
+
+Then open `blt-api/src/libs/db.py` and make sure `team_db` is included in the binding name lookup list:
+
+```python
+# src/libs/db.py
+for name in ['blt_api', 'DB', 'team_db']:   # add your binding name here
+```
+
+#### 1b — Apply Migrations
+
+```bash
+# From the blt-api directory
+npx wrangler d1 migrations apply team_db --local
+```
+
+#### 1c — Seed Test Data
+
+```bash
+npx wrangler d1 execute team_db --local --file=test_data.sql
+```
+
+#### 1d — Start the Local API Server
+
+```bash
+npm run dev
+# or: npx wrangler dev
+```
+
+The API will be available at `http://localhost:8787`. Verify with:
+
+```bash
+curl -H "X-BLT-API-Key: f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051" \
+     http://localhost:8787/v2/bugs
+```
+
+The static public API key for local development is:
+```
+f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051
+```
+
+---
+
+### Step 2 — Configure BLT-MCP
+
+In the `BLT-MCP` directory, create/update your `.env` file to point at the local API:
+
+```env
+BLT_API_BASE=http://localhost:8787
+BLT_API_KEY=f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051
+```
+
+Install dependencies (from WSL):
+
+```bash
+cd /path/to/BLT-MCP
+uv sync
+```
+
+Verify the MCP server starts cleanly:
+
+```bash
+uv run blt-mcp
+# Should hang on stdin waiting for JSON-RPC — that's correct. Ctrl+C to stop.
+```
+
+---
+
+### Step 3 — Run the CLI via MCP
+
+From WSL, inside the `BLT-MCP` root directory:
+
+```bash
+cargo run --manifest-path blt-cli/Cargo.toml -- --mcp-path "uv run blt-mcp"
+```
+
+Or from inside `blt-cli/`:
+
+```bash
+cd blt-cli
+cargo run -- --mcp-path "uv run blt-mcp"
+```
+
+The CLI will:
+1. Spawn `uv run blt-mcp` as a subprocess
+2. Perform the MCP handshake over stdio
+3. Fetch resources (`blt://issues`, `blt://repos`, etc.) from the MCP server
+4. The MCP server calls `http://localhost:8787` using your `.env` key
+5. The TUI renders your local seeded data
+
+---
+
+### Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `500 Database not configured` | Binding name mismatch | Add your binding to the `for name in [...]` list in `db.py` |
+| `500 Database is not initialized` | Migrations not applied | Run `npx wrangler d1 migrations apply <db> --local` |
+| `401 Invalid API key` | Using a `blt_live_` key not in the local DB | Use the static public key above |
+| `EOF reached on subprocess stdout` | MCP server crashed on start | Run `uv run blt-mcp` standalone to see the Python traceback |
+| `MCP Subprocess read timeout` | Wrong `uv` (Windows vs WSL) | Run `cargo run` from WSL, not PowerShell |
+| Issues show 0 in TUI | Empty DB or parse mismatch | Check the curl response from `/v2/bugs` matches the `Issue` struct fields |
+
+---
+
+## Testing
+
+BLT-MCP uses `pytest` for unit testing and `mcp-vcr` for deterministic integration testing of JSON-RPC sessions.
+
+### Running Tests
+
+To run the complete test suite:
+```bash
+uv run pytest
+```
+
+The test suite will execute the unit tests and then automatically run the `mcp-vcr` verification hook against all golden snapshots in the `snapshots/` directory.
+
+### Deterministic Test Mocking
+
+To ensure testing is 100% deterministic and runs without making real network requests to Cloudflare or the live OWASP BLT API during development checks, a test mock HTTP layer is automatically activated during `pytest` runs using the environment variable:
+```env
+BLT_MOCK_HTTP=true
+```
+This intercepts all external requests made by `httpx.AsyncClient` inside the server subprocesses and returns stubbed mock data for test assertions.
+
+### How to Use `mcp-vcr`
+
+`mcp-vcr` records and replays the JSON-RPC communication between the MCP client and the server.
+
+* **Golden Snapshots**: Stored in the `snapshots/` directory.
+* **Recording/Updating Snapshots**:
+  You can create a new `.yaml` template manually inside `snapshots/` with the client-to-server (`c2s`) messages and a meta block (specifying a unique 8-character hex `session_id` like `'00000005'`), and then run the update command to auto-generate the server-to-client (`s2c`) responses:
+  ```bash
+  # Unix/macOS/WSL:
+  export BLT_MOCK_HTTP="true"
+  # PowerShell:
+  # $env:BLT_MOCK_HTTP = "true"
+  uv run mcp-vcr verify snapshots/ --update -- uv run -m blt_mcp.server
+  ```
+  Alternatively, you can record a live session interactively:
+  ```bash
+  uv run mcp-vcr record --name my_test_session -- uv run -m blt_mcp.server
+  ```
+  This will save a recording to `sessions/`, which you can then move to `snapshots/`.
+
+---
 
 ## Usage & Workflows
 

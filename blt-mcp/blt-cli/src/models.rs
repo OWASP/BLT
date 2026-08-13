@@ -18,9 +18,12 @@
 
 use serde::{Deserialize, Serialize};
 
-
+#[allow(dead_code)]
 fn default_repo() -> String {
     "owasp-blt/api".to_string()
+}
+fn default_url() -> String {
+    "Unknown URL".to_string()
 }
 fn default_status() -> String {
     "Triage".to_string()
@@ -35,8 +38,8 @@ fn default_author() -> String {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Issue {
     pub id: String,
-    #[serde(default = "default_repo")]
-    pub repository: String,
+    #[serde(default = "default_url")]
+    pub url: String,
     pub title: String,
     pub description: String,
     #[serde(default = "default_status")]
@@ -52,13 +55,13 @@ pub struct Issue {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Repo {
     pub id: String,
+    pub organization_id: Option<u64>,
+    pub project_id: Option<u64>,
     pub name: String,
     #[serde(default)]
-    pub description: String,
-    #[serde(default)]
     pub url: String,
-    #[serde(default)]
-    pub language: String,
+    pub created: Option<String>,
+    pub modified: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -73,7 +76,8 @@ pub struct Hunt {
 pub struct LeaderboardEntry {
     pub rank: u32,
     pub name: String,
-    pub bacon_points: u32,
+    #[serde(alias = "bacon_points", alias = "total_score")]
+    pub bacon: u32,
     pub reputation: String,
 }
 
@@ -82,7 +86,8 @@ pub struct Stats {
     pub total_issues: u32,
     pub active_repos: u32,
     pub total_contributors: u32,
-    pub bacon_points: u32,
+    #[serde(alias = "bacon_points")]
+    pub bacon: u32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -92,5 +97,6 @@ pub struct GoodFirstIssue {
     pub repository: String,
     pub web_url: String,
     pub description: String,
+    #[serde(alias = "bacon_estimate")]
     pub bacon_estimate: u32,
 }

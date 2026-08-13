@@ -150,7 +150,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 }
                             }
                         }
-
+                        // Attempt to read hunts resource
+                        if let Ok(resp) = client.read_resource("blt://v2/hunts/active").await {
+                            if let Some(contents) = resp
+                                .get("result")
+                                .and_then(|r| r.get("contents"))
+                                .and_then(|c| c.as_array())
+                            {
+                                if let Some(content) = contents.first() {
+                                    if let Some(text) = content.get("text").and_then(|t| t.as_str())
+                                    {
+                                        if let Ok(root) =
+                                            serde_json::from_str::<serde_json::Value>(text)
+                                        {
+                                            if let Ok(hunts) =
+                                                crate::api::parse_hunts_from_json(&root)
+                                            {
+                                                app.hunts = hunts;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         // Attempt to read leaderboard resource
                         if let Ok(resp) = client.read_resource("blt://v2/leaderboard").await {
                             if let Some(contents) = resp
@@ -360,9 +382,7 @@ fn split_arguments(s: &str) -> Vec<String> {
     let mut current = String::new();
     let mut in_double_quotes = false;
     let mut in_single_quotes = false;
-    let mut chars = s.chars().peekable();
-
-    while let Some(c) = chars.next() {
+    for c in s.chars() {
         match c {
             '"' if !in_single_quotes => {
                 in_double_quotes = !in_double_quotes;

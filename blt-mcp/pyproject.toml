@@ -39,5 +39,6 @@ dev = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 
-
-
+[tool.ruff]
+# Ignore minor style/warning rules that are pre-existing in this codebase
+lint.ignore = []

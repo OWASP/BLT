@@ -14,15 +14,13 @@ Usage:
 - Executed directly: `python -m tests.record_test_session` or `uv run tests/record_test_session.py`.
 """
 
-import subprocess
 import json
-import shutil
-import sys
 import os
-import time
+import shutil
+import subprocess
+import sys
 import threading
-import queue as queue_mod
-
+import time
 
 MAX_RESPONSE_LINES = 200
 
@@ -43,8 +41,8 @@ def _read_response(stdout, expected_id, timeout=30.0):
         # Time-bounded readline using a daemon thread
         result = [None]
 
-        def _readline():
-            result[0] = stdout.readline()
+        def _readline(res=result):
+            res[0] = stdout.readline()
 
         t = threading.Thread(target=_readline, daemon=True)
         t.start()

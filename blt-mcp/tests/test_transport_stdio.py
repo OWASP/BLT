@@ -17,11 +17,11 @@ Design Details:
 - Performs raw writes to stdin and uses `tests.utils` to parse response packets.
 """
 
-import subprocess
-
 import json
-import sys
 import os
+import subprocess
+import sys
+
 from tests.utils import read_jsonrpc_response
 
 
@@ -36,7 +36,7 @@ def test_initialize_handshake():
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
+        stderr=sys.stderr,
         text=True,
         env=env,
     )
@@ -97,7 +97,7 @@ def test_capability_negotiation():
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
+        stderr=sys.stderr,
         text=True,
         env=env,
     )
@@ -152,7 +152,7 @@ def test_malformed_input():
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
+        stderr=sys.stderr,
         text=True,
         env=env,
     )

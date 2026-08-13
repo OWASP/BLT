@@ -18,6 +18,8 @@
 //! - Integrates Command Palette interpreter (`search`, `triage issue`, `vision <path>`).
 //! - Spawns async tokio tasks to perform write actions (e.g. submit issue, bulk triage) to avoid freezing the UI.
 
+#![allow(clippy::manual_strip, clippy::unnecessary_unwrap)]
+
 use std::io;
 
 use std::time::{Duration, Instant};
@@ -58,7 +60,7 @@ where
                             issue.comments.push(comment.clone());
                             app.audit_logs.push(comment);
                             app.audit_logs
-                                .push("+10 Bacon Points (Pending Verification)".to_string());
+                                .push("+10 Bacon (Pending Verification)".to_string());
                         }
                         app.selected_issues.remove(&issue_id);
                     }
@@ -69,8 +71,7 @@ where
                     app.event_feed.push(message.clone());
                     app.audit_logs.push(message.clone());
                     if success {
-                        app.status_message =
-                            format!("SUCCESS: Operation completed! - {}", message);
+                        app.status_message = format!("SUCCESS: Operation completed! - {}", message);
                         app.submit_form = crate::app::VulnerabilityForm::default();
                     } else {
                         app.status_message = format!("ERROR: {}", message);
@@ -80,7 +81,9 @@ where
                 crate::app::AppEvent::IssuesRefreshed { issues, total } => {
                     app.issues = issues;
                     // Clamp to prevent stale index from causing out-of-bounds panics
-                    app.selected_issue_index = app.selected_issue_index.min(app.issues.len().saturating_sub(1));
+                    app.selected_issue_index = app
+                        .selected_issue_index
+                        .min(app.issues.len().saturating_sub(1));
                     app.event_feed
                         .push(format!("Refreshed issues. Total: {}", total));
                     app.audit_logs
@@ -89,15 +92,34 @@ where
                 }
                 crate::app::AppEvent::VisionDraftComplete { result, success } => {
                     if success {
-                        app.submit_form.description = result;
+                        let mut title = String::new();
+                        let mut description = String::new();
+                        let mut in_desc = false;
+
+                        for line in result.lines() {
+                            let upper_line = line.to_uppercase();
+                            if upper_line.starts_with("TITLE:") {
+                                title = line["TITLE:".len()..].trim().to_string();
+                            } else if upper_line.starts_with("DESCRIPTION:") {
+                                in_desc = true;
+                                description = line["DESCRIPTION:".len()..].trim().to_string();
+                            } else if in_desc || !line.trim().is_empty() {
+                                description.push('\n');
+                                description.push_str(line);
+                            }
+                        }
+
+                        if !title.is_empty() {
+                            app.submit_form.title = title;
+                        }
+                        app.submit_form.description = description.trim().to_string();
                         app.status_message =
                             "Vision AI drafting complete. Review and submit.".to_string();
                         app.audit_logs
                             .push("Vision AI generated issue draft.".to_string());
                     } else {
                         app.status_message = format!("Vision AI failed: {}", result);
-                        app.audit_logs
-                            .push(format!("Vision AI failed: {}", result));
+                        app.audit_logs.push(format!("Vision AI failed: {}", result));
                     }
                     app.save_session();
                 }
@@ -122,6 +144,22 @@ where
                         .push("Security Health Scan complete.".to_string());
                     app.save_session();
                 }
+                crate::app::AppEvent::ClipboardExtracted { result } => {
+                    match result {
+                        Ok(path_str) => {
+                            app.vision_image_path = path_str;
+                            app.vision_context_input.clear();
+                            app.active_overlay = crate::app::ActiveOverlay::VisionContext;
+                            app.status_message =
+                                "Specify optional Vision AI context hints and press Enter."
+                                    .to_string();
+                        }
+                        Err(err_msg) => {
+                            app.status_message = err_msg;
+                        }
+                    }
+                    app.save_session();
+                }
             }
         }
 
@@ -143,6 +181,68 @@ where
     }
 }
 
+fn handle_vision_draft(app: &mut App, context: Option<String>) {
+    app.active_overlay = crate::app::ActiveOverlay::None;
+    let path = app.vision_image_path.clone();
+
+    app.submit_form = crate::app::VulnerabilityForm::default();
+    app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
+    app.submit_form.screenshot_path = path.clone();
+    app.submit_form.url = app.api_base.clone();
+    app.submit_form.description = "Analyzing image with Vision AI...".to_string();
+
+    let mcp_client_clone = app.mcp_client.clone();
+    let sender = app.event_sender.clone();
+
+    tokio::spawn(async move {
+        if let Some(mcp) = mcp_client_clone {
+            let mut client_guard = mcp.lock().await;
+            let mut payload = serde_json::Map::new();
+            payload.insert("image_path".to_string(), serde_json::Value::String(path));
+            if let Some(ctx) = context {
+                if !ctx.is_empty() {
+                    payload.insert("context".to_string(), serde_json::Value::String(ctx));
+                }
+            }
+
+            match client_guard
+                .call_tool("draft_vision_issue", serde_json::Value::Object(payload))
+                .await
+            {
+                Ok(res) => {
+                    let (success, content_str) = if let Some(result) = res.get("result") {
+                        let is_err = result
+                            .get("isError")
+                            .and_then(|e| e.as_bool())
+                            .unwrap_or(false);
+                        let text = result
+                            .get("content")
+                            .and_then(|c| c.as_array())
+                            .and_then(|c| c.first())
+                            .and_then(|c| c.get("text"))
+                            .and_then(|t| t.as_str())
+                            .unwrap_or("No response from Vision AI")
+                            .to_string();
+                        (!is_err, text)
+                    } else {
+                        (false, "ERROR: Invalid response structure".to_string())
+                    };
+                    let _ = sender.send(crate::app::AppEvent::VisionDraftComplete {
+                        result: content_str,
+                        success,
+                    });
+                }
+                Err(e) => {
+                    let _ = sender.send(crate::app::AppEvent::VisionDraftComplete {
+                        result: format!("ERROR: {}", e),
+                        success: false,
+                    });
+                }
+            }
+        }
+    });
+}
+
 fn handle_keys(key: KeyEvent, app: &mut App) {
     // Check for global quit key
     if key.code == KeyCode::Char('q') && app.active_overlay == crate::app::ActiveOverlay::None {
@@ -156,13 +256,14 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
 
     let is_text_input = app.active_overlay == crate::app::ActiveOverlay::SubmitForm
         || app.active_overlay == crate::app::ActiveOverlay::SearchInput
-        || app.active_overlay == crate::app::ActiveOverlay::CommandPalette;
+        || app.active_overlay == crate::app::ActiveOverlay::VisionContext;
 
-    if key.code == KeyCode::Char('q') && !is_text_input {
-        if app.active_overlay != crate::app::ActiveOverlay::None {
-            app.active_overlay = crate::app::ActiveOverlay::None;
-            return;
-        }
+    if key.code == KeyCode::Char('q')
+        && !is_text_input
+        && app.active_overlay != crate::app::ActiveOverlay::None
+    {
+        app.active_overlay = crate::app::ActiveOverlay::None;
+        return;
     }
 
     // Konami code check
@@ -218,6 +319,25 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
             }
             return;
         }
+        crate::app::ActiveOverlay::VisionContext => {
+            match key.code {
+                KeyCode::Esc => {
+                    handle_vision_draft(app, None);
+                }
+                KeyCode::Backspace => {
+                    app.vision_context_input.pop();
+                }
+                KeyCode::Char(c) => {
+                    app.vision_context_input.push(c);
+                }
+                KeyCode::Enter => {
+                    let context = app.vision_context_input.trim().to_string();
+                    handle_vision_draft(app, Some(context));
+                }
+                _ => {}
+            }
+            return;
+        }
         crate::app::ActiveOverlay::SubmitForm => {
             if key.code == KeyCode::Char('s') && key.modifiers.contains(KeyModifiers::CONTROL) {
                 app.active_overlay = crate::app::ActiveOverlay::None;
@@ -249,13 +369,15 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                         if mcp_client_clone.is_none() {
                             (
                                 false,
-                                "ERROR: MCP connection is unavailable. Submission failed.".to_string(),
+                                "ERROR: MCP connection is unavailable. Submission failed."
+                                    .to_string(),
                             )
                         } else {
                             let mcp = mcp_client_clone.clone().unwrap();
                             let mut client_guard = mcp.lock().await;
                             let mut payload = serde_json::Map::new();
-                            payload.insert("url".to_string(), serde_json::Value::String(url.clone()));
+                            payload
+                                .insert("url".to_string(), serde_json::Value::String(url.clone()));
                             payload.insert(
                                 "title".to_string(),
                                 serde_json::Value::String(title.clone()),
@@ -353,28 +475,29 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                                     .and_then(|c| c.get("text"))
                                     .and_then(|t| t.as_str())
                                 {
-                                    if let Ok(root) = serde_json::from_str::<serde_json::Value>(contents) {
-                                        if let Ok(fresh_issues) = crate::api::parse_issues_from_json(&root) {
+                                    if let Ok(root) =
+                                        serde_json::from_str::<serde_json::Value>(contents)
+                                    {
+                                        if let Ok(fresh_issues) =
+                                            crate::api::parse_issues_from_json(&root)
+                                        {
                                             let total = fresh_issues.len() as u32;
-                                            let _ = sender.send(crate::app::AppEvent::IssuesRefreshed {
-                                                issues: fresh_issues,
-                                                total,
-                                            });
+                                            let _ = sender.send(
+                                                crate::app::AppEvent::IssuesRefreshed {
+                                                    issues: fresh_issues,
+                                                    total,
+                                                },
+                                            );
                                         }
                                     }
                                 }
                             }
-                        } else {
-                            match crate::api::get_issues(&api_base).await {
-                                Ok(fresh_issues) => {
-                                    let total = fresh_issues.len() as u32;
-                                    let _ = sender.send(crate::app::AppEvent::IssuesRefreshed {
-                                        issues: fresh_issues,
-                                        total,
-                                    });
-                                }
-                                Err(_) => {}
-                            }
+                        } else if let Ok(fresh_issues) = crate::api::get_issues(&api_base).await {
+                            let total = fresh_issues.len() as u32;
+                            let _ = sender.send(crate::app::AppEvent::IssuesRefreshed {
+                                issues: fresh_issues,
+                                total,
+                            });
                         }
                     }
                 });
@@ -474,14 +597,12 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                 KeyCode::Esc => {
                     app.active_overlay = crate::app::ActiveOverlay::None;
                 }
-                KeyCode::Char('s') => {
-                    if !app.hunts.is_empty() {
-                        app.submit_form = crate::app::VulnerabilityForm::default();
-                        app.submit_form.url = "".to_string();
-                        app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
-                        app.submit_form.active_field = crate::app::FormField::Url;
-                        app.status_message = "Opened Submit Form for Hunt Context".to_string();
-                    }
+                KeyCode::Char('s') if !app.hunts.is_empty() => {
+                    app.submit_form = crate::app::VulnerabilityForm::default();
+                    app.submit_form.url = "".to_string();
+                    app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
+                    app.submit_form.active_field = crate::app::FormField::Url;
+                    app.status_message = "Opened Submit Form for Hunt Context".to_string();
                 }
                 _ => {}
             }
@@ -568,7 +689,10 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                             let (success, message) = match res {
                                 Ok(_) => (
                                     true,
-                                    format!("Bulk triage: successfully updated status for #{} to {}", id, target),
+                                    format!(
+                                        "Bulk triage: successfully updated status for #{} to {}",
+                                        id, target
+                                    ),
                                 ),
                                 Err(e) => {
                                     all_succeeded = false;
@@ -578,7 +702,10 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                                     }
                                     (
                                         false,
-                                        format!("Bulk triage: failed to update status for #{}: {}", id, e),
+                                        format!(
+                                            "Bulk triage: failed to update status for #{}: {}",
+                                            id, e
+                                        ),
                                     )
                                 }
                             };
@@ -609,138 +736,6 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                             });
                         }
                     });
-                }
-                _ => {}
-            }
-            return;
-        }
-        crate::app::ActiveOverlay::CommandPalette => {
-            match key.code {
-                KeyCode::Esc => {
-                    app.active_overlay = crate::app::ActiveOverlay::None;
-                    app.command_input.clear();
-                }
-                KeyCode::Backspace => {
-                    app.command_input.pop();
-                }
-                KeyCode::Char(c) => {
-                    app.command_input.push(c);
-                }
-                KeyCode::Enter => {
-                    app.active_overlay = crate::app::ActiveOverlay::None;
-                    let cmd = app.command_input.clone();
-                    app.command_input.clear();
-                    app.status_message = format!("Executed command: {}", cmd);
-                    app.audit_logs
-                        .push(format!("Command Palette execution: {}", cmd));
-
-                    // Command execution logic
-                    if cmd.starts_with("search ") {
-                        app.search_query = cmd.strip_prefix("search ").unwrap_or(&cmd).to_string();
-                        app.active_tab = Tab::Issues;
-                        let visible_issues = app.get_visible_issue_indices();
-                        if !visible_issues.is_empty() {
-                            app.selected_issue_index = visible_issues[0];
-                        }
-                        let visible_hunts = app.get_visible_hunt_indices();
-                        if !visible_hunts.is_empty() {
-                            app.selected_hunt_index = visible_hunts[0];
-                        }
-                    } else if cmd == "triage issue" {
-                        app.active_tab = Tab::Issues;
-                        app.trigger_triage();
-                    } else if cmd == "add comment" {
-                        app.status_message = "Not Implemented: Feature coming soon".to_string();
-                    } else if cmd == "open hunt" {
-                        app.active_tab = Tab::Hunts;
-                    } else if cmd.starts_with("vision ") {
-                        let args = cmd.strip_prefix("vision ").unwrap_or(&cmd).to_string();
-                        let mut parts = args.split_whitespace();
-                        if let Some(path) = parts.next() {
-                            let path = path.to_string();
-                            let gl_id = parts.next().map(|s| s.to_string());
-
-                            app.status_message = format!("Drafting issue from image {}...", path);
-                            app.submit_form = crate::app::VulnerabilityForm::default();
-                            app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
-                            app.submit_form.url = format!("Image: {}", path);
-                            app.submit_form.description =
-                                "Analyzing image with Vision AI...".to_string();
-
-                            let mcp_client_clone = app.mcp_client.clone();
-                            let sender = app.event_sender.clone();
-
-                            tokio::spawn(async move {
-                                if let Some(mcp) = mcp_client_clone {
-                                    let mut client_guard = mcp.lock().await;
-                                    let mut payload = serde_json::Map::new();
-                                    payload.insert(
-                                        "image_path".to_string(),
-                                        serde_json::Value::String(path),
-                                    );
-                                    if let Some(gid) = gl_id {
-                                        payload.insert(
-                                            "gitlab_project_id".to_string(),
-                                            serde_json::Value::String(gid),
-                                        );
-                                    }
-
-                                    match client_guard
-                                        .call_tool(
-                                            "draft_vision_issue",
-                                            serde_json::Value::Object(payload),
-                                        )
-                                        .await
-                                    {
-                                        Ok(res) => {
-                                            let (success, content_str) = if let Some(result) =
-                                                res.get("result")
-                                            {
-                                                let is_err = result.get("isError").and_then(|e| e.as_bool()).unwrap_or(false);
-                                                let text = result
-                                                    .get("content")
-                                                    .and_then(|c| c.as_array())
-                                                    .and_then(|c| c.first())
-                                                    .and_then(|c| c.get("text"))
-                                                    .and_then(|t| t.as_str())
-                                                    .unwrap_or("Unknown response from MCP")
-                                                    .to_string();
-                                                (!is_err, text)
-                                            } else {
-                                                (
-                                                    false,
-                                                    "ERROR: Invalid response structure from MCP server".to_string()
-                                                )
-                                            };
-
-                                            let _ = sender.send(
-                                                crate::app::AppEvent::VisionDraftComplete {
-                                                    result: content_str,
-                                                    success,
-                                                },
-                                            );
-                                        }
-                                        Err(e) => {
-                                            let _ = sender.send(
-                                                crate::app::AppEvent::VisionDraftComplete {
-                                                    result: format!("ERROR: {}", e),
-                                                    success: false,
-                                                },
-                                            );
-                                        }
-                                    }
-                                } else {
-                                    let _ =
-                                        sender.send(crate::app::AppEvent::VisionDraftComplete {
-                                            result: "ERROR: MCP is not connected.".to_string(),
-                                            success: false,
-                                        });
-                                }
-                            });
-                        }
-                    } else if cmd == "run mcp tool" {
-                        app.status_message = "Not Implemented: Feature coming soon".to_string();
-                    }
                 }
                 _ => {}
             }
@@ -796,10 +791,6 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
             app.active_tab = Tab::Settings;
             app.status_message = "Switched to tab: Settings".to_string();
         }
-        KeyCode::Char('6') => {
-            app.active_tab = Tab::Onboarding;
-            app.status_message = "Switched to tab: Onboarding".to_string();
-        }
 
         // List Scrolling
         KeyCode::Down | KeyCode::Char('j') => app.scroll_down(),
@@ -815,16 +806,138 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
         KeyCode::Char('/') => {
             app.active_overlay = crate::app::ActiveOverlay::SearchInput;
         }
-        KeyCode::Char(':') | KeyCode::Char('p')
-            if key.code == KeyCode::Char(':')
-                || (key.code == KeyCode::Char('p')
+        KeyCode::Char('p') | KeyCode::Char('v')
+            if key.code == KeyCode::Char('p')
+                || (key.code == KeyCode::Char('v')
                     && key.modifiers.contains(KeyModifiers::CONTROL)) =>
         {
-            app.active_overlay = crate::app::ActiveOverlay::CommandPalette;
+            app.status_message = "Reading image or path from clipboard...".to_string();
+            let sender = app.event_sender.clone();
+
+            #[cfg(windows)]
+            {
+                tokio::spawn(async move {
+                    let output = tokio::task::spawn_blocking(|| {
+                        std::process::Command::new("powershell.exe")
+                            .args([
+                                "-NoProfile",
+                                "-Command",
+                                "Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; if ([System.Windows.Forms.Clipboard]::ContainsImage()) { $img = [System.Windows.Forms.Clipboard]::GetImage(); $temp = [System.IO.Path]::GetTempFileName() + '.png'; $img.Save($temp, [System.Drawing.Imaging.ImageFormat]::Png); Write-Output \"SUCCESS:$temp\"; } else { if ([System.Windows.Forms.Clipboard]::ContainsText()) { $txt = [System.Windows.Forms.Clipboard]::GetText().Trim().Trim('\"'); if (Test-Path $txt -PathType Leaf) { Write-Output \"SUCCESS:$txt\"; } else { Write-Output 'NO_IMAGE'; } } else { Write-Output 'NO_IMAGE'; } }"
+                            ])
+                            .output()
+                    })
+                    .await;
+
+                    let result = match output {
+                        Ok(Ok(out)) => {
+                            let stdout = String::from_utf8_lossy(&out.stdout).trim().to_string();
+                            if stdout.starts_with("SUCCESS:") {
+                                let win_path = stdout["SUCCESS:".len()..].trim().to_string();
+                                let path_str = if cfg!(target_os = "linux") {
+                                    if win_path.as_bytes().get(1..3) == Some(b":\\") {
+                                        let drive = win_path[0..1].to_lowercase();
+                                        let rest = win_path[3..].replace('\\', "/");
+                                        format!("/mnt/{}/{}", drive, rest)
+                                    } else {
+                                        win_path
+                                    }
+                                } else {
+                                    win_path
+                                };
+                                Ok(path_str)
+                            } else if stdout.contains("NO_IMAGE") {
+                                Err("Clipboard does not contain an image or valid image path."
+                                    .to_string())
+                            } else {
+                                Err(format!("PowerShell error: {}", stdout))
+                            }
+                        }
+                        _ => Err("Failed to execute PowerShell command".to_string()),
+                    };
+                    let _ = sender.send(crate::app::AppEvent::ClipboardExtracted { result });
+                });
+            }
+
+            #[cfg(not(windows))]
+            {
+                tokio::spawn(async move {
+                    let result = tokio::task::spawn_blocking(move || {
+                        match arboard::Clipboard::new() {
+                            Ok(mut clipboard) => {
+                                match clipboard.get_image() {
+                                    Ok(image) => {
+                                        let home = dirs::home_dir().unwrap_or_default();
+                                        let img_dir = home.join(".blt-mcp").join("images");
+                                        let _ = std::fs::create_dir_all(&img_dir);
+                                        let temp_path = img_dir.join("temp_clipboard.png");
+
+                                        let mut png_bytes = Vec::new();
+                                        let mut encoder = png::Encoder::new(&mut png_bytes, image.width as u32, image.height as u32);
+                                        encoder.set_color(png::ColorType::Rgba);
+                                        encoder.set_depth(png::BitDepth::Eight);
+
+                                        let mut write_success = false;
+                                        if let Ok(mut writer) = encoder.write_header() {
+                                            if writer.write_image_data(&image.bytes).is_ok() {
+                                                write_success = true;
+                                            }
+                                        }
+
+                                        if write_success && std::fs::write(&temp_path, &png_bytes).is_ok() {
+                                            Ok(temp_path.to_string_lossy().to_string())
+                                        } else {
+                                            Err("Error: Failed to save clipboard image.".to_string())
+                                        }
+                                    }
+                                    Err(_) => {
+                                        // Try reading text as path from clipboard
+                                        if let Ok(text) = clipboard.get_text() {
+                                            let trimmed = text.trim().replace('"', "");
+                                            let path_str = if cfg!(target_os = "linux") {
+                                                 if trimmed.as_bytes().get(1..3) == Some(b":\\") {
+                                                     let drive = trimmed[0..1].to_lowercase();
+                                                     let rest = trimmed[3..].replace('\\', "/");
+                                                     format!("/mnt/{}/{}", drive, rest)
+                                                 } else {
+                                                     trimmed
+                                                 }
+                                            } else {
+                                                trimmed
+                                            };
+                                            let p = std::path::Path::new(&path_str);
+                                            if p.exists() && p.is_file() {
+                                                Ok(path_str)
+                                            } else {
+                                                Err("Clipboard does not contain an image or valid image path.".to_string())
+                                            }
+                                        } else {
+                                            Err("Clipboard does not contain an image.".to_string())
+                                        }
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                Err(format!("Error: Clipboard access failed: {}", e))
+                            }
+                        }
+                    })
+                    .await;
+
+                    let final_res = match result {
+                        Ok(res) => res,
+                        Err(_) => Err("Clipboard extraction task panicked".to_string()),
+                    };
+                    let _ =
+                        sender.send(crate::app::AppEvent::ClipboardExtracted { result: final_res });
+                });
+            }
         }
         KeyCode::Char(' ') => {
-            if app.active_tab == Tab::Issues && !app.issues.is_empty()
-                && app.get_visible_issue_indices().contains(&app.selected_issue_index)
+            if app.active_tab == Tab::Issues
+                && !app.issues.is_empty()
+                && app
+                    .get_visible_issue_indices()
+                    .contains(&app.selected_issue_index)
             {
                 let id = app.issues[app.selected_issue_index].id.clone();
                 if app.selected_issues.contains(&id) {
@@ -843,12 +956,18 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
             }
         }
         KeyCode::Enter => {
-            if app.active_tab == Tab::Hunts && !app.hunts.is_empty()
-                && app.get_visible_hunt_indices().contains(&app.selected_hunt_index)
+            if app.active_tab == Tab::Hunts
+                && !app.hunts.is_empty()
+                && app
+                    .get_visible_hunt_indices()
+                    .contains(&app.selected_hunt_index)
             {
                 app.active_overlay = crate::app::ActiveOverlay::HuntDetail;
-            } else if app.active_tab == Tab::Issues && !app.issues.is_empty()
-                && app.get_visible_issue_indices().contains(&app.selected_issue_index)
+            } else if app.active_tab == Tab::Issues
+                && !app.issues.is_empty()
+                && app
+                    .get_visible_issue_indices()
+                    .contains(&app.selected_issue_index)
             {
                 app.trigger_triage();
             } else if app.active_tab == Tab::Settings {
@@ -875,8 +994,11 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
         KeyCode::Char('A') => app.toggle_agent_status(),
         KeyCode::Char('P') => app.toggle_prompt_preview(),
         KeyCode::Char('a') => {
-            if app.active_tab == Tab::Issues && !app.issues.is_empty()
-                && app.get_visible_issue_indices().contains(&app.selected_issue_index)
+            if app.active_tab == Tab::Issues
+                && !app.issues.is_empty()
+                && app
+                    .get_visible_issue_indices()
+                    .contains(&app.selected_issue_index)
             {
                 app.active_overlay = crate::app::ActiveOverlay::AiTriage;
                 app.ai_triage_result =
@@ -918,25 +1040,44 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
                                     .unwrap_or("No analysis returned from MCP.");
 
                                 let (success, message) = if is_err {
-                                    (false, format!("AI Triage Failed for Issue #{}: {}", issue_id, text))
+                                    (
+                                        false,
+                                        format!(
+                                            "AI Triage Failed for Issue #{}: {}",
+                                            issue_id, text
+                                        ),
+                                    )
                                 } else {
-                                    (true, format!("AI Triage Complete for Issue #{}:\n\n{}", issue_id, text))
+                                    (
+                                        true,
+                                        format!(
+                                            "AI Triage Complete for Issue #{}:\n\n{}",
+                                            issue_id, text
+                                        ),
+                                    )
                                 };
-                                let _ =
-                                    sender.send(crate::app::AppEvent::AiTriageResult { message, success });
+                                let _ = sender.send(crate::app::AppEvent::AiTriageResult {
+                                    message,
+                                    success,
+                                });
                             }
                             Err(e) => {
                                 let message =
                                     format!("AI Triage Failed for Issue #{}: {}", issue_id, e);
-                                let _ =
-                                    sender.send(crate::app::AppEvent::AiTriageResult { message, success: false });
+                                let _ = sender.send(crate::app::AppEvent::AiTriageResult {
+                                    message,
+                                    success: false,
+                                });
                             }
                         }
                     });
                 } else {
                     let message =
                         "Error: AI Triage requires an active Live MCP connection.".to_string();
-                    let _ = sender.send(crate::app::AppEvent::AiTriageResult { message, success: false });
+                    let _ = sender.send(crate::app::AppEvent::AiTriageResult {
+                        message,
+                        success: false,
+                    });
                 }
             }
         }

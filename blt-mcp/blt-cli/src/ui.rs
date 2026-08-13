@@ -12,16 +12,22 @@
 //!   and splits the view to draw detailed descriptions and activity/comment logs.
 //! - `draw_stats_tab()`: Renders dashboard cards and a `BarChart` based on active severity statistics,
 //!   along with the contributor ranking leaderboard.
-//! - `draw_logs_tab()`, `draw_settings_tab()`, `draw_onboarding_tab()`: Renders execution logs, configurations,
+//! - `draw_logs_tab()`, `draw_settings_tab()`: Renders execution logs, configurations,
 //!   and keyboard shortcut checklists.
 //! - Modals (`draw_help_modal`, `draw_triage_modal`, `draw_submit_form_modal`, `draw_hunt_details_modal`, `draw_command_palette_modal`, etc.):
 //!   Render centered overlay popup boxes with borders and inputs, cleaning background areas using `Clear`.
 //!
 //! Style Constants:
 //! - Defines brand palette colors: `BLT_RED`, `SLATE_BG`, `SLATE_SURFACE`, `MUTED_BORDER`, `TEXT_LIGHT`.
+//!
+//! Unit Tests:
+//! - Contains inline unit tests to verify markdown parsing helpers.
+//!
+//! TODO: move unit tests to a separate test module
+
+#![allow(clippy::manual_strip, clippy::if_same_then_else)]
 
 use ratatui::{
-
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
@@ -65,7 +71,6 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         Tab::Stats => draw_stats_tab(f, app, chunks[1]),
         Tab::Logs => draw_logs_tab(f, app, chunks[1]),
         Tab::Settings => draw_settings_tab(f, app, chunks[1]),
-        Tab::Onboarding => draw_onboarding_tab(f, app, chunks[1]),
     }
 
     // 3. Draw Footer / Status Bar
@@ -79,10 +84,10 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         crate::app::ActiveOverlay::HuntDetail => draw_hunt_details_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::AiTriage => draw_ai_triage_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::BulkTriageConfirm => draw_bulk_triage_modal(f, app, chunks[1]),
-        crate::app::ActiveOverlay::CommandPalette => draw_command_palette_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::AgentStatus => draw_agent_status_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::PromptPreview => draw_prompt_preview_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::EasterEgg => draw_easter_egg_modal(f, chunks[1]),
+        crate::app::ActiveOverlay::VisionContext => draw_vision_context_modal(f, app, chunks[1]),
         _ => {}
     }
 }
@@ -143,7 +148,6 @@ fn draw_header(f: &mut Frame, app: &App, rect: Rect) {
         "Stats".to_string(),
         "Logs".to_string(),
         "Config".to_string(),
-        "Onboarding".to_string(),
     ];
     let tab_index = match app.active_tab {
         Tab::Issues => 0,
@@ -151,7 +155,6 @@ fn draw_header(f: &mut Frame, app: &App, rect: Rect) {
         Tab::Stats => 2,
         Tab::Logs => 3,
         Tab::Settings => 4,
-        Tab::Onboarding => 5,
     };
 
     let tabs = Tabs::new(tab_titles)
@@ -209,7 +212,7 @@ fn draw_issues_tab(f: &mut Frame, app: &App, rect: Rect) {
         f.render_widget(empty_msg, horizontal_layout[0]);
     } else {
         // 1. Draw Issues Table
-        let header_cells = vec!["ID", "Repo", "Severity", "Status", "Title"];
+        let header_cells = vec!["ID", "URL", "Severity", "Status", "Title"];
         let header = Row::new(header_cells)
             .style(
                 Style::default()
@@ -222,7 +225,7 @@ fn draw_issues_tab(f: &mut Frame, app: &App, rect: Rect) {
             if !app.search_query.is_empty() {
                 let q = app.search_query.to_lowercase();
                 if !issue.title.to_lowercase().contains(&q)
-                    && !issue.repository.to_lowercase().contains(&q)
+                    && !issue.url.to_lowercase().contains(&q)
                     && !issue.status.to_lowercase().contains(&q)
                     && !issue.severity.to_lowercase().contains(&q)
                     && !issue.id.to_lowercase().contains(&q)
@@ -265,7 +268,7 @@ fn draw_issues_tab(f: &mut Frame, app: &App, rect: Rect) {
 
             let cells = vec![
                 Cell::from(issue.id.clone()),
-                Cell::from(issue.repository.clone()),
+                Cell::from(issue.url.clone()),
                 Cell::from(Span::styled(
                     severity_badge,
                     Style::default()
@@ -431,7 +434,7 @@ fn draw_hunts_tab(f: &mut Frame, app: &App, rect: Rect) {
             .style(Style::default().fg(MUTED_BORDER));
         f.render_widget(empty_msg, horizontal_layout[0]);
     } else {
-        let header_cells = vec!["Hunt Title", "Goal", "Reward", "Status"];
+        let header_cells = vec!["Hunt Title", "Goal", "Bacon", "Status"];
         let header = Row::new(header_cells)
             .style(
                 Style::default()
@@ -526,7 +529,7 @@ fn draw_hunts_tab(f: &mut Frame, app: &App, rect: Rect) {
                 ),
             ]),
             Line::from(vec![
-                Span::styled("Reward: ", Style::default().fg(Color::Gray)),
+                Span::styled("Bacon: ", Style::default().fg(Color::Gray)),
                 Span::styled(
                     &hunt.reward,
                     Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD),
@@ -609,9 +612,10 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
     ])
     .block(
         Block::default()
-            .borders(Borders::TOP)
-            .border_style(widget_style)
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(BLT_RED))
             .title(" Issues Counter ")
+            .title_style(Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD))
             .bg(SLATE_SURFACE),
     );
     f.render_widget(card_1_text, card_1_chunks[0]);
@@ -658,9 +662,14 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
     ])
     .block(
         Block::default()
-            .borders(Borders::TOP)
-            .border_style(widget_style)
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Yellow))
             .title(" Active Repos ")
+            .title_style(
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            )
             .bg(SLATE_SURFACE),
     );
     f.render_widget(card_2, row_1[1]);
@@ -678,9 +687,14 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
     ])
     .block(
         Block::default()
-            .borders(Borders::TOP)
-            .border_style(widget_style)
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Cyan))
             .title(" Contributor Community ")
+            .title_style(
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            )
             .bg(SLATE_SURFACE),
     );
     f.render_widget(card_3, row_2[0]);
@@ -689,22 +703,27 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
     let card_4 = Paragraph::new(vec![
         Line::from(""),
         Line::from(Span::styled(
-            format!("  {} 🥓", app.stats.bacon_points),
+            format!("  {} 🏆", app.stats.bacon),
             Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD),
         )),
-        Line::from("  Bacon Points"),
+        Line::from("  Bacon Score"),
     ])
     .block(
         Block::default()
-            .borders(Borders::TOP)
-            .border_style(widget_style)
-            .title(" Bacon Economy ")
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Magenta))
+            .title(" Bacon & Score ")
+            .title_style(
+                Style::default()
+                    .fg(Color::Magenta)
+                    .add_modifier(Modifier::BOLD),
+            )
             .bg(SLATE_SURFACE),
     );
     f.render_widget(card_4, row_2[1]);
 
     // Right Panel: Live Leaderboard
-    let header_cells = vec!["Rank", "Hacker", "Rep", "Bacon Points"];
+    let header_cells = vec!["Rank", "Hacker", "Rep", "Bacon"];
     let header = Row::new(header_cells)
         .style(
             Style::default()
@@ -729,7 +748,7 @@ fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
             Cell::from(entry.name.clone()),
             Cell::from(entry.reputation.clone()),
             Cell::from(Span::styled(
-                format!("{} 🥓", entry.bacon_points),
+                format!("{} 🏆", entry.bacon),
                 Style::default().fg(BLT_RED),
             )),
         ];
@@ -945,61 +964,6 @@ fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
     f.render_widget(h, chunks[1]);
 }
 
-fn draw_onboarding_tab(f: &mut Frame, app: &App, rect: Rect) {
-    let block = Block::default()
-        .title(" Good First Issues (Cross-Project) ")
-        .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Magenta));
-
-    if app.good_first_issues.is_empty() {
-        let msg = Paragraph::new("Loading good first issues or none found...")
-            .block(block)
-            .alignment(ratatui::layout::Alignment::Center);
-        f.render_widget(msg, rect);
-        return;
-    }
-
-    let rows: Vec<Row> = app
-        .good_first_issues
-        .iter()
-        .map(|issue| {
-            Row::new(vec![
-                issue.repository.clone(),
-                issue.title.clone(),
-                format!("{} 🥓", issue.bacon_estimate),
-                issue.web_url.clone(),
-            ])
-        })
-        .collect();
-
-    let widths = [
-        Constraint::Percentage(20),
-        Constraint::Percentage(40),
-        Constraint::Length(15),
-        Constraint::Percentage(25),
-    ];
-
-    let table = Table::new(rows, widths)
-        .header(
-            Row::new(vec!["Repository", "Title", "Est. Bacon", "Link"])
-                .style(
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD),
-                )
-                .bottom_margin(1),
-        )
-        .block(block)
-        .row_highlight_style(
-            Style::default()
-                .bg(Color::DarkGray)
-                .add_modifier(Modifier::BOLD),
-        )
-        .highlight_symbol(">> ");
-
-    f.render_widget(table, rect);
-}
-
 fn draw_footer(f: &mut Frame, app: &App, rect: Rect) {
     let footer_chunks = Layout::default()
         .direction(Direction::Horizontal)
@@ -1089,6 +1053,11 @@ fn draw_footer(f: &mut Frame, app: &App, rect: Rect) {
 
     legend_spans.extend(vec![
         Span::styled(
+            " [p] ",
+            Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("Paste SS  ", Style::default().fg(TEXT_LIGHT)),
+        Span::styled(
             " [h] ",
             Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD),
         ),
@@ -1115,11 +1084,11 @@ fn draw_help_modal(f: &mut Frame, rect: Rect) {
     let rows = vec![
         Row::new(vec![
             Cell::from(Span::styled(
-                "Tab / 1-6",
+                "Tab / 1-5",
                 Style::default().fg(Color::Yellow),
             )),
             Cell::from(Span::styled(
-                "Navigate between views (1=Issues, 6=Onboarding)",
+                "Navigate between views (1=Issues, 3=Stats, 5=Config)",
                 Style::default().fg(TEXT_LIGHT),
             )),
         ]),
@@ -1180,11 +1149,11 @@ fn draw_help_modal(f: &mut Frame, rect: Rect) {
         ]),
         Row::new(vec![
             Cell::from(Span::styled(
-                ": / Ctrl+P",
+                "p / Ctrl+V",
                 Style::default().fg(Color::Yellow),
             )),
             Cell::from(Span::styled(
-                "Open Command Palette (e.g. for Vision AI)",
+                "Paste clipboard screenshot & run AI Vision draft",
                 Style::default().fg(TEXT_LIGHT),
             )),
         ]),
@@ -1313,10 +1282,7 @@ fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
 
     let columns = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage(50),
-            Constraint::Percentage(50),
-        ])
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(inner_area[0]);
 
     let left_chunks = Layout::default()
@@ -1571,7 +1537,7 @@ fn draw_hunt_details_modal(f: &mut Frame, app: &App, rect: Rect) {
             Span::styled(hunt.status.clone(), Style::default().fg(Color::Green)),
         ]),
         Line::from(vec![
-            Span::styled(" Reward: ", Style::default().fg(Color::Gray)),
+            Span::styled(" Bacon: ", Style::default().fg(Color::Gray)),
             Span::styled(
                 hunt.reward.clone(),
                 Style::default().fg(BLT_RED).add_modifier(Modifier::BOLD),
@@ -1620,8 +1586,87 @@ fn draw_hunt_details_modal(f: &mut Frame, app: &App, rect: Rect) {
     f.render_widget(p, modal_area);
 }
 
+fn parse_inline_markdown(text: &str) -> Vec<Line<'_>> {
+    let mut lines = Vec::new();
+    for raw_line in text.lines() {
+        let mut spans = Vec::new();
+        let trimmed_line = raw_line.trim_start();
+        let indent_len = raw_line.len() - trimmed_line.len();
+        let indent = " ".repeat(indent_len);
+
+        let mut current_text = trimmed_line;
+
+        // Render bullet lists beautifully
+        if current_text.starts_with("* ") {
+            spans.push(Span::styled(
+                format!("{}• ", indent),
+                Style::default().fg(Color::Magenta),
+            ));
+            current_text = &current_text[2..];
+        } else if current_text.starts_with("- ") {
+            spans.push(Span::styled(
+                format!("{}• ", indent),
+                Style::default().fg(Color::Magenta),
+            ));
+            current_text = &current_text[2..];
+        } else if !indent.is_empty() {
+            spans.push(Span::raw(indent));
+        }
+
+        let parts = current_text.split("**");
+        let mut is_bold = false;
+
+        for part in parts {
+            if part.is_empty() {
+                is_bold = !is_bold;
+                continue;
+            }
+
+            let trimmed = part.trim();
+
+            // Apply severity colors regardless of bold state
+            let severity_color = match trimmed {
+                "Critical" => Some(SEVERITY_CRITICAL),
+                "High" => Some(SEVERITY_HIGH),
+                "Medium" => Some(Color::Yellow),
+                "Low" => Some(Color::Green),
+                _ => None,
+            };
+
+            if let Some(color) = severity_color {
+                spans.push(Span::styled(
+                    part.to_string(),
+                    Style::default().fg(color).add_modifier(Modifier::BOLD),
+                ));
+                is_bold = !is_bold;
+                continue;
+            }
+
+            let mut style = Style::default();
+            if is_bold {
+                style = style.add_modifier(Modifier::BOLD);
+                if part.contains("Severity Suggestion")
+                    || part.contains("Recommendation")
+                    || part.contains("Mitigation")
+                    || part.contains("Input Validation")
+                {
+                    style = style.fg(Color::Cyan);
+                }
+            } else {
+                style = style.fg(TEXT_LIGHT);
+            }
+
+            spans.push(Span::styled(part.to_string(), style));
+            is_bold = !is_bold;
+        }
+
+        lines.push(Line::from(spans));
+    }
+    lines
+}
+
 fn draw_ai_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
-    let modal_area = centered_rect(60, 50, rect);
+    let modal_area = centered_rect(65, 60, rect);
     f.render_widget(Clear, modal_area);
 
     let content = app
@@ -1629,16 +1674,29 @@ fn draw_ai_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
         .clone()
         .unwrap_or_else(|| "Waiting for AI response...".to_string());
 
-    let lines: Vec<Line> = content
-        .split('\n')
-        .map(|s| Line::from(Span::styled(s.to_string(), Style::default().fg(TEXT_LIGHT))))
-        .collect();
+    let mut lines = parse_inline_markdown(&content);
+
+    lines.push(Line::from(""));
+    lines.push(Line::from(" ──────────────────────────────────────────"));
+    lines.push(Line::from(vec![
+        Span::styled(
+            " [Esc] ",
+            Style::default()
+                .fg(Color::Gray)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("Close Dialog", Style::default().fg(TEXT_LIGHT)),
+    ]));
 
     let p = Paragraph::new(lines)
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::Cyan))
+                .border_style(
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                )
                 .title(" MCP AI-Assisted Triage Analysis ")
                 .bg(SLATE_SURFACE),
         )
@@ -1655,8 +1713,12 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let min_w = 60.min(r.width);
     let min_h = 18.min(r.height);
 
-    if w < min_w { w = min_w; }
-    if h < min_h { h = min_h; }
+    if w < min_w {
+        w = min_w;
+    }
+    if h < min_h {
+        h = min_h;
+    }
 
     let x = r.x + (r.width - w) / 2;
     let y = r.y + (r.height - h) / 2;
@@ -1716,7 +1778,14 @@ fn draw_logs_tab(f: &mut Frame, app: &App, rect: Rect) {
     let audit_list = List::new(audit_items).block(
         Block::default()
             .borders(Borders::ALL)
-            .title(" Audit Log  (Press [e] to Export) "),
+            .border_style(Style::default().fg(Color::Yellow))
+            .title(" Audit Log  (Press [e] to Export) ")
+            .title_style(
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            )
+            .bg(SLATE_BG),
     );
     f.render_widget(audit_list, chunks[0]);
 
@@ -1733,7 +1802,14 @@ fn draw_logs_tab(f: &mut Frame, app: &App, rect: Rect) {
     let event_list = List::new(event_items).block(
         Block::default()
             .borders(Borders::ALL)
-            .title(" Real-Time Event Feed "),
+            .border_style(Style::default().fg(Color::Cyan))
+            .title(" Real-Time Event Feed ")
+            .title_style(
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            )
+            .bg(SLATE_BG),
     );
     f.render_widget(event_list, chunks[1]);
 }
@@ -1764,21 +1840,6 @@ fn draw_bulk_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
     f.render_widget(p, area);
 }
 
-fn draw_command_palette_modal(f: &mut Frame, app: &App, rect: Rect) {
-    let modal_area = centered_rect(50, 10, rect);
-    f.render_widget(Clear, modal_area);
-
-    let text = format!("> {}█", app.command_input);
-    let p = Paragraph::new(Span::styled(text, Style::default().fg(Color::Yellow))).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .border_style(Style::default().fg(BLT_RED))
-            .title(" Command Palette ")
-            .bg(SLATE_SURFACE),
-    );
-
-    f.render_widget(p, modal_area);
-}
 fn draw_agent_status_modal(f: &mut Frame, app: &App, rect: Rect) {
     let modal_area = centered_rect(60, 40, rect);
     f.render_widget(Clear, modal_area);
@@ -1805,6 +1866,32 @@ fn draw_agent_status_modal(f: &mut Frame, app: &App, rect: Rect) {
         .wrap(Wrap { trim: false });
 
     f.render_widget(p, modal_area);
+}
+
+fn draw_vision_context_modal(f: &mut Frame, app: &App, rect: Rect) {
+    let area = centered_rect(60, 16, rect);
+    f.render_widget(Clear, area);
+
+    let text = vec![
+        Line::from(""),
+        Line::from("  Enter optional context/hints for Vision AI (e.g. 'login page error'):"),
+        Line::from(format!("  > {}█", app.vision_context_input)),
+        Line::from(""),
+        Line::from("  [Enter] Start Analysis  |  [Esc] Skip & Start Directly"),
+    ];
+
+    let p = Paragraph::new(text).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(
+                Style::default()
+                    .fg(Color::Magenta)
+                    .add_modifier(Modifier::BOLD),
+            )
+            .title(" Vision AI Context (Optional) ")
+            .bg(SLATE_SURFACE),
+    );
+    f.render_widget(p, area);
 }
 
 fn draw_prompt_preview_modal(f: &mut Frame, app: &App, rect: Rect) {
@@ -1857,7 +1944,7 @@ fn draw_easter_egg_modal(f: &mut Frame, rect: Rect) {
         )),
         Line::from(""),
         Line::from(Span::styled(
-            "* You found the BLT Konami Code! Extra Bacon 🥓 for you! *",
+            "* You found the BLT Konami Code! Extra bacon 🏆 for you! *",
             Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),
@@ -1890,5 +1977,69 @@ mod tests {
         let text = "# Header\n## Subheader\n- List item\nNormal text";
         let lines = parse_markdown(text);
         assert_eq!(lines.len(), 4);
+    }
+
+    #[test]
+    fn test_severity_plain_critical() {
+        // Plain "Critical" should get SEVERITY_CRITICAL color + BOLD
+        let lines = parse_inline_markdown("Critical");
+        assert_eq!(lines.len(), 1);
+        let spans = &lines[0].spans;
+        assert_eq!(spans.len(), 1);
+        assert_eq!(spans[0].style.fg, Some(SEVERITY_CRITICAL));
+        assert!(spans[0].style.add_modifier.contains(Modifier::BOLD));
+    }
+
+    #[test]
+    fn test_severity_bold_high() {
+        // Bold "**High**" should also get SEVERITY_HIGH color + BOLD
+        let lines = parse_inline_markdown("**High**");
+        assert_eq!(lines.len(), 1);
+        // The split by ** produces ["", "High", ""] — empty parts toggle bold,
+        // "High" is the content token.
+        let severity_spans: Vec<_> = lines[0]
+            .spans
+            .iter()
+            .filter(|s| s.content.trim() == "High")
+            .collect();
+        assert_eq!(severity_spans.len(), 1);
+        assert_eq!(severity_spans[0].style.fg, Some(SEVERITY_HIGH));
+        assert!(severity_spans[0]
+            .style
+            .add_modifier
+            .contains(Modifier::BOLD));
+    }
+
+    #[test]
+    fn test_severity_bold_medium() {
+        let lines = parse_inline_markdown("**Medium**");
+        let severity_spans: Vec<_> = lines[0]
+            .spans
+            .iter()
+            .filter(|s| s.content.trim() == "Medium")
+            .collect();
+        assert_eq!(severity_spans.len(), 1);
+        assert_eq!(severity_spans[0].style.fg, Some(Color::Yellow));
+    }
+
+    #[test]
+    fn test_severity_plain_low() {
+        let lines = parse_inline_markdown("Low");
+        assert_eq!(lines[0].spans.len(), 1);
+        assert_eq!(lines[0].spans[0].style.fg, Some(Color::Green));
+    }
+
+    #[test]
+    fn test_severity_token_in_mixed_line() {
+        let lines = parse_inline_markdown("Severity: **Critical** — patch now");
+        let spans = &lines[0].spans;
+        let sev = spans
+            .iter()
+            .find(|s| s.content.trim() == "Critical")
+            .expect("severity span");
+        assert_eq!(sev.style.fg, Some(SEVERITY_CRITICAL));
+        // Text after the closing ** must not stay bold.
+        let tail = spans.last().unwrap();
+        assert!(!tail.style.add_modifier.contains(Modifier::BOLD));
     }
 }

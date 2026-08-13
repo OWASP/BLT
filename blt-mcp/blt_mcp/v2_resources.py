@@ -28,8 +28,7 @@ Design Notes:
 
 import logging
 
-
-from blt_mcp.server_base import mcp, _fetch
+from blt_mcp.server_base import _fetch, mcp
 
 logger = logging.getLogger("blt-mcp.v2_resources")
 

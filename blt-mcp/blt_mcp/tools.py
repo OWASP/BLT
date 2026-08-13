@@ -4,7 +4,7 @@ Core Tool Implementations and Utility Helpers for the BLT-MCP Server.
 This module provides common utility helper functions and primary execution logic used by MCP tool handlers.
 
 Key Functions:
-- `generate_ai_metadata(tool_name: str) -> Dict[str, Any]`: Computes standard timestamp headers and logs
+- `generate_ai_metadata(tool_name: str) -> dict[str, Any]`: Computes standard timestamp headers and logs
   metadata details to identify write transactions generated or initiated by an AI Agent.
 - `summarize_issue_context_impl(issue_id: str, fetch_fn: Callable) -> str`: Orchestrates retrieving raw issue details
   and discussion threads (comments) from the API, formatting the information into a structured text report.
@@ -15,29 +15,28 @@ Design Notes:
 """
 
 import datetime
-import re
-import urllib.parse
-
-
 import json
 import logging
-from typing import Any, Callable, Dict, List, Optional
+import re
+import urllib.parse
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger("blt-mcp.tools")
 
 
-def generate_ai_metadata(tool_name: str) -> Dict[str, Any]:
+def generate_ai_metadata(tool_name: str) -> dict[str, Any]:
     """
     Generate AI metadata for write operations and log the operation.
     """
-    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    timestamp = datetime.datetime.now(datetime.UTC).isoformat()
     metadata = {"ai_generated": True, "timestamp": timestamp, "source": "BLT-MCP"}
     logger.info(f"Tagged write operation '{tool_name}' with AI metadata: {metadata}")
     return metadata
 
 
 async def summarize_issue_context_impl(
-    issue_id: str, fetch_fn: Callable[[str, Optional[str]], Any]
+    issue_id: str, fetch_fn: Callable[[str, str | None], Any]
 ) -> str:
     """
     Core implementation of the summarize_issue_context tool.
@@ -46,15 +45,15 @@ async def summarize_issue_context_impl(
     logger.info(f"Summarizing context for issue: {issue_id}")
     # Validate issue_id format and sanitize for safe URL path construction
     issue_id = str(issue_id).strip()
-    if not issue_id or re.search(r'[/?#&]', issue_id):
+    if not issue_id or re.search(r"[/?#&]", issue_id):
         return f"Error: Invalid issue ID '{issue_id}'."
-    safe_id = urllib.parse.quote(issue_id, safe='')
+    safe_id = urllib.parse.quote(issue_id, safe="")
     try:
         try:
             # Fetch issue details
             issue_raw = await fetch_fn(f"/bugs/{safe_id}", f"issue {issue_id}")
             issue_data = json.loads(issue_raw)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch issue {issue_id}: {e}")
             return f"Error: Issue with ID '{issue_id}' not found or could not be retrieved."
 
@@ -74,7 +73,7 @@ async def summarize_issue_context_impl(
                     f"/bugs/{safe_id}/comments", f"comments for issue {issue_id}"
                 )
                 comments = json.loads(comments_raw)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to fetch comments for issue {issue_id}: {e}")
                 comments = None  # Preserve unavailable state distinct from empty
 
@@ -114,6 +113,6 @@ async def summarize_issue_context_impl(
             f"Comments:\n{comments_formatted}"
         )
         return summary
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error generating summary for issue {issue_id}: {e}")
         return f"Error: Failed to generate summary for issue '{issue_id}' due to an internal error."

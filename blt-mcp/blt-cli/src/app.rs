@@ -4,7 +4,7 @@
 //! that drive the Ratatui TUI client application.
 //!
 //! Key Data Types:
-//! - `Tab`: Enum representing the current active dashboard view: `Issues`, `Hunts`, `Stats`, `Logs`, `Settings`, or `Onboarding`.
+//! - `Tab`: Enum representing the current active dashboard view: `Issues`, `Hunts`, `Stats`, `Logs`, or `Settings`.
 //! - `ActiveOverlay`: Enum for overlapping modal screens: `Help`, `Triage`, `SubmitForm`, `HuntDetail`, `AiTriage`, `CommandPalette`, etc.
 //! - `FormField`: Enum indicating which input textbox has active focus in the submission form.
 //! - `VulnerabilityForm`: Captures fields for title, url, severity, type, description, and local screenshot file path.
@@ -20,6 +20,9 @@
 //!
 //! Unit Tests:
 //! - Includes module tests to verify navigation tabs and modal toggle operations.
+//!
+//! TODO: move unit tests to a separate test module
+// Todo: Move to tests
 
 #![allow(dead_code)]
 
@@ -32,7 +35,6 @@ pub enum Tab {
     Stats,
     Logs,
     Settings,
-    Onboarding,
 }
 
 impl Tab {
@@ -43,7 +45,6 @@ impl Tab {
             Tab::Stats => "BLT Stats",
             Tab::Logs => "Logs & Events",
             Tab::Settings => "Settings",
-            Tab::Onboarding => "Onboarding",
         }
     }
 }
@@ -54,8 +55,9 @@ pub enum RunMode {
     Live,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub enum FormField {
+    #[default]
     Title,
     Url,
     Severity,
@@ -63,12 +65,6 @@ pub enum FormField {
     Description,
     StepsToReproduce,
     Screenshot,
-}
-
-impl Default for FormField {
-    fn default() -> Self {
-        FormField::Title
-    }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -93,10 +89,10 @@ pub enum ActiveOverlay {
     AiTriage,
     SearchInput,
     BulkTriageConfirm,
-    CommandPalette,
     AgentStatus,
     PromptPreview,
     EasterEgg,
+    VisionContext,
 }
 
 pub enum AppEvent {
@@ -124,6 +120,9 @@ pub enum AppEvent {
     },
     ScanComplete {
         health: crate::scanner::SecurityHealth,
+    },
+    ClipboardExtracted {
+        result: Result<String, String>,
     },
 }
 
@@ -158,10 +157,11 @@ pub struct App {
     pub mcp_client:
         Option<std::sync::Arc<tokio::sync::Mutex<crate::mcp_client::McpSubprocessClient>>>,
     pub security_health: Option<crate::scanner::SecurityHealth>,
-    pub command_input: String,
     pub konami_index: usize,
     pub agent_status_data: String,
     pub prompt_preview_data: String,
+    pub vision_context_input: String,
+    pub vision_image_path: String,
 }
 
 impl App {
@@ -198,7 +198,7 @@ impl App {
                 total_issues: 0,
                 active_repos: 0,
                 total_contributors: 0,
-                bacon_points: 0,
+                bacon: 0,
             },
             leaderboard: Vec::new(),
             good_first_issues: Vec::new(),
@@ -224,11 +224,12 @@ impl App {
             is_live: false,
             mcp_client: None,
             security_health: None,
-            command_input: String::new(),
             konami_index: 0,
             agent_status_data: "Agent Status: Idle\nConnected: false\nUptime: 0m\nMemory: 0MB"
                 .to_string(),
             prompt_preview_data: "Loading prompt preview...".to_string(),
+            vision_context_input: String::new(),
+            vision_image_path: String::new(),
         };
         app.load_session();
         app
@@ -243,8 +244,7 @@ impl App {
             Tab::Hunts => Tab::Stats,
             Tab::Stats => Tab::Logs,
             Tab::Logs => Tab::Settings,
-            Tab::Settings => Tab::Onboarding,
-            Tab::Onboarding => Tab::Issues,
+            Tab::Settings => Tab::Issues,
         };
         self.status_message = format!("Switched to tab: {}", self.active_tab.name());
     }
@@ -254,12 +254,11 @@ impl App {
             return;
         }
         self.active_tab = match self.active_tab {
-            Tab::Issues => Tab::Onboarding,
+            Tab::Issues => Tab::Settings,
             Tab::Hunts => Tab::Issues,
             Tab::Stats => Tab::Hunts,
             Tab::Logs => Tab::Stats,
             Tab::Settings => Tab::Logs,
-            Tab::Onboarding => Tab::Settings,
         };
         self.status_message = format!("Switched to tab: {}", self.active_tab.name());
     }
@@ -270,7 +269,7 @@ impl App {
             if !self.search_query.is_empty() {
                 let q = self.search_query.to_lowercase();
                 if !issue.title.to_lowercase().contains(&q)
-                    && !issue.repository.to_lowercase().contains(&q)
+                    && !issue.url.to_lowercase().contains(&q)
                     && !issue.status.to_lowercase().contains(&q)
                     && !issue.severity.to_lowercase().contains(&q)
                     && !issue.id.to_lowercase().contains(&q)
@@ -309,7 +308,10 @@ impl App {
             Tab::Issues => {
                 let visible = self.get_visible_issue_indices();
                 if !visible.is_empty() {
-                    let current_pos = visible.iter().position(|&x| x == self.selected_issue_index).unwrap_or(0);
+                    let current_pos = visible
+                        .iter()
+                        .position(|&x| x == self.selected_issue_index)
+                        .unwrap_or(0);
                     let next_pos = (current_pos + 1) % visible.len();
                     self.selected_issue_index = visible[next_pos];
                 }
@@ -317,7 +319,10 @@ impl App {
             Tab::Hunts => {
                 let visible = self.get_visible_hunt_indices();
                 if !visible.is_empty() {
-                    let current_pos = visible.iter().position(|&x| x == self.selected_hunt_index).unwrap_or(0);
+                    let current_pos = visible
+                        .iter()
+                        .position(|&x| x == self.selected_hunt_index)
+                        .unwrap_or(0);
                     let next_pos = (current_pos + 1) % visible.len();
                     self.selected_hunt_index = visible[next_pos];
                 }
@@ -334,7 +339,10 @@ impl App {
             Tab::Issues => {
                 let visible = self.get_visible_issue_indices();
                 if !visible.is_empty() {
-                    let current_pos = visible.iter().position(|&x| x == self.selected_issue_index).unwrap_or(0);
+                    let current_pos = visible
+                        .iter()
+                        .position(|&x| x == self.selected_issue_index)
+                        .unwrap_or(0);
                     let next_pos = if current_pos == 0 {
                         visible.len() - 1
                     } else {
@@ -346,7 +354,10 @@ impl App {
             Tab::Hunts => {
                 let visible = self.get_visible_hunt_indices();
                 if !visible.is_empty() {
-                    let current_pos = visible.iter().position(|&x| x == self.selected_hunt_index).unwrap_or(0);
+                    let current_pos = visible
+                        .iter()
+                        .position(|&x| x == self.selected_hunt_index)
+                        .unwrap_or(0);
                     let next_pos = if current_pos == 0 {
                         visible.len() - 1
                     } else {
@@ -554,7 +565,7 @@ mod tests {
         app.issues = vec![
             Issue {
                 id: "1".to_string(),
-                repository: "repo".to_string(),
+                url: "url".to_string(),
                 title: "title".to_string(),
                 description: "desc".to_string(),
                 status: "Open".to_string(),
@@ -564,7 +575,7 @@ mod tests {
             },
             Issue {
                 id: "2".to_string(),
-                repository: "repo".to_string(),
+                url: "url".to_string(),
                 title: "title2".to_string(),
                 description: "desc2".to_string(),
                 status: "Open".to_string(),

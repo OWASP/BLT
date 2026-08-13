@@ -8,4 +8,3 @@ Features:
 - Provides test submodules (`test_resources`, `test_tools`, `test_transport_stdio`) to validate
   server endpoints, protocol compliance, schemas, error paths, and stream behaviors.
 """
-

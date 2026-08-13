@@ -14,6 +14,10 @@
 //!
 //! Unit Tests:
 //! - Contains inline unit tests to verify JSON-RPC payload parsing helpers.
+//!
+//! TODO: move unit tests to a separate test module
+
+#![allow(clippy::too_many_arguments, clippy::explicit_counter_loop)]
 
 use crate::models::{self, Hunt, Issue, Repo, Stats};
 
@@ -80,11 +84,10 @@ pub fn parse_issues_from_json(root: &serde_json::Value) -> Result<Vec<Issue>, St
             None => continue,
         };
 
-        let repository = item
-            .get("repository")
-            .or_else(|| item.get("repo"))
+        let url = item
+            .get("url")
             .and_then(|v| v.as_str())
-            .unwrap_or("owasp-blt/api")
+            .unwrap_or("Unknown URL")
             .to_string();
 
         let title = item
@@ -146,7 +149,7 @@ pub fn parse_issues_from_json(root: &serde_json::Value) -> Result<Vec<Issue>, St
 
         issues.push(Issue {
             id,
-            repository,
+            url,
             title,
             description,
             status,
@@ -171,8 +174,7 @@ pub async fn get_issues(api_base: &str) -> Result<Vec<Issue>, Box<dyn std::error
     let resp = req.send().await?.error_for_status()?;
     let root = resp.json::<serde_json::Value>().await?;
 
-    let issues =
-        parse_issues_from_json(&root).map_err(|e| Box::<dyn std::error::Error>::from(e))?;
+    let issues = parse_issues_from_json(&root).map_err(Box::<dyn std::error::Error>::from)?;
 
     Ok(issues)
 }
@@ -209,11 +211,8 @@ pub fn parse_repos_from_json(root: &serde_json::Value) -> Result<Vec<Repo>, Stri
             .unwrap_or("Unnamed Repo")
             .to_string();
 
-        let description = item
-            .get("description")
-            .and_then(|v| v.as_str())
-            .unwrap_or("")
-            .to_string();
+        let organization_id = item.get("organization_id").and_then(|v| v.as_u64());
+        let project_id = item.get("project_id").and_then(|v| v.as_u64());
 
         let url = item
             .get("url")
@@ -222,18 +221,23 @@ pub fn parse_repos_from_json(root: &serde_json::Value) -> Result<Vec<Repo>, Stri
             .unwrap_or("")
             .to_string();
 
-        let language = item
-            .get("language")
+        let created = item
+            .get("created")
             .and_then(|v| v.as_str())
-            .unwrap_or("Unknown")
-            .to_string();
+            .map(|s| s.to_string());
+        let modified = item
+            .get("modified")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
 
         repos.push(Repo {
             id,
+            organization_id,
+            project_id,
             name,
-            description,
             url,
-            language,
+            created,
+            modified,
         });
     }
 
@@ -252,23 +256,12 @@ pub async fn get_repos(api_base: &str) -> Result<Vec<Repo>, Box<dyn std::error::
     let resp = req.send().await?.error_for_status()?;
     let root = resp.json::<serde_json::Value>().await?;
 
-    let repos = parse_repos_from_json(&root).map_err(|e| Box::<dyn std::error::Error>::from(e))?;
+    let repos = parse_repos_from_json(&root).map_err(Box::<dyn std::error::Error>::from)?;
 
     Ok(repos)
 }
 
-pub async fn get_hunts(api_base: &str) -> Result<Vec<Hunt>, Box<dyn std::error::Error>> {
-    let client = get_client();
-    let url = format!("{}/v2/hunts/active", api_base);
-
-    let mut req = client.get(&url);
-    if let Some(api_key) = get_api_key() {
-        req = req.header("X-BLT-API-Key", api_key);
-    }
-
-    let resp = req.send().await?.error_for_status()?;
-    let root = resp.json::<serde_json::Value>().await?;
-
+pub fn parse_hunts_from_json(root: &serde_json::Value) -> Result<Vec<Hunt>, String> {
     let raw_arr = if let Some(data) = root.get("data") {
         data.as_array()
     } else {
@@ -276,7 +269,7 @@ pub async fn get_hunts(api_base: &str) -> Result<Vec<Hunt>, Box<dyn std::error::
     };
 
     let Some(arr) = raw_arr else {
-        return Ok(Vec::new());
+        return Err("Payload is not an array".to_string());
     };
 
     let mut hunts = Vec::new();
@@ -314,7 +307,22 @@ pub async fn get_hunts(api_base: &str) -> Result<Vec<Hunt>, Box<dyn std::error::
             reward,
         });
     }
+    Ok(hunts)
+}
 
+pub async fn get_hunts(api_base: &str) -> Result<Vec<Hunt>, Box<dyn std::error::Error>> {
+    let client = get_client();
+    let url = format!("{}/v2/hunts/active", api_base);
+
+    let mut req = client.get(&url);
+    if let Some(api_key) = get_api_key() {
+        req = req.header("X-BLT-API-Key", api_key);
+    }
+
+    let resp = req.send().await?.error_for_status()?;
+    let root = resp.json::<serde_json::Value>().await?;
+
+    let hunts = parse_hunts_from_json(&root).map_err(Box::<dyn std::error::Error>::from)?;
     Ok(hunts)
 }
 
@@ -339,7 +347,7 @@ pub fn parse_stats_from_json(root: &serde_json::Value) -> Stats {
         .and_then(|v| v.as_u64())
         .unwrap_or(0) as u32;
 
-    let bacon_points = data
+    let bacon = data
         .get("bacon_points")
         .and_then(|v| v.as_u64())
         .unwrap_or(0) as u32;
@@ -348,7 +356,7 @@ pub fn parse_stats_from_json(root: &serde_json::Value) -> Stats {
         total_issues,
         active_repos,
         total_contributors,
-        bacon_points,
+        bacon,
     }
 }
 
@@ -388,6 +396,7 @@ pub async fn submit_issue_triage(
     Ok(())
 }
 
+#[allow(dead_code)]
 pub async fn add_comment(
     api_base: &str,
     issue_id: &str,
@@ -515,7 +524,7 @@ pub fn parse_leaderboard_from_json(root: &serde_json::Value) -> Vec<models::Lead
             .unwrap_or("Unknown")
             .to_string();
 
-        let bacon_points = item
+        let bacon = item
             .get("bacon_points")
             .or_else(|| item.get("total_score"))
             .and_then(|v| v.as_u64())
@@ -531,7 +540,7 @@ pub fn parse_leaderboard_from_json(root: &serde_json::Value) -> Vec<models::Lead
         leaderboard.push(models::LeaderboardEntry {
             rank,
             name,
-            bacon_points,
+            bacon,
             reputation,
         });
         current_rank += 1;
@@ -620,12 +629,12 @@ mod tests {
 
         assert_eq!(leaderboard[0].rank, 1);
         assert_eq!(leaderboard[0].name, "Alice");
-        assert_eq!(leaderboard[0].bacon_points, 100);
+        assert_eq!(leaderboard[0].bacon, 100);
         assert_eq!(leaderboard[0].reputation, "Admin");
 
         assert_eq!(leaderboard[1].rank, 2); // Auto-incremented rank
         assert_eq!(leaderboard[1].name, "Bob");
-        assert_eq!(leaderboard[1].bacon_points, 50);
+        assert_eq!(leaderboard[1].bacon, 50);
         assert_eq!(leaderboard[1].reputation, "Contributor");
     }
 
@@ -652,5 +661,53 @@ mod tests {
             "https://gitlab.com/owasp-blt/blt-university/-/issues/1"
         );
         assert_eq!(issues[0].bacon_estimate, 10);
+    }
+
+    #[test]
+    fn test_parse_repos_from_json() {
+        let json_data = json!({
+            "data": [
+                {
+                    "id": 1,
+                    "organization_id": 1,
+                    "project_id": 2,
+                    "name": "BLT",
+                    "url": "https://github.com/OWASP-BLT/BLT",
+                    "created": "2026-07-01",
+                    "modified": "2026-07-02"
+                }
+            ]
+        });
+
+        let repos = parse_repos_from_json(&json_data).unwrap();
+        assert_eq!(repos.len(), 1);
+        assert_eq!(repos[0].id, "1");
+        assert_eq!(repos[0].organization_id, Some(1));
+        assert_eq!(repos[0].project_id, Some(2));
+        assert_eq!(repos[0].name, "BLT");
+        assert_eq!(repos[0].url, "https://github.com/OWASP-BLT/BLT");
+        assert_eq!(repos[0].created.as_deref(), Some("2026-07-01"));
+        assert_eq!(repos[0].modified.as_deref(), Some("2026-07-02"));
+    }
+
+    #[test]
+    fn test_parse_hunts_from_json() {
+        let json_data = json!({
+            "data": [
+                {
+                    "name": "Hunt 1",
+                    "description": "Desc 1",
+                    "status": "Active",
+                    "reward": "100 Bacon"
+                }
+            ]
+        });
+
+        let hunts = parse_hunts_from_json(&json_data).unwrap();
+        assert_eq!(hunts.len(), 1);
+        assert_eq!(hunts[0].name, "Hunt 1");
+
+        let malformed = json!({"not_data": 123});
+        assert!(parse_hunts_from_json(&malformed).is_err());
     }
 }
