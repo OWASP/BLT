@@ -810,6 +810,18 @@
                 });
             }
 
+            // Prefer an existing GitHub session cookie when present.
+            try {
+                const meRes = await fetch('/api/auth/me', { credentials: 'same-origin' });
+                if (meRes.ok) {
+                    const me = await meRes.json();
+                    showAuthOverlay(false);
+                    showToast('Signed in as ' + (me.github_login || me.org_id) + ' (GitHub session).', 'success');
+                    loadList().catch(function (err) { showToast(apiErrorMsg(err), 'error'); });
+                    return;
+                }
+            } catch (_) { /* fall through */ }
+
             if (openDemoMode()) {
                 // Open-read demo: do not force a token for GET, but keep any stored
                 // token so PATCH/convert still authenticate.

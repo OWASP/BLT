@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
 
-from auth import AuthError, require_org_auth, resolve_org_auth
+from auth import AuthError, require_org_auth_async, resolve_org_auth_async
 from blt_api_client import BltApiError, create_bug_from_finding, is_blt_api_configured
 from d1_compat import row_get
 from findings_store import (
@@ -104,14 +104,14 @@ def parse_findings_query(params: Mapping[str, str]) -> tuple[Optional[FindingsQu
     ), None
 
 
-def _auth_or_error(env: Any, headers: Mapping[str, str]):
-    """Read-path auth: may fall back to default org when AUTHENTICATE_READ_ENDPOINTS=false."""
-    return resolve_org_auth(env, headers)
+async def _auth_or_error(env: Any, headers: Mapping[str, str], db: Any = None):
+    """Read-path auth: Bearer, GitHub session, or demo default-org fallback."""
+    return await resolve_org_auth_async(env, headers, db)
 
 
-def _mutation_auth_or_error(env: Any, headers: Mapping[str, str]):
-    """Write-path auth: always requires a valid Bearer token."""
-    return require_org_auth(env, headers)
+async def _mutation_auth_or_error(env: Any, headers: Mapping[str, str], db: Any = None):
+    """Write-path auth: Bearer or GitHub session (no demo fallback)."""
+    return await require_org_auth_async(env, headers, db)
 
 
 async def list_findings_for_request(
@@ -122,7 +122,7 @@ async def list_findings_for_request(
     query_params: Mapping[str, str],
     store: Optional[FindingsStore] = None,
 ) -> FindingsListResult:
-    auth = _auth_or_error(env, headers)
+    auth = await _auth_or_error(env, headers, db)
 
     parsed, error = parse_findings_query(query_params)
     if error:
@@ -164,7 +164,7 @@ async def get_finding_for_request(
     new_id: Any = None,
     now: Optional[datetime] = None,
 ) -> FindingsListResult:
-    auth = _auth_or_error(env, headers)
+    auth = await _auth_or_error(env, headers, db)
     if db is None:
         return FindingsListResult(
             status=503,
@@ -257,7 +257,7 @@ async def export_csv_for_request(
     query_params: Mapping[str, str],
     store: Optional[FindingsStore] = None,
 ) -> FindingsListResult:
-    auth = _auth_or_error(env, headers)
+    auth = await _auth_or_error(env, headers, db)
 
     parsed, error = parse_findings_query(query_params)
     if error:
@@ -300,7 +300,7 @@ async def convert_to_issue_for_request(
     now: Optional[datetime] = None,
     fetch_impl: Any = None,
 ) -> FindingsListResult:
-    auth = _mutation_auth_or_error(env, headers)
+    auth = await _mutation_auth_or_error(env, headers, db)
     if db is None:
         return FindingsListResult(
             status=503,
@@ -386,7 +386,7 @@ async def update_finding_for_request(
     new_id: Any = None,
     now: Optional[datetime] = None,
 ) -> FindingsListResult:
-    auth = _mutation_auth_or_error(env, headers)
+    auth = await _mutation_auth_or_error(env, headers, db)
     if db is None:
         return FindingsListResult(
             status=503,
