@@ -37,6 +37,7 @@ logger = logging.getLogger("toasty.vectorize_client")
 
 DUPLICATE_SCORE_THRESHOLD = 0.80
 MODEL_VERSION = "all-MiniLM-L6-v2"
+SHADOW_EVENT_PREFIX = "shadow:"
 
 
 # ---------------------------------------------------------------------------
@@ -255,6 +256,9 @@ async def find_duplicates(
         score = match.score
         metadata = match.metadata or {}
         if score >= DUPLICATE_SCORE_THRESHOLD and metadata.get("repo") == repo_full_name:
+            # Skip shadow mode entries in production queries
+            if match.id.startswith(SHADOW_EVENT_PREFIX):
+                continue
             matches.append(
                 {
                     "event_id": match.id,
