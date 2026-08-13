@@ -30,3 +30,4 @@ Static “why this matters” + markdown fix guidance keyed by `rule_id`, with o
 - Triage UI escapes markdown before inserting into the DOM (no raw HTML render).
 
 
+
