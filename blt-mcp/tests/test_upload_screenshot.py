@@ -88,12 +88,24 @@ async def test_upload_screenshot_valid_numeric_id(dummy_image):
 
 @pytest.mark.asyncio
 async def test_upload_screenshot_valid_namespace_id(dummy_image):
-    """Verify that a URL-encoded/namespace project ID containing slashes is accepted and matched."""
-    # This also tests the mock server regex match in server_base.py
-    markdown_link = await upload_screenshot(
-        image_path=dummy_image, gitlab_project_id="org/repo/subgroup"
-    )
-    assert markdown_link == "![vuln](/uploads/vuln.png)"
+    """Verify that a namespace project ID containing slashes is URL-encoded before sending."""
+    captured_requests = []
+
+    async def mock_send_capture(self, request, *args, **kwargs):
+        captured_requests.append(str(request.url))
+        return httpx.Response(
+            status_code=201,
+            json={"markdown": "![vuln](/uploads/vuln.png)"},
+            request=request,
+        )
+
+    with patch.object(httpx.AsyncClient, "send", mock_send_capture):
+        markdown_link = await upload_screenshot(
+            image_path=dummy_image, gitlab_project_id="org/repo/subgroup"
+        )
+        assert markdown_link == "![vuln](/uploads/vuln.png)"
+        assert len(captured_requests) == 1
+        assert "org%2Frepo%2Fsubgroup" in captured_requests[0]
 
 
 @pytest.mark.asyncio

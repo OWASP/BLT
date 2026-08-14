@@ -65,12 +65,9 @@ async def pkce_login(
                 state_received = qs.get("state", [None])[0]
 
         if not state_received or state_received != state:
-            if not code_future.done():
-                code_future.set_exception(
-                    RuntimeError(
-                        "State parameter mismatch or missing in OAuth callback."
-                    )
-                )
+            logger.warning(
+                "OAuth callback received invalid or missing state parameter."
+            )
             response = (
                 "HTTP/1.1 400 Bad Request\r\n"
                 "Content-Type: text/plain\r\n"
@@ -87,12 +84,7 @@ async def pkce_login(
                 "Login successful! You can close this tab."
             )
         else:
-            if not code_future.done():
-                code_future.set_exception(
-                    RuntimeError(
-                        "Authorization code not found in callback query parameters."
-                    )
-                )
+            logger.warning("OAuth callback received without authorization code.")
             response = (
                 "HTTP/1.1 400 Bad Request\r\n"
                 "Content-Type: text/plain\r\n"

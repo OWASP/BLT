@@ -18,8 +18,8 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-import pytest
 
+import pytest
 from dotenv import load_dotenv
 
 # Enable HTTP mock layer globally for all test server subprocesses
@@ -96,16 +96,28 @@ def pytest_sessionfinish(session, exitstatus):
                 "-m",
                 "blt_mcp.server",
             ]
-            result = subprocess.run(
-                cmd, env=os.environ.copy(), capture_output=True, text=True, check=False
-            )
-            print(result.stdout)
-            if result.returncode != 0:
+            try:
+                result = subprocess.run(
+                    cmd,
+                    env=os.environ.copy(),
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=120,
+                )
+                print(result.stdout)
+                if result.returncode != 0:
+                    print(
+                        f"ERROR: Golden snapshots verification failed:\n{result.stderr}",
+                        file=sys.stderr,
+                    )
+                    session.exitstatus = result.returncode
+            except subprocess.TimeoutExpired:
                 print(
-                    f"ERROR: Golden snapshots verification failed:\n{result.stderr}",
+                    "ERROR: Golden snapshot verification timed out after 120 seconds.",
                     file=sys.stderr,
                 )
-                session.exitstatus = result.returncode
+                session.exitstatus = 1
         else:
             print(
                 "\n=== No Golden Snapshots found. Run `mcp-vcr record` to create some! ==="

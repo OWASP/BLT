@@ -1,25 +1,47 @@
 stages:
   - test
+  - snapshot-verify
   - build
   - deploy
   - release
 
-# Global workflow rules to prevent duplicate pipelines (e.g., branch and merge request pipelines running concurrently)
+# =========================================================================
+# Global Workflow & Approval Gate Rules
+# =========================================================================
+# Completely blocks pipelines on Merge Requests until approved by a maintainer (~"ok-to-test" or ~"accepted").
+# Automatically cancels all pipeline jobs immediately if any single job fails.
 workflow:
+  auto_cancel:
+    on_job_failure: all
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
-      when: never
+    # 1. Always allow pipelines on default branch (main), release tags, and scheduled runs
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG
     - if: $CI_PIPELINE_SOURCE == "schedule"
+    # 2. Prevent duplicate branch pipelines when a Merge Request is open
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    # 3. For Merge Requests: ONLY create pipeline if approved by a maintainer (~"ok-to-test" or ~"accepted")
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_LABELS =~ /ok-to-test|accepted/
+    # 4. Completely block unapproved Merge Requests (0 pipelines created)
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+
+# Reusable template for test and build jobs
+.pipeline_job_template:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 # ==========================================
-# 1. Test Stage (Python & Rust Tests)
+# 1. Test Stage (Python MCP & Rust CLI)
 # ==========================================
 
-python-tests:
+python-mcp-tests:
   stage: test
+  extends: .pipeline_job_template
   image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
   variables:
     UV_CACHE_DIR: ".uv-cache"
@@ -33,8 +55,9 @@ python-tests:
     - uv sync --locked --all-extras
     - uv run --locked pytest tests/
 
-rust-tests-linux:
+rust-cli-tests:
   stage: test
+  extends: .pipeline_job_template
   image: rust:latest
   variables:
     CARGO_HOME: $CI_PROJECT_DIR/.cargo
@@ -52,11 +75,39 @@ rust-tests-linux:
     - cargo test --locked --verbose
 
 # ==========================================
-# 2. Build Stage (Multi-platform Binaries)
+# 2. Snapshot Verification Stage (Golden VCR)
+# ==========================================
+
+golden-snapshot-verify:
+  stage: snapshot-verify
+  extends: .pipeline_job_template
+  needs:
+    - python-mcp-tests
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+  variables:
+    UV_CACHE_DIR: ".uv-cache"
+    BLT_VERIFY_SNAPSHOTS: "true"
+  cache:
+    key:
+      files:
+        - uv.lock
+    paths:
+      - $UV_CACHE_DIR
+  script:
+    - uv sync --locked --all-extras
+    - uv run --locked pytest tests/
+
+# ==========================================
+# 3. Build Stage (Multi-platform Binaries)
 # ==========================================
 
 build-rust-linux-windows:
   stage: build
+  extends: .pipeline_job_template
+  needs:
+    - python-mcp-tests
+    - rust-cli-tests
+    - golden-snapshot-verify
   image: rust:latest
   variables:
     CARGO_HOME: $CI_PROJECT_DIR/.cargo
@@ -91,42 +142,8 @@ build-rust-linux-windows:
       - bin/
     expire_in: 7 days
 
-# NOTE: macOS build is not available for now due to lack of macOS runner resources/access.
-# To enable this in the future, uncomment this job and assign a macOS runner tag (e.g., saas-macos-medium-m1).
-# build-rust-macos:
-#   stage: build
-#   tags:
-#     - saas-macos-medium-m1
-#   variables:
-#     CARGO_HOME: $CI_PROJECT_DIR/.cargo
-#   cache:
-#     key: rust-macos-cache
-#     paths:
-#       - .cargo/bin/
-#       - .cargo/registry/index/
-#       - .cargo/registry/cache/
-#       - .cargo/git/db/
-#       - blt-cli/target/
-#   before_script:
-#     - rustup target add aarch64-apple-darwin x86_64-apple-darwin
-#   script:
-#     - cd blt-cli
-#     # Build macOS Apple Silicon
-#     - cargo build --locked --release --target aarch64-apple-darwin
-#     # Build macOS Intel
-#     - cargo build --locked --release --target x86_64-apple-darwin
-#     # Organize outputs
-#     - mkdir -p ../bin
-#     - cp target/aarch64-apple-darwin/release/blt-cli ../bin/blt-cli-macos-arm64
-#     - cp target/x86_64-apple-darwin/release/blt-cli ../bin/blt-cli-macos-x86_64
-#   artifacts:
-#     name: "blt-cli-macos-$CI_COMMIT_REF_NAME"
-#     paths:
-#       - bin/
-#     expire_in: 7 days
-
 # ==========================================
-# 3. Deploy Stage (Upload Artifacts/Packages)
+# 4. Deploy Stage (Upload Release & Nightly Assets)
 # ==========================================
 
 upload-release-assets:
@@ -166,7 +183,7 @@ upload-nightly-assets:
       done
 
 # ==========================================
-# 4. Release Stage (Official Version Release)
+# 5. Release Stage (Official Version Release)
 # ==========================================
 
 create-gitlab-release:
@@ -187,10 +204,5 @@ create-gitlab-release:
           url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/blt-cli-linux-x86_64'
         - name: 'blt-cli-linux-aarch64'
           url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/blt-cli-linux-aarch64'
-        # macOS binaries are commented out as macOS builds are not available for now.
-        # - name: 'blt-cli-macos-arm64'
-        #   url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/blt-cli-macos-arm64'
-        # - name: 'blt-cli-macos-x86_64'
-        #   url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/blt-cli-macos-x86_64'
         - name: 'blt-cli-windows-x86_64.exe'
           url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/blt-cli-windows-x86_64.exe'

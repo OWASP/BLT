@@ -64,7 +64,7 @@ def test_sse_transport_unauthenticated():
                 "GET",
                 "http://127.0.0.1:8085/sse?token=super-secret-token",
             ) as resp_qp:
-                assert resp_qp.status_code != 401
+                assert resp_qp.status_code == 200
 
             time.sleep(0.3)
 
@@ -74,8 +74,8 @@ def test_sse_transport_unauthenticated():
                 "http://127.0.0.1:8085/sse",
                 headers={"Authorization": "Bearer super-secret-token"},
             ) as resp_ok:
-                # SSE request with correct token should stay open / return 200 OK (not 401)
-                assert resp_ok.status_code != 401
+                # SSE request with correct token should stay open / return 200 OK
+                assert resp_ok.status_code == 200
 
     finally:
         process.terminate()
@@ -116,7 +116,7 @@ def test_sse_transport_anonymous():
             httpx.Client(timeout=httpx.Timeout(10.0, connect=5.0, read=None)) as client,
             client.stream("GET", "http://127.0.0.1:8086/sse") as resp,
         ):
-            assert resp.status_code != 401
+            assert resp.status_code == 200
     finally:
         process.terminate()
         try:

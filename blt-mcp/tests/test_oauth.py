@@ -13,6 +13,7 @@ Test Scenarios:
 """
 
 import asyncio
+import re
 import socket
 import urllib.error
 import urllib.request
@@ -50,7 +51,7 @@ def test_generate_code_challenge():
 
 
 @pytest.mark.asyncio
-async def test_pkce_login_port_fallback(monkeypatch):
+async def test_pkce_login_port_fallback(monkeypatch, capsys):
     """Verify that pkce_login falls back to an available port when the default port is occupied."""
     # Occupy port 9876
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -82,29 +83,44 @@ async def test_pkce_login_port_fallback(monkeypatch):
             )
         )
 
-        # Give loop time to bind callback server
+        # Give loop time to bind callback server and print URL
         await asyncio.sleep(0.3)
 
-        # Send callback request to 9877 with state mismatch via urllib to bypass httpx mock interceptor
-        def send_callback():
+        captured = capsys.readouterr()
+        # Extract state parameter from printed login URL
+        match = re.search(r"state=([A-Za-z0-9_-]+)", captured.out)
+        assert match is not None, f"State not found in printed stdout: {captured.out}"
+        valid_state = match.group(1)
+
+        # 1. Send callback request with invalid state (should get 400 Bad Request but login session remains open)
+        def send_invalid_callback():
             try:
                 urllib.request.urlopen(
-                    "http://127.0.0.1:9877/callback?state=invalid", timeout=2.0
+                    "http://127.0.0.1:9877/callback?state=invalid_state", timeout=2.0
                 )
             except urllib.error.HTTPError as e:
                 assert e.code == 400
 
-        await asyncio.to_thread(send_callback)
+        await asyncio.to_thread(send_invalid_callback)
 
-        with pytest.raises(RuntimeError) as exc_info:
-            await login_task
-        assert "State parameter mismatch" in str(exc_info.value)
+        # 2. Send callback request with valid state and code (should complete login_task)
+        def send_valid_callback():
+            resp = urllib.request.urlopen(
+                f"http://127.0.0.1:9877/callback?code=testcode&state={valid_state}",
+                timeout=2.0,
+            )
+            assert resp.status == 200
+
+        await asyncio.to_thread(send_valid_callback)
+
+        token = await login_task
+        assert token == "mocked_oauth_token"
     finally:
         sock.close()
 
 
 @pytest.mark.asyncio
-async def test_oauth_error_response_handling(monkeypatch):
+async def test_oauth_error_response_handling(monkeypatch, capsys):
     """Verify that OAuth error responses surface the error_description properly."""
 
     async def mock_post(*args, **kwargs):
@@ -140,10 +156,25 @@ async def test_oauth_error_response_handling(monkeypatch):
         )
     )
 
-    await asyncio.sleep(0.2)
+    await asyncio.sleep(0.3)
 
-    login_task.cancel()
-    try:
+    captured = capsys.readouterr()
+
+    match = re.search(r"state=([A-Za-z0-9_-]+)", captured.out)
+    assert match is not None, f"State not found in printed stdout: {captured.out}"
+    valid_state = match.group(1)
+
+    # Send callback with valid state to trigger token exchange
+    def send_valid_callback():
+        resp = urllib.request.urlopen(
+            f"http://127.0.0.1:9890/callback?code=testcode&state={valid_state}",
+            timeout=2.0,
+        )
+        assert resp.status == 200
+
+    await asyncio.to_thread(send_valid_callback)
+
+    with pytest.raises(RuntimeError) as exc_info:
         await login_task
-    except asyncio.CancelledError:
-        pass
+
+    assert "Authorization code expired" in str(exc_info.value)

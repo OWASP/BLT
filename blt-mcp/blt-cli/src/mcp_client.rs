@@ -14,7 +14,7 @@
 //! - `read_response(expected_id)`: Asynchronously reads lines from stdout until it captures a matching JSON-RPC response ID.
 //!
 //! Error Handling:
-//! - Performs timeouts (10 seconds) on reads to prevent blocking the TUI thread.
+//! - Performs timeouts (75 seconds default) on reads to prevent blocking the TUI thread.
 //! - Parses and propagates server errors.
 
 #![allow(dead_code)]
@@ -23,6 +23,9 @@ use serde_json::json;
 use std::process::Stdio;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, ChildStdin, ChildStdout, Command};
+
+/// Default response read timeout (75 seconds to cover long-running vision AI tools).
+pub const DEFAULT_READ_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(75);
 
 pub struct McpSubprocessClient {
     _child: Child,
@@ -80,9 +83,12 @@ impl McpSubprocessClient {
     }
 
     pub async fn initialize(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let req_id = self.request_id;
+        self.request_id += 1;
+
         let req = json!({
             "jsonrpc": "2.0",
-            "id": self.request_id,
+            "id": req_id,
             "method": "initialize",
             "params": {
                 "protocolVersion": "2024-11-05",
@@ -95,8 +101,7 @@ impl McpSubprocessClient {
         });
 
         self.send_request(req).await?;
-        let _resp = self.read_response(self.request_id).await?;
-        self.request_id += 1;
+        let _resp = self.read_response(req_id).await?;
 
         // Send initialized notification
         let notif = json!({
@@ -111,15 +116,17 @@ impl McpSubprocessClient {
     pub async fn list_resources(
         &mut self,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+        let req_id = self.request_id;
+        self.request_id += 1;
+
         let req = json!({
             "jsonrpc": "2.0",
-            "id": self.request_id,
+            "id": req_id,
             "method": "resources/list"
         });
 
         self.send_request(req).await?;
-        let resp = self.read_response(self.request_id).await?;
-        self.request_id += 1;
+        let resp = self.read_response(req_id).await?;
         Ok(resp)
     }
 
@@ -128,9 +135,12 @@ impl McpSubprocessClient {
         &mut self,
         uri: &str,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+        let req_id = self.request_id;
+        self.request_id += 1;
+
         let req = json!({
             "jsonrpc": "2.0",
-            "id": self.request_id,
+            "id": req_id,
             "method": "resources/read",
             "params": {
                 "uri": uri
@@ -138,8 +148,7 @@ impl McpSubprocessClient {
         });
 
         self.send_request(req).await?;
-        let resp = self.read_response(self.request_id).await?;
-        self.request_id += 1;
+        let resp = self.read_response(req_id).await?;
         Ok(resp)
     }
 
@@ -149,9 +158,12 @@ impl McpSubprocessClient {
         name: &str,
         arguments: serde_json::Value,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+        let req_id = self.request_id;
+        self.request_id += 1;
+
         let req = json!({
             "jsonrpc": "2.0",
-            "id": self.request_id,
+            "id": req_id,
             "method": "tools/call",
             "params": {
                 "name": name,
@@ -160,8 +172,7 @@ impl McpSubprocessClient {
         });
 
         self.send_request(req).await?;
-        let resp = self.read_response(self.request_id).await?;
-        self.request_id += 1;
+        let resp = self.read_response(req_id).await?;
         Ok(resp)
     }
 
@@ -189,8 +200,7 @@ impl McpSubprocessClient {
         &mut self,
         expected_id: i64,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
-        // Must exceed the largest server-side upstream timeout (vision draft uses 60s).
-        self.read_response_with_timeout(expected_id, std::time::Duration::from_secs(75))
+        self.read_response_with_timeout(expected_id, DEFAULT_READ_TIMEOUT)
             .await
     }
 
@@ -253,23 +263,27 @@ impl McpSubprocessClient {
             .await
     }
 
-    /// Send a lightweight MCP ping request with a custom timeout.
+    /// Send a lightweight MCP ping request with a custom timeout covering both send and read.
     pub async fn ping_with_timeout(
         &mut self,
         timeout: std::time::Duration,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        let req_id = self.request_id;
+        self.request_id += 1;
+
         let req = json!({
             "jsonrpc": "2.0",
-            "id": self.request_id,
+            "id": req_id,
             "method": "ping",
             "params": {}
         });
 
-        self.send_request(req).await?;
-        let _resp = self
-            .read_response_with_timeout(self.request_id, timeout)
-            .await?;
-        self.request_id += 1;
-        Ok(())
+        tokio::time::timeout(timeout, async {
+            self.send_request(req).await?;
+            let _resp = self.read_response_with_timeout(req_id, timeout).await?;
+            Ok::<(), Box<dyn std::error::Error>>(())
+        })
+        .await
+        .map_err(|_| "Ping operation timed out")?
     }
 }
