@@ -177,34 +177,31 @@ def test_webhook_validation_success():
 
 
 def test_webhook_unauthorized_rejection():
-    """Test 401 rejection for invalid signature."""
-    # Scenario: Signature headers missing
+    """Test 401 rejection for invalid token."""
+    # Scenario: Token missing
     request_headers = {
-        "webhook-id": "1234",
-        "webhook-timestamp": "1234567890",
-        # Missing webhook-signature
+        "X-Gitlab-Event-UUID": "1234567890",
+        # Missing X-Gitlab-Token
     }
-    has_all_headers = all(h in request_headers for h in ["webhook-id", "webhook-timestamp", "webhook-signature"])
-    assert not has_all_headers, "Missing signature headers should trigger 401"
+    has_token = "X-Gitlab-Token" in request_headers
+    assert not has_token, "Missing token should trigger 401"
 
-    # Scenario: Signature mismatch (simulated)
+    # Scenario: Token mismatch (simulated)
     import hmac
 
-    expected_token = "v1,abc"
-    provided_token = "v1,def"
-    tokens_match = hmac.compare_digest(expected_token, provided_token)
-    assert not tokens_match, "Mismatched signatures should trigger 401"
+    expected_token = "secret_token_123"
+    provided_token = "wrong_token_456"
+    tokens_match = hmac.compare_digest(expected_token.encode(), provided_token.encode())
+    assert not tokens_match, "Mismatched tokens should trigger 401"
 
     print("✓ Webhook unauthorized rejection test passed")
 
 
 def test_webhook_missing_headers():
-    """Test 422 for missing required headers."""
+    """Test 422/401 for missing required headers."""
     # Missing X-Gitlab-Event-UUID
     headers_missing_uuid = {
-        "webhook-id": "1234",
-        "webhook-timestamp": "1234567890",
-        "webhook-signature": "v1,abc",
+        "X-Gitlab-Token": "secret",
         "X-Gitlab-Event": "Issue Hook",
     }
     has_uuid = "X-Gitlab-Event-UUID" in headers_missing_uuid
@@ -212,9 +209,7 @@ def test_webhook_missing_headers():
 
     # Missing X-Gitlab-Event
     headers_missing_event = {
-        "webhook-id": "1234",
-        "webhook-timestamp": "1234567890",
-        "webhook-signature": "v1,abc",
+        "X-Gitlab-Token": "secret",
         "X-Gitlab-Event-UUID": "550e8400-e29b-41d4-a716-446655440000",
     }
     has_event = "X-Gitlab-Event" in headers_missing_event
@@ -381,62 +376,6 @@ def test_webhook_response_payload():
     print("✓ Webhook response payload test passed")
 
 
-def mock_verify_hmac_signature(secret: str, webhook_id: str, timestamp: str, body: str, signature_header: str) -> bool:
-    """
-    Mock implementation of verify_hmac_signature for local testing without Pyodide/Web Crypto API.
-    Uses standard Python hmac and hashlib to simulate the Cloudflare Worker environment.
-    """
-    import hmac
-    import hashlib
-    import base64
-
-    if not secret or not signature_header or not signature_header.startswith("v1,"):
-        return False
-
-    try:
-        raw_key_str = secret.replace("whsec_", "")
-        raw_key_bytes = base64.b64decode(raw_key_str)
-
-        message = f"{webhook_id}.{timestamp}.{body}"
-        message_bytes = message.encode("utf-8")
-
-        signature = hmac.new(raw_key_bytes, message_bytes, hashlib.sha256).digest()
-        computed_signature = base64.b64encode(signature).decode("utf-8")
-        expected_signature = f"v1,{computed_signature}"
-
-        return hmac.compare_digest(signature_header, expected_signature)
-    except Exception:
-        return False
-
-
-def test_mock_verify_hmac_signature():
-    """Test the Python mock of HMAC verification."""
-    import base64
-
-    # Create a dummy secret
-    dummy_secret_bytes = b"my_super_secret_key"
-    secret = f"whsec_{base64.b64encode(dummy_secret_bytes).decode('utf-8')}"
-
-    webhook_id = "12345"
-    timestamp = "1620000000"
-    body = '{"action":"open"}'
-
-    # Generate correct signature
-    import hmac
-    import hashlib
-
-    msg = f"{webhook_id}.{timestamp}.{body}".encode("utf-8")
-    sig = hmac.new(dummy_secret_bytes, msg, hashlib.sha256).digest()
-    sig_header = f"v1,{base64.b64encode(sig).decode('utf-8')}"
-
-    assert mock_verify_hmac_signature(secret, webhook_id, timestamp, body, sig_header), "Valid signature should pass"
-    assert not mock_verify_hmac_signature(
-        secret, webhook_id, timestamp, body, "v1,invalid"
-    ), "Invalid signature should fail"
-
-    print("✓ Mock verify_hmac_signature test passed")
-
-
 def run_all_tests():
     """Run all test functions."""
     print("Running Toasty Worker Tests...\n")
@@ -460,7 +399,7 @@ def run_all_tests():
         test_webhook_issue_hook_normalization()
         test_webhook_note_hook_normalization()
         test_webhook_response_payload()
-        test_mock_verify_hmac_signature()
+
         print("\n" + "=" * 50)
         print("All tests passed! ✓")
         print("=" * 50)
