@@ -189,9 +189,18 @@ impl McpSubprocessClient {
         &mut self,
         expected_id: i64,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
-        let mut line = String::new();
         // Must exceed the largest server-side upstream timeout (vision draft uses 60s).
-        let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(75);
+        self.read_response_with_timeout(expected_id, std::time::Duration::from_secs(75))
+            .await
+    }
+
+    pub async fn read_response_with_timeout(
+        &mut self,
+        expected_id: i64,
+        timeout: std::time::Duration,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+        let mut line = String::new();
+        let deadline = tokio::time::Instant::now() + timeout;
         loop {
             let now = tokio::time::Instant::now();
             if now >= deadline {
@@ -240,6 +249,15 @@ impl McpSubprocessClient {
 
     /// Send a lightweight MCP ping request.
     pub async fn ping(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        self.ping_with_timeout(std::time::Duration::from_secs(5))
+            .await
+    }
+
+    /// Send a lightweight MCP ping request with a custom timeout.
+    pub async fn ping_with_timeout(
+        &mut self,
+        timeout: std::time::Duration,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let req = json!({
             "jsonrpc": "2.0",
             "id": self.request_id,
@@ -248,7 +266,9 @@ impl McpSubprocessClient {
         });
 
         self.send_request(req).await?;
-        let _resp = self.read_response(self.request_id).await?;
+        let _resp = self
+            .read_response_with_timeout(self.request_id, timeout)
+            .await?;
         self.request_id += 1;
         Ok(())
     }

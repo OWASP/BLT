@@ -167,15 +167,20 @@ where
                 }
                 crate::app::AppEvent::WatchdogStatus { event } => {
                     match event {
-                        crate::watchdog::WatchdogEvent::Degraded { consecutive_failures } => {
-                            app.status_message = format!("⚠ MCP: {} ping failures", consecutive_failures);
+                        crate::watchdog::WatchdogEvent::Degraded {
+                            consecutive_failures,
+                        } => {
+                            app.status_message =
+                                format!("⚠ MCP: {} ping failures", consecutive_failures);
                         }
                         crate::watchdog::WatchdogEvent::Disconnected { reason } => {
-                            app.status_message = format!("🔴 MCP disconnected: {}. Restarting...", reason);
+                            app.status_message =
+                                format!("🔴 MCP disconnected: {}. Restarting...", reason);
                             app.is_live = false;
                         }
                         crate::watchdog::WatchdogEvent::Reconnected { attempt } => {
-                            app.status_message = format!("🟢 MCP reconnected (attempt #{})", attempt);
+                            app.status_message =
+                                format!("🟢 MCP reconnected (attempt #{})", attempt);
                             app.is_live = true;
                         }
                         crate::watchdog::WatchdogEvent::Fatal { reason } => {
@@ -324,9 +329,7 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
     // Modal check redirects
     match app.active_overlay {
         crate::app::ActiveOverlay::Help => {
-            if key.code == KeyCode::Esc
-                || key.code == KeyCode::Char(' ')
-            {
+            if key.code == KeyCode::Esc || key.code == KeyCode::Char(' ') {
                 app.active_overlay = crate::app::ActiveOverlay::None;
             }
             return;
