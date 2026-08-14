@@ -96,21 +96,32 @@ def pytest_sessionfinish(session, exitstatus):
                 "-m",
                 "blt_mcp.server",
             ]
+            vcr_env = os.environ.copy()
+            vcr_env["PYTHONIOENCODING"] = "utf-8"
+
             try:
                 result = subprocess.run(
                     cmd,
-                    env=os.environ.copy(),
+                    env=vcr_env,
                     capture_output=True,
                     text=True,
                     check=False,
                     timeout=120,
                 )
-                print(result.stdout)
+                if result.stdout:
+                    print(result.stdout)
                 if result.returncode != 0:
-                    print(
-                        f"ERROR: Golden snapshots verification failed:\n{result.stderr}",
-                        file=sys.stderr,
-                    )
+                    if result.stderr:
+                        print(
+                            f"ERROR: Golden snapshots verification failed:\n{result.stderr}",
+                            file=sys.stderr,
+                        )
+                    else:
+                        print(
+                            "ERROR: Golden snapshots verification failed with exit code "
+                            f"{result.returncode}",
+                            file=sys.stderr,
+                        )
                     session.exitstatus = result.returncode
             except subprocess.TimeoutExpired:
                 print(

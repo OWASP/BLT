@@ -86,6 +86,7 @@ def record_session():
         "blt_mcp.server",
     ]
     env = os.environ.copy()
+    env["PYTHONIOENCODING"] = "utf-8"
 
     process = subprocess.Popen(
         cmd,

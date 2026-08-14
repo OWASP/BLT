@@ -62,7 +62,7 @@ requires-dist = [
     { name = "click" },
     { name = "httpx" },
     { name = "mcp" },
-    { name = "mcp-vcr", marker = "extra == 'dev'" },
+    { name = "mcp-vcr", marker = "extra == 'dev'", specifier = "==0.2.1" },
     { name = "pydantic" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-asyncio", marker = "extra == 'dev'" },
@@ -71,7 +71,7 @@ requires-dist = [
 provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "mcp-vcr", specifier = ">=0.1.5" }]
+dev = [{ name = "mcp-vcr", specifier = "==0.2.1" }]
 
 [[package]]
 name = "certifi"
@@ -283,7 +283,7 @@ wheels = [
 
 [[package]]
 name = "mcp-vcr"
-version = "0.1.5"
+version = "0.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -291,9 +291,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/64/76/a4858254cef031ab459fa645f75f3e48d69520e38df9f1f0cfba17dec0cd/mcp_vcr-0.1.5.tar.gz", hash = "sha256:677afad9285bafbfd2b391daa791d8903ea0ae0242381d1934a54ca1e6d3bfe9", size = 49488, upload-time = "2026-07-29T13:30:05.04Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/12/5d/c7bb47f11eedc239acbebf4ac32a22288ab5b43f3671bbae15dc475d564c/mcp_vcr-0.2.1.tar.gz", hash = "sha256:b436e101b90efcae52b805e6fcd874c8acf6334598f370be18eb6f60ffde2158", size = 76474, upload-time = "2026-08-14T11:05:27.471Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f9/e5/af29899529ccc10cc427241d75cde2788e0cb97596dcafca3e27f49efb9b/mcp_vcr-0.1.5-py3-none-any.whl", hash = "sha256:9b557be0decae6fec9a730ee6e16b3ddd6c3559dc235f100a25312228a397909", size = 32226, upload-time = "2026-07-29T13:30:02.673Z" },
+    { url = "https://files.pythonhosted.org/packages/58/50/6bd30cb67c72a17199c6807bd43a77d8cd9822121cbb69a74c5960021c46/mcp_vcr-0.2.1-py3-none-any.whl", hash = "sha256:98866a7686f27b5e85266d1fc07531a002a78a0dbf402ebff49a79032f4b8949", size = 52135, upload-time = "2026-08-14T11:05:25.773Z" },
 ]
 
 [[package]]
