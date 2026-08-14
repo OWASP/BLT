@@ -48,6 +48,10 @@ class_name = "RateLimiterDO"
 binding = "VECTORIZE"
 index_name = "toasty-embeddings"
 
+[[env.production.analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "toasty_telemetry"
+
 [env.staging]
 name = "toasty-backend-staging"
 
@@ -71,6 +75,10 @@ class_name = "RateLimiterDO"
 binding = "VECTORIZE"
 index_name = "toasty-embeddings-staging"
 
+[[env.staging.analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "toasty_telemetry_staging"
+
 [env.development]
 name = "toasty-backend-dev"
 
@@ -93,6 +101,10 @@ class_name = "RateLimiterDO"
 [[env.development.vectorize]]
 binding = "VECTORIZE"
 index_name = "toasty-embeddings-dev"
+
+[[env.development.analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "toasty_telemetry_dev"
 
 [[migrations]]
 tag = "v1"

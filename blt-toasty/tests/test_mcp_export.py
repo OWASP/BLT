@@ -37,7 +37,7 @@ crypto_mock.subtle.verify.return_value = True
 js_mock.crypto = crypto_mock
 sys.modules["js"] = js_mock
 
-from src.mcp_export import handle_mcp_export
+from src.mcp_export import handle_mcp_export  # noqa: E402
 
 
 def create_mock_jwt(payload_dict):
@@ -71,7 +71,7 @@ class TestMCPExport:
 
             if "FROM triage_events" in sql:
                 stmt.first = AsyncMock(
-                    return_value={"status": "complete", "project_id": 1, "issue_iid": 123, "created_at": "2023-01-01"}
+                    return_value={"status": "embedded", "project_id": 1, "issue_iid": 123, "created_at": "2023-01-01"}
                 )
             elif "FROM triage_summaries" in sql:
                 stmt.first = AsyncMock(return_value={"executive_summary": "Test Summary", "model_used": "test-model"})

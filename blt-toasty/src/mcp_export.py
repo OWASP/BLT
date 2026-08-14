@@ -62,7 +62,7 @@ async def get_triage_record(event_id: str, db: Any) -> dict:
         return r[k] if hasattr(r, "__getitem__") and k in r else r[idx]
 
     status = get_val(event_row, "status", 0)
-    if status != "complete":
+    if status not in ("embedded", "exported"):
         raise AuditIncompleteError(f"Triage event {event_id} is not complete (status: {status})", event_id, ["status"])
 
     # Verify audit completeness
@@ -211,6 +211,14 @@ async def handle_mcp_export(request: Any, env: Any, triage_id: str) -> Any:
     try:
         db = env.DB
         record = await get_triage_record(triage_id, db)
+
+        # Transition state to exported (will emit telemetry if configured)
+        from src.state_machine import transition_state
+
+        try:
+            await transition_state(db, triage_id, "exported", env)
+        except Exception as e:
+            logger.error(f"Failed to transition {triage_id} to exported: {e}")
 
         headers = {"Cache-Control": "no-store", "X-Triage-Schema-Version": "1.0"}
         return create_json_response(record, 200, headers)

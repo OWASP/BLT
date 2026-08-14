@@ -53,14 +53,16 @@ async def get_event(db, event_id: str) -> dict:
     return dict(result)
 
 
-async def transition_state(db, event_id: str, to_status: str) -> None:
+async def transition_state(db, event_id: str, to_status: str, env=None) -> None:
     """
     Transition an event to a new state using optimistic concurrency control.
+    If transitioning to 'exported', emits telemetry to Cloudflare Analytics Engine.
 
     Args:
         db: The D1 database binding.
         event_id (str): The ID of the triage event.
         to_status (str): The desired new state.
+        env: The Cloudflare Worker environment (optional, used for analytics).
 
     Raises:
         StateTransitionError: If the transition is invalid or a concurrent modification occurs.
@@ -83,6 +85,27 @@ async def transition_state(db, event_id: str, to_status: str) -> None:
 
     if changes == 0:
         raise StateTransitionError("Concurrent modification detected")
+
+    if to_status == "exported" and env is not None:
+        analytics = getattr(env, "ANALYTICS", None)
+        if analytics:
+            try:
+                # We need to calculate duration. The event we fetched has created_at
+                created_at_str = event.get("created_at")
+                project_id = event.get("project_id", 0)
+
+                # Use SQL to compute duration correctly using julianday
+                dur_query = (
+                    "SELECT (julianday(updated_at) - julianday(?)) * 86400 AS duration FROM triage_events WHERE id = ?"
+                )
+                dur_res = await db.prepare(dur_query).bind(created_at_str, event_id).first()
+                duration = dur_res.get("duration", 0) if dur_res else 0
+
+                analytics.writeDataPoint(
+                    {"blobs": [str(project_id), "exported"], "doubles": [float(duration)], "indexes": [event_id]}
+                )
+            except Exception as exc:
+                logger.error(f"Failed to emit telemetry: {exc}")
 
 
 async def quarantine_event(db, event_id: str, reason: str, env=None, has_vector: bool = True) -> None:
