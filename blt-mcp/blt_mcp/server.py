@@ -28,6 +28,8 @@ Entry Point:
 - `main()`: Resolves stdin wrappers and launches the core `mcp.run()` event loop.
 """
 
+import asyncio
+import hmac
 import json
 import mimetypes
 import os
@@ -38,14 +40,15 @@ from urllib.parse import quote
 
 import anyio
 import httpx
-import asyncio
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 # Import v2 modular resources, tools and prompts to register them on the mcp instance
-from blt_mcp import server_base, v2_resources, v2_tools  # noqa: F401
 import blt_mcp.prompts  # noqa: F401
+from blt_mcp import server_base, v2_resources, v2_tools  # noqa: F401
 from blt_mcp.server_base import _fetch, logger, mcp
 from blt_mcp.tools import generate_ai_metadata, summarize_issue_context_impl
 from blt_mcp.validation import InterceptingStdinBuffer, StdinWrapper
@@ -348,8 +351,12 @@ async def triage_vulnerability(prompt: str) -> str:
             if result.get("success"):
                 response_text = result["result"]["response"]
                 trimmed = response_text.strip()
-                if not any(trimmed.endswith(ext) for ext in (".", "!", "?", "```", "**", "*")):
-                    raise RuntimeError("Cloudflare AI response was truncated (incomplete output).")
+                if not any(
+                    trimmed.endswith(ext) for ext in (".", "!", "?", "```", "**", "*")
+                ):
+                    raise RuntimeError(
+                        "Cloudflare AI response was truncated (incomplete output)."
+                    )
                 return response_text
             else:
                 raise RuntimeError(
@@ -511,6 +518,12 @@ async def upload_screenshot(
 
 def main(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8080) -> None:
     """Entry point for the BLT-MCP server."""
+    if sys.platform == "win32":
+        try:
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        except Exception as e:  # noqa: BLE001
+            logger.debug(f"Could not set WindowsSelectorEventLoopPolicy: {e}")
+
     try:
         logger.info(
             f"Starting BLT-MCP server (transport={transport}, bind={host}:{port})..."
@@ -539,17 +552,14 @@ def main(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8080) ->
                 sys.stdin, InterceptingStdinBuffer(sys.stdin.buffer)
             )
         mcp.run(transport=transport)
-    except KeyboardInterrupt:
-        logger.info("Server stopped by user.")
+    except (KeyboardInterrupt, RuntimeError) as e:
+        if isinstance(e, RuntimeError) and "Event loop is closed" not in str(e):
+            raise
+        logger.info("Server stopped.")
         return
 
 
 def _apply_token_auth_middleware() -> None:
-    import os
-
-    from starlette.middleware.base import BaseHTTPMiddleware
-    from starlette.responses import JSONResponse
-
     class MCPTokenAuthMiddleware(BaseHTTPMiddleware):
         async def dispatch(self, request, call_next):
             if request.method == "OPTIONS":
@@ -566,7 +576,9 @@ def _apply_token_auth_middleware() -> None:
                 else None
             )
 
-            import hmac
+            # Fallback to query parameter token (required for browser EventSource SSE handshakes)
+            if not token:
+                token = request.query_params.get("token")
 
             if not token or not hmac.compare_digest(token, expected_token):
                 return JSONResponse(

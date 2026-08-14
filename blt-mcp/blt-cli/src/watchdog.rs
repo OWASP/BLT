@@ -51,10 +51,19 @@ pub async fn run_watchdog(
     loop {
         tokio::time::sleep(config.ping_interval).await;
 
-        // Try sending a ping (lightweight)
-        let ping_ok = {
-            let mut guard = client.lock().await;
-            guard.ping().await.is_ok()
+        // Try acquiring lock and sending a lightweight ping with a short timeout to prevent UI freezes
+        let lock_result = tokio::time::timeout(Duration::from_secs(2), client.lock()).await;
+
+        let ping_ok = match lock_result {
+            Ok(mut guard) => guard
+                .ping_with_timeout(Duration::from_secs(3))
+                .await
+                .is_ok(),
+            Err(_) => {
+                // Lock acquisition timed out because an active tool execution is holding the lock.
+                // Since an active request is running, the client channel is active.
+                true
+            }
         };
 
         if ping_ok {
@@ -96,10 +105,7 @@ pub async fn run_watchdog(
         restarts += 1;
 
         // Attempt respawn
-        let new_client = match McpSubprocessClient::spawn(&cmd_name, &cmd_args).await {
-            Ok(c) => Some(c),
-            Err(_) => None,
-        };
+        let new_client = McpSubprocessClient::spawn(&cmd_name, &cmd_args).await.ok();
 
         if let Some(mut c) = new_client {
             if c.initialize().await.is_ok() {

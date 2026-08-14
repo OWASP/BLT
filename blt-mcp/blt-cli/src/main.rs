@@ -250,7 +250,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 wd_args,
                                 crate::watchdog::WatchdogConfig::default(),
                                 watchdog_sender,
-                            ).await;
+                            )
+                            .await;
                         });
                     }
                     Err(e) => {

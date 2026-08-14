@@ -29,6 +29,8 @@ import click
 import httpx
 
 from blt_mcp.auth import save_credentials
+from blt_mcp.oauth import pkce_login
+from blt_mcp.server import main
 from blt_mcp.server_base import BLT_API_BASE
 
 logging.basicConfig(level=logging.INFO)
@@ -41,8 +43,6 @@ def cli(ctx):
     """BLT-MCP Command Line Interface"""
     if ctx.invoked_subcommand is None:
         # Backward compatibility: run the server if no command is given
-        from blt_mcp.server import main
-
         main()
 
 
@@ -156,8 +156,6 @@ def login_pkce(client_id, port):
 
 
 async def _async_pkce_login(client_id: str, port: int):
-    from blt_mcp.oauth import pkce_login
-
     authorize_url = f"{BLT_API_BASE}/oauth/authorize"
     token_url = f"{BLT_API_BASE}/oauth/token"
     try:
@@ -179,7 +177,7 @@ async def _async_pkce_login(client_id: str, port: int):
                 err=True,
             )
         sys.exit(1)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         click.echo(f"PKCE login failed: {e}", err=True)
         sys.exit(1)
 
@@ -195,8 +193,6 @@ async def _async_pkce_login(client_id: str, port: int):
 @click.option("--port", default=8080, type=int, help="Port to bind (SSE/HTTP only).")
 def run(transport, host, port):
     """Run the MCP server"""
-    from blt_mcp.server import main
-
     main(transport=transport, host=host, port=port)
 
 

@@ -1,3 +1,15 @@
+"""
+Server-Sent Events (SSE) Transport Protocol Integration Tests.
+
+This module validates that the MCP server operates correctly under the SSE transport layer (`--transport sse`),
+verifying unauthenticated requests, query parameter token auth (`/sse?token=...`), Bearer token auth, and anonymous execution.
+
+Test Scenarios:
+- `test_sse_transport_unauthenticated`: Verifies 401 Unauthorized responses for missing or bad tokens,
+  and successful connection for query parameter and Authorization header token authentication.
+- `test_sse_transport_anonymous`: Verifies that if `BLT_MCP_TOKEN` is unset, SSE endpoints accept anonymous connections.
+"""
+
 import os
 import subprocess
 import sys
@@ -33,7 +45,9 @@ def test_sse_transport_unauthenticated():
 
     try:
         # Request /sse without token
-        with httpx.Client() as client:
+        with httpx.Client(
+            timeout=httpx.Timeout(10.0, connect=5.0, read=None)
+        ) as client:
             resp = client.get("http://127.0.0.1:8085/sse")
             assert resp.status_code == 401
             assert "Unauthorized" in resp.json().get("error", "")
@@ -45,19 +59,22 @@ def test_sse_transport_unauthenticated():
             )
             assert resp_bad.status_code == 401
 
-            # Request with valid token in query parameter (should be rejected since query-param fallback is removed)
-            resp_qp = client.get(
-                "http://127.0.0.1:8085/sse?token=super-secret-token"
-            )
-            assert resp_qp.status_code == 401
+            # Request with valid token in query parameter (EventSource auth support)
+            with client.stream(
+                "GET",
+                "http://127.0.0.1:8085/sse?token=super-secret-token",
+            ) as resp_qp:
+                assert resp_qp.status_code != 401
 
-            # Request with correct token
+            time.sleep(0.3)
+
+            # Request with correct token in Authorization header
             with client.stream(
                 "GET",
                 "http://127.0.0.1:8085/sse",
                 headers={"Authorization": "Bearer super-secret-token"},
             ) as resp_ok:
-                # SSE request with correct token should either stay open or redirect/succeed (not 401)
+                # SSE request with correct token should stay open / return 200 OK (not 401)
                 assert resp_ok.status_code != 401
 
     finally:
@@ -95,9 +112,11 @@ def test_sse_transport_anonymous():
     time.sleep(1.5)
 
     try:
-        with httpx.Client() as client:
-            with client.stream("GET", "http://127.0.0.1:8086/sse") as resp:
-                assert resp.status_code != 401
+        with (
+            httpx.Client(timeout=httpx.Timeout(10.0, connect=5.0, read=None)) as client,
+            client.stream("GET", "http://127.0.0.1:8086/sse") as resp,
+        ):
+            assert resp.status_code != 401
     finally:
         process.terminate()
         try:

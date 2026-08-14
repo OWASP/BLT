@@ -35,7 +35,8 @@ fn get_client() -> &'static reqwest::Client {
     })
 }
 
-pub const PUBLIC_SHOWCASE_KEY: &str = "f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051";
+pub const PUBLIC_SHOWCASE_KEY: &str =
+    "f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051";
 
 pub fn get_api_key() -> Option<String> {
     if let Ok(api_key) = std::env::var("BLT_API_KEY") {

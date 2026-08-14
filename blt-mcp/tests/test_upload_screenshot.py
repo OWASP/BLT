@@ -1,3 +1,15 @@
+"""
+Integration Tests for the Screenshot Image Upload Helper and Vision AI Drafting Security Constraints.
+
+This module validates file path sandboxing, image size constraints, project ID sanitization, and GitLab API upload integrations.
+
+Test Scenarios:
+- `test_upload_screenshot_invalid_project_id_validation_first`: Verifies that invalid project IDs trigger validation errors before file reads.
+- `test_upload_screenshot_valid_numeric_id`: Verifies successful upload for valid numeric GitLab project IDs.
+- `test_upload_screenshot_valid_namespace_id`: Verifies URL-encoded namespace project IDs (e.g., `org/repo/subgroup`).
+- `test_upload_screenshot_missing_markdown`: Verifies RuntimeError handling when GitLab uploads return no markdown snippet.
+"""
+
 import os
 import re
 from pathlib import Path

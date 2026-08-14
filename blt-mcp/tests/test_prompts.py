@@ -1,3 +1,16 @@
+"""
+Integration Tests for the Prompts Primitive Endpoints.
+
+This module validates registered prompt listing (`prompts/list`) and template retrieval (`prompts/get`)
+across the FastMCP server via JSON-RPC stdio pipes.
+
+Test Scenarios:
+- `test_prompts_list`: Verifies that `prompts/list` returns all three registered prompts (`triage_vulnerability`,
+  `plan_remediation`, `review_contribution`).
+- `test_prompt_get_triage`: Verifies that `prompts/get` for `triage_vulnerability` returns the expected prompt user messages
+  with parameter interpolation.
+"""
+
 import json
 import os
 import subprocess

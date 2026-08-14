@@ -29,6 +29,8 @@ import httpx
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
+from blt_mcp.auth import load_credentials
+
 # Test Mocking: Hooked internally by pytest / mcp-vcr to run test suites deterministically
 if os.getenv("BLT_MOCK_HTTP") == "true":
     original_send = httpx.AsyncClient.send
@@ -187,18 +189,15 @@ PUBLIC_BLT_API_KEY = "f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b
 
 if not BLT_API_KEY:
     try:
-        from blt_mcp.auth import load_credentials
-
         BLT_API_KEY = load_credentials()
         if BLT_API_KEY:
             logger.info("Loaded BLT_API_KEY from local credentials file.")
-    except ImportError:
-        pass
+    except Exception as e:  # noqa: BLE001
+        logger.debug(f"Could not load local credentials: {e}")
 
 if not BLT_API_KEY:
     BLT_API_KEY = PUBLIC_BLT_API_KEY
     logger.info("BLT_API_KEY not configured. Falling back to public showcase API key.")
-
 
 
 # Shared HTTPX client
