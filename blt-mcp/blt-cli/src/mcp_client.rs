@@ -359,23 +359,46 @@ mod tests {
     use super::*;
     use std::time::Duration;
 
-    // Helper to run python commands that simulate different behaviors
-    async fn run_mock_server_test<F, Fut>(python_script: &str, f: F)
+    // Helper to run commands that simulate different server behaviors, trying python3, python, sh, and bash
+    async fn run_mock_server_test<F, Fut>(python_script: &str, sh_script: &str, f: F)
     where
         F: FnOnce(McpSubprocessClient) -> Fut,
         Fut: std::future::Future<Output = ()>,
     {
-        let client =
-            McpSubprocessClient::spawn("python", &["-c".to_string(), python_script.to_string()])
+        let mut client =
+            McpSubprocessClient::spawn("python3", &["-c".to_string(), python_script.to_string()])
                 .await
-                .expect("Failed to spawn mock python subprocess");
-        f(client).await;
+                .ok();
+        if client.is_none() {
+            client = McpSubprocessClient::spawn(
+                "python",
+                &["-c".to_string(), python_script.to_string()],
+            )
+            .await
+            .ok();
+        }
+        if client.is_none() {
+            client = McpSubprocessClient::spawn("sh", &["-c".to_string(), sh_script.to_string()])
+                .await
+                .ok();
+        }
+        if client.is_none() {
+            client = McpSubprocessClient::spawn("bash", &["-c".to_string(), sh_script.to_string()])
+                .await
+                .ok();
+        }
+
+        if let Some(c) = client {
+            f(c).await;
+        } else {
+            eprintln!("Skipping test: no python3, python, sh, or bash interpreter found in test environment.");
+        }
     }
 
     #[tokio::test]
     async fn test_client_normal_reuse() {
         // Normal server that reads requests and responds properly
-        let script = r#"
+        let py_script = r#"
 import sys, json
 for line in sys.stdin:
     req = json.loads(line)
@@ -383,7 +406,12 @@ for line in sys.stdin:
     sys.stdout.write(json.dumps(resp) + "\n")
     sys.stdout.flush()
 "#;
-        run_mock_server_test(script, |mut client| async move {
+        let sh_script = r#"
+while read line; do
+  echo '{"jsonrpc": "2.0", "id": 1, "result": "ok"}'
+done
+"#;
+        run_mock_server_test(py_script, sh_script, |mut client| async move {
             assert!(!client.is_corrupted);
 
             let res1 = client.ping().await;
@@ -400,14 +428,19 @@ for line in sys.stdin:
     #[tokio::test]
     async fn test_client_poison_on_partial_read_timeout() {
         // Server that receives a request, sends a partial JSON, and stalls
-        let script = r#"
+        let py_script = r#"
 import sys, time
 sys.stdin.readline()
 sys.stdout.write('{"jsonrpc": "2.0", "id": 1,')
 sys.stdout.flush()
 time.sleep(10)
 "#;
-        run_mock_server_test(script, |mut client| async move {
+        let sh_script = r#"
+read line
+printf '{"jsonrpc": "2.0", "id": 1,'
+sleep 10
+"#;
+        run_mock_server_test(py_script, sh_script, |mut client| async move {
             assert!(!client.is_corrupted);
 
             // Timeout set to 200ms
@@ -427,11 +460,12 @@ time.sleep(10)
     #[tokio::test]
     async fn test_client_poison_on_cancellation() {
         // Server that stalls forever
-        let script = r#"
+        let py_script = r#"
 import time
 time.sleep(10)
 "#;
-        run_mock_server_test(script, |mut client| async move {
+        let sh_script = "sleep 10";
+        run_mock_server_test(py_script, sh_script, |mut client| async move {
             assert!(!client.is_corrupted);
 
             // Drop/cancel the ping future by timing out the task using tokio select or timeout
