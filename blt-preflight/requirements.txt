@@ -23,3 +23,10 @@ pyyaml>=6.0                      # For configuration files
 
 # Development & Testing
 pytest>=8.0.0
+
+# Backend 
+fastapi
+uvicorn[standard]
+pydantic-settings
+pytest
+httpx
