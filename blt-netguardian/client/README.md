@@ -8,7 +8,14 @@ history land in follow-up MRs (C2/C3).
 
 ## Run (macOS)
 
-From the repo root (with Flutter 3.x installed):
+Terminal 1 — API from the **repo root** (not `client/`):
+
+```bash
+python local_dev/serve.py
+# or: .venv/bin/python local_dev/serve.py
+```
+
+Terminal 2 — Flutter client:
 
 ```bash
 cd client
@@ -17,9 +24,9 @@ flutter test
 flutter run -d macos
 ```
 
-Point **API base URL** at local `http://127.0.0.1:8787` (`python local_dev/serve.py`)
-or a staging Worker. Demo secret `736563726574` / `org-demo` / `scanner-1` / `k1`
-matches `local_dev/send_finding.py` (loopback only).
+Point **API base URL** at local `http://127.0.0.1:8787` or a staging Worker.
+Demo secret `736563726574` / `org-demo` / `scanner-1` / `k1` matches
+`local_dev/send_finding.py` (loopback only).
 
 ## Layout
 

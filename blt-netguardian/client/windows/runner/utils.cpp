@@ -52,7 +52,7 @@ std::string Utf8FromUtf16(const wchar_t* utf16_string) {
   // When an explicit length is passed, WideCharToMultiByte does not include
   // the null terminator in its returned size.
   int target_length = ::WideCharToMultiByte(
-      CP_UTF8, WC_ERR_INVALID_CHARS, utf16_string,
+      CP_UTF8, 0, utf16_string,
       input_length, nullptr, 0, nullptr, nullptr);
   std::string utf8_string;
   if (target_length == 0 || static_cast<size_t>(target_length) > utf8_string.max_size()) {
@@ -60,7 +60,7 @@ std::string Utf8FromUtf16(const wchar_t* utf16_string) {
   }
   utf8_string.resize(target_length);
   int converted_length = ::WideCharToMultiByte(
-      CP_UTF8, WC_ERR_INVALID_CHARS, utf16_string,
+      CP_UTF8, 0, utf16_string,
       input_length, utf8_string.data(), target_length, nullptr, nullptr);
   if (converted_length == 0) {
     return std::string();

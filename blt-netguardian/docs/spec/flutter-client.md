@@ -14,6 +14,10 @@ Desktop producer that finds (later) and **sends** signed findings into NetGuardi
 
 `flutter test` passes; app can send a demo finding to local/staging ingest.
 
+Run the API from the **repo root** (`python local_dev/serve.py`) in a separate
+shell from `cd client && flutter run`. Demo credentials match
+`local_dev/send_finding.py` (loopback only).
+
 ## Follow-ups
 
 | MR | Slice |

@@ -59,6 +59,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadConfig() async {
     final cfg = await SenderConfig.load();
+    if (!mounted) return;
     setState(() {
       _baseUrl.text = cfg.baseUrl;
       _orgId.text = cfg.orgId;
@@ -78,6 +79,7 @@ class _HomePageState extends State<HomePage> {
       secretHex: _secretHex.text.trim(),
     );
     await cfg.save();
+    if (!mounted) return;
     setState(() => _status = 'Config saved.');
   }
 
@@ -88,6 +90,7 @@ class _HomePageState extends State<HomePage> {
     });
     try {
       await _saveConfig();
+      if (!mounted) return;
       final stamp = DateTime.now().toUtc().millisecondsSinceEpoch;
       final payload = <String, Object?>{
         'rule_id': _ruleId.text.trim(),
@@ -104,6 +107,7 @@ class _HomePageState extends State<HomePage> {
         secret: secretFromHex(_secretHex.text.trim()),
         payload: payload,
       );
+      if (!mounted) return;
       setState(() {
         if (result.ok) {
           _status =
@@ -113,9 +117,13 @@ class _HomePageState extends State<HomePage> {
         }
       });
     } catch (e) {
-      setState(() => _status = 'ERROR $e');
+      if (mounted) {
+        setState(() => _status = 'ERROR $e');
+      }
     } finally {
-      setState(() => _sending = false);
+      if (mounted) {
+        setState(() => _sending = false);
+      }
     }
   }
 
