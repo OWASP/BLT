@@ -249,4 +249,4 @@ MIT.
 
 ---
 
-Built for OWASP BLT — Google Summer of Code 2026.
+Built for OWASP BLT 
