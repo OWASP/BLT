@@ -23,7 +23,7 @@ workflow:
 
 python-tests:
   stage: test
-  image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim@sha256:e5b65587bce7de595f299855d7385fe7fca39b8a74baa261ba1b7147afa78e58
   variables:
     UV_CACHE_DIR: ".uv-cache"
   cache:
@@ -38,7 +38,7 @@ python-tests:
 
 rust-tests-linux:
   stage: test
-  image: rust:latest
+  image: rust:latest@sha256:b1b3c9c0d921d7fa0a6d1f9ec7e4eab87f8c8ec97644c3d791450f131dec813f
   variables:
     CARGO_HOME: $CI_PROJECT_DIR/.cargo
   cache:
@@ -62,7 +62,7 @@ golden-snapshot-verify:
   stage: snapshot-verify
   needs:
     - python-tests
-  image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim@sha256:e5b65587bce7de595f299855d7385fe7fca39b8a74baa261ba1b7147afa78e58
   variables:
     UV_CACHE_DIR: ".uv-cache"
     BLT_VERIFY_SNAPSHOTS: "true"
@@ -86,7 +86,7 @@ build-rust-linux-windows:
     - python-tests
     - rust-tests-linux
     - golden-snapshot-verify
-  image: rust:latest
+  image: rust:latest@sha256:b1b3c9c0d921d7fa0a6d1f9ec7e4eab87f8c8ec97644c3d791450f131dec813f
   variables:
     CARGO_HOME: $CI_PROJECT_DIR/.cargo
   cache:
@@ -127,7 +127,7 @@ build-rust-linux-windows:
 upload-release-assets:
   stage: deploy
   image:
-    name: curlimages/curl:latest
+    name: curlimages/curl:latest@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
     entrypoint: [""]
   rules:
     - if: $CI_COMMIT_TAG
@@ -145,7 +145,7 @@ upload-release-assets:
 upload-nightly-assets:
   stage: deploy
   image:
-    name: curlimages/curl:latest
+    name: curlimages/curl:latest@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
     entrypoint: [""]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -166,7 +166,7 @@ upload-nightly-assets:
 
 create-gitlab-release:
   stage: release
-  image: registry.gitlab.com/gitlab-org/cli:v1.44.0
+  image: registry.gitlab.com/gitlab-org/cli:v1.44.0@sha256:ba70d5dcd20c64f466b2324630451b77e0593144d72b6fd2b201ae84dc8ea68e
   rules:
     - if: $CI_COMMIT_TAG
   script:

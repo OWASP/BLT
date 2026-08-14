@@ -16,6 +16,9 @@
 //! Error Handling:
 //! - Performs timeouts (75 seconds default) on reads to prevent blocking the TUI thread.
 //! - Parses and propagates server errors.
+//! - Employs a cancellation-safe `PoisonGuard` on all active read and write operations;
+//!   if a future is dropped (e.g., timed out or canceled), the client is marked as corrupted
+//!   (`is_corrupted = true`) to prevent subsequent request/response desynchronization.
 
 #![allow(dead_code)]
 
@@ -27,6 +30,34 @@ use tokio::process::{Child, ChildStdin, ChildStdout, Command};
 /// Default response read timeout (75 seconds to cover long-running vision AI tools).
 pub const DEFAULT_READ_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(75);
 
+/// A guard that marks the client as corrupted/poisoned if it is dropped before being defused.
+/// This ensures cancellation safety when futures are dropped due to timeouts or other cancellations.
+struct PoisonGuard<'a> {
+    is_corrupted: &'a mut bool,
+    active: bool,
+}
+
+impl<'a> PoisonGuard<'a> {
+    fn new(is_corrupted: &'a mut bool) -> Self {
+        Self {
+            is_corrupted,
+            active: true,
+        }
+    }
+
+    fn defuse(mut self) {
+        self.active = false;
+    }
+}
+
+impl<'a> Drop for PoisonGuard<'a> {
+    fn drop(&mut self) {
+        if self.active {
+            *self.is_corrupted = true;
+        }
+    }
+}
+
 pub struct McpSubprocessClient {
     _child: Child,
     stdin: ChildStdin,
@@ -34,6 +65,7 @@ pub struct McpSubprocessClient {
     request_id: i64,
     pub cmd_name: String,
     pub cmd_args: Vec<String>,
+    pub is_corrupted: bool,
 }
 
 impl McpSubprocessClient {
@@ -79,10 +111,14 @@ impl McpSubprocessClient {
             request_id: 1,
             cmd_name: cmd_name.to_string(),
             cmd_args: args.to_vec(),
+            is_corrupted: false,
         })
     }
 
     pub async fn initialize(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        if self.is_corrupted {
+            return Err("MCP Subprocess client is corrupted/poisoned due to a previous timeout or cancellation".into());
+        }
         let req_id = self.request_id;
         self.request_id += 1;
 
@@ -116,6 +152,9 @@ impl McpSubprocessClient {
     pub async fn list_resources(
         &mut self,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+        if self.is_corrupted {
+            return Err("MCP Subprocess client is corrupted/poisoned due to a previous timeout or cancellation".into());
+        }
         let req_id = self.request_id;
         self.request_id += 1;
 
@@ -135,6 +174,9 @@ impl McpSubprocessClient {
         &mut self,
         uri: &str,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+        if self.is_corrupted {
+            return Err("MCP Subprocess client is corrupted/poisoned due to a previous timeout or cancellation".into());
+        }
         let req_id = self.request_id;
         self.request_id += 1;
 
@@ -158,6 +200,9 @@ impl McpSubprocessClient {
         name: &str,
         arguments: serde_json::Value,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+        if self.is_corrupted {
+            return Err("MCP Subprocess client is corrupted/poisoned due to a previous timeout or cancellation".into());
+        }
         let req_id = self.request_id;
         self.request_id += 1;
 
@@ -180,9 +225,14 @@ impl McpSubprocessClient {
         &mut self,
         req: serde_json::Value,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        if self.is_corrupted {
+            return Err("MCP Subprocess client is corrupted/poisoned due to a previous timeout or cancellation".into());
+        }
+        let guard = PoisonGuard::new(&mut self.is_corrupted);
         let line = serde_json::to_string(&req)? + "\n";
         self.stdin.write_all(line.as_bytes()).await?;
         self.stdin.flush().await?;
+        guard.defuse();
         Ok(())
     }
 
@@ -190,9 +240,14 @@ impl McpSubprocessClient {
         &mut self,
         notif: serde_json::Value,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        if self.is_corrupted {
+            return Err("MCP Subprocess client is corrupted/poisoned due to a previous timeout or cancellation".into());
+        }
+        let guard = PoisonGuard::new(&mut self.is_corrupted);
         let line = serde_json::to_string(&notif)? + "\n";
         self.stdin.write_all(line.as_bytes()).await?;
         self.stdin.flush().await?;
+        guard.defuse();
         Ok(())
     }
 
@@ -209,6 +264,10 @@ impl McpSubprocessClient {
         expected_id: i64,
         timeout: std::time::Duration,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+        if self.is_corrupted {
+            return Err("MCP Subprocess client is corrupted/poisoned due to a previous timeout or cancellation".into());
+        }
+        let guard = PoisonGuard::new(&mut self.is_corrupted);
         let mut line = String::new();
         let deadline = tokio::time::Instant::now() + timeout;
         loop {
@@ -243,6 +302,7 @@ impl McpSubprocessClient {
                             .unwrap_or("Unknown MCP JSON-RPC error");
                         return Err(format!("MCP Error: {}", msg).into());
                     }
+                    guard.defuse();
                     return Ok(response);
                 }
             }
@@ -251,6 +311,9 @@ impl McpSubprocessClient {
 
     /// Check if the subprocess is still running.
     pub fn is_alive(&mut self) -> bool {
+        if self.is_corrupted {
+            return false;
+        }
         match self._child.try_wait() {
             Ok(None) => true, // Still running
             _ => false,       // Terminated or failed
@@ -268,6 +331,9 @@ impl McpSubprocessClient {
         &mut self,
         timeout: std::time::Duration,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        if self.is_corrupted {
+            return Err("MCP Subprocess client is corrupted/poisoned due to a previous timeout or cancellation".into());
+        }
         let req_id = self.request_id;
         self.request_id += 1;
 
@@ -285,5 +351,100 @@ impl McpSubprocessClient {
         })
         .await
         .map_err(|_| "Ping operation timed out")?
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+
+    // Helper to run python commands that simulate different behaviors
+    async fn run_mock_server_test<F, Fut>(python_script: &str, f: F)
+    where
+        F: FnOnce(McpSubprocessClient) -> Fut,
+        Fut: std::future::Future<Output = ()>,
+    {
+        let client =
+            McpSubprocessClient::spawn("python", &["-c".to_string(), python_script.to_string()])
+                .await
+                .expect("Failed to spawn mock python subprocess");
+        f(client).await;
+    }
+
+    #[tokio::test]
+    async fn test_client_normal_reuse() {
+        // Normal server that reads requests and responds properly
+        let script = r#"
+import sys, json
+for line in sys.stdin:
+    req = json.loads(line)
+    resp = {"jsonrpc": "2.0", "id": req["id"], "result": "ok"}
+    sys.stdout.write(json.dumps(resp) + "\n")
+    sys.stdout.flush()
+"#;
+        run_mock_server_test(script, |mut client| async move {
+            assert!(!client.is_corrupted);
+
+            let res1 = client.ping().await;
+            assert!(res1.is_ok());
+            assert!(!client.is_corrupted);
+
+            let res2 = client.ping().await;
+            assert!(res2.is_ok());
+            assert!(!client.is_corrupted);
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_client_poison_on_partial_read_timeout() {
+        // Server that receives a request, sends a partial JSON, and stalls
+        let script = r#"
+import sys, time
+sys.stdin.readline()
+sys.stdout.write('{"jsonrpc": "2.0", "id": 1,')
+sys.stdout.flush()
+time.sleep(10)
+"#;
+        run_mock_server_test(script, |mut client| async move {
+            assert!(!client.is_corrupted);
+
+            // Timeout set to 200ms
+            let res = client.ping_with_timeout(Duration::from_millis(200)).await;
+            assert!(res.is_err());
+            assert!(client.is_corrupted);
+
+            // Subsequent pings should immediately return Err of corruption
+            let res2 = client.ping().await;
+            assert!(res2.is_err());
+            let err_msg = res2.unwrap_err().to_string();
+            assert!(err_msg.contains("corrupted") || err_msg.contains("poisoned"));
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_client_poison_on_cancellation() {
+        // Server that stalls forever
+        let script = r#"
+import time
+time.sleep(10)
+"#;
+        run_mock_server_test(script, |mut client| async move {
+            assert!(!client.is_corrupted);
+
+            // Drop/cancel the ping future by timing out the task using tokio select or timeout
+            let res = tokio::time::timeout(Duration::from_millis(200), client.ping()).await;
+            assert!(res.is_err()); // tokio timeout error
+
+            // The client must be poisoned/corrupted because the future was dropped/canceled
+            assert!(client.is_corrupted);
+
+            // Subsequent requests must fail immediately
+            let res2 = client.ping().await;
+            assert!(res2.is_err());
+        })
+        .await;
     }
 }

@@ -347,9 +347,13 @@ BLT-MCP provides CLI commands to manage persistent tokens:
   ```
 
 ### CLI-to-Server Connection Watchdog
-When launching the TUI in **MCP Mode**, a background watchdog monitors the spawned subprocess's health using JSON-RPC `ping` requests. If the subprocess crashes or halts:
+When launching the TUI in **MCP Mode**, a background watchdog monitors the spawned subprocess's health using JSON-RPC `ping` requests.
+
+To ensure stream integrity and prevent request desynchronization, the `McpSubprocessClient` uses a cancellation-safe `PoisonGuard` pattern. If a write or read operation is canceled (e.g., due to a timeout or a dropped future), the client is immediately marked as corrupted (poisoned).
+
+If the client crashes, halts, or gets poisoned:
 1. The watchdog detects the failure (status: degraded -> disconnected).
-2. It auto-terminates the stale child and hot-reloads a fresh server process.
+2. It auto-terminates the stale/corrupted child and hot-reloads a fresh server process.
 3. The TUI re-establishes connection context without locking the interface or requiring a TUI restart. Status is printed directly to the status bar.
 
 ### Bug Reporting Workflows
