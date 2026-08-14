@@ -197,10 +197,28 @@ async def index_report(
         await _transition_state(db, event_id, "embedded", expected_status=current_status)
     except StateTransitionError:
         logger.error("State transition failed after Vectorize insert for event %s. Cleaning up vector.", event_id)
-        try:
-            await env.VECTORIZE.deleteByIds([event_id])
-        except Exception as cleanup_exc:
-            logger.error("Failed to cleanup vector for event %s after transition failure: %s", event_id, cleanup_exc)
+        cleanup_success = False
+
+        # Retry logic: attempt cleanup twice
+        for attempt in range(2):
+            try:
+                await env.VECTORIZE.deleteByIds([event_id])
+                cleanup_success = True
+                break
+            except Exception as cleanup_exc:
+                logger.error(
+                    "Failed to cleanup vector for event %s on attempt %d: %s", event_id, attempt + 1, cleanup_exc
+                )
+
+        if not cleanup_success:
+            # Mark the event so a cron trigger can clean up the phantom vector later
+            try:
+                await db.prepare(
+                    "UPDATE triage_events SET quarantine_reason = COALESCE(quarantine_reason, '') || '; vector_cleanup_pending' WHERE id = ?"
+                ).bind(event_id).run()
+            except Exception as flag_exc:
+                logger.error("Failed to set vector_cleanup_pending flag for event %s: %s", event_id, flag_exc)
+
         raise
 
     logger.info("Indexed event %s in Vectorize (repo=%s)", event_id, repo_full_name)
