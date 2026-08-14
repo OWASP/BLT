@@ -10,6 +10,30 @@ If you modify the parse_path logic in worker.py, you MUST update this copy to ma
 """
 
 from tests.utils import parse_path
+from src.webhook_handler import handle_webhook
+import pytest
+from unittest.mock import MagicMock
+import asyncio
+
+
+class MockRequest:
+    def __init__(self, headers, text_body=""):
+        self._headers = headers
+        self._text = text_body
+
+    @property
+    def headers(self):
+        class Headers:
+            def __init__(self, h):
+                self._h = h
+
+            def get(self, k):
+                return self._h.get(k, self._h.get(k.lower()))
+
+        return Headers(self._headers)
+
+    async def text(self):
+        return self._text
 
 
 def test_route_parsing():
@@ -176,44 +200,52 @@ def test_webhook_validation_success():
     print("✓ Webhook validation success test passed")
 
 
-def test_webhook_unauthorized_rejection():
+@pytest.mark.asyncio
+async def test_webhook_unauthorized_rejection():
     """Test 401 rejection for invalid token."""
+    env = MagicMock()
+    env.GITLAB_WEBHOOK_SECRET = "secret_token_123"
+
     # Scenario: Token missing
-    request_headers = {
-        "X-Gitlab-Event-UUID": "1234567890",
-        # Missing X-Gitlab-Token
-    }
-    has_token = "X-Gitlab-Token" in request_headers
-    assert not has_token, "Missing token should trigger 401"
+    req_missing = MockRequest({"X-Gitlab-Event-UUID": "1234567890", "X-Gitlab-Event": "Issue Hook"})
+    resp1 = await handle_webhook(req_missing, env)
+    assert resp1.status == 401, "Missing token should trigger 401"
 
-    # Scenario: Token mismatch (simulated)
-    import hmac
-
-    expected_token = "secret_token_123"
-    provided_token = "wrong_token_456"
-    tokens_match = hmac.compare_digest(expected_token.encode(), provided_token.encode())
-    assert not tokens_match, "Mismatched tokens should trigger 401"
+    # Scenario: Token mismatch
+    req_mismatch = MockRequest(
+        {"X-Gitlab-Event-UUID": "1234567890", "X-Gitlab-Event": "Issue Hook", "X-Gitlab-Token": "wrong_token_456"}
+    )
+    resp2 = await handle_webhook(req_mismatch, env)
+    assert resp2.status == 401, "Mismatched tokens should trigger 401"
 
     print("✓ Webhook unauthorized rejection test passed")
 
 
-def test_webhook_missing_headers():
-    """Test 422/401 for missing required headers."""
+@pytest.mark.asyncio
+async def test_webhook_missing_headers():
+    """Test 422 for missing required headers."""
+    env = MagicMock()
+    env.GITLAB_WEBHOOK_SECRET = "secret"
+
     # Missing X-Gitlab-Event-UUID
-    headers_missing_uuid = {
-        "X-Gitlab-Token": "secret",
-        "X-Gitlab-Event": "Issue Hook",
-    }
-    has_uuid = "X-Gitlab-Event-UUID" in headers_missing_uuid
-    assert not has_uuid, "Missing X-Gitlab-Event-UUID should trigger 422"
+    req_missing_uuid = MockRequest(
+        {
+            "X-Gitlab-Token": "secret",
+            "X-Gitlab-Event": "Issue Hook",
+        }
+    )
+    resp1 = await handle_webhook(req_missing_uuid, env)
+    assert resp1.status == 422, "Missing X-Gitlab-Event-UUID should trigger 422"
 
     # Missing X-Gitlab-Event
-    headers_missing_event = {
-        "X-Gitlab-Token": "secret",
-        "X-Gitlab-Event-UUID": "550e8400-e29b-41d4-a716-446655440000",
-    }
-    has_event = "X-Gitlab-Event" in headers_missing_event
-    assert not has_event, "Missing X-Gitlab-Event should trigger 422"
+    req_missing_event = MockRequest(
+        {
+            "X-Gitlab-Token": "secret",
+            "X-Gitlab-Event-UUID": "550e8400-e29b-41d4-a716-446655440000",
+        }
+    )
+    resp2 = await handle_webhook(req_missing_event, env)
+    assert resp2.status == 422, "Missing X-Gitlab-Event should trigger 422"
 
     print("✓ Webhook missing headers test passed")
 
@@ -389,8 +421,8 @@ def run_all_tests():
         test_ai_endpoint_structure()
         test_redact_endpoint_structure()
         test_webhook_validation_success()
-        test_webhook_unauthorized_rejection()
-        test_webhook_missing_headers()
+        asyncio.run(test_webhook_unauthorized_rejection())
+        asyncio.run(test_webhook_missing_headers())
         test_webhook_invalid_json()
         test_webhook_normalization_failure()
         test_webhook_replay_detection()

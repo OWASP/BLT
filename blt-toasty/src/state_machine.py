@@ -78,8 +78,13 @@ async def transition_state(db, event_id: str, to_status: str) -> None:
 
     # Access meta data for rows changed
     # Depending on D1 client, meta might be result.meta or result["meta"]
-    meta = result.meta if hasattr(result, "meta") else result.get("meta", {})
-    changes = getattr(meta, "changes", meta.get("changes", 0))
+    meta = result.meta if hasattr(result, "meta") else (result.get("meta", {}) if isinstance(result, dict) else {})
+    if hasattr(meta, "changes"):
+        changes = meta.changes
+    elif isinstance(meta, dict):
+        changes = meta.get("changes", 0)
+    else:
+        changes = 0
 
     if changes == 0:
         raise StateTransitionError("Concurrent modification detected")
@@ -107,7 +112,7 @@ async def quarantine_event(db, event_id: str, reason: str, env=None, has_vector:
     if "quarantined" not in VALID_TRANSITIONS.get(current_status, []):
         raise StateTransitionError(f"Invalid transition from {current_status} to quarantined")
 
-    # 2. Prepare the batched statements (State Transition + Reason + Audit Log)
+    # 2. Prepare statements
     audit_id = secrets.token_hex(16)
 
     stmt_update = db.prepare(
@@ -118,16 +123,26 @@ async def quarantine_event(db, event_id: str, reason: str, env=None, has_vector:
         audit_id, event_id, "quarantine", reason
     )
 
-    # 3. Execute batch atomically
-    results = await db.batch([stmt_update, stmt_audit])
+    # 3. Execute update first and check for concurrency
+    result_update = await stmt_update.run()
 
-    # 4. Check concurrency control
-    result_update = results[0]
-    meta = result_update.meta if hasattr(result_update, "meta") else result_update.get("meta", {})
-    changes = getattr(meta, "changes", meta.get("changes", 0))
+    meta = (
+        result_update.meta
+        if hasattr(result_update, "meta")
+        else (result_update.get("meta", {}) if isinstance(result_update, dict) else {})
+    )
+    if hasattr(meta, "changes"):
+        changes = meta.changes
+    elif isinstance(meta, dict):
+        changes = meta.get("changes", 0)
+    else:
+        changes = 0
 
     if changes == 0:
         raise StateTransitionError("Concurrent modification detected")
+
+    # 4. If update succeeded, safely insert audit log
+    await stmt_audit.run()
 
     # 3. Explicitly purge the vector payload if it has one
     if has_vector:

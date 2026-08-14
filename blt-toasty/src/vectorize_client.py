@@ -62,8 +62,13 @@ async def _transition_state(db: Any, event_id: str, new_status: str, expected_st
         .run()
     )
 
-    meta = result.meta if hasattr(result, "meta") else result.get("meta", {})
-    changes = getattr(meta, "changes", meta.get("changes", 0))
+    meta = result.meta if hasattr(result, "meta") else (result.get("meta", {}) if isinstance(result, dict) else {})
+    if hasattr(meta, "changes"):
+        changes = meta.changes
+    elif isinstance(meta, dict):
+        changes = meta.get("changes", 0)
+    else:
+        changes = 0
     if changes == 0:
         raise StateTransitionError(
             f"Failed to transition event {event_id} to {new_status} (expected {expected_status})",
@@ -197,6 +202,23 @@ async def index_report(
         await _transition_state(db, event_id, "embedded", expected_status=current_status)
     except StateTransitionError:
         logger.error("State transition failed after Vectorize insert for event %s. Cleaning up vector.", event_id)
+
+        # Concurrent winner check
+        try:
+            row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
+            current_status = (
+                row["status"]
+                if hasattr(row, "__getitem__")
+                else (getattr(row, "status") if hasattr(row, "status") else None)
+            )
+            if current_status == "embedded":
+                logger.info("Concurrent indexing succeeded for event %s; preserving vector.", event_id)
+                raise
+        except Exception as check_exc:
+            if isinstance(check_exc, StateTransitionError):
+                raise
+            logger.warning("Failed to check status for event %s during cleanup: %s", event_id, check_exc)
+
         cleanup_success = False
 
         # Retry logic: attempt cleanup twice

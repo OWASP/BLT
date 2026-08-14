@@ -366,11 +366,15 @@ class TestRedactionEngine:
     @pytest.mark.asyncio
     async def test_unexpected_error_quarantines_event(self, mock_env):
         """If the DB raises during audit storage, the event is quarantined."""
-        # run() raises on the first call, then succeeds.
-        mock_run_ok = MagicMock()
-        mock_run_ok.meta = MagicMock()
-        mock_run_ok.meta.changes = 1
 
+        # run() raises on the first call, then succeeds.
+        class AttrMeta:
+            changes = 1
+
+        class AttrResult:
+            meta = AttrMeta()
+
+        mock_run_ok = AttrResult()
         call_count = 0
 
         def run_side_effect(*args, **kwargs):
