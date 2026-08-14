@@ -106,9 +106,12 @@ async def aggregate_dashboard(db: Any) -> dict:
             shadow_accuracy["total"] = s_total
             shadow_accuracy["matched"] = s_matched
             shadow_accuracy["accuracy_pct"] = round((s_matched / s_total * 100) if s_total > 0 else 0.0, 2)
-    except Exception:
+    except Exception as e:
         # Table might not exist yet if shadow mode isn't fully merged/deployed in upstream/main
-        pass  # nosec B110
+        if "no such table" in str(e):
+            pass  # nosec B110
+        else:
+            raise
 
     return {
         "generated_at": now_iso,

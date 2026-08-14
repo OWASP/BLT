@@ -125,3 +125,17 @@ async def test_aggregate_dashboard_no_shadow_table(mock_db):
     assert result["shadow_accuracy"]["accuracy_pct"] == 0.0
     # Other metrics should still be intact
     assert result["pipeline"]["total_events"] == 200
+
+
+@pytest.mark.asyncio
+async def test_aggregate_dashboard_database_failure(mock_db):
+    # Simulate a generic D1 failure on a normal query
+    def side_effect(sql):
+        stmt = MagicMock()
+        stmt.first = AsyncMock(side_effect=Exception("D1 Error: Internal Server Error"))
+        return stmt
+
+    mock_db.prepare.side_effect = side_effect
+
+    with pytest.raises(Exception, match="D1 Error: Internal Server Error"):
+        await aggregate_dashboard(mock_db)

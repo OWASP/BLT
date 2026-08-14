@@ -118,6 +118,8 @@ async def on_fetch(request, env):
             claims, err_resp = await _authenticate_request(request, env)
             if err_resp:
                 return err_resp
+            if claims.get("role") != "admin":
+                return create_error_response("Unauthorized: Administrator permission required", 401)
             return await handle_dashboard(request, env)
         else:
             return create_method_not_allowed_response(path, ["GET"])

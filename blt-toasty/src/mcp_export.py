@@ -215,10 +215,13 @@ async def handle_mcp_export(request: Any, env: Any, triage_id: str) -> Any:
         # Transition state to exported (will emit telemetry if configured)
         from src.state_machine import transition_state
 
-        try:
+        event_status_res = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(triage_id).first()
+        current_status = (
+            event_status_res.get("status") if hasattr(event_status_res, "get") else event_status_res["status"]
+        )
+
+        if current_status != "exported":
             await transition_state(db, triage_id, "exported", env)
-        except Exception as e:
-            logger.error(f"Failed to transition {triage_id} to exported: {e}")
 
         headers = {"Cache-Control": "no-store", "X-Triage-Schema-Version": "1.0"}
         return create_json_response(record, 200, headers)

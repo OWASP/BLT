@@ -94,11 +94,9 @@ async def transition_state(db, event_id: str, to_status: str, env=None) -> None:
                 created_at_str = event.get("created_at")
                 project_id = event.get("project_id", 0)
 
-                # Use SQL to compute duration correctly using julianday
-                dur_query = (
-                    "SELECT (julianday(updated_at) - julianday(?)) * 86400 AS duration FROM triage_events WHERE id = ?"
-                )
-                dur_res = await db.prepare(dur_query).bind(created_at_str, event_id).first()
+                # Use SQL to compute duration correctly using julianday with subsecond precision
+                dur_query = "SELECT (julianday('now') - julianday(?)) * 86400 AS duration"
+                dur_res = await db.prepare(dur_query).bind(created_at_str).first()
                 duration = dur_res.get("duration", 0) if dur_res else 0
 
                 analytics.writeDataPoint(
