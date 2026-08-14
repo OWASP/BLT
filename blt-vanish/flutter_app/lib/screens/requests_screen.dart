@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../services/storage_service.dart';
+import 'package:provider/provider.dart';
+
 import '../models/opt_out_request.dart';
+import '../services/storage_service.dart';
 
 class RequestsScreen extends StatefulWidget {
   const RequestsScreen({super.key});
@@ -127,7 +128,7 @@ class _RequestsScreenState extends State<RequestsScreen> {
   }
 
   Widget _buildStatusChip(RequestStatus status) {
-    Color color;
+    MaterialColor color;
     String label;
 
     switch (status) {
@@ -164,14 +165,14 @@ class _RequestsScreenState extends State<RequestsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: color.shade900,
+          color: color,
           fontSize: 12,
           fontWeight: FontWeight.bold,
         ),
