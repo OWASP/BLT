@@ -1,73 +1,28 @@
 stages:
-  - setup
   - test
   - snapshot-verify
   - build
   - deploy
   - release
 
-# =========================================================================
-# Global Workflow Rules
-# =========================================================================
+# Global workflow rules to prevent duplicate pipelines (e.g., branch and merge request pipelines running concurrently)
 workflow:
   auto_cancel:
     on_job_failure: all
   rules:
-    # 1. Always create pipelines for default branch (main), tags, schedules, and MR events
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_COMMIT_TAG
-    - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    # 2. Prevent duplicate branch pipelines when an MR is open
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
       when: never
-
-# =========================================================================
-# 0. Setup Stage (MR Approval Status Widget Indicator)
-# =========================================================================
-# Eliminates infinite loading spinners in GitLab MR widget by creating a concrete status indicator.
-approval-status-check:
-  stage: setup
-  image: alpine:latest
-  rules:
-    # Approved MRs (~"ok-to-test" or ~"accepted"): passes automatically
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_LABELS =~ /ok-to-test|accepted/
-      when: on_success
-    # Unapproved MRs: creates manual blocked status job ("Pending Maintainer Approval")
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: manual
-      allow_failure: false
-    # Main branch, tags, schedules: passes automatically
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_TAG || $CI_PIPELINE_SOURCE == "schedule"
-      when: on_success
-  script:
-    - echo "================================================================="
-    - echo "  Pipeline Approval Status: APPROVED"
-    - echo "  Maintainer approval (~ok-to-test or ~accepted) verified."
-    - echo "================================================================="
-
-# =========================================================================
-# Reusable Template for Heavy Test and Build Jobs
-# =========================================================================
-.heavy_job_template:
-  rules:
-    # 1. Run automatically on default branch (main), release tags, and schedules
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG
     - if: $CI_PIPELINE_SOURCE == "schedule"
-    # 2. Run automatically on MRs ONLY IF approved by maintainer (~"ok-to-test" or ~"accepted")
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_LABELS =~ /ok-to-test|accepted/
-    # 3. Block heavy jobs on unapproved MRs (0 compute minutes consumed)
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: never
 
 # ==========================================
-# 1. Test Stage (Python MCP & Rust CLI)
+# 1. Test Stage (Python & Rust Tests)
 # ==========================================
 
-python-mcp-tests:
+python-tests:
   stage: test
-  extends: .heavy_job_template
   image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
   variables:
     UV_CACHE_DIR: ".uv-cache"
@@ -81,9 +36,8 @@ python-mcp-tests:
     - uv sync --locked --all-extras
     - uv run --locked pytest tests/
 
-rust-cli-tests:
+rust-tests-linux:
   stage: test
-  extends: .heavy_job_template
   image: rust:latest
   variables:
     CARGO_HOME: $CI_PROJECT_DIR/.cargo
@@ -106,9 +60,8 @@ rust-cli-tests:
 
 golden-snapshot-verify:
   stage: snapshot-verify
-  extends: .heavy_job_template
   needs:
-    - python-mcp-tests
+    - python-tests
   image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
   variables:
     UV_CACHE_DIR: ".uv-cache"
@@ -129,10 +82,9 @@ golden-snapshot-verify:
 
 build-rust-linux-windows:
   stage: build
-  extends: .heavy_job_template
   needs:
-    - python-mcp-tests
-    - rust-cli-tests
+    - python-tests
+    - rust-tests-linux
     - golden-snapshot-verify
   image: rust:latest
   variables:
@@ -169,7 +121,7 @@ build-rust-linux-windows:
     expire_in: 7 days
 
 # ==========================================
-# 4. Deploy Stage (Upload Release & Nightly Assets)
+# 4. Deploy Stage (Upload Artifacts/Packages)
 # ==========================================
 
 upload-release-assets:
