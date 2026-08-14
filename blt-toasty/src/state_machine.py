@@ -100,17 +100,34 @@ async def quarantine_event(db, event_id: str, reason: str, env=None, has_vector:
     Raises:
         StateTransitionError: If the transition is invalid or a concurrent modification occurs.
     """
-    # 1. Update the state to quarantined (this will enforce valid transitions)
-    await transition_state(db, event_id, "quarantined")
+    # 1. Fetch current state to enforce valid transitions and concurrency control
+    event = await get_event(db, event_id)
+    current_status = event["status"]
 
-    # 1a. Set quarantine_reason
-    await db.prepare("UPDATE triage_events SET quarantine_reason = ? WHERE id = ?").bind(reason, event_id).run()
+    if "quarantined" not in VALID_TRANSITIONS.get(current_status, []):
+        raise StateTransitionError(f"Invalid transition from {current_status} to quarantined")
 
-    # 2. Insert into the audit log
+    # 2. Prepare the batched statements (State Transition + Reason + Audit Log)
     audit_id = secrets.token_hex(16)
-    query = "INSERT INTO triage_audit_log (id, event_id, action, reason) VALUES (?, ?, ?, ?)"
-    stmt = db.prepare(query).bind(audit_id, event_id, "quarantine", reason)
-    await stmt.run()
+
+    stmt_update = db.prepare(
+        "UPDATE triage_events SET status = 'quarantined', quarantine_reason = ?, updated_at = datetime('now') WHERE id = ? AND status = ?"
+    ).bind(reason, event_id, current_status)
+
+    stmt_audit = db.prepare("INSERT INTO triage_audit_log (id, event_id, action, reason) VALUES (?, ?, ?, ?)").bind(
+        audit_id, event_id, "quarantine", reason
+    )
+
+    # 3. Execute batch atomically
+    results = await db.batch([stmt_update, stmt_audit])
+
+    # 4. Check concurrency control
+    result_update = results[0]
+    meta = result_update.meta if hasattr(result_update, "meta") else result_update.get("meta", {})
+    changes = getattr(meta, "changes", meta.get("changes", 0))
+
+    if changes == 0:
+        raise StateTransitionError("Concurrent modification detected")
 
     # 3. Explicitly purge the vector payload if it has one
     if has_vector:
