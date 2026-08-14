@@ -554,6 +554,33 @@
   color: var(--blt-text);
 }
 
+/* ── Icon button (topbar external links) ── */
+.hh-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--blt-border);
+  background: transparent;
+  color: var(--blt-text-muted);
+  text-decoration: none;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+
+.hh-icon-btn:hover {
+  border-color: color-mix(in srgb, var(--blt-primary) 36%, var(--blt-border));
+  color: var(--blt-primary);
+  background: var(--blt-surface-muted);
+}
+
+.hh-icon-btn svg {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+}
+
 /* ── User pill ── */
 .hh-user-pill {
   display: flex;

@@ -2,9 +2,10 @@
   "name": "hackerhouse",
   "private": true,
   "scripts": {
-    "dev": "uv run pywrangler dev",
+    "dev": "node scripts/dev-open.mjs",
+    "dev:no-open": "uv run pywrangler dev",
     "deploy": "uv run pywrangler deploy",
-    "start": "uv run pywrangler dev"
+    "start": "node scripts/dev-open.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.112.0"
