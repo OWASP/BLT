@@ -387,6 +387,7 @@ class TestRedactionEngine:
 
         broken_db = MagicMock()
         broken_db.prepare = MagicMock(return_value=mock_stmt)
+        broken_db.batch = AsyncMock(return_value=[mock_run_ok, mock_run_ok])
 
         with pytest.raises(RedactionFailedError):
             await redact("Email: admin@example.com", mock_env, "evt-err", broken_db)
