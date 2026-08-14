@@ -300,6 +300,7 @@ impl McpSubprocessClient {
                             .get("message")
                             .and_then(|m| m.as_str())
                             .unwrap_or("Unknown MCP JSON-RPC error");
+                        guard.defuse();
                         return Err(format!("MCP Error: {}", msg).into());
                     }
                     guard.defuse();
@@ -408,7 +409,8 @@ for line in sys.stdin:
 "#;
         let sh_script = r#"
 while read line; do
-  echo '{"jsonrpc": "2.0", "id": 1, "result": "ok"}'
+  id=$(printf '%s\n' "$line" | sed -n 's/.*"id":[[:space:]]*\([0-9][0-9]*\).*/\1/p')
+  printf '{"jsonrpc":"2.0","id":%s,"result":"ok"}\n' "$id"
 done
 "#;
         run_mock_server_test(py_script, sh_script, |mut client| async move {
