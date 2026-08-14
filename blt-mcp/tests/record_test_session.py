@@ -94,6 +94,7 @@ def record_session():
         stdout=subprocess.PIPE,
         stderr=sys.stderr,
         text=True,
+        encoding="utf-8",
         env=env,
     )
 

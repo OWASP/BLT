@@ -66,6 +66,7 @@ golden-snapshot-verify:
   variables:
     UV_CACHE_DIR: ".uv-cache"
     BLT_VERIFY_SNAPSHOTS: "true"
+    BLT_API_KEY: "f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051"
   cache:
     key:
       files:
