@@ -37,7 +37,7 @@ async def call_gitlab_api(endpoint: str, method: str, env, body: dict = None) ->
     if body is not None:
         options["body"] = json.dumps(body)
 
-    # CRITICAL: Pyodide converts dicts to JS Maps by default. 
+    # CRITICAL: Pyodide converts dicts to JS Maps by default.
     # fetch() expects a plain JS Object, so we MUST use dict_converter.
     js_options = to_js(options, dict_converter=js.Object.fromEntries)
     response = await fetch(url, js_options)
