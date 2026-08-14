@@ -1,4 +1,5 @@
 stages:
+  - setup
   - test
   - snapshot-verify
   - build
@@ -6,34 +7,59 @@ stages:
   - release
 
 # =========================================================================
-# Global Workflow & Approval Gate Rules
+# Global Workflow Rules
 # =========================================================================
-# Completely blocks pipelines on Merge Requests until approved by a maintainer (~"ok-to-test" or ~"accepted").
-# Automatically cancels all pipeline jobs immediately if any single job fails.
 workflow:
   auto_cancel:
     on_job_failure: all
   rules:
-    # 1. Always allow pipelines on default branch (main), release tags, and scheduled runs
+    # 1. Always create pipelines for default branch (main), tags, schedules, and MR events
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG
     - if: $CI_PIPELINE_SOURCE == "schedule"
-    # 2. Prevent duplicate branch pipelines when a Merge Request is open
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    # 2. Prevent duplicate branch pipelines when an MR is open
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
       when: never
-    # 3. For Merge Requests: ONLY create pipeline if approved by a maintainer (~"ok-to-test" or ~"accepted")
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_LABELS =~ /ok-to-test|accepted/
-    # 4. Completely block unapproved Merge Requests (0 pipelines created)
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: never
 
-# Reusable template for test and build jobs
-.pipeline_job_template:
+# =========================================================================
+# 0. Setup Stage (MR Approval Status Widget Indicator)
+# =========================================================================
+# Eliminates infinite loading spinners in GitLab MR widget by creating a concrete status indicator.
+approval-status-check:
+  stage: setup
+  image: alpine:latest
   rules:
+    # Approved MRs (~"ok-to-test" or ~"accepted"): passes automatically
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_LABELS =~ /ok-to-test|accepted/
+      when: on_success
+    # Unapproved MRs: creates manual blocked status job ("Pending Maintainer Approval")
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: false
+    # Main branch, tags, schedules: passes automatically
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_TAG || $CI_PIPELINE_SOURCE == "schedule"
+      when: on_success
+  script:
+    - echo "================================================================="
+    - echo "  Pipeline Approval Status: APPROVED"
+    - echo "  Maintainer approval (~ok-to-test or ~accepted) verified."
+    - echo "================================================================="
+
+# =========================================================================
+# Reusable Template for Heavy Test and Build Jobs
+# =========================================================================
+.heavy_job_template:
+  rules:
+    # 1. Run automatically on default branch (main), release tags, and schedules
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG
     - if: $CI_PIPELINE_SOURCE == "schedule"
+    # 2. Run automatically on MRs ONLY IF approved by maintainer (~"ok-to-test" or ~"accepted")
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_LABELS =~ /ok-to-test|accepted/
+    # 3. Block heavy jobs on unapproved MRs (0 compute minutes consumed)
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
 
 # ==========================================
 # 1. Test Stage (Python MCP & Rust CLI)
@@ -41,7 +67,7 @@ workflow:
 
 python-mcp-tests:
   stage: test
-  extends: .pipeline_job_template
+  extends: .heavy_job_template
   image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
   variables:
     UV_CACHE_DIR: ".uv-cache"
@@ -57,7 +83,7 @@ python-mcp-tests:
 
 rust-cli-tests:
   stage: test
-  extends: .pipeline_job_template
+  extends: .heavy_job_template
   image: rust:latest
   variables:
     CARGO_HOME: $CI_PROJECT_DIR/.cargo
@@ -80,7 +106,7 @@ rust-cli-tests:
 
 golden-snapshot-verify:
   stage: snapshot-verify
-  extends: .pipeline_job_template
+  extends: .heavy_job_template
   needs:
     - python-mcp-tests
   image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
@@ -103,7 +129,7 @@ golden-snapshot-verify:
 
 build-rust-linux-windows:
   stage: build
-  extends: .pipeline_job_template
+  extends: .heavy_job_template
   needs:
     - python-mcp-tests
     - rust-cli-tests
