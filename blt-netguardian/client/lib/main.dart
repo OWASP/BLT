@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'config/sender_config.dart';
 import 'detect/http_headers.dart';
 import 'detect/normalize.dart';
+import 'history/send_history.dart';
 import 'ingest/envelope.dart';
 import 'ingest/ingest_client.dart';
+import 'ingest/redact.dart';
 import 'queue/outbox.dart';
 
 void main() {
@@ -48,12 +51,15 @@ class _HomePageState extends State<HomePage> {
 
   final _client = IngestClient();
   final _outbox = OutboxStore();
+  final _historyStore = SendHistoryStore();
 
   bool _loading = true;
   bool _busy = false;
+  bool _redactBeforeSend = true;
   String? _status;
   List<DetectionFinding> _preview = [];
   List<OutboxItem> _queue = [];
+  List<HistoryItem> _history = [];
   final Set<String> _selected = {};
 
   @override
@@ -65,6 +71,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _bootstrap() async {
     final cfg = await SenderConfig.load();
     final queue = await _outbox.load();
+    final history = await _historyStore.load();
     if (!mounted) return;
     setState(() {
       _baseUrl.text = cfg.baseUrl;
@@ -73,6 +80,7 @@ class _HomePageState extends State<HomePage> {
       _kid.text = cfg.kid;
       _secretHex.text = cfg.secretHex;
       _queue = queue;
+      _history = history;
       _loading = false;
     });
   }
@@ -117,7 +125,10 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, Object?>> _selectedPayloads() {
     return _preview
         .where((f) => _selected.contains(f.fingerprint))
-        .map((f) => f.toPayload())
+        .map((f) {
+          final payload = f.toPayload();
+          return _redactBeforeSend ? redactPayload(payload) : payload;
+        })
         .toList();
   }
 
@@ -132,7 +143,8 @@ class _HomePageState extends State<HomePage> {
     if (!mounted) return;
     setState(() {
       _queue = queue;
-      _status = 'Queued ${payloads.length} finding(s) for offline retry.';
+      _status =
+          'Queued ${payloads.length} finding(s)${_redactBeforeSend ? ' (redacted)' : ''}.';
     });
   }
 
@@ -144,6 +156,14 @@ class _HomePageState extends State<HomePage> {
       kid: _kid.text.trim(),
       secret: secretFromHex(_secretHex.text.trim()),
       payload: payload,
+    );
+  }
+
+  Future<void> _recordSuccess(Map<String, Object?> payload, String? findingId) {
+    return _historyStore.record(
+      payload: payload,
+      findingId: findingId,
+      redacted: _redactBeforeSend,
     );
   }
 
@@ -167,6 +187,7 @@ class _HomePageState extends State<HomePage> {
           final result = await _sendOne(payload);
           if (result.ok) {
             ok++;
+            await _recordSuccess(payload, result.findingId);
           } else {
             fail++;
             await _outbox.enqueue([payload]);
@@ -177,9 +198,11 @@ class _HomePageState extends State<HomePage> {
         }
       }
       final queue = await _outbox.load();
+      final history = await _historyStore.load();
       if (!mounted) return;
       setState(() {
         _queue = queue;
+        _history = history;
         _status =
             'Send finished — ok=$ok failed=$fail (failures queued for retry).';
       });
@@ -206,6 +229,7 @@ class _HomePageState extends State<HomePage> {
             item.status = OutboxStatus.sent;
             item.findingId = result.findingId;
             item.lastError = null;
+            await _recordSuccess(item.payload, result.findingId);
           } else {
             item.status = OutboxStatus.failed;
             item.lastError = '${result.statusCode} ${result.body}';
@@ -216,12 +240,14 @@ class _HomePageState extends State<HomePage> {
         }
       }
       await _outbox.save(items);
+      final history = await _historyStore.load();
       if (!mounted) return;
       final pending =
           items.where((i) => i.status != OutboxStatus.sent).length;
       final sent = items.where((i) => i.status == OutboxStatus.sent).length;
       setState(() {
         _queue = items;
+        _history = history;
         _status = 'Outbox retry done — sent=$sent still_pending=$pending';
       });
     } finally {
@@ -237,6 +263,33 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _queue = items;
       _status = 'Cleared sent outbox items.';
+    });
+  }
+
+  Future<void> _clearHistory() async {
+    await _historyStore.clear();
+    if (!mounted) return;
+    setState(() {
+      _history = [];
+      _status = 'Cleared send history.';
+    });
+  }
+
+  Uri _triageUri({String? findingId}) {
+    final base = _baseUrl.text.trim().replaceAll(RegExp(r'/+$'), '');
+    final uri = Uri.parse('$base/triage.html');
+    if (findingId == null || findingId.isEmpty) return uri;
+    return uri.replace(queryParameters: {'finding': findingId});
+  }
+
+  Future<void> _openTriage({String? findingId}) async {
+    final uri = _triageUri(findingId: findingId);
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!mounted) return;
+    setState(() {
+      _status = ok
+          ? 'Opened triage: $uri'
+          : 'Could not open triage URL: $uri';
     });
   }
 
@@ -268,8 +321,8 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'C2: HTTP header scan locally, review findings, send now or queue for retry. '
-            'Demo sender defaults match local_dev/send_finding.py (loopback only).',
+            'C3: header scan, redaction toggle, outbox retry, local send history, '
+            'and triage deep-link. Demo sender defaults are loopback-only.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 20),
@@ -279,12 +332,30 @@ class _HomePageState extends State<HomePage> {
             _field(_senderId, 'sender_id'),
             _field(_kid, 'kid'),
             _field(_secretHex, 'HMAC secret (hex)', obscure: true),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: OutlinedButton(
-                onPressed: _busy ? null : _saveConfig,
-                child: const Text('Save config'),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Redact secrets before send'),
+              subtitle: const Text(
+                'Strips password/token/api_key/… from evidence (server also redacts on read)',
               ),
+              value: _redactBeforeSend,
+              onChanged: _busy
+                  ? null
+                  : (v) => setState(() => _redactBeforeSend = v),
+            ),
+            Wrap(
+              spacing: 8,
+              children: [
+                OutlinedButton(
+                  onPressed: _busy ? null : _saveConfig,
+                  child: const Text('Save config'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _busy ? null : () => _openTriage(),
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('Open triage'),
+                ),
+              ],
             ),
           ]),
           const SizedBox(height: 16),
@@ -347,6 +418,55 @@ class _HomePageState extends State<HomePage> {
                             ? 'finding_id=${item.findingId}'
                             : 'attempts=${item.attempts}'),
                   ),
+                  trailing: item.findingId == null
+                      ? null
+                      : IconButton(
+                          tooltip: 'Open triage',
+                          icon: const Icon(Icons.open_in_new),
+                          onPressed: _busy
+                              ? null
+                              : () => _openTriage(findingId: item.findingId),
+                        ),
+                );
+              }),
+          ]),
+          const SizedBox(height: 16),
+          _section('Send history', [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton(
+                onPressed: _busy || _history.isEmpty ? null : _clearHistory,
+                child: const Text('Clear history'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (_history.isEmpty)
+              const Text('No sends recorded yet.')
+            else
+              ..._history.take(30).map((item) {
+                final when = DateTime.fromMillisecondsSinceEpoch(
+                  item.sentAtMs,
+                  isUtc: true,
+                ).toLocal();
+                return ListTile(
+                  dense: true,
+                  title: Text(
+                    '${item.severity.toUpperCase()} · ${item.ruleId} · ${item.target}',
+                  ),
+                  subtitle: Text(
+                    '${when.toIso8601String()} · '
+                    '${item.findingId ?? 'no finding_id'}'
+                    '${item.redacted ? ' · redacted' : ''}',
+                  ),
+                  trailing: item.findingId == null
+                      ? null
+                      : IconButton(
+                          tooltip: 'Open triage',
+                          icon: const Icon(Icons.open_in_new),
+                          onPressed: _busy
+                              ? null
+                              : () => _openTriage(findingId: item.findingId),
+                        ),
                 );
               }),
           ]),

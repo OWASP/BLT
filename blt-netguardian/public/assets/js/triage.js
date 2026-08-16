@@ -652,6 +652,16 @@
             }
         }
 
+        function deepLinkFindingId() {
+            try {
+                const q = new URLSearchParams(location.search);
+                const id = (q.get('finding') || '').trim();
+                return id || null;
+            } catch (_) {
+                return null;
+            }
+        }
+
         async function loadList() {
             if (!findingsBody) return;
             findingsBody.innerHTML =
@@ -669,6 +679,10 @@
                 setConnected(true, connText);
                 if (!isMobileView() && bltLabel === 'BLT-API down') {
                     showToast('BLT-API unreachable — start: python3 local_dev/blt_api_stub.py', 'error');
+                }
+                const deepLink = deepLinkFindingId();
+                if (deepLink && !selectedRawId) {
+                    onFindingClick(deepLink);
                 }
             } catch (err) {
                 setConnected(false, 'Offline');
