@@ -15,6 +15,7 @@ from events_service import (
     EVENT_ID_HEADER,
     SIGNATURE_HEADER,
     deliver_event_webhook,
+    drain_pending_webhooks,
     emit_converted_event,
     get_event_for_request,
     list_events_for_request,
@@ -318,20 +319,21 @@ async def test_emit_converted_direct_idempotent(env, db):
 
 
 @pytest.mark.asyncio
-async def test_events_require_bearer_even_when_read_auth_disabled(env, db):
-    """Events never fall back to NG_DEFAULT_ORG when AUTHENTICATE_READ_ENDPOINTS=false."""
+async def test_events_unknown_token_is_rejected(env, db):
+    """Unknown Bearer is always 401; demo fallback only when read auth is off and no token."""
     env.AUTHENTICATE_READ_ENDPOINTS = "false"
-
     missing = await list_events_for_request(env=env, db=db, headers={}, query_params={})
-    assert missing.status == 401
+    assert missing.status == 200
+    assert missing.body["events"] == []
 
     unknown = await list_events_for_request(
         env=env, db=db, headers={"Authorization": "Bearer nope"}, query_params={},
     )
     assert unknown.status == 401
 
-    detail_missing = await get_event_for_request(env=env, db=db, headers={}, event_id="evt-x")
-    assert detail_missing.status == 401
+    env.AUTHENTICATE_READ_ENDPOINTS = "true"
+    locked = await list_events_for_request(env=env, db=db, headers={}, query_params={})
+    assert locked.status == 401
 
     detail_unknown = await get_event_for_request(
         env=env, db=db, headers={"Authorization": "Bearer nope"}, event_id="evt-x",
@@ -360,3 +362,37 @@ async def test_convert_survives_event_emit_failure(env, db, fixture_data, secret
     assert result.body["blt_issue_id"]
     assert result.body["event_error"] == "emit_failed"
     assert "event_id" not in result.body
+
+
+@pytest.mark.asyncio
+async def test_drain_retries_pending_webhook(env, db, fixture_data, secret):
+    env.NG_EVENTS_WEBHOOK_URL = "https://hooks.example/ng"
+    env.NG_EVENTS_WEBHOOK_SECRET = "whsec"
+
+    finding_id = await _ingest_one(
+        env, db, fixture_data, secret, fingerprint="fp-events-drain", nonce="nonce-events-drain",
+    )
+    calls = {"n": 0}
+
+    async def flaky(url, method, headers, body):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return 503, "busy"
+        return 200, "ok"
+
+    await convert_to_issue_for_request(
+        env=env,
+        db=db,
+        headers={"Authorization": "Bearer triage-token"},
+        finding_id=finding_id,
+        new_id=_sequential_ids(),
+        events_fetch_impl=flaky,
+    )
+    assert calls["n"] == 1
+
+    retried = await drain_pending_webhooks(
+        env=env, db=db, org_id="org-demo", fetch_impl=flaky,
+    )
+    assert len(retried) == 1
+    assert retried[0]["status"] == "delivered"
+    assert calls["n"] == 2

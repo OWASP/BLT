@@ -43,6 +43,14 @@ enabled = false
 persist = true
 head_sampling_rate = 1
 
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Optional R2 evidence bucket (uncomment after: wrangler r2 bucket create ng-evidence)
+# [[r2_buckets]]
+# binding = "EVIDENCE"
+# bucket_name = "ng-evidence"
+
 # D1 Database Binding
 # Production (OWASP account): 529b739a-6643-4574-9210-99ecd384f085 → netguardian.owaspblt.org
 # For a personal/staging deploy, override with: wrangler d1 create blt-netguardian

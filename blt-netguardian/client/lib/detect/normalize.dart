@@ -17,7 +17,8 @@ String computeFingerprint({
   required String target,
   String locator = '',
 }) {
-  final material = '$ruleId\x00$target\x00$locator';
+  final material =
+      '${ruleId.trim()}\x00${target.trim()}\x00${locator.trim()}';
   final digest = sha256.convert(utf8.encode(material)).toString();
   return 'fp-${digest.substring(0, 32)}';
 }

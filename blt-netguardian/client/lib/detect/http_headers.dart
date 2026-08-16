@@ -1,9 +1,11 @@
-/// HTTP response-header detector (parity subset of `src/detect/http_headers.py`).
+/// HTTP response-header detector — parity with `src/detect/http_headers.py`.
 library;
 
 import 'package:http/http.dart' as http;
 
 import 'normalize.dart';
+
+const minHstsMaxAge = 15552000;
 
 String? _header(Map<String, String> headers, String name) {
   final want = name.toLowerCase();
@@ -15,7 +17,13 @@ String? _header(Map<String, String> headers, String name) {
 
 bool _isHttps(String url) => url.trim().toLowerCase().startsWith('https://');
 
-final _versionedServer = RegExp(r'\d+\.\d+');
+final _maxAge = RegExp(r'max-age\s*=\s*(\d+)', caseSensitive: false);
+final _versionedServer = RegExp(r'[0-9]+\.[0-9]+');
+final _frameAncestors = RegExp(
+  r'(?:^|;)\s*frame-ancestors\s+([^;]+)',
+  caseSensitive: false,
+);
+const _protectiveXfo = {'deny', 'sameorigin'};
 
 List<DetectionFinding> scanHeaders(
   String url,
@@ -61,7 +69,9 @@ List<DetectionFinding> scanHeaders(
         title: '$name header discloses a software version',
         target: url,
         locator: name,
-        evidence: {'value': value.length > 120 ? value.substring(0, 120) : value},
+        evidence: {
+          'value': value.length > 120 ? value.substring(0, 120) : value,
+        },
         remediation: 'Suppress or genericize the $name header.',
       ));
     }
@@ -80,21 +90,22 @@ Iterable<DetectionFinding> _hsts(String url, Map<String, String> headers) sync* 
       title: 'Missing Strict-Transport-Security header',
       target: url,
       locator: 'Strict-Transport-Security',
-      remediation: 'Send Strict-Transport-Security with a long max-age.',
+      remediation:
+          'Send Strict-Transport-Security with max-age of at least 15552000.',
     );
     return;
   }
-  final match = RegExp(r'max-age\s*=\s*(\d+)', caseSensitive: false).firstMatch(hsts);
+  final match = _maxAge.firstMatch(hsts);
   final maxAge = match == null ? 0 : int.tryParse(match.group(1)!) ?? 0;
-  if (maxAge < 15552000) {
+  if (maxAge < minHstsMaxAge) {
     yield DetectionFinding(
       ruleId: 'http.weak-hsts-max-age',
       severity: 'medium',
-      title: 'HSTS max-age is shorter than 180 days',
+      title: 'Strict-Transport-Security max-age is too short',
       target: url,
       locator: 'Strict-Transport-Security',
-      evidence: {'max_age': maxAge},
-      remediation: 'Raise max-age to at least 15552000 (180 days).',
+      evidence: {'max_age': maxAge, 'minimum': minHstsMaxAge},
+      remediation: 'Raise max-age to at least $minHstsMaxAge seconds.',
     );
   }
 }
@@ -104,41 +115,46 @@ Iterable<DetectionFinding> _csp(String url, Map<String, String> headers) sync* {
   if (csp == null) {
     yield DetectionFinding(
       ruleId: 'http.missing-csp',
-      severity: 'high',
+      severity: 'medium',
       title: 'Missing Content-Security-Policy header',
       target: url,
       locator: 'Content-Security-Policy',
-      remediation: 'Add a restrictive Content-Security-Policy.',
+      remediation:
+          'Add a Content-Security-Policy restricting script and object sources.',
     );
     return;
   }
   final lower = csp.toLowerCase();
-  if (lower.contains('unsafe-inline') || lower.contains('unsafe-eval')) {
+  final unsafe = [
+    for (final d in ['unsafe-inline', 'unsafe-eval'])
+      if (lower.contains(d)) d,
+  ];
+  if (unsafe.isNotEmpty) {
     yield DetectionFinding(
       ruleId: 'http.unsafe-csp-directive',
       severity: 'medium',
-      title: 'CSP allows unsafe-inline or unsafe-eval',
+      title: 'Content-Security-Policy allows unsafe script execution',
       target: url,
       locator: 'Content-Security-Policy',
-      remediation: 'Remove unsafe-inline / unsafe-eval where possible.',
+      evidence: {'directives': unsafe},
+      remediation:
+          'Remove unsafe-inline/unsafe-eval; use nonces or hashes instead.',
     );
   }
 }
 
 bool _xfoProtective(String? value) {
   if (value == null) return false;
-  final v = value.trim().toUpperCase();
-  return v == 'DENY' || v == 'SAMEORIGIN';
+  final token = value.trim().split(RegExp(r'\s+')).first.toLowerCase();
+  return _protectiveXfo.contains(token);
 }
 
 bool _frameAncestorsProtective(String csp) {
-  final match = RegExp(
-    r'frame-ancestors\s+([^;]+)',
-    caseSensitive: false,
-  ).firstMatch(csp);
+  final match = _frameAncestors.firstMatch(csp);
   if (match == null) return false;
-  final token = match.group(1)!.trim().toLowerCase();
-  return token == "'none'" || token == 'none';
+  final sources = match.group(1)!.split(RegExp(r'\s+'));
+  if (sources.isEmpty) return false;
+  return !sources.any((src) => src.replaceAll(RegExp(r'''['"]'''), '') == '*');
 }
 
 Iterable<DetectionFinding> _clickjacking(
@@ -151,35 +167,63 @@ Iterable<DetectionFinding> _clickjacking(
   yield DetectionFinding(
     ruleId: 'http.missing-clickjacking-protection',
     severity: 'medium',
-    title: 'Missing clickjacking protection',
+    title: 'No clickjacking protection (X-Frame-Options or frame-ancestors)',
     target: url,
-    locator: 'X-Frame-Options / CSP frame-ancestors',
-    remediation: "Prefer CSP frame-ancestors 'none' (or X-Frame-Options: DENY).",
+    locator: 'X-Frame-Options',
+    remediation:
+        "Set X-Frame-Options: DENY or a CSP frame-ancestors directive that is not '*'.",
   );
+}
+
+List<String> _iterSetCookies(Map<String, String> headers) {
+  final values = <String>[];
+  for (final entry in headers.entries) {
+    if (entry.key.toLowerCase() != 'set-cookie') continue;
+    for (final part in entry.value.split('\n')) {
+      final trimmed = part.trim();
+      if (trimmed.isNotEmpty) values.add(trimmed);
+    }
+  }
+  return values;
+}
+
+Set<String> _cookieAttributeNames(String cookie) {
+  final names = <String>{};
+  final parts = cookie.split(';');
+  for (final attr in parts.skip(1)) {
+    final name = attr.trim().split('=').first.trim().toLowerCase();
+    if (name.isNotEmpty) names.add(name);
+  }
+  return names;
+}
+
+String _cookieName(String cookie) {
+  final pair = cookie.split(';').first;
+  final name = pair.split('=').first.trim();
+  return name.isEmpty ? 'cookie' : name;
 }
 
 Iterable<DetectionFinding> _cookies(
   String url,
   Map<String, String> headers,
 ) sync* {
-  // http package folds Set-Cookie; check any set-cookie style header values.
-  for (final entry in headers.entries) {
-    if (entry.key.toLowerCase() != 'set-cookie') continue;
-    final cookie = entry.value;
-    final lower = cookie.toLowerCase();
-    final insecure = <String>[];
-    if (_isHttps(url) && !lower.contains('secure')) insecure.add('Secure');
-    if (!lower.contains('httponly')) insecure.add('HttpOnly');
-    if (!lower.contains('samesite')) insecure.add('SameSite');
-    if (insecure.isEmpty) continue;
+  for (final cookie in _iterSetCookies(headers)) {
+    final attrs = _cookieAttributeNames(cookie);
+    final missing = [
+      for (final flag in ['secure', 'httponly'])
+        if (!attrs.contains(flag)) flag,
+    ];
+    if (missing.isEmpty) continue;
+    final name = _cookieName(cookie);
     yield DetectionFinding(
       ruleId: 'http.insecure-cookie-flags',
-      severity: 'medium',
-      title: 'Cookie missing security flags (${insecure.join(', ')})',
+      severity: missing.contains('secure') ? 'high' : 'medium',
+      title: 'Set-Cookie is missing security flags',
       target: url,
-      locator: 'Set-Cookie',
-      evidence: {'missing': insecure},
-      remediation: 'Add Secure, HttpOnly, and a SameSite policy to session cookies.',
+      locator: 'Set-Cookie:$name',
+      evidence: {'cookie': name, 'missing_flags': missing},
+      remediation:
+          'Add Secure and HttpOnly (and a SameSite policy) to session cookies.',
     );
   }
 }

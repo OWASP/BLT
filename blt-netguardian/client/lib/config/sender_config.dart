@@ -10,6 +10,9 @@ class SenderConfig {
     required this.senderId,
     required this.kid,
     required this.secretHex,
+    this.payloadKeyB64 = '',
+    this.encrypt = false,
+    this.redactBeforeSend = true,
   });
 
   final String baseUrl;
@@ -17,6 +20,14 @@ class SenderConfig {
   final String senderId;
   final String kid;
   final String secretHex;
+  final String payloadKeyB64;
+  final bool encrypt;
+  final bool redactBeforeSend;
+
+  bool get isLoopback {
+    final host = Uri.tryParse(baseUrl)?.host.toLowerCase() ?? '';
+    return host == 'localhost' || host == '127.0.0.1' || host == '::1';
+  }
 
   /// Loopback demo defaults matching `local_dev/send_finding.py`.
   static const SenderConfig demo = SenderConfig(
@@ -25,6 +36,9 @@ class SenderConfig {
     senderId: 'scanner-1',
     kid: 'k1',
     secretHex: '736563726574',
+    payloadKeyB64: 'bmV0Z3VhcmRpYW4tZGVtby1hZXNnY20ta2V5LTAwMzI=',
+    encrypt: true,
+    redactBeforeSend: true,
   );
 
   SenderConfig copyWith({
@@ -33,6 +47,9 @@ class SenderConfig {
     String? senderId,
     String? kid,
     String? secretHex,
+    String? payloadKeyB64,
+    bool? encrypt,
+    bool? redactBeforeSend,
   }) {
     return SenderConfig(
       baseUrl: baseUrl ?? this.baseUrl,
@@ -40,6 +57,9 @@ class SenderConfig {
       senderId: senderId ?? this.senderId,
       kid: kid ?? this.kid,
       secretHex: secretHex ?? this.secretHex,
+      payloadKeyB64: payloadKeyB64 ?? this.payloadKeyB64,
+      encrypt: encrypt ?? this.encrypt,
+      redactBeforeSend: redactBeforeSend ?? this.redactBeforeSend,
     );
   }
 
@@ -51,6 +71,9 @@ class SenderConfig {
       senderId: prefs.getString('senderId') ?? demo.senderId,
       kid: prefs.getString('kid') ?? demo.kid,
       secretHex: prefs.getString('secretHex') ?? demo.secretHex,
+      payloadKeyB64: prefs.getString('payloadKeyB64') ?? demo.payloadKeyB64,
+      encrypt: prefs.getBool('encrypt') ?? demo.encrypt,
+      redactBeforeSend: prefs.getBool('redactBeforeSend') ?? demo.redactBeforeSend,
     );
   }
 
@@ -61,5 +84,8 @@ class SenderConfig {
     await prefs.setString('senderId', senderId);
     await prefs.setString('kid', kid);
     await prefs.setString('secretHex', secretHex);
+    await prefs.setString('payloadKeyB64', payloadKeyB64);
+    await prefs.setBool('encrypt', encrypt);
+    await prefs.setBool('redactBeforeSend', redactBeforeSend);
   }
 }

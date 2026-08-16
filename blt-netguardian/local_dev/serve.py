@@ -66,6 +66,7 @@ ENV = SimpleNamespace(
     CORS_ALLOWED_ORIGINS=f"http://{HOST}:{PORT},http://127.0.0.1:{PORT}",
     BLT_API_BASE_URL="http://localhost:8788/v2",
     BLT_API_KEY="",
+    NG_BLT_STUB_FALLBACK="true",
 )
 WORKER = BLTWorker(ENV)
 

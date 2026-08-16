@@ -190,6 +190,39 @@ class EventsStore:
         rows = d1_rows(await self.db.prepare(sql).bind(*params).all())
         return [self._row_to_item(row) for row in rows]
 
+    async def list_pending(self, *, org_id: Optional[str] = None, limit: int = 20) -> list[dict[str, Any]]:
+        """Pending webhook deliveries eligible for retry (attempts < 5)."""
+        if self.db is None:
+            return []
+        limit = max(1, min(int(limit), 100))
+        if org_id:
+            rows = d1_rows(
+                await self.db.prepare(
+                    """
+                    SELECT id, org_id, event_type, dedupe_key, payload_json, status,
+                           attempts, last_error, created_at, updated_at
+                    FROM events_outbox
+                    WHERE org_id = ? AND status = ? AND attempts < 5
+                    ORDER BY updated_at ASC
+                    LIMIT ?
+                    """
+                ).bind(org_id, STATUS_PENDING, limit).all()
+            )
+        else:
+            rows = d1_rows(
+                await self.db.prepare(
+                    """
+                    SELECT id, org_id, event_type, dedupe_key, payload_json, status,
+                           attempts, last_error, created_at, updated_at
+                    FROM events_outbox
+                    WHERE status = ? AND attempts < 5
+                    ORDER BY updated_at ASC
+                    LIMIT ?
+                    """
+                ).bind(STATUS_PENDING, limit).all()
+            )
+        return [self._row_to_item(row) for row in rows]
+
     def _filter_sql(self, query: EventsQuery, *, count: bool) -> tuple[str, list[Any]]:
         clauses = ["org_id = ?"]
         params: list[Any] = [query.org_id]
