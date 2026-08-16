@@ -289,7 +289,7 @@ async def disclosure_for_request(
     fetch_impl: Any = None,
 ) -> FindingsListResult:
     """GET /api/findings/{id}/disclosure — security.txt discovery for the finding target."""
-    auth = _auth_or_error(env, headers)
+    auth = await _auth_or_error(env, headers, db)
     if db is None:
         return FindingsListResult(
             status=503,
@@ -411,7 +411,7 @@ async def export_finding_pdf_for_request(
     now: Optional[datetime] = None,
 ) -> FindingsListResult:
     """GET /api/findings/{id}/export.pdf — single finding PDF with redacted evidence."""
-    auth = _auth_or_error(env, headers)
+    auth = await _auth_or_error(env, headers, db)
     if db is None:
         return FindingsListResult(
             status=503,
