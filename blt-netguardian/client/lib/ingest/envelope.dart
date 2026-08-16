@@ -1,7 +1,6 @@
 /// ztr-finding-1 envelope builder + HMAC signing (parity with `src/envelope.py`).
 library;
 
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'canonicalize.dart';

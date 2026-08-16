@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
 
-from auth import AuthError, require_org_auth
+from auth import AuthError, require_org_auth, require_org_auth_async, resolve_org_auth_async
 from canonicalize import hmac_sha256_hex
 from d1_compat import row_get
 from events_store import (
@@ -350,6 +350,65 @@ def parse_events_query(params: Mapping[str, str], org_id: str) -> tuple[Optional
     ), None
 
 
+async def drain_pending_webhooks(
+    *,
+    env: Any,
+    db: Any,
+    org_id: Optional[str] = None,
+    limit: int = 20,
+    store: Optional[EventsStore] = None,
+    fetch_impl: Any = None,
+    now: Optional[datetime] = None,
+) -> list[dict[str, Any]]:
+    """Retry pending webhook deliveries (scheduled drain or operator retry)."""
+    if db is None:
+        return []
+    store = store or EventsStore(db)
+    pending = await store.list_pending(org_id=org_id, limit=limit)
+    delivered: list[dict[str, Any]] = []
+    for row in pending:
+        delivered.append(
+            await deliver_event_webhook(
+                env=env,
+                store=store,
+                event_row=row,
+                now=now,
+                fetch_impl=fetch_impl,
+            )
+        )
+    return delivered
+
+
+async def retry_events_for_request(
+    *,
+    env: Any,
+    db: Any,
+    headers: Mapping[str, str],
+    store: Optional[EventsStore] = None,
+    fetch_impl: Any = None,
+) -> EventsApiResult:
+    try:
+        auth = await require_org_auth_async(env, headers, db)
+    except AuthError as exc:
+        return EventsApiResult(status=exc.status, body=exc.to_response_body())
+    if db is None:
+        return EventsApiResult(
+            status=503,
+            body={"error": "service_unavailable", "message": "events storage not configured"},
+        )
+    items = await drain_pending_webhooks(
+        env=env,
+        db=db,
+        org_id=auth.org_id,
+        store=store,
+        fetch_impl=fetch_impl,
+    )
+    return EventsApiResult(
+        status=200,
+        body={"retried": len(items), "events": items},
+    )
+
+
 async def list_events_for_request(
     *,
     env: Any,
@@ -359,8 +418,7 @@ async def list_events_for_request(
     store: Optional[EventsStore] = None,
 ) -> EventsApiResult:
     try:
-        # Always require a real org token — never fall back to NG_DEFAULT_ORG.
-        auth = require_org_auth(env, headers)
+        auth = await resolve_org_auth_async(env, headers, db)
     except AuthError as exc:
         return EventsApiResult(status=exc.status, body=exc.to_response_body())
 
@@ -397,8 +455,7 @@ async def get_event_for_request(
     store: Optional[EventsStore] = None,
 ) -> EventsApiResult:
     try:
-        # Always require a real org token — never fall back to NG_DEFAULT_ORG.
-        auth = require_org_auth(env, headers)
+        auth = await resolve_org_auth_async(env, headers, db)
     except AuthError as exc:
         return EventsApiResult(status=exc.status, body=exc.to_response_body())
 
@@ -415,5 +472,4 @@ async def get_event_for_request(
     return EventsApiResult(status=200, body={"event": row})
 
 
-# Keep mutation auth available for future retry endpoints.
 require_events_mutation_auth = require_org_auth
