@@ -13,14 +13,19 @@ Desktop producer that **finds** and **sends** signed findings into NetGuardian.
 - Preview + multi-select before send
 - Persistent outbox (`shared_preferences`) with retry / clear-sent
 
+### C3 — redact + history + triage deep-link
+- Client-side redaction toggle (parity keys with `src/payload_redact.py`)
+- Local send history for successful ingest (max 100)
+- `url_launcher` → `{base}/triage.html?finding={id}`; triage UI auto-selects on load
+
 ## Exit criteria
 - `cd client && flutter test` passes
-- Scan `https://example.com` → preview findings → send or queue against local/staging ingest
+- Scan `https://example.com` → preview → (optional redact) → send or queue
+- History entry opens triage with the returned `finding_id`
 
 ## Follow-ups
 | Slice | Notes |
 |-------|--------|
-| C3 | Redaction toggles + history + triage deep-link |
 | C4 | Packaging docs |
 | Semgrep in-client | Optional; CLI `scripts/detect_export.py` already covers Semgrep→ingest |
 

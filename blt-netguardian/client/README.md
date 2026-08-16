@@ -7,6 +7,11 @@ Configure org sender credentials, build `ztr-finding-1`, `POST /api/ingest`.
 HTTP header scan against a target URL, checkbox preview, sign/send selected,
 and a persistent outbox with retry for offline/failed posts.
 
+## C3 — redact + history + triage deep-link
+- Toggle client-side secret redaction before queue/send
+- Local send history (finding_id + rule/target)
+- Open triage in browser (`/triage.html?finding=…`)
+
 ## Run (macOS)
 
 Terminal 1 — API from the **repo root**:
@@ -31,7 +36,8 @@ Demo secret `736563726574` / `org-demo` / `scanner-1` / `k1` (loopback only).
 | Path | Role |
 |------|------|
 | `lib/detect/` | HTTP header detector + fingerprint normalize |
-| `lib/ingest/` | Canonicalize, sign, HTTP ingest |
+| `lib/ingest/` | Canonicalize, sign, HTTP ingest, redact |
+| `lib/history/` | Local send history |
 | `lib/queue/outbox.dart` | Offline outbox + retry |
 | `lib/main.dart` | Desktop UI |
 
