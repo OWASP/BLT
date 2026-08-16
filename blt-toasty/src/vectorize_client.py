@@ -321,9 +321,13 @@ async def delete_vector(event_id: str, env: Any) -> None:
         event_id: The triage event ID whose vector should be deleted.
         env: Cloudflare Worker environment with ``VECTORIZE`` binding.
     """
-    try:
-        await env.VECTORIZE.deleteByIds([event_id])
-        logger.info("Deleted vector for event %s from Vectorize", event_id)
-    except Exception as exc:
-        logger.error("Failed to delete vector for event %s: %s", event_id, exc)
-        raise
+    for attempt in range(2):
+        try:
+            await env.VECTORIZE.deleteByIds([event_id])
+            logger.info("Deleted vector for event %s from Vectorize", event_id)
+            return
+        except Exception as exc:
+            logger.warning("Failed to delete vector for event %s on attempt %d: %s", event_id, attempt + 1, exc)
+
+    logger.error("Vector cleanup completely failed for event %s after 2 attempts", event_id)
+    raise Exception("Vector deletion failed after retries")

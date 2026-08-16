@@ -53,14 +53,16 @@ async def get_event(db, event_id: str) -> dict:
     return dict(result)
 
 
-async def transition_state(db, event_id: str, to_status: str) -> None:
+async def transition_state(db, event_id: str, to_status: str, env=None) -> None:
     """
     Transition an event to a new state using optimistic concurrency control.
+    If transitioning to 'exported', emits telemetry to Cloudflare Analytics Engine.
 
     Args:
         db: The D1 database binding.
         event_id (str): The ID of the triage event.
         to_status (str): The desired new state.
+        env: The Cloudflare Worker environment (optional, used for analytics).
 
     Raises:
         StateTransitionError: If the transition is invalid or a concurrent modification occurs.
@@ -88,6 +90,25 @@ async def transition_state(db, event_id: str, to_status: str) -> None:
 
     if changes == 0:
         raise StateTransitionError("Concurrent modification detected")
+
+    if to_status == "exported" and env is not None:
+        analytics = getattr(env, "ANALYTICS", None)
+        if analytics:
+            try:
+                # We need to calculate duration. The event we fetched has created_at
+                created_at_str = event.get("created_at")
+                project_id = event.get("project_id", 0)
+
+                # Use SQL to compute duration correctly using julianday with subsecond precision
+                dur_query = "SELECT (julianday('now') - julianday(?)) * 86400 AS duration"
+                dur_res = await db.prepare(dur_query).bind(created_at_str).first()
+                duration = dur_res.get("duration", 0) if dur_res else 0
+
+                analytics.writeDataPoint(
+                    {"blobs": [str(project_id), "exported"], "doubles": [float(duration)], "indexes": [event_id]}
+                )
+            except Exception as exc:
+                logger.error(f"Failed to emit telemetry: {exc}")
 
 
 async def quarantine_event(db, event_id: str, reason: str, env=None, has_vector: bool = True) -> None:
@@ -123,8 +144,10 @@ async def quarantine_event(db, event_id: str, reason: str, env=None, has_vector:
         audit_id, event_id, "quarantine", reason
     )
 
-    # 3. Execute update first and check for concurrency
-    result_update = await stmt_update.run()
+    # 3. Execute update and audit log insertion atomically in a single batch
+    results = await db.batch([stmt_update, stmt_audit])
+
+    result_update = results[0]
 
     meta = (
         result_update.meta
@@ -140,9 +163,6 @@ async def quarantine_event(db, event_id: str, reason: str, env=None, has_vector:
 
     if changes == 0:
         raise StateTransitionError("Concurrent modification detected")
-
-    # 4. If update succeeded, safely insert audit log
-    await stmt_audit.run()
 
     # 3. Explicitly purge the vector payload if it has one
     if has_vector:
