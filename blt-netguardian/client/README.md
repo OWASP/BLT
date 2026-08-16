@@ -1,21 +1,21 @@
-# NetGuardian Flutter desktop client
+# Flutter desktop client
 
-Local producer for NetGuardian: configure org sender credentials, build a
-`ztr-finding-1` envelope (HMAC-SHA256), and `POST /api/ingest`.
+## C1 — sign + send
+Configure org sender credentials, build `ztr-finding-1`, `POST /api/ingest`.
 
-This is **client MR C1** — sign + send. Detection packs, offline queue, and
-history land in follow-up MRs (C2/C3).
+## C2 — detect → preview → queue
+HTTP header scan against a target URL, checkbox preview, sign/send selected,
+and a persistent outbox with retry for offline/failed posts.
 
 ## Run (macOS)
 
-Terminal 1 — API from the **repo root** (not `client/`):
+Terminal 1 — API from the **repo root**:
 
 ```bash
 python local_dev/serve.py
-# or: .venv/bin/python local_dev/serve.py
 ```
 
-Terminal 2 — Flutter client:
+Terminal 2 — client:
 
 ```bash
 cd client
@@ -24,18 +24,15 @@ flutter test
 flutter run -d macos
 ```
 
-Point **API base URL** at local `http://127.0.0.1:8787` or a staging Worker.
-Demo secret `736563726574` / `org-demo` / `scanner-1` / `k1` matches
-`local_dev/send_finding.py` (loopback only).
+Demo secret `736563726574` / `org-demo` / `scanner-1` / `k1` (loopback only).
 
 ## Layout
 
 | Path | Role |
 |------|------|
-| `lib/ingest/canonicalize.dart` | JCS-profile JSON + digests (parity with `src/canonicalize.py`) |
-| `lib/ingest/envelope.dart` | Sign plaintext envelopes |
-| `lib/ingest/ingest_client.dart` | HTTP POST + `X-BLT-Body-Digest` |
-| `lib/config/sender_config.dart` | Persisted sender settings |
+| `lib/detect/` | HTTP header detector + fingerprint normalize |
+| `lib/ingest/` | Canonicalize, sign, HTTP ingest |
+| `lib/queue/outbox.dart` | Offline outbox + retry |
 | `lib/main.dart` | Desktop UI |
 
 ## Spec

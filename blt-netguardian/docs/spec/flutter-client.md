@@ -1,36 +1,28 @@
-# Flutter desktop client (C1)
+# Flutter desktop client
 
-Desktop producer that finds (later) and **sends** signed findings into NetGuardian.
+Desktop producer that **finds** and **sends** signed findings into NetGuardian.
 
-## C1 scope (this MR)
+## Shipped
 
-- Flutter desktop scaffold (`client/`, macOS/Linux/Windows)
-- Sender config: base URL, `org_id`, `sender_id`, `kid`, HMAC secret hex
-- Build `ztr-finding-1` plaintext envelopes with HMAC-SHA256 (parity with `src/envelope.py`)
-- `POST /api/ingest` with `X-BLT-Body-Digest: sha256=…`
-- Unit tests against a Python golden signature vector
+### C1 — sign + POST
+- Sender config UI + HMAC `ztr-finding-1` + `POST /api/ingest`
+- Golden-vector tests vs Python canonicalize/sign
 
-## Exit criterion
+### C2 — detect → preview → queue
+- Local HTTP header scan (parity subset of `src/detect/http_headers.py`)
+- Preview + multi-select before send
+- Persistent outbox (`shared_preferences`) with retry / clear-sent
 
-`flutter test` passes; app can send a demo finding to local/staging ingest.
-
-Run the API from the **repo root** (`python local_dev/serve.py`) in a separate
-shell from `cd client && flutter run`. Demo credentials match
-`local_dev/send_finding.py` (loopback only).
+## Exit criteria
+- `cd client && flutter test` passes
+- Scan `https://example.com` → preview findings → send or queue against local/staging ingest
 
 ## Follow-ups
-
-| MR | Slice |
-|----|--------|
-| C2 | Detect → preview → offline queue + retry |
-| C3 | Redaction toggles + local history + triage deep-link |
-| C4 | Packaging / portable build notes |
+| Slice | Notes |
+|-------|--------|
+| C3 | Redaction toggles + history + triage deep-link |
+| C4 | Packaging docs |
+| Semgrep in-client | Optional; CLI `scripts/detect_export.py` already covers Semgrep→ingest |
 
 ## Demo credentials (loopback)
-
-Same as `local_dev/send_finding.py`:
-
-- `org_id=org-demo`
-- `sender_id=scanner-1`
-- `kid=k1`
-- `secret_hex=736563726574`
+Same as `local_dev/send_finding.py`: `org-demo` / `scanner-1` / `k1` / `736563726574`
