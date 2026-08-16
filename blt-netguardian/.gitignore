@@ -10,8 +10,9 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Python packaging dirs at repo root only (do not ignore client/lib)
+/lib/
+/lib64/
 parts/
 sdist/
 var/
