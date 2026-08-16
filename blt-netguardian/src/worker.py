@@ -14,7 +14,7 @@ except ImportError:
     class Response:  # type: ignore[no-redef]
         """Local fallback used outside the Cloudflare Workers runtime."""
 
-        def __init__(self, body: str = '', status: int = 200,
+        def __init__(self, body: Any = '', status: int = 200,
                      headers: Optional[Dict[str, str]] = None):
             self.body = body
             self.status = status
@@ -28,10 +28,35 @@ from utils.storage import JobStateStore, TaskQueueStore, TargetRegistryStore, Vu
 from scanners.coordinator import ScannerCoordinator
 from scanners.autonomous_discovery import AutonomousDiscovery
 from scanners.contact_notifier import ContactNotifier
+from auth import AuthError, read_endpoints_require_auth
+from blt_api_client import is_blt_api_configured
+from errors import IngestError, IngestErrorCode
+from events_service import get_event_for_request, list_events_for_request
+from findings_service import (
+    convert_to_issue_for_request,
+    disclosure_for_request,
+    export_csv_for_request,
+    export_finding_pdf_for_request,
+    export_pdf_for_request,
+    findings_error_response,
+    get_finding_for_request,
+    list_findings_for_request,
+    update_finding_for_request,
+)
+from ingest_service import ingest_error_response, process_ingest
+from ingest_store import IngestStore
+from oauth_github import (
+    current_session,
+    handle_github_callback,
+    logout_session,
+    start_github_login,
+)
 
 
 class BLTWorker:
     """Main BLT-NetGuardian Worker class - API only."""
+
+    DEFAULT_MAX_BODY = 1_048_576
 
     MAX_LIMIT = 100
     DEFAULT_ALLOWED_ORIGIN = 'https://owasp-blt.github.io'
@@ -96,6 +121,16 @@ class BLTWorker:
                 response = await self.handle_task_list(request)
             elif path == 'api/vulnerabilities':
                 response = await self.handle_vulnerabilities(request)
+            elif path == 'api/health':
+                response = await self.handle_api_health(request)
+            elif path == 'api/ingest':
+                response = await self.handle_ingest(request)
+            elif path == 'api/findings' or path.startswith('api/findings/'):
+                response = await self.handle_findings(request, path)
+            elif path == 'api/auth' or path.startswith('api/auth/'):
+                response = await self.handle_auth(request, path)
+            elif path == 'api/events' or path.startswith('api/events/'):
+                response = await self.handle_events(request, path)
             else:
                 response = self.json_response({'error': 'Not found'}, status=404)
             
@@ -523,6 +558,287 @@ class BLTWorker:
 
         except Exception as e:
             return self.internal_error_response('Failed to list tasks', e)
+
+    async def handle_api_health(self, request):
+        """GET /api/health — shallow liveness (no outbound probes)."""
+        if request.method != 'GET':
+            return self.json_response({'error': 'Method not allowed'}, status=405)
+
+        blt_configured = is_blt_api_configured(self.env)
+        return self.json_response({
+            'status': 'ok',
+            'component': 'netguardian',
+            'ingest': 'ready',
+            'auth': {
+                'read_required': read_endpoints_require_auth(self.env),
+            },
+            'integrations': {
+                'blt_api': {
+                    'configured': blt_configured,
+                    # Reachability is intentionally omitted from the public probe
+                    # so monitoring/abuse cannot amplify outbound BLT traffic.
+                    'reachable': None,
+                },
+            },
+        })
+
+    async def handle_ingest(self, request):
+        """POST /api/ingest — verify ztr-finding-1 envelope and persist to D1."""
+        if request.method != 'POST':
+            return self.json_response({'error': 'Method not allowed'}, status=405)
+
+        db = getattr(self.env, 'DB', None)
+        if db is None:
+            return self.json_response({
+                'error': 'service_unavailable',
+                'message': 'ingest storage not configured',
+            }, status=503)
+
+        max_body = self._ingest_max_body_bytes()
+        raw_body = await self._read_request_body(request)
+        if len(raw_body) > max_body:
+            result = ingest_error_response(IngestError(
+                IngestErrorCode.PAYLOAD_TOO_LARGE,
+                f'request body exceeds {max_body} bytes',
+            ))
+            return self.json_response(result.body, status=result.status, headers=result.headers)
+
+        digest_header = self.get_request_header(request, 'X-BLT-Body-Digest')
+
+        try:
+            envelope = json.loads(raw_body.decode('utf-8'))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            result = ingest_error_response(IngestError(
+                IngestErrorCode.INVALID_ENVELOPE, 'invalid JSON body',
+            ))
+            return self.json_response(result.body, status=result.status, headers=result.headers)
+
+        if not isinstance(envelope, dict):
+            result = ingest_error_response(IngestError(
+                IngestErrorCode.INVALID_ENVELOPE, 'envelope must be a JSON object',
+            ))
+            return self.json_response(result.body, status=result.status, headers=result.headers)
+
+        try:
+            result = await process_ingest(
+                raw_body=raw_body,
+                body_digest_header=digest_header,
+                envelope=envelope,
+                env=self.env,
+                db=db,
+                store=IngestStore(db),
+                new_id=lambda label: self.generate_id(
+                    f'{label}-{envelope.get("org_id")}-{envelope.get("nonce")}'
+                ),
+            )
+        except IngestError as exc:
+            result = ingest_error_response(exc)
+
+        return self.json_response(result.body, status=result.status, headers=result.headers)
+
+    async def handle_findings(self, request, path: str = 'api/findings'):
+        """Findings triage: list, detail, CSV/PDF export, convert-to-issue."""
+        subpath = path[len('api/findings'):].lstrip('/')
+        parts = subpath.split('/') if subpath else []
+
+        try:
+            if not parts:
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await list_findings_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    query_params=self.get_query_params(request),
+                )
+            elif parts == ['export.csv']:
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await export_csv_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    query_params=self.get_query_params(request),
+                )
+            elif parts == ['export.pdf']:
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await export_pdf_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    query_params=self.get_query_params(request),
+                )
+            elif len(parts) == 1:
+                if request.method == 'GET':
+                    result = await get_finding_for_request(
+                        env=self.env,
+                        db=getattr(self.env, 'DB', None),
+                        headers=self.get_request_headers(request),
+                        finding_id=parts[0],
+                        new_id=lambda label: self.generate_id(
+                            f'{label}-{parts[0]}-{datetime.now(timezone.utc).isoformat()}'
+                        ),
+                    )
+                elif request.method == 'PATCH':
+                    raw_patch = await self._read_request_body(request)
+                    try:
+                        body = json.loads(raw_patch.decode('utf-8') or 'null')
+                    except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                        return self.json_response({'error': 'invalid_body'}, status=400)
+                    if not isinstance(body, dict):
+                        return self.json_response({'error': 'invalid_body'}, status=400)
+                    result = await update_finding_for_request(
+                        env=self.env,
+                        db=getattr(self.env, 'DB', None),
+                        headers=self.get_request_headers(request),
+                        finding_id=parts[0],
+                        body=body,
+                        new_id=lambda label: self.generate_id(
+                            f'{label}-{parts[0]}-{datetime.now(timezone.utc).isoformat()}'
+                        ),
+                    )
+                else:
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+            elif len(parts) == 2 and parts[1] == 'convert-to-issue':
+                if request.method != 'POST':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await convert_to_issue_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    finding_id=parts[0],
+                    new_id=lambda label: self.generate_id(
+                        f'{label}-{parts[0]}-{datetime.now(timezone.utc).isoformat()}'
+                    ),
+                )
+            elif len(parts) == 2 and parts[1] == 'disclosure':
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await disclosure_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    finding_id=parts[0],
+                )
+            elif len(parts) == 2 and parts[1] == 'export.pdf':
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await export_finding_pdf_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    finding_id=parts[0],
+                    new_id=lambda label: self.generate_id(
+                        f'{label}-{parts[0]}-{datetime.now(timezone.utc).isoformat()}'
+                    ),
+                )
+            else:
+                return self.json_response({'error': 'Not found'}, status=404)
+        except AuthError as exc:
+            result = findings_error_response(exc)
+
+        return self._findings_response(result)
+
+    def _findings_response(self, result):
+        if result.content_type.startswith('text/csv'):
+            headers = dict(result.headers or {})
+            headers['Content-Type'] = result.content_type
+            return Response(result.body['csv'], status=result.status, headers=headers)
+        if result.content_type.startswith('application/pdf'):
+            headers = dict(result.headers or {})
+            headers['Content-Type'] = result.content_type
+            return Response(result.body['pdf'], status=result.status, headers=headers)
+        return self.json_response(result.body, status=result.status, headers=result.headers)
+
+    async def handle_auth(self, request, path: str = 'api/auth'):
+        """GitHub OAuth PKCE login/callback + session me/logout."""
+        subpath = path[len('api/auth'):].lstrip('/')
+        parts = [p for p in subpath.split('/') if p]
+        db = getattr(self.env, 'DB', None)
+        headers = self.get_request_headers(request)
+        query = self.get_query_params(request)
+
+        if parts == ['github', 'login'] and request.method == 'GET':
+            result = await start_github_login(
+                env=self.env,
+                db=db,
+                request_url=request.url,
+                redirect_to=query.get('redirect_to') or '/triage.html',
+            )
+            return self._oauth_response(result)
+        if parts == ['github', 'callback'] and request.method == 'GET':
+            result = await handle_github_callback(
+                env=self.env,
+                db=db,
+                request_url=request.url,
+                query=query,
+            )
+            return self._oauth_response(result)
+        if parts == ['me'] and request.method == 'GET':
+            result = await current_session(env=self.env, db=db, headers=headers)
+            return self._oauth_response(result)
+        if parts == ['logout'] and request.method in ('POST', 'GET'):
+            result = await logout_session(db=db, headers=headers, request_url=request.url)
+            return self._oauth_response(result)
+        return self.json_response({'error': 'Not found'}, status=404)
+
+    def _oauth_response(self, result):
+        headers = dict(result.headers or {})
+        if result.redirect_url:
+            headers['Location'] = result.redirect_url
+            return Response('', status=result.status, headers=headers)
+        return self.json_response(result.body or {}, status=result.status, headers=headers)
+
+    async def handle_events(self, request, path: str = 'api/events'):
+        """Verified events outbox: list + detail (org-scoped)."""
+        subpath = path[len('api/events'):].lstrip('/')
+        parts = subpath.split('/') if subpath else []
+
+        try:
+            if not parts:
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await list_events_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    query_params=self.get_query_params(request),
+                )
+            elif len(parts) == 1:
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await get_event_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    event_id=parts[0],
+                )
+            else:
+                return self.json_response({'error': 'Not found'}, status=404)
+        except AuthError as exc:
+            result = findings_error_response(exc)
+
+        return self.json_response(result.body, status=result.status, headers=result.headers)
+
+    async def _read_request_body(self, request) -> bytes:
+        text = getattr(request, 'body', None)
+        if isinstance(text, bytes):
+            return text
+        if isinstance(text, str):
+            return text.encode('utf-8')
+        if hasattr(request, 'text'):
+            return (await request.text()).encode('utf-8')
+        return b''
+
+    def _ingest_max_body_bytes(self) -> int:
+        raw = getattr(self.env, 'NG_INGEST_MAX_BODY_BYTES', None)
+        if raw is None:
+            return self.DEFAULT_MAX_BODY
+        try:
+            return int(str(raw))
+        except ValueError:
+            return self.DEFAULT_MAX_BODY
     
     async def handle_vulnerabilities(self, request):
         """Get vulnerabilities from the database."""
@@ -565,11 +881,56 @@ class BLTWorker:
         return min(limit, self.MAX_LIMIT)
 
     def get_request_header(self, request, key: str) -> Optional[str]:
-        """Safely read a request header from test doubles and worker requests."""
+        """Read a request header, matching the name case-insensitively.
+
+        HTTP field names are case-insensitive (RFC 7230 §3.2), and clients do
+        not agree on casing — Python's ``urllib`` sends ``X-blt-body-digest``,
+        for example. An exact-key lookup silently drops headers that were in
+        fact present, so senders get rejected for a header they did send.
+        """
+        headers = self.get_request_headers(request)
+        value = headers.get(key)
+        if value is not None:
+            return value
+        target = key.lower()
+        for name, candidate in headers.items():
+            if str(name).lower() == target:
+                return candidate
+        return None
+
+    def get_request_headers(self, request) -> Dict[str, str]:
+        """Return request headers as a plain dict."""
         headers = getattr(request, 'headers', None)
         if headers is None:
-            return None
-        return headers.get(key)
+            return {}
+        if isinstance(headers, dict):
+            return dict(headers)
+        # Cloudflare Workers exposes a JS Headers object via FFI; iterating with
+        # .items() is unreliable from Python, so prefer .get() per known names.
+        if hasattr(headers, 'get'):
+            result: Dict[str, str] = {}
+            for name in (
+                'Authorization', 'authorization',
+                'Content-Type', 'content-type',
+                'Origin', 'origin',
+                'X-API-Key', 'x-api-key',
+                'X-BLT-Body-Digest', 'x-blt-body-digest',
+            ):
+                value = headers.get(name)
+                if value is not None and str(value) != '':
+                    result[name] = str(value)
+            if result:
+                return result
+        try:
+            return {str(key): str(value) for key, value in headers.items()}
+        except (AttributeError, TypeError):
+            return {}
+
+    def get_query_params(self, request) -> Dict[str, str]:
+        """Parse query string into single-value parameters."""
+        query_string = request.url.split('?')[1] if '?' in request.url else ''
+        params = parse_qs(query_string, keep_blank_values=True)
+        return {key: values[0] for key, values in params.items() if values}
 
     def get_cors_headers(self, request) -> Dict[str, str]:
         """Build CORS headers using an explicit origin allowlist."""
@@ -579,7 +940,7 @@ class BLTWorker:
         headers = {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-BLT-Body-Digest, X-BLT-Timestamp',
             'Access-Control-Max-Age': '86400',
             'Vary': 'Origin'
         }
@@ -608,6 +969,13 @@ class BLTWorker:
 
     def requires_authentication(self, path: str, method: str) -> bool:
         """Protect API routes; reads can be toggled with AUTHENTICATE_READ_ENDPOINTS."""
+        if (
+            path in ('api/health', 'api/ingest')
+            or path.startswith('api/findings')
+            or path.startswith('api/auth')
+            or path.startswith('api/events')
+        ):
+            return False
         if not path.startswith('api/'):
             return False
         if method in self.MUTATING_METHODS:
@@ -623,11 +991,11 @@ class BLTWorker:
 
     def extract_auth_token(self, request) -> Optional[str]:
         """Read API key from X-API-Key or Authorization Bearer header."""
-        api_key = self.get_request_header(request, 'X-API-Key') or self.get_request_header(request, 'x-api-key')
+        api_key = self.get_request_header(request, 'X-API-Key')
         if api_key:
             return api_key
 
-        authorization = self.get_request_header(request, 'Authorization') or self.get_request_header(request, 'authorization')
+        authorization = self.get_request_header(request, 'Authorization')
         if not authorization:
             return None
 

@@ -1,5 +1,5 @@
--- BLT-NetGuardian D1 Database Schema
--- Apply with: wrangler d1 execute blt-netguardian --file=schema.sql
+-- Legacy autonomous scanner tables (jobs, tasks, targets, vulnerabilities)
+-- Applied via: wrangler d1 migrations apply blt-netguardian
 
 CREATE TABLE IF NOT EXISTS jobs (
     job_id TEXT PRIMARY KEY,

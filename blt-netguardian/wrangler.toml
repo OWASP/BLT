@@ -1,17 +1,32 @@
 name = "blt-netguardian"
 main = "src/worker.py"
-compatibility_date = "2024-01-01"
-compatibility_flags = ["python_workers"]
+compatibility_date = "2025-07-01"
+compatibility_flags = ["python_workers", "global_fetch_strictly_public"]
 
-# Static assets (HTML, CSS, JS, images) served directly by Cloudflare
+# Static assets: serve HTML/JS directly; only /api/* invokes the Worker.
 [assets]
 directory = "./public"
 binding = "ASSETS"
+run_worker_first = true
 
 
 # Environment variables
 [vars]
 ENVIRONMENT = "production"
+AUTHENTICATE_READ_ENDPOINTS = "false"
+NG_DEFAULT_ORG = "org-demo"
+# Set via wrangler secret (production/staging):
+#   BLT_API_BASE_URL = https://api.owaspblt.org/v2
+#   BLT_API_KEY      = <X-BLT-API-Key value>
+# Optional GitHub OAuth + PKCE (browser sessions; Bearer tokens still work):
+#   GITHUB_CLIENT_ID
+#   GITHUB_CLIENT_SECRET
+#   GITHUB_OAUTH_REDIRECT_URI = https://netguardian.owaspblt.org/api/auth/github/callback
+#   NG_GITHUB_ORG_MAP = {"your-gh-login":"org-demo"}
+#   NG_GITHUB_DEFAULT_ORG = org-demo
+# Optional verified-events webhook (HMAC-SHA256 over request body):
+#   NG_EVENTS_WEBHOOK_URL    = https://consumer.example/hooks/netguardian
+#   NG_EVENTS_WEBHOOK_SECRET = <hex or utf-8 secret>
 
 [observability]
 enabled = false
@@ -29,13 +44,13 @@ persist = true
 head_sampling_rate = 1
 
 # D1 Database Binding
-# Replace the placeholder ID below with your actual Cloudflare D1 database ID.
-# Create a D1 database via: wrangler d1 create blt-netguardian
-# Apply the schema via: wrangler d1 execute blt-netguardian --file=schema.sql
+# Production (OWASP account): 529b739a-6643-4574-9210-99ecd384f085 → netguardian.owaspblt.org
+# For a personal/staging deploy, override with: wrangler d1 create blt-netguardian
 [[d1_databases]]
 binding = "DB"
 database_name = "blt-netguardian"
 database_id = "529b739a-6643-4574-9210-99ecd384f085"
+migrations_dir = "migrations"
 
 # Note: Durable Objects removed - not implemented yet
 # Note: Build configuration removed - Workers Python runtime doesn't need pip install
