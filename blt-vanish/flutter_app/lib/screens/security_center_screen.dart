@@ -10,6 +10,8 @@ import '../services/storage_service.dart';
 import '../services/telemetry_service.dart';
 import '../services/url_expansion_service.dart';
 import '../services/url_signal_extractor.dart';
+import '../../test/fixtures/phase3_fixtures.dart'; // Using fixtures for MVP timeline
+import '../models/security/exposure_event.dart';
 
 enum _ScanUiState {
   idle,
@@ -62,6 +64,8 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   _ScanUiState _scanState = _ScanUiState.idle;
   String? _errorMessage;
   String _lastSource = 'manual_paste';
+  bool _isExposureFeedDegraded = false; // Mock state for degraded UX
+  DateTime? _lastSyncTime;
 
   bool get _isScanning => _scanState == _ScanUiState.loading;
 
@@ -432,6 +436,116 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
     );
   }
 
+  Widget _buildExposureTimeline() {
+    // For Phase 3 MVP, we use the preloaded fixtures to build the timeline UI.
+    // In production, this would be fed by a unified triage queue stream.
+    List<ExposureEvent> events = [testExposureEvent];
+
+    // Sort primarily by urgency, then recency
+    int urgencyToValue(String u) {
+      switch (u) {
+        case 'critical': return 4;
+        case 'high': return 3;
+        case 'medium': return 2;
+        case 'low': return 1;
+        default: return 0;
+      }
+    }
+
+    events.sort((a, b) {
+      int urgencyCmp = urgencyToValue(b.urgency).compareTo(urgencyToValue(a.urgency));
+      if (urgencyCmp != 0) return urgencyCmp;
+      return b.occurredAt.compareTo(a.occurredAt);
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Exposure Timeline',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                setState(() {
+                  // Mock toggle for offline/degraded testing
+                  _isExposureFeedDegraded = !_isExposureFeedDegraded;
+                  if (!_isExposureFeedDegraded) {
+                    _lastSyncTime = DateTime.now();
+                  }
+                });
+              },
+            )
+          ],
+        ),
+        if (_isExposureFeedDegraded)
+          Card(
+            color: const Color(0xFFFFF3E0),
+            elevation: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: Color(0xFFE65100)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Provider Feed Unavailable',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFE65100)),
+                        ),
+                        if (_lastSyncTime != null)
+                          Text('Last sync: ${_lastSyncTime!.toLocal().toString().split('.')[0]}', style: const TextStyle(fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _isExposureFeedDegraded = false;
+                        _lastSyncTime = DateTime.now();
+                      });
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        const SizedBox(height: 12),
+        ...events.map((e) => Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.grey.shade200),
+          ),
+          child: ListTile(
+            leading: Icon(
+              Icons.warning,
+              color: e.urgency == 'critical' || e.urgency == 'high' 
+                  ? Colors.red 
+                  : Colors.orange,
+            ),
+            title: Text(e.source, style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('Breach detected on ${e.occurredAt.toLocal().toString().split(' ')[0]}'),
+            trailing: Chip(
+              label: Text(e.urgency.toUpperCase(), style: const TextStyle(fontSize: 10, color: Colors.white)),
+              backgroundColor: e.urgency == 'critical' || e.urgency == 'high' 
+                  ? Colors.red 
+                  : Colors.orange,
+            ),
+          ),
+        )),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -495,6 +609,8 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
               const SizedBox(height: 20),
               _buildAssessmentCard(),
             ],
+            const SizedBox(height: 32),
+            _buildExposureTimeline(),
           ],
         ),
       ),
