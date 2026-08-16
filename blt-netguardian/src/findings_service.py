@@ -24,6 +24,7 @@ from findings_store import (
 )
 from payload_crypto import PayloadCryptoError, decrypt_payload, get_org_key, is_wrapped_ciphertext
 from payload_redact import redact_payload
+from pdf_report import build_findings_pdf
 from remediation import lookup_remediation
 
 # Statuses that emit finding.resolved verified events for downstream consumers.
@@ -343,6 +344,118 @@ async def export_csv_for_request(
         body={"csv": buffer.getvalue()},
         content_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": 'attachment; filename="findings.csv"'},
+    )
+
+
+def _payload_for_pdf(env: Any, org_id: str, stored: Any) -> dict[str, Any]:
+    """Decrypt when possible; never return ciphertext wrappers or unretracted secrets."""
+    if not isinstance(stored, dict):
+        return {}
+    if is_wrapped_ciphertext(stored):
+        key = get_org_key(env, org_id)
+        if key is None:
+            return {"encrypted_at_rest": True, "decrypted": False}
+        try:
+            plain = decrypt_payload(key, stored["ciphertext"], aad=org_id.encode())
+            return redact_payload(plain if isinstance(plain, dict) else {"value": plain})
+        except PayloadCryptoError:
+            return {"encrypted_at_rest": True, "decrypted": False, "error": "decrypt_failed"}
+    return redact_payload(stored)
+
+
+async def export_pdf_for_request(
+    *,
+    env: Any,
+    db: Any,
+    headers: Mapping[str, str],
+    query_params: Mapping[str, str],
+    store: Optional[FindingsStore] = None,
+) -> FindingsListResult:
+    """GET /api/findings/export.pdf — org-scoped multi-finding PDF (metadata only)."""
+    auth = await _auth_or_error(env, headers, db)
+
+    parsed, error = parse_findings_query(query_params)
+    if error:
+        return FindingsListResult(status=400, body={"error": "invalid_query", "message": error})
+
+    assert parsed is not None
+    parsed.org_id = auth.org_id
+
+    if db is None:
+        return FindingsListResult(
+            status=503,
+            body={"error": "service_unavailable", "message": "findings storage not configured"},
+        )
+
+    store = store or FindingsStore(db)
+    rows = await store.export_findings(parsed)
+    findings = [finding_row_to_item(row) for row in rows]
+    pdf_bytes = build_findings_pdf(findings, org_id=auth.org_id)
+
+    return FindingsListResult(
+        status=200,
+        body={"pdf": pdf_bytes},
+        content_type="application/pdf",
+        headers={"Content-Disposition": 'attachment; filename="findings.pdf"'},
+    )
+
+
+async def export_finding_pdf_for_request(
+    *,
+    env: Any,
+    db: Any,
+    headers: Mapping[str, str],
+    finding_id: str,
+    store: Optional[FindingsStore] = None,
+    new_id: Any = None,
+    now: Optional[datetime] = None,
+) -> FindingsListResult:
+    """GET /api/findings/{id}/export.pdf — single finding PDF with redacted evidence."""
+    auth = _auth_or_error(env, headers)
+    if db is None:
+        return FindingsListResult(
+            status=503,
+            body={"error": "service_unavailable", "message": "findings storage not configured"},
+        )
+
+    store = store or FindingsStore(db)
+    row = await store.get_finding_detail(auth.org_id, finding_id)
+    if row is None:
+        return FindingsListResult(status=404, body={"error": "not_found", "message": "finding not found"})
+
+    now = now or datetime.now(timezone.utc)
+    id_fn = new_id or (lambda prefix: __import__("hashlib").sha256(
+        f"{prefix}-{finding_id}-{now.timestamp()}".encode()
+    ).hexdigest()[:16])
+
+    try:
+        stored = json.loads(row_get(row, "payload_json") or "{}")
+    except json.JSONDecodeError:
+        stored = {}
+
+    snippet = _payload_for_pdf(env, auth.org_id, stored)
+    await store.record_access(
+        log_id=id_fn("access-pdf"),
+        org_id=auth.org_id,
+        finding_id=finding_id,
+        actor=auth.org_id,
+        action="export_pdf",
+        detail={"route": "GET /api/findings/{id}/export.pdf"},
+        created_at_unix=int(now.timestamp()),
+    )
+
+    finding = finding_row_to_item(row)
+    pdf_bytes = build_findings_pdf(
+        [finding],
+        org_id=auth.org_id,
+        title="NetGuardian Finding Report",
+        snippet_by_id={finding_id: snippet},
+    )
+    return FindingsListResult(
+        status=200,
+        body={"pdf": pdf_bytes},
+        content_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="finding-{finding_id}.pdf"'},
     )
 
 

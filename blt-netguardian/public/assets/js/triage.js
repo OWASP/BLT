@@ -320,11 +320,13 @@
                     ? '<div class="cve-link-row"><a href="' + esc(cveHref) + '" target="_blank" rel="noopener">' + esc(cveHref) + '</a></div>'
                     : '<input type="text" class="cve-input" value="" placeholder="No CVE mapped" readonly />'}
                   <button id="detail-export-btn" type="button" class="export-btn">📄 Export CSV</button>
+                  <button id="detail-export-pdf-btn" type="button" class="export-btn">📕 Export PDF</button>
                 </div>
               </div>`;
 
             const convertBtn = document.getElementById('detail-convert-btn');
             const exportBtn = document.getElementById('detail-export-btn');
+            const exportPdfBtn = document.getElementById('detail-export-pdf-btn');
             const statusSave = document.getElementById('detail-status-save');
 
             if (convertBtn && !bltIssue) {
@@ -333,6 +335,11 @@
                 });
             }
             if (exportBtn) exportBtn.addEventListener('click', handleExport);
+            if (exportPdfBtn) {
+                exportPdfBtn.addEventListener('click', function () {
+                    if (selectedRawId) handleExportPdf(selectedRawId);
+                });
+            }
             if (statusSave) {
                 statusSave.addEventListener('click', function () {
                     const sel = document.getElementById('detail-status-select');
@@ -701,6 +708,29 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 showToast('CSV exported.', 'success');
+            } catch (err) {
+                showToast(apiErrorMsg(err), 'error');
+            }
+        }
+
+        async function handleExportPdf(findingId) {
+            try {
+                const path = findingId
+                    ? '/api/findings/' + encodeURIComponent(findingId) + '/export.pdf'
+                    : '/api/findings/export.pdf?' + buildListQuery();
+                const res = await apiRequest(path, { raw: true });
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = findingId
+                    ? ('netguardian-finding-' + findingId + '.pdf')
+                    : 'netguardian-findings.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('PDF exported.', 'success');
             } catch (err) {
                 showToast(apiErrorMsg(err), 'error');
             }
