@@ -21,13 +21,11 @@ class HibpExposureAdapter implements ExposureAdapter {
 
   @override
   Future<List<ExposureEvent>> checkEmailExposure(String emailHash) async {
-    // TODO: Phase 3 implement HIBP Breached Accounts endpoint lookup.
-    return [];
+    throw UnsupportedError('HIBP email exposure lookup is not implemented');
   }
 
   @override
   Future<List<ExposureEvent>> checkPasswordExposure(String passwordHash) async {
-    // TODO: Phase 3 implement HIBP Pwned Passwords endpoint lookup using k-anonymity.
-    return [];
+    throw UnsupportedError('HIBP password exposure lookup is not implemented');
   }
 }
