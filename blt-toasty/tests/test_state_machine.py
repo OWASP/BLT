@@ -133,12 +133,12 @@ async def test_quarantine_event(mock_db):
     mock_db.next_event = {"id": "test_id", "status": "pending"}
     mock_db.next_changes = 1
 
-    await quarantine_event(mock_db, "test_id", "test reason")
+    await quarantine_event(mock_db, "test_id", "test reason", has_vector=False)
 
-    # Should have executed SELECT, UPDATE (state transition), INSERT (audit log)
-    assert len(mock_db.statements_executed) == 3
+    # Should have executed SELECT, UPDATE (state transition), UPDATE (quarantine_reason), INSERT (audit log)
+    assert len(mock_db.statements_executed) == 4
 
-    insert_stmt = mock_db.statements_executed[2]
+    insert_stmt = mock_db.statements_executed[3]
     assert "INSERT INTO triage_audit_log" in insert_stmt.query
     assert insert_stmt.bound_params[1] == "test_id"
     assert insert_stmt.bound_params[2] == "quarantine"
