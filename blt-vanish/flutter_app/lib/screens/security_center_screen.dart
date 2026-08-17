@@ -10,7 +10,7 @@ import '../services/storage_service.dart';
 import '../services/telemetry_service.dart';
 import '../services/url_expansion_service.dart';
 import '../services/url_signal_extractor.dart';
-import '../../test/fixtures/phase3_fixtures.dart'; // Using fixtures for MVP timeline
+import '../services/security_data_source.dart';
 import '../models/security/exposure_event.dart';
 import '../models/security/login_anomaly.dart';
 import '../models/security/playbook_template.dart';
@@ -37,6 +37,8 @@ class SecurityCenterScreen extends StatefulWidget {
   final RiskAssessmentBuilder? assessmentBuilder;
   /// Optional telemetry override for tests.
   final TelemetryService? telemetryService;
+  /// Optional security data source override for tests.
+  final SecurityDataSource? securityDataSource;
 
   /// Creates the Security Center screen.
   const SecurityCenterScreen({
@@ -47,6 +49,7 @@ class SecurityCenterScreen extends StatefulWidget {
     this.enrichmentService,
     this.assessmentBuilder,
     this.telemetryService,
+    this.securityDataSource,
   });
 
   @override
@@ -60,13 +63,14 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   late final RiskAssessmentBuilder _assessmentBuilder;
   late final TelemetryService _telemetry;
   late final ReputationEnrichmentService _enrichmentService;
+  late final SecurityDataSource _securityDataSource;
   final RemediationPlanner _remediationPlanner = const RemediationPlanner();
 
   RiskAssessment? _currentAssessment;
   _ScanUiState _scanState = _ScanUiState.idle;
   String? _errorMessage;
   String _lastSource = 'manual_paste';
-  bool _isExposureFeedDegraded = false; // Mock state for degraded UX
+  bool _isExposureFeedDegraded = false;
   DateTime? _lastSyncTime;
 
   List<ExposureEvent> _exposureEvents = [];
@@ -92,11 +96,40 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
         ReputationEnrichmentService(
           baseUrl: _defaultWorkerBaseUrl,
         );
+    _securityDataSource = widget.securityDataSource ?? DefaultSecurityDataSource();
+
+    _loadSecurityData();
 
     if (widget.initialInput.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _handleScan(widget.initialInput, source: 'share_sheet');
       });
+    }
+  }
+
+  Future<void> _loadSecurityData() async {
+    try {
+      final events = await _securityDataSource.fetchExposureEvents();
+      final anomaly = await _securityDataSource.fetchLoginAnomaly();
+      PlaybookTemplate? playbook;
+      if (anomaly != null) {
+        playbook = await _securityDataSource.fetchPlaybookTemplate(anomaly);
+      }
+      if (mounted) {
+        setState(() {
+          _exposureEvents = events;
+          _loginAnomaly = anomaly;
+          _playbookTemplate = playbook;
+          _isExposureFeedDegraded = false;
+          _lastSyncTime = DateTime.now();
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isExposureFeedDegraded = true;
+        });
+      }
     }
   }
 
@@ -474,14 +507,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
             ),
             IconButton(
               icon: const Icon(Icons.refresh),
-              onPressed: () {
-                setState(() {
-                  // In production, this triggers a real data source sync.
-                  // _exposureEvents = await _breachMonitoringService.fetchEvents();
-                  _isExposureFeedDegraded = false;
-                  _lastSyncTime = DateTime.now();
-                });
-              },
+              onPressed: () => _loadSecurityData(),
             )
           ],
         ),
@@ -509,12 +535,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _isExposureFeedDegraded = false;
-                        _lastSyncTime = DateTime.now();
-                      });
-                    },
+                    onPressed: () => _loadSecurityData(),
                     child: const Text('Retry'),
                   ),
                 ],
@@ -558,6 +579,20 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
     );
   }
 
+  (Color, Color, Color) _getRiskBandColors(String riskBand) {
+    switch (riskBand.toLowerCase()) {
+      case 'critical':
+        return (Colors.red.shade50, Colors.red.shade200, Colors.red.shade700);
+      case 'high':
+        return (Colors.orange.shade50, Colors.orange.shade200, Colors.orange.shade800);
+      case 'medium':
+        return (Colors.amber.shade50, Colors.amber.shade200, Colors.amber.shade900);
+      case 'low':
+      default:
+        return (Colors.green.shade50, Colors.green.shade200, Colors.green.shade700);
+    }
+  }
+
   Widget _buildLoginAnomalies() {
     final anomaly = _loginAnomaly;
     final playbook = _playbookTemplate;
@@ -565,6 +600,8 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
     if (anomaly == null || playbook == null) {
       return const SizedBox.shrink();
     }
+
+    final (riskBgColor, riskBorderColor, riskTextColor) = _getRiskBandColors(anomaly.riskBand);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -595,13 +632,13 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.red.shade50,
+                        color: riskBgColor,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red.shade200),
+                        border: Border.all(color: riskBorderColor),
                       ),
                       child: Text(
                         anomaly.riskBand.toUpperCase(),
-                        style: TextStyle(color: Colors.red.shade700, fontSize: 12, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: riskTextColor, fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
