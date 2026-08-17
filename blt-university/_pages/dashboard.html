@@ -1,0 +1,401 @@
+---
+layout: default
+title: Vulnerability Dashboard
+description: Explore recent CVEs by OWASP category, known exploitation, severity, and relevant BLT University labs.
+permalink: /dashboard/
+---
+
+{% assign intel = site.data.vulnerability_intel %}
+{% assign coverage_percent = intel.data_quality.coverage | times: 100 | round: 1 %}
+{% assign ranked_categories = intel.categories | sort: "count" | reverse %}
+{% assign starter_category = ranked_categories | first %}
+{% assign starter_lab = starter_category.labs | first %}
+
+<main class="pb-24" data-vulnerability-dashboard>
+  <section class="relative overflow-hidden px-4 pb-12 pt-36 sm:pt-40" aria-labelledby="dashboard-heading">
+    <div class="dot-field pointer-events-none absolute inset-x-0 top-20 z-[1] mx-auto h-80 w-full opacity-60" aria-hidden="true"></div>
+    <div class="relative z-[2] mx-auto w-[min(80rem,calc(100%_-_1rem))]">
+      <div class="grid items-end gap-8 lg:grid-cols-[1fr_auto]">
+        <div class="max-w-3xl">
+          <span class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">
+            <span class="h-1.5 w-1.5 rounded-full bg-red-500" aria-hidden="true"></span>
+            Vulnerability intelligence
+          </span>
+          <h1 id="dashboard-heading" class="mt-5 text-[clamp(2.6rem,5vw,4.65rem)] font-semibold leading-[.98] tracking-[-.05em] text-gray-900">
+            From disclosure to<br class="hidden sm:block" /> <span class="text-red-600">hands-on learning.</span>
+          </h1>
+          <p class="mt-6 max-w-2xl text-base leading-7 text-gray-600 sm:text-lg">
+            Recent NVD vulnerabilities, enriched with CISA's known-exploitation signal and connected to the BLT University labs that teach the underlying weakness.
+          </p>
+        </div>
+
+        <div class="rounded-2xl border border-gray-200 bg-white/90 p-4 shadow-[0_20px_55px_-40px_rgba(15,23,42,.7)] backdrop-blur-sm lg:w-72">
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-xs font-semibold uppercase tracking-[.14em] text-gray-500">Dataset window</span>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-1 text-[.68rem] font-semibold text-emerald-700">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>{{ intel.dataset_status | default: "unavailable" }}
+            </span>
+          </div>
+          <p class="mt-3 text-sm font-semibold text-gray-900">{{ intel.period.from | date: "%d %b %Y" }} – {{ intel.period.to | date: "%d %b %Y" }}</p>
+          <p class="mt-1 text-xs leading-5 text-gray-500">Generated {{ intel.generated_at | date: "%d %b %Y, %H:%M UTC" }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="px-4" aria-label="Vulnerability summary">
+    <div class="mx-auto grid w-[min(80rem,calc(100%_-_1rem))] grid-cols-2 gap-3 lg:grid-cols-4">
+      <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-soft">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[.14em] text-gray-500">Published CVEs</p>
+            <p class="mt-3 text-3xl font-semibold tracking-[-.04em] text-gray-900" data-format-number>{{ intel.summary.total_cves | default: 0 }}</p>
+          </div>
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-600"><i class="fa-solid fa-database text-sm"></i></span>
+        </div>
+        <p class="mt-3 text-xs leading-5 text-gray-500">NVD records in this {{ intel.period.days }}-day window</p>
+      </article>
+      <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-soft">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[.14em] text-gray-500">Mapped to OWASP</p>
+            <p class="mt-3 text-3xl font-semibold tracking-[-.04em] text-gray-900" data-format-number>{{ intel.summary.classified_cves | default: 0 }}</p>
+          </div>
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600"><i class="fa-solid fa-diagram-project text-sm"></i></span>
+        </div>
+        <p class="mt-3 text-xs leading-5 text-gray-500">{{ coverage_percent }}% classification coverage</p>
+      </article>
+      <article class="rounded-2xl border border-red-200 bg-gradient-to-br from-red-50 to-white p-5 shadow-soft">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[.14em] text-red-700">Known exploited</p>
+            <p class="mt-3 text-3xl font-semibold tracking-[-.04em] text-red-700" data-format-number>{{ intel.summary.known_exploited | default: 0 }}</p>
+          </div>
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-red-600 text-white"><i class="fa-solid fa-bolt text-sm"></i></span>
+        </div>
+        <p class="mt-3 text-xs leading-5 text-red-700/70">Confirmed in the CISA KEV catalog</p>
+      </article>
+      <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-soft">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[.14em] text-gray-500">Critical severity</p>
+            <p class="mt-3 text-3xl font-semibold tracking-[-.04em] text-gray-900" data-format-number>{{ intel.summary.critical_cves | default: 0 }}</p>
+          </div>
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-700"><i class="fa-solid fa-triangle-exclamation text-sm"></i></span>
+        </div>
+        <p class="mt-3 text-xs leading-5 text-gray-500">CVSS critical among mapped records</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="px-4 pt-10" aria-labelledby="pipeline-heading">
+    <div class="mx-auto w-[min(80rem,calc(100%_-_1rem))] overflow-hidden rounded-3xl bg-gray-950 text-white shadow-[0_28px_70px_-48px_rgba(15,23,42,.9)]">
+      <div class="grid lg:grid-cols-[.72fr_1.28fr]">
+        <div class="border-b border-white/10 p-6 sm:p-8 lg:border-b-0 lg:border-r">
+          <span class="font-mono text-xs font-medium uppercase tracking-[.18em] text-red-400">Classification path</span>
+          <h2 id="pipeline-heading" class="mt-3 text-2xl font-semibold tracking-[-.03em]">Structured evidence first.</h2>
+          <p class="mt-3 text-sm leading-6 text-gray-400">NLP is reserved for records without a usable CWE. Every fallback is labeled with its method and confidence.</p>
+          <div class="mt-6 flex flex-wrap gap-2 text-xs">
+            <span class="rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5"><strong class="text-white">{{ intel.data_quality.structured_cwe }}</strong> structured CWE</span>
+            <span class="rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5"><strong class="text-white">{{ intel.data_quality.description_fallback }}</strong> fallback</span>
+            <span class="rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5"><strong class="text-white">{{ intel.data_quality.unclassified }}</strong> unclassified</span>
+          </div>
+        </div>
+        <div class="grid gap-px bg-white/10 sm:grid-cols-4">
+          <div class="bg-gray-950 p-6 sm:p-7">
+            <span class="font-mono text-xs text-red-400">01</span>
+            <p class="mt-5 font-semibold">CVE record</p>
+            <p class="mt-2 text-xs leading-5 text-gray-500">NVD publication, CVSS, products</p>
+          </div>
+          <div class="relative bg-gray-950 p-6 sm:p-7">
+            <span class="font-mono text-xs text-red-400">02</span>
+            <p class="mt-5 font-semibold">CWE weakness</p>
+            <p class="mt-2 text-xs leading-5 text-gray-500">Structured classification signal</p>
+          </div>
+          <div class="bg-gray-950 p-6 sm:p-7">
+            <span class="font-mono text-xs text-red-400">03</span>
+            <p class="mt-5 font-semibold">OWASP Top 10</p>
+            <p class="mt-2 text-xs leading-5 text-gray-500">Curated educational grouping</p>
+          </div>
+          <div class="bg-gray-950 p-6 sm:p-7">
+            <span class="font-mono text-xs text-red-400">04</span>
+            <p class="mt-5 font-semibold">BLT lab</p>
+            <p class="mt-2 text-xs leading-5 text-gray-500">Practice the defensive concept</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="px-4 pt-20" aria-labelledby="charts-heading">
+    <div class="mx-auto w-[min(80rem,calc(100%_-_1rem))]">
+      <div class="max-w-3xl">
+        <span class="font-mono text-xs font-medium uppercase tracking-[.18em] text-red-600">Intelligence at a glance</span>
+        <h2 id="charts-heading" class="mt-2 text-[clamp(2rem,3.5vw,3rem)] font-semibold leading-tight tracking-[-.04em] text-gray-900">See where vulnerability activity concentrates.</h2>
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600">Compare the most frequent categories, their share of classified CVEs, and how the leading categories change over time. Select any chart element to filter the learning map and CVE explorer below.</p>
+        <p class="mt-3 hidden text-sm font-medium text-red-700" data-chart-selection-status aria-live="polite"></p>
+      </div>
+
+      <div class="mt-8 grid min-w-0 gap-4 lg:grid-cols-3">
+        <article class="min-w-0 rounded-3xl border border-gray-200 bg-white p-5 shadow-soft sm:p-7 lg:col-span-2">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[.14em] text-gray-500">Top five categories</p>
+              <h3 class="mt-2 text-xl font-semibold tracking-[-.025em] text-gray-900">Mapped CVEs by frequency</h3>
+            </div>
+            <span class="rounded-full bg-red-50 px-2.5 py-1 text-[.68rem] font-semibold text-red-700">{{ intel.period.days }}-day window</span>
+          </div>
+          <div class="relative mt-6 h-72 min-w-0 sm:h-80">
+            <canvas class="max-w-full cursor-pointer" data-dashboard-chart="bar" role="img" aria-label="Interactive horizontal bar chart of the five OWASP categories with the most mapped CVEs. Select a bar to filter the dashboard.">The five most frequent OWASP vulnerability categories.</canvas>
+            <p class="hidden rounded-xl bg-gray-50 p-4 text-sm leading-6 text-gray-600" data-chart-fallback="bar">The category chart could not load. The same counts remain available in the category cards below.</p>
+          </div>
+        </article>
+
+        <article class="min-w-0 rounded-3xl border border-gray-200 bg-white p-5 shadow-soft sm:p-7">
+          <p class="text-xs font-semibold uppercase tracking-[.14em] text-gray-500">Category share</p>
+          <h3 class="mt-2 text-xl font-semibold tracking-[-.025em] text-gray-900">Classified CVE breakdown</h3>
+          <p class="mt-2 text-sm leading-6 text-gray-500">Percentage of mapped records across every OWASP category.</p>
+          <div class="relative mt-4 h-72 min-w-0 sm:h-80">
+            <canvas class="max-w-full cursor-pointer" data-dashboard-chart="pie" role="img" aria-label="Interactive pie chart showing the percentage of classified CVEs in every OWASP category. Select a segment to filter the dashboard.">Percentage breakdown of classified CVEs.</canvas>
+            <p class="hidden rounded-xl bg-gray-50 p-4 text-sm leading-6 text-gray-600" data-chart-fallback="pie">The category-share chart could not load. The same counts remain available in the category cards below.</p>
+          </div>
+        </article>
+
+        <article class="min-w-0 rounded-3xl border border-gray-200 bg-white p-5 shadow-soft sm:p-7 lg:col-span-3">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[.14em] text-gray-500">Monthly movement</p>
+              <h3 class="mt-2 text-xl font-semibold tracking-[-.025em] text-gray-900">Trend for the top three categories</h3>
+            </div>
+            <p class="max-w-md text-xs leading-5 text-gray-500"><i class="fa-regular fa-calendar-check mr-1 text-red-600" aria-hidden="true"></i>Only fully covered calendar months are compared; partial months are excluded.</p>
+          </div>
+          <div class="relative mt-6 h-72 min-w-0 sm:h-80">
+            <canvas class="max-w-full cursor-pointer" data-dashboard-chart="line" role="img" aria-label="Interactive line chart showing month-over-month CVE counts for the three most frequent OWASP categories. Select a line to filter the dashboard.">Month-over-month trends for the three leading categories.</canvas>
+            <p class="hidden rounded-xl bg-gray-50 p-4 text-sm leading-6 text-gray-600" data-chart-fallback="line">At least two complete calendar months are needed to draw a meaningful trend.</p>
+          </div>
+        </article>
+      </div>
+
+      {% if starter_lab %}
+      <article class="relative mt-4 overflow-hidden rounded-3xl bg-gray-950 p-6 text-white shadow-[0_28px_70px_-48px_rgba(15,23,42,.9)] sm:p-8" data-learning-recommendation aria-live="polite">
+        <div class="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-red-600/20 blur-3xl" aria-hidden="true"></div>
+        <div class="relative grid gap-7 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div class="max-w-3xl">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center gap-2 rounded-full border border-red-400/25 bg-red-500/10 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.14em] text-red-300"><i class="fa-solid fa-compass" aria-hidden="true"></i>Your next learning step</span>
+              <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-gray-300" data-recommendation-category>{{ starter_category.id }} · {{ starter_category.name }}</span>
+            </div>
+            <h3 class="mt-5 text-2xl font-semibold tracking-[-.035em] sm:text-3xl" data-recommendation-title>{{ starter_lab.title }}</h3>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-400" data-recommendation-reason>{{ starter_lab.reason }} This recommendation balances current CVE activity, known exploitation, and your saved progress on this device.</p>
+
+            <div class="mt-6 grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
+              <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-[.62rem] font-semibold uppercase tracking-[.12em] text-gray-500">Activity</p><p class="mt-1 text-sm font-semibold text-white" data-recommendation-frequency>{{ starter_category.count }} CVEs</p></div>
+              <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-[.62rem] font-semibold uppercase tracking-[.12em] text-gray-500">Exploitation</p><p class="mt-1 text-sm font-semibold text-white" data-recommendation-kev>{{ starter_category.known_exploited }} CISA KEV</p></div>
+              <div class="rounded-xl border border-white/10 bg-white/5 p-3"><p class="text-[.62rem] font-semibold uppercase tracking-[.12em] text-gray-500">Your progress</p><p class="mt-1 text-sm font-semibold text-white" data-recommendation-progress>0% complete</p></div>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-start gap-3 lg:items-end">
+            <span class="font-mono text-xs font-medium uppercase tracking-[.14em] text-red-300" data-recommendation-score>Recommended match</span>
+            <a class="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500 bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_-18px_rgba(220,38,38,.9)] transition hover:-translate-y-0.5 hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-300" href="{{ '/labs/' | append: starter_lab.slug | append: '/' | relative_url }}" data-start-learning>Start learning <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            <p class="max-w-xs text-left text-xs leading-5 text-gray-500 lg:text-right">Progress stays in your browser and is never mixed into the shared vulnerability dataset.</p>
+          </div>
+        </div>
+      </article>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="px-4 pt-20" aria-labelledby="categories-heading">
+    <div class="mx-auto w-[min(80rem,calc(100%_-_1rem))]">
+      <div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div>
+          <span class="font-mono text-xs font-medium uppercase tracking-[.18em] text-red-600">Learning map</span>
+          <h2 id="categories-heading" class="mt-2 text-[clamp(2rem,3.5vw,3rem)] font-semibold leading-tight tracking-[-.04em] text-gray-900">Vulnerabilities by OWASP category</h2>
+          <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600">Compare the vulnerability volume, exploitation signal, and labs available for each category.</p>
+        </div>
+        <label class="w-full md:w-64">
+          <span class="sr-only">Filter OWASP categories</span>
+          <select class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-category-filter>
+            <option value="all">All OWASP categories</option>
+            {% for category in intel.categories %}<option value="{{ category.id }}">{{ category.id }} · {{ category.name }}</option>{% endfor %}
+          </select>
+        </label>
+      </div>
+
+      <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {% for category in intel.categories %}
+        {% assign severity_total = category.severity.critical | plus: category.severity.high | plus: category.severity.medium | plus: category.severity.low | plus: category.severity.unknown %}
+        <article class="flex flex-col rounded-2xl border border-gray-200 bg-white p-5 transition duration-200 hover:-translate-y-0.5 hover:border-red-200 hover:shadow-[0_18px_44px_-34px_rgba(220,38,38,.55)]" data-category-card="{{ category.id }}">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 font-mono text-xs font-semibold text-red-700">{{ category.id }}</span>
+              <div>
+                <h3 class="text-base font-semibold leading-snug text-gray-900">{{ category.name }}</h3>
+                <p class="mt-0.5 text-xs text-gray-500"><span data-format-number>{{ category.count }}</span> mapped CVEs</p>
+              </div>
+            </div>
+            {% if category.trend_percent != nil %}
+            <span class="rounded-full px-2 py-1 text-[.68rem] font-semibold {% if category.trend_percent > 0 %}bg-amber-50 text-amber-700{% else %}bg-emerald-50 text-emerald-700{% endif %}" title="{{ category.trend_months[1] }} compared with {{ category.trend_months[0] }} (complete months only)">
+              {% if category.trend_percent > 0 %}+{% endif %}{{ category.trend_percent }}%
+            </span>
+            {% endif %}
+          </div>
+
+          <p class="mt-5 text-sm leading-6 text-gray-600">{{ category.description }}</p>
+
+          {% if category.defensive_principle %}
+          <div class="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/60 p-3">
+            <p class="flex items-center gap-1.5 text-[.62rem] font-semibold uppercase tracking-[.12em] text-emerald-700"><i class="fa-solid fa-shield-halved text-[.6rem]" aria-hidden="true"></i>Defend</p>
+            <p class="mt-1.5 text-xs leading-5 text-emerald-900">{{ category.defensive_principle }}</p>
+          </div>
+          {% endif %}
+
+          <div class="mt-5">
+            <div class="mb-2 flex items-center justify-between text-[.68rem] font-medium uppercase tracking-[.1em] text-gray-400">
+              <span>Severity mix</span><span>{{ category.known_exploited }} KEV</span>
+            </div>
+            <div class="flex h-2 overflow-hidden rounded-full bg-gray-100" aria-label="Severity distribution">
+              {% if severity_total > 0 %}
+              <span class="bg-red-700" style="width: {{ category.severity.critical | times: 100.0 | divided_by: severity_total }}%" title="{{ category.severity.critical }} critical"></span>
+              <span class="bg-red-400" style="width: {{ category.severity.high | times: 100.0 | divided_by: severity_total }}%" title="{{ category.severity.high }} high"></span>
+              <span class="bg-amber-400" style="width: {{ category.severity.medium | times: 100.0 | divided_by: severity_total }}%" title="{{ category.severity.medium }} medium"></span>
+              <span class="bg-emerald-400" style="width: {{ category.severity.low | times: 100.0 | divided_by: severity_total }}%" title="{{ category.severity.low }} low"></span>
+              <span class="bg-gray-300" style="width: {{ category.severity.unknown | times: 100.0 | divided_by: severity_total }}%" title="{{ category.severity.unknown }} unknown"></span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mt-5 flex h-10 items-end gap-1" data-mini-chart="{{ category.monthly_counts | map: 'count' | join: ',' }}" data-mini-chart-months="{{ category.monthly_counts | map: 'month' | join: ',' }}" data-mini-chart-complete="{{ category.monthly_counts | map: 'complete' | join: ',' }}" aria-label="Monthly CVE counts"></div>
+
+          <div class="mt-5 flex flex-wrap gap-1.5">
+            {% for cwe in category.common_cwes %}<span class="rounded-md bg-gray-100 px-2 py-1 font-mono text-[.68rem] font-medium text-gray-600">{{ cwe | escape }}</span>{% endfor %}
+            {% if category.common_cwes.size == 0 %}<span class="text-xs text-gray-400">No structured CWE in this window</span>{% endif %}
+          </div>
+
+          <div class="mt-5 border-t border-gray-100 pt-4">
+            <p class="text-[.68rem] font-semibold uppercase tracking-[.12em] text-gray-400">Recommended labs</p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              {% for lab in category.labs limit: 2 %}<a class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs font-medium text-gray-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700" href="{{ '/labs/' | append: lab.slug | append: '/' | relative_url }}">{{ lab.title }} <i class="fa-solid fa-arrow-right text-[.6rem]"></i></a>{% endfor %}
+              {% if category.labs.size == 0 %}<a class="text-xs font-medium text-red-600 hover:text-red-700" href="{{ '/request/' | relative_url }}">Request a lab <i class="fa-solid fa-arrow-right ml-1 text-[.6rem]"></i></a>{% endif %}
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="px-4 pt-20" aria-labelledby="spotlight-heading">
+    <div class="mx-auto w-[min(80rem,calc(100%_-_1rem))]">
+      <div>
+        <span class="font-mono text-xs font-medium uppercase tracking-[.18em] text-red-600">CVE explorer</span>
+        <h2 id="spotlight-heading" class="mt-2 text-[clamp(2rem,3.5vw,3rem)] font-semibold leading-tight tracking-[-.04em] text-gray-900">High-signal vulnerabilities</h2>
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600">Known-exploited and high-severity records are surfaced first. Filter the educational shortlist without losing the NVD source trail.</p>
+      </div>
+
+      <div class="mt-8 rounded-3xl border border-gray-200 bg-white p-4 shadow-[0_22px_60px_-48px_rgba(15,23,42,.7)]">
+        <div class="grid gap-3 lg:grid-cols-[1fr_13rem_12rem_auto]">
+          <label class="relative">
+            <span class="sr-only">Search vulnerabilities</span>
+            <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400"></i>
+            <input class="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-100" type="search" placeholder="Search CVE, CWE, product, or description" data-cve-search>
+          </label>
+          <label>
+            <span class="sr-only">Filter by category</span>
+            <select class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-cve-category>
+              <option value="all">All categories</option>
+              {% for category in intel.categories %}<option value="{{ category.id }}">{{ category.id }} · {{ category.name }}</option>{% endfor %}
+            </select>
+          </label>
+          <label>
+            <span class="sr-only">Filter by severity</span>
+            <select class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-cve-severity>
+              <option value="all">All severities</option>
+              <option value="CRITICAL">Critical</option><option value="HIGH">High</option><option value="MEDIUM">Medium</option><option value="LOW">Low</option><option value="UNKNOWN">Unknown</option>
+            </select>
+          </label>
+          <label class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700">
+            <input class="h-4 w-4 accent-red-600" type="checkbox" data-cve-kev>
+            KEV only
+          </label>
+        </div>
+      </div>
+
+      <div class="mt-4 space-y-3">
+        {% comment %}
+          Liquid does not auto-escape. Every field below that originates from NVD
+          (cve_id, published, description, cwes, affected_products, reference_url)
+          must keep its `escape` filter — CVE text is free-form vendor input and is
+          refreshed automatically without human review.
+        {% endcomment %}
+        {% for cve in intel.spotlights %}
+        {% assign search_products = cve.affected_products | join: ' ' %}
+        {% assign search_cwes = cve.cwes | join: ' ' %}
+        <article class="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6" data-cve-card data-category="{{ cve.category_id }}" data-severity="{{ cve.severity }}" data-kev="{{ cve.known_exploited }}" data-search="{{ cve.cve_id | append: ' ' | append: search_cwes | append: ' ' | append: search_products | append: ' ' | append: cve.description | downcase | escape }}">
+          <div class="grid gap-5 lg:grid-cols-[10rem_1fr_13rem] lg:items-start">
+            <div>
+              <a class="font-mono text-sm font-semibold text-red-600 hover:text-red-700" href="{{ cve.reference_url | escape }}" target="_blank" rel="noopener noreferrer">{{ cve.cve_id | escape }} <i class="fa-solid fa-arrow-up-right-from-square ml-1 text-[.6rem]"></i></a>
+              <p class="mt-2 text-xs text-gray-500">{{ cve.published | date: "%d %b %Y" | escape }}</p>
+              <div class="mt-3 flex flex-wrap gap-1.5">
+                <span class="rounded-md px-2 py-1 text-[.68rem] font-semibold {% if cve.severity == 'CRITICAL' %}bg-red-700 text-white{% elsif cve.severity == 'HIGH' %}bg-red-100 text-red-700{% elsif cve.severity == 'MEDIUM' %}bg-amber-100 text-amber-800{% elsif cve.severity == 'LOW' %}bg-emerald-100 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}">{{ cve.severity }}{% if cve.score %} · {{ cve.score }}{% endif %}</span>
+                {% if cve.known_exploited %}<span class="rounded-md bg-gray-950 px-2 py-1 text-[.68rem] font-semibold text-white"><i class="fa-solid fa-bolt mr-1 text-red-400"></i>CISA KEV</span>{% endif %}
+              </div>
+            </div>
+
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-md bg-red-50 px-2 py-1 font-mono text-[.68rem] font-semibold text-red-700">{{ cve.category_id }}</span>
+                <span class="text-xs font-medium text-gray-600">{{ cve.category_name }}</span>
+                <span class="rounded-md border border-gray-200 px-2 py-1 text-[.62rem] font-medium text-gray-500" title="Classification confidence {{ cve.confidence | times: 100 | round }}%">{% if cve.classification_method == 'structured_cwe' %}Structured CWE{% else %}Description fallback · {{ cve.confidence | times: 100 | round }}%{% endif %}</span>
+              </div>
+              <p class="mt-3 text-sm leading-6 text-gray-700">{{ cve.description | truncate: 280 | escape }}</p>
+              <div class="mt-3 flex flex-wrap gap-1.5">
+                {% for cwe in cve.cwes %}<span class="font-mono text-[.68rem] font-medium text-gray-500">{{ cwe | escape }}</span>{% unless forloop.last %}<span class="text-gray-300">·</span>{% endunless %}{% endfor %}
+                {% for product in cve.affected_products limit: 2 %}<span class="rounded-md bg-gray-100 px-2 py-1 text-[.68rem] text-gray-600">{{ product | escape }}</span>{% endfor %}
+              </div>
+            </div>
+
+            <div class="rounded-xl bg-gray-50 p-3">
+              <p class="text-[.65rem] font-semibold uppercase tracking-[.12em] text-gray-400">Learn the weakness</p>
+              <div class="mt-2 space-y-1.5">
+                {% for lab in cve.labs limit: 2 %}<a class="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:text-red-600" href="{{ '/labs/' | append: lab.slug | append: '/' | relative_url }}"><span>{{ lab.title }}</span><i class="fa-solid fa-arrow-right text-[.6rem]"></i></a>{% endfor %}
+                {% if cve.labs.size == 0 %}<a class="text-xs font-medium text-red-600" href="{{ '/request/' | relative_url }}">Request a lab <i class="fa-solid fa-arrow-right ml-1 text-[.6rem]"></i></a>{% endif %}
+              </div>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+
+      <div class="hidden rounded-2xl border border-dashed border-gray-300 bg-white py-16 text-center" data-cve-empty>
+        <i class="fa-solid fa-filter-circle-xmark text-xl text-gray-400"></i>
+        <h3 class="mt-3 text-base font-semibold text-gray-900">No matching vulnerabilities</h3>
+        <p class="mt-1 text-sm text-gray-500">Try a broader search or clear one of the filters.</p>
+      </div>
+
+      <div class="mt-6 flex justify-center"><button class="rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700" type="button" data-cve-more>Show more CVEs</button></div>
+    </div>
+  </section>
+
+  <section class="px-4 pt-20" aria-labelledby="source-note-heading">
+    <aside class="mx-auto flex w-[min(80rem,calc(100%_-_1rem))] flex-col gap-6 rounded-3xl border border-red-200 bg-red-50 p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex max-w-3xl items-start gap-4">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white"><i class="fa-solid fa-shield-halved"></i></span>
+        <div>
+          <h2 id="source-note-heading" class="text-xl font-semibold tracking-[-.02em] text-gray-900">Read this as a learning signal.</h2>
+          <p class="mt-2 text-sm leading-6 text-gray-700">{{ intel.notice }}</p>
+        </div>
+      </div>
+      <div class="flex shrink-0 flex-wrap gap-4 lg:justify-end">
+          <a class="inline-flex items-center gap-2 text-sm font-semibold text-red-700 hover:text-red-800" href="https://nvd.nist.gov/developers/vulnerabilities" target="_blank" rel="noopener noreferrer">NVD API docs <i class="fa-solid fa-arrow-up-right-from-square text-[.65rem]"></i></a>
+          <a class="inline-flex items-center gap-2 text-sm font-semibold text-red-700 hover:text-red-800" href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener noreferrer">CISA KEV <i class="fa-solid fa-arrow-up-right-from-square text-[.65rem]"></i></a>
+      </div>
+    </aside>
+  </section>
+</main>
+
+{% capture dashboard_chart_payload %}{"categories":[{% for category in intel.categories %}{"id":{{ category.id | jsonify }},"name":{{ category.name | jsonify }},"count":{{ category.count | default: 0 }},"known_exploited":{{ category.known_exploited | default: 0 }},"monthly_counts":{{ category.monthly_counts | jsonify }},"labs":{{ category.labs | jsonify }}}{% unless forloop.last %},{% endunless %}{% endfor %}],"labs":[{% for lab in site.labs %}{"slug":{{ lab.slug | jsonify }},"url":{{ lab.url | relative_url | jsonify }},"task_count":{{ lab.tasks.size | default: 0 }}}{% unless forloop.last %},{% endunless %}{% endfor %}]}{% endcapture %}
+<script id="dashboard-chart-data" type="application/json">{{ dashboard_chart_payload | strip | replace: "</", "<\/" }}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous" defer></script>
+<script src="{{ '/assets/js/dashboard.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>
