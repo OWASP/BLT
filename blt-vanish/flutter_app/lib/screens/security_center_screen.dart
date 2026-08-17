@@ -107,7 +107,11 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
       final anomaly = await _securityDataSource.fetchLoginAnomaly();
       PlaybookTemplate? playbook;
       if (anomaly != null) {
-        playbook = await _securityDataSource.fetchPlaybookTemplate(anomaly);
+        try {
+          playbook = await _securityDataSource.fetchPlaybookTemplate(anomaly);
+        } catch (_) {
+          playbook = null;
+        }
       }
       if (mounted) {
         setState(() {
@@ -568,7 +572,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
     final anomaly = _loginAnomaly;
     final playbook = _playbookTemplate;
 
-    if (anomaly == null || playbook == null) {
+    if (anomaly == null) {
       return const SizedBox.shrink();
     }
 
@@ -631,27 +635,36 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 12),
-                Text('Playbook: ${playbook.title}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                ...playbook.steps.map((step) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.check_circle_outline, size: 20, color: step.isRequired ? Colors.red : Colors.grey),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(step.title, style: const TextStyle(fontWeight: FontWeight.w500)),
-                            Text(step.description, style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
-                          ],
+                if (playbook != null) ...[
+                  Text('Playbook: ${playbook.title}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  ...playbook.steps.map((step) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.check_circle_outline, size: 20, color: step.isRequired ? Colors.red : Colors.grey),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(step.title, style: const TextStyle(fontWeight: FontWeight.w500)),
+                              Text(step.description, style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  )),
+                ] else ...[
+                  const Text('Playbook Unavailable', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Remediation playbook template could not be loaded.',
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
                   ),
-                )),
+                ],
               ],
             ),
           ),

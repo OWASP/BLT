@@ -66,6 +66,20 @@ class MockFailingSecurityDataSource implements SecurityDataSource {
   }
 }
 
+class MockNullPlaybookSecurityDataSource extends MockSuccessSecurityDataSource {
+  @override
+  Future<PlaybookTemplate?> fetchPlaybookTemplate(LoginAnomaly anomaly) async {
+    return null;
+  }
+}
+
+class MockPlaybookThrowsSecurityDataSource extends MockSuccessSecurityDataSource {
+  @override
+  Future<PlaybookTemplate?> fetchPlaybookTemplate(LoginAnomaly anomaly) async {
+    throw Exception('Failed to fetch playbook');
+  }
+}
+
 void main() {
   group('SecurityCenterScreen SecurityDataSource Tests', () {
     testWidgets('Populates security data on successful fetch', (WidgetTester tester) async {
@@ -83,6 +97,36 @@ void main() {
       expect(find.text('Account: test_account'), findsOneWidget);
       expect(find.text('HIGH'), findsWidgets);
       expect(find.text('Playbook: Test Playbook'), findsOneWidget);
+    });
+
+    testWidgets('Renders login anomaly with unavailable playbook state when template is null', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SecurityCenterScreen(
+            securityDataSource: MockNullPlaybookSecurityDataSource(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Account: test_account'), findsOneWidget);
+      expect(find.text('Playbook Unavailable'), findsOneWidget);
+    });
+
+    testWidgets('Renders login anomaly with unavailable playbook state when template fetch throws', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SecurityCenterScreen(
+            securityDataSource: MockPlaybookThrowsSecurityDataSource(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Account: test_account'), findsOneWidget);
+      expect(find.text('Playbook Unavailable'), findsOneWidget);
     });
 
     testWidgets('Shows degraded banner when fetch fails', (WidgetTester tester) async {
