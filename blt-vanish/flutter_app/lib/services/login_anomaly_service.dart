@@ -8,6 +8,7 @@ class LoginAnomalyService {
     required bool newDevice,
     required bool oddHour,
     required bool priorPhishingAlert,
+    required bool weakCredential,
   }) {
     double score = 0.0;
     List<String> reasonCodes = [];
@@ -27,6 +28,10 @@ class LoginAnomalyService {
     if (priorPhishingAlert) {
       score += 0.20; // Correlation boost
       reasonCodes.add('PRIOR_PHISHING_ALERT');
+    }
+    if (weakCredential) {
+      score += 0.20; // Weak credential boost
+      reasonCodes.add('WEAK_CREDENTIAL');
     }
 
     // Clamp score to 1.0 max

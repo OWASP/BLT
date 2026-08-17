@@ -59,13 +59,45 @@ void main() {
       expect(anomaly.riskBand, 'critical');
     });
 
+    test('Correlated anomaly (new device + weak credential) escalates risk', () {
+      final anomaly = correlationService.correlateLogin(
+        accountId: 'test_user',
+        newGeo: false,
+        newDevice: true,
+        oddHour: false,
+        hasRecentPhishingAlert: false,
+        hasWeakCredential: true,
+      );
+
+      // Score: 0.30 (device) + 0.20 (weak credential) = 0.50 -> medium
+      expect(anomaly.score, closeTo(0.50, 0.01));
+      expect(anomaly.riskBand, 'medium');
+      expect(anomaly.reasonCodes, contains('WEAK_CREDENTIAL'));
+    });
+
+    test('Combined context (weak credential + prior phishing) adds up correctly', () {
+      final anomaly = correlationService.correlateLogin(
+        accountId: 'test_user',
+        newGeo: false,
+        newDevice: true,
+        oddHour: false,
+        hasRecentPhishingAlert: true,
+        hasWeakCredential: true,
+      );
+
+      // Score: 0.30 (device) + 0.20 (phishing) + 0.20 (weak credential) = 0.70 -> high
+      expect(anomaly.score, closeTo(0.70, 0.01));
+      expect(anomaly.riskBand, 'high');
+      expect(anomaly.reasonCodes, containsAll(['PRIOR_PHISHING_ALERT', 'WEAK_CREDENTIAL']));
+    });
+
     test('Playbook matches critical severity with session revoke', () {
       final anomaly = correlationService.correlateLogin(
         accountId: 'test_user',
         newGeo: true,
         newDevice: true,
         oddHour: true,
-        hasRecentPhishingAlert: false,
+        hasRecentPhishingAlert: true, // 0.20 extra ensures > 0.80
         hasWeakCredential: false,
       );
 

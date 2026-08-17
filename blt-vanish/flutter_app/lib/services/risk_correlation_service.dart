@@ -15,16 +15,13 @@ class RiskCorrelationService {
     required bool hasRecentPhishingAlert,
     required bool hasWeakCredential,
   }) {
-    // If they clicked a phishing link recently or have a weak credential, 
-    // it boosts the likelihood this anomaly is an actual takeover.
-    final bool contextBoost = hasRecentPhishingAlert || hasWeakCredential;
-
     return _anomalyService.analyzeLogin(
       accountId: accountId,
       newGeo: newGeo,
       newDevice: newDevice,
       oddHour: oddHour,
-      priorPhishingAlert: contextBoost,
+      priorPhishingAlert: hasRecentPhishingAlert,
+      weakCredential: hasWeakCredential,
     );
   }
 }

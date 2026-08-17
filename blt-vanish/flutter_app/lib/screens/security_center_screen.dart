@@ -66,6 +66,12 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   _ScanUiState _scanState = _ScanUiState.idle;
   String? _errorMessage;
   String _lastSource = 'manual_paste';
+  bool _isExposureFeedDegraded = false; // Mock state for degraded UX
+  DateTime? _lastSyncTime;
+
+  List<ExposureEvent> _exposureEvents = [];
+  LoginAnomaly? _loginAnomaly;
+  PlaybookTemplate? _playbookTemplate;
 
   bool get _isScanning => _scanState == _ScanUiState.loading;
 
@@ -437,9 +443,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   }
 
   Widget _buildExposureTimeline() {
-    // For Phase 3 MVP, we use the preloaded fixtures to build the timeline UI.
-    // In production, this would be fed by a unified triage queue stream.
-    List<ExposureEvent> events = [testExposureEvent];
+    List<ExposureEvent> events = List.from(_exposureEvents);
 
     // Sort primarily by urgency, then recency
     int urgencyToValue(String u) {
@@ -472,11 +476,10 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
               icon: const Icon(Icons.refresh),
               onPressed: () {
                 setState(() {
-                  // Mock toggle for offline/degraded testing
-                  _isExposureFeedDegraded = !_isExposureFeedDegraded;
-                  if (!_isExposureFeedDegraded) {
-                    _lastSyncTime = DateTime.now();
-                  }
+                  // In production, this triggers a real data source sync.
+                  // _exposureEvents = await _breachMonitoringService.fetchEvents();
+                  _isExposureFeedDegraded = false;
+                  _lastSyncTime = DateTime.now();
                 });
               },
             )
@@ -542,13 +545,26 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
             ),
           ),
         )),
+        if (events.isEmpty && !_isExposureFeedDegraded)
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'No exposure events found.',
+              style: TextStyle(color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+          ),
       ],
     );
   }
 
   Widget _buildLoginAnomalies() {
-    final anomaly = testLoginAnomaly;
-    final playbook = testPlaybookTemplate;
+    final anomaly = _loginAnomaly;
+    final playbook = _playbookTemplate;
+
+    if (anomaly == null || playbook == null) {
+      return const SizedBox.shrink();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
