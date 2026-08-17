@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from ..models.room import RoomMapEntry
+from models.room import RoomMapEntry
 
 
 # Authoritative routing per MVP_V1_SPEC.md §VF08.

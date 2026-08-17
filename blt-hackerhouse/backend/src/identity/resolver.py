@@ -12,15 +12,13 @@ import logging
 from dataclasses import dataclass
 from uuid import UUID, uuid4
 
-from rapidfuzz import distance, fuzz
-
-from ..models.contributor import Contributor
-from ..models.event import Event
-from ..models.identity import IdentityFlag, IdentityMapping, PlatformIdentity
-from ..storage import (
+from core.fuzzy import levenshtein_distance, token_set_jaccard
+from models.contributor import Contributor
+from models.event import Event
+from models.identity import IdentityFlag, IdentityMapping, PlatformIdentity
+from storage import (
     AvatarStateQueries,
     ContributorQueries,
-    Database,
     IdentityQueries,
 )
 
@@ -41,11 +39,11 @@ class ResolutionResult:
 class IdentityResolver:
     """Resolve an event's actor to a unified ``Contributor``."""
 
-    def __init__(self, db: Database) -> None:
-        self.db = db
-        self.contributors = ContributorQueries(db)
-        self.identities = IdentityQueries(db)
-        self.avatars = AvatarStateQueries(db)
+    def __init__(self, d1):
+        self._db = d1
+        self.contributors = ContributorQueries(d1)
+        self.identities = IdentityQueries(d1)
+        self.avatars = AvatarStateQueries(d1)
 
     async def resolve(self, event: Event) -> ResolutionResult:
         """Run all four stages and return the resolved contributor."""
@@ -74,7 +72,7 @@ class IdentityResolver:
             for username in contributor.usernames:
                 if not username:
                     continue
-                if distance.Levenshtein.distance(actor_lower, username) <= 2:
+                if levenshtein_distance(actor_lower, username) <= 2:
                     flag = await self._record_fuzzy_match(
                         contributor, platform, platform_user_id, actor_name, 0.75
                     )
@@ -88,7 +86,7 @@ class IdentityResolver:
         # Stage 3: token_set_ratio ≥ 0.6 against aliases
         for contributor in contributors:
             for alias in contributor.aliases + [contributor.display_name]:
-                score = fuzz.token_set_ratio(actor_lower, alias.lower()) / 100.0
+                score = token_set_jaccard(actor_lower, alias.lower())
                 if score >= 0.60:
                     flag = await self._record_fuzzy_match(
                         contributor, platform, platform_user_id, actor_name, 0.60
@@ -118,7 +116,7 @@ class IdentityResolver:
                 platform_user_id=platform_user_id,
                 contributor_id=contributor.id,
                 confidence=confidence,
-            )
+            ),
         )
         contributor.add_username(actor_name)
         contributor.add_platform_id(platform, platform_user_id)
@@ -165,7 +163,7 @@ class IdentityResolver:
                 platform_user_id=platform_user_id,
                 contributor_id=contributor.id,
                 confidence=0.0,
-            )
+            ),
         )
         logger.info(
             "identity unlinked fallback",

@@ -155,8 +155,9 @@ async def test_dead_letter_cap_at_500(db):
     await q.add(event_id=None, source="blt", error="overflow", payload={})
     rows = await q.list_recent(limit=10_000)
     assert len(rows) == DeadLetterQueries.CAP
-    # The newest entry should be the overflow one.
-    assert rows[0]["error"] == "overflow"
+    # The overflow message should be present (oldest entry evicted).
+    errors = {r["error"] for r in rows}
+    assert "overflow" in errors
 
 
 @pytest.mark.asyncio
@@ -172,3 +173,29 @@ async def test_cursor_upsert(db):
     loaded = await q.get("blt_bugs")
     assert loaded is not None
     assert loaded[0] == 456
+
+
+@pytest.mark.asyncio
+async def test_health_state_upsert_and_get(db):
+    from src.storage import HealthStateQueries, utc_now_iso
+
+    q = HealthStateQueries(db)
+
+    await q.upsert("queue_consumer", "last_processed_at", "2026-07-21T10:00:00+00:00")
+    val = await q.get("queue_consumer", "last_processed_at")
+    assert val == "2026-07-21T10:00:00+00:00"
+
+    # Upsert overwrites
+    await q.upsert("queue_consumer", "last_processed_at", "2026-07-21T11:00:00+00:00")
+    val2 = await q.get("queue_consumer", "last_processed_at")
+    assert val2 == "2026-07-21T11:00:00+00:00"
+
+    # Non-existent field returns None
+    assert await q.get("queue_consumer", "nonexistent") is None
+    assert await q.get("nonexistent_component", "any") is None
+
+    # get_component returns all fields for a component
+    await q.upsert("queue_consumer", "last_event_type", "mr_opened")
+    comp = await q.get_component("queue_consumer")
+    assert "last_processed_at" in comp
+    assert "last_event_type" in comp

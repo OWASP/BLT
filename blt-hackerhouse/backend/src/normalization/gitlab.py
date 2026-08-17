@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from ..models.event import Event
+from models.event import Event
 
 
 def normalize_gitlab_payload(
@@ -141,7 +141,9 @@ def _extract_timestamp(obj_attrs: dict[str, Any], payload: dict[str, Any]) -> da
             text = str(raw).replace("Z", "+00:00")
             parsed = datetime.fromisoformat(text)
             if parsed.tzinfo is not None:
-                parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+                parsed = parsed.astimezone(timezone.utc)
+            else:
+                parsed = parsed.replace(tzinfo=timezone.utc)
             return parsed
         except (TypeError, ValueError):
             continue

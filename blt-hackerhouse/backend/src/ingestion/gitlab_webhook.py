@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..core.security import verify_token
+from core.security import verify_token
 
 
 def verify_gitlab_signature(provided_token: str | None, expected_secret: str | None) -> bool:

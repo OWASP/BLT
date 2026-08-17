@@ -1,7 +1,9 @@
-"""Run the FastAPI app under uvicorn with auto-reload.
+"""Run the FastAPI app under uvicorn with auto-reload (legacy local dev).
+
+Requires uvicorn: pip install uvicorn[standard]
 
 Usage:
-    python -m scripts.run_dev
+    uv run python scripts/run_dev.py
 """
 
 from __future__ import annotations
@@ -11,7 +13,7 @@ import uvicorn
 
 def main() -> None:
     uvicorn.run(
-        "src.main:app",
+        "src.app:app",
         host="127.0.0.1",
         port=8000,
         reload=True,

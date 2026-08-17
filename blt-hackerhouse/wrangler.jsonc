@@ -1,0 +1,68 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "hackerhouse",
+	"main": "backend/src/worker.py",
+	"compatibility_date": "2026-07-19",
+	"compatibility_flags": [
+		"python_workers"
+	],
+	"assets": {
+		"directory": "UI"
+	},
+	"observability": {
+		"enabled": true,
+		"logs": {
+			"enabled": true,
+			"invocation_logs": true,
+			"persist": true
+		}
+	},
+	"d1_databases": [
+		{
+			"binding": "HH_DB",
+			"database_name": "hackerhouse",
+			"database_id": "PLACEHOLDER",
+			"migrations_dir": "backend/migrations"
+		}
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "WEBSOCKET_ROOM",
+				"class_name": "WebSocketRoom"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": [
+				"WebSocketRoom"
+			]
+		}
+	],
+	"queues": {
+		"producers": [
+			{
+				"queue": "pipeline-events",
+				"binding": "PIPELINE_QUEUE"
+			}
+		],
+		"consumers": [
+			{
+				"queue": "pipeline-events",
+				"max_batch_size": 10,
+				"max_batch_timeout": 5,
+				"max_retries": 5
+			}
+		]
+	},
+	"vars": {
+		"BLT_API_BASE_URL": "https://api.owaspblt.org/v2",
+		"GITLAB_TRACKED_PROJECT_IDS": "",
+		"LOG_LEVEL": "INFO",
+		"BLT_POLL_INTERVAL_SECONDS": "60",
+		"GITLAB_POLL_INTERVAL_SECONDS": "90",
+		"GITLAB_LOOKBACK_MINUTES": "30"
+	}
+}
