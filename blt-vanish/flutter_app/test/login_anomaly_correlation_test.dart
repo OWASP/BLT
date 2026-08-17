@@ -15,7 +15,7 @@ void main() {
       playbookService = RecommendationPlaybookService();
     });
 
-    test('Isolated anomaly (new device only) should be medium risk', () {
+    test('Isolated anomaly (new device only) should be low risk', () {
       final anomaly = correlationService.correlateLogin(
         accountId: 'test_user',
         newGeo: false,
@@ -26,8 +26,6 @@ void main() {
       );
 
       expect(anomaly.score, closeTo(0.30, 0.01));
-      expect(anomaly.riskBand, 'medium'); // Needs >= 0.40 for high? Wait, medium is >= 0.40. Let's check logic.
-      // Logic was: >=0.40 medium, else low. Wait, 0.30 is 'low' in the service.
       expect(anomaly.riskBand, 'low');
     });
 
