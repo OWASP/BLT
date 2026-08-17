@@ -1,14 +1,17 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:selferase/services/storage_service.dart';
 import 'package:selferase/models/user_data.dart';
 import 'package:selferase/models/monitor_entry.dart';
 import 'package:uuid/uuid.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('StorageService', () {
     late StorageService storageService;
 
     setUp(() {
+      SharedPreferences.setMockInitialValues({});
       storageService = StorageService();
     });
 

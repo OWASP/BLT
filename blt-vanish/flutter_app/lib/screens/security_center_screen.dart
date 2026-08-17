@@ -7,7 +7,6 @@ import '../services/remediation_planner.dart';
 import '../services/reputation_enrichment_service.dart';
 import '../services/risk_assessment_builder.dart';
 import '../services/storage_service.dart';
-import '../services/telemetry_service.dart';
 import '../services/url_expansion_service.dart';
 import '../services/url_signal_extractor.dart';
 import '../services/security_data_source.dart';
@@ -35,8 +34,6 @@ class SecurityCenterScreen extends StatefulWidget {
   final ReputationEnrichmentService? enrichmentService;
   /// Optional assessment builder override for tests.
   final RiskAssessmentBuilder? assessmentBuilder;
-  /// Optional telemetry override for tests.
-  final TelemetryService? telemetryService;
   /// Optional security data source override for tests.
   final SecurityDataSource? securityDataSource;
 
@@ -48,7 +45,6 @@ class SecurityCenterScreen extends StatefulWidget {
     this.signalExtractor,
     this.enrichmentService,
     this.assessmentBuilder,
-    this.telemetryService,
     this.securityDataSource,
   });
 
@@ -61,7 +57,6 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   late final UrlExpansionService _expansionService;
   late final UrlSignalExtractor _signalExtractor;
   late final RiskAssessmentBuilder _assessmentBuilder;
-  late final TelemetryService _telemetry;
   late final ReputationEnrichmentService _enrichmentService;
   late final SecurityDataSource _securityDataSource;
   final RemediationPlanner _remediationPlanner = const RemediationPlanner();
@@ -91,7 +86,6 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
     _expansionService = widget.expansionService ?? UrlExpansionService();
     _signalExtractor = widget.signalExtractor ?? UrlSignalExtractor();
     _assessmentBuilder = widget.assessmentBuilder ?? RiskAssessmentBuilder();
-    _telemetry = widget.telemetryService ?? TelemetryService();
     _enrichmentService = widget.enrichmentService ??
         ReputationEnrichmentService(
           baseUrl: _defaultWorkerBaseUrl,
@@ -135,14 +129,6 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
 
   @override
   void dispose() {
-    if (_inputController.text.trim().isNotEmpty &&
-        _scanState != _ScanUiState.success &&
-        _scanState != _ScanUiState.offlineFallback) {
-      _telemetry.trackAbandonment(
-        inputSource: _lastSource,
-        state: _scanState.name,
-      );
-    }
     _inputController.dispose();
     super.dispose();
   }
@@ -190,32 +176,18 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
       });
 
       stopwatch.stop();
-      _telemetry.trackScanEvent(
-        inputSource: source,
-        finalSeverity: assessment.severity.name,
-        latencyMs: stopwatch.elapsedMilliseconds,
-        wasOfflineFallback: wasOfflineFallback,
-      );
-    } on FormatException catch (error) {
+    } on FormatException catch (_) {
       stopwatch.stop();
       setState(() {
         _scanState = _ScanUiState.parseError;
         _errorMessage = 'Scan pipeline failure: Unable to safely parse entry target.';
       });
-      _telemetry.trackError(
-        errorType: error.toString(),
-        component: 'SecurityCenterScreen',
-      );
-    } catch (error) {
+    } catch (_) {
       stopwatch.stop();
       setState(() {
         _scanState = _ScanUiState.parseError;
         _errorMessage = 'Scan pipeline failure: Unable to safely parse entry target.';
       });
-      _telemetry.trackError(
-        errorType: error.toString(),
-        component: 'SecurityCenterScreen',
-      );
     }
   }
 
@@ -233,7 +205,6 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   }
 
   void _handleRemediationAction(String title, String description) {
-    _telemetry.trackRemediationCtaClicked(title);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(description)),
     );

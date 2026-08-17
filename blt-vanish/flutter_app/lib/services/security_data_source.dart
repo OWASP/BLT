@@ -32,7 +32,6 @@ class DefaultSecurityDataSource implements SecurityDataSource {
         source: 'Breach Data Network',
         urgency: 'high',
         occurredAt: DateTime.now().subtract(const Duration(days: 2)),
-        description: 'Email found in dark web dump',
       ),
     ];
   }
