@@ -14,7 +14,7 @@ except ImportError:
     class Response:  # type: ignore[no-redef]
         """Local fallback used outside the Cloudflare Workers runtime."""
 
-        def __init__(self, body: str = '', status: int = 200,
+        def __init__(self, body: Any = '', status: int = 200,
                      headers: Optional[Dict[str, str]] = None):
             self.body = body
             self.status = status
@@ -36,6 +36,8 @@ from findings_service import (
     convert_to_issue_for_request,
     disclosure_for_request,
     export_csv_for_request,
+    export_finding_pdf_for_request,
+    export_pdf_for_request,
     findings_error_response,
     get_finding_for_request,
     list_findings_for_request,
@@ -635,7 +637,7 @@ class BLTWorker:
         return self.json_response(result.body, status=result.status, headers=result.headers)
 
     async def handle_findings(self, request, path: str = 'api/findings'):
-        """Findings triage: list, detail, CSV export, convert-to-issue."""
+        """Findings triage: list, detail, CSV/PDF export, convert-to-issue."""
         subpath = path[len('api/findings'):].lstrip('/')
         parts = subpath.split('/') if subpath else []
 
@@ -653,6 +655,15 @@ class BLTWorker:
                 if request.method != 'GET':
                     return self.json_response({'error': 'Method not allowed'}, status=405)
                 result = await export_csv_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    query_params=self.get_query_params(request),
+                )
+            elif parts == ['export.pdf']:
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await export_pdf_for_request(
                     env=self.env,
                     db=getattr(self.env, 'DB', None),
                     headers=self.get_request_headers(request),
@@ -710,6 +721,18 @@ class BLTWorker:
                     headers=self.get_request_headers(request),
                     finding_id=parts[0],
                 )
+            elif len(parts) == 2 and parts[1] == 'export.pdf':
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await export_finding_pdf_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    finding_id=parts[0],
+                    new_id=lambda label: self.generate_id(
+                        f'{label}-{parts[0]}-{datetime.now(timezone.utc).isoformat()}'
+                    ),
+                )
             else:
                 return self.json_response({'error': 'Not found'}, status=404)
         except AuthError as exc:
@@ -722,6 +745,10 @@ class BLTWorker:
             headers = dict(result.headers or {})
             headers['Content-Type'] = result.content_type
             return Response(result.body['csv'], status=result.status, headers=headers)
+        if result.content_type.startswith('application/pdf'):
+            headers = dict(result.headers or {})
+            headers['Content-Type'] = result.content_type
+            return Response(result.body['pdf'], status=result.status, headers=headers)
         return self.json_response(result.body, status=result.status, headers=result.headers)
 
     async def handle_auth(self, request, path: str = 'api/auth'):
