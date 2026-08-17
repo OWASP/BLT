@@ -2,6 +2,7 @@ import json
 import glob
 import os
 import pytest
+from unittest.mock import AsyncMock, MagicMock
 
 
 @pytest.fixture(scope="session")
@@ -53,3 +54,21 @@ def pytest_generate_tests(metafunc):
                 ids.append(os.path.basename(fpath))
 
         metafunc.parametrize("golden_report", reports, ids=ids)
+
+
+@pytest.fixture
+def mock_d1():
+    db = MagicMock()
+    # Support traditional prepare().bind().run()
+    db.prepare.return_value.bind.return_value.run = AsyncMock()
+    db.prepare.return_value.bind.return_value.first = AsyncMock()
+    # Mock db.batch()
+    db.batch = AsyncMock()
+    return db
+
+
+@pytest.fixture
+def mock_analytics():
+    analytics = MagicMock()
+    analytics.writeDataPoint = MagicMock()
+    return analytics

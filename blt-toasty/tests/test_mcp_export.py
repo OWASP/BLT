@@ -37,7 +37,7 @@ crypto_mock.subtle.verify.return_value = True
 js_mock.crypto = crypto_mock
 sys.modules["js"] = js_mock
 
-from src.mcp_export import handle_mcp_export
+from src.mcp_export import handle_mcp_export  # noqa: E402
 
 
 def create_mock_jwt(payload_dict):
@@ -69,9 +69,13 @@ class TestMCPExport:
             stmt = MagicMock()
             stmt.bind = MagicMock(return_value=stmt)
 
-            if "FROM triage_events" in sql:
+            if sql.startswith("UPDATE triage_events"):
+                stmt.run = AsyncMock(return_value={"meta": {"changes": 1}})
+            elif "julianday('now')" in sql:
+                stmt.first = AsyncMock(return_value={"duration": 1.5})
+            elif "FROM triage_events" in sql:
                 stmt.first = AsyncMock(
-                    return_value={"status": "complete", "project_id": 1, "issue_iid": 123, "created_at": "2023-01-01"}
+                    return_value={"status": "embedded", "project_id": 1, "issue_iid": 123, "created_at": "2023-01-01"}
                 )
             elif "FROM triage_summaries" in sql:
                 stmt.first = AsyncMock(return_value={"executive_summary": "Test Summary", "model_used": "test-model"})
@@ -104,6 +108,8 @@ class TestMCPExport:
         )
         req.headers = {"Authorization": f"Bearer {valid_jwt}"}
 
+        mock_env.ANALYTICS = MagicMock()
+
         from unittest.mock import patch
 
         with patch("src.mcp_export.audit_completeness_check", new_callable=AsyncMock) as mock_audit:
@@ -117,6 +123,13 @@ class TestMCPExport:
             assert body["triage_id"] == "evt-123"
             assert body["cwe_hints"] == [{"cwe_id": "CWE-79"}]
             assert body["audit"]["redaction_entity_count"] == 5
+
+            # Assert telemetry was emitted
+            mock_env.ANALYTICS.writeDataPoint.assert_called_once()
+            call_args = mock_env.ANALYTICS.writeDataPoint.call_args[0][0]
+            assert call_args["blobs"] == ["1", "exported"]
+            assert call_args["doubles"] == [1.5]
+            assert call_args["indexes"] == ["evt-123"]
 
     @pytest.mark.asyncio
     async def test_unauthorized_missing_header(self, mock_env):
