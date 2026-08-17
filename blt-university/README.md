@@ -71,6 +71,29 @@ All courses are built as static content in GitLab CI and published from the same
 - **Automatic Publishing**: GitLab CI builds the Jekyll site into `public/` on push
 - **Easy Updates**: Instructors update courses via pull requests
 
+### Vulnerability Learning Dashboard
+
+The [Vulnerability Dashboard](https://university.owaspblt.org/dashboard/) turns recent vulnerability disclosures into learning paths:
+
+1. The NVD CVE API supplies published CVEs, CWE identifiers, CVSS metrics, and affected products.
+2. The CISA Known Exploited Vulnerabilities catalog adds the known-exploitation signal.
+3. `_data/cwe_owasp_lab_mapping.json` maps CWE identifiers to OWASP Top 10:2021 categories and BLT University labs.
+4. Description matching is used only when no usable structured CWE is available; those records are labeled `description_fallback` with lower confidence.
+
+The dashboard uses Chart.js for the three views defined in the GSoC proposal: a horizontal bar chart for the five most frequent categories, a pie chart for the percentage breakdown of all classified categories, and a line chart for the top three categories over time. All three are responsive and retain text/card fallbacks when the chart library cannot load.
+
+Selecting a bar, pie segment, or trend line filters both the OWASP learning map and CVE explorer, then updates the recommended lab for that category. The **Start learning** recommendation scores unfinished labs using 40% normalized CVE frequency, 40% locally saved incompleteness, and 20% normalized CISA KEV activity. Completed labs are skipped only when another incomplete lab exists within the selected category; progress remains device-local in `blt-lab-progress`.
+
+Refresh the committed 90-day dataset with:
+
+```bash
+python3 -B scripts/vulnerability_intel/update.py --days 90
+```
+
+An optional `NVD_API_KEY` environment variable increases the NVD request rate. The refresh script enforces NVD's 120-day maximum date window, supports pagination, retries transient NVD failures with exponential backoff, and can also run from a scheduled GitLab pipeline.
+
+Month-over-month trends compare only the months the collection window covers in full. A window ending mid-month leaves a partial trailing month, which would otherwise report a decline for every category regardless of the real trend; partial months are flagged `"complete": false` and are excluded from the trend and muted in the chart.
+
 ### Enrollment System
 
 - **GitHub Issues**: Students enroll by creating an issue
@@ -104,6 +127,7 @@ All courses are built as static content in GitLab CI and published from the same
 ```
 BLT-University/
 ├── _pages/                # Source pages rendered into public URLs
+├── _data/                 # Curated mappings and generated dashboard data
 ├── _courses/              # Course content files
 ├── _instructors/          # Instructor profiles
 ├── _layouts/              # Jekyll layouts
@@ -115,6 +139,14 @@ BLT-University/
 │   ├── workflows/        # GitHub Actions
 │   └── ISSUE_TEMPLATE/   # Issue templates
 ├── .gitlab-ci.yml        # GitLab build, GitLab Pages, and Cloudflare Pages deployment
+├── scripts/
+│   ├── validate_labs.py                  # Lab content validation
+│   └── vulnerability_intel/
+│       ├── update.py                     # NVD + CISA ingestion pipeline
+│       └── validate.py                   # Dashboard dataset validation
+├── tests/
+│   ├── dashboard/                        # Dashboard interaction tests
+│   └── vulnerability_intel/              # CVE pipeline tests
 ├── wrangler.toml         # Cloudflare Pages output configuration
 ├── public/               # Generated pages committed by GitLab CI for Cloudflare
 └── _config.yml           # Jekyll configuration

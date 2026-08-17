@@ -105,6 +105,8 @@ navigation:
     url: /instructors/
   - title: Labs
     url: /labs/
+  - title: Dashboard
+    url: /dashboard/
   - title: About
     url: /about/
 
@@ -113,6 +115,8 @@ header_navigation:
     url: /courses/
   - title: Labs
     url: /labs/
+  - title: Dashboard
+    url: /dashboard/
   - title: Instructors
     url: /instructors/
 
