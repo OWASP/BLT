@@ -13,6 +13,7 @@ from auth import AuthError, require_org_auth_async, resolve_org_auth_async
 from blt_api_client import BltApiError, create_bug_from_finding, is_blt_api_configured
 from d1_compat import row_get
 from disclosure import disclosure_for_finding_row
+from events_service import emit_converted_event, emit_resolved_event
 from findings_store import (
     ALLOWED_SORT_FIELDS,
     ALLOWED_STATUSES,
@@ -25,8 +26,35 @@ from payload_crypto import PayloadCryptoError, decrypt_payload, get_org_key, is_
 from payload_redact import redact_payload
 from remediation import lookup_remediation
 
+# Statuses that emit finding.resolved verified events for downstream consumers.
+RESOLVED_STATUSES = frozenset({"wontfix"})
+
 DEFAULT_LIMIT = 50
 MAX_LIMIT = 100
+
+
+def _attach_event_result(body: dict[str, Any], event_info: Optional[dict[str, Any]]) -> None:
+    if not event_info:
+        body["event_error"] = "emit_failed"
+        return
+    body["event_id"] = event_info["event"]["id"]
+    body["event_created"] = event_info["created"]
+
+
+async def _safe_emit_converted(**kwargs: Any) -> Optional[dict[str, Any]]:
+    """Emit converted event without failing an already-completed conversion."""
+    try:
+        return await emit_converted_event(**kwargs)
+    except Exception:  # noqa: BLE001 - conversion must remain successful
+        return None
+
+
+async def _safe_emit_resolved(**kwargs: Any) -> Optional[dict[str, Any]]:
+    """Emit resolved event without failing an already-completed status update."""
+    try:
+        return await emit_resolved_event(**kwargs)
+    except Exception:  # noqa: BLE001 - status update must remain successful
+        return None
 
 
 @dataclass
@@ -328,6 +356,7 @@ async def convert_to_issue_for_request(
     new_id: Any = None,
     now: Optional[datetime] = None,
     fetch_impl: Any = None,
+    events_fetch_impl: Any = None,
 ) -> FindingsListResult:
     auth = await _mutation_auth_or_error(env, headers, db)
     if db is None:
@@ -341,21 +370,29 @@ async def convert_to_issue_for_request(
     if row is None:
         return FindingsListResult(status=404, body={"error": "not_found", "message": "finding not found"})
 
-    existing = row_get(row, "blt_issue_id")
-    if existing:
-        return FindingsListResult(
-            status=200,
-            body={
-                "status": "existing",
-                "finding_id": finding_id,
-                "blt_issue_id": existing,
-            },
-        )
-
     now = now or datetime.now(timezone.utc)
     id_fn = new_id or (lambda prefix: __import__("hashlib").sha256(
         f"{prefix}-{finding_id}-{now.timestamp()}".encode()
     ).hexdigest()[:16])
+
+    existing = row_get(row, "blt_issue_id")
+    if existing:
+        event_info = await _safe_emit_converted(
+            env=env,
+            db=db,
+            finding_row=row,
+            issue_id=str(existing),
+            new_id=id_fn,
+            now=now,
+            fetch_impl=events_fetch_impl,
+        )
+        body = {
+            "status": "existing",
+            "finding_id": finding_id,
+            "blt_issue_id": existing,
+        }
+        _attach_event_result(body, event_info)
+        return FindingsListResult(status=200, body=body)
 
     use_stub = not is_blt_api_configured(env)
     audit_detail: dict[str, Any] = {"finding_id": finding_id}
@@ -393,11 +430,37 @@ async def convert_to_issue_for_request(
         created_at_unix=updated,
     )
 
+    updated_row = await store.get_finding_detail(auth.org_id, finding_id)
+    emit_row = updated_row
+    if emit_row is None:
+        emit_row = {
+            "id": finding_id,
+            "org_id": auth.org_id,
+            "rule_id": row_get(row, "rule_id"),
+            "severity": row_get(row, "severity"),
+            "title": row_get(row, "title"),
+            "target": row_get(row, "target"),
+            "cve_id": row_get(row, "cve_id"),
+            "cve_score": row_get(row, "cve_score"),
+            "blt_issue_id": blt_issue_id,
+            "status": "converted",
+        }
+    event_info = await _safe_emit_converted(
+        env=env,
+        db=db,
+        finding_row=emit_row,
+        issue_id=blt_issue_id,
+        new_id=id_fn,
+        now=now,
+        fetch_impl=events_fetch_impl,
+    )
+
     body: dict[str, Any] = {
         "status": "created",
         "finding_id": finding_id,
         "blt_issue_id": blt_issue_id,
     }
+    _attach_event_result(body, event_info)
     if use_stub:
         body["stub"] = True
 
@@ -414,6 +477,7 @@ async def update_finding_for_request(
     store: Optional[FindingsStore] = None,
     new_id: Any = None,
     now: Optional[datetime] = None,
+    events_fetch_impl: Any = None,
 ) -> FindingsListResult:
     auth = await _mutation_auth_or_error(env, headers, db)
     if db is None:
@@ -464,9 +528,22 @@ async def update_finding_for_request(
     updated_row = await store.get_finding_detail(auth.org_id, finding_id)
     finding = finding_row_to_item(updated_row)
 
+    response_body: dict[str, Any] = {"finding": finding, "status": "updated"}
+    previous = row_get(row, "status")
+    if status in RESOLVED_STATUSES and previous not in RESOLVED_STATUSES and updated_row is not None:
+        event_info = await _safe_emit_resolved(
+            env=env,
+            db=db,
+            finding_row=updated_row,
+            new_id=id_fn,
+            now=now,
+            fetch_impl=events_fetch_impl,
+        )
+        _attach_event_result(response_body, event_info)
+
     return FindingsListResult(
         status=200,
-        body={"finding": finding, "status": "updated"},
+        body=response_body,
     )
 
 

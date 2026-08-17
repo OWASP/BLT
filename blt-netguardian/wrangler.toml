@@ -24,6 +24,9 @@ NG_DEFAULT_ORG = "org-demo"
 #   GITHUB_OAUTH_REDIRECT_URI = https://netguardian.owaspblt.org/api/auth/github/callback
 #   NG_GITHUB_ORG_MAP = {"your-gh-login":"org-demo"}
 #   NG_GITHUB_DEFAULT_ORG = org-demo
+# Optional verified-events webhook (HMAC-SHA256 over request body):
+#   NG_EVENTS_WEBHOOK_URL    = https://consumer.example/hooks/netguardian
+#   NG_EVENTS_WEBHOOK_SECRET = <hex or utf-8 secret>
 
 [observability]
 enabled = false

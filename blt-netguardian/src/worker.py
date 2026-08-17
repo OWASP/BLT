@@ -31,6 +31,7 @@ from scanners.contact_notifier import ContactNotifier
 from auth import AuthError, read_endpoints_require_auth
 from blt_api_client import is_blt_api_configured
 from errors import IngestError, IngestErrorCode
+from events_service import get_event_for_request, list_events_for_request
 from findings_service import (
     convert_to_issue_for_request,
     disclosure_for_request,
@@ -126,6 +127,8 @@ class BLTWorker:
                 response = await self.handle_findings(request, path)
             elif path == 'api/auth' or path.startswith('api/auth/'):
                 response = await self.handle_auth(request, path)
+            elif path == 'api/events' or path.startswith('api/events/'):
+                response = await self.handle_events(request, path)
             else:
                 response = self.json_response({'error': 'Not found'}, status=404)
             
@@ -760,6 +763,37 @@ class BLTWorker:
             return Response('', status=result.status, headers=headers)
         return self.json_response(result.body or {}, status=result.status, headers=headers)
 
+    async def handle_events(self, request, path: str = 'api/events'):
+        """Verified events outbox: list + detail (org-scoped)."""
+        subpath = path[len('api/events'):].lstrip('/')
+        parts = subpath.split('/') if subpath else []
+
+        try:
+            if not parts:
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await list_events_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    query_params=self.get_query_params(request),
+                )
+            elif len(parts) == 1:
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await get_event_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    event_id=parts[0],
+                )
+            else:
+                return self.json_response({'error': 'Not found'}, status=404)
+        except AuthError as exc:
+            result = findings_error_response(exc)
+
+        return self.json_response(result.body, status=result.status, headers=result.headers)
+
     async def _read_request_body(self, request) -> bytes:
         text = getattr(request, 'body', None)
         if isinstance(text, bytes):
@@ -912,6 +946,7 @@ class BLTWorker:
             path in ('api/health', 'api/ingest')
             or path.startswith('api/findings')
             or path.startswith('api/auth')
+            or path.startswith('api/events')
         ):
             return False
         if not path.startswith('api/'):
