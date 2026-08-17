@@ -6,7 +6,7 @@ Use [docs/lab-template.md](lab-template.md) as the starting point for new labs.
 
 ## Validation
 
-Validate labs before opening a pull request:
+Validate labs before opening a merge request:
 
 ```bash
 python3 -m pip install python-frontmatter jsonschema
@@ -25,17 +25,17 @@ FAILED: _labs/example.md
 Every lab must include:
 
 - `layout`: must be `lab`
-- `title`: human-readable lab title
+- `title`: lab title shown on lab cards and lab pages
 - `description`: short description shown on lab cards and lab pages
 - `difficulty`: `beginner`, `intermediate`, or `advanced`
 - `category`: broad category such as `Web Security`
+- `track`: `professional`, `hygiene`, or `both`
 - `estimated_time`: estimated completion time in minutes
 - `tasks`: ordered list of lesson and simulation tasks
 
-Optional proposal metadata is supported but not required yet:
+Optional metadata:
 
 - `owasp_category`: `A01` through `A10`
-- `track`: `professional`, `hygiene`, or `both`
 - `tags`: searchable labels
 - `learning_objectives`: learner outcomes
 - `success_criteria`: lab-level completion criteria

@@ -5,6 +5,7 @@ description: Explore critical file upload security flaws that allow attackers to
   code on servers. Learn to bypass extension filters, MIME type validation, and path traversal restrictions.
 difficulty: intermediate
 category: Web Security
+track: professional
 estimated_time: 50
 tasks:
 - name: Introduction to File Upload Vulnerabilities

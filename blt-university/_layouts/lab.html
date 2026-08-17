@@ -4,6 +4,37 @@ layout: default
 
 <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
 <script id="lab-data" type="application/json">{{ page.tasks | jsonify | replace: "</", "<\/" }}</script>
+{% include adaptive-recommendation-data.html %}
+
+{% assign recommended_lab = nil %}
+{% assign current_lab_seen = false %}
+{% for candidate in site.labs %}
+    {% assign candidate_track = candidate.track | default: "both" %}
+    {% if current_lab_seen and recommended_lab == nil and candidate.slug != page.slug %}
+        {% if candidate_track == page.track %}
+            {% assign recommended_lab = candidate %}
+        {% endif %}
+    {% endif %}
+    {% if candidate.slug == page.slug %}{% assign current_lab_seen = true %}{% endif %}
+{% endfor %}
+{% if recommended_lab == nil %}
+    {% for candidate in site.labs %}
+        {% assign candidate_track = candidate.track | default: "both" %}
+        {% if candidate.slug != page.slug and candidate_track == page.track %}
+            {% assign recommended_lab = candidate %}
+        {% endif %}
+        {% if recommended_lab %}{% break %}{% endif %}
+    {% endfor %}
+{% endif %}
+{% if recommended_lab == nil and page.track != "hygiene" %}
+    {% for candidate in site.labs %}
+        {% assign candidate_track = candidate.track | default: "both" %}
+        {% if candidate.slug != page.slug and candidate_track == "both" %}
+            {% assign recommended_lab = candidate %}
+        {% endif %}
+        {% if recommended_lab %}{% break %}{% endif %}
+    {% endfor %}
+{% endif %}
 
 {% assign lab_key = page.title | downcase %}
 {% assign lab_icon = nil %}
@@ -237,11 +268,20 @@ layout: default
                         <i class="ph-bold ph-arrow-left"></i>
                         Previous
                     </button>
-                    <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
-                        Next
-                        <i class="ph-bold ph-arrow-right"></i>
-                    </button>
+                    <div class="flex flex-wrap items-center justify-end gap-3">
+                        <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
+                            Next
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </button>
+                        {% if recommended_lab %}
+                        <a data-next-lab href="{{ recommended_lab.url | relative_url }}" class="hidden inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-500 transition hover:border-red-200 hover:bg-gray-50 hover:text-bltRed dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-red-900/40 dark:hover:bg-gray-800 dark:hover:text-red-300">
+                            <span><span class="text-bltRed">Continue track:</span> <strong class="font-bold text-gray-800 dark:text-gray-200">{{ recommended_lab.title }}</strong></span>
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </a>
+                        {% endif %}
+                    </div>
                 </footer>
+                <section data-adaptive-recommendations data-render-on-completion="true" data-current-lab="{{ page.slug | default: page.title | slugify }}" data-limit="1" hidden class="mt-5" aria-label="Recommended next lab"></section>
             </div>
         </div>
 

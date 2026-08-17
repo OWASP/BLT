@@ -4,6 +4,7 @@ title: Command Injection
 description: Learn how unsafe system command construction leads to command injection and how to prevent it.
 difficulty: intermediate
 category: Web Security
+track: professional
 estimated_time: 45
 tasks:
 - name: Understanding Command Injection

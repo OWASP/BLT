@@ -17,10 +17,6 @@ resources:
   - title: OWASP Top 10 Guide
     url: https://owasp.org/www-project-top-ten/
     type: link
-  - title: Course Slides (Week 1)
-    url: /assets/courses/web-security-intro/week1-slides.pdf
-    type: pdf
-
 schedule:
   - date: Week 1
     topic: Introduction to Web Security & Threat Landscape

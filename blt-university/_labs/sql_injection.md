@@ -4,6 +4,7 @@ title: SQL Injection
 description: Learn SQL injection through interactive security exercises.
 difficulty: beginner
 category: Web Security
+track: both
 estimated_time: 60
 
 tasks:

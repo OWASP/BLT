@@ -98,6 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const nextButton = labRoot.querySelector('[data-lab-next]');
         const progressBar = labRoot.querySelector('[data-lab-progress]');
         const percentLabel = labRoot.querySelector('[data-lab-percent]');
+        const nextLabLink = labRoot.querySelector('[data-next-lab]');
         const labId = labRoot.getAttribute('data-lab-id');
         let currentIndex = 0;
         let highestUnlocked = 0;
@@ -241,17 +242,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
             updateProgress();
 
+            const labComplete = completedTasks.size === tasks.length;
+            nextLabLink?.classList.toggle('hidden', !labComplete);
+            if (labComplete) {
+                window.BltRecommendations?.renderAll({ force: true });
+            }
+
             if (prevButton) {
                 prevButton.disabled = currentIndex === 0;
             }
             if (nextButton) {
                 const needsCompletion = taskRequiresCompletion(currentIndex) && !isTaskComplete(currentIndex);
                 // Blocked either because this task is unfinished, or because the lab
-                // is over: on the last task the button becomes a spent "Complete".
+                // is complete: the final control stays visible as a completion state.
                 nextButton.disabled = needsCompletion || (currentIndex === tasks.length - 1 && isTaskComplete(currentIndex));
                 nextButton.title = needsCompletion ? 'Complete this task correctly to continue.' : '';
                 nextButton.innerHTML = currentIndex === tasks.length - 1
-                    ? 'Complete <i class="ph-bold ph-check"></i>'
+                    ? (isTaskComplete(currentIndex)
+                        ? 'Completed <i class="ph-bold ph-check-circle"></i>'
+                        : 'Complete <i class="ph-bold ph-check"></i>')
                     : 'Next <i class="ph-bold ph-arrow-right"></i>';
             }
         }
@@ -357,8 +366,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const labSearchFilter = document.getElementById('lab-search-filter');
     const labsGrid = document.getElementById('labs-grid');
     const labNoResults = document.getElementById('lab-no-results');
+    const labResultsSummary = document.getElementById('lab-results-summary');
 
     if (labCategoryFilter && labLevelFilter && labSearchFilter && labsGrid) {
+        const labCatalog = document.getElementById('lab-catalog');
+        const trackChoices = Array.from(document.querySelectorAll('[data-track-choice]'));
+        let selectedTrack = '';
 
         function filterLabs() {
             const categoryValue = (labCategoryFilter.value || '').toLowerCase();
@@ -370,12 +383,14 @@ document.addEventListener('DOMContentLoaded', function() {
             Array.from(labs).forEach(lab => {
                 const labCategory = lab.getAttribute('data-category') || '';
                 const labLevel = lab.getAttribute('data-level') || '';
+                const labTrack = lab.getAttribute('data-track') || '';
                 const labSearch = lab.getAttribute('data-search') || '';
                 const categoryMatch = !categoryValue || labCategory === categoryValue;
                 const levelMatch = !levelValue || labLevel === levelValue;
+                const trackMatch = !selectedTrack || labTrack === selectedTrack || labTrack === 'both';
                 const searchMatch = !searchValue || labSearch.includes(searchValue);
 
-                if (categoryMatch && levelMatch && searchMatch) {
+                if (categoryMatch && levelMatch && trackMatch && searchMatch) {
                     lab.classList.remove('hidden');
                     visibleCount++;
                 } else {
@@ -387,11 +402,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 labNoResults.classList.toggle('hidden', visibleCount !== 0);
                 labsGrid.classList.toggle('hidden', visibleCount === 0);
             }
+
+            if (labResultsSummary) {
+                const trackName = selectedTrack
+                    ? trackChoices.find(choice => choice.getAttribute('data-track-choice') === selectedTrack)?.getAttribute('data-track-label')
+                    : '';
+                const summaryPrefix = trackName ? `${trackName} · ` : '';
+                labResultsSummary.textContent = `${summaryPrefix}Showing ${visibleCount} ${visibleCount === 1 ? 'lab' : 'labs'}`;
+            }
         }
 
         labCategoryFilter.addEventListener('change', filterLabs);
         labLevelFilter.addEventListener('change', filterLabs);
         labSearchFilter.addEventListener('input', filterLabs);
+
+        trackChoices.forEach(choice => {
+            choice.addEventListener('click', () => {
+                const trackChoice = choice.getAttribute('data-track-choice') || '';
+                selectedTrack = selectedTrack === trackChoice ? '' : trackChoice;
+                trackChoices.forEach(track => {
+                    const isSelected = track.getAttribute('data-track-choice') === selectedTrack;
+                    track.setAttribute('aria-pressed', String(isSelected));
+                    track.classList.toggle('border-red-500', isSelected);
+                    track.classList.toggle('bg-red-50', isSelected);
+                    track.classList.toggle('shadow-[0_16px_40px_-30px_rgba(220,38,38,.45)]', isSelected);
+                });
+                filterLabs();
+                labCatalog?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
         filterLabs();
     }
 

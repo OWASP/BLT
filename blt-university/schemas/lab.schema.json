@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "BLT University Lab Frontmatter",
   "description": "Validates the current Markdown frontmatter format used by BLT University labs while leaving room for future lab and simulation types.",
-  "$comment": "This schema intentionally validates the repository's existing Jekyll frontmatter shape. Proposal metadata is optional until the current labs are migrated.",
+  "$comment": "This schema validates the repository's Jekyll frontmatter shape. Track metadata is required because catalog filtering depends on it; other enrichment metadata remains optional.",
   "type": "object",
   "required": [
     "layout",
@@ -10,6 +10,7 @@
     "description",
     "difficulty",
     "category",
+    "track",
     "estimated_time",
     "tasks"
   ],
@@ -20,7 +21,7 @@
       "const": "lab"
     },
     "title": {
-      "description": "Human-readable lab title displayed on lab cards and lab pages.",
+      "description": "Lab title displayed on lab cards and lab pages.",
       "$ref": "#/$defs/nonEmptyString"
     },
     "description": {
@@ -53,7 +54,7 @@
       "$ref": "#/$defs/owaspCategory"
     },
     "track": {
-      "description": "Optional proposal track metadata.",
+      "description": "Learning track used by catalog filtering and next-lab navigation.",
       "type": "string",
       "enum": [
         "professional",

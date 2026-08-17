@@ -5,6 +5,7 @@ description: Advanced SSRF techniques to make servers request internal resources
   to bypass filters using encoding tricks and redirect chains.
 difficulty: advanced
 category: Web Security
+track: professional
 estimated_time: 55
 tasks:
 - name: Introduction to SSRF
