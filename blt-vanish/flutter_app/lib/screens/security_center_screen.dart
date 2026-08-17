@@ -7,9 +7,12 @@ import '../services/remediation_planner.dart';
 import '../services/reputation_enrichment_service.dart';
 import '../services/risk_assessment_builder.dart';
 import '../services/storage_service.dart';
-import '../services/telemetry_service.dart';
 import '../services/url_expansion_service.dart';
 import '../services/url_signal_extractor.dart';
+import '../services/security_data_source.dart';
+import '../models/security/exposure_event.dart';
+import '../models/security/login_anomaly.dart';
+import '../models/security/playbook_template.dart';
 
 enum _ScanUiState {
   idle,
@@ -31,8 +34,8 @@ class SecurityCenterScreen extends StatefulWidget {
   final ReputationEnrichmentService? enrichmentService;
   /// Optional assessment builder override for tests.
   final RiskAssessmentBuilder? assessmentBuilder;
-  /// Optional telemetry override for tests.
-  final TelemetryService? telemetryService;
+  /// Optional security data source override for tests.
+  final SecurityDataSource? securityDataSource;
 
   /// Creates the Security Center screen.
   const SecurityCenterScreen({
@@ -42,7 +45,7 @@ class SecurityCenterScreen extends StatefulWidget {
     this.signalExtractor,
     this.enrichmentService,
     this.assessmentBuilder,
-    this.telemetryService,
+    this.securityDataSource,
   });
 
   @override
@@ -54,14 +57,20 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   late final UrlExpansionService _expansionService;
   late final UrlSignalExtractor _signalExtractor;
   late final RiskAssessmentBuilder _assessmentBuilder;
-  late final TelemetryService _telemetry;
   late final ReputationEnrichmentService _enrichmentService;
+  late final SecurityDataSource _securityDataSource;
   final RemediationPlanner _remediationPlanner = const RemediationPlanner();
 
   RiskAssessment? _currentAssessment;
   _ScanUiState _scanState = _ScanUiState.idle;
   String? _errorMessage;
   String _lastSource = 'manual_paste';
+  bool _isExposureFeedDegraded = false;
+  DateTime? _lastSyncTime;
+
+  List<ExposureEvent> _exposureEvents = [];
+  LoginAnomaly? _loginAnomaly;
+  PlaybookTemplate? _playbookTemplate;
 
   bool get _isScanning => _scanState == _ScanUiState.loading;
 
@@ -77,11 +86,13 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
     _expansionService = widget.expansionService ?? UrlExpansionService();
     _signalExtractor = widget.signalExtractor ?? UrlSignalExtractor();
     _assessmentBuilder = widget.assessmentBuilder ?? RiskAssessmentBuilder();
-    _telemetry = widget.telemetryService ?? TelemetryService();
     _enrichmentService = widget.enrichmentService ??
         ReputationEnrichmentService(
           baseUrl: _defaultWorkerBaseUrl,
         );
+    _securityDataSource = widget.securityDataSource ?? DefaultSecurityDataSource();
+
+    _loadSecurityData();
 
     if (widget.initialInput.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -90,16 +101,38 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
     }
   }
 
+  Future<void> _loadSecurityData() async {
+    try {
+      final events = await _securityDataSource.fetchExposureEvents();
+      final anomaly = await _securityDataSource.fetchLoginAnomaly();
+      PlaybookTemplate? playbook;
+      if (anomaly != null) {
+        try {
+          playbook = await _securityDataSource.fetchPlaybookTemplate(anomaly);
+        } catch (_) {
+          playbook = null;
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _exposureEvents = events;
+          _loginAnomaly = anomaly;
+          _playbookTemplate = playbook;
+          _isExposureFeedDegraded = false;
+          _lastSyncTime = DateTime.now();
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isExposureFeedDegraded = true;
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
-    if (_inputController.text.trim().isNotEmpty &&
-        _scanState != _ScanUiState.success &&
-        _scanState != _ScanUiState.offlineFallback) {
-      _telemetry.trackAbandonment(
-        inputSource: _lastSource,
-        state: _scanState.name,
-      );
-    }
     _inputController.dispose();
     super.dispose();
   }
@@ -147,32 +180,18 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
       });
 
       stopwatch.stop();
-      _telemetry.trackScanEvent(
-        inputSource: source,
-        finalSeverity: assessment.severity.name,
-        latencyMs: stopwatch.elapsedMilliseconds,
-        wasOfflineFallback: wasOfflineFallback,
-      );
-    } on FormatException catch (error) {
+    } on FormatException catch (_) {
       stopwatch.stop();
       setState(() {
         _scanState = _ScanUiState.parseError;
         _errorMessage = 'Scan pipeline failure: Unable to safely parse entry target.';
       });
-      _telemetry.trackError(
-        errorType: error.toString(),
-        component: 'SecurityCenterScreen',
-      );
-    } catch (error) {
+    } catch (_) {
       stopwatch.stop();
       setState(() {
         _scanState = _ScanUiState.parseError;
         _errorMessage = 'Scan pipeline failure: Unable to safely parse entry target.';
       });
-      _telemetry.trackError(
-        errorType: error.toString(),
-        component: 'SecurityCenterScreen',
-      );
     }
   }
 
@@ -190,7 +209,6 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   }
 
   void _handleRemediationAction(String title, String description) {
-    _telemetry.trackRemediationCtaClicked(title);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(description)),
     );
@@ -432,6 +450,229 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
     );
   }
 
+  Widget _buildExposureTimeline() {
+    List<ExposureEvent> events = List.from(_exposureEvents);
+
+    // Sort primarily by urgency, then recency
+    int urgencyToValue(String u) {
+      switch (u) {
+        case 'critical': return 4;
+        case 'high': return 3;
+        case 'medium': return 2;
+        case 'low': return 1;
+        default: return 0;
+      }
+    }
+
+    events.sort((a, b) {
+      int urgencyCmp = urgencyToValue(b.urgency).compareTo(urgencyToValue(a.urgency));
+      if (urgencyCmp != 0) return urgencyCmp;
+      return b.occurredAt.compareTo(a.occurredAt);
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Exposure Timeline',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () => _loadSecurityData(),
+            )
+          ],
+        ),
+        if (_isExposureFeedDegraded)
+          Card(
+            color: const Color(0xFFFFF3E0),
+            elevation: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: Color(0xFFE65100)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Provider Feed Unavailable',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFE65100)),
+                        ),
+                        if (_lastSyncTime != null)
+                          Text('Last sync: ${_lastSyncTime!.toLocal().toString().split('.')[0]}', style: const TextStyle(fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => _loadSecurityData(),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        const SizedBox(height: 12),
+        ...events.map((e) => Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.grey.shade200),
+          ),
+          child: ListTile(
+            leading: Icon(
+              Icons.warning,
+              color: e.urgency == 'critical' || e.urgency == 'high' 
+                  ? Colors.red 
+                  : Colors.orange,
+            ),
+            title: Text(e.source, style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('Breach detected on ${e.occurredAt.toLocal().toString().split(' ')[0]}'),
+            trailing: Chip(
+              label: Text(e.urgency.toUpperCase(), style: const TextStyle(fontSize: 10, color: Colors.white)),
+              backgroundColor: e.urgency == 'critical' || e.urgency == 'high' 
+                  ? Colors.red 
+                  : Colors.orange,
+            ),
+          ),
+        )),
+        if (events.isEmpty && !_isExposureFeedDegraded)
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'No exposure events found.',
+              style: TextStyle(color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+          ),
+      ],
+    );
+  }
+
+  (Color, Color, Color) _getRiskBandColors(String riskBand) {
+    switch (riskBand.toLowerCase()) {
+      case 'critical':
+        return (Colors.red.shade50, Colors.red.shade200, Colors.red.shade700);
+      case 'high':
+        return (Colors.orange.shade50, Colors.orange.shade200, Colors.orange.shade800);
+      case 'medium':
+        return (Colors.amber.shade50, Colors.amber.shade200, Colors.amber.shade900);
+      case 'low':
+      default:
+        return (Colors.green.shade50, Colors.green.shade200, Colors.green.shade700);
+    }
+  }
+
+  Widget _buildLoginAnomalies() {
+    final anomaly = _loginAnomaly;
+    final playbook = _playbookTemplate;
+
+    if (anomaly == null) {
+      return const SizedBox.shrink();
+    }
+
+    final (riskBgColor, riskBorderColor, riskTextColor) = _getRiskBandColors(anomaly.riskBand);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          'Login Anomalies',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.grey.shade200),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Account: ${anomaly.accountId}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: riskBgColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: riskBorderColor),
+                      ),
+                      child: Text(
+                        anomaly.riskBand.toUpperCase(),
+                        style: TextStyle(color: riskTextColor, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text('Detected: ${anomaly.detectedAt.toLocal().toString().split('.')[0]}', style: TextStyle(color: Colors.grey.shade600)),
+                const SizedBox(height: 16),
+                const Text('Explainability Signals:', style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8.0,
+                  runSpacing: 4.0,
+                  children: anomaly.reasonCodes.map((code) => Chip(
+                    label: Text(code, style: const TextStyle(fontSize: 12, color: Colors.indigo)),
+                    backgroundColor: Colors.indigo.shade50,
+                    side: BorderSide(color: Colors.indigo.shade100),
+                  )).toList(),
+                ),
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 12),
+                if (playbook != null) ...[
+                  Text('Playbook: ${playbook.title}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  ...playbook.steps.map((step) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.check_circle_outline, size: 20, color: step.isRequired ? Colors.red : Colors.grey),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(step.title, style: const TextStyle(fontWeight: FontWeight.w500)),
+                              Text(step.description, style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+                ] else ...[
+                  const Text('Playbook Unavailable', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Remediation playbook template could not be loaded.',
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -495,6 +736,10 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
               const SizedBox(height: 20),
               _buildAssessmentCard(),
             ],
+            const SizedBox(height: 32),
+            _buildLoginAnomalies(),
+            const SizedBox(height: 32),
+            _buildExposureTimeline(),
           ],
         ),
       ),
