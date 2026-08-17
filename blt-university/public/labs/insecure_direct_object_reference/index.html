@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insecure Direct Object Reference - BLT University</title>
-    <meta name="description" content="Learn how missing object-level authorization exposes other users' data.">
-    
     <!-- Begin Jekyll SEO tag v2.9.0 -->
 <title>Insecure Direct Object Reference | BLT University</title>
 <meta name="generator" content="Jekyll v4.4.1" />
@@ -17,15 +14,15 @@
 <meta property="og:url" content="https://university.owaspblt.org/labs/insecure_direct_object_reference/" />
 <meta property="og:site_name" content="BLT University" />
 <meta property="og:type" content="article" />
-<meta property="article:published_time" content="2026-08-13T23:53:22+00:00" />
-<meta property="article:modified_time" content="2026-08-13T23:53:22+00:00" />
+<meta property="article:published_time" content="2026-08-17T23:02:19+00:00" />
+<meta property="article:modified_time" content="2026-08-17T23:02:19+00:00" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="Insecure Direct Object Reference" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-13T23:53:22+00:00","datePublished":"2026-08-13T23:53:22+00:00","description":"Learn how missing object-level authorization exposes other users’ data.","headline":"Insecure Direct Object Reference","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/labs/insecure_direct_object_reference/"},"url":"https://university.owaspblt.org/labs/insecure_direct_object_reference/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-17T23:02:19+00:00","datePublished":"2026-08-17T23:02:19+00:00","description":"Learn how missing object-level authorization exposes other users’ data.","headline":"Insecure Direct Object Reference","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/labs/insecure_direct_object_reference/"},"url":"https://university.owaspblt.org/labs/insecure_direct_object_reference/"}</script>
 <!-- End Jekyll SEO tag -->
 
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -158,7 +155,7 @@
     </style>
 </head>
 <body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
-    
+
     <header
   class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm"
   id="site-header"
@@ -197,6 +194,12 @@
         class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
         href="/labs/"
         >Labs</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/dashboard/"
+        >Dashboard</a
       >
       
       <a
@@ -252,6 +255,8 @@
     
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
     
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Dashboard</a>
+    
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
     
     
@@ -274,9 +279,73 @@
   </nav>
 </header>
 
-    
+
     <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
 <script id="lab-data" type="application/json">[{"name":"Introduction to IDOR","description":"Learn why object IDs in URLs need authorization checks.","type":"theory","order":1,"heading":"What is an Insecure Direct Object Reference?","content":"Insecure Direct Object Reference (IDOR) happens when an application exposes an internal object identifier and trusts that identifier without checking whether the current user is allowed to access the object.\n\nA common example is a profile route like `/users/42`. If user 17 can change the URL to `/users/42` and read another user's private profile, the application has an object-level authorization bug.\n\n### Why IDOR Happens\n\nIDOR usually appears when code checks that a user is logged in, but does not check whether the requested record belongs to that user.\n\n```javascript\napp.get('/profiles/:userId', requireLogin, (request, response) => {\n    const profile = db.getUserProfile(request.params.userId);\n    response.json(profile);\n});\n```\n\nThe route has authentication, but it does not have authorization for the specific profile object.\n\n### Secure Pattern\n\nLoad the object, compare its owner with the authenticated user, and reject access when they do not match.\n","mcq":{"question":"What check is missing in a typical IDOR vulnerability?","options":["A) Whether the requested object belongs to, or is allowed for, the authenticated user","B) Whether the URL uses lowercase letters","C) Whether the database table has an index","D) Whether the browser supports JavaScript"],"answer":"A"}},{"name":"IDOR Profile Access","description":"Practice finding and fixing a profile endpoint that trusts a URL object ID.","type":"simulation","order":2,"simulation":{"engine":"idor-profile","type":"object_level_authorization","scenario":"profile_lookup","target_url":"/profiles/:userId","vulnerable_code":"app.get('/profiles/:userId', requireLogin, (request, response) => {\n    const requestedUserId = request.params.userId;\n    const profile = db.getUserProfile(requestedUserId);\n    response.json(profile);\n});\n","vulnerable_lines":[4],"explain":{"question":"Why can this endpoint leak another user's profile?","options":[{"id":"missing_object_authorization","label":"The route returns any requested profile ID without checking whether it belongs to the logged-in user."},{"id":"weak_password_hash","label":"The application stores weak password hashes."},{"id":"missing_rate_limit","label":"The endpoint does not limit how many requests a user can send."}],"answer":"missing_object_authorization"},"expected_patterns":["object_level_authorization","ownership_check"],"attack_payloads":["/profiles/42"],"vulnerable_parameters":["userId"],"success_payload":"/profiles/42","success_criteria":"A logged-in user can change the profile ID in the URL and read another user's profile.","fix_starter_code":"app.get('/profiles/:userId', requireLogin, (request, response) => {\n    const requestedUserId = request.params.userId;\n    const profile = db.getUserProfile(requestedUserId);\n    response.json(profile);\n});\n","hints":["Authentication only proves who made the request.","Authorization decides whether that user may access this specific profile.","Compare the profile owner with the authenticated user before returning data.","Return 403 Forbidden when the requested profile belongs to someone else."]}},{"name":"IDOR in APIs and Downloads","description":"Learn where IDOR appears outside profile pages.","type":"theory","order":3,"heading":"Common IDOR Locations","content":"IDOR is not limited to profile pages. Any endpoint that accepts an object ID can become vulnerable if it skips object-level authorization.\n\n### Common Places to Check\n\n- Invoice downloads such as `/invoices/1008.pdf`\n- API routes such as `/api/orders/42`\n- Account settings routes such as `/users/17/settings`\n- File attachments such as `/attachments/771`\n- Admin actions that accept `user_id`, `team_id`, or `project_id`\n\n### Vulnerable Example\n\n```javascript\napp.get('/invoices/:invoiceId', requireLogin, (request, response) => {\n    const invoice = db.getInvoice(request.params.invoiceId);\n    response.download(invoice.filePath);\n});\n```\n\nThis route checks that the user is logged in, but it does not check whether the invoice belongs to that user or their organization.\n","mcq":{"question":"Which route is most likely to need an object-level authorization check?","options":["A) /assets/logo.png","B) /invoices/1008.pdf","C) /about","D) /styles/main.css"],"answer":"B"}},{"name":"Object Authorization Patterns","description":"Compare ownership checks, role checks, and centralized authorization helpers.","type":"theory","order":4,"heading":"Building Safer Authorization Checks","content":"A good IDOR fix is more than comparing two IDs in one route. The goal is to make object authorization consistent across the application.\n\n### Strong Patterns\n\n- Check ownership on the server for every object access.\n- Use role or permission checks when teams, projects, or organizations can share objects.\n- Query through the current user's scope when possible.\n- Keep authorization helpers centralized and reusable.\n\n### Safer Query Pattern\n\nInstead of loading any invoice by ID, scope the lookup to the authenticated user:\n\n```javascript\nconst invoice = db.getInvoiceForUser(request.params.invoiceId, request.user.id);\n\nif (!invoice) {\n    return response.status(404).json({ error: 'Not found' });\n}\n\nresponse.download(invoice.filePath);\n```\n\nThis avoids returning objects from outside the user's allowed scope.\n","mcq":{"question":"Why is querying through the current user's scope safer?","options":["A) It prevents the database from using indexes","B) It makes unauthorized objects fail the lookup before they can be returned","C) It hides JavaScript from the browser","D) It removes the need for authentication"],"answer":"B"}},{"name":"Preventing IDOR","description":"Review defensive patterns for object-level authorization.","type":"theory","order":5,"heading":"How to Prevent IDOR","content":"IDOR is prevented with consistent object-level authorization checks.\n\n### Defenses\n\n- Check ownership before returning, updating, or deleting a record.\n- Prefer centralized authorization helpers so routes use the same rule.\n- Return `404` or `403` when the user cannot access the requested object.\n- Avoid assuming hidden UI controls or unpredictable IDs are sufficient protection.\n\n### Example Fix\n\n```javascript\napp.get('/profiles/:userId', requireLogin, (request, response) => {\n    const profile = db.getUserProfile(request.params.userId);\n\n    if (!profile || profile.userId !== request.user.id) {\n        return response.status(403).json({ error: 'Forbidden' });\n    }\n\n    response.json(profile);\n});\n```\n\nThe URL still contains a direct object reference, but the server now verifies that the authenticated user is allowed to access the referenced object.\n","mcq":{"question":"Which defense best prevents IDOR?","options":["A) Hiding profile links from the page","B) Checking object ownership or authorization on the server","C) Renaming the userId parameter","D) Adding more CSS to the profile page"],"answer":"B"}}]</script>
+
+
+<script id="adaptive-recommendation-data" type="application/json">{
+  "weights": {"A01": 1.00, "A02": 0.95, "A03": 0.90, "A04": 0.85, "A05": 0.80, "A06": 0.75, "A07": 0.70, "A08": 0.65, "A09": 0.60, "A10": 0.50},
+  "categories": [
+    
+    {"id": "A01", "name": "Broken Access Control", "count": 6156, "labs": [{"slug":"insecure_direct_object_reference","title":"Insecure Direct Object Reference","reason":"Practice object-level authorization checks."},{"slug":"cross_site_request_forgery","title":"Cross-Site Request Forgery","reason":"Understand authorization of state-changing requests."},{"slug":"open_redirect","title":"Open Redirect","reason":"Learn to constrain user-controlled navigation."}]},
+    
+    {"id": "A02", "name": "Cryptographic Failures", "count": 456, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Practice protecting secrets and sensitive information."}]},
+    
+    {"id": "A03", "name": "Injection", "count": 5745, "labs": [{"slug":"sql_injection","title":"SQL Injection","reason":"Learn parameterized queries and database input handling."},{"slug":"cross_site_scripting_xss","title":"Cross-Site Scripting","reason":"Practice safe output handling across browser contexts."},{"slug":"command_injection","title":"Command Injection","reason":"Learn to keep operating-system commands and input separate."}]},
+    
+    {"id": "A04", "name": "Insecure Design", "count": 1528, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Explore security controls for a high-risk application feature."},{"slug":"broken_authentication","title":"Broken Authentication","reason":"Review authentication design and abuse cases."}]},
+    
+    {"id": "A05", "name": "Security Misconfiguration", "count": 143, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Identify unsafe diagnostics and exposed configuration."},{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Practice hardening upload configuration and storage."}]},
+    
+    {"id": "A06", "name": "Vulnerable and Outdated Components", "count": 37, "labs": []},
+    
+    {"id": "A07", "name": "Identification and Authentication Failures", "count": 1832, "labs": [{"slug":"broken_authentication","title":"Broken Authentication","reason":"Practice credential, session, recovery, and token defenses."}]},
+    
+    {"id": "A08", "name": "Software and Data Integrity Failures", "count": 689, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Learn to validate provenance, type, and content before trust."}]},
+    
+    {"id": "A09", "name": "Security Logging and Monitoring Failures", "count": 75, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Learn what must never be exposed through logs and diagnostics."}]},
+    
+    {"id": "A10", "name": "Server-Side Request Forgery", "count": 569, "labs": [{"slug":"server_side_request_forgery","title":"Server-Side Request Forgery","reason":"Practice destination validation and internal-network protection."}]}
+    
+  ],
+  "labs": [
+    
+    {"id": "broken-authentication", "title": "Broken Authentication", "description": "Comprehensive coverage of authentication vulnerabilities including weak credentials, session management flaws, and JWT misconfigurations. Practice credential stuffing, session fixation, and token forgery attacks.", "url": "/labs/broken_authentication/", "taskCount": 12},
+    
+    {"id": "command-injection", "title": "Command Injection", "description": "Learn how unsafe system command construction leads to command injection and how to prevent it.", "url": "/labs/command_injection/", "taskCount": 8},
+    
+    {"id": "cross-site-request-forgery", "title": "Cross-Site Request Forgery", "description": "Learn CSRF attacks and defenses through focused security exercises.", "url": "/labs/cross_site_request_forgery/", "taskCount": 7},
+    
+    {"id": "cross-site-scripting-xss", "title": "Cross-Site Scripting (XSS)", "description": "Find out how untrusted input can run as code in a browser, and how to stop it.", "url": "/labs/cross_site_scripting_xss/", "taskCount": 8},
+    
+    {"id": "file-upload-vulnerabilities", "title": "File Upload Vulnerabilities", "description": "Explore critical file upload security flaws that allow attackers to upload malicious files and execute code on servers. Learn to bypass extension filters, MIME type validation, and path traversal restrictions.", "url": "/labs/file_upload_vulnerabilities/", "taskCount": 7},
+    
+    {"id": "insecure-direct-object-reference", "title": "Insecure Direct Object Reference", "description": "Learn how missing object-level authorization exposes other users' data.", "url": "/labs/insecure_direct_object_reference/", "taskCount": 5},
+    
+    {"id": "open-redirect", "title": "Open Redirect", "description": "Understand how open redirect vulnerabilities enable phishing attacks and security bypasses. Learn to exploit redirect parameters without validation to redirect users to malicious sites.", "url": "/labs/open_redirect/", "taskCount": 7},
+    
+    {"id": "passwords-and-mfa", "title": "Passwords and Multi-Factor Authentication", "description": "Learn how unique passwords, password managers, and MFA reduce the impact of account attacks.", "url": "/labs/passwords-and-mfa/", "taskCount": 6},
+    
+    {"id": "phishing-awareness", "title": "Phishing Awareness", "description": "Practice identifying suspicious messages and choosing a safe response before a scam captures your information.", "url": "/labs/phishing-awareness/", "taskCount": 6},
+    
+    {"id": "safe-browsing-and-downloads", "title": "Safe Browsing and Downloads", "description": "Practice safer decisions around websites, browser permissions, downloads, updates, and public networks.", "url": "/labs/safe-browsing-and-downloads/", "taskCount": 6},
+    
+    {"id": "sensitive-data-exposure", "title": "Sensitive Data Exposure", "description": "Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code.", "url": "/labs/sensitive_data_exposure/", "taskCount": 9},
+    
+    {"id": "server-side-request-forgery", "title": "Server-Side Request Forgery (SSRF)", "description": "Advanced SSRF techniques to make servers request internal resources and cloud metadata services. Learn to bypass filters using encoding tricks and redirect chains.", "url": "/labs/server_side_request_forgery/", "taskCount": 7},
+    
+    {"id": "sql-injection", "title": "SQL Injection", "description": "Learn SQL injection through interactive security exercises.", "url": "/labs/sql_injection/", "taskCount": 10}
+    
+  ]
+}</script>
+
+
+
+
+
+
+
 
 
 
@@ -773,11 +842,20 @@
                         <i class="ph-bold ph-arrow-left"></i>
                         Previous
                     </button>
-                    <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
-                        Next
-                        <i class="ph-bold ph-arrow-right"></i>
-                    </button>
+                    <div class="flex flex-wrap items-center justify-end gap-3">
+                        <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
+                            Next
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </button>
+                        
+                        <a data-next-lab href="/labs/open_redirect/" class="hidden inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-500 transition hover:border-red-200 hover:bg-gray-50 hover:text-bltRed dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-red-900/40 dark:hover:bg-gray-800 dark:hover:text-red-300">
+                            <span><span class="text-bltRed">Continue track:</span> <strong class="font-bold text-gray-800 dark:text-gray-200">Open Redirect</strong></span>
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </a>
+                        
+                    </div>
                 </footer>
+                <section data-adaptive-recommendations data-render-on-completion="true" data-current-lab="insecure-direct-object-reference" data-limit="1" hidden class="mt-5" aria-label="Recommended next lab"></section>
             </div>
         </div>
 
@@ -860,16 +938,16 @@
     </main>
 </article>
 
-<script src="/assets/js/vendor/acorn.js?v=1786665202"></script>
-<script src="/assets/js/labs/ast.js?v=1786665202"></script>
-<script src="/assets/js/labs/core.js?v=1786665202"></script>
-<script src="/assets/js/labs/validators.js?v=1786665202"></script>
-<script src="/assets/js/labs/ui.js?v=1786665202"></script>
-<script src="/assets/js/labs/flow.js?v=1786665202"></script>
-<script src="/assets/js/labs/simulations.js?v=1786665202"></script>
-<script src="/assets/js/labs/main.js?v=1786665202"></script>
+<script src="/assets/js/vendor/acorn.js?v=1787007739"></script>
+<script src="/assets/js/labs/ast.js?v=1787007739"></script>
+<script src="/assets/js/labs/core.js?v=1787007739"></script>
+<script src="/assets/js/labs/validators.js?v=1787007739"></script>
+<script src="/assets/js/labs/ui.js?v=1787007739"></script>
+<script src="/assets/js/labs/flow.js?v=1787007739"></script>
+<script src="/assets/js/labs/simulations.js?v=1787007739"></script>
+<script src="/assets/js/labs/main.js?v=1787007739"></script>
 
-    
+
     <div class="px-4">
         <footer
   class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-bltFooter py-10 pb-8 text-white max-md:rounded-t-[.8rem]"
@@ -890,6 +968,7 @@
       <p>Docs</p>
       <a href="/courses/">Courses</a>
       <a href="/labs/">Labs</a>
+      <a href="/dashboard/">Dashboard</a>
     </div>
     <div>
       <p>Learn</p>
@@ -931,7 +1010,8 @@
 </footer>
 
     </div>
-    
-    <script src="/assets/js/main.js?v=1786665202"></script>
+
+    <script src="/assets/js/recommendations.js?v=1787007739"></script>
+    <script src="/assets/js/main.js?v=1787007739"></script>
 </body>
 </html>

@@ -231,11 +231,6 @@
             (/replace\s*\([^)]*&/i.test(code) && /replace\s*\([^)]*</i.test(code));
     }
 
-    function xssPayloadStillExecutes(code, payloads = []) {
-        const hasExecutablePayload = payloads.some(payload => /<script|onerror|onload|javascript:/i.test(payload));
-        return hasExecutablePayload && usesUnsafeHtmlSink(code) && !encodesHtml(code);
-    }
-
     function validateXssFix(code, config = {}) {
         const astResult = BltLabs.analyzeXssFix?.(code);
         const plausibleFix = astResult?.plausible ??

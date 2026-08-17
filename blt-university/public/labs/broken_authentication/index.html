@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Broken Authentication - BLT University</title>
-    <meta name="description" content="Comprehensive coverage of authentication vulnerabilities including weak credentials, session management flaws, and JWT misconfigurations. Practice credential stuffing, session fixation, and token forgery attacks.">
-    
     <!-- Begin Jekyll SEO tag v2.9.0 -->
 <title>Broken Authentication | BLT University</title>
 <meta name="generator" content="Jekyll v4.4.1" />
@@ -17,15 +14,15 @@
 <meta property="og:url" content="https://university.owaspblt.org/labs/broken_authentication/" />
 <meta property="og:site_name" content="BLT University" />
 <meta property="og:type" content="article" />
-<meta property="article:published_time" content="2026-08-13T23:53:22+00:00" />
-<meta property="article:modified_time" content="2026-08-13T23:53:22+00:00" />
+<meta property="article:published_time" content="2026-08-17T23:02:19+00:00" />
+<meta property="article:modified_time" content="2026-08-17T23:02:19+00:00" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="Broken Authentication" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-13T23:53:22+00:00","datePublished":"2026-08-13T23:53:22+00:00","description":"Comprehensive coverage of authentication vulnerabilities including weak credentials, session management flaws, and JWT misconfigurations. Practice credential stuffing, session fixation, and token forgery attacks.","headline":"Broken Authentication","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/labs/broken_authentication/"},"url":"https://university.owaspblt.org/labs/broken_authentication/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-17T23:02:19+00:00","datePublished":"2026-08-17T23:02:19+00:00","description":"Comprehensive coverage of authentication vulnerabilities including weak credentials, session management flaws, and JWT misconfigurations. Practice credential stuffing, session fixation, and token forgery attacks.","headline":"Broken Authentication","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/labs/broken_authentication/"},"url":"https://university.owaspblt.org/labs/broken_authentication/"}</script>
 <!-- End Jekyll SEO tag -->
 
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -158,7 +155,7 @@
     </style>
 </head>
 <body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
-    
+
     <header
   class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm"
   id="site-header"
@@ -197,6 +194,12 @@
         class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
         href="/labs/"
         >Labs</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/dashboard/"
+        >Dashboard</a
       >
       
       <a
@@ -252,6 +255,8 @@
     
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
     
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Dashboard</a>
+    
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
     
     
@@ -274,9 +279,73 @@
   </nav>
 </header>
 
-    
+
     <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
 <script id="lab-data" type="application/json">[{"name":"Introduction to Broken Authentication","description":"Overview of authentication failures, their causes, and impacts.","type":"theory","order":1,"heading":"Introduction to Broken Authentication","content":"<h2>What is Broken Authentication?<\/h2>\n<p>Broken Authentication refers to weaknesses in authentication and session management that allow attackers to compromise passwords or impersonate users.<\/p>\n\n<h3>Common Issues<\/h3>\n<ul>\n    <li>Weak/default passwords<\/li>\n    <li>Brute-force or credential stuffing<\/li>\n    <li>Predictable session IDs<\/li>\n    <li>Insecure password reset flows<\/li>\n    <li>JWT misconfigurations (alg=none)<\/li>\n<\/ul>\n","mcq":{"question":"Which control mitigates credential stuffing?","options":["A) Unlimited login attempts","B) Progressive rate-limiting and lockouts","C) Client-side only validation","D) Remove password complexity rules"],"answer":"B"}},{"name":"Default & Weak Credentials","description":"Why default credentials are dangerous.","type":"theory","order":2,"heading":"Default & Weak Credentials","content":"<h2>Default Credentials<\/h2>\n<p>Attackers try common default passwords like admin/admin.<\/p>\n<h3>Prevention<\/h3>\n<ul>\n    <li>Force password change at first login<\/li>\n    <li>Strong password requirements<\/li>\n    <li>Use MFA<\/li>\n<\/ul>\n","mcq":{"question":"What reduces risk of default credentials?","options":["A) Force credential change on first use","B) Publish default passwords publicly","C) Use same default creds everywhere","D) Disable logs"],"answer":"A"}},{"name":"Simulation: Login with Default Credentials","description":"Log in with a simulated default credential pair.","type":"simulation","order":3,"simulation":{"type":"auth_default_creds","scenario":"default_login","engine":"auth-default-creds","target_url":"/login","vulnerable_code":"const users = [\n  { username: 'admin', password: 'admin', mustChangePassword: false }\n];\napp.post('/login', (req, res) => login(req.body.username, req.body.password));\n","vulnerable_lines":[2,4],"explain":{"question":"Why can the admin account be compromised?","options":[{"id":"default_password","label":"A known default password remains active and there is no forced password change."},{"id":"missing_logo","label":"The login page does not display a logo."}],"answer":"default_password"},"expected_patterns":["password_policy","default_credential_rotation","rate_limiting"],"fix_starter_code":"const users = [\n  { username: 'admin', password: 'admin', mustChangePassword: false }\n];\napp.post('/login', (req, res) => login(req.body.username, req.body.password));\n","vulnerable_parameters":["username","password"],"success_payload":"username=admin&password=admin","success_criteria":"Admin login without changing default credentials.","hints":["Try admin/admin","Try admin/password"],"difficulty":"beginner"}},{"name":"Session Fixation & Session Management","description":"Understand why session IDs must rotate after login.","type":"theory","order":4,"heading":"Session Fixation & Session Management","content":"<h2>Session Fixation<\/h2>\n<p>Attacker gives user a session ID, and it remains valid after login.<\/p>\n<h3>Mitigation<\/h3>\n<ul>\n    <li>Rotate session ID after login<\/li>\n    <li>Secure cookie flags<\/li>\n    <li>Invalidate sessions on logout<\/li>\n<\/ul>\n","mcq":{"question":"How to prevent session fixation?","options":["A) Keep the same session ID","B) Rotate session ID after login","C) Store ID in URL","D) Disable cookie flags"],"answer":"B"}},{"name":"Simulation: Session Fixation Reuse","description":"Provide a fixed session ID and use it after login.","type":"simulation","order":5,"simulation":{"type":"session_fixation","scenario":"fixation_reuse","engine":"auth-session-fixation","target_url":"/login","vulnerable_code":"app.post('/login', (req, res) => {\n  if (validPassword(req.body)) {\n    req.session.userId = user.id;\n    res.redirect('/admin');\n  }\n});\n","vulnerable_lines":[3],"explain":{"question":"Why is this session fixation-prone?","options":[{"id":"no_rotation","label":"The app keeps the existing session ID after login instead of rotating it."},{"id":"no_username","label":"The username field is missing from the request."}],"answer":"no_rotation"},"expected_patterns":["session_rotation","secure_cookie_flags","login_rate_limit"],"fix_starter_code":"app.post('/login', (req, res) => {\n  if (validPassword(req.body)) {\n    req.session.userId = user.id;\n    res.redirect('/admin');\n  }\n});\n","vulnerable_parameters":["sessionid"],"success_payload":"sessionid=fixed-session-0001","success_criteria":"Reuse same sessionid after login to access protected page.","hints":["Set sessionid first","Log in and reuse sessionid"],"difficulty":"intermediate"}},{"name":"JWT Misconfiguration (alg=none)","description":"Learn about forging JWTs when signature isn't checked.","type":"theory","order":6,"heading":"JWT Misconfiguration (alg=none)","content":"<h2>JWT Pitfalls<\/h2>\n<p>Accepting alg=none or weak secrets allows forging tokens.<\/p>\n<h3>Fixes<\/h3>\n<ul>\n    <li>Reject alg=none<\/li>\n    <li>Validate signature always<\/li>\n    <li>Use strong secrets + rotate periodically<\/li>\n<\/ul>\n","mcq":{"question":"Which vulnerability allows unsigned JWTs?","options":["A) Short expiration","B) Accepting alg=none","C) Using strong RSA keys","D) Validating payload"],"answer":"B"}},{"name":"Simulation: Forge JWT for Admin Access","description":"Craft admin JWT (alg=none or weak-secret).","type":"simulation","order":7,"simulation":{"type":"jwt_forge","scenario":"jwt_admin","engine":"auth-jwt-none","target_url":"/admin","vulnerable_code":"app.get('/admin', (req, res) => {\n  const token = req.headers.authorization;\n  const claims = jwt.decode(token);\n  if (claims.role === 'admin') res.send('admin');\n});\n","vulnerable_lines":[3],"explain":{"question":"Why can an unsigned token work here?","options":[{"id":"no_signature","label":"The token is decoded without verifying its signature or allowed algorithm."},{"id":"expired_css","label":"The stylesheet cache expired."}],"answer":"no_signature"},"expected_patterns":["jwt_signature_verification","algorithm_allowlist","token_expiry"],"fix_starter_code":"app.get('/admin', (req, res) => {\n  const token = req.headers.authorization;\n  const claims = jwt.decode(token);\n  if (claims.role === 'admin') res.send('admin');\n});\n","vulnerable_parameters":["Authorization"],"success_payload":"eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJyb2xlIjoiYWRtaW4ifQ.","success_criteria":"Access /admin using forged token.","hints":["Set alg:none","Remove signature or use weak-secret"],"difficulty":"intermediate"}},{"name":"Password Reset Flaws","description":"Weak reset tokens, long lifetime, predictable values.","type":"theory","order":8,"heading":"Password Reset Flaws","content":"<h2>Password Reset Risks<\/h2>\n<ul>\n    <li>Predictable or short tokens<\/li>\n    <li>Long-lived reset links<\/li>\n    <li>Tokens exposed in URLs/logs<\/li>\n<\/ul>\n<h3>Best Practices<\/h3>\n<ul>\n    <li>Short-lived, single-use tokens<\/li>\n    <li>Server-side validation<\/li>\n    <li>Rate-limit attempts<\/li>\n<\/ul>\n","mcq":{"question":"Which is secure practice?","options":["A) Long-lived tokens","B) Single-use short-lived tokens","C) Embed reset token in GET URL","D) Reuse tokens"],"answer":"B"}},{"name":"Simulation: Guess Weak Reset Token","description":"Guess short predictable token to reset password.","type":"simulation","order":9,"simulation":{"type":"password_reset_guess","scenario":"guess_reset_token","engine":"auth-reset-token","target_url":"/reset-password?token=","vulnerable_code":"app.post('/reset-password', (req, res) => {\n  const token = req.query.token;\n  if (token.length === 4) resetPassword(token, req.body.password);\n  res.send('reset');\n});\n","vulnerable_lines":[3],"explain":{"question":"Why can this reset token be guessed?","options":[{"id":"weak_token","label":"The token is short, predictable, and not checked for expiry or single use."},{"id":"long_form","label":"The reset form has too many fields."}],"answer":"weak_token"},"expected_patterns":["cryptographic_random_token","single_use_token","token_expiry"],"fix_starter_code":"app.post('/reset-password', (req, res) => {\n  const token = req.query.token;\n  if (token.length === 4) resetPassword(token, req.body.password);\n  res.send('reset');\n});\n","vulnerable_parameters":["token"],"success_payload":"token=AB12","success_criteria":"Submit valid simulated token and reset password.","hints":["Try small alphanumeric combinations","Lab only simulates tiny safe token space"],"difficulty":"intermediate"}},{"name":"Brute-Force & Rate-Limiting Controls","description":"Why progressive delays and lockouts stop brute-force.","type":"theory","order":10,"heading":"Brute-Force & Rate-Limiting Controls","content":"<h2>Brute-force Defenses<\/h2>\n<ul>\n    <li>Rate-limiting per IP/account<\/li>\n    <li>Progressive delay after failures<\/li>\n    <li>MFA<\/li>\n<\/ul>\n","mcq":{"question":"Which helps block credential stuffing?","options":["A) Unlimited retries","B) Per-account/IP rate-limiting + delays","C) Client-side only validation","D) Logout users constantly"],"answer":"B"}},{"name":"Simulation: Brute-Force with Rate-Limit","description":"Simulated brute-force with lockout logic.","type":"simulation","order":11,"simulation":{"type":"bruteforce_sim","scenario":"rate_limit_test","engine":"auth-rate-limit","target_url":"/login","vulnerable_code":"app.post('/login', (req, res) => {\n  const user = findUser(req.body.username);\n  if (user && checkPassword(user, req.body.password)) {\n    createSession(user);\n  }\n});\n","vulnerable_lines":[3],"explain":{"question":"Why can attackers keep guessing credentials?","options":[{"id":"unlimited_attempts","label":"The login flow checks passwords without rate limits, lockouts, or progressive delay."},{"id":"no_redirect","label":"The login flow does not redirect after failure."}],"answer":"unlimited_attempts"},"expected_patterns":["rate_limiting","account_lockout","password_hashing"],"fix_starter_code":"app.post('/login', (req, res) => {\n  const user = findUser(req.body.username);\n  if (user && checkPassword(user, req.body.password)) {\n    createSession(user);\n  }\n});\n","vulnerable_parameters":["username","password"],"success_payload":"username=victim&password=P@ssw0rd!","success_criteria":"Find valid credential while respecting simulated rate limits.","hints":["Small controlled attempts","Lab simulates lockout"],"difficulty":"advanced"}},{"name":"Authentication Remediation & Best Practices","description":"Final summary of secure approaches.","type":"theory","order":12,"heading":"Authentication Remediation & Best Practices","content":"<h2>Remediation Checklist<\/h2>\n<ul>\n    <li>Strong passwords + MFA<\/li>\n    <li>Session rotation on login<\/li>\n    <li>Strict JWT validation<\/li>\n    <li>Brute-force protections<\/li>\n    <li>Secure password reset tokens<\/li>\n<\/ul>\n","mcq":{"question":"Which improves authentication security?","options":["A) Weak passwords + long-lived tokens","B) MFA + rate-limiting + session rotation","C) No logging","D) Reuse tokens everywhere"],"answer":"B"}}]</script>
+
+
+<script id="adaptive-recommendation-data" type="application/json">{
+  "weights": {"A01": 1.00, "A02": 0.95, "A03": 0.90, "A04": 0.85, "A05": 0.80, "A06": 0.75, "A07": 0.70, "A08": 0.65, "A09": 0.60, "A10": 0.50},
+  "categories": [
+    
+    {"id": "A01", "name": "Broken Access Control", "count": 6156, "labs": [{"slug":"insecure_direct_object_reference","title":"Insecure Direct Object Reference","reason":"Practice object-level authorization checks."},{"slug":"cross_site_request_forgery","title":"Cross-Site Request Forgery","reason":"Understand authorization of state-changing requests."},{"slug":"open_redirect","title":"Open Redirect","reason":"Learn to constrain user-controlled navigation."}]},
+    
+    {"id": "A02", "name": "Cryptographic Failures", "count": 456, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Practice protecting secrets and sensitive information."}]},
+    
+    {"id": "A03", "name": "Injection", "count": 5745, "labs": [{"slug":"sql_injection","title":"SQL Injection","reason":"Learn parameterized queries and database input handling."},{"slug":"cross_site_scripting_xss","title":"Cross-Site Scripting","reason":"Practice safe output handling across browser contexts."},{"slug":"command_injection","title":"Command Injection","reason":"Learn to keep operating-system commands and input separate."}]},
+    
+    {"id": "A04", "name": "Insecure Design", "count": 1528, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Explore security controls for a high-risk application feature."},{"slug":"broken_authentication","title":"Broken Authentication","reason":"Review authentication design and abuse cases."}]},
+    
+    {"id": "A05", "name": "Security Misconfiguration", "count": 143, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Identify unsafe diagnostics and exposed configuration."},{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Practice hardening upload configuration and storage."}]},
+    
+    {"id": "A06", "name": "Vulnerable and Outdated Components", "count": 37, "labs": []},
+    
+    {"id": "A07", "name": "Identification and Authentication Failures", "count": 1832, "labs": [{"slug":"broken_authentication","title":"Broken Authentication","reason":"Practice credential, session, recovery, and token defenses."}]},
+    
+    {"id": "A08", "name": "Software and Data Integrity Failures", "count": 689, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Learn to validate provenance, type, and content before trust."}]},
+    
+    {"id": "A09", "name": "Security Logging and Monitoring Failures", "count": 75, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Learn what must never be exposed through logs and diagnostics."}]},
+    
+    {"id": "A10", "name": "Server-Side Request Forgery", "count": 569, "labs": [{"slug":"server_side_request_forgery","title":"Server-Side Request Forgery","reason":"Practice destination validation and internal-network protection."}]}
+    
+  ],
+  "labs": [
+    
+    {"id": "broken-authentication", "title": "Broken Authentication", "description": "Comprehensive coverage of authentication vulnerabilities including weak credentials, session management flaws, and JWT misconfigurations. Practice credential stuffing, session fixation, and token forgery attacks.", "url": "/labs/broken_authentication/", "taskCount": 12},
+    
+    {"id": "command-injection", "title": "Command Injection", "description": "Learn how unsafe system command construction leads to command injection and how to prevent it.", "url": "/labs/command_injection/", "taskCount": 8},
+    
+    {"id": "cross-site-request-forgery", "title": "Cross-Site Request Forgery", "description": "Learn CSRF attacks and defenses through focused security exercises.", "url": "/labs/cross_site_request_forgery/", "taskCount": 7},
+    
+    {"id": "cross-site-scripting-xss", "title": "Cross-Site Scripting (XSS)", "description": "Find out how untrusted input can run as code in a browser, and how to stop it.", "url": "/labs/cross_site_scripting_xss/", "taskCount": 8},
+    
+    {"id": "file-upload-vulnerabilities", "title": "File Upload Vulnerabilities", "description": "Explore critical file upload security flaws that allow attackers to upload malicious files and execute code on servers. Learn to bypass extension filters, MIME type validation, and path traversal restrictions.", "url": "/labs/file_upload_vulnerabilities/", "taskCount": 7},
+    
+    {"id": "insecure-direct-object-reference", "title": "Insecure Direct Object Reference", "description": "Learn how missing object-level authorization exposes other users' data.", "url": "/labs/insecure_direct_object_reference/", "taskCount": 5},
+    
+    {"id": "open-redirect", "title": "Open Redirect", "description": "Understand how open redirect vulnerabilities enable phishing attacks and security bypasses. Learn to exploit redirect parameters without validation to redirect users to malicious sites.", "url": "/labs/open_redirect/", "taskCount": 7},
+    
+    {"id": "passwords-and-mfa", "title": "Passwords and Multi-Factor Authentication", "description": "Learn how unique passwords, password managers, and MFA reduce the impact of account attacks.", "url": "/labs/passwords-and-mfa/", "taskCount": 6},
+    
+    {"id": "phishing-awareness", "title": "Phishing Awareness", "description": "Practice identifying suspicious messages and choosing a safe response before a scam captures your information.", "url": "/labs/phishing-awareness/", "taskCount": 6},
+    
+    {"id": "safe-browsing-and-downloads", "title": "Safe Browsing and Downloads", "description": "Practice safer decisions around websites, browser permissions, downloads, updates, and public networks.", "url": "/labs/safe-browsing-and-downloads/", "taskCount": 6},
+    
+    {"id": "sensitive-data-exposure", "title": "Sensitive Data Exposure", "description": "Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code.", "url": "/labs/sensitive_data_exposure/", "taskCount": 9},
+    
+    {"id": "server-side-request-forgery", "title": "Server-Side Request Forgery (SSRF)", "description": "Advanced SSRF techniques to make servers request internal resources and cloud metadata services. Learn to bypass filters using encoding tricks and redirect chains.", "url": "/labs/server_side_request_forgery/", "taskCount": 7},
+    
+    {"id": "sql-injection", "title": "SQL Injection", "description": "Learn SQL injection through interactive security exercises.", "url": "/labs/sql_injection/", "taskCount": 10}
+    
+  ]
+}</script>
+
+
+
+
+
+
+
 
 
 
@@ -1133,11 +1202,20 @@
                         <i class="ph-bold ph-arrow-left"></i>
                         Previous
                     </button>
-                    <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
-                        Next
-                        <i class="ph-bold ph-arrow-right"></i>
-                    </button>
+                    <div class="flex flex-wrap items-center justify-end gap-3">
+                        <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
+                            Next
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </button>
+                        
+                        <a data-next-lab href="/labs/command_injection/" class="hidden inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-500 transition hover:border-red-200 hover:bg-gray-50 hover:text-bltRed dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-red-900/40 dark:hover:bg-gray-800 dark:hover:text-red-300">
+                            <span><span class="text-bltRed">Continue track:</span> <strong class="font-bold text-gray-800 dark:text-gray-200">Command Injection</strong></span>
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </a>
+                        
+                    </div>
                 </footer>
+                <section data-adaptive-recommendations data-render-on-completion="true" data-current-lab="broken-authentication" data-limit="1" hidden class="mt-5" aria-label="Recommended next lab"></section>
             </div>
         </div>
 
@@ -1276,16 +1354,16 @@
     </main>
 </article>
 
-<script src="/assets/js/vendor/acorn.js?v=1786665202"></script>
-<script src="/assets/js/labs/ast.js?v=1786665202"></script>
-<script src="/assets/js/labs/core.js?v=1786665202"></script>
-<script src="/assets/js/labs/validators.js?v=1786665202"></script>
-<script src="/assets/js/labs/ui.js?v=1786665202"></script>
-<script src="/assets/js/labs/flow.js?v=1786665202"></script>
-<script src="/assets/js/labs/simulations.js?v=1786665202"></script>
-<script src="/assets/js/labs/main.js?v=1786665202"></script>
+<script src="/assets/js/vendor/acorn.js?v=1787007739"></script>
+<script src="/assets/js/labs/ast.js?v=1787007739"></script>
+<script src="/assets/js/labs/core.js?v=1787007739"></script>
+<script src="/assets/js/labs/validators.js?v=1787007739"></script>
+<script src="/assets/js/labs/ui.js?v=1787007739"></script>
+<script src="/assets/js/labs/flow.js?v=1787007739"></script>
+<script src="/assets/js/labs/simulations.js?v=1787007739"></script>
+<script src="/assets/js/labs/main.js?v=1787007739"></script>
 
-    
+
     <div class="px-4">
         <footer
   class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-bltFooter py-10 pb-8 text-white max-md:rounded-t-[.8rem]"
@@ -1306,6 +1384,7 @@
       <p>Docs</p>
       <a href="/courses/">Courses</a>
       <a href="/labs/">Labs</a>
+      <a href="/dashboard/">Dashboard</a>
     </div>
     <div>
       <p>Learn</p>
@@ -1347,7 +1426,8 @@
 </footer>
 
     </div>
-    
-    <script src="/assets/js/main.js?v=1786665202"></script>
+
+    <script src="/assets/js/recommendations.js?v=1787007739"></script>
+    <script src="/assets/js/main.js?v=1787007739"></script>
 </body>
 </html>

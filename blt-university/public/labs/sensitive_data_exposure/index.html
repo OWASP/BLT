@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sensitive Data Exposure - BLT University</title>
-    <meta name="description" content="Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code.">
-    
     <!-- Begin Jekyll SEO tag v2.9.0 -->
 <title>Sensitive Data Exposure | BLT University</title>
 <meta name="generator" content="Jekyll v4.4.1" />
@@ -17,15 +14,15 @@
 <meta property="og:url" content="https://university.owaspblt.org/labs/sensitive_data_exposure/" />
 <meta property="og:site_name" content="BLT University" />
 <meta property="og:type" content="article" />
-<meta property="article:published_time" content="2026-08-13T23:53:22+00:00" />
-<meta property="article:modified_time" content="2026-08-13T23:53:22+00:00" />
+<meta property="article:published_time" content="2026-08-17T23:02:19+00:00" />
+<meta property="article:modified_time" content="2026-08-17T23:02:19+00:00" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="Sensitive Data Exposure" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-13T23:53:22+00:00","datePublished":"2026-08-13T23:53:22+00:00","description":"Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code.","headline":"Sensitive Data Exposure","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/labs/sensitive_data_exposure/"},"url":"https://university.owaspblt.org/labs/sensitive_data_exposure/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-17T23:02:19+00:00","datePublished":"2026-08-17T23:02:19+00:00","description":"Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code.","headline":"Sensitive Data Exposure","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/labs/sensitive_data_exposure/"},"url":"https://university.owaspblt.org/labs/sensitive_data_exposure/"}</script>
 <!-- End Jekyll SEO tag -->
 
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -158,7 +155,7 @@
     </style>
 </head>
 <body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
-    
+
     <header
   class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm"
   id="site-header"
@@ -197,6 +194,12 @@
         class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
         href="/labs/"
         >Labs</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/dashboard/"
+        >Dashboard</a
       >
       
       <a
@@ -252,6 +255,8 @@
     
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
     
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Dashboard</a>
+    
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
     
     
@@ -274,9 +279,73 @@
   </nav>
 </header>
 
-    
+
     <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
 <script id="lab-data" type="application/json">[{"name":"Introduction to Sensitive Data Exposure","description":"Understand what sensitive data exposure is, why it matters, and common sources of leaks.","type":"theory","order":1,"heading":"Introduction to Sensitive Data Exposure","content":"<h2>What is Sensitive Data Exposure?<\/h2>\n<p>Sensitive Data Exposure occurs when applications, APIs, or servers fail to adequately protect confidential information such as credentials, API keys, personal data, or cryptographic keys.<\/p>\n\n<h3>Common sensitive data types<\/h3>\n<ul>\n  <li>Passwords and password hashes<\/li>\n  <li>API keys, tokens, and secrets<\/li>\n  <li>Personally Identifiable Information (PII)<\/li>\n  <li>Encryption keys and certificates<\/li>\n  <li>Internal configuration and debug data<\/li>\n<\/ul>\n\n<h3>Typical sources of exposure<\/h3>\n<ul>\n  <li>Misconfigured storage (public S3 buckets, exposed directories)<\/li>\n  <li>Verbose error messages or stack traces<\/li>\n  <li>Unencrypted transmissions (HTTP instead of HTTPS)<\/li>\n  <li>Leftover files (.git, backups) on web root<\/li>\n  <li>Logging secrets to accessible logs<\/li>\n<\/ul>\n","mcq":{"question":"Which of the following is a primary risk from sensitive data exposure?","options":["A) Faster page loads","B) Credential theft and service compromise","C) Improved SEO","D) Reduced disk usage"],"answer":"B"}},{"name":"Data-in-Transit: TLS and Transport Security","description":"Learn about protecting data during transport and common TLS misconfigurations.","type":"theory","order":2,"heading":"Data-in-Transit: TLS and Transport Security","content":"<h2>Protecting Data in Transit<\/h2>\n<p>Use TLS to encrypt data between clients and servers.<\/p>\n<ul>\n    <li>Enforce TLS 1.2+ and disable insecure ciphers<\/li>\n    <li>Use HSTS<\/li>\n    <li>Redirect HTTP to HTTPS and validate certificates<\/li>\n<\/ul>\n","mcq":{"question":"Which practice helps protect data in transit?","options":["A) Serving sensitive API over HTTP","B) Enforcing HTTPS with HSTS","C) Embedding credentials in query strings","D) Using self-signed certificates in production"],"answer":"B"}},{"name":"Leakage via Debug/Error Messages (Simulation)","description":"Simulate leaking secrets in verbose error pages.","type":"simulation","order":3,"simulation":{"type":"error_leak","scenario":"stack_trace_disclosure","engine":"sensitive-error","target_url":"/user/profile?show=error","vulnerable_code":"app.get('/user/profile', (req, res) => {\n  try {\n    loadProfile(req.user.id);\n  } catch (error) {\n    res.status(500).send(error.stack + '\\nDB_PASSWORD=' + process.env.DB_PASSWORD);\n  }\n});\n","vulnerable_lines":[5],"explain":{"question":"Why does this expose sensitive data?","options":[{"id":"verbose_error","label":"The error response includes stack details and a raw secret."},{"id":"missing_avatar","label":"The profile does not include an avatar."}],"answer":"verbose_error"},"expected_patterns":["error_redaction","secret_manager","safe_logging"],"fix_starter_code":"app.get('/user/profile', (req, res) => {\n  try {\n    loadProfile(req.user.id);\n  } catch (error) {\n    res.status(500).send(error.stack + '\\nDB_PASSWORD=' + process.env.DB_PASSWORD);\n  }\n});\n","vulnerable_parameters":["show"],"success_payload":"Trigger a stack trace showing 'DB_PASSWORD=secret_db_pass'","success_criteria":"Simulated trace reveals safe example of a secret.","hints":["Try show=error","Look for debug endpoints"],"difficulty":"beginner"}},{"name":"Exposed Backup/.git or Public Files (Simulation)","description":"Simulate exposed config or repository files revealing secrets.","type":"simulation","order":4,"simulation":{"type":"file_exposure","scenario":"exposed_git","engine":"sensitive-file","target_url":"/.git/HEAD","vulnerable_code":"app.use('/.git', express.static(path.join(__dirname, '.git')));\napp.use('/backup', express.static(path.join(__dirname, 'backup')));\napp.get('/backup/config.bak', (req, res) => res.sendFile('/app/backup/config.bak'));\n","vulnerable_lines":[1,2,3],"explain":{"question":"Why are public backup and repository files dangerous?","options":[{"id":"public_secret_files","label":"Public static routes can expose config, keys, and repository metadata."},{"id":"no_cache","label":"Static files cannot be cached."}],"answer":"public_secret_files"},"expected_patterns":["deny_sensitive_paths","authorization_required","secret_manager"],"fix_starter_code":"app.use('/.git', express.static(path.join(__dirname, '.git')));\napp.use('/backup', express.static(path.join(__dirname, 'backup')));\napp.get('/backup/config.bak', (req, res) => res.sendFile('/app/backup/config.bak'));\n","vulnerable_parameters":[],"success_payload":"Access /.git/config or backup/config.bak and find simulated AWS key","success_criteria":"Retrieve simulated config with safe example key","hints":["Try /.git/HEAD","/backup/config.bak","/config/.env"],"difficulty":"intermediate"}},{"name":"API Key / Secret in JavaScript or HTML (Simulation)","description":"Simulate discovering secrets embedded in static files.","type":"simulation","order":5,"simulation":{"type":"asset_leak","scenario":"frontend_key_disclosure","engine":"sensitive-asset","target_url":"/static/js/app.js","vulnerable_code":"window.APP_CONFIG = {\n  apiBase: 'https://api.example',\n  API_KEY: 'AKIA...EXAMPLE'\n};\n","vulnerable_lines":[3],"explain":{"question":"Why should this key not be shipped to the browser?","options":[{"id":"client_secret","label":"Any secret embedded in JavaScript can be read by every visitor."},{"id":"missing_bundle","label":"JavaScript cannot define configuration."}],"answer":"client_secret"},"expected_patterns":["remove_client_secret","backend_proxy","secret_manager"],"fix_starter_code":"window.APP_CONFIG = {\n  apiBase: 'https://api.example',\n  API_KEY: 'AKIA...EXAMPLE'\n};\n","vulnerable_parameters":[],"success_payload":"Find 'API_KEY = \"AKIA...EXAMPLE\"'","success_criteria":"Locate simulated hardcoded API key","hints":["Inspect JS/CSS","Search for TOKEN or KEY strings"],"difficulty":"beginner"}},{"name":"Insecure Storage: Plaintext Secrets (Simulation)","description":"Simulate plaintext stored credentials.","type":"simulation","order":6,"simulation":{"type":"storage_plaintext","scenario":"plaintext_passwords","engine":"sensitive-storage","target_url":"/admin/export-users","vulnerable_code":"app.get('/admin/export-users', requireAdmin, (req, res) => {\n  const rows = users.map(user => `${user.email},${user.password}`);\n  res.send(rows.join('\\n'));\n});\n","vulnerable_lines":[2,3],"explain":{"question":"Why is this export unsafe?","options":[{"id":"plaintext_export","label":"Passwords are stored or exported in plaintext instead of being hashed and protected."},{"id":"csv_format","label":"CSV files cannot contain email addresses."}],"answer":"plaintext_export"},"expected_patterns":["password_hashing","authorization_required","sensitive_field_redaction"],"fix_starter_code":"app.get('/admin/export-users', requireAdmin, (req, res) => {\n  const rows = users.map(user => `${user.email},${user.password}`);\n  res.send(rows.join('\\n'));\n});\n","vulnerable_parameters":[],"success_payload":"Download simulated CSV with plaintext password example","success_criteria":"Reveal plaintext or weak-hash example","hints":["Try admin/export endpoints"],"difficulty":"intermediate"}},{"name":"Token Replay & Poorly Scoped Tokens","description":"Theory: long-lived tokens & overly broad scopes.","type":"theory","order":7,"heading":"Token Replay & Poorly Scoped Tokens","content":"<h2>Token Risks<\/h2>\n<p>Tokens should expire fast, be scoped, and revocable.<\/p>\n<ul>\n    <li>Short expiry<\/li>\n    <li>Minimal permissions<\/li>\n    <li>Revocation & monitoring<\/li>\n<\/ul>\n","mcq":{"question":"Which reduces the blast radius if a key is leaked?","options":["A) Long-lived, broad tokens","B) Short-lived minimal scope tokens","C) Hardcode secrets","D) Reuse same key everywhere"],"answer":"B"}},{"name":"Prevention & Remediation Best Practices","description":"Learn controls to prevent leaks.","type":"theory","order":8,"heading":"Prevention & Remediation Best Practices","content":"<h2>Remediation & Prevention<\/h2>\n<ul>\n  <li>Encrypt at rest + in transit<\/li>\n  <li>Use secrets managers<\/li>\n  <li>Do not store secrets in repos<\/li>\n  <li>Limit PII and retention<\/li>\n<\/ul>\n","mcq":{"question":"Which is a secure way to manage secrets?","options":["A) Put secrets in git","B) Use a secrets manager","C) Store plaintext secrets in web root","D) Hardcode in source"],"answer":"B"}},{"name":"Sensitive Data Exposure Challenge - Safe Remediation","description":"Simulation: find exposed secret & provide remediation text.","type":"simulation","order":9,"simulation":{"type":"remediation_plan","scenario":"identify_and_remediate","engine":"sensitive-remediation","target_url":"/.env","vulnerable_code":"app.get('/.env', (req, res) => {\n  logger.info('Serving SECRET_KEY=' + process.env.SECRET_KEY);\n  res.type('text/plain').send('SECRET_KEY=' + process.env.SECRET_KEY);\n});\n","vulnerable_lines":[2,3],"explain":{"question":"What must happen after a secret is exposed?","options":[{"id":"rotate_revoke","label":"Remove the exposure, rotate or revoke the secret, and move it to managed storage."},{"id":"ignore_secret","label":"Keep using the secret because it was only exposed once."}],"answer":"rotate_revoke"},"expected_patterns":["secret_rotation","secret_manager","redacted_logging"],"fix_starter_code":"app.get('/.env', (req, res) => {\n  logger.info('Serving SECRET_KEY=' + process.env.SECRET_KEY);\n  res.type('text/plain').send('SECRET_KEY=' + process.env.SECRET_KEY);\n});\n","vulnerable_parameters":[],"success_payload":"Find simulated SECRET_KEY and provide remediation steps","success_criteria":"User mentions rotate, revoke, secrets manager","hints":["Search for exposed /.env","Provide fix steps"],"difficulty":"advanced"}}]</script>
+
+
+<script id="adaptive-recommendation-data" type="application/json">{
+  "weights": {"A01": 1.00, "A02": 0.95, "A03": 0.90, "A04": 0.85, "A05": 0.80, "A06": 0.75, "A07": 0.70, "A08": 0.65, "A09": 0.60, "A10": 0.50},
+  "categories": [
+    
+    {"id": "A01", "name": "Broken Access Control", "count": 6156, "labs": [{"slug":"insecure_direct_object_reference","title":"Insecure Direct Object Reference","reason":"Practice object-level authorization checks."},{"slug":"cross_site_request_forgery","title":"Cross-Site Request Forgery","reason":"Understand authorization of state-changing requests."},{"slug":"open_redirect","title":"Open Redirect","reason":"Learn to constrain user-controlled navigation."}]},
+    
+    {"id": "A02", "name": "Cryptographic Failures", "count": 456, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Practice protecting secrets and sensitive information."}]},
+    
+    {"id": "A03", "name": "Injection", "count": 5745, "labs": [{"slug":"sql_injection","title":"SQL Injection","reason":"Learn parameterized queries and database input handling."},{"slug":"cross_site_scripting_xss","title":"Cross-Site Scripting","reason":"Practice safe output handling across browser contexts."},{"slug":"command_injection","title":"Command Injection","reason":"Learn to keep operating-system commands and input separate."}]},
+    
+    {"id": "A04", "name": "Insecure Design", "count": 1528, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Explore security controls for a high-risk application feature."},{"slug":"broken_authentication","title":"Broken Authentication","reason":"Review authentication design and abuse cases."}]},
+    
+    {"id": "A05", "name": "Security Misconfiguration", "count": 143, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Identify unsafe diagnostics and exposed configuration."},{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Practice hardening upload configuration and storage."}]},
+    
+    {"id": "A06", "name": "Vulnerable and Outdated Components", "count": 37, "labs": []},
+    
+    {"id": "A07", "name": "Identification and Authentication Failures", "count": 1832, "labs": [{"slug":"broken_authentication","title":"Broken Authentication","reason":"Practice credential, session, recovery, and token defenses."}]},
+    
+    {"id": "A08", "name": "Software and Data Integrity Failures", "count": 689, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Learn to validate provenance, type, and content before trust."}]},
+    
+    {"id": "A09", "name": "Security Logging and Monitoring Failures", "count": 75, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Learn what must never be exposed through logs and diagnostics."}]},
+    
+    {"id": "A10", "name": "Server-Side Request Forgery", "count": 569, "labs": [{"slug":"server_side_request_forgery","title":"Server-Side Request Forgery","reason":"Practice destination validation and internal-network protection."}]}
+    
+  ],
+  "labs": [
+    
+    {"id": "broken-authentication", "title": "Broken Authentication", "description": "Comprehensive coverage of authentication vulnerabilities including weak credentials, session management flaws, and JWT misconfigurations. Practice credential stuffing, session fixation, and token forgery attacks.", "url": "/labs/broken_authentication/", "taskCount": 12},
+    
+    {"id": "command-injection", "title": "Command Injection", "description": "Learn how unsafe system command construction leads to command injection and how to prevent it.", "url": "/labs/command_injection/", "taskCount": 8},
+    
+    {"id": "cross-site-request-forgery", "title": "Cross-Site Request Forgery", "description": "Learn CSRF attacks and defenses through focused security exercises.", "url": "/labs/cross_site_request_forgery/", "taskCount": 7},
+    
+    {"id": "cross-site-scripting-xss", "title": "Cross-Site Scripting (XSS)", "description": "Find out how untrusted input can run as code in a browser, and how to stop it.", "url": "/labs/cross_site_scripting_xss/", "taskCount": 8},
+    
+    {"id": "file-upload-vulnerabilities", "title": "File Upload Vulnerabilities", "description": "Explore critical file upload security flaws that allow attackers to upload malicious files and execute code on servers. Learn to bypass extension filters, MIME type validation, and path traversal restrictions.", "url": "/labs/file_upload_vulnerabilities/", "taskCount": 7},
+    
+    {"id": "insecure-direct-object-reference", "title": "Insecure Direct Object Reference", "description": "Learn how missing object-level authorization exposes other users' data.", "url": "/labs/insecure_direct_object_reference/", "taskCount": 5},
+    
+    {"id": "open-redirect", "title": "Open Redirect", "description": "Understand how open redirect vulnerabilities enable phishing attacks and security bypasses. Learn to exploit redirect parameters without validation to redirect users to malicious sites.", "url": "/labs/open_redirect/", "taskCount": 7},
+    
+    {"id": "passwords-and-mfa", "title": "Passwords and Multi-Factor Authentication", "description": "Learn how unique passwords, password managers, and MFA reduce the impact of account attacks.", "url": "/labs/passwords-and-mfa/", "taskCount": 6},
+    
+    {"id": "phishing-awareness", "title": "Phishing Awareness", "description": "Practice identifying suspicious messages and choosing a safe response before a scam captures your information.", "url": "/labs/phishing-awareness/", "taskCount": 6},
+    
+    {"id": "safe-browsing-and-downloads", "title": "Safe Browsing and Downloads", "description": "Practice safer decisions around websites, browser permissions, downloads, updates, and public networks.", "url": "/labs/safe-browsing-and-downloads/", "taskCount": 6},
+    
+    {"id": "sensitive-data-exposure", "title": "Sensitive Data Exposure", "description": "Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code.", "url": "/labs/sensitive_data_exposure/", "taskCount": 9},
+    
+    {"id": "server-side-request-forgery", "title": "Server-Side Request Forgery (SSRF)", "description": "Advanced SSRF techniques to make servers request internal resources and cloud metadata services. Learn to bypass filters using encoding tricks and redirect chains.", "url": "/labs/server_side_request_forgery/", "taskCount": 7},
+    
+    {"id": "sql-injection", "title": "SQL Injection", "description": "Learn SQL injection through interactive security exercises.", "url": "/labs/sql_injection/", "taskCount": 10}
+    
+  ]
+}</script>
+
+
+
+
+
+
+
 
 
 
@@ -906,11 +975,20 @@
                         <i class="ph-bold ph-arrow-left"></i>
                         Previous
                     </button>
-                    <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
-                        Next
-                        <i class="ph-bold ph-arrow-right"></i>
-                    </button>
+                    <div class="flex flex-wrap items-center justify-end gap-3">
+                        <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
+                            Next
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </button>
+                        
+                        <a data-next-lab href="/labs/server_side_request_forgery/" class="hidden inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-500 transition hover:border-red-200 hover:bg-gray-50 hover:text-bltRed dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-red-900/40 dark:hover:bg-gray-800 dark:hover:text-red-300">
+                            <span><span class="text-bltRed">Continue track:</span> <strong class="font-bold text-gray-800 dark:text-gray-200">Server-Side Request Forgery (SSRF)</strong></span>
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </a>
+                        
+                    </div>
                 </footer>
+                <section data-adaptive-recommendations data-render-on-completion="true" data-current-lab="sensitive-data-exposure" data-limit="1" hidden class="mt-5" aria-label="Recommended next lab"></section>
             </div>
         </div>
 
@@ -1025,16 +1103,16 @@
     </main>
 </article>
 
-<script src="/assets/js/vendor/acorn.js?v=1786665202"></script>
-<script src="/assets/js/labs/ast.js?v=1786665202"></script>
-<script src="/assets/js/labs/core.js?v=1786665202"></script>
-<script src="/assets/js/labs/validators.js?v=1786665202"></script>
-<script src="/assets/js/labs/ui.js?v=1786665202"></script>
-<script src="/assets/js/labs/flow.js?v=1786665202"></script>
-<script src="/assets/js/labs/simulations.js?v=1786665202"></script>
-<script src="/assets/js/labs/main.js?v=1786665202"></script>
+<script src="/assets/js/vendor/acorn.js?v=1787007739"></script>
+<script src="/assets/js/labs/ast.js?v=1787007739"></script>
+<script src="/assets/js/labs/core.js?v=1787007739"></script>
+<script src="/assets/js/labs/validators.js?v=1787007739"></script>
+<script src="/assets/js/labs/ui.js?v=1787007739"></script>
+<script src="/assets/js/labs/flow.js?v=1787007739"></script>
+<script src="/assets/js/labs/simulations.js?v=1787007739"></script>
+<script src="/assets/js/labs/main.js?v=1787007739"></script>
 
-    
+
     <div class="px-4">
         <footer
   class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-bltFooter py-10 pb-8 text-white max-md:rounded-t-[.8rem]"
@@ -1055,6 +1133,7 @@
       <p>Docs</p>
       <a href="/courses/">Courses</a>
       <a href="/labs/">Labs</a>
+      <a href="/dashboard/">Dashboard</a>
     </div>
     <div>
       <p>Learn</p>
@@ -1096,7 +1175,8 @@
 </footer>
 
     </div>
-    
-    <script src="/assets/js/main.js?v=1786665202"></script>
+
+    <script src="/assets/js/recommendations.js?v=1787007739"></script>
+    <script src="/assets/js/main.js?v=1787007739"></script>
 </body>
 </html>

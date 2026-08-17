@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>Passwords and Multi-Factor Authentication | BLT University</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Passwords and Multi-Factor Authentication" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Learn how unique passwords, password managers, and MFA reduce the impact of account attacks." />
+<meta name="twitter:description" property="og:description" content="Learn how unique passwords, password managers, and MFA reduce the impact of account attacks." />
+<link rel="canonical" href="https://university.owaspblt.org/labs/passwords-and-mfa/" />
+<meta property="og:url" content="https://university.owaspblt.org/labs/passwords-and-mfa/" />
+<meta property="og:site_name" content="BLT University" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-08-17T23:02:19+00:00" />
+<meta property="article:modified_time" content="2026-08-17T23:02:19+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Passwords and Multi-Factor Authentication" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-17T23:02:19+00:00","datePublished":"2026-08-17T23:02:19+00:00","description":"Learn how unique passwords, password managers, and MFA reduce the impact of account attacks.","headline":"Passwords and Multi-Factor Authentication","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/labs/passwords-and-mfa/"},"url":"https://university.owaspblt.org/labs/passwords-and-mfa/"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        // Dark mode theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Geist', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+                    },
+                    colors: {
+                        bltRed: '#dc2626',
+                        bltRedLight: '#fee2e2',
+                        bltRedHover: '#b91c1c',
+                        bltDark: '#111827',
+                        bltCoral: '#ef4444',
+                        bltFooter: '#0e0d0c'
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(17,24,39,0.04)',
+                        float: '0 10px 24px -18px rgba(220,38,38,.8)'
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        .dot-field {
+            background-image: radial-gradient(rgba(17, 24, 39, 0.18) 1px, transparent 1px);
+            background-size: 18px 18px;
+            mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        }
+        .mobile-menu.open {
+            display: flex;
+        }
+        .mobile-toggle.active span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+        .mobile-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .mobile-toggle.active span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+        .feature-divider::before,
+        .feature-divider::after {
+            content: "";
+            height: 1px;
+            flex: 1;
+        }
+        .feature-divider::before {
+            background: linear-gradient(to right, transparent, #e5e7eb);
+        }
+        .feature-divider::after {
+            background: linear-gradient(to left, transparent, #e5e7eb);
+        }
+        .wave-dots i {
+            position: absolute;
+            width: 0.25rem;
+            height: 0.25rem;
+            border-radius: 999px;
+            background: #d1d5db;
+            animation: wave 2s infinite ease-in-out;
+        }
+        .wave-dots i:nth-child(1) { top: 0; left: 0; }
+        .wave-dots i:nth-child(2) { top: 0; left: 1rem; }
+        .wave-dots i:nth-child(3) { top: 0.25rem; left: 0.5rem; animation-delay: 0.35s; }
+        .wave-dots i:nth-child(4) { top: 0.5rem; left: 0; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(5) { top: 0.5rem; left: 1rem; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(6) { top: 0.75rem; left: 0.5rem; animation-delay: 0.85s; }
+        .section-kicker.with-bar::before {
+            content: "";
+            position: absolute;
+            top: 0.18rem;
+            left: -0.55rem;
+            width: 3px;
+            height: 1.25rem;
+            border-radius: 0 2px 2px 0;
+            background: #ef4444;
+        }
+        .footer-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image:
+              linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .footer-links p {
+            margin: 0 0 0.35rem;
+            color: #6b7280;
+            font-size: 0.625rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .footer-links a {
+            display: block;
+            color: #d1d5db;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            transition: color 180ms ease;
+        }
+        .footer-links a:hover {
+            color: white;
+        }
+        @keyframes wave {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-3px);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
+
+    <header
+  class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm"
+  id="site-header"
+>
+  <div
+    class="relative mx-auto flex max-w-[104rem] items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-6 xl:px-6"
+  >
+    <a
+      href="/"
+      class="inline-flex items-center gap-2.5"
+      aria-label="BLT University home"
+    >
+      <img
+        src="/assets/images/blt-university-logo.png"
+        alt="BLT University logo"
+        class="h-12 sm:h-14"
+      />
+      <div class="flex flex-col">
+        <span class="text-sm font-semibold uppercase tracking-wide">BLT UNIVERSITY</span>
+      </div>
+    </a>
+
+    <nav
+      class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-7 lg:flex"
+      aria-label="Primary navigation"
+    >
+      
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/courses/"
+        >Courses</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/labs/"
+        >Labs</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/dashboard/"
+        >Dashboard</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/instructors/"
+        >Instructors</a
+      >
+      
+    </nav>
+
+    <div class="hidden items-center gap-3 lg:flex">
+      
+      
+      
+      <a
+        class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+        href="/request/"
+        >Request course</a
+      >
+      
+      
+      
+      <a
+        class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+        href="/enroll/"
+        >Enroll now</a
+      >
+      
+      
+    </div>
+
+    <button
+      class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-lg:flex"
+      id="mobile-toggle"
+      type="button"
+      aria-label="Toggle menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+    </button>
+  </div>
+
+  <nav
+    class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white px-6 py-4"
+    id="mobile-menu"
+    aria-label="Mobile navigation"
+  >
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/courses/">Courses</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Dashboard</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+      href="/request/"
+      >Request course</a
+    >
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+      href="/enroll/"
+      >Enroll now</a
+    >
+    
+    
+  </nav>
+</header>
+
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
+<script id="lab-data" type="application/json">[{"name":"Use Unique Passwords","description":"Understand why a password leak on one service can affect every account that reuses it.","type":"theory","order":1,"heading":"One account should not unlock every account","content":"Attackers regularly try leaked username-and-password pairs on other services. Reusing a password turns one unrelated breach into a chain of account takeovers.\n\nUse a different password for every important account. A password manager can generate and remember long, random passwords so you do not have to memorize each one. Protect the manager with a strong unique master password and MFA.\n\nNever share passwords through chat or email. Legitimate support staff should not need your password.\n","mcq":{"question":"What can happen when the same password is reused across several services?","options":["A) Reused passwords are always shorter than unique passwords.","B) A password exposed by one breach can be tried on other accounts.","C) Password managers cannot store reused passwords.","D) Reused passwords prevent MFA from working."],"answer":"B"}},{"name":"Add a Second Factor","description":"Compare MFA methods and understand how they add protection beyond a password.","type":"theory","order":2,"heading":"A password is not the only proof of identity","content":"Multi-factor authentication asks for another kind of proof after the password. Common factors include something you know, something you have, and something you are.\n\nPrefer a security key or an authenticator app when available. Push approvals can be useful, but never approve an unexpected prompt. SMS codes are better than a password alone but can be exposed through phone-number attacks, so treat them as a fallback where stronger methods are unavailable.\n","mcq":{"question":"An MFA approval request appears, but you did not try to sign in. What should you do?","options":["A) Approve it so the prompts stop.","B) Share the code with the person who requested it.","C) Deny it, change the password from the official service, and report the event.","D) Disable MFA permanently."],"answer":"C"}},{"name":"Protect Recovery Options","description":"Review the recovery settings that can help or undermine account security.","type":"theory","order":3,"heading":"Recovery is part of the account boundary","content":"An attacker who controls a recovery email address or phone number may be able to reset the account even without the current password. Keep recovery details current, protect the recovery account with its own unique password and MFA, and store backup codes somewhere private and offline.\n\nReview active sessions and connected applications after a suspected compromise. Sign out unknown sessions, remove unfamiliar access, and contact the service through its official support channel.\n","mcq":{"question":"Which recovery setup makes it harder for someone else to take over the account?","options":["A) Store backup codes in a public notes application.","B) Reuse the main account password for the recovery email.","C) Protect the recovery account with a unique password and MFA.","D) Share recovery codes with a coworker for convenience."],"answer":"C"}},{"name":"Respond to an Account Alert","description":"Practice the safest response to an unexpected sign-in or MFA notification.","type":"theory","order":4,"heading":"Treat unexpected prompts as a possible compromise","content":"An unexpected sign-in alert or MFA prompt may mean that someone knows your password. Deny the prompt and do not approve repeated requests just to make them stop.\n\nFrom the service's official website or application, change the password, review recent activity, sign out other sessions, remove unfamiliar applications, and check recovery details. Report the event to the service if the activity was not yours.\n","mcq":{"question":"You receive an unexpected MFA prompt. Which response protects the account instead of giving an attacker access?","options":["A) Approve it so the prompts stop.","B) Deny it, then use the official service to change the password and review sessions.","C) Send the prompt code to a support account in a chat message.","D) Turn off MFA before investigating the alert."],"answer":"B"}},{"name":"Make an Account Plan","description":"Combine password, MFA, and recovery choices into a practical account-protection plan.","type":"theory","order":5,"heading":"Protect the account and its recovery path","content":"For each important account, make sure the password is unique and stored safely, a strong MFA method is enabled, and recovery details are current. Keep backup codes private and review active sessions and connected applications from time to time.\n\nProtect the email account that receives recovery messages especially carefully. If it is compromised, an attacker may be able to reset other accounts even when those accounts use strong passwords.\n","mcq":{"question":"Which combination gives an important account a sensible, strong baseline of protection?","options":["A) One memorable password reused everywhere and SMS disabled.","B) A unique password, phishing-resistant MFA when available, and protected recovery options.","C) A shared password stored in a team chat and no backup codes.","D) A short password changed only after an account is breached."],"answer":"B"}},{"name":"Recover a Compromised Account","description":"Practice containing an account takeover while preserving evidence and protecting connected services.","type":"theory","order":6,"heading":"Contain the compromise, then rebuild trust","content":"You notice a sign-in from an unfamiliar location and an email saying that your recovery address was changed. You still have access to the account on one trusted device.\n\nUse that trusted device to open the official service, change the password, sign out other sessions, restore the correct recovery details, and remove unknown applications. Revoke active sessions and API tokens when the service provides that option. Save the alert details for support, contact the service through its official recovery process, and change any other account that reused the exposed password.\n\nDo not follow links in the alert email or send a recovery code to anyone who contacts you. If the account controls work or financial information, escalate quickly to the organisation responsible for it.\n","mcq":{"question":"You still have one trusted device after a suspected account takeover. What is the most complete response?","options":["A) Delete the alert email and keep using the account because the trusted device still works.","B) Change only the password and wait to see whether another alert arrives.","C) Use the official service to reset access, end other sessions, restore recovery settings, remove unknown access, and report the incident.","D) Send the alert and a recovery code to a helpful person who offers to fix the account."],"answer":"C"}}]</script>
+
+
+<script id="adaptive-recommendation-data" type="application/json">{
+  "weights": {"A01": 1.00, "A02": 0.95, "A03": 0.90, "A04": 0.85, "A05": 0.80, "A06": 0.75, "A07": 0.70, "A08": 0.65, "A09": 0.60, "A10": 0.50},
+  "categories": [
+    
+    {"id": "A01", "name": "Broken Access Control", "count": 6156, "labs": [{"slug":"insecure_direct_object_reference","title":"Insecure Direct Object Reference","reason":"Practice object-level authorization checks."},{"slug":"cross_site_request_forgery","title":"Cross-Site Request Forgery","reason":"Understand authorization of state-changing requests."},{"slug":"open_redirect","title":"Open Redirect","reason":"Learn to constrain user-controlled navigation."}]},
+    
+    {"id": "A02", "name": "Cryptographic Failures", "count": 456, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Practice protecting secrets and sensitive information."}]},
+    
+    {"id": "A03", "name": "Injection", "count": 5745, "labs": [{"slug":"sql_injection","title":"SQL Injection","reason":"Learn parameterized queries and database input handling."},{"slug":"cross_site_scripting_xss","title":"Cross-Site Scripting","reason":"Practice safe output handling across browser contexts."},{"slug":"command_injection","title":"Command Injection","reason":"Learn to keep operating-system commands and input separate."}]},
+    
+    {"id": "A04", "name": "Insecure Design", "count": 1528, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Explore security controls for a high-risk application feature."},{"slug":"broken_authentication","title":"Broken Authentication","reason":"Review authentication design and abuse cases."}]},
+    
+    {"id": "A05", "name": "Security Misconfiguration", "count": 143, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Identify unsafe diagnostics and exposed configuration."},{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Practice hardening upload configuration and storage."}]},
+    
+    {"id": "A06", "name": "Vulnerable and Outdated Components", "count": 37, "labs": []},
+    
+    {"id": "A07", "name": "Identification and Authentication Failures", "count": 1832, "labs": [{"slug":"broken_authentication","title":"Broken Authentication","reason":"Practice credential, session, recovery, and token defenses."}]},
+    
+    {"id": "A08", "name": "Software and Data Integrity Failures", "count": 689, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Learn to validate provenance, type, and content before trust."}]},
+    
+    {"id": "A09", "name": "Security Logging and Monitoring Failures", "count": 75, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Learn what must never be exposed through logs and diagnostics."}]},
+    
+    {"id": "A10", "name": "Server-Side Request Forgery", "count": 569, "labs": [{"slug":"server_side_request_forgery","title":"Server-Side Request Forgery","reason":"Practice destination validation and internal-network protection."}]}
+    
+  ],
+  "labs": [
+    
+    {"id": "broken-authentication", "title": "Broken Authentication", "description": "Comprehensive coverage of authentication vulnerabilities including weak credentials, session management flaws, and JWT misconfigurations. Practice credential stuffing, session fixation, and token forgery attacks.", "url": "/labs/broken_authentication/", "taskCount": 12},
+    
+    {"id": "command-injection", "title": "Command Injection", "description": "Learn how unsafe system command construction leads to command injection and how to prevent it.", "url": "/labs/command_injection/", "taskCount": 8},
+    
+    {"id": "cross-site-request-forgery", "title": "Cross-Site Request Forgery", "description": "Learn CSRF attacks and defenses through focused security exercises.", "url": "/labs/cross_site_request_forgery/", "taskCount": 7},
+    
+    {"id": "cross-site-scripting-xss", "title": "Cross-Site Scripting (XSS)", "description": "Find out how untrusted input can run as code in a browser, and how to stop it.", "url": "/labs/cross_site_scripting_xss/", "taskCount": 8},
+    
+    {"id": "file-upload-vulnerabilities", "title": "File Upload Vulnerabilities", "description": "Explore critical file upload security flaws that allow attackers to upload malicious files and execute code on servers. Learn to bypass extension filters, MIME type validation, and path traversal restrictions.", "url": "/labs/file_upload_vulnerabilities/", "taskCount": 7},
+    
+    {"id": "insecure-direct-object-reference", "title": "Insecure Direct Object Reference", "description": "Learn how missing object-level authorization exposes other users' data.", "url": "/labs/insecure_direct_object_reference/", "taskCount": 5},
+    
+    {"id": "open-redirect", "title": "Open Redirect", "description": "Understand how open redirect vulnerabilities enable phishing attacks and security bypasses. Learn to exploit redirect parameters without validation to redirect users to malicious sites.", "url": "/labs/open_redirect/", "taskCount": 7},
+    
+    {"id": "passwords-and-mfa", "title": "Passwords and Multi-Factor Authentication", "description": "Learn how unique passwords, password managers, and MFA reduce the impact of account attacks.", "url": "/labs/passwords-and-mfa/", "taskCount": 6},
+    
+    {"id": "phishing-awareness", "title": "Phishing Awareness", "description": "Practice identifying suspicious messages and choosing a safe response before a scam captures your information.", "url": "/labs/phishing-awareness/", "taskCount": 6},
+    
+    {"id": "safe-browsing-and-downloads", "title": "Safe Browsing and Downloads", "description": "Practice safer decisions around websites, browser permissions, downloads, updates, and public networks.", "url": "/labs/safe-browsing-and-downloads/", "taskCount": 6},
+    
+    {"id": "sensitive-data-exposure", "title": "Sensitive Data Exposure", "description": "Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code.", "url": "/labs/sensitive_data_exposure/", "taskCount": 9},
+    
+    {"id": "server-side-request-forgery", "title": "Server-Side Request Forgery (SSRF)", "description": "Advanced SSRF techniques to make servers request internal resources and cloud metadata services. Learn to bypass filters using encoding tricks and redirect chains.", "url": "/labs/server_side_request_forgery/", "taskCount": 7},
+    
+    {"id": "sql-injection", "title": "SQL Injection", "description": "Learn SQL injection through interactive security exercises.", "url": "/labs/sql_injection/", "taskCount": 10}
+    
+  ]
+}</script>
+
+
+
+
+
+
+
+
+
+
+
+
+<article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
+    <section class="bg-bltDark text-white pt-32 md:pt-36 pb-16 md:pb-20 relative overflow-hidden border-b border-white/5">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.12),transparent_34%)]"></div>
+
+        <div class="mx-auto max-w-[104rem] px-5 sm:px-6 lg:px-8 xl:px-10 relative z-10">
+            <div class="grid lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-8 xl:gap-10 2xl:gap-12 items-center">
+                <div>
+                    <div class="flex flex-wrap items-center gap-3 mb-5">
+                        <span class="px-2.5 py-1 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">Cyber Hygiene</span>
+                        <span class="px-2.5 py-1 bg-white/10 border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">beginner</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/10 border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">
+                            <i class="ph-bold ph-clock text-sm text-bltRed"></i>
+                            45 mins
+                        </span>
+                    </div>
+
+                    <h1 class="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4 leading-tight max-w-4xl">Passwords and Multi-Factor Authentication</h1>
+                    <p class="text-sm md:text-base text-gray-400 leading-relaxed max-w-2xl">Learn how unique passwords, password managers, and MFA reduce the impact of account attacks.</p>
+
+                    <div class="mt-7 grid gap-4 text-xs md:text-sm text-gray-300 sm:grid-cols-3 max-w-3xl">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-flask text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Hands-on Labs</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-globe-hemisphere-west text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Real-world Scenarios</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-lightning text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Immediate Feedback</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden lg:block">
+                    <div class="h-[190px] rounded-2xl border border-white/10 bg-white/5 p-3 shadow-2xl">
+                        <div class="h-full rounded-2xl border border-white/10 bg-gray-950/70 overflow-hidden">
+                            <div class="flex h-7 items-center gap-1.5 border-b border-white/10 bg-white/5 px-3">
+                                <span class="h-2 w-2 rounded-full bg-red-400"></span>
+                                <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                                <span class="h-2 w-2 rounded-full bg-green-400"></span>
+                            </div>
+                            
+                            <div class="p-4 space-y-3">
+                                <div class="h-2 rounded-full bg-gray-700 w-3/4"></div>
+                                <div class="h-2 rounded-full bg-gray-700 w-1/2"></div>
+                                <div class="rounded-xl border border-red-500/50 bg-red-950/30 p-3 font-mono text-[11px] text-red-200">
+                                    ' OR '1'='1' --
+                                </div>
+                                <div class="h-2 rounded-full bg-gray-700 w-5/6"></div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main data-lab-root data-lab-id="passwords-and-mfa" class="mx-auto max-w-[104rem] px-5 sm:px-6 lg:px-8 xl:px-10 w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-8 xl:gap-10 2xl:gap-12 -mt-8 relative z-20 pb-24">
+        <div class="min-w-0">
+            <div class="bg-white dark:bg-gray-900 p-5 md:p-8 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
+                
+                <section data-lab-task data-task-index="0" class="">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            1
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Use Unique Passwords</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Understand why a password leak on one service can affect every account that reuses it.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            One account should not unlock every account
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>Attackers regularly try leaked username-and-password pairs on other services. Reusing a password turns one unrelated breach into a chain of account takeovers.</p>
+
+<p>Use a different password for every important account. A password manager can generate and remember long, random passwords so you do not have to memorize each one. Protect the manager with a strong unique master password and MFA.</p>
+
+<p>Never share passwords through chat or email. Legitimate support staff should not need your password.</p>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">What can happen when the same password is reused across several services?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Reused passwords are always shorter than unique passwords.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) A password exposed by one breach can be tried on other accounts.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Password managers cannot store reused passwords.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Reused passwords prevent MFA from working.</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="1" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            2
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Add a Second Factor</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Compare MFA methods and understand how they add protection beyond a password.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            A password is not the only proof of identity
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>Multi-factor authentication asks for another kind of proof after the password. Common factors include something you know, something you have, and something you are.</p>
+
+<p>Prefer a security key or an authenticator app when available. Push approvals can be useful, but never approve an unexpected prompt. SMS codes are better than a password alone but can be exposed through phone-number attacks, so treat them as a fallback where stronger methods are unavailable.</p>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">An MFA approval request appears, but you did not try to sign in. What should you do?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Approve it so the prompts stop.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Share the code with the person who requested it.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Deny it, change the password from the official service, and report the event.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Disable MFA permanently.</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="2" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            3
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Protect Recovery Options</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Review the recovery settings that can help or undermine account security.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            Recovery is part of the account boundary
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>An attacker who controls a recovery email address or phone number may be able to reset the account even without the current password. Keep recovery details current, protect the recovery account with its own unique password and MFA, and store backup codes somewhere private and offline.</p>
+
+<p>Review active sessions and connected applications after a suspected compromise. Sign out unknown sessions, remove unfamiliar access, and contact the service through its official support channel.</p>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">Which recovery setup makes it harder for someone else to take over the account?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Store backup codes in a public notes application.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Reuse the main account password for the recovery email.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Protect the recovery account with a unique password and MFA.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Share recovery codes with a coworker for convenience.</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="3" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            4
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Respond to an Account Alert</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Practice the safest response to an unexpected sign-in or MFA notification.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            Treat unexpected prompts as a possible compromise
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>An unexpected sign-in alert or MFA prompt may mean that someone knows your password. Deny the prompt and do not approve repeated requests just to make them stop.</p>
+
+<p>From the service’s official website or application, change the password, review recent activity, sign out other sessions, remove unfamiliar applications, and check recovery details. Report the event to the service if the activity was not yours.</p>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">You receive an unexpected MFA prompt. Which response protects the account instead of giving an attacker access?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Approve it so the prompts stop.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Deny it, then use the official service to change the password and review sessions.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Send the prompt code to a support account in a chat message.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Turn off MFA before investigating the alert.</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="4" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            5
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Make an Account Plan</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Combine password, MFA, and recovery choices into a practical account-protection plan.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            Protect the account and its recovery path
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>For each important account, make sure the password is unique and stored safely, a strong MFA method is enabled, and recovery details are current. Keep backup codes private and review active sessions and connected applications from time to time.</p>
+
+<p>Protect the email account that receives recovery messages especially carefully. If it is compromised, an attacker may be able to reset other accounts even when those accounts use strong passwords.</p>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">Which combination gives an important account a sensible, strong baseline of protection?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) One memorable password reused everywhere and SMS disabled.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) A unique password, phishing-resistant MFA when available, and protected recovery options.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) A shared password stored in a team chat and no backup codes.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) A short password changed only after an account is breached.</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="5" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            6
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Recover a Compromised Account</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Practice containing an account takeover while preserving evidence and protecting connected services.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            Contain the compromise, then rebuild trust
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>You notice a sign-in from an unfamiliar location and an email saying that your recovery address was changed. You still have access to the account on one trusted device.</p>
+
+<p>Use that trusted device to open the official service, change the password, sign out other sessions, restore the correct recovery details, and remove unknown applications. Revoke active sessions and API tokens when the service provides that option. Save the alert details for support, contact the service through its official recovery process, and change any other account that reused the exposed password.</p>
+
+<p>Do not follow links in the alert email or send a recovery code to anyone who contacts you. If the account controls work or financial information, escalate quickly to the organisation responsible for it.</p>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">You still have one trusted device after a suspected account takeover. What is the most complete response?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Delete the alert email and keep using the account because the trusted device still works.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Change only the password and wait to see whether another alert arrives.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Use the official service to reset access, end other sessions, restore recovery settings, remove unknown access, and report the incident.</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Send the alert and a recovery code to a helpful person who offers to fix the account.</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+
+                <footer class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                    <button type="button" data-lab-prev class="inline-flex items-center justify-center gap-2 px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-500 dark:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                        <i class="ph-bold ph-arrow-left"></i>
+                        Previous
+                    </button>
+                    <div class="flex flex-wrap items-center justify-end gap-3">
+                        <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
+                            Next
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </button>
+                        
+                        <a data-next-lab href="/labs/phishing-awareness/" class="hidden inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-500 transition hover:border-red-200 hover:bg-gray-50 hover:text-bltRed dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-red-900/40 dark:hover:bg-gray-800 dark:hover:text-red-300">
+                            <span><span class="text-bltRed">Continue track:</span> <strong class="font-bold text-gray-800 dark:text-gray-200">Phishing Awareness</strong></span>
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </a>
+                        
+                    </div>
+                </footer>
+                <section data-adaptive-recommendations data-render-on-completion="true" data-current-lab="passwords-and-mfa" data-limit="1" hidden class="mt-5" aria-label="Recommended next lab"></section>
+            </div>
+        </div>
+
+        <aside class="min-w-0 space-y-6">
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800">
+                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+                    <i class="ph-bold ph-chart-line-up text-bltRed"></i>
+                    Lab Progress
+                </h3>
+                <div class="mb-6">
+                    <div class="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                        <span>Completion</span>
+                        <span data-lab-percent>0%</span>
+                    </div>
+                    <div class="w-full h-2.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                        <div data-lab-progress class="h-full w-0 bg-bltRed rounded-full transition-all duration-300"></div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    
+                    <button type="button" data-lab-jump data-task-index="0" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">1</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Use Unique Passwords</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="1" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">2</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Add a Second Factor</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="2" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">3</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Protect Recovery Options</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="3" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">4</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Respond to an Account Alert</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="4" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">5</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Make an Account Plan</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="5" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">6</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Recover a Compromised Account</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                </div>
+            </div>
+
+            <div class="bg-gray-900 dark:bg-gray-800/80 p-6 rounded-[2rem] text-white relative overflow-hidden group border border-transparent dark:border-gray-700">
+                <div class="absolute -right-4 -bottom-4 opacity-10 pointer-events-none text-bltRed">
+                    <i class="ph-fill ph-shield-check text-8xl"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3 relative z-10">Practice Security</h3>
+                <p class="text-gray-400 text-sm leading-relaxed mb-5 relative z-10">
+                    These labs are educational simulations designed for ethical cybersecurity learning.
+                </p>
+                <div class="space-y-3 text-xs text-gray-300 relative z-10">
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>OWASP aligned content</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Interactive challenge tasks</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Beginner friendly guidance</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Instant feedback and hints</div>
+                </div>
+            </div>
+        </aside>
+    </main>
+</article>
+
+<script src="/assets/js/vendor/acorn.js?v=1787007739"></script>
+<script src="/assets/js/labs/ast.js?v=1787007739"></script>
+<script src="/assets/js/labs/core.js?v=1787007739"></script>
+<script src="/assets/js/labs/validators.js?v=1787007739"></script>
+<script src="/assets/js/labs/ui.js?v=1787007739"></script>
+<script src="/assets/js/labs/flow.js?v=1787007739"></script>
+<script src="/assets/js/labs/simulations.js?v=1787007739"></script>
+<script src="/assets/js/labs/main.js?v=1787007739"></script>
+
+
+    <div class="px-4">
+        <footer
+  class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-bltFooter py-10 pb-8 text-white max-md:rounded-t-[.8rem]"
+>
+  <h2
+    class="relative m-0 break-all px-2 text-center text-[clamp(2rem,5vw,4.5rem)] font-light leading-[1.02] tracking-[-.045em] text-white sm:break-normal"
+  >
+    university.owaspblt.org
+  </h2>
+  <div
+    class="relative mx-auto mt-3 h-[3px] w-16 rounded-full bg-red-600"
+    aria-hidden="true"
+  ></div>
+  <div
+    class="footer-links relative mx-auto mt-8 grid max-w-6xl grid-cols-1 gap-6 px-6 font-mono sm:grid-cols-2 md:grid-cols-4 md:gap-8"
+  >
+    <div>
+      <p>Docs</p>
+      <a href="/courses/">Courses</a>
+      <a href="/labs/">Labs</a>
+      <a href="/dashboard/">Dashboard</a>
+    </div>
+    <div>
+      <p>Learn</p>
+      <a href="/enroll/">Enroll</a>
+      <a href="/instructors/">Instructors</a>
+      <a href="/request/">Request Course</a>
+    </div>
+    <div>
+      <p>Project</p>
+      <a
+        href="https://gitlab.com/owasp-blt/blt-university"
+        target="_blank"
+        rel="noopener noreferrer"
+        >GitLab repo</a
+      >
+    </div>
+    <div>
+      <p>OWASP</p>
+      <a
+        href="https://owaspblt.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >OWASP BLT</a
+      >
+      <a
+        href="https://owasp.org/www-project-bug-logging-tool/"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Foundation page</a
+      >
+      <a
+        href="https://owasp.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >owasp.org</a
+      >
+    </div>
+  </div>
+</footer>
+
+    </div>
+
+    <script src="/assets/js/recommendations.js?v=1787007739"></script>
+    <script src="/assets/js/main.js?v=1787007739"></script>
+</body>
+</html>
