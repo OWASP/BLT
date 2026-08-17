@@ -1,0 +1,17 @@
+{% comment %} Compact input for the client-side adaptive recommendation engine. {% endcomment %}
+{% capture adaptive_recommendation_data %}
+{
+  "weights": {"A01": 1.00, "A02": 0.95, "A03": 0.90, "A04": 0.85, "A05": 0.80, "A06": 0.75, "A07": 0.70, "A08": 0.65, "A09": 0.60, "A10": 0.50},
+  "categories": [
+    {% for category in site.data.vulnerability_intel.categories %}
+    {"id": {{ category.id | jsonify }}, "name": {{ category.name | jsonify }}, "count": {{ category.count | jsonify }}, "labs": {{ category.labs | jsonify }}}{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ],
+  "labs": [
+    {% for lab in site.labs %}
+    {"id": {{ lab.slug | default: lab.title | slugify | jsonify }}, "title": {{ lab.title | jsonify }}, "description": {{ lab.description | jsonify }}, "url": {{ lab.url | relative_url | jsonify }}, "taskCount": {{ lab.tasks.size | default: 0 | jsonify }}}{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ]
+}
+{% endcapture %}
+<script id="adaptive-recommendation-data" type="application/json">{{ adaptive_recommendation_data | strip | replace: "</", "<\/" }}</script>

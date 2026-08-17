@@ -5,6 +5,7 @@ description: Understand how open redirect vulnerabilities enable phishing attack
   exploit redirect parameters without validation to redirect users to malicious sites.
 difficulty: beginner
 category: Web Security
+track: both
 estimated_time: 25
 tasks:
 - name: Introduction to Open Redirect

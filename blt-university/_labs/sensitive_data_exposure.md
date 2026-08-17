@@ -6,6 +6,7 @@ description: Discover how applications inadvertently expose sensitive informatio
   backups, and client-side code.
 difficulty: intermediate
 category: Data Protection
+track: professional
 estimated_time: 40
 tasks:
 - name: Introduction to Sensitive Data Exposure

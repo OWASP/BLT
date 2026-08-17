@@ -1,7 +1,7 @@
 ---
 layout: default
 ---
-<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
 
 <article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
     <section class="bg-bltDark text-white pt-36 pb-32 relative overflow-hidden">
@@ -9,7 +9,7 @@ layout: default
         <div class="absolute inset-0 z-0">
             <img src="{{ page.image | default: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80' | relative_url }}" class="w-full h-full object-cover opacity-10 mix-blend-overlay">
         </div>
-        
+
         <div class="max-w-7xl mx-auto px-6 relative z-10">
             <div class="flex items-center gap-3 mb-6">
                 <span class="px-2.5 py-0.5 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">{{ page.category }}</span>
@@ -18,11 +18,11 @@ layout: default
             <h1 class="font-display text-3xl md:text-5xl font-bold tracking-tight mb-8 leading-tight max-w-4xl">{{ page.title }}</h1>
             <div class="flex flex-wrap items-center gap-6 text-xs md:text-sm text-gray-400">
                 <div class="flex items-center gap-2">
-                    <i class="ph-bold ph-user-circle text-lg text-bltRed"></i> 
+                    <i class="ph-bold ph-user-circle text-lg text-bltRed"></i>
                     <strong class="text-white">{{ page.instructor }}</strong>
                 </div>
                 <div class="flex items-center gap-2">
-                    <i class="ph-bold ph-clock text-lg text-bltRed"></i> 
+                    <i class="ph-bold ph-clock text-lg text-bltRed"></i>
                     <strong class="text-white">{{ page.duration }}</strong>
                 </div>
             </div>
@@ -30,7 +30,7 @@ layout: default
     </section>
 
     <main class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-12 relative z-20 pb-24">
-        
+
         <div class="lg:col-span-8 space-y-8">
             <div class="bg-white dark:bg-gray-900 p-8 md:p-12 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
@@ -71,6 +71,28 @@ layout: default
                     </div>
                 </div>
                 {% endif %}
+
+                {% if page.labs %}
+                <div class="mt-12 pt-10 border-t border-gray-50 dark:border-gray-800">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+                        <i class="ph-fill ph-flask text-bltRed"></i> Practice Labs
+                    </h2>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        {% for lab_slug in page.labs %}
+                        {% assign course_lab = site.labs | where: "slug", lab_slug | first %}
+                        {% if course_lab %}
+                        <a href="{{ course_lab.url | relative_url }}" class="group rounded-2xl border border-gray-100 bg-gray-50/50 p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-800/30 dark:hover:border-red-900/40">
+                            <span class="flex items-center justify-between gap-3">
+                                <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">{{ course_lab.title }}</span>
+                                <i class="ph-bold ph-arrow-up-right text-bltRed" aria-hidden="true"></i>
+                            </span>
+                            <span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">{{ course_lab.difficulty | capitalize }} · {{ course_lab.estimated_time }} minutes</span>
+                        </a>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -107,7 +129,7 @@ layout: default
             <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
                 <div class="absolute top-0 left-0 w-full h-1.5 bg-bltRed"></div>
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Enroll Now</h3>
-                
+
                 <div class="mb-8 space-y-4">
                     <div class="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-2xl border border-gray-100 dark:border-gray-700">
                         <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Prerequisites</h4>

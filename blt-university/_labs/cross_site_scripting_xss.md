@@ -1,9 +1,10 @@
 ---
 layout: lab
 title: Cross-Site Scripting (XSS)
-description: Learn XSS through interactive browser security exercises.
+description: Find out how untrusted input can run as code in a browser, and how to stop it.
 difficulty: beginner
 category: Web Security
+track: both
 estimated_time: 50
 
 tasks:

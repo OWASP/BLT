@@ -17,10 +17,6 @@ resources:
   - title: Applied Cryptography Book
     url: https://www.schneier.com/books/applied-cryptography/
     type: link
-  - title: Cryptography APIs Reference
-    url: /assets/courses/crypto-for-devs/api-reference.pdf
-    type: pdf
-
 syllabus:
   - title: Cryptography Fundamentals
     description: Core concepts and mathematical foundations

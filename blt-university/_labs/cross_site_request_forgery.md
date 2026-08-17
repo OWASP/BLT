@@ -4,6 +4,7 @@ title: Cross-Site Request Forgery
 description: Learn CSRF attacks and defenses through focused security exercises.
 difficulty: beginner
 category: Web Security
+track: both
 estimated_time: 45
 
 tasks:

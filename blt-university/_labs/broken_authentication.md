@@ -5,6 +5,7 @@ description: Comprehensive coverage of authentication vulnerabilities including 
   flaws, and JWT misconfigurations. Practice credential stuffing, session fixation, and token forgery attacks.
 difficulty: intermediate
 category: Authentication
+track: professional
 estimated_time: 50
 tasks:
 - name: Introduction to Broken Authentication

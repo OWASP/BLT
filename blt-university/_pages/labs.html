@@ -5,6 +5,7 @@ permalink: /labs/
 ---
 
 <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
+{% include adaptive-recommendation-data.html %}
 
 <section class="relative px-4 pb-16 pt-40 text-center">
   <div class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-72 w-full opacity-60" aria-hidden="true"></div>
@@ -16,8 +17,28 @@ permalink: /labs/
 </section>
 
 <main class="mx-auto w-[min(72rem,calc(100%_-_2rem))] pb-24">
-  <div class="mb-10 rounded-3xl border border-gray-200 bg-white p-4 shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)]">
-    <div class="grid gap-3 md:grid-cols-[1fr_12rem_12rem]">
+  <section data-adaptive-recommendations data-limit="3" hidden aria-labelledby="recommended-labs-heading" class="mb-10 rounded-3xl border border-red-100 bg-gradient-to-br from-red-50 to-white p-6 shadow-[0_18px_50px_-40px_rgba(220,38,38,.75)]">
+    <div class="mb-5 flex items-start gap-3">
+      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white"><i class="ph-bold ph-sparkle text-xl"></i></span>
+      <div>
+        <h2 id="recommended-labs-heading" class="text-xl font-semibold tracking-tight text-gray-900">Recommended for you</h2>
+        <p class="mt-1 text-sm leading-6 text-gray-600">Ranked using your saved progress, current security-intelligence frequency, and OWASP priority.</p>
+      </div>
+    </div>
+    <div data-adaptive-recommendation-list class="grid gap-3 md:grid-cols-3"></div>
+  </section>
+
+  <section aria-labelledby="lab-results-heading" class="mb-5">
+    <div class="mb-3 flex flex-wrap items-end justify-between gap-2">
+      <div>
+        <h2 id="lab-results-heading" class="text-xl font-semibold tracking-tight text-gray-900">Explore security labs</h2>
+        <p id="lab-results-summary" class="mt-1 text-sm text-gray-500" aria-live="polite">Showing all labs</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="mb-8 rounded-2xl border border-gray-200 bg-white p-3 shadow-[0_18px_50px_-40px_rgba(15,23,42,.75)]">
+    <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-[1fr_11rem_11rem_11rem]" id="lab-catalog">
       <div class="relative">
         <i class="ph-bold ph-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-gray-400"></i>
         <input id="lab-search-filter" aria-label="Search labs" type="text" class="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" placeholder="Search labs, topics, or categories...">
@@ -38,9 +59,30 @@ permalink: /labs/
     </div>
   </div>
 
+  <section aria-labelledby="learning-tracks-heading" class="mb-8">
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 id="learning-tracks-heading" class="text-xl font-semibold tracking-tight text-gray-900">Choose your learning track</h2>
+        <p class="mt-1 text-sm leading-6 text-gray-600">Shared labs appear in either path.</p>
+      </div>
+    </div>
+    <div class="grid gap-3 md:grid-cols-2" role="group" aria-label="Learning tracks">
+      {% for track in site.data.learning_tracks %}
+      <button type="button" data-track-choice="{{ track.id }}" data-track-label="{{ track.title }}" aria-pressed="false" class="track-choice group flex min-h-24 items-center gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-left transition hover:border-red-200 hover:shadow-[0_16px_40px_-30px_rgba(15,23,42,.75)] focus:outline-none focus:ring-2 focus:ring-red-200">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600"><i class="ph-bold ph-{{ track.icon }} text-xl"></i></span>
+        <span class="min-w-0">
+          <span class="block text-base font-semibold text-gray-900 group-hover:text-red-600">{{ track.title }}</span>
+          <span class="mt-0.5 block text-xs font-medium text-gray-500">{{ track.audience }}</span>
+        </span>
+      </button>
+      {% endfor %}
+    </div>
+  </section>
+
   <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" id="labs-grid">
     {% for lab in site.labs %}
-    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="{{ lab.category | slugify }}" data-level="{{ lab.difficulty | downcase }}" data-search="{{ lab.title | downcase }} {{ lab.description | downcase }} {{ lab.category | downcase }}">
+    {% assign lab_track = lab.track | default: "both" %}
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="{{ lab.category | slugify }}" data-level="{{ lab.difficulty | downcase }}" data-track="{{ lab_track }}" data-search="{{ lab.title | downcase }} {{ lab.description | downcase }} {{ lab.category | downcase }} {{ lab_track }} {{ lab.tags | join: ' ' | downcase }}">
       <a href="{{ lab.url | relative_url }}" class="block h-44 bg-gray-950 relative overflow-hidden">
         {% assign lab_key = lab.title | downcase %}
         {% assign lab_icon = nil %}

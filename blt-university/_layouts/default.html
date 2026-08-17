@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title | default: "BLT University" }}</title>
-    <meta name="description" content="{{ page.description | default: site.description }}">
-    
     {% seo %}
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -140,15 +137,16 @@
     </style>
 </head>
 <body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
-    
+
     {% include header.html %}
-    
+
     {{ content }}
-    
+
     <div class="px-4">
         {% include footer.html %}
     </div>
-    
+
+    <script src="{{ '/assets/js/recommendations.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
     <script src="{{ '/assets/js/main.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 </body>
 </html>

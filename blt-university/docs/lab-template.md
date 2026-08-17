@@ -9,11 +9,11 @@ title: Your Lab Title
 description: One sentence describing what learners will practice.
 difficulty: beginner
 category: Web Security
+track: both
 estimated_time: 45
 
-# Optional proposal metadata. Add these when known.
+# Optional metadata. Add these fields when known.
 # owasp_category: A01
-# track: both
 # tags:
 #   - access-control
 #   - idor
@@ -102,6 +102,7 @@ Write optional long-form lab notes here if the lab needs extra Markdown content 
 - `description`: short lab summary
 - `difficulty`: `beginner`, `intermediate`, or `advanced`
 - `category`: category label used by the labs page
+- `track`: `professional`, `hygiene`, or `both`
 - `estimated_time`: estimated minutes, minimum `1`
 - `tasks`: one or more task objects
 

@@ -4,6 +4,7 @@ title: Insecure Direct Object Reference
 description: Learn how missing object-level authorization exposes other users' data.
 difficulty: beginner
 category: Web Security
+track: both
 estimated_time: 45
 
 tasks:
