@@ -20,28 +20,13 @@ Design Details:
 """
 
 import json
-import os
-import subprocess
-import sys
 
-from tests.utils import read_jsonrpc_response
+from tests.utils import read_jsonrpc_response, mcp_server_process
 
 
 def test_resources_list():
     """Test resources/list MCP endpoint."""
-    cmd = [sys.executable, "-m", "blt_mcp.server"]
-    env = os.environ.copy()
-
-    process = subprocess.Popen(
-        cmd,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-        env=env,
-    )
-
-    try:
+    with mcp_server_process() as process:
         # 1. Initialize
         init_request = {
             "jsonrpc": "2.0",
@@ -103,30 +88,12 @@ def test_resources_list():
         stats_resource = next(r for r in resources if r["uri"] == "blt://stats")
         assert "statistics" in stats_resource["description"].lower()
 
-    finally:
-        process.terminate()
-        try:
-            process.wait(timeout=2)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
+
 
 
 def test_resource_templates_list():
     """Test resources/templates/list MCP endpoint."""
-    cmd = [sys.executable, "-m", "blt_mcp.server"]
-    env = os.environ.copy()
-
-    process = subprocess.Popen(
-        cmd,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-        env=env,
-    )
-
-    try:
+    with mcp_server_process() as process:
         # 1. Initialize
         init_request = {
             "jsonrpc": "2.0",
@@ -182,30 +149,12 @@ def test_resource_templates_list():
         assert "blt://v2/jobs/{id}" in template_uris
         assert "blt://v2/hackathons/{slug}" in template_uris
 
-    finally:
-        process.terminate()
-        try:
-            process.wait(timeout=2)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
+
 
 
 def test_resource_read():
     """Test resources/read MCP endpoint."""
-    cmd = [sys.executable, "-m", "blt_mcp.server"]
-    env = os.environ.copy()
-
-    process = subprocess.Popen(
-        cmd,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-        env=env,
-    )
-
-    try:
+    with mcp_server_process() as process:
         # 1. Initialize
         init_request = {
             "jsonrpc": "2.0",
@@ -236,30 +185,12 @@ def test_resource_read():
         # but we expect a valid JSON-RPC response (either result or error).
         assert "result" in response or "error" in response
 
-    finally:
-        process.terminate()
-        try:
-            process.wait(timeout=2)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
+
 
 
 def test_resource_read_parameterized():
     """Test resources/read with a parameterized URI (Issue #10)."""
-    cmd = [sys.executable, "-m", "blt_mcp.server"]
-    env = os.environ.copy()
-
-    process = subprocess.Popen(
-        cmd,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-        env=env,
-    )
-
-    try:
+    with mcp_server_process() as process:
         # 1. Initialize
         process.stdin.write(
             json.dumps(
@@ -293,30 +224,12 @@ def test_resource_read_parameterized():
         # Whether it succeeds or fails with 404, we expect a valid JSON-RPC structure
         assert "result" in response or "error" in response
 
-    finally:
-        process.terminate()
-        try:
-            process.wait(timeout=2)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
+
 
 
 def test_error_handling():
     """Test that invalid methods return a proper JSON-RPC error (Issue #8)."""
-    cmd = [sys.executable, "-m", "blt_mcp.server"]
-    env = os.environ.copy()
-
-    process = subprocess.Popen(
-        cmd,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-        env=env,
-    )
-
-    try:
+    with mcp_server_process() as process:
         # 1. Initialize (Required by MCP spec before other requests)
         process.stdin.write(
             json.dumps(
@@ -348,10 +261,4 @@ def test_error_handling():
 
         response = read_jsonrpc_response(process, 99)
         assert "error" in response
-    finally:
-        process.terminate()
-        try:
-            process.wait(timeout=2)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
+

@@ -29,6 +29,8 @@ import httpx
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
+from blt_mcp.auth import load_credentials
+
 # Test Mocking: Hooked internally by pytest / mcp-vcr to run test suites deterministically
 if os.getenv("BLT_MOCK_HTTP") == "true":
     original_send = httpx.AsyncClient.send
@@ -182,18 +184,20 @@ logger = logging.getLogger("blt-mcp")
 BLT_API_BASE = os.getenv("BLT_API_BASE", "https://api.owaspblt.org")
 BLT_API_KEY = os.getenv("BLT_API_KEY")
 
+# Public static showcase fallback key from backend (api_key.py)
+PUBLIC_BLT_API_KEY = "f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051"
+
 if not BLT_API_KEY:
     try:
-        from blt_mcp.auth import load_credentials
-
         BLT_API_KEY = load_credentials()
         if BLT_API_KEY:
             logger.info("Loaded BLT_API_KEY from local credentials file.")
-    except ImportError:
-        pass
+    except Exception as e:  # noqa: BLE001
+        logger.debug(f"Could not load local credentials: {e}")
 
 if not BLT_API_KEY:
-    logger.info("BLT_API_KEY not found in environment or credentials.")
+    BLT_API_KEY = PUBLIC_BLT_API_KEY
+    logger.info("BLT_API_KEY not configured. Falling back to public showcase API key.")
 
 
 # Shared HTTPX client
@@ -219,7 +223,13 @@ async def server_lifespan(server: FastMCP):
 
 
 # Initialize FastMCP server
-mcp = FastMCP("blt-mcp", dependencies=["click", "mcp"], lifespan=server_lifespan)
+mcp = FastMCP(
+    "blt-mcp",
+    dependencies=["click", "mcp"],
+    lifespan=server_lifespan,
+    host="127.0.0.1",
+    port=8080,
+)
 
 
 async def _fetch(path: str, context: str | None = None) -> str:

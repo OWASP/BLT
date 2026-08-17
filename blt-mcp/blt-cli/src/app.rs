@@ -124,6 +124,9 @@ pub enum AppEvent {
     ClipboardExtracted {
         result: Result<String, String>,
     },
+    WatchdogStatus {
+        event: crate::watchdog::WatchdogEvent,
+    },
 }
 
 pub struct App {
@@ -176,10 +179,16 @@ impl App {
         let system_user = std::env::var("USER")
             .or_else(|_| std::env::var("USERNAME"))
             .unwrap_or_else(|_| "Local User".to_string());
-        let auth_user = if run_mode == RunMode::Mcp {
-            format!("Local System User: {} (MCP Mode)", system_user)
+        let is_public_showcase = crate::api::get_api_key()
+            .map(|k| k == crate::api::PUBLIC_SHOWCASE_KEY)
+            .unwrap_or(false);
+
+        let auth_user = if is_public_showcase {
+            "Guest - Run 'blt-mcp auth login'".to_string()
+        } else if run_mode == RunMode::Mcp {
+            format!("User: {} (MCP Mode)", system_user)
         } else {
-            format!("Local System User: {} (REST)", system_user)
+            format!("User: {} (REST)", system_user)
         };
 
         let status_message = match run_mode {

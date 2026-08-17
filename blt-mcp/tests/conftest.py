@@ -19,10 +19,35 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 from dotenv import load_dotenv
 
 # Enable HTTP mock layer globally for all test server subprocesses
 os.environ["BLT_MOCK_HTTP"] = "true"
+
+
+@pytest.fixture(autouse=True)
+def clean_env():
+    # Isolate tests from local development environment overrides
+    orig_base = os.environ.get("BLT_API_BASE")
+    orig_key = os.environ.get("BLT_API_KEY")
+    orig_token = os.environ.get("BLT_MCP_TOKEN")
+
+    os.environ.pop("BLT_API_BASE", None)
+    os.environ.pop("BLT_API_KEY", None)
+    os.environ.pop("BLT_MCP_TOKEN", None)
+
+    yield
+
+    for name, value in (
+        ("BLT_API_BASE", orig_base),
+        ("BLT_API_KEY", orig_key),
+        ("BLT_MCP_TOKEN", orig_token),
+    ):
+        if value is None:
+            os.environ.pop(name, None)
+        else:
+            os.environ[name] = value
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -33,6 +58,12 @@ def pytest_sessionfinish(session, exitstatus):
         # Load .env file from project root
         root_dir = Path(__file__).parent.parent
         load_dotenv(dotenv_path=root_dir / ".env")
+
+        # Snapshot verification replays requests against the live API, so
+        # results are non-deterministic. Only run when explicitly opted in.
+        verify_env = os.getenv("BLT_VERIFY_SNAPSHOTS", "false").lower()
+        if verify_env not in ("true", "1", "yes"):
+            return
 
         if not os.getenv("BLT_API_KEY"):
             print(
@@ -61,19 +92,43 @@ def pytest_sessionfinish(session, exitstatus):
                 "--",
                 "uv",
                 "run",
+                "--no-sync",
                 "-m",
                 "blt_mcp.server",
             ]
-            result = subprocess.run(
-                cmd, env=os.environ.copy(), capture_output=True, text=True, check=False
-            )
-            print(result.stdout)
-            if result.returncode != 0:
+            vcr_env = os.environ.copy()
+            vcr_env["PYTHONIOENCODING"] = "utf-8"
+
+            try:
+                result = subprocess.run(
+                    cmd,
+                    env=vcr_env,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=120,
+                )
+                if result.stdout:
+                    print(result.stdout)
+                if result.returncode != 0:
+                    if result.stderr:
+                        print(
+                            f"ERROR: Golden snapshots verification failed:\n{result.stderr}",
+                            file=sys.stderr,
+                        )
+                    else:
+                        print(
+                            "ERROR: Golden snapshots verification failed with exit code "
+                            f"{result.returncode}",
+                            file=sys.stderr,
+                        )
+                    session.exitstatus = result.returncode
+            except subprocess.TimeoutExpired:
                 print(
-                    f"ERROR: Golden snapshots verification failed:\n{result.stderr}",
+                    "ERROR: Golden snapshot verification timed out after 120 seconds.",
                     file=sys.stderr,
                 )
-                session.exitstatus = result.returncode
+                session.exitstatus = 1
         else:
             print(
                 "\n=== No Golden Snapshots found. Run `mcp-vcr record` to create some! ==="

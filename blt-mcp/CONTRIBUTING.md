@@ -72,6 +72,15 @@ To set it up:
 We use `mcp-vcr` to record and playback JSON-RPC sessions, allowing for deterministic tests without hitting the live BLT API.
 - Recorded sessions meant for tests should be stored in the `snapshots/` directory.
 - Temporary scratchpad recordings should be placed in `sessions/` (which is `.gitignore`d).
+- **Updating Golden Snapshots**: If you deliberately change a prompt template, upgrade an AI model (e.g. from Llama 3 to Llama 3.1), or modify a tool's output structure, the snapshot verification will fail. You must update the snapshot manually by running the recording command:
+  ```bash
+  mcp-vcr record --name <snapshot_name> -- uv run -m blt_mcp.server
+  ```
+  For example, to re-record the triage vulnerability test session:
+  ```bash
+  mcp-vcr record --name test_triage_vulnerability -- uv run -m blt_mcp.server
+  ```
+  Once the session completes, verify the changes and commit the updated `.yaml` file inside the `snapshots/` directory.
 
 Before submitting a PR for the Python server, ensure all Pytest tests pass:
 ```bash

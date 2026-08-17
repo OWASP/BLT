@@ -37,6 +37,11 @@ where
     let tick_rate = Duration::from_millis(100);
     let mut last_tick = Instant::now();
 
+    // Drain any leftover keyboard events (like Enter pressed in terminal to run the app)
+    while event::poll(Duration::from_millis(0))? {
+        let _ = event::read()?;
+    }
+
     loop {
         terminal.draw(|f| ui::draw(f, &mut app))?;
 
@@ -160,13 +165,40 @@ where
                     }
                     app.save_session();
                 }
+                crate::app::AppEvent::WatchdogStatus { event } => {
+                    match event {
+                        crate::watchdog::WatchdogEvent::Degraded {
+                            consecutive_failures,
+                        } => {
+                            app.status_message =
+                                format!("⚠ MCP: {} ping failures", consecutive_failures);
+                        }
+                        crate::watchdog::WatchdogEvent::Disconnected { reason } => {
+                            app.status_message =
+                                format!("🔴 MCP disconnected: {}. Restarting...", reason);
+                            app.is_live = false;
+                        }
+                        crate::watchdog::WatchdogEvent::Reconnected { attempt } => {
+                            app.status_message =
+                                format!("🟢 MCP reconnected (attempt #{})", attempt);
+                            app.is_live = true;
+                        }
+                        crate::watchdog::WatchdogEvent::Fatal { reason } => {
+                            app.status_message = format!("❌ MCP watchdog gave up: {}", reason);
+                            app.is_live = false;
+                        }
+                    }
+                    app.save_session();
+                }
             }
         }
 
         if event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
-                // Handle key inputs
-                handle_keys(key, &mut app);
+                if key.kind == event::KeyEventKind::Press {
+                    // Handle key inputs
+                    handle_keys(key, &mut app);
+                }
             }
         }
 
@@ -297,11 +329,7 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
     // Modal check redirects
     match app.active_overlay {
         crate::app::ActiveOverlay::Help => {
-            if key.code == KeyCode::Esc
-                || key.code == KeyCode::Char(' ')
-                || key.code == KeyCode::Char('h')
-                || key.code == KeyCode::Char('?')
-            {
+            if key.code == KeyCode::Esc || key.code == KeyCode::Char(' ') {
                 app.active_overlay = crate::app::ActiveOverlay::None;
             }
             return;
@@ -988,8 +1016,10 @@ fn handle_keys(key: KeyEvent, app: &mut App) {
             }
         }
         KeyCode::Char('s') => {
-            app.submit_form = crate::app::VulnerabilityForm::default();
-            app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
+            if key.modifiers.is_empty() {
+                app.submit_form = crate::app::VulnerabilityForm::default();
+                app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
+            }
         }
         KeyCode::Char('A') => app.toggle_agent_status(),
         KeyCode::Char('P') => app.toggle_prompt_preview(),

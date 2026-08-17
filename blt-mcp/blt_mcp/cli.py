@@ -29,6 +29,8 @@ import click
 import httpx
 
 from blt_mcp.auth import save_credentials
+from blt_mcp.oauth import pkce_login
+from blt_mcp.server import main
 from blt_mcp.server_base import BLT_API_BASE
 
 logging.basicConfig(level=logging.INFO)
@@ -41,8 +43,6 @@ def cli(ctx):
     """BLT-MCP Command Line Interface"""
     if ctx.invoked_subcommand is None:
         # Backward compatibility: run the server if no command is given
-        from blt_mcp.server import main
-
         main()
 
 
@@ -147,12 +147,53 @@ async def _async_login(email: str, password: str):
             sys.exit(1)
 
 
-@cli.command()
-def run():
-    """Run the MCP server"""
-    from blt_mcp.server import main
+@auth.command("login-pkce")
+@click.option("--client-id", default="blt-mcp-cli", help="OAuth client ID")
+@click.option("--port", default=9876, type=int, help="Local callback port")
+def login_pkce(client_id, port):
+    """Log in using OAuth 2.0 PKCE (browser-based)."""
+    asyncio.run(_async_pkce_login(client_id, port))
 
-    main()
+
+async def _async_pkce_login(client_id: str, port: int):
+    authorize_url = f"{BLT_API_BASE}/oauth/authorize"
+    token_url = f"{BLT_API_BASE}/oauth/token"
+    try:
+        token = await pkce_login(authorize_url, token_url, client_id, port)
+        save_credentials(token, auth_type="oauth_pkce")
+        click.echo("Successfully logged in via OAuth PKCE and saved credentials.")
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            click.echo(
+                "\nError: OAuth endpoints returned 404. "
+                "The BLT API backend does not currently support OAuth 2.0 PKCE flow.\n"
+                "Please run standard login instead:\n"
+                "  blt-mcp auth login\n",
+                err=True,
+            )
+        else:
+            click.echo(
+                f"OAuth Token request failed: HTTP {e.response.status_code} - {e.response.text}",
+                err=True,
+            )
+        sys.exit(1)
+    except Exception as e:  # noqa: BLE001
+        click.echo(f"PKCE login failed: {e}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+@click.option(
+    "--transport",
+    type=click.Choice(["stdio", "sse", "streamable-http"]),
+    default="stdio",
+    help="Transport protocol for the MCP server.",
+)
+@click.option("--host", default="127.0.0.1", help="Host to bind (SSE/HTTP only).")
+@click.option("--port", default=8080, type=int, help="Port to bind (SSE/HTTP only).")
+def run(transport, host, port):
+    """Run the MCP server"""
+    main(transport=transport, host=host, port=port)
 
 
 if __name__ == "__main__":
