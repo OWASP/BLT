@@ -10,11 +10,15 @@ Click the button above to deploy BLT-NetGuardian to your Cloudflare account in o
 
 ## Client Application
 
-> **Want to run scans locally?** The desktop client for BLT-NetGuardian is maintained in a separate repository:
+> **Want to send findings from a desktop machine?** The Flutter producer lives in this repo under [`client/`](client/README.md) (MR C1: sign + `POST /api/ingest`).
 >
-> 👉 **[BLT-NetGuardian-Client](https://github.com/OWASP-BLT/BLT-NetGuardian-Client)**
+> ```bash
+> cd client && flutter pub get && flutter run -d macos
+> ```
 >
-> The client lets you download individual scan tasks from the server and process them on your own machine, offloading work from the Cloudflare Worker to your local environment. Each discovery in the dashboard has a **"Send to Client"** button that exports the task as a JSON file ready to be loaded by the client application.
+> Demo loopback credentials match `local_dev/send_finding.py`. Detection packs + offline queue are follow-up client MRs.
+>
+> Legacy task-offload notes previously pointed at [BLT-NetGuardian-Client](https://github.com/OWASP-BLT/BLT-NetGuardian-Client); the GSoC ingest path is the in-repo Flutter app.
 
 ## Overview
 
