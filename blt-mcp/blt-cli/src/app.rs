@@ -79,6 +79,34 @@ pub struct VulnerabilityForm {
     pub active_field: FormField,
 }
 
+impl VulnerabilityForm {
+    /// Returns a mutable reference to the string backing the currently active field.
+    pub fn active_field_mut(&mut self) -> &mut String {
+        match self.active_field {
+            FormField::Title => &mut self.title,
+            FormField::Url => &mut self.url,
+            FormField::Severity => &mut self.severity,
+            FormField::BugType => &mut self.bug_type,
+            FormField::Description => &mut self.description,
+            FormField::StepsToReproduce => &mut self.steps_to_reproduce,
+            FormField::Screenshot => &mut self.screenshot_path,
+        }
+    }
+
+    /// Advances `active_field` to the next field in tab order, wrapping at the end.
+    pub fn next_field(&mut self) {
+        self.active_field = match self.active_field {
+            FormField::Title => FormField::Url,
+            FormField::Url => FormField::Severity,
+            FormField::Severity => FormField::BugType,
+            FormField::BugType => FormField::Description,
+            FormField::Description => FormField::StepsToReproduce,
+            FormField::StepsToReproduce => FormField::Screenshot,
+            FormField::Screenshot => FormField::Title,
+        };
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum ActiveOverlay {
     None,

@@ -110,7 +110,7 @@ where
                             } else if upper_line.starts_with("DESCRIPTION:") {
                                 in_desc = true;
                                 description = line["DESCRIPTION:".len()..].trim().to_string();
-                            } else if in_desc || !line.trim().is_empty() {
+                            } else if in_desc {
                                 description.push('\n');
                                 description.push_str(line);
                             }

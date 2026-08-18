@@ -14,6 +14,7 @@
   "prConcurrentLimit": 10,
   "rebaseWhen": "auto",
   "labels": ["dependencies", "renovate"],
+  "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
       "description": "Rust Dependencies (Cargo)",
@@ -43,9 +44,9 @@
     },
     {
       "description": "Automerge non-breaking patch updates for dev dependencies",
-      "matchDepTypes": ["devDependencies", "dev-dependencies"],
+      "matchDepTypes": ["devDependencies", "dev-dependencies", "project.optional-dependencies", "dependency-groups", "tool.uv.dev-dependencies"],
       "matchUpdateTypes": ["patch"],
-      "automerge": false
+      "automerge": true
     }
   ],
   "cargo": {
