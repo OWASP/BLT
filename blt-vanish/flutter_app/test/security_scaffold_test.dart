@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:selferase/services/security_risk_service.dart';
+import 'package:vanish/services/security_risk_service.dart';
 
 class MockUrlExtractor implements IUrlSignalExtractor {
   @override

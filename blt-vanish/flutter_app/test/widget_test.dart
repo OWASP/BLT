@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:selferase/main.dart';
-import 'package:selferase/services/broker_service.dart';
-import 'package:selferase/services/credential_vault_service.dart';
-import 'package:selferase/services/storage_service.dart';
+import 'package:vanish/main.dart';
+import 'package:vanish/services/broker_service.dart';
+import 'package:vanish/services/credential_vault_service.dart';
+import 'package:vanish/services/storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -26,7 +26,7 @@ void main() {
             ),
           ),
         ],
-        child: const SelfEraseApp(),
+        child: const VanishApp(),
       ),
     );
     await tester.pumpAndSettle();

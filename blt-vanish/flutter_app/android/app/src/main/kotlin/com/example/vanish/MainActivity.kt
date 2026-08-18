@@ -1,4 +1,4 @@
-package com.example.selferase
+package com.example.vanish
 
 import io.flutter.embedding.android.FlutterActivity
 

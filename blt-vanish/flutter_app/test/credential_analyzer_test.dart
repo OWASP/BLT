@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:selferase/models/security/credential_snapshot.dart';
-import 'package:selferase/models/security/security_alert.dart';
-import 'package:selferase/services/credential_analyzer.dart';
+import 'package:vanish/models/security/credential_snapshot.dart';
+import 'package:vanish/models/security/security_alert.dart';
+import 'package:vanish/services/credential_analyzer.dart';
 
 void main() {
   group('CredentialAnalyzer', () {

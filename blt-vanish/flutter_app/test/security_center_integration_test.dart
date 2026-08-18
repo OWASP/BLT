@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:flutter_app/models/security/remediation_action.dart';
-import 'package:flutter_app/models/security/risk_assessment.dart';
-import 'package:flutter_app/models/security/security_alert.dart';
-import 'package:flutter_app/screens/security_center_screen.dart';
-import 'package:flutter_app/services/reputation_enrichment_service.dart';
-import 'package:flutter_app/services/risk_assessment_builder.dart';
-import 'package:flutter_app/services/url_expansion_service.dart';
-import 'package:flutter_app/services/url_signal_extractor.dart';
+import 'package:vanish/models/security/remediation_action.dart';
+import 'package:vanish/models/security/risk_assessment.dart';
+import 'package:vanish/models/security/security_alert.dart';
+import 'package:vanish/screens/security_center_screen.dart';
+import 'package:vanish/services/reputation_enrichment_service.dart';
+import 'package:vanish/services/risk_assessment_builder.dart';
+import 'package:vanish/services/url_expansion_service.dart';
+import 'package:vanish/services/url_signal_extractor.dart';
 
 class FakeUrlExpansionService extends UrlExpansionService {
   FakeUrlExpansionService(this._handler);

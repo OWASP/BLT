@@ -6,10 +6,10 @@ import '../models/broker.dart';
 /// NO USER PII IS EVER TRANSMITTED
 class BrokerService {
   // Cloudflare Workers endpoint (when deployed)
-  static const String _workersBaseUrl = 'https://selferase.workers.dev';
+  static const String _workersBaseUrl = 'https://Vanish.workers.dev';
   
   // Fallback to local/GitHub data
-  static const String _fallbackUrl = 'https://raw.githubusercontent.com/OWASP-BLT/SelfErase/main/data/brokers/brokers.json';
+  static const String _fallbackUrl = 'https://raw.githubusercontent.com/OWASP-BLT/Vanish/main/data/brokers/brokers.json';
   
   // Cache for offline support
   List<Broker>? _cachedBrokers;
