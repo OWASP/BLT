@@ -784,7 +784,12 @@ async def handle_conversation_reply(request, env, triage_id):
 
         stub = await _get_do_stub(env, triage_id)
         # Forward as a new Request to the DO
-        from js import Object, Request as JSRequest, Headers as JSHeaders, to_js
+        from js import Object, Request as JSRequest, Headers as JSHeaders
+
+        try:
+            from pyodide.ffi import to_js
+        except ImportError:
+            to_js = lambda x, **kw: x  # noqa: E731
 
         headers = JSHeaders.new()
         headers.set("Content-Type", "application/json")
@@ -816,7 +821,12 @@ async def handle_conversation_history(request, env, triage_id):
     try:
         stub = await _get_do_stub(env, triage_id)
         # Forward the original request URL so the DO can read ?full=true
-        from js import Object, Request as JSRequest, to_js
+        from js import Object, Request as JSRequest
+
+        try:
+            from pyodide.ffi import to_js
+        except ImportError:
+            to_js = lambda x, **kw: x  # noqa: E731
 
         do_url = "https://do-internal/history"
         # Preserve query params from the original request
@@ -850,7 +860,12 @@ async def handle_conversation_close(request, env, triage_id):
     """
     try:
         stub = await _get_do_stub(env, triage_id)
-        from js import Object, Request as JSRequest, to_js
+        from js import Object, Request as JSRequest
+
+        try:
+            from pyodide.ffi import to_js
+        except ImportError:
+            to_js = lambda x, **kw: x  # noqa: E731
 
         init = to_js({"method": "DELETE"}, dict_converter=Object.fromEntries)
         do_request = JSRequest.new("https://do-internal/archive", init)
