@@ -79,6 +79,8 @@ pub struct VulnerabilityForm {
     pub active_field: FormField,
 }
 
+pub const VISION_ANALYZING_PLACEHOLDER: &str = "Analyzing image with Vision AI...";
+
 impl VulnerabilityForm {
     /// Returns a mutable reference to the string backing the currently active field.
     pub fn active_field_mut(&mut self) -> &mut String {
@@ -103,6 +105,19 @@ impl VulnerabilityForm {
             FormField::Description => FormField::StepsToReproduce,
             FormField::StepsToReproduce => FormField::Screenshot,
             FormField::Screenshot => FormField::Title,
+        };
+    }
+
+    /// Moves `active_field` to the previous field in tab order, wrapping at the start.
+    pub fn prev_field(&mut self) {
+        self.active_field = match self.active_field {
+            FormField::Title => FormField::Screenshot,
+            FormField::Url => FormField::Title,
+            FormField::Severity => FormField::Url,
+            FormField::BugType => FormField::Severity,
+            FormField::Description => FormField::BugType,
+            FormField::StepsToReproduce => FormField::Description,
+            FormField::Screenshot => FormField::StepsToReproduce,
         };
     }
 }
@@ -470,6 +485,10 @@ impl App {
             return;
         }
         self.active_overlay = ActiveOverlay::None;
+
+        if self.issues.is_empty() || self.selected_issue_index >= self.issues.len() {
+            return;
+        }
 
         let issue = &self.issues[self.selected_issue_index];
         let issue_id = issue.id.clone();

@@ -35,9 +35,7 @@ use crate::app::{App, Tab};
 use footer::draw_footer;
 use header::draw_header;
 use modals::*;
-use tabs::{
-    draw_hunts_tab, draw_issues_tab, draw_logs_tab, draw_settings_tab, draw_stats_tab,
-};
+use tabs::{draw_hunts_tab, draw_issues_tab, draw_logs_tab, draw_settings_tab, draw_stats_tab};
 use theme::DARK_BASE;
 
 /// Root rendering method. Sets the viewport canvas background, splits layout,

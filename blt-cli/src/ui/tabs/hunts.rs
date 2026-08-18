@@ -55,7 +55,10 @@ pub fn draw_hunts_tab(f: &mut Frame, app: &App, rect: Rect) {
                     .fg(BLT_TEXT_HEADING)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::styled("  (Press [Esc] to reset)", Style::default().fg(BLT_TEXT_DIM)),
+            Span::styled(
+                "  (Press [Esc] to reset)",
+                Style::default().fg(BLT_TEXT_DIM),
+            ),
         ]))
         .block(
             Block::default()

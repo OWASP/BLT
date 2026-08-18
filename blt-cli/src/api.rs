@@ -737,4 +737,35 @@ mod tests {
         let malformed = json!({"not_data": 123});
         assert!(parse_hunts_from_json(&malformed).is_err());
     }
+
+    #[test]
+    fn test_parse_issues_title_precedence() {
+        // 1. Explicit title in JSON
+        let json1 = json!({
+            "data": [{ "id": 1, "title": "Explicit Title", "description": "Some description" }]
+        });
+        let issues1 = parse_issues_from_json(&json1).unwrap();
+        assert_eq!(issues1[0].title, "Explicit Title");
+
+        // 2. Empty title in JSON, fallback to Title: in description
+        let json2 = json!({
+            "data": [{ "id": 2, "title": "", "description": "Title: Extracted from Description\n\nDetails here" }]
+        });
+        let issues2 = parse_issues_from_json(&json2).unwrap();
+        assert_eq!(issues2[0].title, "Extracted from Description");
+
+        // 3. "Untitled Issue" in JSON, fallback to Title: in description
+        let json3 = json!({
+            "data": [{ "id": 3, "title": "Untitled Issue", "description": "Title: Recovered Title\n\nOther details" }]
+        });
+        let issues3 = parse_issues_from_json(&json3).unwrap();
+        assert_eq!(issues3[0].title, "Recovered Title");
+
+        // 4. No title and no Title: prefix, falls back to "Untitled Issue"
+        let json4 = json!({
+            "data": [{ "id": 4, "description": "Only plain description without title marker" }]
+        });
+        let issues4 = parse_issues_from_json(&json4).unwrap();
+        assert_eq!(issues4[0].title, "Untitled Issue");
+    }
 }

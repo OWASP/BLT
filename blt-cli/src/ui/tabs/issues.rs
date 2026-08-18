@@ -50,7 +50,9 @@ pub fn draw_issues_tab(f: &mut Frame, app: &App, rect: Rect) {
             " Filter: "
         };
         let border_style = if app.active_overlay == crate::app::ActiveOverlay::SearchInput {
-            Style::default().fg(BLT_PRIMARY).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(BLT_PRIMARY)
+                .add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(DARK_BORDER)
         };
@@ -73,7 +75,10 @@ pub fn draw_issues_tab(f: &mut Frame, app: &App, rect: Rect) {
             } else {
                 Span::raw("")
             },
-            Span::styled("  (Press [Esc] to reset)", Style::default().fg(BLT_TEXT_DIM)),
+            Span::styled(
+                "  (Press [Esc] to reset)",
+                Style::default().fg(BLT_TEXT_DIM),
+            ),
         ]))
         .block(
             Block::default()
@@ -285,7 +290,7 @@ pub fn draw_issues_tab(f: &mut Frame, app: &App, rect: Rect) {
         let right_pane_chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(6), // Metadata Card
+                Constraint::Length(6),      // Metadata Card
                 Constraint::Percentage(52), // Description
                 Constraint::Percentage(48), // Activity Log & Audit Trail
             ])
@@ -430,13 +435,13 @@ pub fn draw_issues_tab(f: &mut Frame, app: &App, rect: Rect) {
         let timeline_p = Paragraph::new(timeline_lines)
             .block(
                 Block::default()
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(DARK_BORDER))
-                .title(Span::styled(
-                    " ACTIVITY ",
-                    Style::default().fg(BLT_TEXT_MUTED),
-                ))
-                .bg(DARK_SURFACE),
+                    .borders(Borders::ALL)
+                    .border_style(Style::default().fg(DARK_BORDER))
+                    .title(Span::styled(
+                        " ACTIVITY ",
+                        Style::default().fg(BLT_TEXT_MUTED),
+                    ))
+                    .bg(DARK_SURFACE),
             )
             .wrap(Wrap { trim: false });
         f.render_widget(timeline_p, right_pane_chunks[2]);

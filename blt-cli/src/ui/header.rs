@@ -20,11 +20,11 @@ use ratatui::{
     Frame,
 };
 
-use crate::app::{App, Tab};
 use super::theme::{
     BLT_PRIMARY, BLT_TEXT_DIM, BLT_TEXT_HEADING, BLT_TEXT_MUTED, DARK_BORDER, DARK_SURFACE,
     SEVERITY_CRITICAL, SEVERITY_HIGH, STATUS_IN_REVIEW, STATUS_RESOLVED,
 };
+use crate::app::{App, Tab};
 
 /// Renders the top brand header, live connection state, counters, and navigation tabs.
 pub fn draw_header(f: &mut Frame, app: &App, rect: Rect) {

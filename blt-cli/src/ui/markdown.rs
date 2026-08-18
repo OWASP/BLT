@@ -30,21 +30,21 @@ use super::theme::{
 pub fn parse_markdown(text: &str) -> Vec<Line<'_>> {
     let mut lines = Vec::new();
     for line in text.lines() {
-        if line.starts_with("# ") {
+        if let Some(stripped) = line.strip_prefix("# ") {
             lines.push(Line::from(Span::styled(
-                &line[2..],
+                stripped,
                 Style::default()
                     .fg(BLT_TEXT_HEADING)
                     .add_modifier(Modifier::BOLD),
             )));
-        } else if line.starts_with("## ") {
+        } else if let Some(stripped) = line.strip_prefix("## ") {
             lines.push(Line::from(Span::styled(
-                &line[3..],
+                stripped,
                 Style::default()
                     .fg(BLT_PRIMARY)
                     .add_modifier(Modifier::BOLD),
             )));
-        } else if line.starts_with("- ") {
+        } else if let Some(stripped) = line.strip_prefix("- ") {
             lines.push(Line::from(vec![
                 Span::styled(
                     " • ",
@@ -52,7 +52,7 @@ pub fn parse_markdown(text: &str) -> Vec<Line<'_>> {
                         .fg(BLT_PRIMARY)
                         .add_modifier(Modifier::BOLD),
                 ),
-                Span::styled(&line[2..], Style::default().fg(BLT_TEXT_BODY)),
+                Span::styled(stripped, Style::default().fg(BLT_TEXT_BODY)),
             ]));
         } else if line.trim().is_empty() {
             lines.push(Line::from(""));
