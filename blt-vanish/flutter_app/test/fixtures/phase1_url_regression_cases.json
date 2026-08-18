@@ -1,0 +1,122 @@
+[
+  {
+    "name": "phishing_critical_with_redundant_signals",
+    "label": "malicious",
+    "localSignals": {
+      "entropy": 0.82,
+      "suspicious_tokens": 0.7,
+      "risky_tld": 1.0,
+      "query_anomaly": 0.15,
+      "urgency_token": 0.9
+    },
+    "enrichmentSignals": {
+      "reputation": "malicious",
+      "threat_score": "0.95"
+    }
+  },
+  {
+    "name": "phishing_high_with_malicious_reputation",
+    "label": "malicious",
+    "localSignals": {
+      "entropy": 0.78,
+      "suspicious_tokens": 0.7,
+      "risky_tld": 1.0,
+      "query_anomaly": 0.10,
+      "urgency_token": 0.0
+    },
+    "enrichmentSignals": {
+      "reputation": "malicious",
+      "threat_score": "0.90"
+    }
+  },
+  {
+    "name": "phishing_medium_offline_fallback",
+    "label": "malicious",
+    "localSignals": {
+      "entropy": 0.80,
+      "suspicious_tokens": 0.7,
+      "risky_tld": 1.0,
+      "query_anomaly": 0.20,
+      "urgency_token": 0.0
+    },
+    "enrichmentSignals": {
+      "reputation": "unknown",
+      "threat_score": "0.0"
+    }
+  },
+  {
+    "name": "phishing_brand_impersonation_medium",
+    "label": "malicious",
+    "localSignals": {
+      "entropy": 0.70,
+      "suspicious_tokens": 0.7,
+      "risky_tld": 0.0,
+      "query_anomaly": 0.30,
+      "urgency_token": 0.7
+    },
+    "enrichmentSignals": {
+      "reputation": "suspicious",
+      "threat_score": "0.55"
+    }
+  },
+  {
+    "name": "benign_marketing_link",
+    "label": "benign",
+    "localSignals": {
+      "entropy": 0.42,
+      "suspicious_tokens": 0.7,
+      "risky_tld": 0.0,
+      "query_anomaly": 0.82,
+      "urgency_token": 0.0
+    },
+    "enrichmentSignals": {
+      "reputation": "clean",
+      "threat_score": "0.05"
+    }
+  },
+  {
+    "name": "benign_shortener_redirect",
+    "label": "benign",
+    "localSignals": {
+      "entropy": 0.22,
+      "suspicious_tokens": 0.0,
+      "risky_tld": 0.0,
+      "query_anomaly": 0.0,
+      "urgency_token": 0.0
+    },
+    "enrichmentSignals": {
+      "reputation": "unknown",
+      "threat_score": "0.0"
+    }
+  },
+  {
+    "name": "benign_trusted_login_domain",
+    "label": "benign",
+    "localSignals": {
+      "entropy": 0.36,
+      "suspicious_tokens": 0.7,
+      "risky_tld": 0.0,
+      "query_anomaly": 0.15,
+      "urgency_token": 0.0
+    },
+    "enrichmentSignals": {
+      "reputation": "clean",
+      "threat_score": "0.0"
+    }
+  },
+  {
+    "name": "benign_documentation_domain",
+    "label": "benign",
+    "localSignals": {
+      "entropy": 0.28,
+      "suspicious_tokens": 0.0,
+      "risky_tld": 0.0,
+      "query_anomaly": 0.0,
+      "urgency_token": 0.0
+    },
+    "enrichmentSignals": {
+      "reputation": "clean",
+      "threat_score": "0.0"
+    }
+  }
+]
