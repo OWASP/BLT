@@ -1,0 +1,67 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Production Renovate configuration for OWASP BLT MCP & CLI (GitLab)",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":semanticCommitScope(deps)",
+    ":separatePatchReleases"
+  ],
+  "timezone": "Etc/UTC",
+  "schedule": ["before 6am on monday"],
+  "prHourlyLimit": 5,
+  "prConcurrentLimit": 10,
+  "rebaseWhen": "auto",
+  "labels": ["dependencies", "renovate"],
+  "packageRules": [
+    {
+      "description": "Rust Dependencies (Cargo)",
+      "matchManagers": ["cargo"],
+      "labels": ["dependencies", "rust", "tui"],
+      "commitMessagePrefix": "chore(deps-rust): ",
+      "rangeStrategy": "update-lockfile"
+    },
+    {
+      "description": "Python Dependencies (PEP 621 / UV / Pyproject)",
+      "matchManagers": ["pep621", "pip_requirements"],
+      "labels": ["dependencies", "python", "mcp"],
+      "commitMessagePrefix": "chore(deps-python): ",
+      "rangeStrategy": "update-lockfile"
+    },
+    {
+      "description": "GitLab CI Images & Components",
+      "matchManagers": ["gitlabci"],
+      "labels": ["dependencies", "ci"],
+      "commitMessagePrefix": "ci(gitlab): "
+    },
+    {
+      "description": "Pre-commit Hooks",
+      "matchManagers": ["pre-commit"],
+      "labels": ["dependencies", "lint"],
+      "commitMessagePrefix": "chore(pre-commit): "
+    },
+    {
+      "description": "Automerge non-breaking patch updates for dev dependencies",
+      "matchDepTypes": ["devDependencies", "dev-dependencies"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": false
+    }
+  ],
+  "cargo": {
+    "fileMatch": ["(^|/)blt-cli/Cargo\\.toml$"]
+  },
+  "pep621": {
+    "fileMatch": ["(^|/)pyproject\\.toml$"]
+  },
+  "gitlabci": {
+    "fileMatch": ["(^|/)\\.gitlab-ci\\.ya?ml$"]
+  },
+  "pre-commit": {
+    "fileMatch": ["(^|/)\\.pre-commit-config\\.ya?ml$"]
+  },
+  "vulnerabilityAlerts": {
+    "labels": ["security", "vulnerability"],
+    "commitMessagePrefix": "sec(deps): "
+  }
+}
