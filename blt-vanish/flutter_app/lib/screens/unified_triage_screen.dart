@@ -44,18 +44,24 @@ class _UnifiedTriageScreenState extends State<UnifiedTriageScreen> {
     final assessments = await storageService.getRiskAssessments();
     final credentials = await storageService.getCredentialSnapshots();
     final tasks = await storageService.getRemediationTasks();
+    final exposures = await storageService.getExposureEvents();
+    final anomalies = await storageService.getLoginAnomalies();
 
     setState(() {
       _items = _triageService.buildTimeline(
         assessments: assessments,
         credentialSnapshots: credentials,
         remediationTasks: tasks,
+        exposureEvents: exposures,
+        loginAnomalies: anomalies,
         filter: _filter,
       );
       _metrics = _metricsAggregator.aggregate(
         assessments: assessments,
         credentialSnapshots: credentials,
         remediationTasks: tasks,
+        exposureEvents: exposures,
+        loginAnomalies: anomalies,
       );
       _isLoading = false;
     });
@@ -130,6 +136,8 @@ class _UnifiedTriageScreenState extends State<UnifiedTriageScreen> {
           children: [
             _metricTile('Scans', metrics.scanCount.toString()),
             _metricTile('Credentials', metrics.credentialSnapshotCount.toString()),
+            _metricTile('Exposures', metrics.exposureEventCount.toString()),
+            _metricTile('Anomalies', metrics.loginAnomalyCount.toString()),
             _metricTile('Open Tasks', metrics.openRemediationTaskCount.toString()),
             _metricTile(
               'Avg Risk',
@@ -357,6 +365,8 @@ class _UnifiedTriageScreenState extends State<UnifiedTriageScreen> {
       UnifiedTriageFilter.phishing => 'Phishing',
       UnifiedTriageFilter.credentials => 'Credentials',
       UnifiedTriageFilter.remediation => 'Open Remediation',
+      UnifiedTriageFilter.exposures => 'Exposures',
+      UnifiedTriageFilter.anomalies => 'Anomalies',
     };
   }
 
@@ -365,6 +375,8 @@ class _UnifiedTriageScreenState extends State<UnifiedTriageScreen> {
       UnifiedTriageItemType.phishing => Icons.link_off_outlined,
       UnifiedTriageItemType.credential => Icons.password_outlined,
       UnifiedTriageItemType.remediation => Icons.task_alt_outlined,
+      UnifiedTriageItemType.exposure => Icons.security_update_warning_outlined,
+      UnifiedTriageItemType.anomaly => Icons.warning_amber_outlined,
     };
   }
 

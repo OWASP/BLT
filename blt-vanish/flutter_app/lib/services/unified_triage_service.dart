@@ -1,4 +1,6 @@
 import '../models/security/credential_snapshot.dart';
+import '../models/security/exposure_event.dart';
+import '../models/security/login_anomaly.dart';
 import '../models/security/remediation_task.dart';
 import '../models/security/risk_assessment.dart';
 import '../models/security/security_alert.dart';
@@ -13,6 +15,12 @@ enum UnifiedTriageItemType {
 
   /// Remediation lifecycle item.
   remediation,
+
+  /// Breach/dark web exposure event item.
+  exposure,
+
+  /// Suspicious login anomaly detection item.
+  anomaly,
 }
 
 /// Global triage filter.
@@ -28,6 +36,12 @@ enum UnifiedTriageFilter {
 
   /// Show open remediation work.
   remediation,
+
+  /// Show breach exposure items.
+  exposures,
+
+  /// Show login anomaly items.
+  anomalies,
 }
 
 /// Ranked item in the unified risk timeline.
@@ -77,19 +91,23 @@ class UnifiedTriageItem {
   final bool isActionable;
 }
 
-/// Ranks phishing, credential, and remediation items into one timeline.
+/// Ranks phishing, credential, remediation, exposure, and anomaly items into one timeline.
 class UnifiedTriageService {
   /// Builds a filtered and ranked triage timeline.
   List<UnifiedTriageItem> buildTimeline({
     required List<RiskAssessment> assessments,
     required List<CredentialSnapshot> credentialSnapshots,
     required List<RemediationTask> remediationTasks,
+    List<ExposureEvent> exposureEvents = const [],
+    List<LoginAnomaly> loginAnomalies = const [],
     UnifiedTriageFilter filter = UnifiedTriageFilter.all,
   }) {
     final items = <UnifiedTriageItem>[
       ...assessments.map(_fromAssessment),
       ...credentialSnapshots.map(_fromCredential),
       ...remediationTasks.map(_fromRemediationTask),
+      ...exposureEvents.map(_fromExposure),
+      ...loginAnomalies.map(_fromAnomaly),
     ].where((item) => _matchesFilter(item, filter)).toList()
       ..sort((left, right) {
         final priority = right.priorityScore.compareTo(left.priorityScore);
@@ -149,6 +167,47 @@ class UnifiedTriageService {
     );
   }
 
+  UnifiedTriageItem _fromExposure(ExposureEvent exposure) {
+    final severity = _parseSeverity(exposure.urgency);
+    return UnifiedTriageItem(
+      id: 'exp_${exposure.source}_${exposure.occurredAt.millisecondsSinceEpoch}',
+      type: UnifiedTriageItemType.exposure,
+      title: 'Data breach exposure',
+      subtitle: exposure.source,
+      severity: severity,
+      priorityScore: exposure.confidence,
+      createdAt: exposure.occurredAt,
+      quickActionLabel: 'Review exposure',
+      reasonCodes: <String>['BREACH_LEAK', exposure.urgency.toUpperCase()],
+      isActionable: true,
+    );
+  }
+
+  UnifiedTriageItem _fromAnomaly(LoginAnomaly anomaly) {
+    final severity = _parseSeverity(anomaly.riskBand);
+    return UnifiedTriageItem(
+      id: 'anom_${anomaly.accountId}_${anomaly.detectedAt.millisecondsSinceEpoch}',
+      type: UnifiedTriageItemType.anomaly,
+      title: 'Suspicious login anomaly',
+      subtitle: anomaly.accountId,
+      severity: severity,
+      priorityScore: anomaly.score,
+      createdAt: anomaly.detectedAt,
+      quickActionLabel: 'Inspect anomaly',
+      reasonCodes: anomaly.reasonCodes,
+      isActionable: true,
+    );
+  }
+
+  AlertSeverity _parseSeverity(String band) {
+    return switch (band.toLowerCase()) {
+      'critical' => AlertSeverity.critical,
+      'high' => AlertSeverity.high,
+      'medium' => AlertSeverity.medium,
+      _ => AlertSeverity.low,
+    };
+  }
+
   bool _matchesFilter(UnifiedTriageItem item, UnifiedTriageFilter filter) {
     return switch (filter) {
       UnifiedTriageFilter.all => true,
@@ -158,6 +217,10 @@ class UnifiedTriageService {
         item.type == UnifiedTriageItemType.credential,
       UnifiedTriageFilter.remediation =>
         item.type == UnifiedTriageItemType.remediation && item.isActionable,
+      UnifiedTriageFilter.exposures =>
+        item.type == UnifiedTriageItemType.exposure,
+      UnifiedTriageFilter.anomalies =>
+        item.type == UnifiedTriageItemType.anomaly,
     };
   }
 }

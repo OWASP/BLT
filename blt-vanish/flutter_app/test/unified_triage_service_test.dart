@@ -1,9 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:selferase/models/security/credential_snapshot.dart';
-import 'package:selferase/models/security/remediation_task.dart';
-import 'package:selferase/models/security/risk_assessment.dart';
-import 'package:selferase/models/security/security_alert.dart';
-import 'package:selferase/services/unified_triage_service.dart';
+import 'package:vanish/models/security/credential_snapshot.dart';
+import 'package:vanish/models/security/exposure_event.dart';
+import 'package:vanish/models/security/login_anomaly.dart';
+import 'package:vanish/models/security/remediation_task.dart';
+import 'package:vanish/models/security/risk_assessment.dart';
+import 'package:vanish/models/security/security_alert.dart';
+import 'package:vanish/services/unified_triage_service.dart';
 
 void main() {
   test('UnifiedTriageService ranks mixed findings by priority', () {
@@ -56,9 +58,29 @@ void main() {
           updatedAt: now,
         ),
       ],
+      exposureEvents: [
+        ExposureEvent(
+          source: 'HaveIBeenPwned DarkWeb',
+          occurredAt: now,
+          urgency: 'critical',
+          confidence: 0.99,
+          accountHash: 'anon_hash_123',
+        ),
+      ],
+      loginAnomalies: [
+        LoginAnomaly(
+          accountId: 'github_user',
+          score: 0.88,
+          riskBand: 'high',
+          reasonCodes: const ['NEW_DEVICE', 'ODD_HOUR'],
+          detectedAt: now,
+        ),
+      ],
     );
 
-    expect(items.first.id, 'cred-critical');
+    expect(items.first.id, contains('HaveIBeenPwned'));
+    expect(items.any((i) => i.type == UnifiedTriageItemType.exposure), isTrue);
+    expect(items.any((i) => i.type == UnifiedTriageItemType.anomaly), isTrue);
     expect(items.last.id, 'scan-low');
   });
 
@@ -103,5 +125,48 @@ void main() {
 
     expect(items, hasLength(1));
     expect(items.single.id, 'open-task');
+  });
+
+  test('UnifiedTriageService filters exposures and anomalies', () {
+    final service = UnifiedTriageService();
+    final now = DateTime(2026, 7, 6);
+
+    final exposures = service.buildTimeline(
+      assessments: const [],
+      credentialSnapshots: const [],
+      remediationTasks: const [],
+      exposureEvents: [
+        ExposureEvent(
+          source: 'BreachData',
+          occurredAt: now,
+          urgency: 'high',
+          confidence: 0.9,
+          accountHash: 'hash',
+        ),
+      ],
+      filter: UnifiedTriageFilter.exposures,
+    );
+
+    expect(exposures, hasLength(1));
+    expect(exposures.single.type, UnifiedTriageItemType.exposure);
+
+    final anomalies = service.buildTimeline(
+      assessments: const [],
+      credentialSnapshots: const [],
+      remediationTasks: const [],
+      loginAnomalies: [
+        LoginAnomaly(
+          accountId: 'user_1',
+          score: 0.75,
+          riskBand: 'medium',
+          reasonCodes: const ['NEW_GEO'],
+          detectedAt: now,
+        ),
+      ],
+      filter: UnifiedTriageFilter.anomalies,
+    );
+
+    expect(anomalies, hasLength(1));
+    expect(anomalies.single.type, UnifiedTriageItemType.anomaly);
   });
 }
