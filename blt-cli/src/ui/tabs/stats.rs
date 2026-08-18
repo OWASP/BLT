@@ -158,20 +158,25 @@ pub fn draw_stats_tab(f: &mut Frame, app: &App, rect: Rect) {
     let mut high = 0;
     let mut med = 0;
     let mut low = 0;
+    let mut unknown = 0u32;
     for issue in &app.issues {
         match issue.severity.to_lowercase().as_str() {
             "critical" => crit += 1,
             "high" => high += 1,
             "medium" => med += 1,
-            _ => low += 1,
+            "low" => low += 1,
+            _ => unknown += 1,
         }
     }
-    let barchart_data = vec![
+    let mut barchart_data = vec![
         ("Critical", crit as u64),
         ("High", high as u64),
         ("Medium", med as u64),
         ("Low", low as u64),
     ];
+    if unknown > 0 {
+        barchart_data.push(("Unknown", unknown as u64));
+    }
     let barchart = ratatui::widgets::BarChart::default()
         .block(
             Block::default()

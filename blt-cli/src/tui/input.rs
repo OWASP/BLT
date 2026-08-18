@@ -58,18 +58,21 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
         KeyCode::Char('a'),
     ];
 
-    if key.code == konami_seq[app.konami_index]
-        || (key.code == KeyCode::Char('B') && konami_seq[app.konami_index] == KeyCode::Char('b'))
-        || (key.code == KeyCode::Char('A') && konami_seq[app.konami_index] == KeyCode::Char('a'))
-    {
-        app.konami_index += 1;
-        if app.konami_index == konami_seq.len() {
-            app.active_overlay = ActiveOverlay::EasterEgg;
+    if !is_text_input {
+        let expected = konami_seq[app.konami_index.min(konami_seq.len() - 1)];
+        if key.code == expected
+            || (key.code == KeyCode::Char('B') && expected == KeyCode::Char('b'))
+            || (key.code == KeyCode::Char('A') && expected == KeyCode::Char('a'))
+        {
+            app.konami_index += 1;
+            if app.konami_index == konami_seq.len() {
+                app.active_overlay = ActiveOverlay::EasterEgg;
+                app.konami_index = 0;
+                return;
+            }
+        } else {
             app.konami_index = 0;
-            return;
         }
-    } else {
-        app.konami_index = 0;
     }
 
     // 3. Modal Key Interceptors
@@ -96,7 +99,9 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
         ActiveOverlay::VisionContext => {
             match key.code {
                 KeyCode::Esc => {
-                    handle_vision_draft(app, None);
+                    app.active_overlay = ActiveOverlay::None;
+                    app.vision_context_input.clear();
+                    app.status_message = "Vision AI drafting cancelled.".to_string();
                 }
                 KeyCode::Backspace => {
                     app.vision_context_input.pop();
@@ -128,65 +133,22 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
                     app.status_message = "Submit vulnerability cancelled.".to_string();
                 }
                 KeyCode::Tab => {
-                    app.submit_form.active_field = match app.submit_form.active_field {
-                        FormField::Title => FormField::Url,
-                        FormField::Url => FormField::Severity,
-                        FormField::Severity => FormField::BugType,
-                        FormField::BugType => FormField::Description,
-                        FormField::Description => FormField::StepsToReproduce,
-                        FormField::StepsToReproduce => FormField::Screenshot,
-                        FormField::Screenshot => FormField::Title,
-                    };
+                    app.submit_form.next_field();
                 }
                 KeyCode::Enter => {
-                    let field = match app.submit_form.active_field {
-                        FormField::Title => &mut app.submit_form.title,
-                        FormField::Url => &mut app.submit_form.url,
-                        FormField::Severity => &mut app.submit_form.severity,
-                        FormField::BugType => &mut app.submit_form.bug_type,
-                        FormField::Description => &mut app.submit_form.description,
-                        FormField::StepsToReproduce => &mut app.submit_form.steps_to_reproduce,
-                        FormField::Screenshot => &mut app.submit_form.screenshot_path,
-                    };
                     if app.submit_form.active_field == FormField::Description
                         || app.submit_form.active_field == FormField::StepsToReproduce
                     {
-                        field.push('\n');
+                        app.submit_form.active_field_mut().push('\n');
                     } else {
-                        app.submit_form.active_field = match app.submit_form.active_field {
-                            FormField::Title => FormField::Url,
-                            FormField::Url => FormField::Severity,
-                            FormField::Severity => FormField::BugType,
-                            FormField::BugType => FormField::Description,
-                            FormField::Description => FormField::StepsToReproduce,
-                            FormField::StepsToReproduce => FormField::Screenshot,
-                            FormField::Screenshot => FormField::Title,
-                        };
+                        app.submit_form.next_field();
                     }
                 }
                 KeyCode::Backspace => {
-                    let field = match app.submit_form.active_field {
-                        FormField::Title => &mut app.submit_form.title,
-                        FormField::Url => &mut app.submit_form.url,
-                        FormField::Severity => &mut app.submit_form.severity,
-                        FormField::BugType => &mut app.submit_form.bug_type,
-                        FormField::Description => &mut app.submit_form.description,
-                        FormField::StepsToReproduce => &mut app.submit_form.steps_to_reproduce,
-                        FormField::Screenshot => &mut app.submit_form.screenshot_path,
-                    };
-                    field.pop();
+                    app.submit_form.active_field_mut().pop();
                 }
                 KeyCode::Char(c) => {
-                    let field = match app.submit_form.active_field {
-                        FormField::Title => &mut app.submit_form.title,
-                        FormField::Url => &mut app.submit_form.url,
-                        FormField::Severity => &mut app.submit_form.severity,
-                        FormField::BugType => &mut app.submit_form.bug_type,
-                        FormField::Description => &mut app.submit_form.description,
-                        FormField::StepsToReproduce => &mut app.submit_form.steps_to_reproduce,
-                        FormField::Screenshot => &mut app.submit_form.screenshot_path,
-                    };
-                    field.push(c);
+                    app.submit_form.active_field_mut().push(c);
                 }
                 _ => {}
             }
@@ -199,10 +161,12 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
                 }
                 KeyCode::Char('s') if !app.hunts.is_empty() => {
                     app.submit_form = VulnerabilityForm::default();
-                    app.submit_form.url = "".to_string();
+                    if let Some(hunt) = app.hunts.get(app.selected_hunt_index) {
+                        app.submit_form.title = format!("[{}] ", hunt.name);
+                    }
                     app.active_overlay = ActiveOverlay::SubmitForm;
                     app.submit_form.active_field = FormField::Url;
-                    app.status_message = "Opened Submit Form for Hunt Context".to_string();
+                    app.status_message = "Opened Submit Form for selected Hunt.".to_string();
                 }
                 _ => {}
             }
@@ -329,11 +293,8 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
         KeyCode::Char('/') => {
             app.active_overlay = ActiveOverlay::SearchInput;
         }
-        KeyCode::Char('p') | KeyCode::Char('v')
-            if key.code == KeyCode::Char('p')
-                || (key.code == KeyCode::Char('v')
-                    && key.modifiers.contains(KeyModifiers::CONTROL)) =>
-        {
+        KeyCode::Char('p') => extract_clipboard_action(app),
+        KeyCode::Char('v') if key.modifiers.contains(KeyModifiers::CONTROL) => {
             extract_clipboard_action(app);
         }
         KeyCode::Char(' ') => {

@@ -237,12 +237,7 @@ pub fn draw_hunts_tab(f: &mut Frame, app: &App, rect: Rect) {
             Line::from(""),
         ];
 
-        for line in hunt.description.lines() {
-            desc_lines.push(Line::from(Span::styled(
-                format!("  {}", line),
-                Style::default().fg(BLT_TEXT_BODY),
-            )));
-        }
+        desc_lines.extend(crate::ui::markdown::parse_markdown(&hunt.description));
 
         desc_lines.push(Line::from(""));
         desc_lines.push(Line::from(vec![

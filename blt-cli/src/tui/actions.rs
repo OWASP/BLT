@@ -75,6 +75,11 @@ pub fn handle_vision_draft(app: &mut App, context: Option<String>) {
                     });
                 }
             }
+        } else {
+            let _ = sender.send(crate::app::AppEvent::VisionDraftComplete {
+                result: "ERROR: Vision AI requires an active Live MCP connection.".to_string(),
+                success: false,
+            });
         }
     });
 }
@@ -385,19 +390,7 @@ pub fn extract_clipboard_action(app: &mut App) {
                 Ok(Ok(out)) => {
                     let stdout = String::from_utf8_lossy(&out.stdout).trim().to_string();
                     if stdout.starts_with("SUCCESS:") {
-                        let win_path = stdout["SUCCESS:".len()..].trim().to_string();
-                        let path_str = if cfg!(target_os = "linux") {
-                            if win_path.as_bytes().get(1..3) == Some(b":\\") {
-                                let drive = win_path[0..1].to_lowercase();
-                                let rest = win_path[3..].replace('\\', "/");
-                                format!("/mnt/{}/{}", drive, rest)
-                            } else {
-                                win_path
-                            }
-                        } else {
-                            win_path
-                        };
-                        Ok(path_str)
+                        Ok(stdout["SUCCESS:".len()..].trim().to_string())
                     } else if stdout.contains("NO_IMAGE") {
                         Err("Clipboard does not contain an image or valid image path.".to_string())
                     } else {
@@ -421,7 +414,11 @@ pub fn extract_clipboard_action(app: &mut App) {
                                 let home = dirs::home_dir().unwrap_or_default();
                                 let img_dir = home.join(".blt-mcp").join("images");
                                 let _ = std::fs::create_dir_all(&img_dir);
-                                let temp_path = img_dir.join("temp_clipboard.png");
+                                let timestamp = std::time::SystemTime::now()
+                                    .duration_since(std::time::UNIX_EPOCH)
+                                    .unwrap_or_default()
+                                    .as_millis();
+                                let temp_path = img_dir.join(format!("clipboard_{}.png", timestamp));
 
                                 let mut png_bytes = Vec::new();
                                 let mut encoder = png::Encoder::new(&mut png_bytes, image.width as u32, image.height as u32);
