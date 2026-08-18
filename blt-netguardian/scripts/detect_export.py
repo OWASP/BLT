@@ -155,6 +155,7 @@ def submit(base_url: str, raw: bytes, *, timeout: int = 15) -> tuple[int, str]:
     request = urllib.request.Request(url, data=raw, method="POST")
     request.add_header("Content-Type", "application/json")
     request.add_header("X-BLT-Body-Digest", f"sha256={body_digest_hex(raw)}")
+    request.add_header("User-Agent", "NetGuardian-Detect/1.0")
     context = ssl.create_default_context() if url.startswith("https://") else None
     try:
         with urllib.request.urlopen(request, timeout=timeout, context=context) as response:

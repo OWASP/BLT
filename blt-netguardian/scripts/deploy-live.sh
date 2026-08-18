@@ -48,6 +48,9 @@ cat > "$ROOT/public/client/index.html" <<'HTML'
 </body></html>
 HTML
 
+cp "$ROOT/scripts/install.sh" "$ROOT/public/install.sh"
+chmod +x "$ROOT/public/install.sh"
+
 echo "==> Deploy Worker + public/ assets"
 # Wrangler rejects pytest pins in requirements.txt; Workers uses aesgcm_pure, not cryptography.
 REQ_BAK=""
@@ -66,6 +69,5 @@ echo "==> Smoke checks"
 curl -sf "$BASE/api/health" | head -c 200 && echo ""
 curl -sf -o /dev/null -w "triage.html: %{http_code}\n" "$BASE/triage.html"
 echo ""
-echo "Client: $BASE/client/"
-echo "Triage: $BASE/triage"
-echo "Token:  triage-token"
+echo "Install: curl -fsSL $BASE/install.sh | sh -s -- https://your-site.example"
+echo "Triage:  $BASE/triage"
