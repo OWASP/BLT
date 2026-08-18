@@ -13,7 +13,7 @@ from typing import Any
 from js import Date, Headers, Response, URL
 
 try:
-    from cloudflare import DurableObject
+    from workers import DurableObject
 except ImportError:
 
     class DurableObject:
