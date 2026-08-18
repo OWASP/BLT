@@ -44,7 +44,7 @@
     },
     {
       "description": "Automerge non-breaking patch updates for dev dependencies",
-      "matchDepTypes": ["devDependencies", "dev-dependencies", "project.optional-dependencies", "dependency-groups", "tool.uv.dev-dependencies"],
+      "matchDepTypes": ["devDependencies", "dev-dependencies", "project.optional-dependencies.dev", "dependency-groups.dev", "tool.uv.dev-dependencies"],
       "matchUpdateTypes": ["patch"],
       "automerge": true
     }

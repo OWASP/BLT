@@ -18,11 +18,11 @@ use ratatui::{
     Frame,
 };
 
-use crate::app::{App, Tab};
 use super::theme::{
     BLT_PRIMARY, BLT_TEXT_BODY, BLT_TEXT_HEADING, BLT_TEXT_MUTED, DARK_BORDER, DARK_SURFACE,
     SEVERITY_CRITICAL, SEVERITY_HIGH, STATUS_IN_REVIEW, STATUS_RESOLVED,
 };
+use crate::app::{App, Tab};
 
 /// Renders the bottom status bar, mode indicator, and action shortcut legend.
 pub fn draw_footer(f: &mut Frame, app: &App, rect: Rect) {

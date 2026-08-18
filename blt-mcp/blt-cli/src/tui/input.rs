@@ -14,11 +14,11 @@
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use crate::app::{ActiveOverlay, App, FormField, Tab, VulnerabilityForm};
 use super::actions::{
     ai_triage_action, bulk_triage_action, extract_clipboard_action, handle_vision_draft,
     submit_issue_action,
 };
+use crate::app::{ActiveOverlay, App, FormField, Tab, VulnerabilityForm};
 
 /// Dispatches a key event to the appropriate modal, text input field, or global navigation handler.
 pub fn handle_keys(key: KeyEvent, app: &mut App) {
@@ -36,9 +36,7 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
         || app.active_overlay == ActiveOverlay::SearchInput
         || app.active_overlay == ActiveOverlay::VisionContext;
 
-    if key.code == KeyCode::Char('q')
-        && !is_text_input
-        && app.active_overlay != ActiveOverlay::None
+    if key.code == KeyCode::Char('q') && !is_text_input && app.active_overlay != ActiveOverlay::None
     {
         app.active_overlay = ActiveOverlay::None;
         return;
@@ -140,6 +138,9 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
                 }
                 KeyCode::Tab => {
                     app.submit_form.next_field();
+                }
+                KeyCode::BackTab => {
+                    app.submit_form.prev_field();
                 }
                 KeyCode::Enter => {
                     if app.submit_form.active_field == FormField::Description
@@ -381,13 +382,7 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
                 let sender = app.event_sender.clone();
                 let mcp_client_clone = app.mcp_client.clone();
 
-                ai_triage_action(
-                    mcp_client_clone,
-                    sender,
-                    issue_id,
-                    issue_title,
-                    issue_desc,
-                );
+                ai_triage_action(mcp_client_clone, sender, issue_id, issue_title, issue_desc);
             }
         }
         KeyCode::Esc => app.close_popups(),

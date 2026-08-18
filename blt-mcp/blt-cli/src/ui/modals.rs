@@ -20,14 +20,13 @@ use ratatui::{
     Frame,
 };
 
-use crate::app::App;
 use super::markdown::{parse_inline_markdown, parse_markdown};
 use super::theme::{
-    BLT_PRIMARY, BLT_TEXT_BODY, BLT_TEXT_HEADING, BLT_TEXT_MUTED, DARK_BASE,
-    DARK_BORDER, DARK_SURFACE, SEVERITY_CRITICAL, SEVERITY_HIGH, STATUS_IN_REVIEW,
-    STATUS_RESOLVED,
+    BLT_PRIMARY, BLT_TEXT_BODY, BLT_TEXT_HEADING, BLT_TEXT_MUTED, DARK_BASE, DARK_BORDER,
+    DARK_SURFACE, SEVERITY_CRITICAL, SEVERITY_HIGH, STATUS_IN_REVIEW, STATUS_RESOLVED,
 };
 use super::widgets::{centered_rect, Cell};
+use crate::app::App;
 
 /// Renders the keyboard shortcut reference modal.
 pub fn draw_help_modal(f: &mut Frame, rect: Rect) {
@@ -185,7 +184,11 @@ pub fn draw_help_modal(f: &mut Frame, rect: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(BLT_PRIMARY).add_modifier(Modifier::BOLD))
+                .border_style(
+                    Style::default()
+                        .fg(BLT_PRIMARY)
+                        .add_modifier(Modifier::BOLD),
+                )
                 .title(Span::styled(
                     " KEYBOARD SHORTCUTS ",
                     Style::default()
@@ -251,7 +254,10 @@ pub fn draw_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
                     .fg(STATUS_RESOLVED)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::styled("Confirm Triage Update  │  ", Style::default().fg(BLT_TEXT_BODY)),
+            Span::styled(
+                "Confirm Triage Update  │  ",
+                Style::default().fg(BLT_TEXT_BODY),
+            ),
             Span::styled(
                 "[Esc] ",
                 Style::default()
@@ -266,7 +272,11 @@ pub fn draw_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(BLT_PRIMARY).add_modifier(Modifier::BOLD))
+                .border_style(
+                    Style::default()
+                        .fg(BLT_PRIMARY)
+                        .add_modifier(Modifier::BOLD),
+                )
                 .title(Span::styled(
                     " CONFIRM TRIAGE ",
                     Style::default().fg(BLT_PRIMARY),
@@ -286,7 +296,11 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
 
     let block = Block::default()
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(BLT_PRIMARY).add_modifier(Modifier::BOLD))
+        .border_style(
+            Style::default()
+                .fg(BLT_PRIMARY)
+                .add_modifier(Modifier::BOLD),
+        )
         .title(Span::styled(
             " REPORT VULNERABILITY ",
             Style::default()
@@ -328,7 +342,9 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
 
     let active = &app.submit_form.active_field;
 
-    let style_active = Style::default().fg(BLT_PRIMARY).add_modifier(Modifier::BOLD);
+    let style_active = Style::default()
+        .fg(BLT_PRIMARY)
+        .add_modifier(Modifier::BOLD);
     let style_inactive = Style::default().fg(DARK_BORDER);
 
     // Title Field
@@ -437,6 +453,13 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
     } else {
         app.submit_form.description.clone()
     };
+    let desc_lines_count = desc_text.lines().count() as u16;
+    let desc_inner_height = right_chunks[0].height.saturating_sub(2);
+    let desc_scroll = if desc_lines_count > desc_inner_height {
+        desc_lines_count.saturating_sub(desc_inner_height)
+    } else {
+        0
+    };
     let desc_p = Paragraph::new(desc_text)
         .block(
             Block::default()
@@ -444,7 +467,8 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
                 .border_style(desc_style)
                 .title(" Detailed Description * "),
         )
-        .wrap(Wrap { trim: false });
+        .wrap(Wrap { trim: false })
+        .scroll((desc_scroll, 0));
     f.render_widget(desc_p, right_chunks[0]);
 
     // Steps to Reproduce Field
@@ -458,6 +482,13 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
     } else {
         app.submit_form.steps_to_reproduce.clone()
     };
+    let steps_lines_count = steps_text.lines().count() as u16;
+    let steps_inner_height = right_chunks[1].height.saturating_sub(2);
+    let steps_scroll = if steps_lines_count > steps_inner_height {
+        steps_lines_count.saturating_sub(steps_inner_height)
+    } else {
+        0
+    };
     let steps_p = Paragraph::new(steps_text)
         .block(
             Block::default()
@@ -465,7 +496,8 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
                 .border_style(steps_style)
                 .title(" Steps to Reproduce (PoC) "),
         )
-        .wrap(Wrap { trim: false });
+        .wrap(Wrap { trim: false })
+        .scroll((steps_scroll, 0));
     f.render_widget(steps_p, right_chunks[1]);
 
     // Form Navigation Instructions
@@ -476,7 +508,14 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
                 .fg(BLT_PRIMARY)
                 .add_modifier(Modifier::BOLD),
         ),
-        Span::styled("Next Field  │  ", Style::default().fg(BLT_TEXT_BODY)),
+        Span::styled("Next  │  ", Style::default().fg(BLT_TEXT_BODY)),
+        Span::styled(
+            "[BackTab] ",
+            Style::default()
+                .fg(BLT_PRIMARY)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("Prev  │  ", Style::default().fg(BLT_TEXT_BODY)),
         Span::styled(
             "[Ctrl+S] ",
             Style::default()
@@ -558,7 +597,10 @@ pub fn draw_hunt_details_modal(f: &mut Frame, app: &App, rect: Rect) {
                 .fg(STATUS_RESOLVED)
                 .add_modifier(Modifier::BOLD),
         ),
-        Span::styled("Report Bug for Hunt  │  ", Style::default().fg(BLT_TEXT_BODY)),
+        Span::styled(
+            "Report Bug for Hunt  │  ",
+            Style::default().fg(BLT_TEXT_BODY),
+        ),
         Span::styled(
             "[Esc] ",
             Style::default()
@@ -667,7 +709,10 @@ pub fn draw_bulk_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
                     .fg(STATUS_RESOLVED)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::styled("Confirm Bulk Action  │  ", Style::default().fg(BLT_TEXT_BODY)),
+            Span::styled(
+                "Confirm Bulk Action  │  ",
+                Style::default().fg(BLT_TEXT_BODY),
+            ),
             Span::styled(
                 "[Esc] ",
                 Style::default()
@@ -684,7 +729,11 @@ pub fn draw_bulk_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
                 " BULK TRIAGE ",
                 Style::default().fg(SEVERITY_HIGH),
             ))
-            .border_style(Style::default().fg(SEVERITY_HIGH).add_modifier(Modifier::BOLD))
+            .border_style(
+                Style::default()
+                    .fg(SEVERITY_HIGH)
+                    .add_modifier(Modifier::BOLD),
+            )
             .bg(DARK_SURFACE),
     );
     f.render_widget(p, area);
@@ -740,7 +789,10 @@ pub fn draw_vision_context_modal(f: &mut Frame, app: &App, rect: Rect) {
                     .fg(BLT_PRIMARY)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::styled(&app.vision_context_input, Style::default().fg(BLT_TEXT_HEADING)),
+            Span::styled(
+                &app.vision_context_input,
+                Style::default().fg(BLT_TEXT_HEADING),
+            ),
             Span::styled("█", Style::default().fg(BLT_PRIMARY)),
         ]),
         Line::from(""),
@@ -751,7 +803,10 @@ pub fn draw_vision_context_modal(f: &mut Frame, app: &App, rect: Rect) {
                     .fg(STATUS_RESOLVED)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::styled("Run Vision Analysis  │  ", Style::default().fg(BLT_TEXT_BODY)),
+            Span::styled(
+                "Run Vision Analysis  │  ",
+                Style::default().fg(BLT_TEXT_BODY),
+            ),
             Span::styled(
                 "[Esc] ",
                 Style::default()
@@ -765,7 +820,11 @@ pub fn draw_vision_context_modal(f: &mut Frame, app: &App, rect: Rect) {
     let p = Paragraph::new(text).block(
         Block::default()
             .borders(Borders::ALL)
-            .border_style(Style::default().fg(BLT_PRIMARY).add_modifier(Modifier::BOLD))
+            .border_style(
+                Style::default()
+                    .fg(BLT_PRIMARY)
+                    .add_modifier(Modifier::BOLD),
+            )
             .title(Span::styled(
                 " VISION AI CONTEXT ",
                 Style::default().fg(BLT_PRIMARY),
@@ -783,7 +842,12 @@ pub fn draw_prompt_preview_modal(f: &mut Frame, app: &App, rect: Rect) {
     let lines: Vec<Line> = app
         .prompt_preview_data
         .split('\n')
-        .map(|s| Line::from(Span::styled(s.to_string(), Style::default().fg(BLT_TEXT_BODY))))
+        .map(|s| {
+            Line::from(Span::styled(
+                s.to_string(),
+                Style::default().fg(BLT_TEXT_BODY),
+            ))
+        })
         .collect();
 
     let p = Paragraph::new(lines)

@@ -127,7 +127,8 @@ where
                         let clean_desc = description.trim();
                         if !clean_desc.is_empty() {
                             if app.submit_form.description.is_empty()
-                                || app.submit_form.description == "Analyzing image with Vision AI..."
+                                || app.submit_form.description
+                                    == crate::app::VISION_ANALYZING_PLACEHOLDER
                             {
                                 app.submit_form.description = clean_desc.to_string();
                             } else {
@@ -144,7 +145,7 @@ where
                         app.audit_logs
                             .push("Vision AI generated issue draft.".to_string());
                     } else {
-                        if app.submit_form.description == "Analyzing image with Vision AI..." {
+                        if app.submit_form.description == crate::app::VISION_ANALYZING_PLACEHOLDER {
                             app.submit_form.description.clear();
                         }
                         app.status_message = format!("Vision AI failed: {}", result);

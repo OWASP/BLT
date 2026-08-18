@@ -11,10 +11,10 @@
 //! - `ai_triage_action(app)`: Prompts the MCP AI agent for automated vulnerability triage recommendations.
 //! - `extract_clipboard_action(app)`: Extracts image bytes or file paths across platforms (Windows / Linux / macOS).
 
-use std::sync::Arc;
-use tokio::sync::Mutex;
 use crate::app::{App, RunMode};
 use crate::mcp_client::McpSubprocessClient;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 /// Initiates Vision AI parsing on a captured screenshot image with optional context hints.
 pub fn handle_vision_draft(app: &mut App, context: Option<String>) {
@@ -29,7 +29,7 @@ pub fn handle_vision_draft(app: &mut App, context: Option<String>) {
         app.submit_form.url = app.api_base.clone();
     }
     if app.submit_form.description.is_empty() {
-        app.submit_form.description = "Analyzing image with Vision AI...".to_string();
+        app.submit_form.description = crate::app::VISION_ANALYZING_PLACEHOLDER.to_string();
     }
     app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
 
@@ -128,11 +128,26 @@ pub fn submit_issue_action(app: &mut App) {
                 let mut client_guard = mcp.lock().await;
                 let mut payload = serde_json::Map::new();
                 payload.insert("url".to_string(), serde_json::Value::String(url.clone()));
-                payload.insert("title".to_string(), serde_json::Value::String(title.clone()));
-                payload.insert("description".to_string(), serde_json::Value::String(desc.clone()));
-                payload.insert("severity".to_string(), serde_json::Value::String(severity.clone()));
-                payload.insert("bug_type".to_string(), serde_json::Value::String(bug_type.clone()));
-                payload.insert("steps_to_reproduce".to_string(), serde_json::Value::String(steps.clone()));
+                payload.insert(
+                    "title".to_string(),
+                    serde_json::Value::String(title.clone()),
+                );
+                payload.insert(
+                    "description".to_string(),
+                    serde_json::Value::String(desc.clone()),
+                );
+                payload.insert(
+                    "severity".to_string(),
+                    serde_json::Value::String(severity.clone()),
+                );
+                payload.insert(
+                    "bug_type".to_string(),
+                    serde_json::Value::String(bug_type.clone()),
+                );
+                payload.insert(
+                    "steps_to_reproduce".to_string(),
+                    serde_json::Value::String(steps.clone()),
+                );
                 payload.insert("confirmed".to_string(), serde_json::Value::Bool(true));
                 let args = serde_json::Value::Object(payload);
 
@@ -194,25 +209,27 @@ pub fn submit_issue_action(app: &mut App) {
         // Background refresh: wait a moment then re-fetch the live issues list
         if success {
             tokio::time::sleep(tokio::time::Duration::from_millis(1500)).await;
-            if is_mcp && mcp_client_clone.is_some() {
-                let mcp = mcp_client_clone.unwrap();
-                let mut client_guard = mcp.lock().await;
-                if let Ok(resp) = client_guard.read_resource("blt://v2/bugs").await {
-                    if let Some(contents) = resp
-                        .get("result")
-                        .and_then(|r| r.get("contents"))
-                        .and_then(|c| c.as_array())
-                        .and_then(|c| c.first())
-                        .and_then(|c| c.get("text"))
-                        .and_then(|t| t.as_str())
-                    {
-                        if let Ok(root) = serde_json::from_str::<serde_json::Value>(contents) {
-                            if let Ok(fresh_issues) = crate::api::parse_issues_from_json(&root) {
-                                let total = fresh_issues.len() as u32;
-                                let _ = sender.send(crate::app::AppEvent::IssuesRefreshed {
-                                    issues: fresh_issues,
-                                    total,
-                                });
+            if is_mcp {
+                if let Some(mcp) = mcp_client_clone {
+                    let mut client_guard = mcp.lock().await;
+                    if let Ok(resp) = client_guard.read_resource("blt://v2/bugs").await {
+                        if let Some(contents) = resp
+                            .get("result")
+                            .and_then(|r| r.get("contents"))
+                            .and_then(|c| c.as_array())
+                            .and_then(|c| c.first())
+                            .and_then(|c| c.get("text"))
+                            .and_then(|t| t.as_str())
+                        {
+                            if let Ok(root) = serde_json::from_str::<serde_json::Value>(contents) {
+                                if let Ok(fresh_issues) = crate::api::parse_issues_from_json(&root)
+                                {
+                                    let total = fresh_issues.len() as u32;
+                                    let _ = sender.send(crate::app::AppEvent::IssuesRefreshed {
+                                        issues: fresh_issues,
+                                        total,
+                                    });
+                                }
                             }
                         }
                     }
@@ -420,6 +437,23 @@ pub fn extract_clipboard_action(app: &mut App) {
                                 let home = dirs::home_dir().unwrap_or_default();
                                 let img_dir = home.join(".blt-mcp").join("images");
                                 let _ = std::fs::create_dir_all(&img_dir);
+
+                                // Prune stale clipboard files older than 24 hours
+                                if let Ok(entries) = std::fs::read_dir(&img_dir) {
+                                    let now = std::time::SystemTime::now();
+                                    for entry in entries.flatten() {
+                                        if let Ok(meta) = entry.metadata() {
+                                            if let Ok(modified) = meta.modified() {
+                                                if let Ok(age) = now.duration_since(modified) {
+                                                    if age.as_secs() > 24 * 3600 {
+                                                        let _ = std::fs::remove_file(entry.path());
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
                                 let timestamp = std::time::SystemTime::now()
                                     .duration_since(std::time::UNIX_EPOCH)
                                     .unwrap_or_default()

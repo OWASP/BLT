@@ -36,7 +36,10 @@ pub fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
     let settings_text = vec![
         Line::from(""),
         Line::from(vec![
-            Span::styled("  Execution Mode:     ", Style::default().fg(BLT_TEXT_MUTED)),
+            Span::styled(
+                "  Execution Mode:     ",
+                Style::default().fg(BLT_TEXT_MUTED),
+            ),
             Span::styled(
                 mode_str,
                 Style::default()
@@ -45,18 +48,27 @@ pub fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
             ),
         ]),
         Line::from(vec![
-            Span::styled("  Target BLT API:     ", Style::default().fg(BLT_TEXT_MUTED)),
+            Span::styled(
+                "  Target BLT API:     ",
+                Style::default().fg(BLT_TEXT_MUTED),
+            ),
             Span::styled(&app.api_base, Style::default().fg(BLT_TEXT_BODY)),
         ]),
         Line::from(vec![
-            Span::styled("  MCP Server Path:    ", Style::default().fg(BLT_TEXT_MUTED)),
+            Span::styled(
+                "  MCP Server Path:    ",
+                Style::default().fg(BLT_TEXT_MUTED),
+            ),
             Span::styled(
                 app.mcp_path.as_deref().unwrap_or("None (Not spawned)"),
                 Style::default().fg(BLT_TEXT_DIM),
             ),
         ]),
         Line::from(vec![
-            Span::styled("  Authenticated User: ", Style::default().fg(BLT_TEXT_MUTED)),
+            Span::styled(
+                "  Authenticated User: ",
+                Style::default().fg(BLT_TEXT_MUTED),
+            ),
             Span::styled(
                 &app.auth_user,
                 Style::default()
@@ -138,8 +150,7 @@ pub fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
 
         let all_success = health.trivy_status == crate::scanner::ToolStatus::Success
             && health.semgrep_status == crate::scanner::ToolStatus::Success
-            && (health.bandit_status == crate::scanner::ToolStatus::Success
-                || health.bandit_status == crate::scanner::ToolStatus::Skipped);
+            && health.bandit_status == crate::scanner::ToolStatus::Success;
 
         if health.findings.is_empty() && health.scan_complete && all_success {
             health_text.push(Line::from(Span::styled(
@@ -157,7 +168,10 @@ pub fn draw_settings_tab(f: &mut Frame, app: &App, rect: Rect) {
             )));
         } else if !health.findings.is_empty() {
             health_text.push(Line::from(Span::styled(
-                format!("  Host Health: WARNING ({} findings)", health.findings.len()),
+                format!(
+                    "  Host Health: WARNING ({} findings)",
+                    health.findings.len()
+                ),
                 Style::default()
                     .fg(SEVERITY_CRITICAL)
                     .add_modifier(Modifier::BOLD),
