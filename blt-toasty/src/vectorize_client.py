@@ -62,8 +62,13 @@ async def _transition_state(db: Any, event_id: str, new_status: str, expected_st
         .run()
     )
 
-    meta = result.meta if hasattr(result, "meta") else result.get("meta", {})
-    changes = getattr(meta, "changes", meta.get("changes", 0))
+    meta = result.meta if hasattr(result, "meta") else (result.get("meta", {}) if isinstance(result, dict) else {})
+    if hasattr(meta, "changes"):
+        changes = meta.changes
+    elif isinstance(meta, dict):
+        changes = meta.get("changes", 0)
+    else:
+        changes = 0
     if changes == 0:
         raise StateTransitionError(
             f"Failed to transition event {event_id} to {new_status} (expected {expected_status})",
@@ -197,10 +202,45 @@ async def index_report(
         await _transition_state(db, event_id, "embedded", expected_status=current_status)
     except StateTransitionError:
         logger.error("State transition failed after Vectorize insert for event %s. Cleaning up vector.", event_id)
+
+        # Concurrent winner check
         try:
-            await env.VECTORIZE.deleteByIds([event_id])
-        except Exception as cleanup_exc:
-            logger.error("Failed to cleanup vector for event %s after transition failure: %s", event_id, cleanup_exc)
+            row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
+            current_status = (
+                row["status"]
+                if hasattr(row, "__getitem__")
+                else (getattr(row, "status") if hasattr(row, "status") else None)
+            )
+            if current_status == "embedded":
+                logger.info("Concurrent indexing succeeded for event %s; preserving vector.", event_id)
+                raise
+        except Exception as check_exc:
+            if isinstance(check_exc, StateTransitionError):
+                raise
+            logger.warning("Failed to check status for event %s during cleanup: %s", event_id, check_exc)
+
+        cleanup_success = False
+
+        # Retry logic: attempt cleanup twice
+        for attempt in range(2):
+            try:
+                await env.VECTORIZE.deleteByIds([event_id])
+                cleanup_success = True
+                break
+            except Exception as cleanup_exc:
+                logger.error(
+                    "Failed to cleanup vector for event %s on attempt %d: %s", event_id, attempt + 1, cleanup_exc
+                )
+
+        if not cleanup_success:
+            # Mark the event so a cron trigger can clean up the phantom vector later
+            try:
+                await db.prepare(
+                    "UPDATE triage_events SET quarantine_reason = COALESCE(quarantine_reason, '') || '; vector_cleanup_pending' WHERE id = ?"
+                ).bind(event_id).run()
+            except Exception as flag_exc:
+                logger.error("Failed to set vector_cleanup_pending flag for event %s: %s", event_id, flag_exc)
+
         raise
 
     logger.info("Indexed event %s in Vectorize (repo=%s)", event_id, repo_full_name)
@@ -281,9 +321,13 @@ async def delete_vector(event_id: str, env: Any) -> None:
         event_id: The triage event ID whose vector should be deleted.
         env: Cloudflare Worker environment with ``VECTORIZE`` binding.
     """
-    try:
-        await env.VECTORIZE.deleteByIds([event_id])
-        logger.info("Deleted vector for event %s from Vectorize", event_id)
-    except Exception as exc:
-        logger.error("Failed to delete vector for event %s: %s", event_id, exc)
-        raise
+    for attempt in range(2):
+        try:
+            await env.VECTORIZE.deleteByIds([event_id])
+            logger.info("Deleted vector for event %s from Vectorize", event_id)
+            return
+        except Exception as exc:
+            logger.warning("Failed to delete vector for event %s on attempt %d: %s", event_id, attempt + 1, exc)
+
+    logger.error("Vector cleanup completely failed for event %s after 2 attempts", event_id)
+    raise Exception("Vector deletion failed after retries")

@@ -6,61 +6,29 @@ handling secure GitLab webhook validation, replay attack prevention, and
 triage event storage in D1.
 """
 
-from js import Response, Headers, Uint8Array, TextEncoder
-import js
-from pyodide.ffi import to_js
-import base64
-import hashlib
+from js import Response, Headers
 import hmac
+import hashlib
 import json
 import secrets
 
 
-async def verify_hmac_signature(secret: str, webhook_id: str, timestamp: str, body: str, signature_header: str) -> bool:
+async def verify_gitlab_token(secret: str, provided_token: str) -> bool:
     """
-    Verify GitLab webhook signature using Web Crypto API.
-    
+    Verify GitLab webhook token using constant-time comparison.
+
     Args:
-        secret: The webhook secret (e.g., whsec_...)
-        webhook_id: The webhook-id header value
-        timestamp: The webhook-timestamp header value
-        body: The raw request body text
-        signature_header: The webhook-signature header value
+        secret: The configured webhook secret
+        provided_token: The X-Gitlab-Token header value
 
     Returns:
-        bool: True if signature is valid
+        bool: True if token is valid
     """
-    if not secret or not signature_header or not signature_header.startswith("v1,"):
+    if not secret or not provided_token:
         return False
-        
+
     try:
-        raw_key_str = secret.replace("whsec_", "")
-        raw_key_bytes = base64.b64decode(raw_key_str)
-        
-        key_array = Uint8Array.new(len(raw_key_bytes))
-        for i, b in enumerate(raw_key_bytes):
-            key_array[i] = b
-            
-        crypto_key = await js.crypto.subtle.importKey(
-            "raw",
-            key_array,
-            to_js({"name": "HMAC", "hash": "SHA-256"}, dict_converter=js.Object.fromEntries),
-            False,
-            to_js(["sign"])
-        )
-        
-        message = f"{webhook_id}.{timestamp}.{body}"
-        encoder = TextEncoder.new()
-        message_buffer = encoder.encode(message)
-        
-        signature_buffer = await js.crypto.subtle.sign("HMAC", crypto_key, message_buffer)
-        
-        sig_array = Uint8Array.new(signature_buffer)
-        sig_bytes = bytes(sig_array)
-        computed_signature = base64.b64encode(sig_bytes).decode('utf-8')
-        expected_signature = f"v1,{computed_signature}"
-        
-        return hmac.compare_digest(signature_header, expected_signature)
+        return hmac.compare_digest(secret.encode(), provided_token.encode())
     except Exception:
         return False
 
@@ -212,32 +180,30 @@ async def handle_webhook(request, env) -> Response:
             error_data = {"error": "Missing X-Gitlab-Event-UUID header", "status": 422}
             return Response.new(json.dumps(error_data), status=422, headers=headers)
 
-        # 2. Extract Web Crypto Validation Headers
-        webhook_id = request.headers.get("webhook-id")
-        webhook_timestamp = request.headers.get("webhook-timestamp")
-        webhook_signature = request.headers.get("webhook-signature")
-        
-        if not webhook_id or not webhook_timestamp or not webhook_signature:
+        # 2. Extract Webhook Token
+        provided_token = request.headers.get("X-Gitlab-Token")
+
+        if not provided_token:
             headers = Headers.new()
             headers.set("Content-Type", "application/json")
-            error_data = {"error": "Missing webhook signature headers", "status": 401}
+            error_data = {"error": "Missing X-Gitlab-Token header", "status": 401}
             return Response.new(json.dumps(error_data), status=401, headers=headers)
 
-        # 3. Parse request body text
+        # 3. Verify GitLab token
+        is_valid = await verify_gitlab_token(webhook_secret, provided_token)
+        if not is_valid:
+            headers = Headers.new()
+            headers.set("Content-Type", "application/json")
+            error_data = {"error": "Unauthorized: Invalid webhook token", "status": 401}
+            return Response.new(json.dumps(error_data), status=401, headers=headers)
+
+        # 4. Parse request body text
         body_text = await request.text()
         if not body_text:
             headers = Headers.new()
             headers.set("Content-Type", "application/json")
             error_data = {"error": "Request body is required", "status": 422}
             return Response.new(json.dumps(error_data), status=422, headers=headers)
-
-        # 4. Verify HMAC-SHA256 signature
-        is_valid = await verify_hmac_signature(webhook_secret, webhook_id, webhook_timestamp, body_text, webhook_signature)
-        if not is_valid:
-            headers = Headers.new()
-            headers.set("Content-Type", "application/json")
-            error_data = {"error": "Unauthorized: Invalid webhook signature", "status": 401}
-            return Response.new(json.dumps(error_data), status=401, headers=headers)
 
         try:
             body = json.loads(body_text)

@@ -3,6 +3,8 @@ Tests for the D1 state machine using mocked Cloudflare Workers D1 environment.
 """
 
 import pytest
+from unittest.mock import MagicMock, AsyncMock
+
 from src.state_machine import transition_state, get_event, quarantine_event, VALID_TRANSITIONS
 from src.errors import StateTransitionError
 
@@ -45,6 +47,12 @@ class MockD1Database:
         stmt = MockD1Statement(self, query)
         self.statements_executed.append(stmt)
         return stmt
+
+    async def batch(self, statements):
+        results = []
+        for stmt in statements:
+            results.append(await stmt.run())
+        return results
 
 
 @pytest.fixture
@@ -135,11 +143,52 @@ async def test_quarantine_event(mock_db):
 
     await quarantine_event(mock_db, "test_id", "test reason", has_vector=False)
 
-    # Should have executed SELECT, UPDATE (state transition), UPDATE (quarantine_reason), INSERT (audit log)
-    assert len(mock_db.statements_executed) == 4
+    # Should have executed SELECT, UPDATE (state transition), INSERT (audit log)
+    assert len(mock_db.statements_executed) == 3
 
-    insert_stmt = mock_db.statements_executed[3]
+    insert_stmt = mock_db.statements_executed[2]
     assert "INSERT INTO triage_audit_log" in insert_stmt.query
     assert insert_stmt.bound_params[1] == "test_id"
     assert insert_stmt.bound_params[2] == "quarantine"
     assert insert_stmt.bound_params[3] == "test reason"
+
+
+@pytest.mark.asyncio
+async def test_quarantine_event_zero_changes():
+    db = MagicMock()
+    # Mock get_event to return pending
+    mock_stmt_first = AsyncMock(return_value={"status": "pending"})
+
+    # Mock update statement to return 0 changes
+    class AttrMeta:
+        changes = 0
+
+    class AttrResult:
+        meta = AttrMeta()
+
+    mock_stmt_run_0 = AsyncMock(return_value=AttrResult())
+
+    # Mock audit statement
+    mock_stmt_run_audit = AsyncMock()
+
+    def prepare_side_effect(query):
+        stmt = MagicMock()
+        if "SELECT * FROM triage_events" in query:
+            stmt.bind = MagicMock(return_value=stmt)
+            stmt.first = mock_stmt_first
+        elif "UPDATE triage_events" in query:
+            stmt.bind = MagicMock(return_value=stmt)
+            stmt.run = mock_stmt_run_0
+        elif "INSERT INTO triage_audit_log" in query:
+            stmt.bind = MagicMock(return_value=stmt)
+            stmt.run = mock_stmt_run_audit
+        return stmt
+
+    db.prepare = MagicMock(side_effect=prepare_side_effect)
+    db.batch = AsyncMock(return_value=[AttrResult()])
+
+    with pytest.raises(StateTransitionError, match="Concurrent modification detected"):
+        await quarantine_event(db, "evt-123", "test reason", has_vector=False)
+
+    # Ensure the audit log was NOT inserted because changes was 0
+    mock_stmt_run_audit.assert_not_called()

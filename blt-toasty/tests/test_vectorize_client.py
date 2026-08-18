@@ -203,6 +203,37 @@ class TestIndexReport:
         assert len(bind_calls) >= 1
 
     @pytest.mark.asyncio
+    @patch("src.vectorize_client.get_embedding", new_callable=AsyncMock)
+    async def test_concurrent_winner_preserves_vector(self, mock_get_embedding):
+        """If StateTransitionError occurs but current status is already 'embedded', cleanup is skipped."""
+        mock_get_embedding.return_value = [0.1] * 384
+        env = _make_env()
+
+        # 1st call: assert_summarized, 2nd call: pre-transition check, 3rd call: cleanup check
+        mock_stmt_first = AsyncMock(
+            side_effect=[{"status": "summarized"}, {"status": "summarized"}, {"status": "embedded"}]
+        )
+
+        def prepare_side_effect(query):
+            stmt = MagicMock()
+            if "UPDATE triage_events SET status" in query:
+                stmt.bind = MagicMock(return_value=stmt)
+                stmt.run = AsyncMock(side_effect=StateTransitionError("Concurrent modification detected"))
+            elif "SELECT status FROM triage_events" in query:
+                stmt.bind = MagicMock(return_value=stmt)
+                stmt.first = mock_stmt_first
+            return stmt
+
+        db = MagicMock()
+        db.prepare = MagicMock(side_effect=prepare_side_effect)
+
+        with pytest.raises(StateTransitionError, match="Concurrent modification detected"):
+            await index_report("evt-001", "text", "repo", env, db)
+
+        # The vector should NOT be deleted
+        env.VECTORIZE.deleteByIds.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_guard_blocks_non_summarized(self):
         """index_report raises StateTransitionError for non-summarized events."""
         db = _make_db(status="pending")

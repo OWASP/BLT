@@ -121,6 +121,16 @@ async def on_fetch(request, env):
             return await handle_rationale(request, env, event_id)
         else:
             return create_method_not_allowed_response(path, ["GET"])
+    elif path == "/admin/dashboard":
+        if method == "GET":
+            claims, err_resp = await _authenticate_request(request, env)
+            if err_resp:
+                return err_resp
+            if claims.get("role") != "admin":
+                return create_error_response("Unauthorized: Administrator permission required", 401)
+            return await handle_dashboard(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
     elif path.startswith("/conversations/"):
         return await _route_conversation(path, method, request, env)
     else:
@@ -399,6 +409,18 @@ async def handle_rationale(request, env, event_id):
 
     except Exception as exc:
         console.error(f"handle_rationale error for {event_id}: {exc}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_dashboard(request, env):
+    """Handle GET /admin/dashboard."""
+    from src.dashboard import aggregate_dashboard
+
+    try:
+        summary = await aggregate_dashboard(env.DB)
+        return create_json_response(summary, 200)
+    except Exception as e:
+        console.error(f"Error generating dashboard: {e}")
         return create_error_response("Internal server error", 500)
 
 
