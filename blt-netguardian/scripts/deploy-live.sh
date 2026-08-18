@@ -35,6 +35,19 @@ if [ -n "${BLT_API_KEY:-}" ]; then
   printf '%s' "$BLT_API_KEY" | "${WRANGLER[@]}" secret put BLT_API_KEY
 fi
 
+echo "==> Flutter web client → public/client/"
+if command -v flutter >/dev/null 2>&1; then
+  (
+    cd "$ROOT/client"
+    flutter build web --release --base-href /client/
+  )
+  rm -rf "$ROOT/public/client"
+  mkdir -p "$ROOT/public/client"
+  cp -R "$ROOT/client/build/web/." "$ROOT/public/client/"
+else
+  echo "    flutter not on PATH — deploying existing public/client if present"
+fi
+
 echo "==> Deploy Worker + public/ assets"
 # Wrangler rejects pytest pins in requirements.txt; Workers uses aesgcm_pure, not cryptography.
 REQ_BAK=""
@@ -53,5 +66,6 @@ echo "==> Smoke checks"
 curl -sf "$BASE/api/health" | head -c 200 && echo ""
 curl -sf -o /dev/null -w "triage.html: %{http_code}\n" "$BASE/triage.html"
 echo ""
-echo "Live: $BASE/triage.html"
-echo "Token: triage-token"
+echo "Client: $BASE/client/"
+echo "Triage: $BASE/triage"
+echo "Token:  triage-token"
