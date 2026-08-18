@@ -35,18 +35,18 @@ if [ -n "${BLT_API_KEY:-}" ]; then
   printf '%s' "$BLT_API_KEY" | "${WRANGLER[@]}" secret put BLT_API_KEY
 fi
 
-echo "==> Flutter web client → public/client/"
-if command -v flutter >/dev/null 2>&1; then
-  (
-    cd "$ROOT/client"
-    flutter build web --release --base-href /client/
-  )
-  rm -rf "$ROOT/public/client"
-  mkdir -p "$ROOT/public/client"
-  cp -R "$ROOT/client/build/web/." "$ROOT/public/client/"
-else
-  echo "    flutter not on PATH — deploying existing public/client if present"
-fi
+echo "==> Do not host a scanner UI on this origin (scans must run on the user client)"
+rm -rf "$ROOT/public/client"
+mkdir -p "$ROOT/public/client"
+cat > "$ROOT/public/client/index.html" <<'HTML'
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><title>Client runs on your machine</title>
+<meta http-equiv="refresh" content="0; url=/">
+</head><body>
+<p>Scanning from this site is disabled. Run the NetGuardian client locally, then open <a href="/triage">triage</a>.</p>
+</body></html>
+HTML
 
 echo "==> Deploy Worker + public/ assets"
 # Wrangler rejects pytest pins in requirements.txt; Workers uses aesgcm_pure, not cryptography.
