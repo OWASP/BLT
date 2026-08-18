@@ -1,6 +1,9 @@
 /// HTTP response-header detector — parity with `src/detect/http_headers.py`.
 library;
 
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 import 'normalize.dart';
@@ -228,11 +231,50 @@ Iterable<DetectionFinding> _cookies(
   }
 }
 
-/// Fetch [url] and return header findings (skips HTTP ≥400 like the Python pack).
-Future<List<DetectionFinding>> scanUrlHeaders(
+Future<List<DetectionFinding>> _scanViaApiProxy(
+  String apiBaseUrl,
   String url, {
   http.Client? client,
 }) async {
+  final httpClient = client ?? http.Client();
+  final owned = client == null;
+  try {
+    final base = apiBaseUrl.replaceAll(RegExp(r'/+$'), '');
+    final uri = Uri.parse('$base/api/detect/headers').replace(
+      queryParameters: {'url': url},
+    );
+    final response = await httpClient.get(uri).timeout(const Duration(seconds: 25));
+    if (response.statusCode != 200) {
+      throw Exception('scan proxy HTTP ${response.statusCode}: ${response.body}');
+    }
+    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+    if (decoded is! Map) {
+      throw Exception('scan proxy returned non-object JSON');
+    }
+    final findings = decoded['findings'];
+    if (findings is! List) return [];
+    return findings
+        .whereType<Map>()
+        .map((m) => DetectionFinding.fromPayload(
+              m.map((k, v) => MapEntry(k.toString(), v as Object?)),
+            ))
+        .toList();
+  } finally {
+    if (owned) httpClient.close();
+  }
+}
+
+/// Fetch [url] and return header findings (skips HTTP ≥400 like the Python pack).
+///
+/// On Flutter web, uses `{apiBaseUrl}/api/detect/headers` (browser CORS safe).
+Future<List<DetectionFinding>> scanUrlHeaders(
+  String url, {
+  String? apiBaseUrl,
+  http.Client? client,
+}) async {
+  if (kIsWeb && apiBaseUrl != null && apiBaseUrl.trim().isNotEmpty) {
+    return _scanViaApiProxy(apiBaseUrl.trim(), url, client: client);
+  }
   final httpClient = client ?? http.Client();
   final owned = client == null;
   try {

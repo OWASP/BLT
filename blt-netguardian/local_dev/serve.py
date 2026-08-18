@@ -63,7 +63,10 @@ ENV = SimpleNamespace(
     NG_PAYLOAD_KEYS=json.dumps({DEMO_ORG: DEMO_PAYLOAD_KEY_B64}),
     NG_INGEST_RPM="6000",
     AUTHENTICATE_READ_ENDPOINTS="false",
-    CORS_ALLOWED_ORIGINS=f"http://{HOST}:{PORT},http://127.0.0.1:{PORT}",
+    CORS_ALLOWED_ORIGINS=(
+        f"http://{HOST}:{PORT},http://127.0.0.1:{PORT},"
+        "http://localhost:8888,http://127.0.0.1:8888"
+    ),
     BLT_API_BASE_URL="http://localhost:8788/v2",
     BLT_API_KEY="",
     NG_BLT_STUB_FALLBACK="true",

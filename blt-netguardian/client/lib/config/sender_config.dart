@@ -1,6 +1,7 @@
-/// Persisted sender credentials for the desktop client.
+/// Persisted sender credentials for the desktop / hosted web client.
 library;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SenderConfig {
@@ -63,10 +64,29 @@ class SenderConfig {
     );
   }
 
+  /// Hosted Flutter web uses the Worker origin so mentors do not type a URL.
+  static String _defaultBaseUrl() {
+    if (kIsWeb) {
+      final host = Uri.base.host.toLowerCase();
+      if (host.isNotEmpty && host != 'localhost' && host != '127.0.0.1') {
+        return Uri.base.origin;
+      }
+    }
+    return demo.baseUrl;
+  }
+
   static Future<SenderConfig> load() async {
     final prefs = await SharedPreferences.getInstance();
+    var baseUrl = prefs.getString('baseUrl') ?? _defaultBaseUrl();
+    if (kIsWeb) {
+      final hosted = _defaultBaseUrl() != demo.baseUrl;
+      final savedHost = Uri.tryParse(baseUrl)?.host.toLowerCase() ?? '';
+      final savedLoopback =
+          savedHost.isEmpty || savedHost == 'localhost' || savedHost == '127.0.0.1';
+      if (hosted && savedLoopback) baseUrl = _defaultBaseUrl();
+    }
     return SenderConfig(
-      baseUrl: prefs.getString('baseUrl') ?? demo.baseUrl,
+      baseUrl: baseUrl,
       orgId: prefs.getString('orgId') ?? demo.orgId,
       senderId: prefs.getString('senderId') ?? demo.senderId,
       kid: prefs.getString('kid') ?? demo.kid,

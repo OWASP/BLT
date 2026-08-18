@@ -33,3 +33,16 @@ python3 local_dev/blt_api_stub.py
 ## Do not pitch
 
 Autonomous CT / GitHub / blockchain scanners, WHOIS outreach, Web3 monitors — those routes return sample/stub data.
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| Blank / offline triage | Use **http://127.0.0.1:8787/triage.html** (not `file://`, not proposal-vinamra copy) |
+| `serve.py` won't start | Port 8787 in use: `lsof -i :8787` then kill old Python or use another machine |
+| `flutter run -d macos` fails | Install **Xcode** from App Store, then `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer` |
+| No Xcode | `cd client && flutter run -d chrome --web-port=8888` |
+| Client API DOWN | Server must run first; base URL `http://127.0.0.1:8787` |
+| `send_finding.py` crypto error | Use `.venv/bin/python local_dev/send_finding.py` or `pip install cryptography` |
+
+One-liner helper: `./scripts/run-local.sh` from repo root.

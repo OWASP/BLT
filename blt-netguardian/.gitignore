@@ -33,8 +33,8 @@ ENV/
 *.swo
 *~
 
-# Cloudflare Workers
-.wrangler/
+# Generated Flutter web host (built by scripts/deploy-live.sh)
+public/client/
 worker/
 node_modules/
 

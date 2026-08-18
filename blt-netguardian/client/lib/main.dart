@@ -90,8 +90,27 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _ping() async {
-    final live = await _client.ping(_baseUrl.text.trim());
-    if (mounted) setState(() => _apiLive = live);
+    final base = _baseUrl.text.trim();
+    setState(() {
+      _apiLive = null;
+      _status = 'Pinging $base…';
+    });
+    final live = await _client.ping(base);
+    if (!mounted) return;
+    final msg = live
+        ? 'API reachable at $base'
+        : 'API DOWN — start serve.py and set base URL to http://127.0.0.1:8787';
+    setState(() {
+      _apiLive = live;
+      _status = msg;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: live ? Hud.low : Hud.accent,
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   SenderConfig _currentConfig() {
@@ -122,7 +141,10 @@ class _HomePageState extends State<HomePage> {
       _selected.clear();
     });
     try {
-      final findings = await scanUrlHeaders(_scanUrl.text.trim());
+      final findings = await scanUrlHeaders(
+        _scanUrl.text.trim(),
+        apiBaseUrl: _baseUrl.text.trim(),
+      );
       if (!mounted) return;
       setState(() {
         _preview = findings;
@@ -451,6 +473,16 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
+            if (_preview.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  _busy
+                      ? 'Scanning…'
+                      : 'Scan headers first — Sign & send enables after findings appear.',
+                  style: const TextStyle(color: Hud.muted, fontSize: 11),
+                ),
+              ),
             if (_preview.isNotEmpty) ...[
               const SizedBox(height: 12),
               ..._preview.map(_findingTile),
