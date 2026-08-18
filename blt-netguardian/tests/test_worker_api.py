@@ -542,3 +542,33 @@ async def test_handle_request_requires_authentication_for_read_endpoints_by_defa
 
     assert response.status == 503
     assert payload["error"] == "API authentication is not configured"
+
+
+@pytest.mark.asyncio
+async def test_detect_headers_forbidden_in_production():
+    """Hosted Worker must not fetch third-party URLs (user client scans)."""
+    worker = BLTWorker(SimpleNamespace(DB=None, ENVIRONMENT="production"))
+    response = await worker.handle_request(
+        FakeRequest("https://ng.example/api/detect/headers?url=https://example.com")
+    )
+    payload = parse_json(response)
+    assert response.status == 403
+    assert payload["error"] == "scan_not_allowed"
+
+
+@pytest.mark.asyncio
+async def test_detect_headers_forbidden_when_environment_unset():
+    worker = BLTWorker(SimpleNamespace(DB=None))
+    response = await worker.handle_request(
+        FakeRequest("https://ng.example/api/detect/headers?url=https://example.com")
+    )
+    assert response.status == 403
+
+
+@pytest.mark.asyncio
+async def test_detect_headers_allowed_in_development():
+    worker = BLTWorker(SimpleNamespace(DB=None, ENVIRONMENT="development"))
+    response = await worker.handle_request(
+        FakeRequest("https://localhost:8787/api/detect/headers?url=https://example.com")
+    )
+    assert response.status != 403

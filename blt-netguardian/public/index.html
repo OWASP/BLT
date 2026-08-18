@@ -38,19 +38,25 @@
   <main>
     <h1>NETGUARDIAN</h1>
     <p>
-      Signed ingest + triage. The old autonomous-scanner homepage is not the product.
-      Use the scanner client to send findings; use triage to review them.
+      The site does not scan other hosts. A user-run client fetches the same
+      headers a normal browser would, HMAC-signs the finding, and posts it here.
+      No signup: the install key signs ingest. Deeper or frequent scans need
+      the target’s permission.
     </p>
     <div class="row">
-      <a class="card" href="/client/">
+      <a class="card" href="https://gitlab.com/Pritz395/blt-netguardian/-/blob/main/client/README.md">
         <strong>CLIENT</strong>
-        <span>Scan a URL, sign, and POST /api/ingest</span>
+        <span>Run on your machine — scan, sign, send</span>
       </a>
       <a class="card" href="/triage">
         <strong>TRIAGE</strong>
         <span>Org queue, evidence, convert, export</span>
       </a>
     </div>
+    <p style="margin-top:28px">
+      One-line header scan (loopback API + demo HMAC key):<br>
+      <code style="color:#c9a227;font-size:11px">python3 scripts/detect_export.py --url https://example.com</code>
+    </p>
   </main>
 </body>
 </html>

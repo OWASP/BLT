@@ -137,7 +137,17 @@ class BLTWorker:
             elif path == 'api/ingest':
                 response = await self.handle_ingest(request)
             elif path == 'api/detect/headers':
-                if request.method != 'GET':
+                # Production must not fetch third-party URLs from this origin
+                # (legal: the site operator would be the scanner). Header
+                # checks belong on the user-run client. Local serve.py sets
+                # ENVIRONMENT=development so Chrome loopback still works.
+                env_name = str(getattr(self.env, 'ENVIRONMENT', '') or '').strip().lower()
+                if env_name != 'development':
+                    response = self.json_response({
+                        'error': 'scan_not_allowed',
+                        'message': 'Scans must run on the user client, not this site.',
+                    }, status=403)
+                elif request.method != 'GET':
                     response = self.json_response({'error': 'Method not allowed'}, status=405)
                 else:
                     status, body = await detect_headers_for_request(
