@@ -104,6 +104,12 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
             match key.code {
                 KeyCode::Esc => {
                     app.active_overlay = ActiveOverlay::None;
+                    if app.vision_image_path.contains(".blt-mcp")
+                        && app.vision_image_path.contains("clipboard_")
+                    {
+                        let _ = std::fs::remove_file(&app.vision_image_path);
+                    }
+                    app.vision_image_path.clear();
                     app.vision_context_input.clear();
                     app.status_message = "Vision AI drafting cancelled.".to_string();
                 }

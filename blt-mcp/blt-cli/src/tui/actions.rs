@@ -40,7 +40,10 @@ pub fn handle_vision_draft(app: &mut App, context: Option<String>) {
         if let Some(mcp) = mcp_client_clone {
             let mut client_guard = mcp.lock().await;
             let mut payload = serde_json::Map::new();
-            payload.insert("image_path".to_string(), serde_json::Value::String(path));
+            payload.insert(
+                "image_path".to_string(),
+                serde_json::Value::String(path.clone()),
+            );
             if let Some(ctx) = context {
                 if !ctx.is_empty() {
                     payload.insert("context".to_string(), serde_json::Value::String(ctx));
@@ -69,19 +72,36 @@ pub fn handle_vision_draft(app: &mut App, context: Option<String>) {
                     } else {
                         (false, "ERROR: Invalid response structure".to_string())
                     };
+
+                    // Clean up temporary clipboard image file once consumed
+                    if path.contains(".blt-mcp") && path.contains("clipboard_") {
+                        let _ = std::fs::remove_file(&path);
+                    }
+
                     let _ = sender.send(crate::app::AppEvent::VisionDraftComplete {
                         result: content_str,
                         success,
                     });
                 }
                 Err(e) => {
+                    let err_msg = format!("ERROR: {}", e);
+                    // Clean up temporary clipboard image file on failure as well
+                    if path.contains(".blt-mcp") && path.contains("clipboard_") {
+                        let _ = std::fs::remove_file(&path);
+                    }
+
                     let _ = sender.send(crate::app::AppEvent::VisionDraftComplete {
-                        result: format!("ERROR: {}", e),
+                        result: err_msg,
                         success: false,
                     });
                 }
             }
         } else {
+            // Clean up temporary clipboard image file if MCP is unavailable
+            if path.contains(".blt-mcp") && path.contains("clipboard_") {
+                let _ = std::fs::remove_file(&path);
+            }
+
             let _ = sender.send(crate::app::AppEvent::VisionDraftComplete {
                 result: "ERROR: Vision AI requires an active Live MCP connection.".to_string(),
                 success: false,
@@ -92,6 +112,12 @@ pub fn handle_vision_draft(app: &mut App, context: Option<String>) {
 
 /// Dispatches the vulnerability submission form to MCP or REST API.
 pub fn submit_issue_action(app: &mut App) {
+    if app.submit_form.description == crate::app::VISION_ANALYZING_PLACEHOLDER {
+        app.status_message =
+            "Notice: Please wait for Vision AI analysis to complete before submitting.".to_string();
+        return;
+    }
+
     app.active_overlay = crate::app::ActiveOverlay::None;
     let title = app.submit_form.title.clone();
     let url = app.submit_form.url.clone();
