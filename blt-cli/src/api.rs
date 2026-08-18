@@ -94,11 +94,11 @@ pub fn parse_issues_from_json(root: &serde_json::Value) -> Result<Vec<Issue>, St
             .unwrap_or("Unknown URL")
             .to_string();
 
-        let title = item
+        let raw_title = item
             .get("title")
             .and_then(|v| v.as_str())
-            .unwrap_or("Untitled Issue")
-            .to_string();
+            .unwrap_or("")
+            .trim();
 
         let description = item
             .get("description")
@@ -106,6 +106,29 @@ pub fn parse_issues_from_json(root: &serde_json::Value) -> Result<Vec<Issue>, St
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
+
+        let title = if !raw_title.is_empty() && raw_title != "Untitled Issue" {
+            raw_title.to_string()
+        } else {
+            let mut extracted = None;
+            for line in description.lines() {
+                let trimmed = line.trim();
+                if let Some(rest) = trimmed.strip_prefix("Title:") {
+                    let candidate = rest.trim();
+                    if !candidate.is_empty() {
+                        extracted = Some(candidate.to_string());
+                        break;
+                    }
+                }
+            }
+            extracted.unwrap_or_else(|| {
+                if !raw_title.is_empty() {
+                    raw_title.to_string()
+                } else {
+                    "Untitled Issue".to_string()
+                }
+            })
+        };
 
         let status = item
             .get("status")
