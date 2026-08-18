@@ -8,12 +8,21 @@ and status monitoring.
 
 import json
 import urllib.parse
-from js import Response, Headers, console
+from js import Response, Headers, console, Object, Request as JSRequest, Headers as JSHeaders
+
+try:
+    from pyodide.ffi import to_js
+except ImportError:
+    to_js = lambda x, **kw: x  # noqa: E731
+
 from src.rationale_builder import audit_completeness_check
 from src.webhook_handler import handle_webhook
 from src.mcp_export import handle_mcp_export
 from src.auth import verify_agent_jwt
 from src.errors import JWTExpiredError, JWTInvalidError
+from src.durable_objects import ConversationDO, RateLimiterDO
+
+__all__ = ["ConversationDO", "RateLimiterDO"]
 
 # Maximum request body size in bytes (1MB)
 MAX_BODY_SIZE = 1024 * 1024
@@ -784,13 +793,6 @@ async def handle_conversation_reply(request, env, triage_id):
 
         stub = await _get_do_stub(env, triage_id)
         # Forward as a new Request to the DO
-        from js import Object, Request as JSRequest, Headers as JSHeaders
-
-        try:
-            from pyodide.ffi import to_js
-        except ImportError:
-            to_js = lambda x, **kw: x  # noqa: E731
-
         headers = JSHeaders.new()
         headers.set("Content-Type", "application/json")
         init = to_js(
@@ -821,13 +823,6 @@ async def handle_conversation_history(request, env, triage_id):
     try:
         stub = await _get_do_stub(env, triage_id)
         # Forward the original request URL so the DO can read ?full=true
-        from js import Object, Request as JSRequest
-
-        try:
-            from pyodide.ffi import to_js
-        except ImportError:
-            to_js = lambda x, **kw: x  # noqa: E731
-
         do_url = "https://do-internal/history"
         # Preserve query params from the original request
         parsed_url = urllib.parse.urlparse(request.url)
@@ -860,13 +855,6 @@ async def handle_conversation_close(request, env, triage_id):
     """
     try:
         stub = await _get_do_stub(env, triage_id)
-        from js import Object, Request as JSRequest
-
-        try:
-            from pyodide.ffi import to_js
-        except ImportError:
-            to_js = lambda x, **kw: x  # noqa: E731
-
         init = to_js({"method": "DELETE"}, dict_converter=Object.fromEntries)
         do_request = JSRequest.new("https://do-internal/archive", init)
         do_response = await stub.fetch(do_request)
