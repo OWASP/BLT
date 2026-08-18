@@ -91,6 +91,15 @@ def fetch_response_headers(url: str, *, timeout: int = 10) -> tuple[int, dict[st
     except urllib.error.HTTPError as exc:
         # An error response still carries headers worth evaluating.
         return int(exc.code), dict(exc.headers or {})
+    except urllib.error.URLError as exc:
+        reason = getattr(exc, "reason", exc)
+        raise SystemExit(
+            f"cannot reach {url} ({reason}).\n"
+            "Pass a real https:// URL you are allowed to test — "
+            "not the placeholder your-site.example.\n"
+            "Example: curl -fsSL https://blt-netguardian.preethampujari395.workers.dev/install.sh "
+            "| sh -s -- https://example.com"
+        ) from exc
 
 
 def collect_findings(args: argparse.Namespace) -> list[DetectionFinding]:
