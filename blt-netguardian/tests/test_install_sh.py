@@ -35,3 +35,10 @@ def test_install_sh_rejects_non_url():
     )
     assert result.returncode == 1
     assert "http(s)" in result.stderr
+
+
+def test_install_sh_module_matches_script():
+    from install_sh import INSTALL_SH
+
+    disk = (ROOT / "scripts" / "install.sh").read_text()
+    assert INSTALL_SH.strip() == disk.strip()

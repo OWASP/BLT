@@ -56,6 +56,7 @@ from findings_service import (
 from detect_service import detect_headers_for_request
 from ingest_service import ingest_error_response, process_ingest
 from ingest_store import IngestStore
+from install_sh import INSTALL_SH
 from oauth_github import (
     current_session,
     handle_github_callback,
@@ -1138,6 +1139,17 @@ async def on_fetch(request, env, ctx):
     """Cloudflare Workers fetch handler."""
     url = request.url
     path = url.split('?')[0].split('/', 3)[-1] if '/' in url else ''
+
+    # Assets binding often 404s on .sh; serve the one-liner from the Worker.
+    if path in ('install.sh', 'install'):
+        return Response(
+            INSTALL_SH,
+            status=200,
+            headers={
+                'Content-Type': 'text/plain; charset=utf-8',
+                'Cache-Control': 'no-cache',
+            },
+        )
 
     # Delegate non-API requests to the static assets binding (serves index.html, etc.)
     assets = getattr(env, 'ASSETS', None)
