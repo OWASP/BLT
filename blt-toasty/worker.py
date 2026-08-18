@@ -396,10 +396,10 @@ async def handle_rationale(request, env, event_id):
             if hasattr(row, "__getitem__"):
                 try:
                     return row[key]
-                except Exception:
+                except BaseException:
                     try:
                         return row[idx]
-                    except Exception:
+                    except BaseException:
                         return None
             return None
 
@@ -445,8 +445,10 @@ async def handle_rationale(request, env, event_id):
             200,
         )
 
-    except Exception as exc:
-        console.error(f"handle_rationale error for {event_id}: {exc}")
+    except BaseException as exc:
+        import traceback
+
+        console.error(f"handle_rationale error for {event_id}: {exc}\n{traceback.format_exc()}")
         return create_error_response("Internal server error", 500)
 
 
