@@ -18,6 +18,11 @@ String? _header(Map<String, String> headers, String name) {
   return null;
 }
 
+bool _isLoopbackBase(String base) {
+  final host = Uri.tryParse(base.trim())?.host.toLowerCase() ?? '';
+  return host == 'localhost' || host == '127.0.0.1' || host == '::1';
+}
+
 bool _isHttps(String url) => url.trim().toLowerCase().startsWith('https://');
 
 final _maxAge = RegExp(r'max-age\s*=\s*(\d+)', caseSensitive: false);
@@ -266,14 +271,17 @@ Future<List<DetectionFinding>> _scanViaApiProxy(
 
 /// Fetch [url] and return header findings (skips HTTP ≥400 like the Python pack).
 ///
-/// On Flutter web, uses `{apiBaseUrl}/api/detect/headers` (browser CORS safe).
+/// Flutter web may use `{apiBaseUrl}/api/detect/headers` only against a
+/// loopback API (local serve.py). Production Workers refuse that route so the
+/// site is not the scanner. Desktop always GETs from this device.
 Future<List<DetectionFinding>> scanUrlHeaders(
   String url, {
   String? apiBaseUrl,
   http.Client? client,
 }) async {
-  if (kIsWeb && apiBaseUrl != null && apiBaseUrl.trim().isNotEmpty) {
-    return _scanViaApiProxy(apiBaseUrl.trim(), url, client: client);
+  final base = apiBaseUrl?.trim() ?? '';
+  if (kIsWeb && base.isNotEmpty && _isLoopbackBase(base)) {
+    return _scanViaApiProxy(base, url, client: client);
   }
   final httpClient = client ?? http.Client();
   final owned = client == null;

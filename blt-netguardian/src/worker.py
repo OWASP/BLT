@@ -57,6 +57,7 @@ from detect_service import detect_headers_for_request
 from ingest_service import ingest_error_response, process_ingest
 from ingest_store import IngestStore
 from install_sh import INSTALL_SH
+from get_client_page import GET_CLIENT_HTML
 from oauth_github import (
     current_session,
     handle_github_callback,
@@ -1149,6 +1150,12 @@ async def on_fetch(request, env, ctx):
                 'Content-Type': 'text/plain; charset=utf-8',
                 'Cache-Control': 'no-cache',
             },
+        )
+    if path.rstrip('/') in ('get-client', 'get-client.html') or path.startswith('get-client/'):
+        return Response(
+            GET_CLIENT_HTML,
+            status=200,
+            headers={'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache'},
         )
 
     # Delegate non-API requests to the static assets binding (serves index.html, etc.)
