@@ -36,7 +36,16 @@ if [ -n "${BLT_API_KEY:-}" ]; then
 fi
 
 echo "==> Deploy Worker + public/ assets"
+# Wrangler rejects pytest pins in requirements.txt; Workers uses aesgcm_pure, not cryptography.
+REQ_BAK=""
+if [ -f requirements.txt ]; then
+  REQ_BAK="$(mktemp)"
+  mv requirements.txt "$REQ_BAK"
+fi
 "${WRANGLER[@]}" deploy
+if [ -n "$REQ_BAK" ]; then
+  mv "$REQ_BAK" requirements.txt
+fi
 
 BASE="${DEPLOY_URL:-https://blt-netguardian.preethampujari395.workers.dev}"
 echo ""
