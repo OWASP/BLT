@@ -1,5 +1,5 @@
-name: selferase
-description: A privacy-first toolkit for managing and deleting personal data online
+name: vanish
+description: A privacy-first toolkit for managing and deleting personal data online with Vanish
 version: 1.0.0+1
 publish_to: 'none'
 

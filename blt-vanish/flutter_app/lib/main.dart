@@ -26,15 +26,15 @@ void main() async {
           create: (_) => CredentialVaultService(storageService: storageService),
         ),
       ],
-      child: const SelfEraseApp(),
+      child: const VanishApp(),
     ),
   );
 }
 
-/// Root application shell for SelfErase.
-class SelfEraseApp extends StatelessWidget {
-  /// Creates the SelfErase app shell.
-  const SelfEraseApp({super.key});
+/// Root application shell for Vanish.
+class VanishApp extends StatelessWidget {
+  /// Creates the Vanish app shell.
+  const VanishApp({super.key});
 
   @override
   Widget build(BuildContext context) {

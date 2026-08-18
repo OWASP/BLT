@@ -560,7 +560,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Your data never leaves this device. SelfErase uses end-to-end encryption to keep your personal information secure.',
+              'Your data never leaves this device. Vanish uses end-to-end encryption to keep your personal information secure.',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
