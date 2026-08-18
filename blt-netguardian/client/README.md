@@ -25,7 +25,13 @@ flutter test
 flutter run -d macos
 ```
 
-Demo (loopback only): secret `736563726574` / `org-demo` / `scanner-1` / `k1`  
+No-signup one-liner (scans **from your machine**, signs with the install HMAC key):
+
+```bash
+curl -fsSL https://blt-netguardian.preethampujari395.workers.dev/install.sh | sh -s -- https://your-site.example
+```
+
+Pass a host you are allowed to test. Demo HMAC: `736563726574` / `org-demo` / `scanner-1` / `k1`.  
 Payload key: `netguardian-demo-aesgcm-key-0032`.
 
 ## Layout
