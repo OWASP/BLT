@@ -12,6 +12,15 @@ from typing import Any
 
 from js import Date, Headers, Response, URL
 
+try:
+    from cloudflare import DurableObject
+except ImportError:
+
+    class DurableObject:
+        def __init__(self, state: Any, env: Any) -> None:
+            pass
+
+
 logger = logging.getLogger("toasty.conversation_do")
 
 MAX_ACTIVE_TURNS = 5
@@ -35,10 +44,13 @@ def get_now_ms() -> int:
         return int(time.time() * 1000)
 
 
-class ConversationDO:
-    """Core ConversationDO class implementing a 5-turn rolling context buffer."""
+class ConversationDO(DurableObject):
+    """
+    Durable Object for maintaining conversation state for an issue.
+    """
 
     def __init__(self, state: Any, env: Any) -> None:
+        super().__init__(state, env)
         self.state = state
         self.storage = state.storage
         self.env = env
@@ -266,10 +278,13 @@ RATE_LIMIT_MAX_REQUESTS = 100
 RATE_LIMIT_WINDOW_MS = 60_000
 
 
-class RateLimiterDO:
-    """Enforces 100 req/min limits per agent."""
+class RateLimiterDO(DurableObject):
+    """
+    Durable Object to enforce per-agent rate limits.
+    """
 
     def __init__(self, state: Any, env: Any) -> None:
+        super().__init__(state, env)
         self.storage = state.storage
         self.env = env
 
