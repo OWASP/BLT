@@ -75,7 +75,13 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
         }
     }
 
-    // 3. Modal Key Interceptors
+    // 3. Global clipboard paste shortcut (Ctrl+V)
+    if key.code == KeyCode::Char('v') && key.modifiers.contains(KeyModifiers::CONTROL) {
+        extract_clipboard_action(app);
+        return;
+    }
+
+    // 4. Modal Key Interceptors
     match app.active_overlay {
         ActiveOverlay::Help => {
             if key.code == KeyCode::Esc || key.code == KeyCode::Char(' ') {
@@ -294,9 +300,6 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
             app.active_overlay = ActiveOverlay::SearchInput;
         }
         KeyCode::Char('p') => extract_clipboard_action(app),
-        KeyCode::Char('v') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-            extract_clipboard_action(app);
-        }
         KeyCode::Char(' ') => {
             if app.active_tab == Tab::Issues
                 && !app.issues.is_empty()
