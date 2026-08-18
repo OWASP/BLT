@@ -55,6 +55,9 @@ class ConversationDO(DurableObject):
         self.storage = state.storage
         self.env = env
 
+    async def on_fetch(self, request: Any) -> Response:
+        return await self.fetch(request)
+
     async def fetch(self, request: Any) -> Response:
         try:
             url = URL.new(request.url)
@@ -287,6 +290,9 @@ class RateLimiterDO(DurableObject):
         super().__init__(state, env)
         self.storage = state.storage
         self.env = env
+
+    async def on_fetch(self, request: Any) -> Response:
+        return await self.fetch(request)
 
     async def fetch(self, request: Any) -> Response:
         try:

@@ -22,7 +22,7 @@ command = ""
 # assets layer while keeping backend requests routed through the Worker.
 [assets]
 directory = "./docs"
-run_worker_first = ["/api/*", "/health", "/mcp/*", "/admin/*"]
+run_worker_first = ["/api/*", "/health", "/mcp/*", "/admin/*", "/conversations/*", "/triage/*", "/webhook/*"]
 
 # Cron Triggers — shadow mode validation runs hourly
 [triggers]

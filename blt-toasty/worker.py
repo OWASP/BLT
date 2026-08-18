@@ -8,7 +8,7 @@ and status monitoring.
 
 import json
 import urllib.parse
-from js import Response, Headers, console, Object, Request as JSRequest, Headers as JSHeaders
+from js import Response, Headers, console, Object, Request as JSRequest
 
 try:
     from pyodide.ffi import to_js
@@ -792,12 +792,13 @@ async def handle_conversation_reply(request, env, triage_id):
         body["triage_id"] = triage_id
 
         stub = await _get_do_stub(env, triage_id)
-        # Forward as a new Request to the DO
-        headers = JSHeaders.new()
-        headers.set("Content-Type", "application/json")
-        init = to_js(
-            {"method": "POST", "headers": headers, "body": json.dumps(body)}, dict_converter=Object.fromEntries
-        )
+        # Forward as a proper Request to the DO
+        h = Headers.new()
+        h.set("Content-Type", "application/json")
+        init = Object.new()
+        init.method = "POST"
+        init.headers = h
+        init.body = json.dumps(body)
         do_request = JSRequest.new("https://do-internal/reply", init)
         do_response = await stub.fetch(do_request)
         return create_json_response(json.loads(await do_response.text()), do_response.status)
@@ -827,9 +828,10 @@ async def handle_conversation_history(request, env, triage_id):
         # Preserve query params from the original request
         parsed_url = urllib.parse.urlparse(request.url)
         if parsed_url.query:
-            do_url += f"?{parsed_url.query}"
+            do_url = f"{do_url}?{parsed_url.query}"
 
-        init = to_js({"method": "GET"}, dict_converter=Object.fromEntries)
+        init = Object.new()
+        init.method = "GET"
         do_request = JSRequest.new(do_url, init)
         do_response = await stub.fetch(do_request)
         return create_json_response(json.loads(await do_response.text()), do_response.status)
@@ -855,7 +857,8 @@ async def handle_conversation_close(request, env, triage_id):
     """
     try:
         stub = await _get_do_stub(env, triage_id)
-        init = to_js({"method": "DELETE"}, dict_converter=Object.fromEntries)
+        init = Object.new()
+        init.method = "DELETE"
         do_request = JSRequest.new("https://do-internal/archive", init)
         do_response = await stub.fetch(do_request)
         return create_json_response(json.loads(await do_response.text()), do_response.status)
