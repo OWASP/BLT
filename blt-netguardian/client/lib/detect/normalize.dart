@@ -53,6 +53,23 @@ class DetectionFinding {
         locator: locator,
       );
 
+  /// Rebuild from API / proxy payload (server scan).
+  static DetectionFinding fromPayload(Map<String, Object?> payload) {
+    final evidence = payload['evidence'];
+    return DetectionFinding(
+      ruleId: (payload['rule_id'] ?? '').toString(),
+      severity: (payload['severity'] ?? 'info').toString(),
+      title: (payload['title'] ?? '').toString(),
+      target: (payload['target'] ?? '').toString(),
+      locator: (payload['locator'] ?? '').toString(),
+      cveId: payload['cve_id']?.toString(),
+      evidence: evidence is Map
+          ? evidence.map((k, v) => MapEntry(k.toString(), v as Object?))
+          : null,
+      remediation: (payload['remediation'] ?? '').toString(),
+    );
+  }
+
   Map<String, Object?> toPayload() {
     final payload = <String, Object?>{
       'rule_id': ruleId,

@@ -19,12 +19,12 @@ echo "==> Cloudflare account"
 echo "==> D1 migrations (remote)"
 "${WRANGLER[@]}" d1 migrations apply blt-netguardian --remote
 
-echo "==> Secrets (pilot org — rotate for production)"
+echo "==> Secrets (pilot org — rotate before any external org)"
 # Same shape as local_dev/serve.py so triage + ingest work immediately after deploy.
 printf '%s' '{"triage-token":"org-demo"}' | "${WRANGLER[@]}" secret put NG_ORG_API_TOKENS
 printf '%s' '{"org-demo:scanner-1:k1":"736563726574"}' | "${WRANGLER[@]}" secret put NG_SENDER_SECRETS
 printf '%s' '{"org-demo":"bmV0Z3VhcmRpYW4tZGVtby1hZXNnY20ta2V5LTAwMzI="}' | "${WRANGLER[@]}" secret put NG_PAYLOAD_KEYS
-printf '%s' 'https://netguardian.owaspblt.org' | "${WRANGLER[@]}" secret put CORS_ALLOWED_ORIGINS
+printf '%s' 'https://blt-netguardian.preethampujari395.workers.dev,http://localhost:8888,http://127.0.0.1:8888' | "${WRANGLER[@]}" secret put CORS_ALLOWED_ORIGINS
 # AUTHENTICATE_READ_ENDPOINTS is a non-secret flag — set via wrangler.toml [vars]
 
 # BLT-API — set if convert-to-issue should hit real API (optional for first boot)
@@ -38,7 +38,7 @@ fi
 echo "==> Deploy Worker + public/ assets"
 "${WRANGLER[@]}" deploy
 
-BASE="${DEPLOY_URL:-https://netguardian.owaspblt.org}"
+BASE="${DEPLOY_URL:-https://blt-netguardian.preethampujari395.workers.dev}"
 echo ""
 echo "==> Smoke checks"
 curl -sf "$BASE/api/health" | head -c 200 && echo ""

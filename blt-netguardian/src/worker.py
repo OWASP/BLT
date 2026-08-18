@@ -53,6 +53,7 @@ from findings_service import (
     list_findings_for_request,
     update_finding_for_request,
 )
+from detect_service import detect_headers_for_request
 from ingest_service import ingest_error_response, process_ingest
 from ingest_store import IngestStore
 from oauth_github import (
@@ -135,6 +136,14 @@ class BLTWorker:
                 response = await self.handle_api_health(request)
             elif path == 'api/ingest':
                 response = await self.handle_ingest(request)
+            elif path == 'api/detect/headers':
+                if request.method != 'GET':
+                    response = self.json_response({'error': 'Method not allowed'}, status=405)
+                else:
+                    status, body = await detect_headers_for_request(
+                        self.get_query_params(request),
+                    )
+                    response = self.json_response(body, status=status)
             elif path == 'api/findings' or path.startswith('api/findings/'):
                 response = await self.handle_findings(request, path)
             elif path == 'api/auth' or path.startswith('api/auth/'):
@@ -1034,6 +1043,7 @@ class BLTWorker:
         """Protect API routes; reads can be toggled with AUTHENTICATE_READ_ENDPOINTS."""
         if (
             path in ('api/health', 'api/ingest')
+            or path == 'api/detect/headers'
             or path.startswith('api/findings')
             or path.startswith('api/auth')
             or path.startswith('api/events')
