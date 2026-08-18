@@ -389,12 +389,50 @@ async def handle_rationale(request, env, event_id):
             return create_error_response(f"Rationale not found for event {event_id}", 404)
 
         def get_val(key, idx):
-            return row[key] if hasattr(row, "__getitem__") and key in row else row[idx]
+            if isinstance(row, dict):
+                return row.get(key)
+            if hasattr(row, key):
+                return getattr(row, key)
+            if hasattr(row, "__getitem__"):
+                try:
+                    return row[key]
+                except Exception:
+                    try:
+                        return row[idx]
+                    except Exception:
+                        return None
+            return None
 
-        cwe_rationale_raw = json.loads(get_val("cwe_rationale", 0))
+        cwe_val = get_val("cwe_rationale", 0)
+        conf_val = get_val("confidence_trace", 2)
+
+        missing_fields = []
+        if cwe_val is None:
+            missing_fields.append("cwe_rationale")
+        if conf_val is None:
+            missing_fields.append("confidence_trace")
+
+        if missing_fields:
+            return create_json_response(
+                {"error": "Failed Dependency", "missing_fields": missing_fields, "status": 424},
+                424,
+            )
+
+        try:
+            cwe_rationale_raw = json.loads(cwe_val)
+        except Exception:
+            cwe_rationale_raw = None
+
+        try:
+            confidence_trace_raw = json.loads(conf_val)
+        except Exception:
+            confidence_trace_raw = None
+
         dup_val = get_val("duplicate_rationale", 1)
-        dup_rationale_raw = json.loads(dup_val) if dup_val else None
-        confidence_trace_raw = json.loads(get_val("confidence_trace", 2))
+        try:
+            dup_rationale_raw = json.loads(dup_val) if dup_val else None
+        except Exception:
+            dup_rationale_raw = None
 
         return create_json_response(
             {
