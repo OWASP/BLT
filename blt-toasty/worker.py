@@ -784,12 +784,14 @@ async def handle_conversation_reply(request, env, triage_id):
 
         stub = await _get_do_stub(env, triage_id)
         # Forward as a new Request to the DO
-        from js import Request as JSRequest
+        from js import Object, Request as JSRequest, Headers as JSHeaders, to_js
 
-        do_request = JSRequest.new(
-            "https://do-internal/reply",
-            {"method": "POST", "body": json.dumps(body), "headers": {"Content-Type": "application/json"}},
+        headers = JSHeaders.new()
+        headers.set("Content-Type", "application/json")
+        init = to_js(
+            {"method": "POST", "headers": headers, "body": json.dumps(body)}, dict_converter=Object.fromEntries
         )
+        do_request = JSRequest.new("https://do-internal/reply", init)
         do_response = await stub.fetch(do_request)
         return create_json_response(json.loads(await do_response.text()), do_response.status)
 
@@ -814,7 +816,7 @@ async def handle_conversation_history(request, env, triage_id):
     try:
         stub = await _get_do_stub(env, triage_id)
         # Forward the original request URL so the DO can read ?full=true
-        from js import Request as JSRequest
+        from js import Object, Request as JSRequest, to_js
 
         do_url = "https://do-internal/history"
         # Preserve query params from the original request
@@ -822,7 +824,8 @@ async def handle_conversation_history(request, env, triage_id):
         if parsed_url.query:
             do_url += f"?{parsed_url.query}"
 
-        do_request = JSRequest.new(do_url, {"method": "GET"})
+        init = to_js({"method": "GET"}, dict_converter=Object.fromEntries)
+        do_request = JSRequest.new(do_url, init)
         do_response = await stub.fetch(do_request)
         return create_json_response(json.loads(await do_response.text()), do_response.status)
 
@@ -847,9 +850,10 @@ async def handle_conversation_close(request, env, triage_id):
     """
     try:
         stub = await _get_do_stub(env, triage_id)
-        from js import Request as JSRequest
+        from js import Object, Request as JSRequest, to_js
 
-        do_request = JSRequest.new("https://do-internal/archive", {"method": "DELETE"})
+        init = to_js({"method": "DELETE"}, dict_converter=Object.fromEntries)
+        do_request = JSRequest.new("https://do-internal/archive", init)
         do_response = await stub.fetch(do_request)
         return create_json_response(json.loads(await do_response.text()), do_response.status)
 
