@@ -116,15 +116,37 @@ where
                             }
                         }
 
-                        if !title.is_empty() {
+                        if description.is_empty() && !result.is_empty() {
+                            description = result.clone();
+                        }
+
+                        if app.submit_form.title.is_empty() && !title.is_empty() {
                             app.submit_form.title = title;
                         }
-                        app.submit_form.description = description.trim().to_string();
+
+                        let clean_desc = description.trim();
+                        if !clean_desc.is_empty() {
+                            if app.submit_form.description.is_empty()
+                                || app.submit_form.description == "Analyzing image with Vision AI..."
+                            {
+                                app.submit_form.description = clean_desc.to_string();
+                            } else {
+                                app.submit_form.description = format!(
+                                    "{}\n\n### AI Vision Analysis:\n{}",
+                                    app.submit_form.description.trim(),
+                                    clean_desc
+                                );
+                            }
+                        }
+
                         app.status_message =
                             "Vision AI drafting complete. Review and submit.".to_string();
                         app.audit_logs
                             .push("Vision AI generated issue draft.".to_string());
                     } else {
+                        if app.submit_form.description == "Analyzing image with Vision AI..." {
+                            app.submit_form.description.clear();
+                        }
                         app.status_message = format!("Vision AI failed: {}", result);
                         app.audit_logs.push(format!("Vision AI failed: {}", result));
                     }

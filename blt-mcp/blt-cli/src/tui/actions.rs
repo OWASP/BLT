@@ -13,7 +13,7 @@
 
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::app::{App, RunMode, VulnerabilityForm};
+use crate::app::{App, RunMode};
 use crate::mcp_client::McpSubprocessClient;
 
 /// Initiates Vision AI parsing on a captured screenshot image with optional context hints.
@@ -21,11 +21,17 @@ pub fn handle_vision_draft(app: &mut App, context: Option<String>) {
     app.active_overlay = crate::app::ActiveOverlay::None;
     let path = app.vision_image_path.clone();
 
-    app.submit_form = VulnerabilityForm::default();
+    // Preserve existing form data if user was already typing
+    if app.submit_form.screenshot_path.is_empty() {
+        app.submit_form.screenshot_path = path.clone();
+    }
+    if app.submit_form.url.is_empty() {
+        app.submit_form.url = app.api_base.clone();
+    }
+    if app.submit_form.description.is_empty() {
+        app.submit_form.description = "Analyzing image with Vision AI...".to_string();
+    }
     app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
-    app.submit_form.screenshot_path = path.clone();
-    app.submit_form.url = app.api_base.clone();
-    app.submit_form.description = "Analyzing image with Vision AI...".to_string();
 
     let mcp_client_clone = app.mcp_client.clone();
     let sender = app.event_sender.clone();

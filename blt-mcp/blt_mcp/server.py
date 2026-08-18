@@ -35,6 +35,7 @@ import mimetypes
 import os
 import re
 import sys
+import tempfile
 from pathlib import Path
 from urllib.parse import quote
 
@@ -60,22 +61,32 @@ MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
 
 def _validate_image_path(image_path: str) -> Path:
-    """Resolve image_path and confirm it is an allowed image under the approved root."""
+    """Resolve image_path and confirm it is an allowed image under the approved root, cache, or temp directory."""
     approved_root = (
         Path(os.getenv("BLT_APPROVED_ROOT") or os.getcwd()).expanduser().resolve()
     )
+    blt_cache_root = (Path.home() / ".blt-mcp").resolve()
+    temp_root = Path(tempfile.gettempdir()).resolve()
 
     try:
         resolved_path = Path(image_path).expanduser().resolve()
     except Exception as e:
         raise ValueError(f"Invalid image path: {image_path}") from e
 
-    try:
-        resolved_path.relative_to(approved_root)
-    except ValueError as e:
+    allowed_roots = (approved_root, blt_cache_root, temp_root)
+    is_allowed = False
+    for root in allowed_roots:
+        try:
+            resolved_path.relative_to(root)
+            is_allowed = True
+            break
+        except ValueError:
+            continue
+
+    if not is_allowed:
         raise ValueError(
             "Access denied: Path is outside the approved root directory."
-        ) from e
+        )
 
     if not resolved_path.is_file():
         raise ValueError(
@@ -203,6 +214,7 @@ async def submit_issue(
     full_description = f"Title: {title}\n\n{description}"
     payload = {
         "url": url,
+        "title": title,
         "description": full_description,
     }
     if severity:
@@ -412,7 +424,10 @@ async def draft_vision_issue(
     if context and context.strip():
         prompt += f"\n\nAdditional user context about this image:\n{context}"
 
-    model = os.getenv("CF_VISION_MODEL") or "@cf/llava-hf/llava-1.5-7b-hf"
+    model = (
+        os.getenv("CF_VISION_MODEL")
+        or "@cf/meta/llama-3.2-11b-vision-instruct"
+    )
     url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
     headers = {
         "Authorization": f"Bearer {api_token}",
