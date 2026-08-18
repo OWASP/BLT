@@ -385,7 +385,7 @@ async def handle_rationale(request, env, event_id):
             .first()
         )
 
-        if row is None:
+        if not row or row is None or str(row) in ("null", "undefined"):
             return create_error_response(f"Rationale not found for event {event_id}", 404)
 
         def get_val(key, idx):
