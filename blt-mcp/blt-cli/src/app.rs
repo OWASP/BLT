@@ -79,6 +79,49 @@ pub struct VulnerabilityForm {
     pub active_field: FormField,
 }
 
+pub const VISION_ANALYZING_PLACEHOLDER: &str = "Analyzing image with Vision AI...";
+
+impl VulnerabilityForm {
+    /// Returns a mutable reference to the string backing the currently active field.
+    pub fn active_field_mut(&mut self) -> &mut String {
+        match self.active_field {
+            FormField::Title => &mut self.title,
+            FormField::Url => &mut self.url,
+            FormField::Severity => &mut self.severity,
+            FormField::BugType => &mut self.bug_type,
+            FormField::Description => &mut self.description,
+            FormField::StepsToReproduce => &mut self.steps_to_reproduce,
+            FormField::Screenshot => &mut self.screenshot_path,
+        }
+    }
+
+    /// Advances `active_field` to the next field in tab order, wrapping at the end.
+    pub fn next_field(&mut self) {
+        self.active_field = match self.active_field {
+            FormField::Title => FormField::Url,
+            FormField::Url => FormField::Severity,
+            FormField::Severity => FormField::BugType,
+            FormField::BugType => FormField::Description,
+            FormField::Description => FormField::StepsToReproduce,
+            FormField::StepsToReproduce => FormField::Screenshot,
+            FormField::Screenshot => FormField::Title,
+        };
+    }
+
+    /// Moves `active_field` to the previous field in tab order, wrapping at the start.
+    pub fn prev_field(&mut self) {
+        self.active_field = match self.active_field {
+            FormField::Title => FormField::Screenshot,
+            FormField::Url => FormField::Title,
+            FormField::Severity => FormField::Url,
+            FormField::BugType => FormField::Severity,
+            FormField::Description => FormField::BugType,
+            FormField::StepsToReproduce => FormField::Description,
+            FormField::Screenshot => FormField::StepsToReproduce,
+        };
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum ActiveOverlay {
     None,
@@ -442,6 +485,10 @@ impl App {
             return;
         }
         self.active_overlay = ActiveOverlay::None;
+
+        if self.issues.is_empty() || self.selected_issue_index >= self.issues.len() {
+            return;
+        }
 
         let issue = &self.issues[self.selected_issue_index];
         let issue_id = issue.id.clone();
