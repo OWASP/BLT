@@ -21,7 +21,7 @@ command = ""
 # Serve the landing page and its styles directly from Cloudflare's static
 # assets layer while keeping backend requests routed through the Worker.
 [assets]
-directory = "./docs"
+directory = "frontend/dist"
 run_worker_first = ["/api/*", "/health", "/mcp/*", "/admin/*", "/conversations/*", "/triage/*", "/webhook/*"]
 
 # Cron Triggers — shadow mode validation runs hourly

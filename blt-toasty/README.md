@@ -10,8 +10,7 @@ Toasty operates entirely on Cloudflare's Edge, ensuring high performance, global
 - **Stateful Operations**: Cloudflare Durable Objects (Multi-turn conversations, Rate Limiting)
 - **Database**: Cloudflare D1 (Edge SQLite for state machine and audit logs)
 - **Vector Store**: Cloudflare Vectorize (384-dimensional embeddings, cosine similarity)
-- **PII Detection**: Microsoft Presidio (Docker sidecar accessed via Cloudflare Tunnel)
-- **Embeddings**: FastEmbed Sidecar (`BAAI/bge-small-en-v1.5`)
+- **Embeddings**: FastEmbed (`BAAI/bge-small-en-v1.5`)
 - **LLM Engine**: Cloudflare Workers AI (`@cf/meta/llama-3.1-8b-instruct`) with OpenAI (`gpt-4o-mini`) fallback; proposed Quality Gate provider routing uses LiteLLM
 - **Integration**: GitLab Webhooks & REST API, Slack API, and GitHub Actions/Check Runs for mirror-specific quality automation
 
@@ -24,7 +23,7 @@ RAW PAYLOAD → [REDACTION GATE] → redacted_text → [LLM / Vectorize]
               quarantined (D1) — no forward progress
 ```
 
-**The Guarantee:** No LLM inference and no vector embedding ever executes until Microsoft Presidio and strict regex fallback scanners successfully process the input with a confidence score of `>= 0.70`.
+**The Guarantee:** No LLM inference and no vector embedding ever executes until strict regex and PII scanners successfully process the input with a confidence score of `>= 0.70`.
 If the redaction gate fails for *any* reason—timeout, parse error, or low confidence—the event is immediately quarantined in D1 and flagged for manual security review. This invariant is enforced at the code level by the `assert_redacted_before_downstream()` guard, ensuring 100% zero-trust processing of all incoming bug reports.
 
 ## AI Quality Gate (BLT-Toasty)
@@ -96,12 +95,12 @@ The project is executed in a rigorous 12-week timeline, divided into three major
 ### Phase 1: Foundations & Redaction Hardening (Weeks 1-2)
 *Goal: Establish bulletproof infrastructure and the fail-closed security gate.*
 - **Week 1:** GitLab Webhook ingress, X-Gitlab-Token validation, KV replay protection, and the D1 State Machine.
-- **Week 2:** Presidio sidecar deployment, custom PII recognizers, Fail-Closed Redaction Engine, and Golden Set acceptance testing.
+- **Week 2:** Native PII redaction deployment, custom PII recognizers, Fail-Closed Redaction Engine, and Golden Set acceptance testing.
 
 ### Phase 2: Semantic & Explainability Buildout (Weeks 3-7)
 *Goal: Implement AI summarization, semantic search, and human-readable audit trails.*
 - **Week 3:** Summarizer v1 with token-budgeted prompts, CWE classification, and Cloudflare Workers AI / OpenAI routing.
-- **Week 4:** FastEmbed sidecar, Cloudflare Vectorize integration, and `top_k=20` retrieval pipeline.
+- **Week 4:** FastEmbed integration, Cloudflare Vectorize integration, and `top_k=20` retrieval pipeline.
 - **Week 5:** Duplicate linker with LLM adjudication, GitLab commenting, and Slack pilot notifications.
 - **Week 6:** Label Rationale API, CWE reasoning fields, and the Audit Completeness Gate.
 - **Week 7:** Durable Objects conversation state, 5-turn rolling buffer, and D1 multi-turn archival.
@@ -138,7 +137,7 @@ We enforce the OWASP BLT ecosystem quality standards:
    uv sync           # Installs Python dependencies
    pre-commit install
    ```
-3. **Start local sidecars (Presidio & FastEmbed):**
+3. **Start local FastEmbed service:**
    ```bash
    docker compose up -d
    ```

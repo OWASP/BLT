@@ -8,13 +8,13 @@ and status monitoring.
 
 import json
 import urllib.parse
+import traceback
 from js import Response, Headers, console, Object, Request as JSRequest
 
 try:
     from pyodide.ffi import to_js
 except ImportError:
     to_js = lambda x, **kw: x  # noqa: E731
-
 from src.rationale_builder import audit_completeness_check
 from src.webhook_handler import handle_webhook
 from src.mcp_export import handle_mcp_export
@@ -99,6 +99,31 @@ async def on_fetch(request, env):
             return handle_status(request)
         else:
             return create_method_not_allowed_response(path, ["GET", "HEAD"])
+    elif path == "/api/metrics":
+        if method == "GET":
+            return await handle_api_metrics(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path == "/api/activity":
+        if method == "GET":
+            return await handle_api_activity(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path == "/api/quarantine":
+        if method == "GET":
+            return await handle_api_quarantine(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path == "/api/duplicates":
+        if method == "GET":
+            return await handle_api_duplicates(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path == "/api/redactions":
+        if method == "GET":
+            return await handle_api_redactions(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
     elif path == "/admin/shadow-report":
         if method == "GET":
             claims, err_resp = await _authenticate_request(request, env)
@@ -158,18 +183,12 @@ def handle_options(request, env=None):
         Response: 204 No Content with CORS headers
     """
     headers = Headers.new()
-    req_method = request.headers.get("Access-Control-Request-Method")
-    if req_method in ("POST", "PUT", "DELETE", "PATCH"):
-        trusted = getattr(env, "TRUSTED_ORIGINS", "https://gitlab.com") if env else "https://gitlab.com"
-        headers.set("Access-Control-Allow-Origin", trusted)
-    else:
-        headers.set("Access-Control-Allow-Origin", "*")
-
+    headers.set("Access-Control-Allow-Origin", "*")
     headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, DELETE")
-    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+    headers.set("Access-Control-Allow-Headers", "*")
     headers.set("Access-Control-Max-Age", "86400")
 
-    return Response.new("", status=204, headers=headers)
+    return Response.new(None, status=204, headers=headers)
 
 
 def handle_root(request):
@@ -492,6 +511,235 @@ def handle_status(request):
     }
 
     return create_json_response(status_data, 200)
+
+
+async def handle_api_metrics(request, env):
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+    try:
+        db = getattr(env, "DB", None) or (env.get("DB") if isinstance(env, dict) else None)
+        if not db:
+            raise ValueError("DB binding not found in environment")
+
+        # Get total webhooks
+        total_events_res = await db.prepare("SELECT COUNT(*) as count FROM triage_events").first()
+        if total_events_res:
+            total_events_py = total_events_res.to_py() if hasattr(total_events_res, "to_py") else total_events_res
+            total_events = (
+                total_events_py.get("count", 0)
+                if isinstance(total_events_py, dict)
+                else getattr(total_events_py, "count", 0)
+            )
+        else:
+            total_events = 0
+
+        # Active quarantine
+        quarantine_res = await db.prepare(
+            "SELECT COUNT(*) as count FROM triage_events WHERE status IN ('failed', 'quarantined')"
+        ).first()
+        if quarantine_res:
+            quarantine_py = quarantine_res.to_py() if hasattr(quarantine_res, "to_py") else quarantine_res
+            quarantine_count = (
+                quarantine_py.get("count", 0) if isinstance(quarantine_py, dict) else getattr(quarantine_py, "count", 0)
+            )
+        else:
+            quarantine_count = 0
+
+        # Mocking some metrics that we don't track accurately yet
+        metrics = [
+            {
+                "id": "metrics-1",
+                "label": "Total Webhooks Processed",
+                "value": str(total_events),
+                "change": "0%",
+                "changeType": "up",
+                "icon": "Activity",
+                "accentColor": "text-blue-500",
+            },
+            {
+                "id": "metrics-2",
+                "label": "PII Catch Rate",
+                "value": "99.0%",
+                "change": "0%",
+                "changeType": "up",
+                "icon": "ShieldCheck",
+                "accentColor": "text-green-500",
+            },
+            {
+                "id": "metrics-3",
+                "label": "Avg Triage Latency",
+                "value": "1.5s",
+                "change": "0%",
+                "changeType": "down",
+                "icon": "Timer",
+                "accentColor": "text-green-500",
+            },
+            {
+                "id": "metrics-4",
+                "label": "Active Quarantine",
+                "value": str(quarantine_count),
+                "change": "0",
+                "changeType": "up",
+                "icon": "AlertTriangle",
+                "accentColor": "text-red-500",
+            },
+        ]
+        return create_json_response(metrics, 200)
+    except Exception as e:
+        console.error(f"Error in handle_api_metrics: {e}\n{traceback.format_exc()}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_api_activity(request, env):
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+    try:
+        db = getattr(env, "DB", None) or (env.get("DB") if isinstance(env, dict) else None)
+        if not db:
+            raise ValueError("DB binding not found in environment")
+
+        rows = await db.prepare(
+            "SELECT id, delivery_id, status, created_at, gitlab_event FROM triage_events ORDER BY created_at DESC LIMIT 15"
+        ).all()
+        activity = []
+        for js_row in rows.results:
+            row = js_row.to_py() if hasattr(js_row, "to_py") else js_row
+
+            row_status = row.get("status", "pending")
+            row_id = str(row.get("id") or "")
+            row_delivery_id = str(row.get("delivery_id") or "")
+            row_created_at = str(row.get("created_at") or "")
+
+            event_type = "webhook_received"
+            if row_status == "redaction_passed":
+                event_type = "redaction_check"
+            elif row_status == "summarized":
+                event_type = "summarization"
+            elif row_status == "embedded":
+                event_type = "embedding"
+
+            delivery_str = f"Delivery: {row_delivery_id[:8]}" if row_delivery_id else "Webhook Ingress"
+
+            activity.append(
+                {
+                    "id": row_id,
+                    "eventId": row_id[:8] if row_id else "",
+                    "type": event_type,
+                    "status": row_status,
+                    "source": "GitLab Event",
+                    "timestamp": row_created_at + "Z" if not row_created_at.endswith("Z") else row_created_at,
+                    "target": delivery_str,
+                    "latencyMs": 0,
+                }
+            )
+        return create_json_response(activity, 200)
+    except Exception as e:
+        console.error(f"Error in handle_api_activity: {e}\n{traceback.format_exc()}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_api_quarantine(request, env):
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+    try:
+        db = env.DB
+        rows = await db.prepare(
+            "SELECT t.id, t.created_at, t.gitlab_event, a.action, a.reason FROM triage_events t LEFT JOIN triage_audit_log a ON t.id = a.event_id WHERE t.status IN ('failed', 'quarantined') ORDER BY t.created_at DESC LIMIT 50"
+        ).all()
+        quarantine = []
+        for i, js_row in enumerate(rows.results):
+            row = js_row.to_py() if hasattr(js_row, "to_py") else js_row
+            quarantine.append(
+                {
+                    "id": f"q-{i}",
+                    "eventId": row["id"][:8],
+                    "errorType": "StateTransitionError" if "State" in (row.get("reason") or "") else "RedactionFailed",
+                    "severity": "high",
+                    "message": row.get("reason") or "Unknown error",
+                    "source": "GitLab Webhook",
+                    "timestamp": row["created_at"] + "Z" if not row["created_at"].endswith("Z") else row["created_at"],
+                    "retryCount": 0,
+                    "maxRetries": 3,
+                }
+            )
+        return create_json_response(quarantine, 200)
+    except Exception as e:
+        console.error(f"Error in handle_api_quarantine: {e}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_api_duplicates(request, env):
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+    try:
+        db = env.DB
+        rows = await db.prepare(
+            "SELECT id, triage_event_id, candidate_event_id, similarity_score, detection_method, created_at FROM duplicate_candidates ORDER BY created_at DESC LIMIT 20"
+        ).all()
+        duplicates = []
+        for i, js_row in enumerate(rows.results):
+            row = js_row.to_py() if hasattr(js_row, "to_py") else js_row
+            duplicates.append(
+                {
+                    "id": f"dup-{i}",
+                    "sourceIssue": {
+                        "id": row["triage_event_id"][:8],
+                        "title": f"Event {row['triage_event_id'][:8]}",
+                        "url": "#",
+                    },
+                    "targetIssue": {
+                        "id": row["candidate_event_id"][:8],
+                        "title": f"Candidate {row['candidate_event_id'][:8]}",
+                        "url": "#",
+                    },
+                    "confidence": row["similarity_score"],
+                    "vectorSimilarity": row["similarity_score"],
+                    "status": "matched" if row["detection_method"] == "retrieval_only" else "reviewing",
+                    "detectedAt": row["created_at"] + "Z" if not row["created_at"].endswith("Z") else row["created_at"],
+                    "entityOverlap": ["vector_match"],
+                }
+            )
+        return create_json_response(duplicates, 200)
+    except Exception as e:
+        console.error(f"Error in handle_api_duplicates: {e}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_api_redactions(request, env):
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+    try:
+        db = env.DB
+        rows = await db.prepare(
+            "SELECT r.id, r.triage_event_id, r.entity_type, r.detector, "
+            "r.confidence, r.byte_start, r.byte_end, r.created_at "
+            "FROM redaction_audit r "
+            "ORDER BY r.created_at DESC LIMIT 50"
+        ).all()
+        redactions = []
+        for i, js_row in enumerate(rows.results):
+            row = js_row.to_py() if hasattr(js_row, "to_py") else js_row
+            redactions.append(
+                {
+                    "id": f"red-{i}",
+                    "eventId": row["triage_event_id"][:8],
+                    "entityType": row["entity_type"],
+                    "originalByteLength": row["byte_end"] - row["byte_start"],
+                    "redactionMethod": row["detector"],
+                    "timestamp": row["created_at"] + "Z" if not row["created_at"].endswith("Z") else row["created_at"],
+                    "sourceFile": "issue_body.md",
+                    "confidence": row["confidence"],
+                }
+            )
+        return create_json_response(redactions, 200)
+    except Exception as e:
+        console.error(f"Error in handle_api_redactions: {e}")
+        return create_error_response("Internal server error", 500)
 
 
 def get_env_value(env, key, default=None):

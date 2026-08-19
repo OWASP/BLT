@@ -98,20 +98,15 @@ async def verify_agent_jwt(token: str, env: Any) -> dict:
         raise JWTInvalidError(f"Malformed signature: {e}")
 
     try:
+        from js import JSON
         import pyodide.ffi
-        from js import Object, Array, Uint8Array
 
-        # 1. Convert algorithm dict to JS Object
-        algo = pyodide.ffi.to_js({"name": "RSASSA-PKCS1-v1_5", "hash": "SHA-256"}, dict_converter=Object.fromEntries)
+        algo = JSON.parse('{"name": "RSASSA-PKCS1-v1_5", "hash": "SHA-256"}')
+        usages = JSON.parse('["verify"]')
 
-        # 2. Convert usage list to JS Array
-        usages = Array.new(1)
-        usages[0] = "verify"
-
-        # 3. Convert Python bytes to native JS Uint8Array
-        js_key_buf = Uint8Array.new(pyodide.ffi.to_js(key_buf))
-        js_sig = Uint8Array.new(pyodide.ffi.to_js(signature_bytes))
-        js_data = Uint8Array.new(pyodide.ffi.to_js(data_to_verify))
+        js_key_buf = pyodide.ffi.to_js(key_buf)
+        js_sig = pyodide.ffi.to_js(signature_bytes)
+        js_data = pyodide.ffi.to_js(data_to_verify)
 
         # Import the public key
         key = await crypto.subtle.importKey("spki", js_key_buf, algo, False, usages)

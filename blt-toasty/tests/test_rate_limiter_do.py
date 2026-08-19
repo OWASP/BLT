@@ -10,7 +10,7 @@ Date.now.return_value = 1000000
 js_mock.Date = Date
 sys.modules["js"] = js_mock
 
-from src.durable_objects import RateLimiterDO
+from src.durable_objects import RateLimiterDO  # noqa: E402
 
 
 class MockResponse:
