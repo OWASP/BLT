@@ -27,7 +27,7 @@ pytest:
 
 flutter:
   stage: test
-  image: ghcr.io/cirruslabs/flutter:3.47.0
+  image: ghcr.io/cirruslabs/flutter:stable
   cache:
     key: flutter-pub
     paths:
