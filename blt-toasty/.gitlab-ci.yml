@@ -1,0 +1,112 @@
+stages:
+  - lint
+  - test
+  - build
+  - deploy
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+  PRE_COMMIT_HOME: "$CI_PROJECT_DIR/.pre-commit-cache"
+
+# ---------------------------------------------------------------------------
+# Lint Stage
+# ---------------------------------------------------------------------------
+
+lint:python:
+  stage: lint
+  image: python:3.13-slim
+  cache:
+    key: pip-lint
+    paths:
+      - .pip-cache/
+      - .pre-commit-cache/
+  before_script:
+    - pip install black ruff bandit
+  script:
+    - black --check .
+    - ruff check .
+    - bandit -c pyproject.toml -r src/
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# ---------------------------------------------------------------------------
+# Test Stage
+# ---------------------------------------------------------------------------
+
+test:python:
+  stage: test
+  image: python:3.13-slim
+  cache:
+    key: pip-test
+    paths:
+      - .pip-cache/
+  before_script:
+    - pip install -e ".[dev]" 2>/dev/null || pip install pytest pytest-asyncio pytest-cov
+  script:
+    - python -m pytest tests/ --cov=src --cov-report=term-missing -q
+  coverage: '/^TOTAL\s+.*\s+(\d+%)$/'
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# ---------------------------------------------------------------------------
+# Build Stage (Frontend — activated when frontend/ exists on the branch)
+# ---------------------------------------------------------------------------
+
+build:frontend:
+  stage: build
+  image: node:20-slim
+  script:
+    - cd frontend && npm ci && npm run build
+  artifacts:
+    paths:
+      - frontend/dist/
+    expire_in: 7 days
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      exists:
+        - frontend/package.json
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      exists:
+        - frontend/package.json
+
+# ---------------------------------------------------------------------------
+# Deploy Stage
+# ---------------------------------------------------------------------------
+
+deploy:staging:
+  stage: deploy
+  image: node:20-slim
+  before_script:
+    - npm install -g wrangler
+  script:
+    - npx wrangler deploy --env staging
+  environment:
+    name: staging
+    url: https://toasty-backend-staging.$CLOUDFLARE_ACCOUNT_ID.workers.dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+  variables:
+    CLOUDFLARE_API_TOKEN: $CLOUDFLARE_API_TOKEN
+    CLOUDFLARE_ACCOUNT_ID: $CLOUDFLARE_ACCOUNT_ID
+
+deploy:production:
+  stage: deploy
+  image: node:20-slim
+  before_script:
+    - npm install -g wrangler
+  script:
+    - npx wrangler deploy --env production
+  environment:
+    name: production
+    url: https://toasty-backend-prod.$CLOUDFLARE_ACCOUNT_ID.workers.dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+  needs:
+    - deploy:staging
+  variables:
+    CLOUDFLARE_API_TOKEN: $CLOUDFLARE_API_TOKEN
+    CLOUDFLARE_ACCOUNT_ID: $CLOUDFLARE_ACCOUNT_ID
