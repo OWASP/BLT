@@ -120,27 +120,29 @@ class HudPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Hud.panel,
-        border: Border.all(color: Hud.border),
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            title.toUpperCase(),
-            style: GoogleFonts.orbitron(
-              color: Hud.accent,
-              fontSize: 11,
-              letterSpacing: 2.4,
-              fontWeight: FontWeight.w700,
+    return Material(
+      color: Hud.panel,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Hud.border),
+        ),
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              title.toUpperCase(),
+              style: GoogleFonts.orbitron(
+                color: Hud.accent,
+                fontSize: 11,
+                letterSpacing: 2.4,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          ...children,
-        ],
+            const SizedBox(height: 12),
+            ...children,
+          ],
+        ),
       ),
     );
   }
