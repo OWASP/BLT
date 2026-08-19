@@ -30,7 +30,6 @@ import pytest
 from src.markdown_preprocessor import extract_plain_text
 from src.native_recognizers import apply_native_redaction
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------

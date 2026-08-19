@@ -80,6 +80,7 @@ async def verify_agent_jwt(token: str, env: Any) -> dict:
         .replace("-----END PUBLIC KEY-----", "")
         .replace("\n", "")
         .replace("\r", "")
+        .replace("\\n", "")
     )
 
     try:
@@ -97,13 +98,21 @@ async def verify_agent_jwt(token: str, env: Any) -> dict:
         raise JWTInvalidError(f"Malformed signature: {e}")
 
     try:
+        from js import JSON
+        import pyodide.ffi
+
+        algo = JSON.parse('{"name": "RSASSA-PKCS1-v1_5", "hash": "SHA-256"}')
+        usages = JSON.parse('["verify"]')
+
+        js_key_buf = pyodide.ffi.to_js(key_buf)
+        js_sig = pyodide.ffi.to_js(signature_bytes)
+        js_data = pyodide.ffi.to_js(data_to_verify)
+
         # Import the public key
-        key = await crypto.subtle.importKey(
-            "spki", key_buf, {"name": "RSASSA-PKCS1-v1_5", "hash": "SHA-256"}, False, ["verify"]
-        )
+        key = await crypto.subtle.importKey("spki", js_key_buf, algo, False, usages)
 
         # Verify the signature
-        is_valid = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, signature_bytes, data_to_verify)
+        is_valid = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, js_sig, js_data)
     except Exception as e:
         raise JWTInvalidError(f"Signature verification process failed: {e}")
 

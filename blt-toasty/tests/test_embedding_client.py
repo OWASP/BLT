@@ -17,7 +17,6 @@ import pytest
 from src.embedding_client import EMBEDDING_DIMENSIONS, get_embedding
 from src.errors import EmbeddingServiceError
 
-
 # ---------------------------------------------------------------------------
 # Helpers: mock objects
 # ---------------------------------------------------------------------------
