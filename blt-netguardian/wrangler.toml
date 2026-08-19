@@ -15,8 +15,8 @@ run_worker_first = true
 ENVIRONMENT = "production"
 AUTHENTICATE_READ_ENDPOINTS = "false"
 NG_DEFAULT_ORG = "org-demo"
-# Flutter web (localhost:8888) + hosted triage on this Worker.
-CORS_ALLOWED_ORIGINS = "https://blt-netguardian.preethampujari395.workers.dev,http://localhost:8888,http://127.0.0.1:8888"
+# Flutter web (localhost:8888) + hosted triage on netguardian.owaspblt.org.
+CORS_ALLOWED_ORIGINS = "https://netguardian.owaspblt.org,http://localhost:8888,http://127.0.0.1:8888"
 # Set via wrangler secret (production/staging):
 #   BLT_API_BASE_URL = https://api.owaspblt.org/v2
 #   BLT_API_KEY      = <X-BLT-API-Key value>
@@ -54,14 +54,12 @@ crons = ["*/5 * * * *"]
 # bucket_name = "ng-evidence"
 
 # D1 Database Binding
-# This fork deploys to personal staging:
-#   https://blt-netguardian.preethampujari395.workers.dev
-# OWASP production D1 (Donnie / netguardian.owaspblt.org):
-#   529b739a-6643-4574-9210-99ecd384f085
+# Production (OWASP account): 529b739a-6643-4574-9210-99ecd384f085 → netguardian.owaspblt.org
+# For a personal/staging deploy, override with: wrangler d1 create blt-netguardian
 [[d1_databases]]
 binding = "DB"
 database_name = "blt-netguardian"
-database_id = "a6735e02-1704-49bd-8d84-61ae6419641c"
+database_id = "529b739a-6643-4574-9210-99ecd384f085"
 migrations_dir = "migrations"
 
 # Note: Durable Objects removed - not implemented yet

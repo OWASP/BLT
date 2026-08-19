@@ -24,7 +24,7 @@ echo "==> Secrets (pilot org — rotate before any external org)"
 printf '%s' '{"triage-token":"org-demo"}' | "${WRANGLER[@]}" secret put NG_ORG_API_TOKENS
 printf '%s' '{"org-demo:scanner-1:k1":"736563726574"}' | "${WRANGLER[@]}" secret put NG_SENDER_SECRETS
 printf '%s' '{"org-demo":"bmV0Z3VhcmRpYW4tZGVtby1hZXNnY20ta2V5LTAwMzI="}' | "${WRANGLER[@]}" secret put NG_PAYLOAD_KEYS
-printf '%s' 'https://blt-netguardian.preethampujari395.workers.dev,http://localhost:8888,http://127.0.0.1:8888' | "${WRANGLER[@]}" secret put CORS_ALLOWED_ORIGINS
+printf '%s' 'https://netguardian.owaspblt.org,http://localhost:8888,http://127.0.0.1:8888' | "${WRANGLER[@]}" secret put CORS_ALLOWED_ORIGINS
 # AUTHENTICATE_READ_ENDPOINTS is a non-secret flag — set via wrangler.toml [vars]
 
 # BLT-API — set if convert-to-issue should hit real API (optional for first boot)
@@ -63,7 +63,7 @@ if [ -n "$REQ_BAK" ]; then
   mv "$REQ_BAK" requirements.txt
 fi
 
-BASE="${DEPLOY_URL:-https://blt-netguardian.preethampujari395.workers.dev}"
+BASE="${DEPLOY_URL:-https://netguardian.owaspblt.org}"
 echo ""
 echo "==> Smoke checks"
 curl -sf "$BASE/api/health" | head -c 200 && echo ""

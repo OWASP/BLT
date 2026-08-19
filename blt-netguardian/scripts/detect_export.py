@@ -97,7 +97,7 @@ def fetch_response_headers(url: str, *, timeout: int = 10) -> tuple[int, dict[st
             f"cannot reach {url} ({reason}).\n"
             "Pass a real https:// URL you are allowed to test — "
             "not the placeholder your-site.example.\n"
-            "Example: curl -fsSL https://blt-netguardian.preethampujari395.workers.dev/install.sh "
+            "Example: curl -fsSL https://netguardian.owaspblt.org/install.sh "
             "| sh -s -- https://example.com"
         ) from exc
 
