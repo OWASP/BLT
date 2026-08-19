@@ -42,7 +42,8 @@ test:python:
     paths:
       - .pip-cache/
   before_script:
-    - pip install -e ".[dev]" 2>/dev/null || pip install pytest pytest-asyncio pytest-cov
+    - pip install .
+    - pip install pytest pytest-asyncio pytest-cov
   script:
     - python -m pytest tests/ --cov=src --cov-report=term-missing -q
   coverage: '/^TOTAL\s+.*\s+(\d+%)$/'
