@@ -103,7 +103,7 @@ def main() -> int:
     parser.add_argument(
         "--base-url",
         default="http://localhost:8787",
-        help="API base URL (e.g. https://blt-netguardian.preethampujari395.workers.dev)",
+        help="API base URL (e.g. https://netguardian.owaspblt.org)",
     )
     parser.add_argument(
         "--plaintext",
