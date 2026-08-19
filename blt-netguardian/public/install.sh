@@ -2,14 +2,14 @@
 # NetGuardian one-line client: scan from THIS machine, HMAC-sign, POST ingest.
 # No signup. The install key signs envelopes; this origin does not fetch targets.
 #
-#   curl -fsSL https://blt-netguardian.preethampujari395.workers.dev/install.sh | sh -s -- https://your-site.example
+#   curl -fsSL https://netguardian.owaspblt.org/install.sh | sh -s -- https://your-site.example
 set -eu
 
-API="${NG_API:-https://blt-netguardian.preethampujari395.workers.dev}"
+API="${NG_API:-https://netguardian.owaspblt.org}"
 # Public demo HMAC + AES key (same as Worker NG_SENDER_SECRETS / NG_PAYLOAD_KEYS).
 INSTALL_SECRET_HEX="${NG_SECRET_HEX:-736563726574}"
 INSTALL_PAYLOAD_KEY_B64="${NG_PAYLOAD_KEY_B64:-bmV0Z3VhcmRpYW4tZGVtby1hZXNnY20ta2V5LTAwMzI=}"
-SRC_TARBALL="${NG_SRC_TARBALL:-https://gitlab.com/Pritz395/blt-netguardian/-/archive/main/blt-netguardian-main.tar.gz}"
+SRC_TARBALL="${NG_SRC_TARBALL:-https://gitlab.com/owasp-blt/blt-netguardian/-/archive/main/blt-netguardian-main.tar.gz}"
 
 TARGET="${1:-}"
 
