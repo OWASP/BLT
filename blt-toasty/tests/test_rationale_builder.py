@@ -32,7 +32,6 @@ from src.rationale_builder import (
     store_rationale,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures / helpers
 # ---------------------------------------------------------------------------
@@ -558,7 +557,6 @@ sys.modules["js"] = js_mock
 sys.modules["pyodide"] = MagicMock()
 sys.modules["pyodide.ffi"] = MagicMock()
 from worker import handle_rationale  # noqa: E402
-
 
 # ---------------------------------------------------------------------------
 # handle_rationale
