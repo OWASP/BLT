@@ -1,0 +1,265 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Variables (merged from blt-university + blt-netguardian) ─── */
+:root {
+  --blt-primary: #e10101;
+  --blt-primary-hover: #b91c1c;
+  --blt-neutral-border: #e5e5e5;
+  --blt-dark-base: #111827;
+  --blt-dark-surface: #1f2937;
+  --blt-bg: #f8fafc;
+  --blt-card: #ffffff;
+  --blt-footer: #0e0d0c;
+  --blt-text-muted: #6b7280;
+  --blt-text-secondary: #4b5563;
+  --blt-focus-ring: rgba(225, 1, 1, 0.24);
+}
+
+/* ─── Base Styles ─── */
+body {
+  margin: 0;
+  background: radial-gradient(circle at top right, #fff1f1 0%, #f8fafc 48%, #f3f4f6 100%);
+  color: var(--blt-dark-base);
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* ─── Button System (from blt-netguardian) ─── */
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-brand bg-brand px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200;
+  }
+  .btn-primary:hover {
+    @apply bg-brand-hover border-brand-hover shadow-float;
+    text-decoration: none;
+  }
+  .btn-primary:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--blt-focus-ring);
+  }
+  .btn-primary:disabled {
+    @apply opacity-60 cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-brand bg-white px-4 py-2.5 text-sm font-semibold text-brand transition-all duration-200;
+  }
+  .btn-outline:hover {
+    @apply bg-brand text-white;
+    text-decoration: none;
+  }
+  .btn-outline:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--blt-focus-ring);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-border bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-all duration-200;
+  }
+  .btn-ghost:hover {
+    @apply bg-gray-50 border-gray-300 text-dark-base;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition-all duration-200;
+  }
+  .btn-danger:hover {
+    @apply bg-red-100 border-red-300;
+  }
+
+  .btn-success {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-all duration-200;
+  }
+  .btn-success:hover {
+    @apply bg-emerald-100 border-emerald-300;
+  }
+}
+
+/* ─── Status Badge Classes (from blt-netguardian) ─── */
+@layer components {
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide border;
+  }
+  .badge-pending {
+    @apply text-amber-800 bg-amber-100 border-amber-300;
+  }
+  .badge-running {
+    @apply text-blue-900 bg-blue-100 border-blue-300;
+  }
+  .badge-completed {
+    @apply text-green-800 bg-green-100 border-green-300;
+  }
+  .badge-failed {
+    @apply text-red-900 bg-red-100 border-red-300;
+  }
+  .badge-queued {
+    @apply text-amber-800 bg-amber-50 border-amber-200;
+  }
+
+  /* Severity */
+  .severity-critical {
+    @apply text-white bg-red-700 border-transparent;
+  }
+  .severity-high {
+    @apply text-white bg-orange-600 border-transparent;
+  }
+  .severity-medium {
+    @apply text-amber-900 bg-amber-100 border-amber-300;
+  }
+  .severity-low {
+    @apply text-green-800 bg-green-100 border-green-300;
+  }
+  .severity-info {
+    @apply text-sky-900 bg-sky-100 border-sky-300;
+  }
+}
+
+/* ─── Card Pattern ─── */
+@layer components {
+  .card {
+    @apply rounded-xl border border-neutral-border bg-white p-6 shadow-card;
+  }
+  .card-header {
+    @apply flex items-center justify-between border-b border-neutral-border pb-4 mb-4;
+  }
+}
+
+/* ─── Table Styles (from blt-netguardian) ─── */
+@layer components {
+  .data-table {
+    @apply w-full border-collapse;
+  }
+  .data-table th,
+  .data-table td {
+    @apply text-left py-3 px-4 border-b border-neutral-border align-top;
+  }
+  .data-table th {
+    @apply text-xs font-bold uppercase tracking-wider text-gray-500 bg-gray-50/80;
+  }
+  .data-table tbody tr {
+    @apply transition-colors duration-150;
+  }
+  .data-table tbody tr:hover {
+    @apply bg-gray-50/50;
+  }
+  .data-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+}
+
+/* ─── Live Indicator Dot ─── */
+.live-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--blt-primary);
+  animation: indicator-pulse 2s infinite;
+}
+
+@keyframes indicator-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(225, 1, 1, 0.45); }
+  70% { box-shadow: 0 0 0 9px rgba(225, 1, 1, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(225, 1, 1, 0); }
+}
+
+/* ─── Footer Grid Pattern (from blt-university) ─── */
+.footer-grid-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 1) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ─── Footer Link Styles ─── */
+.footer-links p {
+  margin: 0 0 0.35rem;
+  color: #6b7280;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.footer-links a {
+  display: block;
+  color: #d1d5db;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  transition: color 180ms ease;
+}
+.footer-links a:hover {
+  color: white;
+}
+
+/* ─── Confidence Bar ─── */
+.confidence-bar {
+  @apply h-2 rounded-full bg-gray-200 overflow-hidden;
+}
+.confidence-bar-fill {
+  @apply h-full rounded-full transition-all duration-500 ease-out;
+}
+.confidence-bar-fill.high {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+.confidence-bar-fill.medium {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+.confidence-bar-fill.low {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+/* ─── Glassmorphism Utility ─── */
+.glass {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ─── Feed Item Animations ─── */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-slide-in {
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* ─── Metric Card Hover ─── */
+.metric-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -18px rgba(220, 38, 38, 0.8);
+}
