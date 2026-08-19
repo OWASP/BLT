@@ -16,7 +16,7 @@ uvx --with-requirements requirements.txt mkdocs build --strict
 
 ## Wrangler configuration
 
-`wrangler.toml` controls the worker name, compatibility date, build command, and static asset directory for deployment. Keep it focused on deployment metadata and asset configuration.
+`wrangler.toml` configures the `blt-docs` Worker to run `mkdocs build` and serve the resulting `./site` directory as static assets. Missing paths fall back to the site's `404-page` handling. Keep the file focused on this deployment metadata and asset configuration.
 
 Do not commit secrets to `wrangler.toml`. Configure secrets and environment-specific values through the approved Cloudflare or project workflow.
 
@@ -26,7 +26,7 @@ Do not commit secrets to `wrangler.toml`. Configure secrets and environment-spec
 
 ## Custom domains
 
-Custom domains are configured through Cloudflare and the approved project settings. Keep domain ownership, DNS, and production routing changes in the deployment workflow used by maintainers.
+`docs.owaspblt.org` is a Cloudflare-managed custom domain routed to the `blt-docs` Worker. Domain ownership, DNS, and production routing changes are configured through Cloudflare and the approved project settings, not through files in this repository.
 
 ## Deployment checklist
 

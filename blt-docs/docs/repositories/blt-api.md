@@ -8,7 +8,7 @@ The current repository is [owasp-blt/blt-api](https://gitlab.com/owasp-blt/blt-a
 
 ## Purpose
 
-BLT-API owns API behavior and integration points for the BLT platform. Current documentation direction references Python on Cloudflare Workers and Cloudflare D1 where those are used by the API repository, but exact runtime, database, and deployment details should be confirmed in BLT-API before changing code.
+BLT-API owns API behavior and integration points for the BLT platform. It runs a Python Cloudflare Worker with a Cloudflare D1 database, and is the D1-backed API deployment pattern described in [Platform Architecture](../developer-guide/platform-architecture.md). Exact runtime, database, and deployment details should be confirmed in BLT-API before changing code.
 
 The `/v2` API path is the current API documentation direction. Do not document unstable endpoints as final until the owning repository treats them as stable.
 
@@ -65,5 +65,6 @@ BLT-API should own exact setup commands, endpoint behavior, migration commands, 
 ## Related pages
 
 - [Platform Architecture](../developer-guide/platform-architecture.md)
+- [BLT-Next](blt-next.md)
 - [Contributing](../developer-guide/contributing.md)
 - [Documentation Maintenance](../developer-guide/docs-maintenance.md)

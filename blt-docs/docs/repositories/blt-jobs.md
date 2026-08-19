@@ -8,7 +8,7 @@ The current repository is [owasp-blt/blt-jobs](https://gitlab.com/owasp-blt/blt-
 
 ## Purpose
 
-BLT-Jobs supports jobs, community contribution flows, and related automation workflows. The module may use static site patterns, job data files, and Cloudflare-style deployment workflows where the current repository defines them.
+BLT-Jobs supports jobs, community contribution flows, and related automation workflows. It serves static assets directly, with no Worker code, and is the Git-native static content deployment pattern described in [Platform Architecture](../developer-guide/platform-architecture.md).
 
 Do not assume historical GitHub Pages or GitHub Actions details are still current unless the BLT-Jobs repository confirms them.
 
@@ -37,5 +37,6 @@ If the jobs workflow changes, update BLT-Jobs first or in the same merge request
 ## Related pages
 
 - [Platform Architecture](../developer-guide/platform-architecture.md)
+- [BLT-Sizzle](blt-sizzle.md)
 - [Contributing](../developer-guide/contributing.md)
 - [Deployment](../developer-guide/deployment.md)

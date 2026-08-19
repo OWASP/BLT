@@ -35,8 +35,10 @@ Contributor documentation should help people choose the right work area before e
 | Module | Current role | Documentation posture |
 | ------ | ------------ | --------------------- |
 | BLT-docs | MkDocs documentation hub for user, contributor, repository, and maintenance documentation. | Confirmed active GitLab repository. |
+| BLT-Next | User-facing frontend application and Worker routes for the BLT platform. | Confirmed active GitLab repository; document behavior from implementation. |
 | BLT-API | API service and platform integration layer for BLT. | Confirmed active GitLab repository; document behavior from implementation. |
 | BLT-Jobs | Jobs/community portal and automation workflow module. | Confirmed active GitLab repository; keep setup and deployment notes specific to this module. |
+| BLT-Sizzle | Organization check-in and contributor activity application with scheduled reminders. | Confirmed active GitLab repository; document behavior from implementation. |
 | BLT-OWASP metadata/projects | Repository and project metadata used to organize BLT and OWASP project information. | Document only confirmed sources and label migration status clearly. |
 | Legacy/historical UI docs | Existing user-facing pages that may describe earlier BLT interface behavior. | Preserve useful workflow context, but verify before presenting as current behavior. |
 

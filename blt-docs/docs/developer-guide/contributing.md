@@ -7,8 +7,10 @@ OWASP BLT is documented across several repositories. Start in the repository tha
 | Repository | Current status | Use it for |
 | ---------- | -------------- | ---------- |
 | [BLT-docs](https://gitlab.com/owasp-blt/blt-docs) | Current documentation repository | MkDocs pages, documentation navigation, writing standards, and contributor guidance. |
+| [BLT-Next](https://gitlab.com/owasp-blt/blt-next) | Current frontend repository | User-facing product workflows, frontend layout, and Worker routes serving the BLT-Next application. |
 | [BLT-API](https://gitlab.com/owasp-blt/blt-api) | Current API repository | API service work, platform integration code, API tests, and API-owned operational notes. |
 | [BLT-Jobs](https://gitlab.com/owasp-blt/blt-jobs) | Current jobs/community repository | Jobs portal work, community portal content, and related automation workflows. |
+| [BLT-Sizzle](https://gitlab.com/owasp-blt/blt-sizzle) | Current check-in repository | Organization check-in workflows, contributor activity tracking, and scheduled reminders. |
 | Other BLT support repositories | Migration status should be confirmed | Metadata, project catalog, discovery, and automation modules that may still have historical GitHub locations. |
 
 If a repository is migration-pending or unclear, confirm the current location with maintainers before opening new work.

@@ -2,6 +2,14 @@
 
 This repository contains the MkDocs Material source for OWASP Bug Logging Tool (BLT) documentation. It is the documentation hub for BLT user workflows, contributor guidance, repository routing, API notes, and platform maintenance references.
 
+## Architecture
+
+```text
+Markdown -> MkDocs strict build -> site/ -> Cloudflare Workers Static Assets -> docs.owaspblt.org
+```
+
+`site/` is the generated MkDocs output. It is gitignored and must never be hand-edited; run the strict build to regenerate it. `wrangler.toml` identifies `site/` as the deployed static asset directory for Cloudflare Workers.
+
 ## Local development
 
 Run a strict build before submitting documentation changes:

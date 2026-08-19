@@ -34,6 +34,14 @@ uvx --with-requirements requirements.txt mkdocs serve -a 127.0.0.1:8000
 5. Run the strict build.
 6. Review warnings and fix them before opening a merge request.
 
+## Deployment contract checks
+
+Before opening a merge request that changes documentation content or navigation:
+
+- Run the strict MkDocs build. It must exit successfully with no warnings promoted by strict mode.
+- Confirm `site/` remains listed in `.gitignore` and is not staged as tracked content.
+- Browser-check any changed navigation and links locally with `mkdocs serve` before release.
+
 ## Navigation rules
 
 The visible navigation is controlled by `mkdocs.yml`. When a page is added, moved, renamed, or removed, update the matching `nav` entry in the same change.
