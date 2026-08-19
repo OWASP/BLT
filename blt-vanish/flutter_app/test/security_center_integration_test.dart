@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:selferase/models/security/remediation_action.dart';
-import 'package:selferase/models/security/risk_assessment.dart';
-import 'package:selferase/models/security/security_alert.dart';
-import 'package:selferase/screens/security_center_screen.dart';
-import 'package:selferase/services/reputation_enrichment_service.dart';
-import 'package:selferase/services/risk_assessment_builder.dart';
-import 'package:selferase/services/telemetry_service.dart';
-import 'package:selferase/services/url_expansion_service.dart';
-import 'package:selferase/services/url_signal_extractor.dart';
+import 'package:vanish/models/security/remediation_action.dart';
+import 'package:vanish/models/security/risk_assessment.dart';
+import 'package:vanish/models/security/security_alert.dart';
+import 'package:vanish/screens/security_center_screen.dart';
+import 'package:vanish/services/reputation_enrichment_service.dart';
+import 'package:vanish/services/risk_assessment_builder.dart';
+import 'package:vanish/services/url_expansion_service.dart';
+import 'package:vanish/services/url_signal_extractor.dart';
 
 class FakeUrlExpansionService extends UrlExpansionService {
   FakeUrlExpansionService(this._handler);
@@ -70,56 +69,7 @@ class FakeRiskAssessmentBuilder extends RiskAssessmentBuilder {
   }
 }
 
-class FakeTelemetryService extends TelemetryService {
-  final List<Map<String, String>> events = [];
 
-  @override
-  void trackScanEvent({
-    required String inputSource,
-    required String finalSeverity,
-    required int latencyMs,
-    required bool wasOfflineFallback,
-  }) {
-    events.add({
-      'event': 'scan_completed',
-      'source': inputSource,
-      'severity': finalSeverity,
-      'offline_fallback': wasOfflineFallback.toString(),
-    });
-  }
-
-  @override
-  void trackError({
-    required String errorType,
-    required String component,
-  }) {
-    events.add({
-      'event': 'scan_error',
-      'error_type': errorType,
-      'component': component,
-    });
-  }
-
-  @override
-  void trackRemediationCtaClicked(String actionType) {
-    events.add({
-      'event': 'remediation_cta_clicked',
-      'action_type': actionType,
-    });
-  }
-
-  @override
-  void trackAbandonment({
-    required String inputSource,
-    required String state,
-  }) {
-    events.add({
-      'event': 'abandonment_tracked',
-      'source': inputSource,
-      'state': state,
-    });
-  }
-}
 
 RiskAssessment makeAssessment({
   required AlertSeverity severity,
@@ -158,8 +108,6 @@ void main() {
     testWidgets(
       'submit enrich assess render flow shows loading, findings, and remediation CTA',
       (WidgetTester tester) async {
-        final telemetry = FakeTelemetryService();
-
         await tester.pumpWidget(
           MaterialApp(
             home: SecurityCenterScreen(
@@ -204,7 +152,6 @@ void main() {
                   enrichmentSignals: enrichmentSignals,
                 );
               }),
-              telemetryService: telemetry,
             ),
           ),
         );
@@ -232,29 +179,16 @@ void main() {
         expect(find.text('SUSPICIOUS_KEYWORDS'), findsOneWidget);
         expect(find.text('RISKY_TLD_EXTENSION'), findsOneWidget);
         expect(find.text('Do not submit credentials'), findsOneWidget);
-        expect(
-          telemetry.events.any((event) => event['event'] == 'scan_completed'),
-          isTrue,
-        );
 
         await tester.ensureVisible(find.text('Review Action'));
         await tester.tap(find.text('Review Action'));
         await tester.pump();
-
-        expect(
-          telemetry.events.any(
-            (event) => event['event'] == 'remediation_cta_clicked',
-          ),
-          isTrue,
-        );
       },
     );
 
     testWidgets(
       'share-sheet initialization auto-scans and surfaces offline fallback state',
       (WidgetTester tester) async {
-        final telemetry = FakeTelemetryService();
-
         await tester.pumpWidget(
           MaterialApp(
             home: SecurityCenterScreen(
@@ -295,7 +229,6 @@ void main() {
                   enrichmentSignals: enrichmentSignals,
                 );
               }),
-              telemetryService: telemetry,
             ),
           ),
         );
@@ -303,22 +236,12 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.textContaining('Offline-safe result.'), findsOneWidget);
-        expect(
-          telemetry.events.any(
-            (event) =>
-                event['event'] == 'scan_completed' &&
-                event['offline_fallback'] == 'true',
-          ),
-          isTrue,
-        );
       },
     );
 
     testWidgets(
-      'invalid input enters parse error state and records scan_error telemetry',
+      'invalid input enters parse error state',
       (WidgetTester tester) async {
-        final telemetry = FakeTelemetryService();
-
         await tester.pumpWidget(
           MaterialApp(
             home: SecurityCenterScreen(
@@ -344,7 +267,6 @@ void main() {
                   enrichmentSignals: enrichmentSignals,
                 );
               }),
-              telemetryService: telemetry,
             ),
           ),
         );
@@ -358,10 +280,6 @@ void main() {
             'Scan pipeline failure: Unable to safely parse entry target.',
           ),
           findsOneWidget,
-        );
-        expect(
-          telemetry.events.any((event) => event['event'] == 'scan_error'),
-          isTrue,
         );
       },
     );

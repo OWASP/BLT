@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/screens/security_center_screen.dart';
-import '../lib/services/security_data_source.dart';
-import '../lib/models/security/exposure_event.dart';
-import '../lib/models/security/login_anomaly.dart';
-import '../lib/models/security/playbook_template.dart';
+import 'package:vanish/models/security/exposure_event.dart';
+import 'package:vanish/models/security/login_anomaly.dart';
+import 'package:vanish/models/security/playbook_template.dart';
+import 'package:vanish/screens/security_center_screen.dart';
+import 'package:vanish/services/security_data_source.dart';
 
 class MockSuccessSecurityDataSource implements SecurityDataSource {
   @override

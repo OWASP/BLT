@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:selferase/services/url_expansion_service.dart';
+import 'package:vanish/services/url_expansion_service.dart';
 
 void main() {
   group('UrlExpansionService', () {

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/services/login_anomaly_service.dart';
-import '../lib/services/risk_correlation_service.dart';
-import '../lib/services/recommendation_playbook_service.dart';
+import 'package:vanish/services/login_anomaly_service.dart';
+import 'package:vanish/services/recommendation_playbook_service.dart';
+import 'package:vanish/services/risk_correlation_service.dart';
 
 void main() {
   group('Login Anomaly & Correlation Tests', () {

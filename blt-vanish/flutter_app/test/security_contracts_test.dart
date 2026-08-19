@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:selferase/models/security/remediation_action.dart';
-import 'package:selferase/models/security/risk_assessment.dart';
-import 'package:selferase/models/security/security_alert.dart';
+import 'package:vanish/models/security/remediation_action.dart';
+import 'package:vanish/models/security/risk_assessment.dart';
+import 'package:vanish/models/security/security_alert.dart';
 
 void main() {
   group('SecurityAlert contract', () {

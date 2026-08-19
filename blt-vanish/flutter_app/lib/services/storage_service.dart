@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/monitor_entry.dart';
 import '../models/opt_out_request.dart';
 import '../models/security/credential_snapshot.dart';
+import '../models/security/exposure_event.dart';
+import '../models/security/login_anomaly.dart';
 import '../models/security/remediation_action.dart';
 import '../models/security/remediation_task.dart';
 import '../models/security/risk_assessment.dart';
@@ -21,6 +23,8 @@ class StorageService {
   static const String _credentialSnapshotsKey = 'credential_snapshots';
   static const String _riskAssessmentsKey = 'risk_assessments';
   static const String _remediationTasksKey = 'remediation_tasks';
+  static const String _exposureEventsKey = 'exposure_events';
+  static const String _loginAnomaliesKey = 'login_anomalies';
   
   late SharedPreferences _prefs;
   encrypt_pkg.Encrypter? _encrypter;
@@ -465,6 +469,54 @@ class StorageService {
           )
           .toList(),
     );
+  }
+
+  /// Save exposure events (encrypted)
+  Future<void> saveExposureEvents(List<ExposureEvent> events) async {
+    final jsonList = events.map((e) => e.toJson()).toList();
+    final jsonString = jsonEncode(jsonList);
+    final encrypted = _encrypt(jsonString);
+    await _prefs.setString(_exposureEventsKey, encrypted);
+  }
+
+  /// Get exposure events (decrypted)
+  Future<List<ExposureEvent>> getExposureEvents() async {
+    final encrypted = _prefs.getString(_exposureEventsKey);
+    if (encrypted == null) return [];
+    try {
+      final decrypted = _decrypt(encrypted);
+      final list = jsonDecode(decrypted) as List<dynamic>;
+      return list
+          .map((json) => ExposureEvent.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Save login anomaly (encrypted)
+  Future<void> saveLoginAnomaly(LoginAnomaly anomaly) async {
+    final anomalies = await getLoginAnomalies();
+    anomalies.insert(0, anomaly);
+    final jsonList = anomalies.map((a) => a.toJson()).toList();
+    final jsonString = jsonEncode(jsonList);
+    final encrypted = _encrypt(jsonString);
+    await _prefs.setString(_loginAnomaliesKey, encrypted);
+  }
+
+  /// Get login anomalies (decrypted)
+  Future<List<LoginAnomaly>> getLoginAnomalies() async {
+    final encrypted = _prefs.getString(_loginAnomaliesKey);
+    if (encrypted == null) return [];
+    try {
+      final decrypted = _decrypt(encrypted);
+      final list = jsonDecode(decrypted) as List<dynamic>;
+      return list
+          .map((json) => LoginAnomaly.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   Map<String, dynamic> _securityAlertToJson(SecurityAlert alert) {

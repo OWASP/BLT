@@ -62,7 +62,7 @@ class SecurityRiskService {
     }
 
     // 3. Mathematical Score Composition: Risk = w1*U + w2*M + w3*R
-    // Merge localized signals safely into telemetry data arrays
+    // Merge localized signals safely into feature data arrays
     final combinedLocalSignals = <String, double>{}
       ..addAll(localUrlSignals)
       ..addAll(localMessageSignals);

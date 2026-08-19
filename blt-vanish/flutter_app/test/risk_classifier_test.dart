@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
-import 'package:selferase/models/security/security_alert.dart';
-import 'package:selferase/services/risk_classifier.dart';
+import 'package:vanish/models/security/security_alert.dart';
+import 'package:vanish/services/risk_classifier.dart';
 
 Map<String, dynamic> _fixtureAt(int index) {
   final fixturePath = path.join(

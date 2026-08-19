@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:selferase/models/security/credential_snapshot.dart';
-import 'package:selferase/models/security/remediation_task.dart';
-import 'package:selferase/models/security/risk_assessment.dart';
-import 'package:selferase/models/security/security_alert.dart';
-import 'package:selferase/services/midterm_metrics_aggregator.dart';
-import 'package:selferase/services/remediation_planner.dart';
+import 'package:vanish/models/security/credential_snapshot.dart';
+import 'package:vanish/models/security/remediation_task.dart';
+import 'package:vanish/models/security/risk_assessment.dart';
+import 'package:vanish/models/security/security_alert.dart';
+import 'package:vanish/services/midterm_metrics_aggregator.dart';
+import 'package:vanish/services/remediation_planner.dart';
 
 void main() {
   group('RemediationPlanner', () {

@@ -1,14 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:selferase/services/storage_service.dart';
-import 'package:selferase/models/user_data.dart';
-import 'package:selferase/models/monitor_entry.dart';
-import 'package:selferase/models/security/credential_snapshot.dart';
-import 'package:selferase/models/security/security_alert.dart';
-import 'package:selferase/models/user_data.dart';
-import 'package:selferase/services/storage_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import 'package:vanish/services/storage_service.dart';
+import 'package:vanish/models/user_data.dart';
+import 'package:vanish/models/monitor_entry.dart';
+import 'package:vanish/models/security/credential_snapshot.dart';
+import 'package:vanish/models/security/security_alert.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
