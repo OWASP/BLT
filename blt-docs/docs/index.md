@@ -1,166 +1,61 @@
-<h1 align="center"> 🐛 OWASP BLT </h1>
-<h3 align="center">Bug Logging Tool - Democratizing Bug Bounties</h3>
+# OWASP BLT Documentation
 
-<p align="center">
-  <strong>A community-driven platform for discovering, reporting, and tracking security vulnerabilities</strong>
-</p>
+OWASP Bug Logging Tool (BLT) is an open source OWASP project for reporting, tracking, and improving security-related issues across websites, applications, and community projects. This documentation site explains how the BLT ecosystem is organized, how contributors can get started, and how the current platform modules fit together.
 
-<p align="center">
-  <a href="https://owaspblt.org">🌐 Website</a> •
-  <a href="https://github.com/OWASP-BLT/BLT/blob/main/CONTRIBUTING.md">📖 Contributing Guide</a> •
-  <a href="https://owasp.org/slack/invite">💬 Join Slack</a> •
-  <a href="https://github.com/OWASP-BLT/BLT/issues">🐛 Report Bug</a>
-</p>
+BLT-docs is the documentation hub for the project. It covers user workflows, contributor guidance, repository routing, API documentation, and platform maintenance notes.
 
----
+## Start here
 
-## 📊 Project Stats
+<div class="grid cards" markdown>
 
-<p align="center">
-  <a href="https://github.com/OWASP-BLT/BLT/actions">
-    <img src="https://github.com/OWASP-BLT/BLT/actions/workflows/auto-merge.yml/badge.svg" alt="Build Status">
-  </a>
-  <a href="https://github.com/OWASP-BLT/BLT/blob/main/LICENSE.md">
-    <img src="https://img.shields.io/badge/license-AGPL--3.0-blue" alt="License">
-  </a>
-  <a href="https://github.com/OWASP-BLT/BLT">
-    <img src="https://img.shields.io/github/stars/OWASP-BLT/BLT?style=social" alt="GitHub stars">
-  </a>
-</p>
+-   **Set up the docs locally**
 
-<p align="center">
-  <a href="https://github.com/OWASP-BLT/BLT/graphs/contributors">
-    <img src="https://img.shields.io/github/contributors/OWASP-BLT/BLT?color=%23e74c3c" alt="Contributors">
-  </a>
-  <a href="https://github.com/OWASP-BLT/BLT/commits/main">
-    <img src="https://img.shields.io/github/last-commit/OWASP-BLT/BLT?color=%23e74c3c" alt="Last Commit">
-  </a>
-  <a href="https://github.com/OWASP-BLT/BLT/issues">
-    <img src="https://img.shields.io/github/issues/OWASP-BLT/BLT?color=%23e74c3c" alt="Open Issues">
-  </a>
-  <a href="https://github.com/OWASP-BLT/BLT/pulls">
-    <img src="https://img.shields.io/github/issues-pr/OWASP-BLT/BLT?color=%23e74c3c" alt="Pull Requests">
-  </a>
-</p>
+    Run the MkDocs site, validate changes, and understand the repository layout.
 
-<p align="center">
-  <a href="https://github.com/OWASP-BLT/BLT">
-    <img src="https://img.shields.io/github/languages/top/OWASP-BLT/BLT?color=%23e74c3c" alt="Top Language">
-  </a>
-  <a href="https://github.com/OWASP-BLT/BLT">
-    <img src="https://img.shields.io/github/repo-size/OWASP-BLT/BLT?color=%23e74c3c" alt="Repo Size">
-  </a>
-  <a href="https://github.com/OWASP-BLT/BLT/fork">
-    <img src="https://img.shields.io/github/forks/OWASP-BLT/BLT?style=social" alt="Forks">
-  </a>
-  <img src="https://owaspblt.org/repos/blt/badge/" alt="Views">
-</p>
+    [Open the setup guide](getting-started/setup.md)
 
----
+-   **Choose a project**
 
-## 🎯 What is OWASP BLT?
+    Find the right BLT repository based on whether you want to work on docs, APIs, jobs, platform data, or user-facing workflows.
 
-**OWASP BLT (Bug Logging Tool)** is an open-source platform that democratizes bug bounties and security research. Built by the community for the community, BLT makes it easy for security researchers, developers, and organizations to collaborate on finding and fixing security vulnerabilities.
+    [Open the project map](getting-started/projects.md)
 
-### ✨ Key Features
+-   **Contribute safely**
 
-- 🔍 **Bug Discovery & Reporting** - Discover and report security vulnerabilities across various applications and websites
-- 🏆 **Rewards & Recognition** - Earn rewards, badges, and recognition for your contributions to web security
-- 👥 **Community Driven** - Join a vibrant community of security researchers and developers
-- 🎮 **Gamification** - Leaderboards, challenges, and competitions to make security research engaging
-- 💰 **Staking System** - Innovative blockchain-based reward system for contributors
-- 📊 **Comprehensive Dashboard** - Track your progress, statistics, and impact
-- 🌐 **Open Source** - Built with transparency and collaboration at its core
-- 🛡️ **OWASP Project** - Part of the Open Worldwide Application Security Project family
+    Learn the expected contribution workflow, review checklist, and documentation standards.
 
----
+    [Open the contributing guide](developer-guide/contributing.md)
 
-## 🚀 Quick Start
+-   **Understand the platform**
 
-### Prerequisites
-- Python 3.11.2+
-- PostgreSQL
-- Docker & Docker Compose (recommended)
+    Read how BLT user workflows, API services, background jobs, and documentation work together.
 
-### Installation
+    [Open the feature overview](features/overview.md)
 
-#### Using Docker (Recommended)
-```bash
-# Clone the repository
-git clone https://github.com/OWASP-BLT/BLT.git
-cd BLT
+</div>
 
-# Configure environment
-cp .env.example .env
+## What you can find here
 
-# Build and start
-docker-compose build
-docker-compose up
-```
+| Area | Use it for |
+| ---- | ---------- |
+| Getting Started | Local setup, project map, and proposal context. |
+| Features | High-level description of BLT capabilities and current platform direction. |
+| User Guide | Page-by-page guidance for common BLT workflows. |
+| Developer Guide | Contributor workflow, platform architecture, docs maintenance, and deployment notes. |
+| Repositories | Repository-specific notes for active BLT modules. |
 
-Access the application at **http://localhost:8000**
+## Current documentation priorities
 
-#### Using Poetry
-```bash
-# Install dependencies
-pip install poetry
-poetry shell
-poetry install
+The BLT ecosystem is moving toward a clearer, more modular platform structure. The documentation is being updated to reflect that direction:
 
-# Set up database
-python manage.py migrate
-python manage.py loaddata website/fixtures/initial_data.json
-python manage.py createsuperuser
+- Keep BLT-docs as the source of truth for contributor-facing documentation.
+- Document confirmed GitLab repositories first.
+- Separate user documentation from developer and maintainer documentation.
+- Keep API details grounded in the current BLT-API implementation.
+- Remove stale README content, broken badges, and outdated repository lists.
 
-# Run the server
-python manage.py runserver
-```
+## Contributing to these docs
 
-For detailed setup instructions, see our [Contributing Guide](https://github.com/OWASP-BLT/BLT/blob/main/CONTRIBUTING.md).
+Documentation changes should be small, verifiable, and easy to review. Before opening a merge request, run a strict MkDocs build locally and check that new pages are linked from the navigation when needed.
 
----
-
-## 🤝 Contributing
-
-We welcome contributions from everyone! Whether you're fixing bugs, adding features, improving documentation, or spreading the word, your help is appreciated.
-
-- 📚 Read our [Contributing Guide](https://github.com/OWASP-BLT/BLT/blob/main/CONTRIBUTING.md)
-- 🐛 Check out [open issues](https://github.com/OWASP-BLT/BLT/issues)
-- 💡 Look for issues tagged with `good first issue` if you're new
-- 🎨 Follow our coding standards (Black, isort, ruff)
-- ✅ Run `pre-commit` before submitting changes
-
----
-
-## 💬 Community & Support
-
-- 🌐 **Website**: [owaspblt.org](https://owaspblt.org)
-- 💬 **Slack**: [Join OWASP Slack](https://owasp.org/slack/invite)
-- 🐦 **Twitter**: [@OWASP_BLT](https://twitter.com/OWASP_BLT)
-- 💰 **Sponsor**: [Support the project](https://github.com/sponsors/OWASP-BLT)
-- 📧 **Contact**: Reach out through GitHub issues
-
----
-
-## 📈 Star History
-
-<a href="https://star-history.com/#OWASP-BLT/BLT&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=OWASP-BLT/BLT&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=OWASP-BLT/BLT&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=OWASP-BLT/BLT&type=Date" />
- </picture>
-</a>
-
----
-
-## 📄 License
-
-This project is licensed under the **AGPL-3.0 License** - see the [LICENSE.md](https://github.com/OWASP-BLT/BLT/blob/main/LICENSE.md) file for details.
-
----
-
-<p align="center">
-  <strong>⭐ Star this repository if you find it helpful!</strong><br>
-  Made with ❤️ by the OWASP BLT Community
-</p>
+[Read the contributing guide](developer-guide/contributing.md)

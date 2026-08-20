@@ -1,469 +1,136 @@
-# OWASP-BLT Projects
-
-Welcome to the OWASP-BLT ecosystem! Our organization maintains a comprehensive suite of open-source projects designed to democratize bug bounties and enhance application security. Below you'll find all of our projects organized by category.
-
----
-
-## 🏆 Core Platform
-
-### BLT - Bug Logging Tool
-The flagship platform that powers the OWASP-BLT ecosystem. A community-driven platform for discovering, reporting, and tracking security vulnerabilities.
-
-- **Repository**: [OWASP-BLT/BLT](https://github.com/OWASP-BLT/BLT)
-- **Website**: [owaspblt.org](https://owaspblt.org)
-- **Language**: HTML, Python, Django
-- **License**: AGPL-3.0
-- **Stars**: 224+ | **Forks**: 279+
-
-**Key Features**:
-
-- 🔍 Bug discovery and reporting system
-- 🏆 Rewards and recognition for researchers
-- 👥 Community-driven collaboration
-- 🎮 Gamification with leaderboards
-- 💰 Innovative blockchain-based rewards
-- 📊 Comprehensive analytics dashboard
-
----
-
-## 📱 Mobile & Desktop Apps
-
-### BLT-Flutter
-The official OWASP BLT mobile application built with Flutter for iOS and Android.
-
-- **Repository**: [OWASP-BLT/BLT-Flutter](https://github.com/OWASP-BLT/BLT-Flutter)
-- **Website**: [OWASP Project Page](https://owasp.org/www-project-bug-logging-tool/)
-- **Language**: Dart, Flutter
-- **License**: BSD-3-Clause
-- **Stars**: 24+ | **Forks**: 37+
-
-**Key Features**:
-
-- Native mobile experience for bug hunters
-- Cross-platform iOS and Android support
-- On-the-go vulnerability reporting
-
----
-
-## 🌐 Web Extensions & Tools
-
-### BLT-Extension
-Chrome extension that allows you to take screenshots of websites and report vulnerabilities directly from your browser.
-
-- **Repository**: [OWASP-BLT/BLT-Extension](https://github.com/OWASP-BLT/BLT-Extension)
-- **Language**: JavaScript
-- **License**: BSD-3-Clause
-
-**Key Features**:
-
-- Screenshot capture functionality
-- Direct bug reporting from browser
-- Seamless integration with BLT platform
-
-### BLT-on-Cloudflare
-Modern implementation of BLT running on Cloudflare's edge infrastructure for improved performance and scalability.
-
-- **Repository**: [OWASP-BLT/BLT-on-Cloudflare](https://github.com/OWASP-BLT/BLT-on-Cloudflare)
-- **Demo**: [blt-on-cloudflare.pages.dev](https://blt-on-cloudflare.pages.dev/)
-- **Language**: JavaScript
-- **License**: AGPL-3.0
-
-**Key Features**:
-
-- Serverless architecture on Cloudflare Workers
-- Global edge deployment
-- Enhanced performance and scalability
-
-### OWASP-BLT-Lyte
-A lightweight, streamlined version of the BLT platform optimized for performance.
-
-- **Repository**: [OWASP-BLT/OWASP-BLT-Lyte](https://github.com/OWASP-BLT/OWASP-BLT-Lyte)
-- **Language**: TypeScript
-- **License**: AGPL-3.0
-
-**Key Features**:
-
-- Lightweight implementation
-- Optimized for speed and efficiency
-- Modern TypeScript codebase
-
----
-
-## 🤖 Bots & Automation
-
-### BLT-Action
-GitHub Action that enables automatic issue assignment and management with the `/assign` command.
-
-- **Repository**: [OWASP-BLT/BLT-Action](https://github.com/OWASP-BLT/BLT-Action)
-- **Language**: JavaScript
-- **License**: BSD-3-Clause
-- **Stars**: 6+ | **Forks**: 16+
-
-**Key Features**:
-
-- `/assign` command for self-assignment
-- Automatic issue de-assignment after 24 hours
-- Improves contributor workflow
-- CI/CD and security scanning integration
-
-### BLT-Lettuce
-Advanced Slack bot for the BLT community with AI-powered features and automation.
-
-- **Repository**: [OWASP-BLT/BLT-Lettuce](https://github.com/OWASP-BLT/BLT-Lettuce)
-- **Language**: Python
-- **License**: GPL-3.0
-
-**Key Features**:
-
-- Slack workspace integration
-- Automated community management
-- Security alerts and notifications
-
-### BLT-Sammich
-Dedicated Slack bot for BLT community interactions and support.
-
-- **Repository**: [OWASP-BLT/BLT-Sammich](https://github.com/OWASP-BLT/BLT-Sammich)
-- **Language**: Python
-
-**Key Features**:
-
-- Community engagement tools
-- Bug bounty notifications
-- Team collaboration features
-
-### Github_Sportscaster
-GitHub activity monitoring bot that provides real-time updates on repository events.
-
-- **Repository**: [OWASP-BLT/Github_Sportscaster](https://github.com/OWASP-BLT/Github_Sportscaster)
-- **Topics**: API, Bot, GitHub, Sportscaster, Tool
-
-**Key Features**:
-
-- Real-time GitHub activity tracking
-- Automated event notifications
-- Repository statistics and insights
-
----
-
-## 🔧 Development Tools & Utilities
-
-### BLT-API
-Full-featured REST API for OWASP BLT running on Cloudflare Workers with edge deployment.
-
-- **Repository**: [OWASP-BLT/BLT-API](https://github.com/OWASP-BLT/BLT-API)
-- **Language**: Python
-- **License**: AGPL-3.0
-
-**Key Features**:
-
-- Edge-deployed on Cloudflare's global network for low latency
-- Full API coverage: bugs, users, domains, organizations, projects, hunts, leaderboard, and more
-- Cloudflare D1 (SQLite) database for data persistence
-- Authentication support with JWT tokens
-- Automated D1 migrations on every deployment
-
-### Fresh
-Privacy-focused time tracking system for developers with GitHub integration and local LLM analysis.
-
-- **Repository**: [OWASP-BLT/Fresh](https://github.com/OWASP-BLT/Fresh)
-- **Language**: TypeScript
-- **License**: MIT
-
-**Key Features**:
-
-- Privacy-first design
-- GitHub integration for activity tracking
-- Local LLM analysis capabilities
-- Developer-focused time management
-
-### SelfErase
-Open-source, hybrid local+edge privacy toolkit for managing and deleting personal data online.
-
-- **Repository**: [OWASP-BLT/SelfErase](https://github.com/OWASP-BLT/SelfErase)
-- **Language**: Dart
-- **License**: AGPL-3.0
-
-**Key Features**:
-
-- Personal data management
-- Privacy-focused data deletion
-- Hybrid local and edge processing
-- Self-destruct capabilities
-
-### OWASP-Wich (BLT-OWASP-Wich)
-OWASP Project compliance checker that evaluates repositories against 100 compliance points across 10 categories.
-
-- **Repository**: [OWASP-BLT/BLT-OWASP-Wich](https://github.com/OWASP-BLT/BLT-OWASP-Wich)
-- **Live App**: [owasp-blt.github.io/OWASP-Wich](https://owasp-blt.github.io/OWASP-Wich/)
-- **Language**: Python, JavaScript
-- **License**: Apache 2.0
-
-**Key Features**:
-
-- 100-point compliance checklist across 10 categories
-- Browser-based web app (no installation required)
-- Python CLI tool for CI/CD automation
-- Checks OWASP Top 10, ASVS, and security best practices
-- Percentage-based scoring with category breakdown
-
-### OWASP-Bumper (BLT-OWASP-Bumper)
-Automated OWASP repository dashboard generator with smart insights and metrics.
-
-- **Repository**: [OWASP-BLT/BLT-OWASP-Bumper](https://github.com/OWASP-BLT/BLT-OWASP-Bumper)
-- **Live Demo**: [owasp-blt.github.io/OWASP-Bumper](https://owasp-blt.github.io/OWASP-Bumper/)
-- **Language**: Python, HTML, JavaScript
-- **License**: MIT
-
-**Key Features**:
-
-- 52-week activity sparklines for all repositories
-- Real-time search and filtering by name, description, tags
-- Category filters (Projects, Chapters, All)
-- Activity filters (active, inactive 1yr+, inactive 3yr+)
-- Daily automated updates via GitHub Actions
-- Zero external dependencies (pure Python standard library)
-
----
-
-## 🔐 Blockchain & Rewards
-
-### BLT-Bacon
-Bitcoin-based token system (BACON) designed to incentivize engagement and contributions within the OWASP BLT ecosystem using the Runes protocol.
-
-- **Repository**: [OWASP-BLT/BLT-Bacon](https://github.com/OWASP-BLT/BLT-Bacon)
-- **Language**: Shell
-- **License**: LGPL-2.1
-- **Stars**: 4+ | **Forks**: 2+
-
-**Key Features**:
-
-- Bitcoin Core integration
-- Runes protocol implementation
-- Transparent reward system
-- Gamified contributor incentives
-- Blockchain-based security
-
-### BLT-OWASP-metadata
-Unified metadata aggregation system for OWASP projects and chapters with interactive visualizations.
-
-- **Repository**: [OWASP-BLT/BLT-OWASP-metadata](https://github.com/OWASP-BLT/BLT-OWASP-metadata)
-- **Live Dashboard**: [owasp-blt.github.io/OWASP-metadata](https://owasp-blt.github.io/OWASP-metadata/)
-- **Language**: Python, JavaScript
-- **License**: Apache 2.0
-
-**Key Features**:
-
-- Scrapes YAML front matter from OWASP repository `index.md` files
-- Metadata Explorer, Analytics Dashboard, Project Wayfinder, and SDLC Integration Chart
-- Powers the OWASP Slack bot to help contributors find matching projects
-- Weekly automated updates via GitHub Actions
-- Export to CSV and SVG
-
----
-
-## 📊 Monitoring & Analytics
-
-### BLT-OWASP-Projects
-Comprehensive dashboard for tracking and visualizing OWASP repositories and their statistics.
-
-- **Repository**: [OWASP-BLT/BLT-OWASP-Projects](https://github.com/OWASP-BLT/BLT-OWASP-Projects)
-- **Live Dashboards**: [Full Matrix](https://owasp-blt.github.io/BLT-OWASP-Projects/index.html) | [Simplified View](https://owasp-blt.github.io/BLT-OWASP-Projects/projects.html)
-- **Language**: Python, HTML, JavaScript
-
-**Key Features**:
-
-- Tracks 1000+ OWASP `www-project-*` repositories automatically
-- Daily automated data collection via GitHub Actions
-- Two interactive dashboards (full matrix and simplified view)
-- Tracks stars, forks, issues, PRs, commit activity, license, and language
-- Slack notifications for newly detected OWASP projects
-
-
-### OWASP-BLT-Website-Monitor
-Automated website monitoring system using GitHub Actions to track uptime and performance.
-
-- **Repository**: [OWASP-BLT/OWASP-BLT-Website-Monitor](https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor)
-- **Website**: [Monitor Dashboard](https://owasp-blt.github.io/OWASP-BLT-Website-Monitor/)
-- **Language**: HTML
-- **License**: AGPL-3.0
-
-**Key Features**:
-
-- GitHub Actions-based monitoring
-- Uptime tracking and alerts
-- Performance metrics
-- Historical data visualization
-
-### BLT-Tomato
-High-level OWASP project management scripts and utilities.
-
-- **Repository**: [OWASP-BLT/BLT-Tomato](https://github.com/OWASP-BLT/BLT-Tomato)
-- **Website**: [Project Page](https://owasp-blt.github.io/BLT-Tomato/)
-- **Language**: HTML
-
-**Key Features**:
-
-- OWASP project management tools
-- Automation scripts
-- Project compliance utilities
-
----
-
-## 🎓 Community & Education
-
-### BLT-Jobs
-Community-driven job board for the OWASP BLT ecosystem with an issue-based workflow.
-
-- **Repository**: [OWASP-BLT/BLT-Jobs](https://github.com/OWASP-BLT/BLT-Jobs)
-- **Live Site**: [jobs.owaspblt.org](https://jobs.owaspblt.org)
-- **Language**: HTML, JavaScript, Python
-
-**Key Features**:
-
-- Issue-based job posting workflow (no fork or PR required)
-- Supports Greenhouse, Lever, Workable, LinkedIn, Indeed, and any URL via Jina Reader
-- Job seeker profile publishing via issue
-- Full-text search across listings and profiles
-- Automated data pipeline via GitHub Actions + GitHub Pages
-- Zero backend — static HTML + vanilla JS
-
-
-### BLT-Hackathon
-Self-hosted GitHub project to conduct hackathons with charts, leaderboards, and prize management.
-
-- **Repository**: [OWASP-BLT/BLT-Hackathon](https://github.com/OWASP-BLT/BLT-Hackathon)
-- **Website**: [Hackathon Dashboard](https://owasp-blt.github.io/BLT-Hackathon/)
-- **Language**: JavaScript
-- **License**: MIT
-
-**Key Features**:
-
-- Self-hosted hackathon management
-- Real-time leaderboards
-- Prize tracking and distribution
-- Community engagement tools
-- GitHub integration
-
-### MY-GSOC-TOOL
-Dashboard tool for Google Summer of Code students to track their contributions, feedback, and documentation.
-
-- **Repository**: [OWASP-BLT/MY-GSOC-TOOL](https://github.com/OWASP-BLT/MY-GSOC-TOOL)
-- **Website**: [Student Dashboard](https://owasp-blt.github.io/MY-GSOC-TOOL/)
-- **Language**: JavaScript
-- **License**: AGPL-3.0
-
-**Key Features**:
-
-- GSoC contribution tracking
-- Feedback management
-- Documentation organization
-- Progress visualization
-- Mentor communication tools
-
----
-
-## 🎨 Demo & Showcase Projects
-
-### Sizzle
-Demonstration project showcasing BLT platform capabilities and integrations.
-
-- **Repository**: [OWASP-BLT/Sizzle](https://github.com/OWASP-BLT/Sizzle)
-- **Topics**: Demo, JavaScript, Tool
-- **License**: AGPL-3.0
-
-**Key Features**:
-
-- Platform demonstration
-- Integration examples
-- Feature showcase
-
-### Toasty
-Web-based demonstration tool for testing and showcasing features.
-
-- **Repository**: [OWASP-BLT/Toasty](https://github.com/OWASP-BLT/Toasty)
-- **Topics**: Demo, Tool, Web
-
-**Key Features**:
-
-- Interactive demonstrations
-- Feature testing environment
-- Web-based interface
-
----
-
-## 📚 Documentation & Meta
-
-### BLT-docs
-This repository! Comprehensive documentation for all OWASP-BLT projects using MkDocs Material theme.
-
-- **Repository**: [OWASP-BLT/BLT-docs](https://github.com/OWASP-BLT/BLT-docs)
-- **Website**: [owasp-blt.github.io/BLT-docs](https://owasp-blt.github.io/BLT-docs/)
-- **Topics**: Docs, Documentation, Guides, OWASP
-
-**Key Features**:
-
-- Centralized documentation hub
-- MkDocs Material theme
-- User and developer guides
-- API documentation
-- Contributing guidelines
-
-### .github
-Organization-wide GitHub configuration, templates, and community health files.
-
-- **Repository**: [OWASP-BLT/.github](https://github.com/OWASP-BLT/.github)
-- **Topics**: Community, GitHub, Org-config, Templates
-
-**Key Features**:
-
-- Issue templates
-- Pull request templates
-- Community guidelines
-- Organization profile
-
----
-
-## 🚀 Getting Started
-
-Interested in contributing or using our projects? Here are some quick links:
-
-- **Main Website**: [owaspblt.org](https://owaspblt.org)
-- **Documentation**: [owasp-blt.github.io/documentation](https://owasp-blt.github.io/documentation/)
-- **GitHub Organization**: [github.com/OWASP-BLT](https://github.com/OWASP-BLT)
-- **OWASP Project Page**: [owasp.org/www-project-bug-logging-tool](https://owasp.org/www-project-bug-logging-tool/)
-
-### Contributing
-
-All our projects welcome contributions! Here's how to get started:
-
-1. **Choose a project** that interests you from the list above
-2. **Read the contributing guidelines** in the project's repository
-3. **Join our community** on [OWASP Slack](https://owasp.org/slack/invite)
-4. **Start contributing** by picking up issues labeled `good first issue`
-
-### Support
-
-Need help or have questions?
-
-- 💬 **Slack**: Join the BLT channel on [OWASP Slack](https://owasp.org/slack/invite)
-- 🐛 **Issues**: Open an issue in the relevant project repository
-- 📧 **Email**: Contact us through GitHub discussions
-- 💰 **Sponsor**: Support the project on [GitHub Sponsors](https://github.com/sponsors/OWASP-BLT)
-
----
-
-## 📊 Project Statistics
-
-- **Total Projects**: 27+
-- **Total Stars**: 300+
-- **Total Forks**: 450+
-- **Active Contributors**: 100+
-- **Programming Languages**: Python, JavaScript, TypeScript, Dart, HTML, Shell
-- **Primary License**: AGPL-3.0, BSD-3-Clause, MIT, GPL-3.0, LGPL-2.1, Apache 2.0
-
----
-
-<p align="center">
-  <strong>⭐ Star our projects if you find them helpful!</strong><br>
-  Made with ❤️ by the OWASP BLT Community
-</p>
+# BLT project map
+
+## How to use this page
+
+Use this page to choose the GitLab repository and public service that own a BLT change.
+The registry is curated from the OWASP BLT GitLab group and verified project remotes.
+It is intentionally a documentation record, not a runtime dependency on the GitLab API.
+
+Use the GitLab repository for source code, issues, merge requests, and repository-specific instructions.
+Use the public service only when you need to use or verify the deployed application.
+The owning repository remains the source of truth for setup commands, Worker configuration, secrets, database migrations, and production operations.
+
+## Verified public services
+
+Each public URL below was verified against a responding service with a matching product identity.
+The absence of a public URL in this table does not mean a project is inactive.
+It means BLT-docs does not currently have enough evidence to publish a canonical deployment destination.
+
+| Service | GitLab repository | Public URL | Deployment role |
+| ------- | ----------------- | ---------- | --------------- |
+| OWASP BLT | [blt](https://gitlab.com/owasp-blt/blt) | [owaspblt.org](https://owaspblt.org) | Main BLT public site. |
+| BLT Docs | [blt-docs](https://gitlab.com/owasp-blt/blt-docs) | [docs.owaspblt.org](https://docs.owaspblt.org) | MkDocs documentation served as Worker static assets. |
+| BLT Next | [blt-next](https://gitlab.com/owasp-blt/blt-next) | [next.owaspblt.org](https://next.owaspblt.org) | Static frontend with Python Worker application routes. |
+| BLT API | [blt-api](https://gitlab.com/owasp-blt/blt-api) | [api.owaspblt.org](https://api.owaspblt.org) | D1-backed Python Worker API and API dashboard. |
+| BLT Jobs | [blt-jobs](https://gitlab.com/owasp-blt/blt-jobs) | [jobs.owaspblt.org](https://jobs.owaspblt.org) | Git-native jobs content served by Worker static assets. |
+| BLT Sizzle | [blt-sizzle](https://gitlab.com/owasp-blt/blt-sizzle) | [sizzle.owaspblt.org](https://sizzle.owaspblt.org) | Organization check-ins with Python Workers, D1, and scheduled reminders. |
+| BLT Toasty | [blt-toasty](https://gitlab.com/owasp-blt/blt-toasty) | [toasty.owaspblt.org](https://toasty.owaspblt.org) | AI code review application. |
+| BLT SafeCloak | [blt-safecloak](https://gitlab.com/owasp-blt/blt-safecloak) | [safecloak.owaspblt.org](https://safecloak.owaspblt.org) | Secure communication and privacy application. |
+| BLT Vanish | [blt-vanish](https://gitlab.com/owasp-blt/blt-vanish) | [vanish.owaspblt.org](https://vanish.owaspblt.org) | Privacy data-removal application. |
+| BLT Monitor | [blt-monitor](https://gitlab.com/owasp-blt/blt-monitor) | [monitor.owaspblt.org](https://monitor.owaspblt.org) | BLT service monitoring dashboard. |
+| BLT Design | [blt-design](https://gitlab.com/owasp-blt/blt-design) | [design.owaspblt.org](https://design.owaspblt.org) | Design-system guidance. |
+| BLT GSoC | [blt-gsoc](https://gitlab.com/owasp-blt/blt-gsoc) | [gsoc.owaspblt.org](https://gsoc.owaspblt.org) | Google Summer of Code program hub. |
+| BLT University | [blt-university](https://gitlab.com/owasp-blt/blt-university) | [university.owaspblt.org](https://university.owaspblt.org) | Security learning platform. |
+| BLT MCP | [blt-mcp](https://gitlab.com/owasp-blt/blt-mcp) | [mcp.owaspblt.org](https://mcp.owaspblt.org) | AI-assisted BLT integration service. |
+| BLT NetGuardian | [blt-netguardian](https://gitlab.com/owasp-blt/blt-netguardian) | [netguardian.owaspblt.org](https://netguardian.owaspblt.org) | Autonomous security scanning service. |
+| BLT Tomato | [blt-tomato](https://gitlab.com/owasp-blt/blt-tomato) | [tomato.owaspblt.org](https://tomato.owaspblt.org) | OWASP project funding discovery service. |
+| BLT OWASP Wich | [blt-owasp-wich](https://gitlab.com/owasp-blt/blt-owasp-wich) | [wich.owaspblt.org](https://wich.owaspblt.org) | OWASP project compliance checker. |
+| BLT OWASP Bumper | [blt-owasp-bumper](https://gitlab.com/owasp-blt/blt-owasp-bumper) | [bumper.owaspblt.org](https://bumper.owaspblt.org) | OWASP repository dashboard. |
+| BLT OWASP Metadata | [blt-owasp-metadata](https://gitlab.com/owasp-blt/blt-owasp-metadata) | [metadata.owaspblt.org](https://metadata.owaspblt.org) | OWASP metadata explorer. |
+| BLT OWASP Projects | [blt-owasp-projects](https://gitlab.com/owasp-blt/blt-owasp-projects) | [projects.owaspblt.org](https://projects.owaspblt.org) | OWASP project matrix. |
+
+## GitLab repository registry
+
+The following entries are the verified OWASP BLT GitLab group project paths.
+Projects without a public URL in the previous table must not be assigned a guessed `*.owaspblt.org` destination.
+
+| Project | GitLab repository |
+| ------- | ----------------- |
+| BLT | [blt](https://gitlab.com/owasp-blt/blt) |
+| BLT Action | [blt-action](https://gitlab.com/owasp-blt/blt-action) |
+| BLT API | [blt-api](https://gitlab.com/owasp-blt/blt-api) |
+| BLT Autopatch | [blt-autopatch](https://gitlab.com/owasp-blt/blt-autopatch) |
+| BLT Byte | [blt-byte](https://gitlab.com/owasp-blt/blt-byte) |
+| blt-cli | [blt-cli](https://gitlab.com/owasp-blt/blt-cli) |
+| BLT CVE | [blt-cve](https://gitlab.com/owasp-blt/blt-cve) |
+| BLT Dash | [blt-dash](https://gitlab.com/owasp-blt/blt-dash) |
+| BLT Design | [blt-design](https://gitlab.com/owasp-blt/blt-design) |
+| BLT Contest | [blt-design-contest](https://gitlab.com/owasp-blt/blt-design-contest) |
+| BLT Docs | [blt-docs](https://gitlab.com/owasp-blt/blt-docs) |
+| BLT Enforcement | [blt-enforcement](https://gitlab.com/owasp-blt/blt-enforcement) |
+| BLT Extension | [blt-extension](https://gitlab.com/owasp-blt/blt-extension) |
+| BLT Flutter | [blt-flutter](https://gitlab.com/owasp-blt/blt-flutter) |
+| BLT GitCaster | [blt-gitcaster](https://gitlab.com/owasp-blt/blt-gitcaster) |
+| BLT GSoC | [blt-gsoc](https://gitlab.com/owasp-blt/blt-gsoc) |
+| BLT Hackathons | [blt-hackathons](https://gitlab.com/owasp-blt/blt-hackathons) |
+| BLT Hackerhouse | [blt-hackerhouse](https://gitlab.com/owasp-blt/blt-hackerhouse) |
+| BLT Ideas | [blt-ideas](https://gitlab.com/owasp-blt/blt-ideas) |
+| BLT Jobs | [blt-jobs](https://gitlab.com/owasp-blt/blt-jobs) |
+| BLT Ketchup | [blt-ketchup](https://gitlab.com/owasp-blt/blt-ketchup) |
+| BLT Leaf | [blt-leaf](https://gitlab.com/owasp-blt/blt-leaf) |
+| BLT Lettuce | [blt-lettuce](https://gitlab.com/owasp-blt/blt-lettuce) |
+| BLT Mayo | [blt-mayo](https://gitlab.com/owasp-blt/blt-mayo) |
+| BLT MCP | [blt-mcp](https://gitlab.com/owasp-blt/blt-mcp) |
+| BLT Monitor | [blt-monitor](https://gitlab.com/owasp-blt/blt-monitor) |
+| BLT NetGuardian | [blt-netguardian](https://gitlab.com/owasp-blt/blt-netguardian) |
+| BLT NetGuardian Client | [blt-netguardian-client](https://gitlab.com/owasp-blt/blt-netguardian-client) |
+| BLT Newsletter | [blt-newsletter](https://gitlab.com/owasp-blt/blt-newsletter) |
+| BLT Next | [blt-next](https://gitlab.com/owasp-blt/blt-next) |
+| BLT Nexus | [blt-nexus](https://gitlab.com/owasp-blt/blt-nexus) |
+| BLT OSSH | [blt-ossh](https://gitlab.com/owasp-blt/blt-ossh) |
+| BLT OWASP Bumper | [blt-owasp-bumper](https://gitlab.com/owasp-blt/blt-owasp-bumper) |
+| BLT OWASP Metadata | [blt-owasp-metadata](https://gitlab.com/owasp-blt/blt-owasp-metadata) |
+| BLT OWASP Projects | [blt-owasp-projects](https://gitlab.com/owasp-blt/blt-owasp-projects) |
+| BLT OWASP Wich | [blt-owasp-wich](https://gitlab.com/owasp-blt/blt-owasp-wich) |
+| BLT Pages | [blt-pages](https://gitlab.com/owasp-blt/blt-pages) |
+| BLT Panini | [blt-panini](https://gitlab.com/owasp-blt/blt-panini) |
+| BLT Pool | [blt-pool](https://gitlab.com/owasp-blt/blt-pool) |
+| BLT Preflight | [blt-preflight](https://gitlab.com/owasp-blt/blt-preflight) |
+| BLT Profiles | [blt-profiles](https://gitlab.com/owasp-blt/blt-profiles) |
+| BLT Rewards | [blt-rewards](https://gitlab.com/owasp-blt/blt-rewards) |
+| BLT SafeCloak | [blt-safecloak](https://gitlab.com/owasp-blt/blt-safecloak) |
+| BLT Sammich | [blt-sammich](https://gitlab.com/owasp-blt/blt-sammich) |
+| BLT Sizzle | [blt-sizzle](https://gitlab.com/owasp-blt/blt-sizzle) |
+| BLT Start | [blt-start](https://gitlab.com/owasp-blt/blt-start) |
+| BLT Timer Flutter | [blt-timer-flutter](https://gitlab.com/owasp-blt/blt-timer-flutter) |
+| BLT Timer Web | [blt-timer-web](https://gitlab.com/owasp-blt/blt-timer-web) |
+| BLT Toasty | [blt-toasty](https://gitlab.com/owasp-blt/blt-toasty) |
+| BLT Tomato | [blt-tomato](https://gitlab.com/owasp-blt/blt-tomato) |
+| BLT University | [blt-university](https://gitlab.com/owasp-blt/blt-university) |
+| BLT Vanish | [blt-vanish](https://gitlab.com/owasp-blt/blt-vanish) |
+| BLT Vanish Flutter | [blt-vanish-flutter](https://gitlab.com/owasp-blt/blt-vanish-flutter) |
+| BLT Waypoint | [blt-waypoint](https://gitlab.com/owasp-blt/blt-waypoint) |
+| BLT Zero | [blt-zero](https://gitlab.com/owasp-blt/blt-zero) |
+| coderabbit | [coderabbit](https://gitlab.com/owasp-blt/coderabbit) |
+| dot_github | [dot_github](https://gitlab.com/owasp-blt/dot_github) |
+| MY-GSOC-TOOL | [my-gsoc-tool](https://gitlab.com/owasp-blt/my-gsoc-tool) |
+
+## Link maintenance policy
+
+Use the GitLab registry above when adding an OWASP BLT repository link.
+Verify the project path against the GitLab group or the local repository's upstream remote before changing a link.
+Verify a public service with an HTTP response and matching product identity before adding it to the public-services table.
+Do not infer a public domain from a repository name.
+
+Historical GitHub links may be retained only when they describe historical context.
+Label them as historical and do not present them as the current contribution destination.
+
+## Choosing where to contribute
+
+| Contributor interest | Suggested starting repository |
+| -------------------- | ----------------------------- |
+| Documentation, site navigation, and cross-project architecture | BLT Docs |
+| User-facing BLT product workflows and frontend experience | BLT Next |
+| API contracts, integrations, D1-backed data, and API tests | BLT API |
+| Jobs and public profile content workflows | BLT Jobs |
+| Organization check-ins and daily contributor activity | BLT Sizzle |
+| Repository metadata and OWASP project discovery | BLT OWASP Metadata, BLT OWASP Projects, or BLT OWASP Bumper |
+| Security scanning and network posture | BLT NetGuardian or the project that owns the scanner workflow |
+| GSoC activities and student coordination | BLT GSoC or MY-GSOC-TOOL |
+
+## Before starting work
+
+Read the issue or work item in the owning GitLab repository.
+Confirm the current branch and relevant deployment environment.
+Keep changes limited to the repository that owns the behavior.
+Run the repository-specific verification before opening a merge request.
