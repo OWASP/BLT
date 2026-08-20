@@ -17,7 +17,7 @@ Each course lists prerequisites. Make sure you meet them before enrolling.
 1. Go to the [Enrollment Page](https://owasp-blt.github.io/BLT-University/enroll/)
 2. Click "Submit Enrollment Request"
 3. Fill out the GitHub issue form
-4. Wait for approval (2-3 business days)
+4. Wait for the maintainers to review the request
 
 ### 4. Start Learning
 
@@ -25,7 +25,7 @@ Once approved:
 - Access course materials on the course page
 - Join course discussions
 - Complete labs and assignments
-- Submit work via GitHub
+- Follow the course instructions and complete the practice labs
 
 ## For Instructors
 
@@ -45,8 +45,8 @@ Once approved:
 
 ```bash
 # Fork the repository
-git clone https://github.com/YOUR-USERNAME/BLT-University.git
-cd BLT-University
+git clone https://gitlab.com/YOUR-USERNAME/blt-university.git
+cd blt-university
 
 # Create instructor profile
 cat > _instructors/your-name.md << 'EOF'
@@ -88,16 +88,16 @@ EOF
 bundle install
 bundle exec jekyll serve
 
-# Submit PR
+# Submit a merge request
 git add .
 git commit -m "Add new course: Your Course Title"
-git push origin main
-# Open pull request on GitHub
+git push origin feature/your-course
+# Open a merge request on GitLab
 ```
 
 ### 4. Maintain Course
 
-- Update content as needed via PRs
+- Update content as needed via merge requests
 - Respond to student questions in discussions
 - Incorporate feedback
 
@@ -107,8 +107,8 @@ git push origin main
 
 ```bash
 # Clone repository
-git clone https://github.com/OWASP-BLT/BLT-University.git
-cd BLT-University
+git clone https://gitlab.com/owasp-blt/blt-university.git
+cd blt-university
 
 # Install Ruby dependencies
 bundle install
@@ -116,7 +116,7 @@ bundle install
 # Run Jekyll locally
 bundle exec jekyll serve
 
-# Visit http://localhost:4000/BLT-University/
+# Visit http://127.0.0.1:4001/
 ```
 
 ### Make Changes
@@ -136,7 +136,7 @@ git add .
 git commit -m "Description of changes"
 git push origin feature/your-change
 
-# Open pull request
+# Open a merge request
 ```
 
 ## Course Structure

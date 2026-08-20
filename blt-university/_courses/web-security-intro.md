@@ -3,192 +3,92 @@ layout: course
 title: Introduction to Web Application Security
 category: Web Security
 level: Beginner
-duration: 6 weeks
-instructor: Dr. Sarah Chen
+track: professional
+duration: 2 to 3 hours
+instructor: OWASP BLT Community
 featured: true
+next_course: advanced-pentesting
 image: /assets/images/courses/web-security.svg
-prerequisites: Basic understanding of HTML, CSS, and JavaScript
-description: Learn the fundamentals of web application security, including common vulnerabilities, attack vectors, and defensive techniques. Perfect for developers wanting to build secure web applications.
+prerequisites: Basic familiarity with web pages, forms, and HTTP requests
+description: Learn where web applications lose trust, then practice each idea in the existing hands-on security labs.
+outcomes:
+  - Recognize where user-controlled input crosses an interpreter boundary.
+  - Explain how authentication, authorization, and session state differ.
+  - Use the existing practice labs to investigate common web security failures.
+lessons:
+  - id: input-crosses-a-boundary
+    title: Input crosses a boundary
+    intro: User input becomes dangerous when an interpreter mistakes data for instructions.
+    body: |
+      A search term, form field, or URL parameter starts as data. Trouble begins when an application joins that value directly into SQL, HTML, or another executable context.
 
-resources:
-  - title: Course Introduction Video
-    url: https://www.youtube.com/watch?v=lHztLP6MeG8
-    type: video
-  - title: OWASP Top 10 Guide
-    url: https://owasp.org/www-project-top-ten/
-    type: link
-schedule:
-  - date: Week 1
-    topic: Introduction to Web Security & Threat Landscape
-  - date: Week 2
-    topic: Injection Attacks (SQL Injection, XSS)
-  - date: Week 3
-    topic: Authentication and Session Management
-  - date: Week 4
-    topic: Access Control and Authorization
-  - date: Week 5
-    topic: Security Misconfiguration & Sensitive Data
-  - date: Week 6
-    topic: Final Project & Assessment
+      The defensive question is simple: where will this value be interpreted next? Parameterized queries protect database structure. Context-aware output encoding prevents a browser from treating text as markup or script.
+    example:
+      title: Data should stay data
+      language: JavaScript
+      code: |
+        // Risky: input changes the query structure
+        db.query("SELECT * FROM users WHERE id = " + userId);
 
-syllabus:
-  - title: Web Security Fundamentals
-    description: Understanding the web security landscape and common threats
-    topics:
-      - CIA Triad in Web Applications
-      - OWASP Top 10 Overview
-      - Security by Design Principles
-      - Threat Modeling Basics
-  - title: Injection Vulnerabilities
-    description: Deep dive into injection attacks and prevention
-    topics:
-      - SQL Injection Attacks
-      - Cross-Site Scripting (XSS)
-      - Command Injection
-      - Prevention and Input Validation
-  - title: Authentication & Session Security
-    description: Securing user authentication and session management
-    topics:
-      - Password Security Best Practices
-      - Multi-Factor Authentication
-      - Session Management Vulnerabilities
-      - Token-Based Authentication
-  - title: Access Control
-    description: Implementing secure authorization mechanisms
-    topics:
-      - Broken Access Control
-      - Vertical and Horizontal Privilege Escalation
-      - RBAC and ABAC Models
-      - Secure API Design
-  - title: Configuration & Data Protection
-    description: Security configuration and data protection strategies
-    topics:
-      - Security Misconfiguration Risks
-      - Sensitive Data Exposure
-      - Encryption at Rest and in Transit
-      - Secure Headers and CSP
-  - title: Practical Security
-    description: Hands-on security testing and implementation
-    topics:
-      - Security Testing Tools
-      - Secure Code Review
-      - Bug Bounty Preparation
-      - Final Security Assessment Project
+        // Safer: the driver binds input as a value
+        db.query("SELECT * FROM users WHERE id = ?", [userId]);
+      note: Validation is useful, but it does not replace the safe API for the destination interpreter.
+    labs:
+      - sql_injection
+      - cross_site_scripting_xss
+  - id: identity-is-not-permission
+    title: Identity is not permission
+    intro: Knowing who sent a request is different from checking whether that person may access the object.
+    body: |
+      Authentication establishes identity. Authorization decides what that identity can do. Applications often check the first and assume the second.
+
+      Every object lookup needs a server-side permission check. Hiding an identifier in the interface or changing it to a UUID does not enforce access control.
+    example:
+      title: Check ownership with the lookup
+      language: HTTP
+      code: |
+        GET /api/invoices/842
+        Cookie: session=user-17
+
+        Required check: invoice 842 belongs to user 17
+      note: If the permission check happens only in the browser, a direct request can bypass it.
+    labs:
+      - broken_authentication
+      - insecure_direct_object_reference
+  - id: the-browser-carries-authority
+    title: The browser carries authority
+    intro: Cookies, redirects, and automatic requests can move trust somewhere the user did not intend.
+    body: |
+      A browser automatically attaches cookies to matching requests. Without an anti-forgery control, another page may cause an authenticated action on the learner's behalf.
+
+      Redirect destinations also need boundaries. If any external URL is accepted, a trusted domain can become the first step in a phishing path.
+    observation: The browser doing something automatically does not mean the user approved it.
+    labs:
+      - cross_site_request_forgery
+      - open_redirect
+  - id: server-features-reach-further
+    title: Server features reach further than expected
+    intro: Commands and outbound requests can expose the operating system or internal network behind an ordinary feature.
+    body: |
+      Features such as diagnostics, image importers, and webhook testers often call powerful server-side APIs. If untrusted input controls a command string or destination URL, the feature may reach resources the user could never access directly.
+
+      Prefer structured process APIs, strict destination allowlists, and network controls that limit what the application can reach.
+    labs:
+      - command_injection
+      - server_side_request_forgery
+  - id: files-and-secrets-outlive-requests
+    title: Files and secrets outlive the request
+    intro: Uploaded files and exposed data remain risky after the original request has finished.
+    body: |
+      File names, extensions, and browser-provided content types are claims, not proof. Store uploads outside executable paths, generate server-side names, and validate the content you actually expect.
+
+      Secrets can also escape through logs, error messages, backups, and frontend bundles. Before shipping a response, ask whether every returned field belongs in the learner's browser.
+    observation: The safest secret in a frontend bundle is the one that was never placed there.
+    labs:
+      - file_upload_vulnerabilities
+      - sensitive_data_exposure
 ---
 
-## Course Overview
+Web security becomes less mysterious when you follow trust from a request to the system that interprets it. This course introduces five trust boundaries and connects each one to existing BLT University labs.
 
-Welcome to **Introduction to Web Application Security**! This comprehensive course will teach you the essential skills needed to identify, exploit, and prevent common web application vulnerabilities.
-
-### What You'll Learn
-
-By the end of this course, you will:
-
-- Understand the OWASP Top 10 web application security risks
-- Identify and exploit common vulnerabilities in a controlled environment
-- Implement security controls to prevent attacks
-- Conduct basic security assessments of web applications
-- Apply security best practices in development
-
-### Course Format
-
-This course combines:
-
-- **Video Lectures**: Weekly video content explaining concepts and demonstrations
-- **Hands-on Labs**: Practice exploiting and fixing vulnerabilities in a safe environment
-- **Reading Materials**: Security guides, research papers, and documentation
-- **Weekly Assignments**: Practical exercises to reinforce learning
-- **Final Project**: Comprehensive security assessment of a sample application
-
-### Prerequisites
-
-Before starting this course, you should have:
-
-- Basic understanding of HTML, CSS, and JavaScript
-- Familiarity with HTTP protocol
-- Basic command-line skills
-- A GitHub account for submissions
-
-### Tools & Environment
-
-We'll use several tools throughout the course:
-
-- **OWASP WebGoat**: Interactive learning environment
-- **Burp Suite Community Edition**: Web vulnerability scanner
-- **Browser Developer Tools**: For inspecting web traffic
-- **Docker**: For running vulnerable applications safely
-
-### Assessment
-
-Your progress will be evaluated through:
-
-- Weekly lab assignments (50%)
-- Participation in discussions (10%)
-- Midterm security assessment (15%)
-- Final project (25%)
-
-### Getting Started
-
-1. Enroll in the course through the enrollment page
-2. Join the course GitHub repository
-3. Set up your development environment
-4. Complete the Week 1 pre-assessment
-
-### Community & Support
-
-- **GitHub Discussions**: Ask questions and help fellow students
-- **Weekly Office Hours**: Live Q&A sessions with the instructor
-- **Study Groups**: Connect with other learners
-- **Slack Channel**: Real-time communication with the community
-
-## Week-by-Week Breakdown
-
-### Week 1: Web Security Fundamentals
-
-Introduction to web application security, the CIA triad, and threat modeling. We'll explore the OWASP Top 10 and set up our lab environment.
-
-**Lab**: Setting up OWASP WebGoat and completing initial challenges
-
-### Week 2: Injection Attacks
-
-Learn about SQL injection, Cross-Site Scripting (XSS), and other injection vulnerabilities. Understand how attackers exploit these flaws and how to prevent them.
-
-**Lab**: Exploiting SQL injection vulnerabilities and implementing parameterized queries
-
-### Week 3: Authentication & Session Management
-
-Explore secure authentication mechanisms, password storage, and session management. Learn about common authentication vulnerabilities.
-
-**Lab**: Breaking weak authentication and implementing secure authentication
-
-### Week 4: Access Control & Authorization
-
-Understand authorization flaws, privilege escalation, and how to implement secure access control.
-
-**Lab**: Exploiting broken access control and implementing RBAC
-
-### Week 5: Security Configuration & Data Protection
-
-Learn about security misconfiguration, sensitive data exposure, and encryption best practices.
-
-**Lab**: Identifying misconfigurations and implementing data protection measures
-
-### Week 6: Final Project
-
-Apply everything you've learned in a comprehensive security assessment project.
-
-**Project**: Perform a security assessment of a sample web application and submit a detailed report
-
-## Additional Resources
-
-- [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
-- [PortSwigger Web Security Academy](https://portswigger.net/web-security)
-- [HackerOne Bug Bounty Reports](https://www.hackerone.com/hacktivity)
-
-## Certification
-
-Upon successful completion of all assignments and the final project with a passing grade, you'll receive a certificate of completion from BLT University.
-
----
-
-Ready to start? [Enroll now](/enroll/?course=web-security-intro) and begin your journey into web application security!
+The lessons are intentionally short. Learn the reason behind a vulnerability, practice it safely, then return to the course to continue the path.

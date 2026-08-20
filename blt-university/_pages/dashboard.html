@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Vulnerability Dashboard
+title: Security Trends
 description: Explore recent CVEs by OWASP category, known exploitation, severity, and relevant BLT University labs.
 permalink: /dashboard/
 ---
@@ -216,7 +216,7 @@ permalink: /dashboard/
         </div>
         <label class="w-full md:w-64">
           <span class="sr-only">Filter OWASP categories</span>
-          <select class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-category-filter>
+          <select id="dashboard-category-filter" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-category-filter>
             <option value="all">All OWASP categories</option>
             {% for category in intel.categories %}<option value="{{ category.id }}">{{ category.id }} · {{ category.name }}</option>{% endfor %}
           </select>
@@ -299,24 +299,24 @@ permalink: /dashboard/
           <label class="relative">
             <span class="sr-only">Search vulnerabilities</span>
             <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400"></i>
-            <input class="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-100" type="search" placeholder="Search CVE, CWE, product, or description" data-cve-search>
+            <input id="dashboard-cve-search" class="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-100" type="search" placeholder="Search CVE, CWE, product, or description" aria-label="Search CVE, CWE, product, or description" data-cve-search>
           </label>
           <label>
             <span class="sr-only">Filter by category</span>
-            <select class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-cve-category>
+            <select id="dashboard-cve-category" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-cve-category>
               <option value="all">All categories</option>
               {% for category in intel.categories %}<option value="{{ category.id }}">{{ category.id }} · {{ category.name }}</option>{% endfor %}
             </select>
           </label>
           <label>
             <span class="sr-only">Filter by severity</span>
-            <select class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-cve-severity>
+            <select id="dashboard-cve-severity" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-cve-severity>
               <option value="all">All severities</option>
               <option value="CRITICAL">Critical</option><option value="HIGH">High</option><option value="MEDIUM">Medium</option><option value="LOW">Low</option><option value="UNKNOWN">Unknown</option>
             </select>
           </label>
           <label class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700">
-            <input class="h-4 w-4 accent-red-600" type="checkbox" data-cve-kev>
+            <input id="dashboard-cve-kev" class="h-4 w-4 accent-red-600" type="checkbox" data-cve-kev>
             KEV only
           </label>
         </div>

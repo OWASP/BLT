@@ -1,8 +1,8 @@
 # BLT University Configuration
 title: BLT University
 description: >-
-  A cybersecurity-focused online university powered by GitHub Pages and GitLab Pages.
-  Learn, teach, and collaborate on security courses through open-source education.
+  Open-source cybersecurity courses and browser labs maintained by the OWASP BLT
+  community.
 
 baseurl: ""
 url: "https://university.owaspblt.org"
@@ -97,16 +97,18 @@ navigation:
     url: /
   - title: Courses
     url: /courses/
+  - title: Labs
+    url: /labs/
+  - title: Progress
+    url: /progress/
+  - title: Security Trends
+    url: /dashboard/
+  - title: Instructors
+    url: /instructors/
   - title: Enroll
     url: /enroll/
   - title: Request a Course
     url: /request/
-  - title: Instructors
-    url: /instructors/
-  - title: Labs
-    url: /labs/
-  - title: Dashboard
-    url: /dashboard/
   - title: About
     url: /about/
 
@@ -115,7 +117,9 @@ header_navigation:
     url: /courses/
   - title: Labs
     url: /labs/
-  - title: Dashboard
+  - title: Progress
+    url: /progress/
+  - title: Security Trends
     url: /dashboard/
   - title: Instructors
     url: /instructors/
