@@ -33,6 +33,10 @@ ENV/
 *.swo
 *~
 
+# Generated Flutter web host (not shipped on the Worker — scans are user-side)
+public/client/**
+!public/client/index.html
+
 # Cloudflare Workers
 .wrangler/
 worker/

@@ -257,6 +257,8 @@
                   <button type="button" class="detail-tab active" role="tab" data-tab="evidence" aria-selected="true">Evidence</button>
                   <button type="button" class="detail-tab" role="tab" data-tab="risk" aria-selected="false">Risk</button>
                   <button type="button" class="detail-tab" role="tab" data-tab="fix" aria-selected="false">Fix</button>
+                  <button type="button" class="detail-tab" role="tab" data-tab="disclose" aria-selected="false">Disclose</button>
+                  <button type="button" class="detail-tab" role="tab" data-tab="events" aria-selected="false">Events</button>
                   <button type="button" class="detail-tab" role="tab" data-tab="status" aria-selected="false">Status</button>
                 </div>
                 <div class="detail-tab-panels">
@@ -268,6 +270,10 @@
                         <pre class="evidence-json">${esc(snippetText)}</pre>
                         <div class="confidential-stamp">confidential</div>
                       </div>
+                    </div>
+                    <div class="access-section">
+                      <div class="field-label">Attachments</div>
+                      <ul class="risk-list" id="evidence-attachments">${renderAttachments(evidence.attachments)}</ul>
                     </div>
                     <div class="access-section">
                       <div class="field-label">Recent Access</div>
@@ -294,6 +300,12 @@
                   </div>
                   <div class="detail-tab-panel" data-panel="fix">
                     ${renderRemediationPanel(data.remediation)}
+                  </div>
+                  <div class="detail-tab-panel" data-panel="disclose">
+                    <div id="disclosure-panel" class="field-label">Loading security.txt…</div>
+                  </div>
+                  <div class="detail-tab-panel" data-panel="events">
+                    <div id="events-panel" class="field-label">Loading events…</div>
                   </div>
                   <div class="detail-tab-panel" data-panel="status">
                     <div class="field-label">Triage Status</div>
@@ -360,6 +372,69 @@
                     });
                 });
             });
+
+            if (finding.id) {
+                loadDisclosure(finding.id);
+                loadEvents(finding.id);
+            }
+        }
+
+        function renderAttachments(items) {
+            const list = items || [];
+            if (!list.length) return '<li>No uploaded attachments (payload evidence above).</li>';
+            return list.map(function (a) {
+                return '<li>' + esc(a.media_type || 'file') + ' · ' +
+                    esc(String(a.size_bytes || 0)) + ' B · ' +
+                    esc(a.backend || '') + ' · ' +
+                    esc((a.digest || '').slice(0, 12)) + '</li>';
+            }).join('');
+        }
+
+        function renderDisclosureBody(d) {
+            if (!d) return '<div class="field-label">No disclosure data.</div>';
+            if (!d.found) {
+                return '<div class="field-label">' + esc(d.convert_hint || d.message || 'security.txt not found') + '</div>';
+            }
+            const contacts = (d.contacts || []).map(function (c) {
+                return '<li>' + esc(c) + '</li>';
+            }).join('');
+            return '<div class="field-label">security.txt</div>' +
+                '<div class="summary-text">' + esc(d.source_url || '') + '</div>' +
+                '<div class="field-label" style="margin-top:8px">Contacts</div>' +
+                '<ul class="risk-list">' + (contacts || '<li>None</li>') + '</ul>' +
+                '<div class="summary-text" style="margin-top:8px">' + esc(d.convert_hint || '') + '</div>';
+        }
+
+        function renderEventsBody(items) {
+            const list = items || [];
+            if (!list.length) return '<div class="field-label">No verified events for this finding.</div>';
+            return '<ul class="risk-list">' + list.map(function (e) {
+                return '<li>' + esc(e.event_type || '') + ' · ' +
+                    esc(e.status || '') + ' · attempts=' + esc(String(e.attempts || 0)) +
+                    (e.last_error ? ' · ' + esc(e.last_error) : '') + '</li>';
+            }).join('') + '</ul>';
+        }
+
+        async function loadDisclosure(findingId) {
+            const el = document.getElementById('disclosure-panel');
+            if (!el) return;
+            try {
+                const data = await apiRequest('/api/findings/' + encodeURIComponent(findingId) + '/disclosure');
+                el.innerHTML = renderDisclosureBody(data.disclosure);
+            } catch (err) {
+                el.innerHTML = '<div class="field-label">' + esc(apiErrorMsg(err)) + '</div>';
+            }
+        }
+
+        async function loadEvents(findingId) {
+            const el = document.getElementById('events-panel');
+            if (!el) return;
+            try {
+                const data = await apiRequest('/api/events?finding_id=' + encodeURIComponent(findingId));
+                el.innerHTML = renderEventsBody(data.events);
+            } catch (err) {
+                el.innerHTML = '<div class="field-label">' + esc(apiErrorMsg(err)) + '</div>';
+            }
         }
 
         async function loadFindingDetail(rawId) {
@@ -652,6 +727,16 @@
             }
         }
 
+        function deepLinkFindingId() {
+            try {
+                const q = new URLSearchParams(location.search);
+                const id = (q.get('finding') || '').trim();
+                return id || null;
+            } catch (_) {
+                return null;
+            }
+        }
+
         async function loadList() {
             if (!findingsBody) return;
             findingsBody.innerHTML =
@@ -669,6 +754,10 @@
                 setConnected(true, connText);
                 if (!isMobileView() && bltLabel === 'BLT-API down') {
                     showToast('BLT-API unreachable — start: python3 local_dev/blt_api_stub.py', 'error');
+                }
+                const deepLink = deepLinkFindingId();
+                if (deepLink && !selectedRawId) {
+                    onFindingClick(deepLink);
                 }
             } catch (err) {
                 setConnected(false, 'Offline');

@@ -255,6 +255,13 @@ async def get_finding_for_request(
         row_get(row, "rule_id"),
         cve_id=row_get(row, "cve_id"),
     )
+    attachments: list[dict[str, Any]] = []
+    try:
+        from evidence_store import EvidenceStore
+
+        attachments = await EvidenceStore(db, env).list_for_finding(auth.org_id, finding_id)
+    except Exception:  # noqa: BLE001 - detail must still render without attachments
+        attachments = []
 
     return FindingsListResult(
         status=200,
@@ -265,6 +272,7 @@ async def get_finding_for_request(
             "evidence": {
                 "encrypted_at_rest": encrypted_at_rest,
                 "decrypted": decrypted,
+                "attachments": attachments,
             },
             "envelope": {
                 "sender_id": row_get(row, "sender_id"),
@@ -289,7 +297,7 @@ async def disclosure_for_request(
     fetch_impl: Any = None,
 ) -> FindingsListResult:
     """GET /api/findings/{id}/disclosure — security.txt discovery for the finding target."""
-    auth = _auth_or_error(env, headers)
+    auth = await _auth_or_error(env, headers, db)
     if db is None:
         return FindingsListResult(
             status=503,
@@ -411,7 +419,7 @@ async def export_finding_pdf_for_request(
     now: Optional[datetime] = None,
 ) -> FindingsListResult:
     """GET /api/findings/{id}/export.pdf — single finding PDF with redacted evidence."""
-    auth = _auth_or_error(env, headers)
+    auth = await _auth_or_error(env, headers, db)
     if db is None:
         return FindingsListResult(
             status=503,
@@ -522,14 +530,24 @@ async def convert_to_issue_for_request(
             audit_detail["blt_issue_id"] = blt_issue_id
             audit_detail["blt_api"] = True
     except BltApiError as exc:
-        return FindingsListResult(
-            status=502,
-            body={
-                "error": "blt_api_error",
-                "message": str(exc),
-                "blt_status": exc.status,
-            },
-        )
+        fallback = str(getattr(env, "NG_BLT_STUB_FALLBACK", "")).strip().lower() in {
+            "1", "true", "yes", "on",
+        }
+        if fallback:
+            use_stub = True
+            blt_issue_id = id_fn("blt")
+            audit_detail["blt_issue_id"] = blt_issue_id
+            audit_detail["stub"] = True
+            audit_detail["blt_fallback"] = str(exc)
+        else:
+            return FindingsListResult(
+                status=502,
+                body={
+                    "error": "blt_api_error",
+                    "message": str(exc),
+                    "blt_status": exc.status,
+                },
+            )
 
     updated = int(now.timestamp())
     await store.set_blt_issue_id(auth.org_id, finding_id, blt_issue_id, updated)

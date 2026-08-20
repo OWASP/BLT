@@ -89,8 +89,7 @@ def resolve_org_auth(env: Any, headers: Mapping[str, str]) -> OrgAuthContext:
         org_id = resolve_org_from_token(env, token)
         if org_id is not None:
             return OrgAuthContext(org_id=org_id, token=token, auth_mode="bearer")
-        if read_endpoints_require_auth(env):
-            raise AuthError("invalid or unknown API token")
+        raise AuthError("invalid or unknown API token")
     if not read_endpoints_require_auth(env):
         return OrgAuthContext(org_id=default_org_id(env), token="", auth_mode="demo")
     raise AuthError("missing Bearer token")
@@ -117,8 +116,7 @@ async def resolve_org_auth_async(
         org_id = resolve_org_from_token(env, token)
         if org_id is not None:
             return OrgAuthContext(org_id=org_id, token=token, auth_mode="bearer")
-        if read_endpoints_require_auth(env):
-            raise AuthError("invalid or unknown API token")
+        raise AuthError("invalid or unknown API token")
 
     if db is not None:
         from oauth_github import resolve_session_org

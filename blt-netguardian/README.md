@@ -1,149 +1,56 @@
 # BLT-NetGuardian
 
-🛡️ Autonomous Internet Security Scanner powered by Cloudflare Workers
+Signed findings ingest + org triage + BLT convert, on Cloudflare Workers (D1).
 
-## Deploy to Cloudflare
+```
+Detect (CLI or Flutter) → HMAC ztr-finding-1 → POST /api/ingest → D1
+  → triage.html (status / remediation / disclosure / events / CSV / PDF)
+  → convert-to-issue (BLT-API)
+```
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/OWASP-BLT/BLT-NetGuardian)
+## Local
 
-Click the button above to deploy BLT-NetGuardian to your Cloudflare account in one click!
+```bash
+python3 local_dev/serve.py
+# http://127.0.0.1:8787/triage.html  token: triage-token
+.venv/bin/python local_dev/send_finding.py
+cd client && flutter pub get && flutter test && flutter run -d macos
+```
 
-## Client Application
+Pilot script: [`docs/spec/pilot-checklist.md`](docs/spec/pilot-checklist.md).
 
-> **Want to send findings from a desktop machine?** The Flutter producer lives in this repo under [`client/`](client/README.md) (MR C1: sign + `POST /api/ingest`).
->
-> ```bash
-> cd client && flutter pub get && flutter run -d macos
-> ```
->
-> Demo loopback credentials match `local_dev/send_finding.py`. Detection packs + offline queue are follow-up client MRs.
->
-> Legacy task-offload notes previously pointed at [BLT-NetGuardian-Client](https://github.com/OWASP-BLT/BLT-NetGuardian-Client); the GSoC ingest path is the in-repo Flutter app.
+## Client
 
-## Overview
+In-repo Flutter desktop producer ([`client/`](client/README.md)): HTTP header scan (Python parity), redact, AES-256-GCM, HMAC ingest, outbox, history, triage deep-link. HUD theme matches `triage.html`.
 
-BLT-NetGuardian is an **autonomous security scanning system** that continuously discovers and scans the internet for security vulnerabilities. Unlike traditional scanners that require manual target submission, BLT-NetGuardian actively discovers domains, repositories, smart contracts, and APIs using multiple discovery methods, automatically scans them for vulnerabilities, and contacts stakeholders when issues are found.
+## Shipped API (GSoC spine)
 
-## Features
+| Method | Path | Role |
+|--------|------|------|
+| POST | `/api/ingest` | HMAC `ztr-finding-1` (plaintext or AES-256-GCM) |
+| GET | `/api/findings` | Org-scoped list |
+| GET/PATCH | `/api/findings/{id}` | Detail + status |
+| POST | `/api/findings/{id}/convert-to-issue` | BLT issue |
+| GET | `/api/findings/{id}/disclosure` | security.txt |
+| GET/POST | `/api/findings/{id}/evidence` | Attachments (D1 or R2) |
+| GET | `/api/findings/export.csv` `/export.pdf` | Exports |
+| GET | `/api/events` | Verified outbox |
+| POST | `/api/events/retry` | Webhook drain |
+| GET | `/api/auth/github/*` | OAuth PKCE session |
 
-### 🤖 Autonomous Discovery
+Storage is **D1** (not KV). Optional R2 binding `EVIDENCE`. Cron `*/5 * * * *` retries pending webhooks.
 
-- **Certificate Transparency Monitoring**: Discovers new domains from CT logs
-- **GitHub Repository Scanning**: Tracks trending and newly updated repositories
-- **Blockchain Monitoring**: Detects new smart contract deployments
-- **Subdomain Enumeration**: Discovers subdomains of known targets
-- **API Directory Scanning**: Monitors public API directories
-- **User Suggestions**: Allows community to guide the scanner
+## Legacy surfaces (not the product)
 
-### 📧 Automatic Contact & Notification
-
-- **security.txt Integration**: RFC 9116 compliant contact discovery
-- **WHOIS Lookup**: Finds domain registrant contacts
-- **GitHub Security Advisory**: Direct security team notification
-- **Responsible Disclosure**: 90-day disclosure timeline
-- **Contact Logging**: Tracks all notification attempts
-
-### 🔍 Security Scanners
-
-1. **Web2 Crawler** - Web application vulnerability scanner
-   - XSS, CSRF, SQLi detection
-   - Security header analysis
-   - Form and endpoint discovery
-   - Authentication testing
-
-2. **Web3 Monitor** - Blockchain and smart contract monitoring
-   - Transaction pattern analysis
-   - Malicious address detection
-   - Gas usage optimization
-   - Real-time blockchain monitoring
-
-3. **Static Analyzer** - Source code security analysis
-   - SAST tool integration
-   - Dependency vulnerability scanning
-   - Hardcoded secret detection
-   - Multi-language support (Python, JavaScript, Java, Go, Rust)
-
-4. **Contract Scanner** - Smart contract auditing
-   - Reentrancy vulnerability detection
-   - Access control analysis
-   - Integer overflow/underflow checks
-   - Gas optimization recommendations
-   - Solidity and Vyper support
-
-5. **Volunteer Agent Manager** - Community security testing
-   - Distributed testing coordination
-   - Agent registration and management
-   - Result validation and aggregation
-   - Contributor rewards
-
-### 🌐 Web Interface
-
-**Live Autonomous Scanner Dashboard:**
-- Real-time scanning status with current target
-- Live discovery feed showing newly found targets
-- Simple suggestion input to guide the scanner
-- Statistics: domains discovered, repos found, contacts made
-- Recent discoveries with vulnerability status
-
-**No Manual Forms Required** - The system continuously scans on its own!
+`/api/discovery/*`, `/api/tasks/*`, `/api/vulnerabilities`, and the ops HTML pages still exist but return **sample/stub** data. Do not demo them as live autonomous CT/Web3 scanning.
 
 ## Architecture
 
-BLT-NetGuardian uses a three-tier architecture:
-- **Frontend**: Static HTML/CSS/JS hosted on **GitHub Pages**
-- **Backend**: Python API worker running on **Cloudflare Workers**
-- **Client**: Optional local desktop client in [BLT-NetGuardian-Client](https://github.com/OWASP-BLT/BLT-NetGuardian-Client) for offloading scan tasks
+- **Triage UI**: `public/triage.html` (Workers static assets)
+- **API**: Python Worker `src/worker.py` + D1
+- **Producers**: Flutter `client/`, `scripts/detect_export.py`, `local_dev/send_finding.py`
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     GitHub Pages                            │
-│                   (Frontend - Static)                       │
-│                                                             │
-│  ┌──────────────┐  ┌─────────────┐  ┌──────────────────┐  │
-│  │  index.html  │  │ dashboard   │  │ vulnerabilities  │  │
-│  │  (Main UI)   │  │   .html     │  │    .html         │  │
-│  └──────────────┘  └─────────────┘  └──────────────────┘  │
-│                                                             │
-│         │                                                   │
-└─────────┼───────────────────────────────────────────────────┘
-          │ HTTPS/REST API
-          ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Cloudflare Worker (Backend)                    │
-│                    Python API Only                          │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │               API Endpoints                          │  │
-│  │  • /api/tasks/queue                                  │  │
-│  │  • /api/targets/register                            │  │
-│  │  • /api/results/ingest                              │  │
-│  │  • /api/jobs/status                                 │  │
-│  │  • /api/vulnerabilities                             │  │
-│  └──────────────────────────────────────────────────────┘  │
-│                            │                                 │
-│         ┌──────────────────┴──────────────────┐             │
-│         │     Scanner Coordinator             │             │
-│         └──────────┬──────────────────────────┘             │
-│                    │                                         │
-│  ┌─────────────────┼─────────────────────────────────────┐  │
-│  │                 │                                     │  │
-│  ▼                 ▼                 ▼                   ▼  │
-│ Web2          Web3             Static            Contract   │
-│ Crawler       Monitor          Analyzer          Scanner    │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-                        │
-                        ▼
-           ┌────────────────────────┐
-           │   Cloudflare KV Store  │
-           │  ├─ Job States         │
-           │  ├─ Task Queue         │
-           │  ├─ Vulnerability DB   │
-           │  └─ Target Registry    │
-           └────────────────────────┘
-```
-
-## How It Works
+## How It Works (legacy stubs — not the shipped spine)
 
 ### 1. Autonomous Discovery
 The system continuously discovers new targets using:

@@ -19,12 +19,12 @@ echo "==> Cloudflare account"
 echo "==> D1 migrations (remote)"
 "${WRANGLER[@]}" d1 migrations apply blt-netguardian --remote
 
-echo "==> Secrets (pilot org — rotate for production)"
+echo "==> Secrets (pilot org — rotate before any external org)"
 # Same shape as local_dev/serve.py so triage + ingest work immediately after deploy.
 printf '%s' '{"triage-token":"org-demo"}' | "${WRANGLER[@]}" secret put NG_ORG_API_TOKENS
 printf '%s' '{"org-demo:scanner-1:k1":"736563726574"}' | "${WRANGLER[@]}" secret put NG_SENDER_SECRETS
 printf '%s' '{"org-demo":"bmV0Z3VhcmRpYW4tZGVtby1hZXNnY20ta2V5LTAwMzI="}' | "${WRANGLER[@]}" secret put NG_PAYLOAD_KEYS
-printf '%s' 'https://netguardian.owaspblt.org' | "${WRANGLER[@]}" secret put CORS_ALLOWED_ORIGINS
+printf '%s' 'https://netguardian.owaspblt.org,http://localhost:8888,http://127.0.0.1:8888' | "${WRANGLER[@]}" secret put CORS_ALLOWED_ORIGINS
 # AUTHENTICATE_READ_ENDPOINTS is a non-secret flag — set via wrangler.toml [vars]
 
 # BLT-API — set if convert-to-issue should hit real API (optional for first boot)
@@ -35,8 +35,33 @@ if [ -n "${BLT_API_KEY:-}" ]; then
   printf '%s' "$BLT_API_KEY" | "${WRANGLER[@]}" secret put BLT_API_KEY
 fi
 
+echo "==> Do not host a scanner UI on this origin (scans must run on the user client)"
+rm -rf "$ROOT/public/client"
+mkdir -p "$ROOT/public/client"
+cat > "$ROOT/public/client/index.html" <<'HTML'
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><title>Client runs on your machine</title>
+<meta http-equiv="refresh" content="0; url=/">
+</head><body>
+<p>Scanning from this site is disabled. Run the NetGuardian client locally, then open <a href="/triage">triage</a>.</p>
+</body></html>
+HTML
+
+cp "$ROOT/scripts/install.sh" "$ROOT/public/install.sh"
+chmod +x "$ROOT/public/install.sh"
+
 echo "==> Deploy Worker + public/ assets"
+# Wrangler rejects pytest pins in requirements.txt; Workers uses aesgcm_pure, not cryptography.
+REQ_BAK=""
+if [ -f requirements.txt ]; then
+  REQ_BAK="$(mktemp)"
+  mv requirements.txt "$REQ_BAK"
+fi
 "${WRANGLER[@]}" deploy
+if [ -n "$REQ_BAK" ]; then
+  mv "$REQ_BAK" requirements.txt
+fi
 
 BASE="${DEPLOY_URL:-https://netguardian.owaspblt.org}"
 echo ""
@@ -44,5 +69,5 @@ echo "==> Smoke checks"
 curl -sf "$BASE/api/health" | head -c 200 && echo ""
 curl -sf -o /dev/null -w "triage.html: %{http_code}\n" "$BASE/triage.html"
 echo ""
-echo "Live: $BASE/triage.html"
-echo "Token: triage-token"
+echo "Install: curl -fsSL $BASE/install.sh | sh -s -- https://your-site.example"
+echo "Triage:  $BASE/triage"

@@ -15,6 +15,8 @@ run_worker_first = true
 ENVIRONMENT = "production"
 AUTHENTICATE_READ_ENDPOINTS = "false"
 NG_DEFAULT_ORG = "org-demo"
+# Flutter web (localhost:8888) + hosted triage on netguardian.owaspblt.org.
+CORS_ALLOWED_ORIGINS = "https://netguardian.owaspblt.org,http://localhost:8888,http://127.0.0.1:8888"
 # Set via wrangler secret (production/staging):
 #   BLT_API_BASE_URL = https://api.owaspblt.org/v2
 #   BLT_API_KEY      = <X-BLT-API-Key value>
@@ -42,6 +44,14 @@ invocation_logs = true
 enabled = false
 persist = true
 head_sampling_rate = 1
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Optional R2 evidence bucket (uncomment after: wrangler r2 bucket create ng-evidence)
+# [[r2_buckets]]
+# binding = "EVIDENCE"
+# bucket_name = "ng-evidence"
 
 # D1 Database Binding
 # Production (OWASP account): 529b739a-6643-4574-9210-99ecd384f085 → netguardian.owaspblt.org

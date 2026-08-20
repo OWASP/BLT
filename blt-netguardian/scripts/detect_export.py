@@ -91,6 +91,15 @@ def fetch_response_headers(url: str, *, timeout: int = 10) -> tuple[int, dict[st
     except urllib.error.HTTPError as exc:
         # An error response still carries headers worth evaluating.
         return int(exc.code), dict(exc.headers or {})
+    except urllib.error.URLError as exc:
+        reason = getattr(exc, "reason", exc)
+        raise SystemExit(
+            f"cannot reach {url} ({reason}).\n"
+            "Pass a real https:// URL you are allowed to test — "
+            "not the placeholder your-site.example.\n"
+            "Example: curl -fsSL https://netguardian.owaspblt.org/install.sh "
+            "| sh -s -- https://example.com"
+        ) from exc
 
 
 def collect_findings(args: argparse.Namespace) -> list[DetectionFinding]:
@@ -155,6 +164,7 @@ def submit(base_url: str, raw: bytes, *, timeout: int = 15) -> tuple[int, str]:
     request = urllib.request.Request(url, data=raw, method="POST")
     request.add_header("Content-Type", "application/json")
     request.add_header("X-BLT-Body-Digest", f"sha256={body_digest_hex(raw)}")
+    request.add_header("User-Agent", "NetGuardian-Detect/1.0")
     context = ssl.create_default_context() if url.startswith("https://") else None
     try:
         with urllib.request.urlopen(request, timeout=timeout, context=context) as response:

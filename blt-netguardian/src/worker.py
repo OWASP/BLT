@@ -31,7 +31,17 @@ from scanners.contact_notifier import ContactNotifier
 from auth import AuthError, read_endpoints_require_auth
 from blt_api_client import is_blt_api_configured
 from errors import IngestError, IngestErrorCode
-from events_service import get_event_for_request, list_events_for_request
+from events_service import (
+    drain_pending_webhooks,
+    get_event_for_request,
+    list_events_for_request,
+    retry_events_for_request,
+)
+from evidence_service import (
+    get_evidence_for_request,
+    list_evidence_for_request,
+    put_evidence_for_request,
+)
 from findings_service import (
     convert_to_issue_for_request,
     disclosure_for_request,
@@ -43,8 +53,11 @@ from findings_service import (
     list_findings_for_request,
     update_finding_for_request,
 )
+from detect_service import detect_headers_for_request
 from ingest_service import ingest_error_response, process_ingest
 from ingest_store import IngestStore
+from install_sh import INSTALL_SH
+from get_client_page import GET_CLIENT_HTML
 from oauth_github import (
     current_session,
     handle_github_callback,
@@ -125,6 +138,24 @@ class BLTWorker:
                 response = await self.handle_api_health(request)
             elif path == 'api/ingest':
                 response = await self.handle_ingest(request)
+            elif path == 'api/detect/headers':
+                # Production must not fetch third-party URLs from this origin
+                # (legal: the site operator would be the scanner). Header
+                # checks belong on the user-run client. Local serve.py sets
+                # ENVIRONMENT=development so Chrome loopback still works.
+                env_name = str(getattr(self.env, 'ENVIRONMENT', '') or '').strip().lower()
+                if env_name != 'development':
+                    response = self.json_response({
+                        'error': 'scan_not_allowed',
+                        'message': 'Scans must run on the user client, not this site.',
+                    }, status=403)
+                elif request.method != 'GET':
+                    response = self.json_response({'error': 'Method not allowed'}, status=405)
+                else:
+                    status, body = await detect_headers_for_request(
+                        self.get_query_params(request),
+                    )
+                    response = self.json_response(body, status=status)
             elif path == 'api/findings' or path.startswith('api/findings/'):
                 response = await self.handle_findings(request, path)
             elif path == 'api/auth' or path.startswith('api/auth/'):
@@ -721,6 +752,44 @@ class BLTWorker:
                     headers=self.get_request_headers(request),
                     finding_id=parts[0],
                 )
+            elif len(parts) == 2 and parts[1] == 'evidence':
+                if request.method == 'GET':
+                    result = await list_evidence_for_request(
+                        env=self.env,
+                        db=getattr(self.env, 'DB', None),
+                        headers=self.get_request_headers(request),
+                        finding_id=parts[0],
+                    )
+                elif request.method == 'POST':
+                    raw_ev = await self._read_request_body(request)
+                    try:
+                        ev_body = json.loads(raw_ev.decode('utf-8') or 'null')
+                    except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                        return self.json_response({'error': 'invalid_body'}, status=400)
+                    if not isinstance(ev_body, dict):
+                        return self.json_response({'error': 'invalid_body'}, status=400)
+                    result = await put_evidence_for_request(
+                        env=self.env,
+                        db=getattr(self.env, 'DB', None),
+                        headers=self.get_request_headers(request),
+                        finding_id=parts[0],
+                        body=ev_body,
+                        new_id=lambda label: self.generate_id(
+                            f'{label}-{parts[0]}-{datetime.now(timezone.utc).isoformat()}'
+                        ),
+                    )
+                else:
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+            elif len(parts) == 3 and parts[1] == 'evidence':
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await get_evidence_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    finding_id=parts[0],
+                    evidence_id=parts[2],
+                )
             elif len(parts) == 2 and parts[1] == 'export.pdf':
                 if request.method != 'GET':
                     return self.json_response({'error': 'Method not allowed'}, status=405)
@@ -805,6 +874,14 @@ class BLTWorker:
                     headers=self.get_request_headers(request),
                     query_params=self.get_query_params(request),
                 )
+            elif parts == ['retry']:
+                if request.method != 'POST':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await retry_events_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                )
             elif len(parts) == 1:
                 if request.method != 'GET':
                     return self.json_response({'error': 'Method not allowed'}, status=405)
@@ -820,6 +897,11 @@ class BLTWorker:
             result = findings_error_response(exc)
 
         return self.json_response(result.body, status=result.status, headers=result.headers)
+
+    async def handle_scheduled(self):
+        """Cron: drain pending verified-event webhooks."""
+        db = getattr(self.env, 'DB', None)
+        return await drain_pending_webhooks(env=self.env, db=db)
 
     async def _read_request_body(self, request) -> bytes:
         text = getattr(request, 'body', None)
@@ -911,10 +993,12 @@ class BLTWorker:
             result: Dict[str, str] = {}
             for name in (
                 'Authorization', 'authorization',
+                'Cookie', 'cookie',
                 'Content-Type', 'content-type',
                 'Origin', 'origin',
                 'X-API-Key', 'x-api-key',
                 'X-BLT-Body-Digest', 'x-blt-body-digest',
+                'X-BLT-Timestamp', 'x-blt-timestamp',
             ):
                 value = headers.get(name)
                 if value is not None and str(value) != '':
@@ -971,6 +1055,7 @@ class BLTWorker:
         """Protect API routes; reads can be toggled with AUTHENTICATE_READ_ENDPOINTS."""
         if (
             path in ('api/health', 'api/ingest')
+            or path == 'api/detect/headers'
             or path.startswith('api/findings')
             or path.startswith('api/auth')
             or path.startswith('api/events')
@@ -1056,6 +1141,23 @@ async def on_fetch(request, env, ctx):
     url = request.url
     path = url.split('?')[0].split('/', 3)[-1] if '/' in url else ''
 
+    # Assets binding often 404s on .sh; serve the one-liner from the Worker.
+    if path in ('install.sh', 'install'):
+        return Response(
+            INSTALL_SH,
+            status=200,
+            headers={
+                'Content-Type': 'text/plain; charset=utf-8',
+                'Cache-Control': 'no-cache',
+            },
+        )
+    if path.rstrip('/') in ('get-client', 'get-client.html') or path.startswith('get-client/'):
+        return Response(
+            GET_CLIENT_HTML,
+            status=200,
+            headers={'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache'},
+        )
+
     # Delegate non-API requests to the static assets binding (serves index.html, etc.)
     assets = getattr(env, 'ASSETS', None)
     if assets is not None and not path.startswith('api/'):
@@ -1063,3 +1165,9 @@ async def on_fetch(request, env, ctx):
 
     worker = BLTWorker(env)
     return await worker.handle_request(request)
+
+
+async def on_scheduled(event, env, ctx):
+    """Cloudflare Workers cron: retry pending event webhooks."""
+    worker = BLTWorker(env)
+    return await worker.handle_scheduled()

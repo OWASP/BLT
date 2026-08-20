@@ -73,11 +73,20 @@ def get_org_key(env: Any, org_id: str) -> Optional[bytes]:
     return load_org_keys(env).get(org_id)
 
 
-def encrypt_payload(key: bytes, payload: Mapping[str, Any], *, aad: bytes = b"") -> str:
+def encrypt_payload(
+    key: bytes,
+    payload: Mapping[str, Any],
+    *,
+    aad: bytes = b"",
+    nonce: Optional[bytes] = None,
+) -> str:
     """Encrypt a payload dict; return base64(nonce || ciphertext || tag)."""
     if len(key) != _KEY_BYTES:
         raise PayloadCryptoError("key must be 32 bytes for AES-256-GCM")
-    nonce = os.urandom(_NONCE_BYTES)
+    if nonce is None:
+        nonce = os.urandom(_NONCE_BYTES)
+    elif len(nonce) != _NONCE_BYTES:
+        raise PayloadCryptoError("nonce must be 12 bytes for AES-256-GCM")
     plaintext = json.dumps(
         payload, separators=(",", ":"), ensure_ascii=False
     ).encode("utf-8")
