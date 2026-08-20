@@ -12,6 +12,15 @@ from typing import Any
 
 from js import Date, Headers, Response, URL
 
+try:
+    from workers import DurableObject
+except ImportError:
+
+    class DurableObject:
+        def __init__(self, state: Any, env: Any) -> None:
+            pass
+
+
 logger = logging.getLogger("toasty.conversation_do")
 
 MAX_ACTIVE_TURNS = 5
@@ -26,13 +35,28 @@ def _json_response(data: dict[str, Any], status: int = 200) -> Response:
     return Response.new(json.dumps(data), headers=headers, status=status)
 
 
-class ConversationDO:
-    """Core ConversationDO class implementing a 5-turn rolling context buffer."""
+def get_now_ms() -> int:
+    try:
+        return int(Date.now())
+    except BaseException:
+        import time
+
+        return int(time.time() * 1000)
+
+
+class ConversationDO(DurableObject):
+    """
+    Durable Object for maintaining conversation state for an issue.
+    """
 
     def __init__(self, state: Any, env: Any) -> None:
+        super().__init__(state, env)
         self.state = state
         self.storage = state.storage
         self.env = env
+
+    async def on_fetch(self, request: Any) -> Response:
+        return await self.fetch(request)
 
     async def fetch(self, request: Any) -> Response:
         try:
@@ -47,8 +71,11 @@ class ConversationDO:
                 return await self._handle_archive()
             else:
                 return _json_response({"error": "Not Found"}, status=404)
-        except Exception as e:
-            logger.exception("Error processing request: %s", e)
+        except BaseException as e:
+            import traceback
+            from js import console
+
+            console.error(f"ConversationDO fetch error: {e}\n{traceback.format_exc()}")
             return _json_response({"error": "Internal Server Error"}, status=500)
 
     async def _handle_reply(self, request: Any) -> Response:
@@ -120,7 +147,7 @@ class ConversationDO:
             await self.storage.put("status", "active")
 
         # Set alarm for 30 days
-        await self.storage.setAlarm(Date.now() + TTL_30_DAYS_MS)
+        await self.storage.setAlarm(get_now_ms() + TTL_30_DAYS_MS)
 
         return _json_response({"turn_count": turn_count, "conversation_id": triage_id})
 
@@ -217,7 +244,7 @@ class ConversationDO:
         await self.storage.put("status", "closed")
         if failed_turns:
             await self.storage.put("turns", json.dumps(failed_turns))
-            await self.storage.setAlarm(Date.now() + 60000)  # Retry in 1 minute
+            await self.storage.setAlarm(get_now_ms() + 60000)  # Retry in 1 minute
             return _json_response(
                 {"archived": False, "turns_archived": archived_count, "failed_count": len(failed_turns)}
             )
@@ -254,12 +281,18 @@ RATE_LIMIT_MAX_REQUESTS = 100
 RATE_LIMIT_WINDOW_MS = 60_000
 
 
-class RateLimiterDO:
-    """Enforces 100 req/min limits per agent."""
+class RateLimiterDO(DurableObject):
+    """
+    Durable Object to enforce per-agent rate limits.
+    """
 
     def __init__(self, state: Any, env: Any) -> None:
+        super().__init__(state, env)
         self.storage = state.storage
         self.env = env
+
+    async def on_fetch(self, request: Any) -> Response:
+        return await self.fetch(request)
 
     async def fetch(self, request: Any) -> Response:
         try:
@@ -273,7 +306,7 @@ class RateLimiterDO:
         # Storage keys: "rl:{agent_id}" -> {"count": int, "window_start": int_ms}
         key = f"rl:{agent_id}"
         record = await self.storage.get(key)
-        now_ms = Date.now()
+        now_ms = get_now_ms()
 
         if record:
             try:

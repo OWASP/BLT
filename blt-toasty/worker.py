@@ -9,12 +9,20 @@ and status monitoring.
 import json
 import urllib.parse
 import traceback
-from js import Response, Headers, console
+from js import Response, Headers, console, Object, Request as JSRequest
+
+try:
+    from pyodide.ffi import to_js
+except ImportError:
+    to_js = lambda x, **kw: x  # noqa: E731
 from src.rationale_builder import audit_completeness_check
 from src.webhook_handler import handle_webhook
 from src.mcp_export import handle_mcp_export
 from src.auth import verify_agent_jwt
 from src.errors import JWTExpiredError, JWTInvalidError
+from src.durable_objects import ConversationDO, RateLimiterDO
+
+__all__ = ["ConversationDO", "RateLimiterDO"]
 
 # Maximum request body size in bytes (1MB)
 MAX_BODY_SIZE = 1024 * 1024
@@ -405,16 +413,54 @@ async def handle_rationale(request, env, event_id):
             .first()
         )
 
-        if row is None:
+        if not row or row is None or str(row) in ("null", "undefined"):
             return create_error_response(f"Rationale not found for event {event_id}", 404)
 
         def get_val(key, idx):
-            return row[key] if hasattr(row, "__getitem__") and key in row else row[idx]
+            if isinstance(row, dict):
+                return row.get(key)
+            if hasattr(row, key):
+                return getattr(row, key)
+            if hasattr(row, "__getitem__"):
+                try:
+                    return row[key]
+                except BaseException:
+                    try:
+                        return row[idx]
+                    except BaseException:
+                        return None
+            return None
 
-        cwe_rationale_raw = json.loads(get_val("cwe_rationale", 0))
+        cwe_val = get_val("cwe_rationale", 0)
+        conf_val = get_val("confidence_trace", 2)
+
+        missing_fields = []
+        if cwe_val is None:
+            missing_fields.append("cwe_rationale")
+        if conf_val is None:
+            missing_fields.append("confidence_trace")
+
+        if missing_fields:
+            return create_json_response(
+                {"error": "Failed Dependency", "missing_fields": missing_fields, "status": 424},
+                424,
+            )
+
+        try:
+            cwe_rationale_raw = json.loads(cwe_val)
+        except Exception:
+            cwe_rationale_raw = None
+
+        try:
+            confidence_trace_raw = json.loads(conf_val)
+        except Exception:
+            confidence_trace_raw = None
+
         dup_val = get_val("duplicate_rationale", 1)
-        dup_rationale_raw = json.loads(dup_val) if dup_val else None
-        confidence_trace_raw = json.loads(get_val("confidence_trace", 2))
+        try:
+            dup_rationale_raw = json.loads(dup_val) if dup_val else None
+        except Exception:
+            dup_rationale_raw = None
 
         return create_json_response(
             {
@@ -427,8 +473,10 @@ async def handle_rationale(request, env, event_id):
             200,
         )
 
-    except Exception as exc:
-        console.error(f"handle_rationale error for {event_id}: {exc}")
+    except BaseException as exc:
+        import traceback
+
+        console.error(f"handle_rationale error for {event_id}: {exc}\n{traceback.format_exc()}")
         return create_error_response("Internal server error", 500)
 
 
@@ -992,13 +1040,14 @@ async def handle_conversation_reply(request, env, triage_id):
         body["triage_id"] = triage_id
 
         stub = await _get_do_stub(env, triage_id)
-        # Forward as a new Request to the DO
-        from js import Request as JSRequest
-
-        do_request = JSRequest.new(
-            "https://do-internal/reply",
-            {"method": "POST", "body": json.dumps(body), "headers": {"Content-Type": "application/json"}},
-        )
+        # Forward as a proper Request to the DO
+        h = Headers.new()
+        h.set("Content-Type", "application/json")
+        init = Object.new()
+        init.method = "POST"
+        init.headers = h
+        init.body = json.dumps(body)
+        do_request = JSRequest.new("https://do-internal/reply", init)
         do_response = await stub.fetch(do_request)
         return create_json_response(json.loads(await do_response.text()), do_response.status)
 
@@ -1023,15 +1072,15 @@ async def handle_conversation_history(request, env, triage_id):
     try:
         stub = await _get_do_stub(env, triage_id)
         # Forward the original request URL so the DO can read ?full=true
-        from js import Request as JSRequest
-
         do_url = "https://do-internal/history"
         # Preserve query params from the original request
         parsed_url = urllib.parse.urlparse(request.url)
         if parsed_url.query:
-            do_url += f"?{parsed_url.query}"
+            do_url = f"{do_url}?{parsed_url.query}"
 
-        do_request = JSRequest.new(do_url, {"method": "GET"})
+        init = Object.new()
+        init.method = "GET"
+        do_request = JSRequest.new(do_url, init)
         do_response = await stub.fetch(do_request)
         return create_json_response(json.loads(await do_response.text()), do_response.status)
 
@@ -1056,9 +1105,9 @@ async def handle_conversation_close(request, env, triage_id):
     """
     try:
         stub = await _get_do_stub(env, triage_id)
-        from js import Request as JSRequest
-
-        do_request = JSRequest.new("https://do-internal/archive", {"method": "DELETE"})
+        init = Object.new()
+        init.method = "DELETE"
+        do_request = JSRequest.new("https://do-internal/archive", init)
         do_response = await stub.fetch(do_request)
         return create_json_response(json.loads(await do_response.text()), do_response.status)
 

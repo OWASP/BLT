@@ -444,19 +444,29 @@ async def audit_completeness_check(event_id: str, db: Any) -> tuple[bool, list[s
 
     # 1. triage_summaries
     row = await db.prepare("SELECT id FROM triage_summaries WHERE triage_event_id = ? LIMIT 1").bind(event_id).first()
-    if row is None:
+    if not row or row is None or str(row) in ("null", "undefined"):
         missing.append("triage_summary")
 
     # 2. triage_rationale
     row = await db.prepare("SELECT id FROM triage_rationale WHERE triage_event_id = ? LIMIT 1").bind(event_id).first()
-    if row is None:
+    if not row or row is None or str(row) in ("null", "undefined"):
         missing.append("triage_rationale")
 
     # 3. redaction_audit — COUNT(*) via .first() returns the first (and only) result row
     row = (
         await db.prepare("SELECT COUNT(*) AS cnt FROM redaction_audit WHERE triage_event_id = ?").bind(event_id).first()
     )
-    count = row["cnt"] if (row and hasattr(row, "__getitem__")) else (row[0] if row else 0)
+    count = 0
+    if row:
+        try:
+            if isinstance(row, dict):
+                count = row.get("cnt", 0)
+            elif hasattr(row, "cnt"):
+                count = getattr(row, "cnt")
+            elif hasattr(row, "__getitem__"):
+                count = row["cnt"]
+        except BaseException:
+            count = getattr(row, "cnt", 0) if hasattr(row, "cnt") else 0
     if not count:
         missing.append("redaction_audit")
 

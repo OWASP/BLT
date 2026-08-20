@@ -117,17 +117,15 @@ async def store_triage_event(db, event_id: str, delivery_id: str, normalized: di
     try:
         query = """
             INSERT INTO triage_events (
-                event_id, delivery_id, event_type, action,
-                project_id, issue_iid, body_hash, status, created_at
+                id, delivery_id, gitlab_event, project_id, issue_iid, raw_payload_hash, status, created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'))
+            VALUES (?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))
         """
 
         params = [
             event_id,
             delivery_id,
-            normalized.get("event_type"),
-            normalized.get("action"),
+            normalized.get("event_type", "Issue Hook"),
             normalized.get("project_id"),
             normalized.get("issue_iid"),
             body_hash,
