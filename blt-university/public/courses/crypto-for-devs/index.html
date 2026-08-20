@@ -8,22 +8,23 @@
 <meta name="generator" content="Jekyll v4.4.1" />
 <meta property="og:title" content="Cryptography for Developers" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="Learn practical cryptography for software developers. Understand encryption algorithms, hashing, digital signatures, and how to implement cryptography securely in your applications." />
-<meta name="twitter:description" property="og:description" content="Learn practical cryptography for software developers. Understand encryption algorithms, hashing, digital signatures, and how to implement cryptography securely in your applications." />
+<meta name="description" content="Make safer engineering decisions about encoding, password storage, encryption, nonces, and signature verification." />
+<meta name="twitter:description" property="og:description" content="Make safer engineering decisions about encoding, password storage, encryption, nonces, and signature verification." />
 <link rel="canonical" href="https://university.owaspblt.org/courses/crypto-for-devs/" />
 <meta property="og:url" content="https://university.owaspblt.org/courses/crypto-for-devs/" />
 <meta property="og:site_name" content="BLT University" />
 <meta property="og:image" content="https://university.owaspblt.org/assets/images/courses/crypto-for-devs.svg" />
 <meta property="og:type" content="article" />
-<meta property="article:published_time" content="2026-08-17T23:02:19+00:00" />
-<meta property="article:modified_time" content="2026-08-17T23:02:19+00:00" />
+<meta property="article:published_time" content="2026-08-20T14:15:44+00:00" />
+<meta property="article:modified_time" content="2026-08-20T14:15:44+00:00" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://university.owaspblt.org/assets/images/courses/crypto-for-devs.svg" />
 <meta name="twitter:title" content="Cryptography for Developers" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-17T23:02:19+00:00","datePublished":"2026-08-17T23:02:19+00:00","description":"Learn practical cryptography for software developers. Understand encryption algorithms, hashing, digital signatures, and how to implement cryptography securely in your applications.","headline":"Cryptography for Developers","image":"https://university.owaspblt.org/assets/images/courses/crypto-for-devs.svg","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/courses/crypto-for-devs/"},"url":"https://university.owaspblt.org/courses/crypto-for-devs/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-20T14:15:44+00:00","datePublished":"2026-08-20T14:15:44+00:00","description":"Make safer engineering decisions about encoding, password storage, encryption, nonces, and signature verification.","headline":"Cryptography for Developers","image":"https://university.owaspblt.org/assets/images/courses/crypto-for-devs.svg","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/courses/crypto-for-devs/"},"url":"https://university.owaspblt.org/courses/crypto-for-devs/"}</script>
 <!-- End Jekyll SEO tag -->
 
+    <link rel="icon" type="image/png" href="/assets/images/blt-university-logo.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -200,8 +201,14 @@
       
       <a
         class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/progress/"
+        >Progress</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
         href="/dashboard/"
-        >Dashboard</a
+        >Security Trends</a
       >
       
       <a
@@ -257,7 +264,9 @@
     
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
     
-    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Dashboard</a>
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/progress/">Progress</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Security Trends</a>
     
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
     
@@ -284,311 +293,473 @@
 
     <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
 
-<article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
-    <section class="bg-bltDark text-white pt-36 pb-32 relative overflow-hidden">
-        <div class="absolute top-0 right-1/4 w-[500px] h-[500px] bg-red-500/10 rounded-full filter blur-[120px] pointer-events-none"></div>
-        <div class="absolute inset-0 z-0">
-            <img src="/assets/images/courses/crypto-for-devs.svg" class="w-full h-full object-cover opacity-10 mix-blend-overlay">
+<article data-course-root data-course-id="crypto-for-devs" class="min-h-screen bg-[#fafafa] text-gray-900 transition-colors dark:bg-gray-950 dark:text-white">
+  <section class="relative overflow-hidden bg-bltDark pb-24 pt-36 text-white">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(220,38,38,0.16),transparent_36%)]" aria-hidden="true"></div>
+    <div class="relative z-10 mx-auto max-w-7xl px-5 sm:px-6">
+      <div class="mb-5 flex flex-wrap items-center gap-3">
+        <span class="rounded-md bg-bltRed px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">Cryptography</span>
+        <span class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">Advanced</span>
+        <span class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">About 2 hours</span>
+      </div>
+      <h1 class="max-w-4xl font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">Cryptography for Developers</h1>
+      <p class="mt-5 max-w-3xl text-sm leading-7 text-gray-300 sm:text-base">Make safer engineering decisions about encoding, password storage, encryption, nonces, and signature verification.</p>
+      <div class="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm text-gray-300">
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-book-open-text text-bltRed" aria-hidden="true"></i>Short lessons</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-list-numbers text-bltRed" aria-hidden="true"></i>5 lessons</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-flask text-bltRed" aria-hidden="true"></i>Hands-on practice</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-chart-line-up text-bltRed" aria-hidden="true"></i>Local progress</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="relative z-20 mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-5 pb-24 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+    <div class="min-w-0 -mt-10 space-y-6">
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8" aria-labelledby="course-introduction-heading">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Start here</p>
+        <h2 id="course-introduction-heading" class="mt-2 text-2xl font-bold">Course introduction</h2>
+        <div class="prose mt-4 max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-bltRed dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300">
+          <p>Most application cryptography failures are selection, storage, or verification mistakes rather than broken mathematics. This course focuses on those engineering decisions with short evidence reviews rather than mathematical puzzles.</p>
+
+<p>The examples are intentionally language-neutral. In production, use a maintained library and a documented high-level construction instead of implementing a primitive yourself.</p>
+
+        </div>
+        
+        <div class="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
+          <h3 class="text-base font-bold">By the end of this course, you can</h3>
+          <ul class="mt-3 grid gap-2 text-sm leading-6 text-gray-600 dark:text-gray-300 sm:grid-cols-2">
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Select a cryptographic primitive based on the property the feature needs.</span></li>
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Recognize unsafe nonce reuse, key rotation, and unverified-token patterns.</span></li>
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Put verification, validation, and authorization in the right order.</span></li>
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Choose failure behavior that does not expose a useful oracle.</span></li>
+            
+          </ul>
+        </div>
+        
+      </section>
+
+      <section aria-labelledby="learning-path-heading">
+        <div class="mb-5">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Learn, then practice</p>
+          <h2 id="learning-path-heading" class="mt-2 text-2xl font-bold">Course lessons</h2>
+          <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Work through these 5 lessons in order. Each lesson introduces one concept, then gives you a practical activity or lab to apply it.</p>
         </div>
 
-        <div class="max-w-7xl mx-auto px-6 relative z-10">
-            <div class="flex items-center gap-3 mb-6">
-                <span class="px-2.5 py-0.5 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">Cryptography</span>
-                <span class="px-2.5 py-0.5 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">Intermediate</span>
-            </div>
-            <h1 class="font-display text-3xl md:text-5xl font-bold tracking-tight mb-8 leading-tight max-w-4xl">Cryptography for Developers</h1>
-            <div class="flex flex-wrap items-center gap-6 text-xs md:text-sm text-gray-400">
-                <div class="flex items-center gap-2">
-                    <i class="ph-bold ph-user-circle text-lg text-bltRed"></i>
-                    <strong class="text-white">Dr. Sarah Chen</strong>
+        <div class="space-y-5">
+          
+          <article data-course-lesson data-lesson-id="name-the-property" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">1</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Name the property you need</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <i class="ph-bold ph-clock text-lg text-bltRed"></i>
-                    <strong class="text-white">8 weeks</strong>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Encoding, hashing, encryption, and signing solve different problems even when their output looks similarly unreadable.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Encoding changes representation and is reversible without a secret. Hashing creates a fixed-size digest. Encryption protects confidentiality with a key. A signature lets someone verify origin and integrity.</p>
+
+<p>Start by naming the property. If the requirement is password verification, reversible encryption is the wrong primitive. Use a password-hashing function designed to be slow and salted.</p>
+
+              </div>
+
+              
+              <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between bg-gray-900 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                  <span>Unreadable is not encrypted</span>
+                  <span>Text</span>
                 </div>
-            </div>
-        </div>
-    </section>
+                <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>c2VjcmV0LXRva2Vu  →  secret-token
+</code></pre>
+                <p class="m-0 border-t border-gray-200 bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">Base64 is useful for transport. Anyone can decode it, so it provides no confidentiality.</p>
+              </div>
+              
 
-    <main class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-12 relative z-20 pb-24">
+              
 
-        <div class="lg:col-span-8 space-y-8">
-            <div class="bg-white dark:bg-gray-900 p-8 md:p-12 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
-                    <i class="ph-fill ph-info text-bltRed"></i> Course Overview
-                </h2>
-                <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h2:text-xl prose-a:text-bltRed prose-p:text-gray-600 dark:prose-p:text-gray-400 dark:prose-invert mb-8">
-                   <h2 id="course-overview">Course Overview</h2>
-
-<p>Cryptography is essential for securing modern applications, but it’s notoriously easy to implement incorrectly. This course teaches developers how to use cryptography effectively and securely.</p>
-
-<h3 id="what-youll-learn">What You’ll Learn</h3>
-
-<ul>
-  <li>Understand core cryptographic concepts and algorithms</li>
-  <li>Implement encryption, hashing, and signing in your code</li>
-  <li>Avoid common cryptographic pitfalls</li>
-  <li>Choose the right cryptographic tools for your needs</li>
-  <li>Build secure communication systems</li>
-</ul>
-
-<h3 id="hands-on-projects">Hands-On Projects</h3>
-
-<ul>
-  <li>Build an encrypted messaging system</li>
-  <li>Implement secure password storage</li>
-  <li>Create a certificate authority</li>
-  <li>Develop a secure API with proper authentication</li>
-</ul>
-
-<p>This course focuses on practical, real-world applications of cryptography with extensive coding exercises.</p>
-
-<p><a href="/enroll/?course=crypto-for-devs">Enroll now</a> to master cryptography for secure software development.</p>
-
+              
+              
+              <section data-course-challenge data-challenge-id="identify-password-control" data-challenge-type="artifact" data-challenge-answer="password hashing" data-challenge-clue="" data-challenge-success="Correct. A salted password-hashing function supports verification without reversible storage." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-identify-password-control">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-identify-password-control" class="mt-1 text-base font-bold">Review the password record</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">This record must support password verification without allowing recovery of the original password. Enter the missing primitive.</p>
+                  </div>
                 </div>
 
                 
-                <div class="mt-12 pt-10 border-t border-gray-50 dark:border-gray-800">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-10 flex items-center gap-3">
-                        <i class="ph-fill ph-map-trifold text-bltRed"></i> Detailed Syllabus
-                    </h2>
-                    <div class="space-y-4">
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    01
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Cryptography Fundamentals</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Core concepts and mathematical foundations</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Symmetric vs Asymmetric Encryption
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Block Ciphers and Stream Ciphers
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Cryptographic Hash Functions
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Random Number Generation
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    02
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Practical Encryption</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Implementing encryption in applications</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> AES Encryption
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> RSA and Elliptic Curve Cryptography
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Key Management Best Practices
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Common Implementation Mistakes
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    03
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Authentication & Integrity</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Ensuring data authenticity and integrity</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Message Authentication Codes (MAC)
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Digital Signatures
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Certificate Management
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Public Key Infrastructure (PKI)
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    04
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Secure Protocols</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Cryptographic protocols in practice</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> TLS/SSL Deep Dive
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Secure Communication Patterns
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Key Exchange Protocols
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Perfect Forward Secrecy
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
+                <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center justify-between bg-gray-900 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                    <span>Storage requirement</span>
+                    <span>Design note</span>
+                  </div>
+                  <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>Need: verify a submitted password
+Must not: recover the original password
+Per-record random salt: yes
+Primitive: ?
+</code></pre>
                 </div>
                 
 
                 
+                <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <label class="sr-only" for="challenge-answer-identify-password-control">Challenge answer</label>
+                  <input id="challenge-answer-identify-password-control" data-challenge-input type="text" autocomplete="off" class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" placeholder="Enter what you found">
+                  <button type="button" data-challenge-submit class="rounded-xl bg-bltRed px-4 py-2.5 text-sm font-bold text-white transition hover:bg-bltRedHover">Check answer</button>
+                </div>
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
             </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="uniqueness-is-part-of-the-key" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">2</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Uniqueness is part of the design</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Modern encryption modes depend on nonces or initialization values that must follow precise reuse rules.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Developers tend to protect the key and treat the nonce as decoration. In several common modes, reusing a nonce with the same key can reveal relationships between messages or break authentication.</p>
+
+<p>Let a maintained cryptographic library generate the nonce. Store it beside the ciphertext, and design rotation so keys and encrypted records remain traceable.</p>
+
+              </div>
+
+              
+
+              
+
+              
+              
+              <section data-course-challenge data-challenge-id="find-reused-nonce" data-challenge-type="artifact" data-challenge-answer="evt-103" data-challenge-clue="" data-challenge-success="Event 103 repeats the key and nonce pair from event 101, so the operation must be rejected." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-find-reused-nonce">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-find-reused-nonce" class="mt-1 text-base font-bold">Find the unsafe event</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Compare the mock encryption log. Enter the event ID that reused a nonce with the same key.</p>
+                  </div>
+                </div>
+
+                
+                <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center justify-between bg-gray-900 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                    <span>Encryption log</span>
+                    <span>Log</span>
+                  </div>
+                  <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>evt-101  key=k7  nonce=8af2
+evt-102  key=k7  nonce=c410
+evt-103  key=k7  nonce=8af2
+</code></pre>
+                </div>
+                
+
+                
+                <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <label class="sr-only" for="challenge-answer-find-reused-nonce">Challenge answer</label>
+                  <input id="challenge-answer-find-reused-nonce" data-challenge-input type="text" autocomplete="off" class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" placeholder="Enter what you found">
+                  <button type="button" data-challenge-submit class="rounded-xl bg-bltRed px-4 py-2.5 text-sm font-bold text-white transition hover:bg-bltRedHover">Check answer</button>
+                </div>
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
+            </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="verify-before-use" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">3</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Verify before use</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Encrypted or signed data is safe only when verification happens before the application acts on its contents.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Authenticated encryption produces ciphertext and an authentication tag. If tag verification fails, treat the whole message as untrusted and return one consistent error.</p>
+
+<p>The same order matters for tokens and signed payloads. Pin the accepted algorithm and key source, verify the signature, validate expiry and audience, then use claims for authorization.</p>
+
+              </div>
+
+              
+              <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between bg-gray-900 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                  <span>Safe processing order</span>
+                  <span>Pseudocode</span>
+                </div>
+                <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>payload = verify_and_decrypt(message, expected_key)
+if payload is invalid: reject
+if payload.audience != this_service: reject
+process(payload)
+</code></pre>
+                <p class="m-0 border-t border-gray-200 bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">Parsing unverified claims for a security decision puts trust before proof.</p>
+              </div>
+              
+
+              
+              <div class="flex gap-3 rounded-2xl border border-red-100 bg-red-50/60 p-4 text-sm leading-6 text-gray-700 dark:border-red-900/30 dark:bg-red-900/10 dark:text-gray-300">
+                <i class="ph-bold ph-eye mt-0.5 shrink-0 text-lg text-bltRed" aria-hidden="true"></i>
+                <p class="m-0">Before moving on, find the exact line in your own application where verification finishes and business logic begins.</p>
+              </div>
+              
+
+              
+              
+              <section data-course-challenge data-challenge-id="verification-order" data-challenge-type="sequence" data-challenge-answer="verify|validate|authorize" data-challenge-clue="" data-challenge-success="Correct. The service proves integrity, validates context, and only then makes an authorization decision." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-verification-order">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-verification-order" class="mt-1 text-base font-bold">Rebuild the trust boundary</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Put the token-processing steps in the only order that avoids using untrusted claims.</p>
+                  </div>
+                </div>
+
+                
+                <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                  
+                  <button type="button" data-sequence-option="authorize" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                    <span class="mr-2 font-mono text-xs font-bold text-bltRed" data-sequence-position></span>Use the claims for authorization.
+                  </button>
+                  
+                  <button type="button" data-sequence-option="validate" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                    <span class="mr-2 font-mono text-xs font-bold text-bltRed" data-sequence-position></span>Validate expiry and audience.
+                  </button>
+                  
+                  <button type="button" data-sequence-option="verify" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                    <span class="mr-2 font-mono text-xs font-bold text-bltRed" data-sequence-position></span>Verify the signature with the expected key and algorithm.
+                  </button>
+                  
+                </div>
+                <div class="mt-3 flex items-center justify-between gap-3">
+                  <p data-sequence-summary class="text-xs text-gray-500 dark:text-gray-400">Select the steps in the order they should happen.</p>
+                  <button type="button" data-sequence-reset class="text-xs font-bold text-bltRed hover:underline">Reset order</button>
+                </div>
+                
+
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
+            </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="rotate-with-key-identities" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">4</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Rotate with key identities</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Rotation works when every ciphertext or signature can be connected to the key version that created it.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Give each key version a stable identifier and store that identifier beside the protected data. During rotation, write with the new key while retaining the old key only for the reads that still require it.</p>
+
+<p>Removing the old key before data is migrated creates an outage. Keeping it active for new writes means rotation never really finishes.</p>
+
+              </div>
+
+              
+
+              
+
+              
+              
+              <section data-course-challenge data-challenge-id="select-decryption-key" data-challenge-type="artifact" data-challenge-answer="key-v2" data-challenge-clue="" data-challenge-success="Correct. The record identifies key-v2, so the reader does not have to guess from the creation date." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-select-decryption-key">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-select-decryption-key" class="mt-1 text-base font-bold">Select the right key version</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">The record was created before rotation and carries its key identifier. Enter the key the service must use to decrypt it.</p>
+                  </div>
+                </div>
+
+                
+                <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center justify-between bg-gray-900 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                    <span>Encrypted record</span>
+                    <span>JSON</span>
+                  </div>
+                  <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>{
+  &quot;created&quot;: &quot;2026-06-04T10:16:00Z&quot;,
+  &quot;key_id&quot;: &quot;key-v2&quot;,
+  &quot;ciphertext&quot;: &quot;b7a91f...&quot;
+}
+</code></pre>
+                </div>
+                
+
+                
+                <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <label class="sr-only" for="challenge-answer-select-decryption-key">Challenge answer</label>
+                  <input id="challenge-answer-select-decryption-key" data-challenge-input type="text" autocomplete="off" class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" placeholder="Enter what you found">
+                  <button type="button" data-challenge-submit class="rounded-xl bg-bltRed px-4 py-2.5 text-sm font-bold text-white transition hover:bg-bltRedHover">Check answer</button>
+                </div>
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
+            </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="do-not-build-an-oracle" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">5</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Do not build an oracle</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Detailed cryptographic errors can reveal which part of a protected message was valid.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Return one consistent failure to the caller when signature, padding, tag, or format validation fails. Keep the detailed reason in restricted internal logs.</p>
+
+<p>Also keep the rejection path reasonably consistent. An attacker should not be able to distinguish a valid signature from a valid account by comparing messages or timing.</p>
+
+              </div>
+
+              
+
+              
+
+              
+              
+              <section data-course-challenge data-challenge-id="uniform-failure" data-challenge-type="choice" data-challenge-answer="uniform" data-challenge-clue="" data-challenge-success="Correct. The caller receives one failure while operators retain the diagnostic detail internally." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-uniform-failure">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-uniform-failure" class="mt-1 text-base font-bold">Choose the safe failure</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">A token fails verification. Which response gives the caller the least useful oracle?</p>
+                  </div>
+                </div>
+
+                
+                <div class="mt-4 grid gap-2">
+                  
+                  <button type="button" data-challenge-option="signature" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">Return Signature valid, but account does not exist.</button>
+                  
+                  <button type="button" data-challenge-option="algorithm" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">Return Unsupported algorithm HS256 for this account.</button>
+                  
+                  <button type="button" data-challenge-option="uniform" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">Return Invalid token and log the internal reason securely.</button>
+                  
+                </div>
+                
+
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
+            </div>
+          </article>
+          
         </div>
+      </section>
 
-        <aside class="lg:col-span-4 space-y-6">
-
+      
+      <section data-next-course class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900" aria-labelledby="next-course-heading">
+        <div class="grid gap-6 p-6 sm:p-8 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Continue learning</p>
             
+            <h2 id="next-course-heading" class="mt-2 text-2xl font-bold">Choose your next path</h2>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-400">You have reached the end of this path. Pick another topic from the course catalog when you are ready.</p>
             
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800">
-                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <i class="ph-bold ph-chalkboard-teacher text-bltRed"></i> Instructor
-                </h3>
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full border-2 border-gray-100 dark:border-gray-800 overflow-hidden shrink-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                        
-                        <i class="ph-bold ph-user text-2xl text-gray-400"></i>
-                        
-                    </div>
-                    <div>
-                        
-                        <a href="/instructors/sarah-chen/" class="font-bold text-gray-900 dark:text-white hover:text-bltRed transition-colors">Dr. Sarah Chen</a>
-                        
-                        
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Cryptography & Web Security Expert</p>
-                        
-                    </div>
-                </div>
-            </div>
-            
+          </div>
+          
+          <a href="/courses/" class="inline-flex items-center justify-center gap-2 rounded-xl bg-bltRed px-5 py-3 text-sm font-bold text-white transition hover:bg-bltRedHover">Browse courses <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+          
+        </div>
+      </section>
+    </div>
 
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1.5 bg-bltRed"></div>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Enroll Now</h3>
+    <aside class="-mt-10 space-y-5 lg:sticky lg:top-28">
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900" aria-labelledby="course-progress-heading">
+        <div class="flex items-center justify-between gap-3">
+          <h2 id="course-progress-heading" class="text-lg font-bold">Course progress</h2>
+          <span data-course-progress-percent class="text-sm font-bold text-bltRed">0%</span>
+        </div>
+        <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+          <div data-course-progress-bar class="h-full w-0 rounded-full bg-bltRed transition-all duration-300"></div>
+        </div>
+        <p data-course-progress-count class="mt-3 text-sm text-gray-500 dark:text-gray-400">0 steps completed</p>
+        <div data-course-complete class="mt-5 hidden rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-900/40 dark:bg-green-900/15 dark:text-green-300">
+          <p class="font-bold">Course complete</p>
+        </div>
+        <a href="/progress/" class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-bltRed hover:underline">View all progress <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+      </section>
 
-                <div class="mb-8 space-y-4">
-                    <div class="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-2xl border border-gray-100 dark:border-gray-700">
-                        <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Prerequisites</h4>
-                        <p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
-                            Programming experience in any language, basic understanding of mathematics
-                        </p>
-                    </div>
-                </div>
-
-                <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-bltRed text-white text-sm font-bold rounded-2xl shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover hover:-translate-y-1 transition-all">
-                    <i class="ph-bold ph-gitlab-logo text-xl"></i>
-                    Enroll via GitLab
-                </a>
-
-                <p class="mt-4 text-[10px] text-center text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest">
-                    <i class="ph-bold ph-broadcast text-bltRed"></i> Enrollment is Open
-                </p>
-            </div>
-
-            
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800">
-                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <i class="ph-bold ph-folder-open text-bltRed"></i> Course Resources
-                </h3>
-                <ul class="space-y-3">
-                    
-                    <li>
-                        <a href="https://www.youtube.com/watch?v=NuyzuNBFWxQ" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group">
-                            <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
-                                <i class="ph-bold ph-file-text text-lg text-gray-400 dark:text-gray-500 group-hover:text-bltRed"></i>
-                            </div>
-                            <span class="text-xs font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white">Introduction to Cryptography</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="https://www.schneier.com/books/applied-cryptography/" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group">
-                            <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
-                                <i class="ph-bold ph-file-text text-lg text-gray-400 dark:text-gray-500 group-hover:text-bltRed"></i>
-                            </div>
-                            <span class="text-xs font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white">Applied Cryptography Book</span>
-                        </a>
-                    </li>
-                    
-                </ul>
-            </div>
-            
-
-            <div class="bg-gray-900 dark:bg-gray-800/80 p-8 rounded-[2.5rem] text-white relative overflow-hidden group border border-transparent dark:border-gray-700">
-                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
-                    <i class="ph-fill ph-seal-check text-8xl"></i>
-                </div>
-                <h4 class="font-bold text-sm uppercase tracking-widest text-bltRed mb-2">Verification</h4>
-                <h3 class="text-lg font-bold mb-4 relative z-10 leading-tight">Industry Verified Certificate</h3>
-                <p class="text-gray-400 text-xs leading-relaxed mb-6 relative z-10">
-                    Earn a completion certificate verified through Git commit signatures on our public chain.
-                </p>
-                <a href="/about/" class="text-xs font-bold text-white border-b border-white/20 hover:border-bltRed transition-colors">Learn about verification →</a>
-            </div>
-        </aside>
-    </main>
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900">
+        <h2 class="text-base font-bold">Before you begin</h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-400">General programming experience; no advanced mathematics required</p>
+        <div class="mt-5 flex items-center gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
+          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-bltRed dark:bg-red-900/20"><i class="ph-bold ph-user-circle" aria-hidden="true"></i></span>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Created by</p>
+            <p class="mt-0.5 text-sm font-bold">OWASP BLT Community</p>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
 </article>
+
+<script src="/assets/js/course-state.js?v=1787235344"></script>
 
 
     <div class="px-4">
@@ -611,10 +782,11 @@
       <p>Docs</p>
       <a href="/courses/">Courses</a>
       <a href="/labs/">Labs</a>
-      <a href="/dashboard/">Dashboard</a>
+      <a href="/dashboard/">Security Trends</a>
     </div>
     <div>
       <p>Learn</p>
+      <a href="/progress/">Progress</a>
       <a href="/enroll/">Enroll</a>
       <a href="/instructors/">Instructors</a>
       <a href="/request/">Request Course</a>
@@ -654,7 +826,8 @@
 
     </div>
 
-    <script src="/assets/js/recommendations.js?v=1787007739"></script>
-    <script src="/assets/js/main.js?v=1787007739"></script>
+    <script src="/assets/js/learning-state.js?v=1787235344"></script>
+    <script src="/assets/js/recommendations.js?v=1787235344"></script>
+    <script src="/assets/js/main.js?v=1787235344"></script>
 </body>
 </html>

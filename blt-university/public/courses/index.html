@@ -8,8 +8,8 @@
 <meta name="generator" content="Jekyll v4.4.1" />
 <meta property="og:title" content="Courses" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="A cybersecurity-focused online university powered by GitHub Pages and GitLab Pages. Learn, teach, and collaborate on security courses through open-source education." />
-<meta name="twitter:description" property="og:description" content="A cybersecurity-focused online university powered by GitHub Pages and GitLab Pages. Learn, teach, and collaborate on security courses through open-source education." />
+<meta name="description" content="Open-source cybersecurity courses and browser labs maintained by the OWASP BLT community." />
+<meta name="twitter:description" property="og:description" content="Open-source cybersecurity courses and browser labs maintained by the OWASP BLT community." />
 <link rel="canonical" href="https://university.owaspblt.org/courses/" />
 <meta property="og:url" content="https://university.owaspblt.org/courses/" />
 <meta property="og:site_name" content="BLT University" />
@@ -17,9 +17,10 @@
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="Courses" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"A cybersecurity-focused online university powered by GitHub Pages and GitLab Pages. Learn, teach, and collaborate on security courses through open-source education.","headline":"Courses","url":"https://university.owaspblt.org/courses/"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"Open-source cybersecurity courses and browser labs maintained by the OWASP BLT community.","headline":"Courses","url":"https://university.owaspblt.org/courses/"}</script>
 <!-- End Jekyll SEO tag -->
 
+    <link rel="icon" type="image/png" href="/assets/images/blt-university-logo.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -196,8 +197,14 @@
       
       <a
         class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/progress/"
+        >Progress</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
         href="/dashboard/"
-        >Dashboard</a
+        >Security Trends</a
       >
       
       <a
@@ -253,7 +260,9 @@
     
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
     
-    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Dashboard</a>
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/progress/">Progress</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Security Trends</a>
     
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
     
@@ -308,10 +317,6 @@
         
         <option value="cyber-hygiene">Cyber Hygiene</option>
         
-        <option value="network-security">Network Security</option>
-        
-        <option value="secure-coding">Secure Coding</option>
-        
         <option value="web-security">Web Security</option>
         
       </select>
@@ -326,7 +331,7 @@
 
   <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" id="courses-grid">
     
-    <article class="course-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="penetration-testing" data-level="advanced" data-search="advanced penetration testing master advanced penetration testing techniques used by professional ethical hackers. learn sophisticated attack vectors, privilege escalation, post-exploitation, and reporting. marcus rodriguez both">
+    <article class="course-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="penetration-testing" data-level="advanced" data-search="advanced penetration testing practice evidence-led reconnaissance, attack-path thinking, and clear reporting through a compact investigation. owasp blt community both">
       <a href="/courses/advanced-pentesting/" class="block h-48 overflow-hidden bg-gray-900">
         <img src="/assets/images/courses/advanced-pentesting.svg" alt="Advanced Penetration Testing" class="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105">
       </a>
@@ -338,55 +343,55 @@
           
         </div>
         <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/courses/advanced-pentesting/">Advanced Penetration Testing</a></h2>
-        <p class="mt-3 text-sm leading-6 text-gray-600">Master advanced penetration testing techniques used by professional ethical hackers. Learn sophisticated attack vecto...</p>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Practice evidence-led reconnaissance, attack-path thinking, and clear reporting through a compact investigation.</p>
         <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
-          <span>Marcus Rodriguez</span>
-          <span>12 weeks</span>
+          <span>OWASP BLT Community</span>
+          <span>About 2 hours</span>
         </div>
       </div>
     </article>
     
-    <article class="course-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="cloud-security" data-level="intermediate" data-search="cloud security essentials master cloud security for aws, azure, and gcp. learn to secure cloud infrastructure, implement iam, configure security groups, and monitor cloud environments. marcus rodriguez both">
+    <article class="course-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="cloud-security" data-level="advanced" data-search="cloud security essentials trace identity, public exposure, and audit evidence through an approachable cloud incident scenario. owasp blt community both">
       <a href="/courses/cloud-security-essentials/" class="block h-48 overflow-hidden bg-gray-900">
         <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&q=80" alt="Cloud Security Essentials" class="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105">
       </a>
       <div class="p-5">
         <div class="mb-4 flex flex-wrap gap-2">
           <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Cloud Security</span>
-          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">Intermediate</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">Advanced</span>
           
           
         </div>
         <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/courses/cloud-security-essentials/">Cloud Security Essentials</a></h2>
-        <p class="mt-3 text-sm leading-6 text-gray-600">Master cloud security for AWS, Azure, and GCP. Learn to secure cloud infrastructure, implement IAM, configure securit...</p>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Trace identity, public exposure, and audit evidence through an approachable cloud incident scenario.</p>
         <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
-          <span>Marcus Rodriguez</span>
-          <span>6 weeks</span>
+          <span>OWASP BLT Community</span>
+          <span>About 2 hours</span>
         </div>
       </div>
     </article>
     
-    <article class="course-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="cryptography" data-level="intermediate" data-search="cryptography for developers learn practical cryptography for software developers. understand encryption algorithms, hashing, digital signatures, and how to implement cryptography securely in your applications. dr. sarah chen both">
+    <article class="course-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="cryptography" data-level="advanced" data-search="cryptography for developers make safer engineering decisions about encoding, password storage, encryption, nonces, and signature verification. owasp blt community both">
       <a href="/courses/crypto-for-devs/" class="block h-48 overflow-hidden bg-gray-900">
         <img src="/assets/images/courses/crypto-for-devs.svg" alt="Cryptography for Developers" class="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105">
       </a>
       <div class="p-5">
         <div class="mb-4 flex flex-wrap gap-2">
           <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Cryptography</span>
-          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">Intermediate</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">Advanced</span>
           
           
         </div>
         <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/courses/crypto-for-devs/">Cryptography for Developers</a></h2>
-        <p class="mt-3 text-sm leading-6 text-gray-600">Learn practical cryptography for software developers. Understand encryption algorithms, hashing, digital signatures, ...</p>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Make safer engineering decisions about encoding, password storage, encryption, nonces, and signature verification.</p>
         <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
-          <span>Dr. Sarah Chen</span>
-          <span>8 weeks</span>
+          <span>OWASP BLT Community</span>
+          <span>About 2 hours</span>
         </div>
       </div>
     </article>
     
-    <article class="course-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="cyber-hygiene" data-level="beginner" data-search="cybersecurity foundations build practical security habits through short, scenario-based lessons on phishing, passwords, mfa, safe browsing, and everyday data protection. owasp blt community hygiene">
+    <article class="course-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="cyber-hygiene" data-level="beginner" data-search="cybersecurity foundations build safer online habits through three short lessons, realistic examples, and focused practice labs. owasp blt community hygiene">
       <a href="/courses/cybersecurity-foundations/" class="block h-48 overflow-hidden bg-gray-900">
         <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&q=80" alt="Cybersecurity Foundations" class="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105">
       </a>
@@ -398,75 +403,15 @@
           
         </div>
         <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/courses/cybersecurity-foundations/">Cybersecurity Foundations</a></h2>
-        <p class="mt-3 text-sm leading-6 text-gray-600">Build practical security habits through short, scenario-based lessons on phishing, passwords, MFA, safe browsing, and...</p>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Build safer online habits through three short lessons, realistic examples, and focused practice labs.</p>
         <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
           <span>OWASP BLT Community</span>
-          <span>4 weeks</span>
+          <span>60 to 90 minutes</span>
         </div>
       </div>
     </article>
     
-    <article class="course-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="network-security" data-level="beginner" data-search="network security fundamentals learn the foundations of network security including firewalls, vpns, intrusion detection systems, and secure network design. essential knowledge for any security professional. marcus rodriguez both">
-      <a href="/courses/network-security-fundamentals/" class="block h-48 overflow-hidden bg-gray-900">
-        <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&q=80" alt="Network Security Fundamentals" class="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105">
-      </a>
-      <div class="p-5">
-        <div class="mb-4 flex flex-wrap gap-2">
-          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Network Security</span>
-          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">Beginner</span>
-          
-          
-        </div>
-        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/courses/network-security-fundamentals/">Network Security Fundamentals</a></h2>
-        <p class="mt-3 text-sm leading-6 text-gray-600">Learn the foundations of network security including firewalls, VPNs, intrusion detection systems, and secure network ...</p>
-        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
-          <span>Marcus Rodriguez</span>
-          <span>8 weeks</span>
-        </div>
-      </div>
-    </article>
-    
-    <article class="course-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="secure-coding" data-level="intermediate" data-search="professional application security strengthen secure development skills through the identify, explain, fix workflow across common web application vulnerabilities. dr. sarah chen professional">
-      <a href="/courses/professional-application-security/" class="block h-48 overflow-hidden bg-gray-900">
-        <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&q=80" alt="Professional Application Security" class="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105">
-      </a>
-      <div class="p-5">
-        <div class="mb-4 flex flex-wrap gap-2">
-          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Secure Coding</span>
-          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">Intermediate</span>
-          
-          <span class="rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">Professional</span>
-        </div>
-        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/courses/professional-application-security/">Professional Application Security</a></h2>
-        <p class="mt-3 text-sm leading-6 text-gray-600">Strengthen secure development skills through the Identify, Explain, Fix workflow across common web application vulner...</p>
-        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
-          <span>Dr. Sarah Chen</span>
-          <span>6 weeks</span>
-        </div>
-      </div>
-    </article>
-    
-    <article class="course-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="secure-coding" data-level="intermediate" data-search="secure coding practices learn to write secure code from the ground up. covers common vulnerabilities, secure design patterns, and defensive programming techniques across multiple languages. dr. sarah chen both">
-      <a href="/courses/secure-coding-practices/" class="block h-48 overflow-hidden bg-gray-900">
-        <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&q=80" alt="Secure Coding Practices" class="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105">
-      </a>
-      <div class="p-5">
-        <div class="mb-4 flex flex-wrap gap-2">
-          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Secure Coding</span>
-          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">Intermediate</span>
-          
-          
-        </div>
-        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/courses/secure-coding-practices/">Secure Coding Practices</a></h2>
-        <p class="mt-3 text-sm leading-6 text-gray-600">Learn to write secure code from the ground up. Covers common vulnerabilities, secure design patterns, and defensive p...</p>
-        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
-          <span>Dr. Sarah Chen</span>
-          <span>6 weeks</span>
-        </div>
-      </div>
-    </article>
-    
-    <article class="course-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="web-security" data-level="beginner" data-search="introduction to web application security learn the fundamentals of web application security, including common vulnerabilities, attack vectors, and defensive techniques. perfect for developers wanting to build secure web applications. dr. sarah chen both">
+    <article class="course-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="web-security" data-level="beginner" data-search="introduction to web application security learn where web applications lose trust, then practice each idea in the existing hands-on security labs. owasp blt community professional">
       <a href="/courses/web-security-intro/" class="block h-48 overflow-hidden bg-gray-900">
         <img src="/assets/images/courses/web-security.svg" alt="Introduction to Web Application Security" class="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105">
       </a>
@@ -475,13 +420,13 @@
           <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Web Security</span>
           <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">Beginner</span>
           
-          
+          <span class="rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">Professional</span>
         </div>
         <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/courses/web-security-intro/">Introduction to Web Application Security</a></h2>
-        <p class="mt-3 text-sm leading-6 text-gray-600">Learn the fundamentals of web application security, including common vulnerabilities, attack vectors, and defensive t...</p>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Learn where web applications lose trust, then practice each idea in the existing hands-on security labs.</p>
         <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
-          <span>Dr. Sarah Chen</span>
-          <span>6 weeks</span>
+          <span>OWASP BLT Community</span>
+          <span>2 to 3 hours</span>
         </div>
       </div>
     </article>
@@ -516,10 +461,11 @@
       <p>Docs</p>
       <a href="/courses/">Courses</a>
       <a href="/labs/">Labs</a>
-      <a href="/dashboard/">Dashboard</a>
+      <a href="/dashboard/">Security Trends</a>
     </div>
     <div>
       <p>Learn</p>
+      <a href="/progress/">Progress</a>
       <a href="/enroll/">Enroll</a>
       <a href="/instructors/">Instructors</a>
       <a href="/request/">Request Course</a>
@@ -559,7 +505,8 @@
 
     </div>
 
-    <script src="/assets/js/recommendations.js?v=1787007739"></script>
-    <script src="/assets/js/main.js?v=1787007739"></script>
+    <script src="/assets/js/learning-state.js?v=1787235344"></script>
+    <script src="/assets/js/recommendations.js?v=1787235344"></script>
+    <script src="/assets/js/main.js?v=1787235344"></script>
 </body>
 </html>

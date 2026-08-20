@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Begin Jekyll SEO tag v2.9.0 -->
-<title>Vulnerability Dashboard | BLT University</title>
+<title>Security Trends | BLT University</title>
 <meta name="generator" content="Jekyll v4.4.1" />
-<meta property="og:title" content="Vulnerability Dashboard" />
+<meta property="og:title" content="Security Trends" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="Explore recent CVEs by OWASP category, known exploitation, severity, and relevant BLT University labs." />
 <meta name="twitter:description" property="og:description" content="Explore recent CVEs by OWASP category, known exploitation, severity, and relevant BLT University labs." />
@@ -15,11 +15,12 @@
 <meta property="og:site_name" content="BLT University" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Vulnerability Dashboard" />
+<meta name="twitter:title" content="Security Trends" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"Explore recent CVEs by OWASP category, known exploitation, severity, and relevant BLT University labs.","headline":"Vulnerability Dashboard","url":"https://university.owaspblt.org/dashboard/"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"Explore recent CVEs by OWASP category, known exploitation, severity, and relevant BLT University labs.","headline":"Security Trends","url":"https://university.owaspblt.org/dashboard/"}</script>
 <!-- End Jekyll SEO tag -->
 
+    <link rel="icon" type="image/png" href="/assets/images/blt-university-logo.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -196,8 +197,14 @@
       
       <a
         class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/progress/"
+        >Progress</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
         href="/dashboard/"
-        >Dashboard</a
+        >Security Trends</a
       >
       
       <a
@@ -253,7 +260,9 @@
     
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
     
-    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Dashboard</a>
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/progress/">Progress</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Security Trends</a>
     
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
     
@@ -489,7 +498,7 @@
         </div>
         <label class="w-full md:w-64">
           <span class="sr-only">Filter OWASP categories</span>
-          <select class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-category-filter>
+          <select id="dashboard-category-filter" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-category-filter>
             <option value="all">All OWASP categories</option>
             <option value="A01">A01 · Broken Access Control</option><option value="A02">A02 · Cryptographic Failures</option><option value="A03">A03 · Injection</option><option value="A04">A04 · Insecure Design</option><option value="A05">A05 · Security Misconfiguration</option><option value="A06">A06 · Vulnerable and Outdated Components</option><option value="A07">A07 · Identification and Authentication Failures</option><option value="A08">A08 · Software and Data Integrity Failures</option><option value="A09">A09 · Security Logging and Monitoring Failures</option><option value="A10">A10 · Server-Side Request Forgery</option>
           </select>
@@ -1085,24 +1094,24 @@
           <label class="relative">
             <span class="sr-only">Search vulnerabilities</span>
             <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400"></i>
-            <input class="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-100" type="search" placeholder="Search CVE, CWE, product, or description" data-cve-search>
+            <input id="dashboard-cve-search" class="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-100" type="search" placeholder="Search CVE, CWE, product, or description" aria-label="Search CVE, CWE, product, or description" data-cve-search>
           </label>
           <label>
             <span class="sr-only">Filter by category</span>
-            <select class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-cve-category>
+            <select id="dashboard-cve-category" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-cve-category>
               <option value="all">All categories</option>
               <option value="A01">A01 · Broken Access Control</option><option value="A02">A02 · Cryptographic Failures</option><option value="A03">A03 · Injection</option><option value="A04">A04 · Insecure Design</option><option value="A05">A05 · Security Misconfiguration</option><option value="A06">A06 · Vulnerable and Outdated Components</option><option value="A07">A07 · Identification and Authentication Failures</option><option value="A08">A08 · Software and Data Integrity Failures</option><option value="A09">A09 · Security Logging and Monitoring Failures</option><option value="A10">A10 · Server-Side Request Forgery</option>
             </select>
           </label>
           <label>
             <span class="sr-only">Filter by severity</span>
-            <select class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-cve-severity>
+            <select id="dashboard-cve-severity" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" data-cve-severity>
               <option value="all">All severities</option>
               <option value="CRITICAL">Critical</option><option value="HIGH">High</option><option value="MEDIUM">Medium</option><option value="LOW">Low</option><option value="UNKNOWN">Unknown</option>
             </select>
           </label>
           <label class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700">
-            <input class="h-4 w-4 accent-red-600" type="checkbox" data-cve-kev>
+            <input id="dashboard-cve-kev" class="h-4 w-4 accent-red-600" type="checkbox" data-cve-kev>
             KEV only
           </label>
         </div>
@@ -2616,7 +2625,7 @@ cisco recommends that customers upgrade to the fixed software that is documented
 
 <script id="dashboard-chart-data" type="application/json">{"categories":[{"id":"A01","name":"Broken Access Control","count":6156,"known_exploited":9,"monthly_counts":[{"month":"2026-05","count":567,"complete":false},{"month":"2026-06","count":1702,"complete":true},{"month":"2026-07","count":2648,"complete":true},{"month":"2026-08","count":1239,"complete":false}],"labs":[{"slug":"insecure_direct_object_reference","title":"Insecure Direct Object Reference","reason":"Practice object-level authorization checks."},{"slug":"cross_site_request_forgery","title":"Cross-Site Request Forgery","reason":"Understand authorization of state-changing requests."},{"slug":"open_redirect","title":"Open Redirect","reason":"Learn to constrain user-controlled navigation."}]},{"id":"A02","name":"Cryptographic Failures","count":456,"known_exploited":1,"monthly_counts":[{"month":"2026-05","count":36,"complete":false},{"month":"2026-06","count":156,"complete":true},{"month":"2026-07","count":143,"complete":true},{"month":"2026-08","count":121,"complete":false}],"labs":[{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Practice protecting secrets and sensitive information."}]},{"id":"A03","name":"Injection","count":5745,"known_exploited":13,"monthly_counts":[{"month":"2026-05","count":767,"complete":false},{"month":"2026-06","count":1979,"complete":true},{"month":"2026-07","count":1931,"complete":true},{"month":"2026-08","count":1068,"complete":false}],"labs":[{"slug":"sql_injection","title":"SQL Injection","reason":"Learn parameterized queries and database input handling."},{"slug":"cross_site_scripting_xss","title":"Cross-Site Scripting","reason":"Practice safe output handling across browser contexts."},{"slug":"command_injection","title":"Command Injection","reason":"Learn to keep operating-system commands and input separate."}]},{"id":"A04","name":"Insecure Design","count":1528,"known_exploited":6,"monthly_counts":[{"month":"2026-05","count":144,"complete":false},{"month":"2026-06","count":546,"complete":true},{"month":"2026-07","count":577,"complete":true},{"month":"2026-08","count":261,"complete":false}],"labs":[{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Explore security controls for a high-risk application feature."},{"slug":"broken_authentication","title":"Broken Authentication","reason":"Review authentication design and abuse cases."}]},{"id":"A05","name":"Security Misconfiguration","count":143,"known_exploited":0,"monthly_counts":[{"month":"2026-05","count":17,"complete":false},{"month":"2026-06","count":42,"complete":true},{"month":"2026-07","count":51,"complete":true},{"month":"2026-08","count":33,"complete":false}],"labs":[{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Identify unsafe diagnostics and exposed configuration."},{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Practice hardening upload configuration and storage."}]},{"id":"A06","name":"Vulnerable and Outdated Components","count":37,"known_exploited":0,"monthly_counts":[{"month":"2026-05","count":2,"complete":false},{"month":"2026-06","count":12,"complete":true},{"month":"2026-07","count":11,"complete":true},{"month":"2026-08","count":12,"complete":false}],"labs":[]},{"id":"A07","name":"Identification and Authentication Failures","count":1832,"known_exploited":8,"monthly_counts":[{"month":"2026-05","count":187,"complete":false},{"month":"2026-06","count":524,"complete":true},{"month":"2026-07","count":752,"complete":true},{"month":"2026-08","count":369,"complete":false}],"labs":[{"slug":"broken_authentication","title":"Broken Authentication","reason":"Practice credential, session, recovery, and token defenses."}]},{"id":"A08","name":"Software and Data Integrity Failures","count":689,"known_exploited":5,"monthly_counts":[{"month":"2026-05","count":47,"complete":false},{"month":"2026-06","count":269,"complete":true},{"month":"2026-07","count":213,"complete":true},{"month":"2026-08","count":160,"complete":false}],"labs":[{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Learn to validate provenance, type, and content before trust."}]},{"id":"A09","name":"Security Logging and Monitoring Failures","count":75,"known_exploited":0,"monthly_counts":[{"month":"2026-05","count":13,"complete":false},{"month":"2026-06","count":25,"complete":true},{"month":"2026-07","count":21,"complete":true},{"month":"2026-08","count":16,"complete":false}],"labs":[{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Learn what must never be exposed through logs and diagnostics."}]},{"id":"A10","name":"Server-Side Request Forgery","count":569,"known_exploited":2,"monthly_counts":[{"month":"2026-05","count":63,"complete":false},{"month":"2026-06","count":134,"complete":true},{"month":"2026-07","count":229,"complete":true},{"month":"2026-08","count":143,"complete":false}],"labs":[{"slug":"server_side_request_forgery","title":"Server-Side Request Forgery","reason":"Practice destination validation and internal-network protection."}]}],"labs":[{"slug":"broken_authentication","url":"/labs/broken_authentication/","task_count":12},{"slug":"command_injection","url":"/labs/command_injection/","task_count":8},{"slug":"cross_site_request_forgery","url":"/labs/cross_site_request_forgery/","task_count":7},{"slug":"cross_site_scripting_xss","url":"/labs/cross_site_scripting_xss/","task_count":8},{"slug":"file_upload_vulnerabilities","url":"/labs/file_upload_vulnerabilities/","task_count":7},{"slug":"insecure_direct_object_reference","url":"/labs/insecure_direct_object_reference/","task_count":5},{"slug":"open_redirect","url":"/labs/open_redirect/","task_count":7},{"slug":"passwords-and-mfa","url":"/labs/passwords-and-mfa/","task_count":6},{"slug":"phishing-awareness","url":"/labs/phishing-awareness/","task_count":6},{"slug":"safe-browsing-and-downloads","url":"/labs/safe-browsing-and-downloads/","task_count":6},{"slug":"sensitive_data_exposure","url":"/labs/sensitive_data_exposure/","task_count":9},{"slug":"server_side_request_forgery","url":"/labs/server_side_request_forgery/","task_count":7},{"slug":"sql_injection","url":"/labs/sql_injection/","task_count":10}]}</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous" defer></script>
-<script src="/assets/js/dashboard.js?v=1787007739" defer></script>
+<script src="/assets/js/dashboard.js?v=1787235344" defer></script>
 
 
     <div class="px-4">
@@ -2639,10 +2648,11 @@ cisco recommends that customers upgrade to the fixed software that is documented
       <p>Docs</p>
       <a href="/courses/">Courses</a>
       <a href="/labs/">Labs</a>
-      <a href="/dashboard/">Dashboard</a>
+      <a href="/dashboard/">Security Trends</a>
     </div>
     <div>
       <p>Learn</p>
+      <a href="/progress/">Progress</a>
       <a href="/enroll/">Enroll</a>
       <a href="/instructors/">Instructors</a>
       <a href="/request/">Request Course</a>
@@ -2682,7 +2692,8 @@ cisco recommends that customers upgrade to the fixed software that is documented
 
     </div>
 
-    <script src="/assets/js/recommendations.js?v=1787007739"></script>
-    <script src="/assets/js/main.js?v=1787007739"></script>
+    <script src="/assets/js/learning-state.js?v=1787235344"></script>
+    <script src="/assets/js/recommendations.js?v=1787235344"></script>
+    <script src="/assets/js/main.js?v=1787235344"></script>
 </body>
 </html>

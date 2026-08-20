@@ -8,22 +8,23 @@
 <meta name="generator" content="Jekyll v4.4.1" />
 <meta property="og:title" content="Introduction to Web Application Security" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="Learn the fundamentals of web application security, including common vulnerabilities, attack vectors, and defensive techniques. Perfect for developers wanting to build secure web applications." />
-<meta name="twitter:description" property="og:description" content="Learn the fundamentals of web application security, including common vulnerabilities, attack vectors, and defensive techniques. Perfect for developers wanting to build secure web applications." />
+<meta name="description" content="Learn where web applications lose trust, then practice each idea in the existing hands-on security labs." />
+<meta name="twitter:description" property="og:description" content="Learn where web applications lose trust, then practice each idea in the existing hands-on security labs." />
 <link rel="canonical" href="https://university.owaspblt.org/courses/web-security-intro/" />
 <meta property="og:url" content="https://university.owaspblt.org/courses/web-security-intro/" />
 <meta property="og:site_name" content="BLT University" />
 <meta property="og:image" content="https://university.owaspblt.org/assets/images/courses/web-security.svg" />
 <meta property="og:type" content="article" />
-<meta property="article:published_time" content="2026-08-17T23:02:19+00:00" />
-<meta property="article:modified_time" content="2026-08-17T23:02:19+00:00" />
+<meta property="article:published_time" content="2026-08-20T14:15:44+00:00" />
+<meta property="article:modified_time" content="2026-08-20T14:15:44+00:00" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://university.owaspblt.org/assets/images/courses/web-security.svg" />
 <meta name="twitter:title" content="Introduction to Web Application Security" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-17T23:02:19+00:00","datePublished":"2026-08-17T23:02:19+00:00","description":"Learn the fundamentals of web application security, including common vulnerabilities, attack vectors, and defensive techniques. Perfect for developers wanting to build secure web applications.","headline":"Introduction to Web Application Security","image":"https://university.owaspblt.org/assets/images/courses/web-security.svg","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/courses/web-security-intro/"},"url":"https://university.owaspblt.org/courses/web-security-intro/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-20T14:15:44+00:00","datePublished":"2026-08-20T14:15:44+00:00","description":"Learn where web applications lose trust, then practice each idea in the existing hands-on security labs.","headline":"Introduction to Web Application Security","image":"https://university.owaspblt.org/assets/images/courses/web-security.svg","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/courses/web-security-intro/"},"url":"https://university.owaspblt.org/courses/web-security-intro/"}</script>
 <!-- End Jekyll SEO tag -->
 
+    <link rel="icon" type="image/png" href="/assets/images/blt-university-logo.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -200,8 +201,14 @@
       
       <a
         class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/progress/"
+        >Progress</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
         href="/dashboard/"
-        >Dashboard</a
+        >Security Trends</a
       >
       
       <a
@@ -257,7 +264,9 @@
     
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
     
-    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Dashboard</a>
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/progress/">Progress</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Security Trends</a>
     
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
     
@@ -284,483 +293,541 @@
 
     <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
 
-<article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
-    <section class="bg-bltDark text-white pt-36 pb-32 relative overflow-hidden">
-        <div class="absolute top-0 right-1/4 w-[500px] h-[500px] bg-red-500/10 rounded-full filter blur-[120px] pointer-events-none"></div>
-        <div class="absolute inset-0 z-0">
-            <img src="/assets/images/courses/web-security.svg" class="w-full h-full object-cover opacity-10 mix-blend-overlay">
+<article data-course-root data-course-id="web-security-intro" class="min-h-screen bg-[#fafafa] text-gray-900 transition-colors dark:bg-gray-950 dark:text-white">
+  <section class="relative overflow-hidden bg-bltDark pb-24 pt-36 text-white">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(220,38,38,0.16),transparent_36%)]" aria-hidden="true"></div>
+    <div class="relative z-10 mx-auto max-w-7xl px-5 sm:px-6">
+      <div class="mb-5 flex flex-wrap items-center gap-3">
+        <span class="rounded-md bg-bltRed px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">Web Security</span>
+        <span class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">Beginner</span>
+        <span class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">2 to 3 hours</span>
+      </div>
+      <h1 class="max-w-4xl font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">Introduction to Web Application Security</h1>
+      <p class="mt-5 max-w-3xl text-sm leading-7 text-gray-300 sm:text-base">Learn where web applications lose trust, then practice each idea in the existing hands-on security labs.</p>
+      <div class="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm text-gray-300">
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-book-open-text text-bltRed" aria-hidden="true"></i>Short lessons</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-list-numbers text-bltRed" aria-hidden="true"></i>5 lessons</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-flask text-bltRed" aria-hidden="true"></i>Hands-on practice</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-chart-line-up text-bltRed" aria-hidden="true"></i>Local progress</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="relative z-20 mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-5 pb-24 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+    <div class="min-w-0 -mt-10 space-y-6">
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8" aria-labelledby="course-introduction-heading">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Start here</p>
+        <h2 id="course-introduction-heading" class="mt-2 text-2xl font-bold">Course introduction</h2>
+        <div class="prose mt-4 max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-bltRed dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300">
+          <p>Web security becomes less mysterious when you follow trust from a request to the system that interprets it. This course introduces five trust boundaries and connects each one to existing BLT University labs.</p>
+
+<p>The lessons are intentionally short. Learn the reason behind a vulnerability, practice it safely, then return to the course to continue the path.</p>
+
+        </div>
+        
+        <div class="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
+          <h3 class="text-base font-bold">By the end of this course, you can</h3>
+          <ul class="mt-3 grid gap-2 text-sm leading-6 text-gray-600 dark:text-gray-300 sm:grid-cols-2">
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Recognize where user-controlled input crosses an interpreter boundary.</span></li>
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Explain how authentication, authorization, and session state differ.</span></li>
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Use the existing practice labs to investigate common web security failures.</span></li>
+            
+          </ul>
+        </div>
+        
+      </section>
+
+      <section aria-labelledby="learning-path-heading">
+        <div class="mb-5">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Learn, then practice</p>
+          <h2 id="learning-path-heading" class="mt-2 text-2xl font-bold">Course lessons</h2>
+          <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Work through these 5 lessons in order. Each lesson introduces one concept, then gives you a practical activity or lab to apply it.</p>
         </div>
 
-        <div class="max-w-7xl mx-auto px-6 relative z-10">
-            <div class="flex items-center gap-3 mb-6">
-                <span class="px-2.5 py-0.5 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">Web Security</span>
-                <span class="px-2.5 py-0.5 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">Beginner</span>
-            </div>
-            <h1 class="font-display text-3xl md:text-5xl font-bold tracking-tight mb-8 leading-tight max-w-4xl">Introduction to Web Application Security</h1>
-            <div class="flex flex-wrap items-center gap-6 text-xs md:text-sm text-gray-400">
-                <div class="flex items-center gap-2">
-                    <i class="ph-bold ph-user-circle text-lg text-bltRed"></i>
-                    <strong class="text-white">Dr. Sarah Chen</strong>
+        <div class="space-y-5">
+          
+          <article data-course-lesson data-lesson-id="input-crosses-a-boundary" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">1</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Input crosses a boundary</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <i class="ph-bold ph-clock text-lg text-bltRed"></i>
-                    <strong class="text-white">6 weeks</strong>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">User input becomes dangerous when an interpreter mistakes data for instructions.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>A search term, form field, or URL parameter starts as data. Trouble begins when an application joins that value directly into SQL, HTML, or another executable context.</p>
+
+<p>The defensive question is simple: where will this value be interpreted next? Parameterized queries protect database structure. Context-aware output encoding prevents a browser from treating text as markup or script.</p>
+
+              </div>
+
+              
+              <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between bg-gray-900 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                  <span>Data should stay data</span>
+                  <span>JavaScript</span>
                 </div>
+                <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>// Risky: input changes the query structure
+db.query(&quot;SELECT * FROM users WHERE id = &quot; + userId);
+
+// Safer: the driver binds input as a value
+db.query(&quot;SELECT * FROM users WHERE id = ?&quot;, [userId]);
+</code></pre>
+                <p class="m-0 border-t border-gray-200 bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">Validation is useful, but it does not replace the safe API for the destination interpreter.</p>
+              </div>
+              
+
+              
+
+              
+
+              
+              <section aria-labelledby="practice-input-crosses-a-boundary">
+                <div class="mb-3 flex items-end gap-4">
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Put it into practice</p>
+                    <h4 id="practice-input-crosses-a-boundary" class="mt-1 text-base font-bold">Practice labs</h4>
+                  </div>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  
+                  
+                  
+                  <a data-course-lab data-lab-id="sql_injection" data-task-count="10" href="/labs/sql_injection/?course=web-security-intro" class="group rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-red-900/40 dark:hover:bg-red-900/10">
+                    <span class="flex items-start justify-between gap-3">
+                      <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">SQL Injection</span>
+                      <i class="ph-bold ph-arrow-up-right shrink-0 text-bltRed" aria-hidden="true"></i>
+                    </span>
+                    <span class="mt-2 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>Beginner · 10 tasks</span>
+                      <span data-course-lab-status>Not completed</span>
+                    </span>
+                  </a>
+                  
+                  
+                  
+                  
+                  <a data-course-lab data-lab-id="cross_site_scripting_xss" data-task-count="8" href="/labs/cross_site_scripting_xss/?course=web-security-intro" class="group rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-red-900/40 dark:hover:bg-red-900/10">
+                    <span class="flex items-start justify-between gap-3">
+                      <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">Cross-Site Scripting (XSS)</span>
+                      <i class="ph-bold ph-arrow-up-right shrink-0 text-bltRed" aria-hidden="true"></i>
+                    </span>
+                    <span class="mt-2 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>Beginner · 8 tasks</span>
+                      <span data-course-lab-status>Not completed</span>
+                    </span>
+                  </a>
+                  
+                  
+                </div>
+              </section>
+              
+
+              
+              <div class="flex justify-end border-t border-gray-100 pt-5 dark:border-gray-800">
+                <button type="button" data-complete-lesson class="inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-bltRed transition hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-900/10">
+                  <i class="ph-bold ph-check-circle" aria-hidden="true"></i><span>Mark lesson complete</span>
+                </button>
+              </div>
+              
             </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="identity-is-not-permission" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">2</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Identity is not permission</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Knowing who sent a request is different from checking whether that person may access the object.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Authentication establishes identity. Authorization decides what that identity can do. Applications often check the first and assume the second.</p>
+
+<p>Every object lookup needs a server-side permission check. Hiding an identifier in the interface or changing it to a UUID does not enforce access control.</p>
+
+              </div>
+
+              
+              <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between bg-gray-900 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                  <span>Check ownership with the lookup</span>
+                  <span>HTTP</span>
+                </div>
+                <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>GET /api/invoices/842
+Cookie: session=user-17
+
+Required check: invoice 842 belongs to user 17
+</code></pre>
+                <p class="m-0 border-t border-gray-200 bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">If the permission check happens only in the browser, a direct request can bypass it.</p>
+              </div>
+              
+
+              
+
+              
+
+              
+              <section aria-labelledby="practice-identity-is-not-permission">
+                <div class="mb-3 flex items-end gap-4">
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Put it into practice</p>
+                    <h4 id="practice-identity-is-not-permission" class="mt-1 text-base font-bold">Practice labs</h4>
+                  </div>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  
+                  
+                  
+                  <a data-course-lab data-lab-id="broken_authentication" data-task-count="12" href="/labs/broken_authentication/?course=web-security-intro" class="group rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-red-900/40 dark:hover:bg-red-900/10">
+                    <span class="flex items-start justify-between gap-3">
+                      <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">Broken Authentication</span>
+                      <i class="ph-bold ph-arrow-up-right shrink-0 text-bltRed" aria-hidden="true"></i>
+                    </span>
+                    <span class="mt-2 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>Intermediate · 12 tasks</span>
+                      <span data-course-lab-status>Not completed</span>
+                    </span>
+                  </a>
+                  
+                  
+                  
+                  
+                  <a data-course-lab data-lab-id="insecure_direct_object_reference" data-task-count="5" href="/labs/insecure_direct_object_reference/?course=web-security-intro" class="group rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-red-900/40 dark:hover:bg-red-900/10">
+                    <span class="flex items-start justify-between gap-3">
+                      <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">Insecure Direct Object Reference</span>
+                      <i class="ph-bold ph-arrow-up-right shrink-0 text-bltRed" aria-hidden="true"></i>
+                    </span>
+                    <span class="mt-2 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>Beginner · 5 tasks</span>
+                      <span data-course-lab-status>Not completed</span>
+                    </span>
+                  </a>
+                  
+                  
+                </div>
+              </section>
+              
+
+              
+              <div class="flex justify-end border-t border-gray-100 pt-5 dark:border-gray-800">
+                <button type="button" data-complete-lesson class="inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-bltRed transition hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-900/10">
+                  <i class="ph-bold ph-check-circle" aria-hidden="true"></i><span>Mark lesson complete</span>
+                </button>
+              </div>
+              
+            </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="the-browser-carries-authority" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">3</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">The browser carries authority</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Cookies, redirects, and automatic requests can move trust somewhere the user did not intend.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>A browser automatically attaches cookies to matching requests. Without an anti-forgery control, another page may cause an authenticated action on the learner’s behalf.</p>
+
+<p>Redirect destinations also need boundaries. If any external URL is accepted, a trusted domain can become the first step in a phishing path.</p>
+
+              </div>
+
+              
+
+              
+              <div class="flex gap-3 rounded-2xl border border-red-100 bg-red-50/60 p-4 text-sm leading-6 text-gray-700 dark:border-red-900/30 dark:bg-red-900/10 dark:text-gray-300">
+                <i class="ph-bold ph-eye mt-0.5 shrink-0 text-lg text-bltRed" aria-hidden="true"></i>
+                <p class="m-0">The browser doing something automatically does not mean the user approved it.</p>
+              </div>
+              
+
+              
+
+              
+              <section aria-labelledby="practice-the-browser-carries-authority">
+                <div class="mb-3 flex items-end gap-4">
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Put it into practice</p>
+                    <h4 id="practice-the-browser-carries-authority" class="mt-1 text-base font-bold">Practice labs</h4>
+                  </div>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  
+                  
+                  
+                  <a data-course-lab data-lab-id="cross_site_request_forgery" data-task-count="7" href="/labs/cross_site_request_forgery/?course=web-security-intro" class="group rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-red-900/40 dark:hover:bg-red-900/10">
+                    <span class="flex items-start justify-between gap-3">
+                      <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">Cross-Site Request Forgery</span>
+                      <i class="ph-bold ph-arrow-up-right shrink-0 text-bltRed" aria-hidden="true"></i>
+                    </span>
+                    <span class="mt-2 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>Beginner · 7 tasks</span>
+                      <span data-course-lab-status>Not completed</span>
+                    </span>
+                  </a>
+                  
+                  
+                  
+                  
+                  <a data-course-lab data-lab-id="open_redirect" data-task-count="7" href="/labs/open_redirect/?course=web-security-intro" class="group rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-red-900/40 dark:hover:bg-red-900/10">
+                    <span class="flex items-start justify-between gap-3">
+                      <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">Open Redirect</span>
+                      <i class="ph-bold ph-arrow-up-right shrink-0 text-bltRed" aria-hidden="true"></i>
+                    </span>
+                    <span class="mt-2 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>Beginner · 7 tasks</span>
+                      <span data-course-lab-status>Not completed</span>
+                    </span>
+                  </a>
+                  
+                  
+                </div>
+              </section>
+              
+
+              
+              <div class="flex justify-end border-t border-gray-100 pt-5 dark:border-gray-800">
+                <button type="button" data-complete-lesson class="inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-bltRed transition hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-900/10">
+                  <i class="ph-bold ph-check-circle" aria-hidden="true"></i><span>Mark lesson complete</span>
+                </button>
+              </div>
+              
+            </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="server-features-reach-further" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">4</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Server features reach further than expected</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Commands and outbound requests can expose the operating system or internal network behind an ordinary feature.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Features such as diagnostics, image importers, and webhook testers often call powerful server-side APIs. If untrusted input controls a command string or destination URL, the feature may reach resources the user could never access directly.</p>
+
+<p>Prefer structured process APIs, strict destination allowlists, and network controls that limit what the application can reach.</p>
+
+              </div>
+
+              
+
+              
+
+              
+
+              
+              <section aria-labelledby="practice-server-features-reach-further">
+                <div class="mb-3 flex items-end gap-4">
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Put it into practice</p>
+                    <h4 id="practice-server-features-reach-further" class="mt-1 text-base font-bold">Practice labs</h4>
+                  </div>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  
+                  
+                  
+                  <a data-course-lab data-lab-id="command_injection" data-task-count="8" href="/labs/command_injection/?course=web-security-intro" class="group rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-red-900/40 dark:hover:bg-red-900/10">
+                    <span class="flex items-start justify-between gap-3">
+                      <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">Command Injection</span>
+                      <i class="ph-bold ph-arrow-up-right shrink-0 text-bltRed" aria-hidden="true"></i>
+                    </span>
+                    <span class="mt-2 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>Intermediate · 8 tasks</span>
+                      <span data-course-lab-status>Not completed</span>
+                    </span>
+                  </a>
+                  
+                  
+                  
+                  
+                  <a data-course-lab data-lab-id="server_side_request_forgery" data-task-count="7" href="/labs/server_side_request_forgery/?course=web-security-intro" class="group rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-red-900/40 dark:hover:bg-red-900/10">
+                    <span class="flex items-start justify-between gap-3">
+                      <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">Server-Side Request Forgery (SSRF)</span>
+                      <i class="ph-bold ph-arrow-up-right shrink-0 text-bltRed" aria-hidden="true"></i>
+                    </span>
+                    <span class="mt-2 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>Advanced · 7 tasks</span>
+                      <span data-course-lab-status>Not completed</span>
+                    </span>
+                  </a>
+                  
+                  
+                </div>
+              </section>
+              
+
+              
+              <div class="flex justify-end border-t border-gray-100 pt-5 dark:border-gray-800">
+                <button type="button" data-complete-lesson class="inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-bltRed transition hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-900/10">
+                  <i class="ph-bold ph-check-circle" aria-hidden="true"></i><span>Mark lesson complete</span>
+                </button>
+              </div>
+              
+            </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="files-and-secrets-outlive-requests" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">5</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Files and secrets outlive the request</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Uploaded files and exposed data remain risky after the original request has finished.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>File names, extensions, and browser-provided content types are claims, not proof. Store uploads outside executable paths, generate server-side names, and validate the content you actually expect.</p>
+
+<p>Secrets can also escape through logs, error messages, backups, and frontend bundles. Before shipping a response, ask whether every returned field belongs in the learner’s browser.</p>
+
+              </div>
+
+              
+
+              
+              <div class="flex gap-3 rounded-2xl border border-red-100 bg-red-50/60 p-4 text-sm leading-6 text-gray-700 dark:border-red-900/30 dark:bg-red-900/10 dark:text-gray-300">
+                <i class="ph-bold ph-eye mt-0.5 shrink-0 text-lg text-bltRed" aria-hidden="true"></i>
+                <p class="m-0">The safest secret in a frontend bundle is the one that was never placed there.</p>
+              </div>
+              
+
+              
+
+              
+              <section aria-labelledby="practice-files-and-secrets-outlive-requests">
+                <div class="mb-3 flex items-end gap-4">
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Put it into practice</p>
+                    <h4 id="practice-files-and-secrets-outlive-requests" class="mt-1 text-base font-bold">Practice labs</h4>
+                  </div>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  
+                  
+                  
+                  <a data-course-lab data-lab-id="file_upload_vulnerabilities" data-task-count="7" href="/labs/file_upload_vulnerabilities/?course=web-security-intro" class="group rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-red-900/40 dark:hover:bg-red-900/10">
+                    <span class="flex items-start justify-between gap-3">
+                      <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">File Upload Vulnerabilities</span>
+                      <i class="ph-bold ph-arrow-up-right shrink-0 text-bltRed" aria-hidden="true"></i>
+                    </span>
+                    <span class="mt-2 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>Intermediate · 7 tasks</span>
+                      <span data-course-lab-status>Not completed</span>
+                    </span>
+                  </a>
+                  
+                  
+                  
+                  
+                  <a data-course-lab data-lab-id="sensitive_data_exposure" data-task-count="9" href="/labs/sensitive_data_exposure/?course=web-security-intro" class="group rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-red-900/40 dark:hover:bg-red-900/10">
+                    <span class="flex items-start justify-between gap-3">
+                      <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">Sensitive Data Exposure</span>
+                      <i class="ph-bold ph-arrow-up-right shrink-0 text-bltRed" aria-hidden="true"></i>
+                    </span>
+                    <span class="mt-2 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>Intermediate · 9 tasks</span>
+                      <span data-course-lab-status>Not completed</span>
+                    </span>
+                  </a>
+                  
+                  
+                </div>
+              </section>
+              
+
+              
+              <div class="flex justify-end border-t border-gray-100 pt-5 dark:border-gray-800">
+                <button type="button" data-complete-lesson class="inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-bltRed transition hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-900/10">
+                  <i class="ph-bold ph-check-circle" aria-hidden="true"></i><span>Mark lesson complete</span>
+                </button>
+              </div>
+              
+            </div>
+          </article>
+          
         </div>
-    </section>
+      </section>
 
-    <main class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-12 relative z-20 pb-24">
-
-        <div class="lg:col-span-8 space-y-8">
-            <div class="bg-white dark:bg-gray-900 p-8 md:p-12 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
-                    <i class="ph-fill ph-info text-bltRed"></i> Course Overview
-                </h2>
-                <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h2:text-xl prose-a:text-bltRed prose-p:text-gray-600 dark:prose-p:text-gray-400 dark:prose-invert mb-8">
-                   <h2 id="course-overview">Course Overview</h2>
-
-<p>Welcome to <strong>Introduction to Web Application Security</strong>! This comprehensive course will teach you the essential skills needed to identify, exploit, and prevent common web application vulnerabilities.</p>
-
-<h3 id="what-youll-learn">What You’ll Learn</h3>
-
-<p>By the end of this course, you will:</p>
-
-<ul>
-  <li>Understand the OWASP Top 10 web application security risks</li>
-  <li>Identify and exploit common vulnerabilities in a controlled environment</li>
-  <li>Implement security controls to prevent attacks</li>
-  <li>Conduct basic security assessments of web applications</li>
-  <li>Apply security best practices in development</li>
-</ul>
-
-<h3 id="course-format">Course Format</h3>
-
-<p>This course combines:</p>
-
-<ul>
-  <li><strong>Video Lectures</strong>: Weekly video content explaining concepts and demonstrations</li>
-  <li><strong>Hands-on Labs</strong>: Practice exploiting and fixing vulnerabilities in a safe environment</li>
-  <li><strong>Reading Materials</strong>: Security guides, research papers, and documentation</li>
-  <li><strong>Weekly Assignments</strong>: Practical exercises to reinforce learning</li>
-  <li><strong>Final Project</strong>: Comprehensive security assessment of a sample application</li>
-</ul>
-
-<h3 id="prerequisites">Prerequisites</h3>
-
-<p>Before starting this course, you should have:</p>
-
-<ul>
-  <li>Basic understanding of HTML, CSS, and JavaScript</li>
-  <li>Familiarity with HTTP protocol</li>
-  <li>Basic command-line skills</li>
-  <li>A GitHub account for submissions</li>
-</ul>
-
-<h3 id="tools--environment">Tools &amp; Environment</h3>
-
-<p>We’ll use several tools throughout the course:</p>
-
-<ul>
-  <li><strong>OWASP WebGoat</strong>: Interactive learning environment</li>
-  <li><strong>Burp Suite Community Edition</strong>: Web vulnerability scanner</li>
-  <li><strong>Browser Developer Tools</strong>: For inspecting web traffic</li>
-  <li><strong>Docker</strong>: For running vulnerable applications safely</li>
-</ul>
-
-<h3 id="assessment">Assessment</h3>
-
-<p>Your progress will be evaluated through:</p>
-
-<ul>
-  <li>Weekly lab assignments (50%)</li>
-  <li>Participation in discussions (10%)</li>
-  <li>Midterm security assessment (15%)</li>
-  <li>Final project (25%)</li>
-</ul>
-
-<h3 id="getting-started">Getting Started</h3>
-
-<ol>
-  <li>Enroll in the course through the enrollment page</li>
-  <li>Join the course GitHub repository</li>
-  <li>Set up your development environment</li>
-  <li>Complete the Week 1 pre-assessment</li>
-</ol>
-
-<h3 id="community--support">Community &amp; Support</h3>
-
-<ul>
-  <li><strong>GitHub Discussions</strong>: Ask questions and help fellow students</li>
-  <li><strong>Weekly Office Hours</strong>: Live Q&amp;A sessions with the instructor</li>
-  <li><strong>Study Groups</strong>: Connect with other learners</li>
-  <li><strong>Slack Channel</strong>: Real-time communication with the community</li>
-</ul>
-
-<h2 id="week-by-week-breakdown">Week-by-Week Breakdown</h2>
-
-<h3 id="week-1-web-security-fundamentals">Week 1: Web Security Fundamentals</h3>
-
-<p>Introduction to web application security, the CIA triad, and threat modeling. We’ll explore the OWASP Top 10 and set up our lab environment.</p>
-
-<p><strong>Lab</strong>: Setting up OWASP WebGoat and completing initial challenges</p>
-
-<h3 id="week-2-injection-attacks">Week 2: Injection Attacks</h3>
-
-<p>Learn about SQL injection, Cross-Site Scripting (XSS), and other injection vulnerabilities. Understand how attackers exploit these flaws and how to prevent them.</p>
-
-<p><strong>Lab</strong>: Exploiting SQL injection vulnerabilities and implementing parameterized queries</p>
-
-<h3 id="week-3-authentication--session-management">Week 3: Authentication &amp; Session Management</h3>
-
-<p>Explore secure authentication mechanisms, password storage, and session management. Learn about common authentication vulnerabilities.</p>
-
-<p><strong>Lab</strong>: Breaking weak authentication and implementing secure authentication</p>
-
-<h3 id="week-4-access-control--authorization">Week 4: Access Control &amp; Authorization</h3>
-
-<p>Understand authorization flaws, privilege escalation, and how to implement secure access control.</p>
-
-<p><strong>Lab</strong>: Exploiting broken access control and implementing RBAC</p>
-
-<h3 id="week-5-security-configuration--data-protection">Week 5: Security Configuration &amp; Data Protection</h3>
-
-<p>Learn about security misconfiguration, sensitive data exposure, and encryption best practices.</p>
-
-<p><strong>Lab</strong>: Identifying misconfigurations and implementing data protection measures</p>
-
-<h3 id="week-6-final-project">Week 6: Final Project</h3>
-
-<p>Apply everything you’ve learned in a comprehensive security assessment project.</p>
-
-<p><strong>Project</strong>: Perform a security assessment of a sample web application and submit a detailed report</p>
-
-<h2 id="additional-resources">Additional Resources</h2>
-
-<ul>
-  <li><a href="https://owasp.org/www-project-web-security-testing-guide/">OWASP Testing Guide</a></li>
-  <li><a href="https://portswigger.net/web-security">PortSwigger Web Security Academy</a></li>
-  <li><a href="https://www.hackerone.com/hacktivity">HackerOne Bug Bounty Reports</a></li>
-</ul>
-
-<h2 id="certification">Certification</h2>
-
-<p>Upon successful completion of all assignments and the final project with a passing grade, you’ll receive a certificate of completion from BLT University.</p>
-
-<hr />
-
-<p>Ready to start? <a href="/enroll/?course=web-security-intro">Enroll now</a> and begin your journey into web application security!</p>
-
-                </div>
-
-                
-                <div class="mt-12 pt-10 border-t border-gray-50 dark:border-gray-800">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-10 flex items-center gap-3">
-                        <i class="ph-fill ph-map-trifold text-bltRed"></i> Detailed Syllabus
-                    </h2>
-                    <div class="space-y-4">
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    01
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Web Security Fundamentals</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Understanding the web security landscape and common threats</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> CIA Triad in Web Applications
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> OWASP Top 10 Overview
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Security by Design Principles
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Threat Modeling Basics
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    02
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Injection Vulnerabilities</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Deep dive into injection attacks and prevention</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> SQL Injection Attacks
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Cross-Site Scripting (XSS)
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Command Injection
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Prevention and Input Validation
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    03
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Authentication & Session Security</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Securing user authentication and session management</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Password Security Best Practices
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Multi-Factor Authentication
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Session Management Vulnerabilities
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Token-Based Authentication
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    04
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Access Control</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Implementing secure authorization mechanisms</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Broken Access Control
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Vertical and Horizontal Privilege Escalation
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> RBAC and ABAC Models
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Secure API Design
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    05
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Configuration & Data Protection</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Security configuration and data protection strategies</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Security Misconfiguration Risks
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Sensitive Data Exposure
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Encryption at Rest and in Transit
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Secure Headers and CSP
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    06
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Practical Security</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Hands-on security testing and implementation</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Security Testing Tools
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Secure Code Review
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Bug Bounty Preparation
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Final Security Assessment Project
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-                
-
-                
-            </div>
+      
+      <section data-next-course class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900" aria-labelledby="next-course-heading">
+        <div class="grid gap-6 p-6 sm:p-8 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Continue learning</p>
+            
+            <h2 id="next-course-heading" class="mt-2 text-2xl font-bold">Up next: Advanced Penetration Testing</h2>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-400">Practice evidence-led reconnaissance, attack-path thinking, and clear reporting through a compact investigation.</p>
+            
+          </div>
+          
+          <a href="/courses/advanced-pentesting/" class="inline-flex items-center justify-center gap-2 rounded-xl bg-bltRed px-5 py-3 text-sm font-bold text-white transition hover:bg-bltRedHover">Continue course <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+          
         </div>
+      </section>
+    </div>
 
-        <aside class="lg:col-span-4 space-y-6">
+    <aside class="-mt-10 space-y-5 lg:sticky lg:top-28">
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900" aria-labelledby="course-progress-heading">
+        <div class="flex items-center justify-between gap-3">
+          <h2 id="course-progress-heading" class="text-lg font-bold">Course progress</h2>
+          <span data-course-progress-percent class="text-sm font-bold text-bltRed">0%</span>
+        </div>
+        <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+          <div data-course-progress-bar class="h-full w-0 rounded-full bg-bltRed transition-all duration-300"></div>
+        </div>
+        <p data-course-progress-count class="mt-3 text-sm text-gray-500 dark:text-gray-400">0 steps completed</p>
+        <div data-course-complete class="mt-5 hidden rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-900/40 dark:bg-green-900/15 dark:text-green-300">
+          <p class="font-bold">Course complete</p>
+        </div>
+        <a href="/progress/" class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-bltRed hover:underline">View all progress <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+      </section>
 
-            
-            
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800">
-                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <i class="ph-bold ph-chalkboard-teacher text-bltRed"></i> Instructor
-                </h3>
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full border-2 border-gray-100 dark:border-gray-800 overflow-hidden shrink-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                        
-                        <i class="ph-bold ph-user text-2xl text-gray-400"></i>
-                        
-                    </div>
-                    <div>
-                        
-                        <a href="/instructors/sarah-chen/" class="font-bold text-gray-900 dark:text-white hover:text-bltRed transition-colors">Dr. Sarah Chen</a>
-                        
-                        
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Cryptography & Web Security Expert</p>
-                        
-                    </div>
-                </div>
-            </div>
-            
-
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1.5 bg-bltRed"></div>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Enroll Now</h3>
-
-                <div class="mb-8 space-y-4">
-                    <div class="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-2xl border border-gray-100 dark:border-gray-700">
-                        <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Prerequisites</h4>
-                        <p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
-                            Basic understanding of HTML, CSS, and JavaScript
-                        </p>
-                    </div>
-                </div>
-
-                <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-bltRed text-white text-sm font-bold rounded-2xl shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover hover:-translate-y-1 transition-all">
-                    <i class="ph-bold ph-gitlab-logo text-xl"></i>
-                    Enroll via GitLab
-                </a>
-
-                <p class="mt-4 text-[10px] text-center text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest">
-                    <i class="ph-bold ph-broadcast text-bltRed"></i> Enrollment is Open
-                </p>
-            </div>
-
-            
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800">
-                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <i class="ph-bold ph-folder-open text-bltRed"></i> Course Resources
-                </h3>
-                <ul class="space-y-3">
-                    
-                    <li>
-                        <a href="https://www.youtube.com/watch?v=lHztLP6MeG8" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group">
-                            <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
-                                <i class="ph-bold ph-file-text text-lg text-gray-400 dark:text-gray-500 group-hover:text-bltRed"></i>
-                            </div>
-                            <span class="text-xs font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white">Course Introduction Video</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="https://owasp.org/www-project-top-ten/" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group">
-                            <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
-                                <i class="ph-bold ph-file-text text-lg text-gray-400 dark:text-gray-500 group-hover:text-bltRed"></i>
-                            </div>
-                            <span class="text-xs font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white">OWASP Top 10 Guide</span>
-                        </a>
-                    </li>
-                    
-                </ul>
-            </div>
-            
-
-            <div class="bg-gray-900 dark:bg-gray-800/80 p-8 rounded-[2.5rem] text-white relative overflow-hidden group border border-transparent dark:border-gray-700">
-                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
-                    <i class="ph-fill ph-seal-check text-8xl"></i>
-                </div>
-                <h4 class="font-bold text-sm uppercase tracking-widest text-bltRed mb-2">Verification</h4>
-                <h3 class="text-lg font-bold mb-4 relative z-10 leading-tight">Industry Verified Certificate</h3>
-                <p class="text-gray-400 text-xs leading-relaxed mb-6 relative z-10">
-                    Earn a completion certificate verified through Git commit signatures on our public chain.
-                </p>
-                <a href="/about/" class="text-xs font-bold text-white border-b border-white/20 hover:border-bltRed transition-colors">Learn about verification →</a>
-            </div>
-        </aside>
-    </main>
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900">
+        <h2 class="text-base font-bold">Before you begin</h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-400">Basic familiarity with web pages, forms, and HTTP requests</p>
+        <div class="mt-5 flex items-center gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
+          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-bltRed dark:bg-red-900/20"><i class="ph-bold ph-user-circle" aria-hidden="true"></i></span>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Created by</p>
+            <p class="mt-0.5 text-sm font-bold">OWASP BLT Community</p>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
 </article>
+
+<script src="/assets/js/course-state.js?v=1787235344"></script>
 
 
     <div class="px-4">
@@ -783,10 +850,11 @@
       <p>Docs</p>
       <a href="/courses/">Courses</a>
       <a href="/labs/">Labs</a>
-      <a href="/dashboard/">Dashboard</a>
+      <a href="/dashboard/">Security Trends</a>
     </div>
     <div>
       <p>Learn</p>
+      <a href="/progress/">Progress</a>
       <a href="/enroll/">Enroll</a>
       <a href="/instructors/">Instructors</a>
       <a href="/request/">Request Course</a>
@@ -826,7 +894,8 @@
 
     </div>
 
-    <script src="/assets/js/recommendations.js?v=1787007739"></script>
-    <script src="/assets/js/main.js?v=1787007739"></script>
+    <script src="/assets/js/learning-state.js?v=1787235344"></script>
+    <script src="/assets/js/recommendations.js?v=1787235344"></script>
+    <script src="/assets/js/main.js?v=1787235344"></script>
 </body>
 </html>

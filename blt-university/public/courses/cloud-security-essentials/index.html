@@ -8,20 +8,21 @@
 <meta name="generator" content="Jekyll v4.4.1" />
 <meta property="og:title" content="Cloud Security Essentials" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="Master cloud security for AWS, Azure, and GCP. Learn to secure cloud infrastructure, implement IAM, configure security groups, and monitor cloud environments." />
-<meta name="twitter:description" property="og:description" content="Master cloud security for AWS, Azure, and GCP. Learn to secure cloud infrastructure, implement IAM, configure security groups, and monitor cloud environments." />
+<meta name="description" content="Trace identity, public exposure, and audit evidence through an approachable cloud incident scenario." />
+<meta name="twitter:description" property="og:description" content="Trace identity, public exposure, and audit evidence through an approachable cloud incident scenario." />
 <link rel="canonical" href="https://university.owaspblt.org/courses/cloud-security-essentials/" />
 <meta property="og:url" content="https://university.owaspblt.org/courses/cloud-security-essentials/" />
 <meta property="og:site_name" content="BLT University" />
 <meta property="og:type" content="article" />
-<meta property="article:published_time" content="2026-08-17T23:02:19+00:00" />
-<meta property="article:modified_time" content="2026-08-17T23:02:19+00:00" />
+<meta property="article:published_time" content="2026-08-20T14:15:44+00:00" />
+<meta property="article:modified_time" content="2026-08-20T14:15:44+00:00" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="Cloud Security Essentials" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-17T23:02:19+00:00","datePublished":"2026-08-17T23:02:19+00:00","description":"Master cloud security for AWS, Azure, and GCP. Learn to secure cloud infrastructure, implement IAM, configure security groups, and monitor cloud environments.","headline":"Cloud Security Essentials","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/courses/cloud-security-essentials/"},"url":"https://university.owaspblt.org/courses/cloud-security-essentials/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-20T14:15:44+00:00","datePublished":"2026-08-20T14:15:44+00:00","description":"Trace identity, public exposure, and audit evidence through an approachable cloud incident scenario.","headline":"Cloud Security Essentials","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/courses/cloud-security-essentials/"},"url":"https://university.owaspblt.org/courses/cloud-security-essentials/"}</script>
 <!-- End Jekyll SEO tag -->
 
+    <link rel="icon" type="image/png" href="/assets/images/blt-university-logo.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -198,8 +199,14 @@
       
       <a
         class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/progress/"
+        >Progress</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
         href="/dashboard/"
-        >Dashboard</a
+        >Security Trends</a
       >
       
       <a
@@ -255,7 +262,9 @@
     
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
     
-    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Dashboard</a>
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/progress/">Progress</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Security Trends</a>
     
     <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
     
@@ -282,308 +291,471 @@
 
     <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
 
-<article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
-    <section class="bg-bltDark text-white pt-36 pb-32 relative overflow-hidden">
-        <div class="absolute top-0 right-1/4 w-[500px] h-[500px] bg-red-500/10 rounded-full filter blur-[120px] pointer-events-none"></div>
-        <div class="absolute inset-0 z-0">
-            <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80" class="w-full h-full object-cover opacity-10 mix-blend-overlay">
+<article data-course-root data-course-id="cloud-security-essentials" class="min-h-screen bg-[#fafafa] text-gray-900 transition-colors dark:bg-gray-950 dark:text-white">
+  <section class="relative overflow-hidden bg-bltDark pb-24 pt-36 text-white">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(220,38,38,0.16),transparent_36%)]" aria-hidden="true"></div>
+    <div class="relative z-10 mx-auto max-w-7xl px-5 sm:px-6">
+      <div class="mb-5 flex flex-wrap items-center gap-3">
+        <span class="rounded-md bg-bltRed px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">Cloud Security</span>
+        <span class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">Advanced</span>
+        <span class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">About 2 hours</span>
+      </div>
+      <h1 class="max-w-4xl font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">Cloud Security Essentials</h1>
+      <p class="mt-5 max-w-3xl text-sm leading-7 text-gray-300 sm:text-base">Trace identity, public exposure, and audit evidence through an approachable cloud incident scenario.</p>
+      <div class="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm text-gray-300">
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-book-open-text text-bltRed" aria-hidden="true"></i>Short lessons</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-list-numbers text-bltRed" aria-hidden="true"></i>5 lessons</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-flask text-bltRed" aria-hidden="true"></i>Hands-on practice</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-chart-line-up text-bltRed" aria-hidden="true"></i>Local progress</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="relative z-20 mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-5 pb-24 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+    <div class="min-w-0 -mt-10 space-y-6">
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8" aria-labelledby="course-introduction-heading">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Start here</p>
+        <h2 id="course-introduction-heading" class="mt-2 text-2xl font-bold">Course introduction</h2>
+        <div class="prose mt-4 max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-bltRed dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300">
+          <p>Cloud incidents rarely fit inside one service. This course follows an approachable scenario across identity, storage exposure, and audit evidence without requiring access to a real cloud account.</p>
+
+<p>The exercises use a mock identity trace and an embedded page clue. They reinforce checking the underlying evidence instead of trusting a summary label.</p>
+
+        </div>
+        
+        <div class="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
+          <h3 class="text-base font-bold">By the end of this course, you can</h3>
+          <ul class="mt-3 grid gap-2 text-sm leading-6 text-gray-600 dark:text-gray-300 sm:grid-cols-2">
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Trace effective permissions across identities, functions, and storage.</span></li>
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Investigate exposure using policy, configuration, and audit evidence.</span></li>
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Contain a cloud incident while preserving the evidence needed to learn from it.</span></li>
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Design guardrails that prevent unsafe defaults from returning.</span></li>
+            
+          </ul>
+        </div>
+        
+      </section>
+
+      <section aria-labelledby="learning-path-heading">
+        <div class="mb-5">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Learn, then practice</p>
+          <h2 id="learning-path-heading" class="mt-2 text-2xl font-bold">Course lessons</h2>
+          <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Work through these 5 lessons in order. Each lesson introduces one concept, then gives you a practical activity or lab to apply it.</p>
         </div>
 
-        <div class="max-w-7xl mx-auto px-6 relative z-10">
-            <div class="flex items-center gap-3 mb-6">
-                <span class="px-2.5 py-0.5 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">Cloud Security</span>
-                <span class="px-2.5 py-0.5 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">Intermediate</span>
-            </div>
-            <h1 class="font-display text-3xl md:text-5xl font-bold tracking-tight mb-8 leading-tight max-w-4xl">Cloud Security Essentials</h1>
-            <div class="flex flex-wrap items-center gap-6 text-xs md:text-sm text-gray-400">
-                <div class="flex items-center gap-2">
-                    <i class="ph-bold ph-user-circle text-lg text-bltRed"></i>
-                    <strong class="text-white">Marcus Rodriguez</strong>
+        <div class="space-y-5">
+          
+          <article data-course-lesson data-lesson-id="permissions-form-a-path" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">1</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Permissions form a path</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <i class="ph-bold ph-clock text-lg text-bltRed"></i>
-                    <strong class="text-white">6 weeks</strong>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Cloud risk often comes from several individually reasonable permissions that become dangerous when combined.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Review what an identity can read, what it can change, and which other role it can assume. A service account that cannot access data directly may still be able to update a function that runs as a stronger role.</p>
+
+<p>Least privilege is not just a shorter action list. It also limits resources, conditions, session duration, and who may delegate the identity.</p>
+
+              </div>
+
+              
+              <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between bg-gray-900 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                  <span>Look beyond the first statement</span>
+                  <span>Policy</span>
                 </div>
-            </div>
-        </div>
-    </section>
+                <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>Allow: update function code
+Resource: billing-exporter
 
-    <main class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-12 relative z-20 pb-24">
+billing-exporter runs as: finance-read-role
+</code></pre>
+                <p class="m-0 border-t border-gray-200 bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">The effective path includes the permissions of the runtime role, not only the caller's policy.</p>
+              </div>
+              
 
-        <div class="lg:col-span-8 space-y-8">
-            <div class="bg-white dark:bg-gray-900 p-8 md:p-12 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
-                    <i class="ph-fill ph-info text-bltRed"></i> Course Overview
-                </h2>
-                <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h2:text-xl prose-a:text-bltRed prose-p:text-gray-600 dark:prose-p:text-gray-400 dark:prose-invert mb-8">
-                   <h2 id="course-overview">Course Overview</h2>
+              
 
-<p>Cloud Security Essentials covers the unique security challenges of cloud computing and how to address them across major cloud platforms.</p>
-
-<h3 id="what-youll-learn">What You’ll Learn</h3>
-
-<ul>
-  <li>Implement cloud security best practices</li>
-  <li>Configure IAM for least privilege access</li>
-  <li>Secure cloud networks and infrastructure</li>
-  <li>Encrypt data in cloud environments</li>
-  <li>Monitor and audit cloud resources</li>
-</ul>
-
-<h3 id="platforms-covered">Platforms Covered</h3>
-
-<ul>
-  <li>Amazon Web Services (AWS)</li>
-  <li>Microsoft Azure</li>
-  <li>Google Cloud Platform (GCP)</li>
-</ul>
-
-<p><a href="/enroll/?course=cloud-security-essentials">Enroll now</a> to become a cloud security expert!</p>
-
+              
+              
+              <section data-course-challenge data-challenge-id="trace-runtime-role" data-challenge-type="artifact" data-challenge-answer="finance-read-role" data-challenge-clue="" data-challenge-success="Correct. The function&#39;s runtime role completes the permission path." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-trace-runtime-role">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-trace-runtime-role" class="mt-1 text-base font-bold">Follow the permission path</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">The deploy bot cannot read invoices directly. Enter the role that gains the read permission when the function runs.</p>
+                  </div>
                 </div>
 
                 
-                <div class="mt-12 pt-10 border-t border-gray-50 dark:border-gray-800">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-10 flex items-center gap-3">
-                        <i class="ph-fill ph-map-trifold text-bltRed"></i> Detailed Syllabus
-                    </h2>
-                    <div class="space-y-4">
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    01
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Cloud Security Fundamentals</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Understanding cloud security models</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Shared Responsibility Model
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Cloud Security Architecture
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Compliance in the Cloud
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Cloud-Native Security
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    02
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Identity and Access Management</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Securing cloud identities</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> IAM Policies and Roles
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Least Privilege Access
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Multi-Factor Authentication
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Service Accounts
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    03
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Network Security in the Cloud</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Cloud networking security</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Security Groups and NACLs
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Virtual Private Clouds
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Cloud Firewalls
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> DDoS Protection
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    04
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Data Security and Encryption</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Protecting data in the cloud</p>
-                                    
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Encryption at Rest
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Encryption in Transit
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Key Management Services
-                                        </li>
-                                        
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> Data Loss Prevention
-                                        </li>
-                                        
-                                    </ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
+                <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center justify-between bg-gray-900 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                    <span>Identity trace</span>
+                    <span>Policy trace</span>
+                  </div>
+                  <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>deploy-bot
+  └─ can update: billing-exporter
+       └─ runs as: finance-read-role
+            └─ can read: invoice-archive
+</code></pre>
                 </div>
                 
 
                 
+                <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <label class="sr-only" for="challenge-answer-trace-runtime-role">Challenge answer</label>
+                  <input id="challenge-answer-trace-runtime-role" data-challenge-input type="text" autocomplete="off" class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" placeholder="Enter what you found">
+                  <button type="button" data-challenge-submit class="rounded-xl bg-bltRed px-4 py-2.5 text-sm font-bold text-white transition hover:bg-bltRedHover">Check answer</button>
+                </div>
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
             </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="public-is-a-state" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">2</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Public is a state, not a label</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">A private resource can become reachable through a policy, signed URL, proxy, snapshot, or copied object.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Check the complete access path. Storage settings may say private while a content-delivery rule still allows anonymous reads. A database may reject public traffic while a snapshot is shared with another account.</p>
+
+<p>When exposure is confirmed, preserve the relevant audit details while blocking the exposed path. Record configuration and access history before making broader cleanup changes so you can still determine what happened.</p>
+
+              </div>
+
+              
+
+              
+              <div class="flex gap-3 rounded-2xl border border-red-100 bg-red-50/60 p-4 text-sm leading-6 text-gray-700 dark:border-red-900/30 dark:bg-red-900/10 dark:text-gray-300">
+                <i class="ph-bold ph-eye mt-0.5 shrink-0 text-lg text-bltRed" aria-hidden="true"></i>
+                <p class="m-0">This is the part people usually overlook. Fixing the visible setting can erase context without answering who accessed the resource.</p>
+              </div>
+              
+
+              
+              
+              <section data-course-challenge data-challenge-id="inspect-assumed-role" data-challenge-type="inspect" data-challenge-answer="backup-read-role" data-challenge-clue="backup-read-role" data-challenge-success="You found the role in the underlying evidence instead of trusting the empty summary." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-inspect-assumed-role">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-inspect-assumed-role" class="mt-1 text-base font-bold">Inspect the evidence panel</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">The visible panel looks empty. Inspect its HTML and find the value of the data-evidence attribute. That is the role used by the mock export job.</p>
+                  </div>
+                </div>
+
+                
+                <div data-course-artifact data-evidence="backup-read-role" class="mt-4 rounded-xl border border-dashed border-gray-300 bg-white p-4 text-xs text-gray-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-400">This evidence panel looks empty. Inspect the element itself.</div>
+                
+
+                
+                <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <label class="sr-only" for="challenge-answer-inspect-assumed-role">Challenge answer</label>
+                  <input id="challenge-answer-inspect-assumed-role" data-challenge-input type="text" autocomplete="off" class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" placeholder="Enter what you found">
+                  <button type="button" data-challenge-submit class="rounded-xl bg-bltRed px-4 py-2.5 text-sm font-bold text-white transition hover:bg-bltRedHover">Check answer</button>
+                </div>
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
+            </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="contain-without-going-blind" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">3</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Contain without going blind</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Fast containment matters, but deleting the affected resource can remove the evidence needed to understand the incident.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Disable the narrowest risky path first. Revoke a key, block a public policy, or detach a role while preserving logs, configuration history, and relevant snapshots.</p>
+
+<p>Then trace the identity backward and the data forward. Ask how the credential was issued, what it accessed, and whether a replacement credential inherited the same weakness.</p>
+
+              </div>
+
+              
+              <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between bg-gray-900 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                  <span>A useful containment order</span>
+                  <span>Checklist</span>
+                </div>
+                <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>1. Block the exposed path
+2. Preserve logs and configuration history
+3. Rotate affected credentials
+4. Trace access and data movement
+5. Fix the policy pattern that allowed it
+</code></pre>
+                <p class="m-0 border-t border-gray-200 bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">Rotation without policy repair often recreates the same incident with a new key.</p>
+              </div>
+              
+
+              
+
+              
+              
+              <section data-course-challenge data-challenge-id="containment-order" data-challenge-type="sequence" data-challenge-answer="block|preserve|rotate|trace" data-challenge-clue="" data-challenge-success="The path is contained first, the evidence survives, and the investigation can continue safely." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-containment-order">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-containment-order" class="mt-1 text-base font-bold">Build the first-response order</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">The export role was exposed ten minutes ago. Put these four actions in the order that contains the path and preserves useful evidence.</p>
+                  </div>
+                </div>
+
+                
+                <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                  
+                  <button type="button" data-sequence-option="trace" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                    <span class="mr-2 font-mono text-xs font-bold text-bltRed" data-sequence-position></span>Trace access and data movement.
+                  </button>
+                  
+                  <button type="button" data-sequence-option="rotate" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                    <span class="mr-2 font-mono text-xs font-bold text-bltRed" data-sequence-position></span>Rotate the affected credential.
+                  </button>
+                  
+                  <button type="button" data-sequence-option="block" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                    <span class="mr-2 font-mono text-xs font-bold text-bltRed" data-sequence-position></span>Block the exposed access path.
+                  </button>
+                  
+                  <button type="button" data-sequence-option="preserve" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                    <span class="mr-2 font-mono text-xs font-bold text-bltRed" data-sequence-position></span>Preserve logs and configuration history.
+                  </button>
+                  
+                </div>
+                <div class="mt-3 flex items-center justify-between gap-3">
+                  <p data-sequence-summary class="text-xs text-gray-500 dark:text-gray-400">Select the steps in the order they should happen.</p>
+                  <button type="button" data-sequence-reset class="text-xs font-bold text-bltRed hover:underline">Reset order</button>
+                </div>
+                
+
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
+            </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="follow-credential-lineage" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">4</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Follow credential lineage</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Rotating a key helps only when you know which workload used it and whether an older copy still works.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Inventory the issuer, workload, last use, and replacement for every long-lived credential. A key with no clear owner is not harmless. It is a path nobody is watching.</p>
+
+<p>During an incident, compare issue and use times. A credential used after its replacement became active may reveal a forgotten deployment or copied secret. Treat the audit trail like a small forensics puzzle: establish the rotation boundary, isolate the event that crosses it, then name the workload that still needs attention.</p>
+
+              </div>
+
+              
+
+              
+
+              
+              
+              <section data-course-challenge data-challenge-id="stale-credential" data-challenge-type="artifact" data-challenge-answer="key-201/unknown-workload" data-challenge-clue="" data-challenge-success="Challenge completed. key-201 was still accepted by unknown-workload after key-305 became active. Trace and contain that workload." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-stale-credential">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-stale-credential" class="mt-1 text-base font-bold">Identify the stale credential</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">The replacement became active at 09:20. Which credential was used afterward, and by which workload? Enter the finding as credential/workload.</p>
+                  </div>
+                </div>
+
+                
+                <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center justify-between bg-gray-900 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                    <span>Rotation incident · audit trail</span>
+                    <span>Audit log</span>
+                  </div>
+                  <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>09:12  key-201  export-job       read invoice-archive
+09:20  key-305  rotation         replacement active
+09:27  key-201  unknown-workload read invoice-archive
+09:31  key-305  export-job       read invoice-archive
+</code></pre>
+                </div>
+                
+
+                
+                <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <label class="sr-only" for="challenge-answer-stale-credential">Challenge answer</label>
+                  <input id="challenge-answer-stale-credential" data-challenge-input type="text" autocomplete="off" class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" placeholder="Enter what you found">
+                  <button type="button" data-challenge-submit class="rounded-xl bg-bltRed px-4 py-2.5 text-sm font-bold text-white transition hover:bg-bltRedHover">Check answer</button>
+                </div>
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
+            </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="make-the-safe-state-default" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">5</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Make the safe state the default</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">The best incident fix also makes the same mistake harder to repeat.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Prefer organization-level controls for risks that should never be optional. Block public storage by default, require short-lived workload identities, and alert on policy changes that widen access.</p>
+
+<p>A dashboard warning is useful, but it still depends on someone noticing it. A preventive control stops the unsafe state before it becomes an incident.</p>
+
+              </div>
+
+              
+
+              
+
+              
+              
+              <section data-course-challenge data-challenge-id="preventive-guardrail" data-challenge-type="choice" data-challenge-answer="deny-public" data-challenge-clue="" data-challenge-success="Correct. An organization-level deny makes private storage the enforced default." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-preventive-guardrail">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-preventive-guardrail" class="mt-1 text-base font-bold">Choose the preventive control</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Teams keep accidentally publishing storage buckets. Which control prevents the mistake instead of only reporting it?</p>
+                  </div>
+                </div>
+
+                
+                <div class="mt-4 grid gap-2">
+                  
+                  <button type="button" data-challenge-option="weekly-report" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">Email a weekly list of public buckets to each team.</button>
+                  
+                  <button type="button" data-challenge-option="deny-public" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">Apply an organization-level policy that denies public bucket access.</button>
+                  
+                  <button type="button" data-challenge-option="naming-rule" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">Require public buckets to include public in their name.</button>
+                  
+                </div>
+                
+
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
+            </div>
+          </article>
+          
         </div>
+      </section>
 
-        <aside class="lg:col-span-4 space-y-6">
-
+      
+      <section data-next-course class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900" aria-labelledby="next-course-heading">
+        <div class="grid gap-6 p-6 sm:p-8 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Continue learning</p>
             
+            <h2 id="next-course-heading" class="mt-2 text-2xl font-bold">Up next: Cryptography for Developers</h2>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-400">Make safer engineering decisions about encoding, password storage, encryption, nonces, and signature verification.</p>
             
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800">
-                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <i class="ph-bold ph-chalkboard-teacher text-bltRed"></i> Instructor
-                </h3>
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full border-2 border-gray-100 dark:border-gray-800 overflow-hidden shrink-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                        
-                        <i class="ph-bold ph-user text-2xl text-gray-400"></i>
-                        
-                    </div>
-                    <div>
-                        
-                        <a href="/instructors/marcus-rodriguez/" class="font-bold text-gray-900 dark:text-white hover:text-bltRed transition-colors">Marcus Rodriguez</a>
-                        
-                        
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Penetration Testing & Red Team Operations</p>
-                        
-                    </div>
-                </div>
-            </div>
-            
+          </div>
+          
+          <a href="/courses/crypto-for-devs/" class="inline-flex items-center justify-center gap-2 rounded-xl bg-bltRed px-5 py-3 text-sm font-bold text-white transition hover:bg-bltRedHover">Continue course <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+          
+        </div>
+      </section>
+    </div>
 
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1.5 bg-bltRed"></div>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Enroll Now</h3>
+    <aside class="-mt-10 space-y-5 lg:sticky lg:top-28">
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900" aria-labelledby="course-progress-heading">
+        <div class="flex items-center justify-between gap-3">
+          <h2 id="course-progress-heading" class="text-lg font-bold">Course progress</h2>
+          <span data-course-progress-percent class="text-sm font-bold text-bltRed">0%</span>
+        </div>
+        <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+          <div data-course-progress-bar class="h-full w-0 rounded-full bg-bltRed transition-all duration-300"></div>
+        </div>
+        <p data-course-progress-count class="mt-3 text-sm text-gray-500 dark:text-gray-400">0 steps completed</p>
+        <div data-course-complete class="mt-5 hidden rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-900/40 dark:bg-green-900/15 dark:text-green-300">
+          <p class="font-bold">Course complete</p>
+        </div>
+        <a href="/progress/" class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-bltRed hover:underline">View all progress <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+      </section>
 
-                <div class="mb-8 space-y-4">
-                    <div class="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-2xl border border-gray-100 dark:border-gray-700">
-                        <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Prerequisites</h4>
-                        <p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
-                            Basic cloud computing knowledge, familiarity with AWS or Azure
-                        </p>
-                    </div>
-                </div>
-
-                <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-bltRed text-white text-sm font-bold rounded-2xl shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover hover:-translate-y-1 transition-all">
-                    <i class="ph-bold ph-gitlab-logo text-xl"></i>
-                    Enroll via GitLab
-                </a>
-
-                <p class="mt-4 text-[10px] text-center text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest">
-                    <i class="ph-bold ph-broadcast text-bltRed"></i> Enrollment is Open
-                </p>
-            </div>
-
-            
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800">
-                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <i class="ph-bold ph-folder-open text-bltRed"></i> Course Resources
-                </h3>
-                <ul class="space-y-3">
-                    
-                    <li>
-                        <a href="https://www.youtube.com/watch?v=j31A_XblHmc" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group">
-                            <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
-                                <i class="ph-bold ph-file-text text-lg text-gray-400 dark:text-gray-500 group-hover:text-bltRed"></i>
-                            </div>
-                            <span class="text-xs font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white">Cloud Security Overview</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="https://aws.amazon.com/security/" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group">
-                            <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
-                                <i class="ph-bold ph-file-text text-lg text-gray-400 dark:text-gray-500 group-hover:text-bltRed"></i>
-                            </div>
-                            <span class="text-xs font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white">AWS Security Best Practices</span>
-                        </a>
-                    </li>
-                    
-                </ul>
-            </div>
-            
-
-            <div class="bg-gray-900 dark:bg-gray-800/80 p-8 rounded-[2.5rem] text-white relative overflow-hidden group border border-transparent dark:border-gray-700">
-                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
-                    <i class="ph-fill ph-seal-check text-8xl"></i>
-                </div>
-                <h4 class="font-bold text-sm uppercase tracking-widest text-bltRed mb-2">Verification</h4>
-                <h3 class="text-lg font-bold mb-4 relative z-10 leading-tight">Industry Verified Certificate</h3>
-                <p class="text-gray-400 text-xs leading-relaxed mb-6 relative z-10">
-                    Earn a completion certificate verified through Git commit signatures on our public chain.
-                </p>
-                <a href="/about/" class="text-xs font-bold text-white border-b border-white/20 hover:border-bltRed transition-colors">Learn about verification →</a>
-            </div>
-        </aside>
-    </main>
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900">
+        <h2 class="text-base font-bold">Before you begin</h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-400">Familiarity with cloud accounts, roles, and storage services</p>
+        <div class="mt-5 flex items-center gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
+          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-bltRed dark:bg-red-900/20"><i class="ph-bold ph-user-circle" aria-hidden="true"></i></span>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Created by</p>
+            <p class="mt-0.5 text-sm font-bold">OWASP BLT Community</p>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
 </article>
+
+<script src="/assets/js/course-state.js?v=1787235344"></script>
 
 
     <div class="px-4">
@@ -606,10 +778,11 @@
       <p>Docs</p>
       <a href="/courses/">Courses</a>
       <a href="/labs/">Labs</a>
-      <a href="/dashboard/">Dashboard</a>
+      <a href="/dashboard/">Security Trends</a>
     </div>
     <div>
       <p>Learn</p>
+      <a href="/progress/">Progress</a>
       <a href="/enroll/">Enroll</a>
       <a href="/instructors/">Instructors</a>
       <a href="/request/">Request Course</a>
@@ -649,7 +822,8 @@
 
     </div>
 
-    <script src="/assets/js/recommendations.js?v=1787007739"></script>
-    <script src="/assets/js/main.js?v=1787007739"></script>
+    <script src="/assets/js/learning-state.js?v=1787235344"></script>
+    <script src="/assets/js/recommendations.js?v=1787235344"></script>
+    <script src="/assets/js/main.js?v=1787235344"></script>
 </body>
 </html>
