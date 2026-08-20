@@ -164,12 +164,9 @@ class BLTWorker:
                 response = await self.handle_events(request, path)
             else:
                 response = self.json_response({'error': 'Not found'}, status=404)
-            
-            # Add CORS headers to response
-            for key, value in cors_headers.items():
-                response.headers[key] = value
-            
-            return response
+
+            # Rebuild — Workers Response headers are not reliably mutable after init.
+            return self.with_cors_headers(response, cors_headers)
 
         except Exception as e:
             return self.internal_error_response('Internal server error', e, headers=cors_headers)
@@ -1032,6 +1029,27 @@ class BLTWorker:
         if origin and origin in allowed_origins:
             headers['Access-Control-Allow-Origin'] = origin
         return headers
+
+    def with_cors_headers(self, response: 'Response', cors_headers: Dict[str, str]) -> 'Response':
+        """Return a new Response with CORS headers applied.
+
+        Cloudflare Workers Python Responses often ignore in-place header
+        mutation after construction (OPTIONS worked; GET /api/health did not).
+        Rebuild so Flutter web on localhost can call the hosted Worker.
+        """
+        merged: Dict[str, str] = {}
+        existing = getattr(response, 'headers', None)
+        if existing:
+            try:
+                items = existing.items()  # type: ignore[attr-defined]
+            except Exception:
+                items = []
+            for key, value in items:
+                merged[str(key)] = str(value)
+        merged.update(cors_headers)
+        body = getattr(response, 'body', '')
+        status = int(getattr(response, 'status', 200) or 200)
+        return Response(body if body is not None else '', status=status, headers=merged)
 
     def get_allowed_origins(self) -> List[str]:
         """Resolve allowed frontend origins from env configuration."""

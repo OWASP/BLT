@@ -70,6 +70,55 @@ async def test_handle_request_options_returns_cors_headers():
 
 
 @pytest.mark.asyncio
+async def test_get_health_includes_cors_for_allowed_origin():
+    """Flutter web on localhost needs ACAO on GET /api/health, not only OPTIONS."""
+    worker = BLTWorker(
+        SimpleNamespace(
+            DB=None,
+            CORS_ALLOWED_ORIGINS="https://netguardian.owaspblt.org,http://localhost:8888",
+        )
+    )
+
+    response = await worker.handle_request(
+        FakeRequest(
+            "https://api.example.com/api/health",
+            method="GET",
+            headers={"Origin": "http://localhost:8888"},
+        )
+    )
+
+    assert response.status == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "http://localhost:8888"
+    assert "GET" in response.headers["Access-Control-Allow-Methods"]
+
+
+@pytest.mark.asyncio
+async def test_with_cors_headers_rebuilds_when_headers_are_immutable():
+    """Workers runtime may ignore response.headers[k] = v after construction."""
+
+    class ImmutableHeaders(dict):
+        def __setitem__(self, key, value):  # noqa: ANN001
+            raise TypeError("headers are immutable")
+
+    class ImmutableResponse:
+        def __init__(self):
+            self.body = '{"status":"ok"}'
+            self.status = 200
+            self.headers = ImmutableHeaders({"Content-Type": "application/json"})
+
+    worker = BLTWorker(SimpleNamespace(DB=None))
+    rebuilt = worker.with_cors_headers(
+        ImmutableResponse(),
+        {"Access-Control-Allow-Origin": "http://localhost:8888"},
+    )
+
+    assert rebuilt.headers["Access-Control-Allow-Origin"] == "http://localhost:8888"
+    assert rebuilt.headers["Content-Type"] == "application/json"
+    assert rebuilt.body == '{"status":"ok"}'
+    assert rebuilt.status == 200
+
+
+@pytest.mark.asyncio
 async def test_handle_request_root_returns_404_without_assets():
     """When no ASSETS binding is present (e.g. in tests) the worker returns 404
     for the root path; in production the ASSETS binding intercepts it first."""

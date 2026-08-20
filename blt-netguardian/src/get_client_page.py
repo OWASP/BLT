@@ -51,10 +51,13 @@ flutter run -d macos</pre>
     <p>
       In the app, set API base URL to
       <code style="display:inline;padding:2px 6px">https://netguardian.owaspblt.org</code>
-      to Sign &amp; send into hosted triage. Scan headers from the desktop build
-      (your IP). Chrome-on-localhost can still talk to a local
+      (or your staging Worker) to Sign &amp; send into hosted triage.
+      Chrome on localhost needs that origin listed in
+      <code style="display:inline;padding:2px 6px">CORS_ALLOWED_ORIGINS</code>.
+      For a fully offline demo, run
       <code style="display:inline;padding:2px 6px">python3 local_dev/serve.py</code>
-      for a loopback demo.
+      and set the base URL to
+      <code style="display:inline;padding:2px 6px">http://127.0.0.1:8787</code>.
     </p>
     <p>
       Source:
