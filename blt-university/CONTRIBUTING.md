@@ -13,7 +13,7 @@ Share your cybersecurity expertise by creating a course!
 2. Wait for approval and feedback from the curriculum team
 3. Create your instructor profile in `_instructors/`
 4. Develop your course content in `_courses/`
-5. Submit a pull request with your materials
+5. Open a merge request with your materials
 6. Work with reviewers to refine your course
 7. Celebrate when your course goes live! 🎉
 
@@ -40,7 +40,7 @@ Help make our courses better!
 3. Make your changes
 4. Commit: `git commit -m "Improve explanation of XSS in web-security course"`
 5. Push: `git push origin improve-course-name`
-6. Open a pull request
+6. Open a merge request
 
 ### 3. Report Issues
 
@@ -220,7 +220,7 @@ bundle install
 # Run locally
 bundle exec jekyll serve --livereload
 
-# Visit http://localhost:4000/BLT-University/
+# Visit http://127.0.0.1:4001/
 ```
 
 ### Making Changes
@@ -239,10 +239,10 @@ git commit -m "Description of changes"
 # Push to your fork
 git push origin feature/your-feature
 
-# Open pull request on GitHub
+# Open a merge request on GitLab
 ```
 
-## ✅ Pull Request Guidelines
+## ✅ Merge Request Guidelines
 
 ### Before Submitting
 
@@ -265,8 +265,8 @@ Provide:
 
 ### Review Process
 
-1. **Automated Checks**: GitHub Actions will run tests
-2. **Peer Review**: Community members review your PR
+1. **Automated Checks**: GitLab CI will run the configured validators and tests
+2. **Peer Review**: Community members review your merge request
 3. **Revisions**: Address feedback and make changes
 4. **Approval**: Maintainers approve and merge
 5. **Deployment**: Changes go live automatically

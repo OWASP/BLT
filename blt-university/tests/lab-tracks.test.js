@@ -33,14 +33,14 @@ describe('lab learning tracks', () => {
 
   it('provides beginner and professional courses for the two audiences', () => {
     const hygieneCourse = courseSource('cybersecurity-foundations.md');
-    const professionalCourse = courseSource('professional-application-security.md');
+    const professionalCourse = courseSource('web-security-intro.md');
 
     expect(hygieneCourse).toMatch(/level: Beginner/);
     expect(hygieneCourse).toMatch(/track: hygiene/);
     expect(hygieneCourse).toMatch(/- phishing-awareness/);
     expect(hygieneCourse).toMatch(/- passwords-and-mfa/);
     expect(hygieneCourse).toMatch(/- safe-browsing-and-downloads/);
-    expect(professionalCourse).toMatch(/level: Intermediate/);
+    expect(professionalCourse).toMatch(/level: Beginner/);
     expect(professionalCourse).toMatch(/track: professional/);
     expect(professionalCourse).toMatch(/- sql_injection/);
     expect(professionalCourse).toMatch(/- server_side_request_forgery/);

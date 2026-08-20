@@ -54,6 +54,10 @@ layout: default
         <div class="mx-auto max-w-[104rem] px-5 sm:px-6 lg:px-8 xl:px-10 relative z-10">
             <div class="grid lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-8 xl:gap-10 2xl:gap-12 items-center">
                 <div>
+                    <a data-return-course href="{{ '/courses/' | relative_url }}" class="mb-5 hidden w-fit items-center gap-2 text-sm font-semibold text-gray-300 transition hover:text-white">
+                        <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
+                        <span>Return to course</span>
+                    </a>
                     <div class="flex flex-wrap items-center gap-3 mb-5">
                         <span class="px-2.5 py-1 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">{{ page.category }}</span>
                         <span class="px-2.5 py-1 bg-white/10 border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">{{ page.difficulty }}</span>

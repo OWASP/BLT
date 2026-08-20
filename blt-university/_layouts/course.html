@@ -1,188 +1,242 @@
 ---
 layout: default
 ---
+
 <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
 
-<article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
-    <section class="bg-bltDark text-white pt-36 pb-32 relative overflow-hidden">
-        <div class="absolute top-0 right-1/4 w-[500px] h-[500px] bg-red-500/10 rounded-full filter blur-[120px] pointer-events-none"></div>
-        <div class="absolute inset-0 z-0">
-            <img src="{{ page.image | default: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80' | relative_url }}" class="w-full h-full object-cover opacity-10 mix-blend-overlay">
+<article data-course-root data-course-id="{{ page.slug | default: page.title | slugify }}" class="min-h-screen bg-[#fafafa] text-gray-900 transition-colors dark:bg-gray-950 dark:text-white">
+  <section class="relative overflow-hidden bg-bltDark pb-24 pt-36 text-white">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(220,38,38,0.16),transparent_36%)]" aria-hidden="true"></div>
+    <div class="relative z-10 mx-auto max-w-7xl px-5 sm:px-6">
+      <div class="mb-5 flex flex-wrap items-center gap-3">
+        <span class="rounded-md bg-bltRed px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">{{ page.category }}</span>
+        <span class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">{{ page.level }}</span>
+        <span class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">{{ page.duration }}</span>
+      </div>
+      <h1 class="max-w-4xl font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">{{ page.title }}</h1>
+      <p class="mt-5 max-w-3xl text-sm leading-7 text-gray-300 sm:text-base">{{ page.description }}</p>
+      <div class="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm text-gray-300">
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-book-open-text text-bltRed" aria-hidden="true"></i>Short lessons</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-list-numbers text-bltRed" aria-hidden="true"></i>{{ page.lessons.size }} lessons</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-flask text-bltRed" aria-hidden="true"></i>Hands-on practice</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-chart-line-up text-bltRed" aria-hidden="true"></i>Local progress</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="relative z-20 mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-5 pb-24 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+    <div class="min-w-0 -mt-10 space-y-6">
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8" aria-labelledby="course-introduction-heading">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Start here</p>
+        <h2 id="course-introduction-heading" class="mt-2 text-2xl font-bold">Course introduction</h2>
+        <div class="prose mt-4 max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-bltRed dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300">
+          {{ content }}
+        </div>
+        {% if page.outcomes %}
+        <div class="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
+          <h3 class="text-base font-bold">By the end of this course, you can</h3>
+          <ul class="mt-3 grid gap-2 text-sm leading-6 text-gray-600 dark:text-gray-300 sm:grid-cols-2">
+            {% for outcome in page.outcomes %}
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>{{ outcome }}</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </section>
+
+      <section aria-labelledby="learning-path-heading">
+        <div class="mb-5">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Learn, then practice</p>
+          <h2 id="learning-path-heading" class="mt-2 text-2xl font-bold">Course lessons</h2>
+          <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Work through these {{ page.lessons.size }} lessons in order. Each lesson introduces one concept, then gives you a practical activity or lab to apply it.</p>
         </div>
 
-        <div class="max-w-7xl mx-auto px-6 relative z-10">
-            <div class="flex items-center gap-3 mb-6">
-                <span class="px-2.5 py-0.5 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">{{ page.category }}</span>
-                <span class="px-2.5 py-0.5 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">{{ page.level }}</span>
-            </div>
-            <h1 class="font-display text-3xl md:text-5xl font-bold tracking-tight mb-8 leading-tight max-w-4xl">{{ page.title }}</h1>
-            <div class="flex flex-wrap items-center gap-6 text-xs md:text-sm text-gray-400">
-                <div class="flex items-center gap-2">
-                    <i class="ph-bold ph-user-circle text-lg text-bltRed"></i>
-                    <strong class="text-white">{{ page.instructor }}</strong>
+        <div class="space-y-5">
+          {% for lesson in page.lessons %}
+          <article data-course-lesson data-lesson-id="{{ lesson.id }}" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">{{ forloop.index }}</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">{{ lesson.title }}</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <i class="ph-bold ph-clock text-lg text-bltRed"></i>
-                    <strong class="text-white">{{ page.duration }}</strong>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">{{ lesson.intro }}</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                {{ lesson.body | markdownify }}
+              </div>
+
+              {% if lesson.example %}
+              <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between bg-gray-900 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                  <span>{{ lesson.example.title }}</span>
+                  <span>{{ lesson.example.language | default: "Example" }}</span>
                 </div>
-            </div>
-        </div>
-    </section>
+                <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>{{ lesson.example.code | escape }}</code></pre>
+                {% if lesson.example.note %}<p class="m-0 border-t border-gray-200 bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ lesson.example.note }}</p>{% endif %}
+              </div>
+              {% endif %}
 
-    <main class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-12 relative z-20 pb-24">
+              {% if lesson.observation %}
+              <div class="flex gap-3 rounded-2xl border border-red-100 bg-red-50/60 p-4 text-sm leading-6 text-gray-700 dark:border-red-900/30 dark:bg-red-900/10 dark:text-gray-300">
+                <i class="ph-bold ph-eye mt-0.5 shrink-0 text-lg text-bltRed" aria-hidden="true"></i>
+                <p class="m-0">{{ lesson.observation }}</p>
+              </div>
+              {% endif %}
 
-        <div class="lg:col-span-8 space-y-8">
-            <div class="bg-white dark:bg-gray-900 p-8 md:p-12 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
-                    <i class="ph-fill ph-info text-bltRed"></i> Course Overview
-                </h2>
-                <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h2:text-xl prose-a:text-bltRed prose-p:text-gray-600 dark:prose-p:text-gray-400 dark:prose-invert mb-8">
-                   {{ content }}
+              {% if lesson.challenge %}
+              {% assign challenge = lesson.challenge %}
+              <section data-course-challenge data-challenge-id="{{ challenge.id }}" data-challenge-type="{{ challenge.type }}" data-challenge-answer="{{ challenge.answer | escape }}" data-challenge-clue="{{ challenge.clue | escape }}" data-challenge-success="{{ challenge.success | escape }}" class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-{{ challenge.id }}">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-{{ challenge.id }}" class="mt-1 text-base font-bold">{{ challenge.title }}</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">{{ challenge.prompt }}</p>
+                  </div>
                 </div>
 
-                {% if page.syllabus %}
-                <div class="mt-12 pt-10 border-t border-gray-50 dark:border-gray-800">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-10 flex items-center gap-3">
-                        <i class="ph-fill ph-map-trifold text-bltRed"></i> Detailed Syllabus
-                    </h2>
-                    <div class="space-y-4">
-                        {% for module in page.syllabus %}
-                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
-                            <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
-                                    {{ forloop.index | prepend: '0' | slice: -2, 2 }}
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">{{ module.title }}</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">{{ module.description }}</p>
-                                    {% if module.topics %}
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
-                                        {% for topic in module.topics %}
-                                        <li class="flex items-center gap-2">
-                                            <i class="ph-bold ph-check text-bltRed"></i> {{ topic }}
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
+                {% if challenge.type == "console" %}
+                <button type="button" data-challenge-reveal class="mt-4 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-red-200 hover:text-bltRed dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                  <i class="ph-bold ph-terminal-window" aria-hidden="true"></i>Start investigation
+                </button>
+                {% elsif challenge.type == "inspect" %}
+                <div data-course-artifact data-evidence="{{ challenge.clue | escape }}" class="mt-4 rounded-xl border border-dashed border-gray-300 bg-white p-4 text-xs text-gray-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-400">This evidence panel looks empty. Inspect the element itself.</div>
+                {% elsif challenge.type == "choice" %}
+                <div class="mt-4 grid gap-2">
+                  {% for option in challenge.options %}
+                  <button type="button" data-challenge-option="{{ option.id }}" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">{{ option.label }}</button>
+                  {% endfor %}
+                </div>
+                {% elsif challenge.type == "sequence" %}
+                <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                  {% for option in challenge.options %}
+                  <button type="button" data-sequence-option="{{ option.id }}" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                    <span class="mr-2 font-mono text-xs font-bold text-bltRed" data-sequence-position></span>{{ option.label }}
+                  </button>
+                  {% endfor %}
+                </div>
+                <div class="mt-3 flex items-center justify-between gap-3">
+                  <p data-sequence-summary class="text-xs text-gray-500 dark:text-gray-400">Select the steps in the order they should happen.</p>
+                  <button type="button" data-sequence-reset class="text-xs font-bold text-bltRed hover:underline">Reset order</button>
+                </div>
+                {% elsif challenge.type == "artifact" %}
+                <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center justify-between bg-gray-900 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                    <span>{{ challenge.artifact.title | default: "Evidence" }}</span>
+                    <span>{{ challenge.artifact.language | default: "Text" }}</span>
+                  </div>
+                  <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>{{ challenge.artifact.code | escape }}</code></pre>
                 </div>
                 {% endif %}
 
-                {% if page.labs %}
-                <div class="mt-12 pt-10 border-t border-gray-50 dark:border-gray-800">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                        <i class="ph-fill ph-flask text-bltRed"></i> Practice Labs
-                    </h2>
-                    <div class="grid gap-3 sm:grid-cols-2">
-                        {% for lab_slug in page.labs %}
-                        {% assign course_lab = site.labs | where: "slug", lab_slug | first %}
-                        {% if course_lab %}
-                        <a href="{{ course_lab.url | relative_url }}" class="group rounded-2xl border border-gray-100 bg-gray-50/50 p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-800/30 dark:hover:border-red-900/40">
-                            <span class="flex items-center justify-between gap-3">
-                                <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">{{ course_lab.title }}</span>
-                                <i class="ph-bold ph-arrow-up-right text-bltRed" aria-hidden="true"></i>
-                            </span>
-                            <span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">{{ course_lab.difficulty | capitalize }} · {{ course_lab.estimated_time }} minutes</span>
-                        </a>
-                        {% endif %}
-                        {% endfor %}
-                    </div>
+                {% unless challenge.type == "choice" or challenge.type == "sequence" %}
+                <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <label class="sr-only" for="challenge-answer-{{ challenge.id }}">Challenge answer</label>
+                  <input id="challenge-answer-{{ challenge.id }}" data-challenge-input type="text" autocomplete="off" class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" placeholder="Enter what you found">
+                  <button type="button" data-challenge-submit class="rounded-xl bg-bltRed px-4 py-2.5 text-sm font-bold text-white transition hover:bg-bltRedHover">Check answer</button>
                 </div>
-                {% endif %}
+                {% endunless %}
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              {% endif %}
+
+              {% if lesson.labs %}
+              <section aria-labelledby="practice-{{ lesson.id }}">
+                <div class="mb-3 flex items-end gap-4">
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Put it into practice</p>
+                    <h4 id="practice-{{ lesson.id }}" class="mt-1 text-base font-bold">Practice labs</h4>
+                  </div>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  {% for lab_slug in lesson.labs %}
+                  {% assign course_lab = site.labs | where: "slug", lab_slug | first %}
+                  {% if course_lab %}
+                  <a data-course-lab data-lab-id="{{ course_lab.slug }}" data-task-count="{{ course_lab.tasks.size }}" href="{{ course_lab.url | relative_url }}?course={{ page.slug }}" class="group rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-red-900/40 dark:hover:bg-red-900/10">
+                    <span class="flex items-start justify-between gap-3">
+                      <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">{{ course_lab.title }}</span>
+                      <i class="ph-bold ph-arrow-up-right shrink-0 text-bltRed" aria-hidden="true"></i>
+                    </span>
+                    <span class="mt-2 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>{{ course_lab.difficulty | capitalize }} · {{ course_lab.tasks.size }} tasks</span>
+                      <span data-course-lab-status>Not completed</span>
+                    </span>
+                  </a>
+                  {% endif %}
+                  {% endfor %}
+                </div>
+              </section>
+              {% endif %}
+
+              {% unless lesson.challenge %}
+              <div class="flex justify-end border-t border-gray-100 pt-5 dark:border-gray-800">
+                <button type="button" data-complete-lesson class="inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-bltRed transition hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-900/10">
+                  <i class="ph-bold ph-check-circle" aria-hidden="true"></i><span>Mark lesson complete</span>
+                </button>
+              </div>
+              {% endunless %}
             </div>
+          </article>
+          {% endfor %}
         </div>
+      </section>
 
-        <aside class="lg:col-span-4 space-y-6">
-
-            {% if page.instructor %}
-            {% assign course_instructor = site.instructors | where: "title", page.instructor | first %}
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800">
-                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <i class="ph-bold ph-chalkboard-teacher text-bltRed"></i> Instructor
-                </h3>
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full border-2 border-gray-100 dark:border-gray-800 overflow-hidden shrink-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                        {% if course_instructor and course_instructor.avatar %}
-                        <img src="{{ course_instructor.avatar | relative_url }}" alt="{{ page.instructor }}" class="w-full h-full object-cover">
-                        {% else %}
-                        <i class="ph-bold ph-user text-2xl text-gray-400"></i>
-                        {% endif %}
-                    </div>
-                    <div>
-                        {% if course_instructor %}
-                        <a href="{{ course_instructor.url | relative_url }}" class="font-bold text-gray-900 dark:text-white hover:text-bltRed transition-colors">{{ page.instructor }}</a>
-                        {% else %}
-                        <span class="font-bold text-gray-900 dark:text-white">{{ page.instructor }}</span>
-                        {% endif %}
-                        {% if course_instructor and course_instructor.expertise %}
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ course_instructor.expertise }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+      {% assign next_course = site.courses | where: "slug", page.next_course | first %}
+      <section data-next-course class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900" aria-labelledby="next-course-heading">
+        <div class="grid gap-6 p-6 sm:p-8 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Continue learning</p>
+            {% if next_course %}
+            <h2 id="next-course-heading" class="mt-2 text-2xl font-bold">Up next: {{ next_course.title }}</h2>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-400">{{ next_course.description }}</p>
+            {% else %}
+            <h2 id="next-course-heading" class="mt-2 text-2xl font-bold">Choose your next path</h2>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-400">You have reached the end of this path. Pick another topic from the course catalog when you are ready.</p>
             {% endif %}
+          </div>
+          {% if next_course %}
+          <a href="{{ next_course.url | relative_url }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-bltRed px-5 py-3 text-sm font-bold text-white transition hover:bg-bltRedHover">Continue course <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+          {% else %}
+          <a href="{{ '/courses/' | relative_url }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-bltRed px-5 py-3 text-sm font-bold text-white transition hover:bg-bltRedHover">Browse courses <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+          {% endif %}
+        </div>
+      </section>
+    </div>
 
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1.5 bg-bltRed"></div>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Enroll Now</h3>
+    <aside class="-mt-10 space-y-5 lg:sticky lg:top-28">
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900" aria-labelledby="course-progress-heading">
+        <div class="flex items-center justify-between gap-3">
+          <h2 id="course-progress-heading" class="text-lg font-bold">Course progress</h2>
+          <span data-course-progress-percent class="text-sm font-bold text-bltRed">0%</span>
+        </div>
+        <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+          <div data-course-progress-bar class="h-full w-0 rounded-full bg-bltRed transition-all duration-300"></div>
+        </div>
+        <p data-course-progress-count class="mt-3 text-sm text-gray-500 dark:text-gray-400">0 steps completed</p>
+        <div data-course-complete class="mt-5 hidden rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-900/40 dark:bg-green-900/15 dark:text-green-300">
+          <p class="font-bold">Course complete</p>
+        </div>
+        <a href="{{ '/progress/' | relative_url }}" class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-bltRed hover:underline">View all progress <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+      </section>
 
-                <div class="mb-8 space-y-4">
-                    <div class="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-2xl border border-gray-100 dark:border-gray-700">
-                        <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Prerequisites</h4>
-                        <p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
-                            {{ page.prerequisites | default: "Familiarity with cybersecurity fundamentals." }}
-                        </p>
-                    </div>
-                </div>
-
-                <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-bltRed text-white text-sm font-bold rounded-2xl shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover hover:-translate-y-1 transition-all">
-                    <i class="ph-bold ph-gitlab-logo text-xl"></i>
-                    Enroll via GitLab
-                </a>
-
-                <p class="mt-4 text-[10px] text-center text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest">
-                    <i class="ph-bold ph-broadcast text-bltRed"></i> Enrollment is Open
-                </p>
-            </div>
-
-            {% if page.resources %}
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800">
-                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <i class="ph-bold ph-folder-open text-bltRed"></i> Course Resources
-                </h3>
-                <ul class="space-y-3">
-                    {% for res in page.resources %}
-                    <li>
-                        <a href="{{ res.url }}" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group">
-                            <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
-                                <i class="ph-bold ph-file-text text-lg text-gray-400 dark:text-gray-500 group-hover:text-bltRed"></i>
-                            </div>
-                            <span class="text-xs font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white">{{ res.title }}</span>
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-
-            <div class="bg-gray-900 dark:bg-gray-800/80 p-8 rounded-[2.5rem] text-white relative overflow-hidden group border border-transparent dark:border-gray-700">
-                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
-                    <i class="ph-fill ph-seal-check text-8xl"></i>
-                </div>
-                <h4 class="font-bold text-sm uppercase tracking-widest text-bltRed mb-2">Verification</h4>
-                <h3 class="text-lg font-bold mb-4 relative z-10 leading-tight">Industry Verified Certificate</h3>
-                <p class="text-gray-400 text-xs leading-relaxed mb-6 relative z-10">
-                    Earn a completion certificate verified through Git commit signatures on our public chain.
-                </p>
-                <a href="/about/" class="text-xs font-bold text-white border-b border-white/20 hover:border-bltRed transition-colors">Learn about verification →</a>
-            </div>
-        </aside>
-    </main>
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900">
+        <h2 class="text-base font-bold">Before you begin</h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-400">{{ page.prerequisites | default: "No specialist setup is required." }}</p>
+        <div class="mt-5 flex items-center gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
+          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-bltRed dark:bg-red-900/20"><i class="ph-bold ph-user-circle" aria-hidden="true"></i></span>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Created by</p>
+            <p class="mt-0.5 text-sm font-bold">{{ page.instructor | default: "OWASP BLT Community" }}</p>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
 </article>
+
+<script src="{{ '/assets/js/course-state.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>

@@ -6,6 +6,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileToggle = document.getElementById('mobile-toggle');
     const mobileMenu = document.getElementById('mobile-menu');
 
+    const returnCourseLink = document.querySelector('[data-return-course]');
+    const coursesUrl = returnCourseLink?.getAttribute('href');
+    const courseSlug = new URLSearchParams(window.location.search).get('course');
+    if (returnCourseLink && coursesUrl && /^[a-z0-9-]+$/.test(courseSlug || '')) {
+        const normalizedCoursesUrl = coursesUrl.replace(/\/?$/, '/');
+        returnCourseLink.setAttribute('href', `${normalizedCoursesUrl}${courseSlug}/`);
+        returnCourseLink.classList.remove('hidden');
+        returnCourseLink.classList.add('inline-flex');
+    }
+
     if (mobileToggle && mobileMenu) {
         mobileToggle.addEventListener('click', () => {
             const open = !mobileMenu.classList.contains('open');
@@ -159,6 +169,10 @@ document.addEventListener('DOMContentLoaded', function() {
             persistProgress(progress);
         }
 
+        function recordTaskCompletion(index) {
+            window.BltLearningProgress?.recordTaskCompletion(labId, index);
+        }
+
         function clearTaskProgressFrom(index) {
             if (!labId) {
                 return;
@@ -263,6 +277,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         : 'Complete <i class="ph-bold ph-check"></i>')
                     : 'Next <i class="ph-bold ph-arrow-right"></i>';
             }
+
+            labRoot.dispatchEvent(new CustomEvent('lab:task-change', {
+                bubbles: true,
+                detail: { taskIndex: currentIndex }
+            }));
         }
 
         prevButton?.addEventListener('click', () => showTask(currentIndex - 1));
@@ -273,6 +292,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!taskRequiresCompletion(currentIndex)) {
                 completeTask(currentIndex);
+                saveTaskProgress(currentIndex, { completed: true });
+                recordTaskCompletion(currentIndex);
             }
 
             if (currentIndex < tasks.length - 1) {
@@ -295,6 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const completedIndex = Number(event.detail?.taskIndex ?? currentIndex);
             if (Number.isInteger(completedIndex) && completedIndex >= 0 && completedIndex < tasks.length) {
                 completeTask(completedIndex);
+                recordTaskCompletion(completedIndex);
                 showTask(currentIndex);
             }
         });
@@ -337,6 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (isCorrect) {
                         completeTask(currentIndex);
                         saveTaskProgress(currentIndex, { completed: true });
+                        recordTaskCompletion(currentIndex);
                     } else {
                         // A wrong answer forfeits everything past this task, in memory
                         // and in storage, so the learner cannot keep credit earned

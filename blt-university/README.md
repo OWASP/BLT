@@ -1,280 +1,223 @@
-# 🎓 BLT University
+# BLT University
 
-> Open-Source Cybersecurity Education for Everyone
+[![Pipeline status](https://gitlab.com/owasp-blt/blt-university/badges/main/pipeline.svg)](https://gitlab.com/owasp-blt/blt-university/-/pipelines)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-blue?style=flat-square&logo=github)](https://owasp-blt.github.io/BLT-University/)
-[![GitLab Pages](https://img.shields.io/badge/GitLab-Pages-orange?style=flat-square&logo=gitlab)](https://university.owaspblt.org/)
-[![Cloudflare Pages](https://img.shields.io/badge/Cloudflare-Pages-f38020?style=flat-square&logo=cloudflare)](https://university.owaspblt.org/)
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg?style=flat-square)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
+BLT University is the open-source cybersecurity learning platform maintained by the OWASP BLT community. It combines short, structured courses with browser-based security labs, local learning progress, and current vulnerability intelligence in a statically generated site.
 
-BLT University is a revolutionary **static online university** focused on cybersecurity education. We believe security knowledge should be free, collaborative, and community-driven.
+[Open BLT University](https://university.owaspblt.org/) · [Browse the source](https://gitlab.com/owasp-blt/blt-university) · [Read the contribution guide](CONTRIBUTING.md)
 
-## 🌟 What Makes Us Different
+## What is included
 
-- **100% Free & Open Source**: All courses and materials are freely available
-- **GitHub-Powered Learning**: Learn through pull requests, issues, and GitHub Actions
-- **Industry Expert Instructors**: Courses taught by experienced security professionals
-- **Hands-On Focus**: Practical labs, real-world projects, and interactive content
-- **Community-Driven**: Built by the community, for the community
-- **Multiple Content Types**: Videos, PDFs, labs, meetups, and more
+- Five focused learning paths, from cybersecurity foundations to advanced application, cloud, and cryptography topics.
+- Thirteen hands-on labs covering common security weaknesses and defensive reasoning.
+- Interactive course activities built around evidence review, DevTools inspection, security decisions, and ordered response steps.
+- Browser-local progress, streaks, recommendations, and achievement badges. No account is required and learning state is not sent to a server.
+- A Security Trends dashboard backed by a validated 90-day NVD and CISA KEV dataset.
+- Schema validation, JavaScript tests, data-pipeline tests, and cross-browser learner-flow tests in GitLab CI.
 
-## 📚 Browse Courses
+## Learning model
 
-Visit our [Course Catalog](https://owasp-blt.github.io/BLT-University/courses/) to explore available courses in:
+Courses use a compact sequence:
 
-- 🌐 Web Security
-- 🔒 Network Security
-- 🔐 Cryptography
-- 🎯 Penetration Testing
-- 💻 Secure Coding
-- 🦠 Malware Analysis
-- ☁️ Cloud Security
-- 📱 Mobile Security
-- 🚨 Incident Response
-- 🛡️ Security Operations
+1. Read a short explanation of the security concept.
+2. Work through an activity or inspect realistic mock evidence.
+3. Open the related practice labs when the topic has an existing lab.
+4. Return to the course and continue from locally saved progress.
+5. Move to the recommended next course.
 
-## 🚀 Getting Started
+All exercises run with static or simulated data. They do not target external systems or require provider credentials.
 
-### For Students
+## Getting started
 
-1. **Browse Courses**: Visit [BLT University](https://owasp-blt.github.io/BLT-University/) to explore our catalog
-2. **Request a Course**: Don't see what you're looking for? [Request a course or topic](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-request.yml) you'd like to learn
-3. **Create GitHub Account**: If you don't have one, [sign up for GitHub](https://github.com/signup)
-4. **Enroll**: Submit an [enrollment request](https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml)
-5. **Start Learning**: Access course materials and begin your journey!
+### For students
 
-### For Instructors
+1. **Browse Courses**: Visit [BLT University](https://university.owaspblt.org/) to explore our catalog.
+2. **Request a Course**: Don't see what you're looking for? [Request a course or topic](https://gitlab.com/owasp-blt/blt-university/-/issues/new) you'd like to learn.
+3. **Create a GitLab Account**: If you don't have one, [sign up for GitLab](https://gitlab.com/users/sign_up).
+4. **Enroll**: Submit an [enrollment request](https://gitlab.com/owasp-blt/blt-university/-/issues/new).
+5. **Start Learning**: Open a course and work through its lessons and practice labs.
 
-Want to teach at BLT University? We'd love to have you!
+### For instructors
 
-1. **Read the Guide**: Check out our [Contributing Guide](contributing.html)
-2. **Submit Proposal**: Use our [course submission template](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml)
-3. **Create Course**: Develop your course using our templates
-4. **Submit PR**: Submit a pull request with your course materials
-5. **Go Live**: Once approved, your course joins our catalog!
+Want to teach at BLT University?
 
-## 🏗️ How It Works
+1. Read the [contributing guide](CONTRIBUTING.md).
+2. Use the [course submission issue](https://gitlab.com/owasp-blt/blt-university/-/issues/new).
+3. Build the course with the existing content and layout conventions.
+4. Open a merge request for review.
 
-### GitLab-Built Static Platform
+## Technology
 
-All courses are built as static content in GitLab CI and published from the same `public/` artifact to GitLab Pages and Cloudflare Pages, making them:
-- **Version Controlled**: Track changes and improvements over time
-- **Collaborative**: Anyone can suggest improvements via pull requests
-- **Transparent**: All course materials are open and visible
-- **Fast & Reliable**: Served through static hosting on GitLab and Cloudflare
+- [Jekyll](https://jekyllrb.com/) generates the static site.
+- Markdown and YAML front matter define courses, labs, instructors, and pages.
+- Vanilla JavaScript powers labs, validation, local progress, recommendations, and dashboard interactions.
+- Jest and jsdom cover functional JavaScript behavior.
+- Playwright verifies the complete learner journey in desktop Chromium, Firefox, WebKit, and mobile Chromium.
+- GitLab CI validates, builds, tests, and publishes the site.
 
-### Course Management
+## Repository structure
 
-- **Course Files**: Stored in `_courses/` directory as Markdown with YAML front matter
-- **Instructor Profiles**: Stored in `_instructors/` directory
-- **Automatic Publishing**: GitLab CI builds the Jekyll site into `public/` on push
-- **Easy Updates**: Instructors update courses via pull requests
+```text
+.
+├── _courses/                         Course lessons and activities
+├── _labs/                            Hands-on lab content and tasks
+├── _pages/                           Top-level site pages
+├── _layouts/                         Jekyll page and learning layouts
+├── _includes/                        Shared interface components
+├── _data/                            Navigation and vulnerability datasets
+├── assets/js/                        Site, course, lab, and dashboard behavior
+├── docs/                             Lab-authoring documentation and template
+├── schemas/                          Lab and vulnerability-data schemas
+├── scripts/                          Content validation and data refresh tools
+├── tests/e2e/                        Cross-browser learner-flow tests and guide
+├── tests/vulnerability_intel/        Vulnerability pipeline tests
+├── tests/                            Jest functional and content tests
+├── .gitlab-ci.yml                    Validation, build, test, and deploy jobs
+├── playwright.config.js              Cross-browser E2E configuration
+└── _config.yml                       Jekyll and site configuration
+```
 
-### Vulnerability Learning Dashboard
+The generated `public/` directory is a deployment artifact. Make source changes in the Jekyll content, layouts, data, or assets rather than editing generated files directly.
 
-The [Vulnerability Dashboard](https://university.owaspblt.org/dashboard/) turns recent vulnerability disclosures into learning paths:
+## Local development
+
+### Requirements
+
+- Ruby 3.2 and Bundler
+- Node.js 20 and npm
+- Python 3.11 for content and vulnerability-data validation
+
+### Setup
+
+```bash
+git clone https://gitlab.com/owasp-blt/blt-university.git
+cd blt-university
+
+bundle install
+npm ci
+bundle exec jekyll serve
+```
+
+Open `http://127.0.0.1:4001/`.
+
+Jekyll watches source files and rebuilds while the server is running. Restart it after changing `_config.yml`.
+
+## Tests and validation
+
+Run the JavaScript functional and content tests:
+
+```bash
+npm test
+```
+
+Run the complete E2E learner journey locally:
+
+```bash
+npx playwright install
+npm run test:e2e:local
+```
+
+This checks the learner journey in desktop Chromium, Firefox, WebKit, and mobile Chromium.
+
+See [`tests/e2e/README.md`](tests/e2e/README.md) for the test architecture, page-object conventions, and authoring guidance.
+
+Confirm that the production Jekyll build succeeds:
+
+```bash
+JEKYLL_ENV=production bundle exec jekyll build
+```
+
+Validate lab front matter and tasks:
+
+```bash
+python -m pip install jsonschema==4.25.1 python-frontmatter==1.1.0
+python scripts/validate_labs.py
+```
+
+Validate the committed vulnerability dataset and its pipeline tests:
+
+```bash
+python -m pip install "jsonschema[format-nongpl]==4.25.1"
+python -B scripts/vulnerability_intel/validate.py
+python -B -m unittest discover -s tests/vulnerability_intel -p 'test_*.py' -v
+```
+
+## Authoring learning content
+
+Course files live in `_courses/`. Each course defines its metadata and ordered lessons in YAML front matter, followed by a short course introduction. A lesson can include an example, observation, interactive challenge, or links to existing practice labs.
+
+Labs live in `_labs/` and must satisfy [`schemas/lab.schema.json`](schemas/lab.schema.json). Start with the [lab-authoring guide](docs/lab-authoring-guide.md) and [lab template](docs/lab-template.md), then run the validator and tests before opening a merge request.
+
+Keep new content concise, concrete, and safe:
+
+- Use mock targets and synthetic evidence.
+- Explain the trust boundary or defensive lesson behind an activity.
+- Reuse existing lab components and validators when possible.
+- Do not include live credentials, private data, or instructions that depend on attacking external systems.
+- Test keyboard behavior, narrow layouts, refreshes, and saved progress.
+
+## Local learning data
+
+Learning state is stored in the browser using these localStorage keys:
+
+- `blt-lab-progress` for completed lab tasks.
+- `blt-course-progress` for course lessons, challenges, and completion.
+- `blt-learning-progress` for activity history, streaks, and achievements.
+
+Storage failures or malformed saved values are handled without blocking course and lab interactions. Clearing site data in the browser resets progress on that device.
+
+## Security Trends and vulnerability intelligence
+
+The [Security Trends dashboard](https://university.owaspblt.org/dashboard/) turns recent vulnerability disclosures into learning paths:
 
 1. The NVD CVE API supplies published CVEs, CWE identifiers, CVSS metrics, and affected products.
 2. The CISA Known Exploited Vulnerabilities catalog adds the known-exploitation signal.
 3. `_data/cwe_owasp_lab_mapping.json` maps CWE identifiers to OWASP Top 10:2021 categories and BLT University labs.
 4. Description matching is used only when no usable structured CWE is available; those records are labeled `description_fallback` with lower confidence.
 
-The dashboard uses Chart.js for the three views defined in the GSoC proposal: a horizontal bar chart for the five most frequent categories, a pie chart for the percentage breakdown of all classified categories, and a line chart for the top three categories over time. All three are responsive and retain text/card fallbacks when the chart library cannot load.
-
-Selecting a bar, pie segment, or trend line filters both the OWASP learning map and CVE explorer, then updates the recommended lab for that category. The **Start learning** recommendation scores unfinished labs using 40% normalized CVE frequency, 40% locally saved incompleteness, and 20% normalized CISA KEV activity. Completed labs are skipped only when another incomplete lab exists within the selected category; progress remains device-local in `blt-lab-progress`.
+The dashboard provides category, distribution, and trend views with text fallbacks when charts cannot load. Selecting a category filters the learning map and CVE explorer, then updates the recommended lab. The recommendation combines vulnerability frequency, incomplete local lab progress, and CISA KEV activity.
 
 Refresh the committed 90-day dataset with:
 
 ```bash
-python3 -B scripts/vulnerability_intel/update.py --days 90
-```
-
-An optional `NVD_API_KEY` environment variable increases the NVD request rate. The refresh script enforces NVD's 120-day maximum date window, supports pagination, retries transient NVD failures with exponential backoff, and can also run from a scheduled GitLab pipeline.
-
-Month-over-month trends compare only the months the collection window covers in full. A window ending mid-month leaves a partial trailing month, which would otherwise report a decline for every category regardless of the real trend; partial months are flagged `"complete": false` and are excluded from the trend and muted in the chart.
-
-### Enrollment System
-
-- **GitHub Issues**: Students enroll by creating an issue
-- **Automated Workflows**: GitHub Actions process enrollments automatically
-- **Access Control**: Students added to course repositories upon approval
-- **Certificate Generation**: Automated certificate creation on completion
-
-### Content Types Supported
-
-- 📹 **Videos**: YouTube embeds, hosted videos
-- 📄 **PDFs**: Slides, guides, reference materials
-- 💻 **Code**: GitHub repositories, interactive coding exercises
-- 🔗 **External Resources**: Links to tools, documentation
-- 📅 **Events**: Live meetups, virtual sessions
-- ✏️ **Assignments**: GitHub-based homework and projects
-
-## 🛠️ Technical Architecture
-
-### Built With
-
-- **Jekyll**: Static site generator
-- **GitHub Pages**: Hosting platform
-- **GitLab Pages**: CI build artifact and static hosting
-- **Cloudflare Pages**: Public production hosting
-- **GitHub Actions**: Automation and workflows
-- **Markdown**: Content format
-- **YAML**: Course metadata
-
-### Project Structure
-
-```
-BLT-University/
-├── _pages/                # Source pages rendered into public URLs
-├── _data/                 # Curated mappings and generated dashboard data
-├── _courses/              # Course content files
-├── _instructors/          # Instructor profiles
-├── _layouts/              # Jekyll layouts
-├── _includes/             # Reusable components
-├── assets/
-│   ├── css/              # Stylesheets
-│   └── js/               # JavaScript
-├── .github/
-│   ├── workflows/        # GitHub Actions
-│   └── ISSUE_TEMPLATE/   # Issue templates
-├── .gitlab-ci.yml        # GitLab build, GitLab Pages, and Cloudflare Pages deployment
-├── scripts/
-│   ├── validate_labs.py                  # Lab content validation
-│   └── vulnerability_intel/
-│       ├── update.py                     # NVD + CISA ingestion pipeline
-│       └── validate.py                   # Dashboard dataset validation
-├── tests/
-│   ├── dashboard/                        # Dashboard interaction tests
-│   └── vulnerability_intel/              # CVE pipeline tests
-├── wrangler.toml         # Cloudflare Pages output configuration
-├── public/               # Generated pages committed by GitLab CI for Cloudflare
-└── _config.yml           # Jekyll configuration
-```
-
-### GitLab and Cloudflare Deployment
-
-GitLab CI builds the site once with:
-
-```bash
-bundle exec jekyll build -d public
-```
-
-The `pages` job publishes that artifact to GitLab Pages. The `commit_built_pages` job commits the generated `public/` files back to the default branch with `[skip ci]`, which lets Cloudflare Pages deploy automatically from the connected repository using the `public/` output directory configured in `wrangler.toml`.
-
-If `CI_JOB_TOKEN` is not allowed to push to the repository, configure a masked GitLab CI/CD variable named `CI_PUSH_TOKEN` with a project access token that can write to the default branch.
-
-### Local Development
-
-To run the site locally:
-
-```bash
-# Clone the repository
-git clone https://github.com/OWASP-BLT/BLT-University.git
-cd BLT-University
-
-# Install dependencies
-bundle install
-
-# Run Jekyll locally
-bundle exec jekyll serve
-
-# Visit http://localhost:4000/BLT-University/
-```
-
-### Vulnerability intelligence refresh
-
-Refresh the committed vulnerability-intelligence dataset when newer CVE data is needed:
-
-```bash
-python -m pip install "jsonschema[format-nongpl]==4.25.1"
 python -B scripts/vulnerability_intel/update.py --days 90
 python -B scripts/vulnerability_intel/validate.py
 ```
 
-Optionally set `NVD_API_KEY` before running the update. Commit the updated
-`_data/vulnerability_intel.json` to your branch.
+Set `NVD_API_KEY` to increase the NVD request rate when refreshing data. Review the generated changes before committing `_data/vulnerability_intel.json`.
 
-## 📖 Documentation
+## Continuous integration and deployment
 
-- **[Course Creation Guide](contributing.html)**: How to create a course
-- **[Student Handbook](#)**: Guide for students
-- **[Instructor Handbook](#)**: Guide for instructors
-- **[API Documentation](#)**: For developers building tools
+The GitLab pipeline contains the following relevant jobs:
 
-## 🤝 Contributing
+- `validate-labs` checks lab content when lab or schema files change.
+- `validate-vulnerability-intel` validates the dataset and Python pipeline tests when related files change.
+- `build_site` generates the production site in `public/`.
+- `test_js` runs the Jest suite.
+- `test_e2e` runs the Playwright learner journey against the build artifact.
+- `pages` publishes `public/` from the default branch to GitLab Pages.
+- `commit_built_pages` commits the generated `public/` output for the connected production deployment.
 
-We welcome contributions from everyone! Here's how you can help:
+## Contributing
 
-- **🎓 Teach a Course**: Share your expertise
-- **📝 Improve Content**: Fix typos, add examples, clarify concepts
-- **🐛 Report Issues**: Found a problem? Let us know
-- **💡 Request Courses**: Tell us what you want to learn using our [course request form](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-request.yml)
-- **🌍 Translate**: Help make content accessible globally
+Contributions to content, accessibility, simulations, tests, data quality, and documentation are welcome. Before opening a merge request:
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+1. Create a focused branch.
+2. Follow the existing content and code style.
+3. Run the relevant validators, Jest suite, production build, and E2E test.
+4. Describe the learner-facing change and how it was verified.
+5. Avoid committing generated test output, local environment files, or credentials.
 
-## 🌐 Community
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow and review expectations.
 
-- **GitHub Discussions**: Ask questions, share knowledge
-- **Issues**: Report bugs, request features
-- **Pull Requests**: Contribute code and content
-- **Social Media**: Follow us for updates
+## License
 
-## 📜 License
+BLT University is licensed under the [GNU Affero General Public License v3.0](LICENSE). Contributions are accepted under the same license.
 
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+## Project links
 
-- ✅ **You Can**: View, use, modify, and distribute all content
-- ✅ **You Must**: Share modifications under the same license
-- ✅ **You Must**: Provide source code for network services
-- ❌ **No Warranty**: Content provided as-is
-
-See [LICENSE](LICENSE) for full details.
-
-## 🙏 Acknowledgments
-
-BLT University is part of the [OWASP BLT Project](https://github.com/OWASP-BLT), dedicated to building open-source security tools and education.
-
-Special thanks to:
-- All our instructors and contributors
-- The OWASP community
-- GitHub for providing amazing tools
-- Our students who make this worthwhile
-
-## 📊 Stats
-
-- 📚 **Courses**: 6+ and growing
-- 👨‍🏫 **Instructors**: 2+ expert instructors
-- 🎯 **Categories**: 10 security specializations
-- 🆓 **Cost**: Always FREE
-
-## 🔗 Links
-
-- **Website**: [https://owasp-blt.github.io/BLT-University/](https://owasp-blt.github.io/BLT-University/)
-- **Cloudflare Pages**: [https://university.owaspblt.org/](https://university.owaspblt.org/)
-- **GitHub Pages**: [https://owasp-blt.github.io/BLT-University/](https://owasp-blt.github.io/BLT-University/)
-- **GitHub**: [https://github.com/OWASP-BLT/BLT-University](https://github.com/OWASP-BLT/BLT-University)
-- **GitLab**: [https://gitlab.com/owasp-blt/blt-university](https://gitlab.com/owasp-blt/blt-university)
-- **OWASP BLT**: [https://github.com/OWASP-BLT](https://github.com/OWASP-BLT)
-
-## 💬 Support
-
-Need help? Have questions?
-
-- 📖 Check our [Documentation](https://owasp-blt.github.io/BLT-University/)
-- 💬 Join [GitHub Discussions](https://github.com/OWASP-BLT/BLT-University/discussions)
-- 🐛 Report [Issues](https://github.com/OWASP-BLT/BLT-University/issues)
-- GitLab mirror: [Issues](https://gitlab.com/owasp-blt/blt-university/-/issues)
-
----
-
-<div align="center">
-
-**Made with ❤️ by the OWASP BLT Community**
-
-[Website](https://owasp-blt.github.io/BLT-University/) • [GitLab](https://gitlab.com/owasp-blt/blt-university) • [Enroll](https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml) • [Request Course](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-request.yml) • [Teach](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml) • [Contribute](CONTRIBUTING.md)
-
-⭐ Star us on GitHub — it helps!
-
-</div>
+- Website: [university.owaspblt.org](https://university.owaspblt.org/)
+- GitLab: [owasp-blt/blt-university](https://gitlab.com/owasp-blt/blt-university)
+- OWASP BLT: [owaspblt.org](https://owaspblt.org/)
+- OWASP project page: [Bug Logging Tool](https://owasp.org/www-project-bug-logging-tool/)
