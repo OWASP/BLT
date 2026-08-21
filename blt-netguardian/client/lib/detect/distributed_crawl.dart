@@ -55,6 +55,24 @@ Future<void> runDistributedCrawl({
   var findingsTotal = 0;
   var hostsTotal = 0;
   DateTime lastBeat = DateTime.fromMillisecondsSinceEpoch(0);
+  String? fatal;
+
+  void push(
+    String message, {
+    String currentHost = '',
+    List<DomainJob> jobs = const [],
+    Map<String, int> counts = const {},
+  }) {
+    onProgress?.call(DistributedProgress(
+      message: message,
+      jobs: jobs,
+      counts: counts,
+      currentHost: currentHost,
+      hostsFound: hostsTotal,
+      pagesScanned: pagesTotal,
+      findings: findingsTotal,
+    ));
+  }
 
   Future<({List<DomainJob> jobs, Map<String, int> counts})> sync() async {
     final listed = await domainApi.list(
@@ -69,55 +87,56 @@ Future<void> runDistributedCrawl({
   Future<void> emit(
     String message, {
     String currentHost = '',
-    List<DomainJob>? jobs,
-    Map<String, int>? counts,
   }) async {
-    final snap = (jobs != null && counts != null)
-        ? (jobs: jobs, counts: counts)
-        : await sync();
-    onProgress?.call(DistributedProgress(
-      message: message,
-      jobs: snap.jobs,
-      counts: snap.counts,
-      currentHost: currentHost,
-      hostsFound: hostsTotal,
-      pagesScanned: pagesTotal,
-      findings: findingsTotal,
-    ));
+    try {
+      final snap = await sync();
+      push(message, currentHost: currentHost, jobs: snap.jobs, counts: snap.counts);
+    } catch (_) {
+      push(message, currentHost: currentHost);
+    }
   }
 
   try {
-    final seed = normalizeDomain(seedUrl);
-    if (seed != null) {
-      final created = await domainApi.submit(
-        baseUrl: baseUrl,
-        domains: [seed.seedUrl],
-        senderId: senderId,
-        token: token,
-      );
-      await emit(
-        created.isEmpty
-            ? 'SEED ${seed.hostKey} already on the grid'
-            : 'SEED ${seed.hostKey} → shared queue',
-        currentHost: seed.hostKey,
+    // Fail fast with a clear message if this API build has no domain queue.
+    try {
+      await sync();
+    } catch (e) {
+      throw Exception(
+        'Domain queue API missing on $baseUrl — use http://127.0.0.1:8787 '
+        '(local serve.py on latest main). Detail: $e',
       );
     }
 
-    while (!run.stopped) {
-      if (run.stopped) break;
+    final seed = normalizeDomain(seedUrl);
+    if (seed == null) {
+      throw Exception('Invalid seed URL: $seedUrl');
+    }
+    final created = await domainApi.submit(
+      baseUrl: baseUrl,
+      domains: [seed.seedUrl],
+      senderId: senderId,
+      token: token,
+    );
+    await emit(
+      created.isEmpty
+          ? 'SEED ${seed.hostKey} already on the grid'
+          : 'SEED ${seed.hostKey} → shared queue',
+      currentHost: seed.hostKey,
+    );
 
+    while (!run.stopped) {
       final job = await domainApi.claim(
         baseUrl: baseUrl,
         senderId: senderId,
         token: token,
       );
       if (job == null) {
-        await emit('GRID idle — waiting for the next pending domain');
+        await emit('GRID LIVE — waiting for the next pending domain');
         await Future<void>.delayed(const Duration(seconds: 2));
         continue;
       }
 
-      await emit('CLAIM ${job.hostKey}  lease ${senderId}', currentHost: job.hostKey);
+      await emit('CLAIM ${job.hostKey}  lease $senderId', currentHost: job.hostKey);
 
       try {
         final result = await crawlAndScan(
@@ -139,13 +158,10 @@ Future<void> runDistributedCrawl({
                   )
                   .catchError((_) {}));
             }
-            onProgress?.call(DistributedProgress(
-              message: 'SCAN ${job.hostKey}  p${p.scanned}  q${p.queued}',
+            push(
+              'SCAN ${job.hostKey}  p${p.scanned}  q${p.queued}',
               currentHost: job.hostKey,
-              pagesScanned: pagesTotal + p.scanned,
-              hostsFound: hostsTotal + p.discoveredHosts,
-              findings: findingsTotal + p.findingsSoFar,
-            ));
+            );
           },
         );
         if (run.stopped) {
@@ -208,7 +224,13 @@ Future<void> runDistributedCrawl({
         await emit('FAIL ${job.hostKey} → retry  $e', currentHost: job.hostKey);
       }
     }
+  } catch (e) {
+    fatal = e.toString();
+    push('GRID error — $fatal');
+    rethrow;
   } finally {
-    await emit('GRID offline');
+    if (fatal == null) {
+      push(run.stopped ? 'GRID stopped' : 'GRID idle');
+    }
   }
 }

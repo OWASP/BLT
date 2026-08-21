@@ -24,8 +24,15 @@ Visual language matches the web triage HUD (Orbitron / Share Tech Mono, red `#ff
 - macOS `network.client` entitlements + local ATS
 - Packaging notes: [`docs/spec/client-packaging.md`](client-packaging.md)
 
+### C5 — distributed crawl (shared domain queue)
+- Pull / claim / heartbeat / complete / fail against `/api/domains*`
+- Client-side spider (HTML/JS/CSS host extract) + header scan per claimed host
+- Local domain grid HUD; pinned Start/Stop; capped live lists
+- Worker coordinates leases in D1 — never fetches third-party sites
+
 ## Exit criteria
 - `cd client && flutter test` passes
+- Distributed crawl from a seed URL → domain grid updates → Stop → Sign & send
 - Scan `https://example.com` → preview → redact/encrypt → send or queue
 - History entry opens triage with the returned `finding_id`
 - Encrypted ingest decrypts on authorized finding detail
@@ -33,3 +40,5 @@ Visual language matches the web triage HUD (Orbitron / Share Tech Mono, red `#ff
 ## Demo credentials (loopback)
 Same as `local_dev/send_finding.py`: `org-demo` / `scanner-1` / `k1` / `736563726574`  
 Payload key: `netguardian-demo-aesgcm-key-0032` (base64 in the client default).
+
+See also: [`quickstart.md`](quickstart.md).

@@ -1,6 +1,6 @@
 # Flutter desktop client
 
-HUD-styled producer matching web triage: **client-side crawl** (discover domains from page source) → header scan → redact → AES-GCM encrypt → HMAC sign → `POST /api/ingest`.
+HUD-styled producer matching web triage: **distributed crawl** (shared domain queue) → header scan → redact → AES-GCM encrypt → HMAC sign → `POST /api/ingest`.
 
 ## Slices
 - **C1** sign + send
@@ -26,6 +26,8 @@ flutter test
 flutter run -d macos
 ```
 
+Walkthrough: [`docs/spec/quickstart.md`](../docs/spec/quickstart.md).
+
 No-signup one-liner (scans **from your machine**, signs with the install HMAC key):
 
 ```bash
@@ -45,4 +47,4 @@ Payload key: `netguardian-demo-aesgcm-key-0032`.
 | `lib/ingest/` | Canonicalize, sign, AES-GCM, HTTP ingest, redact |
 | `lib/history/` | Local send history |
 | `lib/queue/outbox.dart` | Offline outbox + retry |
-| `lib/main.dart` | Desktop UI (Crawl & scan) |
+| `lib/main.dart` | Desktop UI (pinned crawl controls + capped live lists) |

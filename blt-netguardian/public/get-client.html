@@ -23,6 +23,7 @@
       border: 1px solid #400;
     }
     .back { color: var(--muted); font-size: 12px; }
+    strong.hl { color: #eee; }
   </style>
 </head>
 <body>
@@ -30,42 +31,42 @@
     <p class="back"><a href="/">← NetGuardian</a></p>
     <h1>CLIENT (YOUR MACHINE)</h1>
     <p>
-      This is a desktop/web <strong style="color:#eee">app you run locally</strong>, not a page on this Worker.
-      Scanning from the NetGuardian site is disabled. After you start it, the UI is on
-      <strong style="color:#eee">your computer</strong> — usually <a href="http://localhost:8888">http://localhost:8888</a>
-      (Chrome) or a macOS window. Triage stays on this site.
+      Desktop/web <strong class="hl">app you run locally</strong> — not a scanner hosted on this Worker.
+      The client claims domains from the shared queue, spiders page source for new hosts,
+      header-scans on <strong class="hl">your computer</strong>, then signs findings into triage.
     </p>
     <p>Needs <a href="https://flutter.dev/docs/get-started/install">Flutter</a> on PATH.</p>
     <pre>git clone https://gitlab.com/owasp-blt/blt-netguardian.git
-cd blt-netguardian/client
+cd blt-netguardian
+
+# Terminal 1 — local API + triage UI
+python3 local_dev/serve.py
+# http://127.0.0.1:8787/triage.html
+
+# Terminal 2 — GUI (macOS preferred for crawl)
+cd client
 flutter pub get
+flutter run -d macos
 
-# See the GUI in Chrome (this machine only):
-flutter run -d chrome --web-port=8888
-# then open http://localhost:8888
-
-# Real device-side scan (no browser CORS): macOS / Windows / Linux desktop
-flutter run -d macos</pre>
+# Chrome alternative (this machine only):
+# flutter run -d chrome --web-port=8888</pre>
     <p>
-      Production orgs: the <strong style="color:#eee">site owner</strong> registers with
-      BLT / NetGuardian and issues HMAC + payload + triage keys to researchers.
-      The client alone is not enough without those org keys.
-      Docs:
-      <a href="https://gitlab.com/owasp-blt/blt-netguardian/-/blob/main/README.md">README</a>
-      ·
-      <a href="https://gitlab.com/owasp-blt/blt-netguardian/-/tree/main/docs/spec">docs/spec</a>.
+      <strong class="hl">In the app</strong>: enable Distributed crawl → seed URL → Start crawl →
+      Stop → Sign &amp; send selected → Open triage.
+      Full walkthrough:
+      <a href="https://gitlab.com/owasp-blt/blt-netguardian/-/blob/main/docs/spec/quickstart.md">docs/spec/quickstart.md</a>.
     </p>
     <p>
-      In the app, set API base URL to
-      <code style="display:inline;padding:2px 6px">https://netguardian.owaspblt.org</code>
-      (or your staging Worker) and paste the keys your org issued.
+      Production orgs: the <strong class="hl">site owner</strong> registers with
+      BLT / NetGuardian and issues HMAC + payload + triage keys to researchers.
+      The client alone is not enough without those org keys.
+    </p>
+    <p>
+      Set API base URL to
+      <code style="display:inline;padding:2px 6px">http://127.0.0.1:8787</code>
+      for local demo, or your staging/production Worker (e.g.
+      <code style="display:inline;padding:2px 6px">https://netguardian.owaspblt.org</code>).
       Staging demos may use shared <code style="display:inline;padding:2px 6px">org-demo</code> keys.
-      Chrome on localhost needs that origin listed in
-      <code style="display:inline;padding:2px 6px">CORS_ALLOWED_ORIGINS</code>.
-      For a fully offline demo, run
-      <code style="display:inline;padding:2px 6px">python3 local_dev/serve.py</code>
-      and set the base URL to
-      <code style="display:inline;padding:2px 6px">http://127.0.0.1:8787</code>.
     </p>
     <p>
       Source:

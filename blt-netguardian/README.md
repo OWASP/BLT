@@ -1,17 +1,20 @@
 # BLT-NetGuardian
 
-Signed findings ingest + org triage + BLT convert, on Cloudflare Workers (D1).
+Signed findings ingest + **distributed domain crawl** + org triage + BLT convert, on Cloudflare Workers (D1).
 
 ```
-Detect (CLI or Flutter) → HMAC ztr-finding-1 → POST /api/ingest → D1
-  → triage.html (status / remediation / disclosure / events / CSV / PDF)
-  → convert-to-issue (BLT-API)
+Flutter client: claim domain → spider page source → header-scan → HMAC ztr-finding-1
+  → POST /api/ingest → D1 → triage.html → convert-to-issue (BLT-API)
+Shared queue: GET/POST /api/domains* (claim / heartbeat / complete / fail)
 ```
+
+**Quickstart (install + crawl + triage):** [`docs/spec/quickstart.md`](docs/spec/quickstart.md)
 
 ## Local
 
 ```bash
 python3 local_dev/serve.py
+# http://127.0.0.1:8787/          home
 # http://127.0.0.1:8787/triage.html  token: triage-token
 .venv/bin/python local_dev/send_finding.py
 cd client && flutter pub get && flutter test && flutter run -d macos
@@ -21,7 +24,7 @@ Pilot script: [`docs/spec/pilot-checklist.md`](docs/spec/pilot-checklist.md).
 
 ## Client
 
-In-repo Flutter desktop producer ([`client/`](client/README.md)): distributed domain queue (claim/scan/spider), HTTP header scan, redact, AES-256-GCM, HMAC ingest, outbox, triage deep-link.
+In-repo Flutter desktop producer ([`client/`](client/README.md)): distributed domain queue (claim/scan/spider), HTTP header scan, redact, AES-256-GCM, HMAC ingest, outbox, triage deep-link. Start/Stop stay pinned; live lists are capped during long crawls.
 
 ## Shipped API (GSoC spine)
 

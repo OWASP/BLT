@@ -14,12 +14,12 @@
       font-family: "Share Tech Mono", ui-monospace, monospace;
       display: flex; align-items: center; justify-content: center; padding: 24px;
     }
-    main { max-width: 640px; width: 100%; }
+    main { max-width: 680px; width: 100%; }
     h1 {
       font-family: Orbitron, sans-serif; color: var(--red); letter-spacing: 0.18em;
       font-size: 1.1rem; margin: 0 0 8px;
     }
-    p { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 0 0 20px; }
+    p { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 0 0 16px; }
     .row { display: grid; gap: 12px; }
     @media (min-width: 560px) { .row { grid-template-columns: 1fr 1fr; } }
     a.card {
@@ -34,26 +34,34 @@
     a.card span { color: var(--muted); font-size: 12px; }
     a.doc { color: var(--gold); }
     code { color: var(--gold); font-size: 11px; word-break: break-all; }
-    ul { color: var(--muted); font-size: 13px; line-height: 1.55; margin: 0 0 20px; padding-left: 1.2em; }
-    .links { font-size: 12px; margin: 0 0 28px; }
+    ul { color: var(--muted); font-size: 13px; line-height: 1.55; margin: 0 0 16px; padding-left: 1.2em; }
+    .links { font-size: 12px; margin: 0 0 20px; }
     .links a { color: var(--gold); margin-right: 16px; }
+    strong.hl { color: #eee; font-weight: 600; }
   </style>
 </head>
 <body>
   <main>
     <h1>NETGUARDIAN</h1>
     <p>
-      Signed findings ingest and org triage for OWASP BLT. The site does not
-      scan other hosts — a user-run client fetches headers, HMAC-signs the
-      finding, and posts it here.
+      Distributed domain discovery + signed findings ingest + org triage for
+      OWASP BLT. Clients pull jobs from a shared domain queue, spider page
+      source for new hosts, header-scan on the researcher’s machine, then
+      HMAC-sign findings into this Worker. The Worker never fetches third-party
+      sites itself.
     </p>
     <p class="links">
       <a class="doc" href="https://gitlab.com/owasp-blt/blt-netguardian/-/blob/main/README.md">Project README</a>
+      <a class="doc" href="https://gitlab.com/owasp-blt/blt-netguardian/-/blob/main/docs/spec/quickstart.md">Quickstart</a>
       <a class="doc" href="https://gitlab.com/owasp-blt/blt-netguardian/-/tree/main/docs/spec">Documentation</a>
       <a class="doc" href="https://gitlab.com/owasp-blt/blt-netguardian/-/blob/main/docs/spec/pilot-checklist.md">Pilot checklist</a>
     </p>
     <p>
-      <strong style="color:#eee">How access works (production / real orgs)</strong><br>
+      <strong class="hl">Pipeline</strong><br>
+      Claim domain → spider links → header findings → Sign &amp; send → triage
+    </p>
+    <p>
+      <strong class="hl">How access works (production / real orgs)</strong><br>
       A <em>site owner</em> registers the organization with BLT / NetGuardian and
       receives org credentials (HMAC ingest secret, AES payload key, triage
       token). They issue those keys only to the security researchers they want
@@ -62,7 +70,7 @@
     </p>
     <ul>
       <li>Owner: register org → get keys → share keys with chosen researchers</li>
-      <li>Researcher: run the client with those keys → scan (with permission) → triage</li>
+      <li>Researcher: run the client with those keys → crawl/scan (with permission) → triage</li>
     </ul>
     <p>
       Public demo / staging may use shared <code>org-demo</code> keys so mentors can
@@ -71,15 +79,21 @@
     <div class="row">
       <a class="card" href="/get-client">
         <strong>CLIENT</strong>
-        <span>Download / run the Flutter app on your computer</span>
+        <span>Install &amp; run the Flutter app — distributed crawl on your machine</span>
       </a>
       <a class="card" href="/triage">
         <strong>TRIAGE</strong>
-        <span>Hosted queue — review what the client sent</span>
+        <span>Hosted queue — review findings the client sent</span>
       </a>
     </div>
     <p style="margin-top:28px">
-      One-liner (needs valid org keys for the API you post to; demo keys only on staging):<br>
+      Local demo:<br>
+      <code>python3 local_dev/serve.py</code> → API + triage on
+      <code>http://127.0.0.1:8787</code> · then
+      <code>cd client && flutter run -d macos</code>
+    </p>
+    <p>
+      Headless one-liner (needs valid org keys for the API you post to; demo keys only on staging):<br>
       <code>curl -fsSL https://netguardian.owaspblt.org/install.sh | sh -s -- https://your-site.example</code>
     </p>
   </main>

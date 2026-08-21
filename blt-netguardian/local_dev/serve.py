@@ -236,7 +236,11 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    _seed_demo_data()
+    no_seed = "--no-seed" in sys.argv
+    if no_seed:
+        print("  Seed: skipped (--no-seed)")
+    else:
+        _seed_demo_data()
     server = HTTPServer((HOST, PORT), Handler)
     print("=" * 64)
     print("  BLT-NetGuardian local dev server (bridges real BLTWorker)")
@@ -244,8 +248,11 @@ def main() -> None:
     print(f"  App:    http://{HOST}:{PORT}/index.html")
     print(f"  Triage: http://{HOST}:{PORT}/triage.html")
     print(f"  Token:  {DEMO_TOKEN}   (org {DEMO_ORG})")
-    encrypted = sum(1 for f in DEMO_FINDINGS if f.get("_encrypt"))
-    print(f"  Seeded: {len(DEMO_FINDINGS)} demo findings ({encrypted} AES-256-GCM encrypted at rest)")
+    if no_seed:
+        print("  Seeded: 0 findings (empty DB for clean demo)")
+    else:
+        encrypted = sum(1 for f in DEMO_FINDINGS if f.get("_encrypt"))
+        print(f"  Seeded: {len(DEMO_FINDINGS)} demo findings ({encrypted} AES-256-GCM encrypted at rest)")
     blt_url = getattr(ENV, "BLT_API_BASE_URL", "") or "(stub convert)"
     print(f"  BLT-API: {blt_url}  (run: python3 local_dev/blt_api_stub.py)")
     print("  Ctrl+C to stop.")

@@ -1,0 +1,38 @@
+# Personal / mentor staging → https://blt-netguardian.preethampujari395.workers.dev
+# Deploy: ./scripts/deploy-staging.sh
+# Production OWASP config stays in wrangler.toml
+
+name = "blt-netguardian"
+main = "src/worker.py"
+compatibility_date = "2025-07-01"
+compatibility_flags = ["python_workers", "global_fetch_strictly_public"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
+[vars]
+ENVIRONMENT = "staging"
+AUTHENTICATE_READ_ENDPOINTS = "false"
+NG_DEFAULT_ORG = "org-demo"
+CORS_ALLOWED_ORIGINS = "https://blt-netguardian.preethampujari395.workers.dev,https://netguardian.owaspblt.org,http://localhost:8888,http://127.0.0.1:8888"
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "blt-netguardian"
+database_id = "a6735e02-1704-49bd-8d84-61ae6419641c"
+migrations_dir = "migrations"
