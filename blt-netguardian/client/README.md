@@ -1,12 +1,13 @@
 # Flutter desktop client
 
-HUD-styled producer matching web triage: detect → redact → AES-GCM encrypt → HMAC sign → `POST /api/ingest`.
+HUD-styled producer matching web triage: **client-side crawl** (discover domains from page source) → header scan → redact → AES-GCM encrypt → HMAC sign → `POST /api/ingest`.
 
 ## Slices
 - **C1** sign + send
 - **C2** HTTP header scan, preview, outbox
 - **C3** redaction, send history, triage `?finding=`
 - **C4** encrypt + packaging ([docs](../docs/spec/client-packaging.md))
+- **Crawl** continuous client-side spider: extract `href`/`src` hosts → enqueue → header-scan (Worker never spiders third parties)
 
 ## Run (macOS)
 
@@ -39,8 +40,8 @@ Payload key: `netguardian-demo-aesgcm-key-0032`.
 | Path | Role |
 |------|------|
 | `lib/theme/hud.dart` | Triage HUD tokens + panels |
-| `lib/detect/` | HTTP header detector (Python parity) |
+| `lib/detect/` | Header detector + HTML link extract + crawl queue |
 | `lib/ingest/` | Canonicalize, sign, AES-GCM, HTTP ingest, redact |
 | `lib/history/` | Local send history |
 | `lib/queue/outbox.dart` | Offline outbox + retry |
-| `lib/main.dart` | Desktop UI |
+| `lib/main.dart` | Desktop UI (Crawl & scan) |

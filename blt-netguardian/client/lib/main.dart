@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'config/sender_config.dart';
+import 'detect/crawl.dart';
 import 'detect/http_headers.dart';
 import 'detect/normalize.dart';
 import 'history/send_history.dart';
@@ -55,9 +56,11 @@ class _HomePageState extends State<HomePage> {
   bool _busy = false;
   bool _redactBeforeSend = true;
   bool _encrypt = true;
+  bool _continuousCrawl = true;
   bool? _apiLive;
   String? _status;
   List<DetectionFinding> _preview = [];
+  List<String> _discoveredHosts = [];
   List<OutboxItem> _queue = [];
   List<HistoryItem> _history = [];
   final Set<String> _selected = {};
@@ -138,26 +141,66 @@ class _HomePageState extends State<HomePage> {
       _busy = true;
       _status = null;
       _preview = [];
+      _discoveredHosts = [];
       _selected.clear();
     });
     try {
-      final findings = await scanUrlHeaders(
-        _scanUrl.text.trim(),
-        apiBaseUrl: _baseUrl.text.trim(),
-      );
-      if (!mounted) return;
-      setState(() {
-        _preview = findings;
-        _selected.addAll(findings.map((f) => f.fingerprint));
-        _status = findings.isEmpty
-            ? 'Scan complete — no header findings.'
-            : 'Scan complete — ${findings.length} finding(s). Review, then queue or send.';
-      });
+      if (_continuousCrawl) {
+        await _crawlScan();
+      } else {
+        final findings = await scanUrlHeaders(
+          _scanUrl.text.trim(),
+          apiBaseUrl: _baseUrl.text.trim(),
+        );
+        if (!mounted) return;
+        setState(() {
+          _preview = findings;
+          _selected.addAll(findings.map((f) => f.fingerprint));
+          _status = findings.isEmpty
+              ? 'Scan complete — no header findings.'
+              : 'Scan complete — ${findings.length} finding(s). Review, then queue or send.';
+        });
+      }
     } catch (e) {
       if (mounted) setState(() => _status = 'Scan error: $e');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<void> _crawlScan() async {
+    final seed = _scanUrl.text.trim();
+    final result = await crawlAndScan(
+      seed,
+      config: const CrawlConfig(
+        maxPages: 20,
+        maxNewHosts: 30,
+        maxSameHostPaths: 6,
+        delay: Duration(milliseconds: 350),
+      ),
+      onProgress: (p) {
+        if (!mounted) return;
+        setState(() {
+          _status = p.done
+              ? null
+              : 'Crawling ${p.currentUrl} · pages ${p.scanned} · '
+                  'queue ${p.queued} · hosts ${p.discoveredHosts} · '
+                  'findings ${p.findingsSoFar}';
+        });
+      },
+    );
+    if (!mounted) return;
+    setState(() {
+      _preview = result.findings;
+      _discoveredHosts = List.of(result.discoveredHosts);
+      _selected
+        ..clear()
+        ..addAll(result.findings.map((f) => f.fingerprint));
+      _status =
+          'Crawl complete — ${result.pagesScanned} page(s), '
+          '${result.discoveredHosts.length} new host(s), '
+          '${result.findings.length} finding(s). Review, then queue or send.';
+    });
   }
 
   List<Map<String, Object?>> _selectedPayloads() {
@@ -389,8 +432,9 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 6),
           const Text(
-            'HTTP header scan, AES-256-GCM encrypt, HMAC ztr-finding-1, '
-            'outbox retry, send history, triage deep-link.',
+            'Client-side crawl discovers domains from page source, header-scans '
+            'each target, AES-256-GCM encrypts, HMAC ztr-finding-1 ingest, '
+            'outbox retry, triage deep-link. Worker never spiders third parties.',
             style: TextStyle(color: Hud.muted, fontSize: 12),
           ),
           if (!cfg.isLoopback) ...[
@@ -452,8 +496,20 @@ class _HomePageState extends State<HomePage> {
             ),
           ]),
           const SizedBox(height: 12),
-          HudPanel(title: 'Detect (HTTP headers)', children: [
-            _field(_scanUrl, 'Target URL'),
+          HudPanel(title: 'Detect (HTTP headers + crawl)', children: [
+            _field(_scanUrl, 'Seed URL'),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Continuous crawl (discover domains)'),
+              subtitle: const Text(
+                'Fetch HTML, extract href/src hosts, enqueue + header-scan. '
+                'Runs on this machine only.',
+              ),
+              value: _continuousCrawl,
+              onChanged: _busy
+                  ? null
+                  : (v) => setState(() => _continuousCrawl = v),
+            ),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -461,7 +517,9 @@ class _HomePageState extends State<HomePage> {
                 FilledButton.icon(
                   onPressed: _busy ? null : _scan,
                   icon: const Icon(Icons.search, size: 16),
-                  label: const Text('Scan headers'),
+                  label: Text(
+                    _continuousCrawl ? 'Crawl & scan' : 'Scan headers',
+                  ),
                 ),
                 OutlinedButton(
                   onPressed: _busy || _preview.isEmpty ? null : _enqueueSelected,
@@ -473,13 +531,22 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
+            if (_discoveredHosts.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Text(
+                'Discovered hosts (${_discoveredHosts.length}): '
+                '${_discoveredHosts.take(12).join(', ')}'
+                '${_discoveredHosts.length > 12 ? '…' : ''}',
+                style: const TextStyle(color: Hud.gold, fontSize: 11),
+              ),
+            ],
             if (_preview.isEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   _busy
-                      ? 'Scanning…'
-                      : 'Scan headers first — Sign & send enables after findings appear.',
+                      ? (_continuousCrawl ? 'Crawling…' : 'Scanning…')
+                      : 'Crawl/scan first — Sign & send enables after findings appear.',
                   style: const TextStyle(color: Hud.muted, fontSize: 11),
                 ),
               ),
