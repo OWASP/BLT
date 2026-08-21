@@ -19,7 +19,7 @@
       font-family: Orbitron, sans-serif; color: var(--red); letter-spacing: 0.18em;
       font-size: 1.1rem; margin: 0 0 8px;
     }
-    p { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 0 0 28px; }
+    p { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 0 0 20px; }
     .row { display: grid; gap: 12px; }
     @media (min-width: 560px) { .row { grid-template-columns: 1fr 1fr; } }
     a.card {
@@ -32,16 +32,41 @@
       letter-spacing: 0.12em; font-size: 12px; display: block; margin-bottom: 8px;
     }
     a.card span { color: var(--muted); font-size: 12px; }
+    a.doc { color: var(--gold); }
+    code { color: var(--gold); font-size: 11px; word-break: break-all; }
+    ul { color: var(--muted); font-size: 13px; line-height: 1.55; margin: 0 0 20px; padding-left: 1.2em; }
+    .links { font-size: 12px; margin: 0 0 28px; }
+    .links a { color: var(--gold); margin-right: 16px; }
   </style>
 </head>
 <body>
   <main>
     <h1>NETGUARDIAN</h1>
     <p>
-      The site does not scan other hosts. A user-run client fetches the same
-      headers a normal browser would, HMAC-signs the finding, and posts it here.
-      No signup: the install key signs ingest. Deeper or frequent scans need
-      the target’s permission.
+      Signed findings ingest and org triage for OWASP BLT. The site does not
+      scan other hosts — a user-run client fetches headers, HMAC-signs the
+      finding, and posts it here.
+    </p>
+    <p class="links">
+      <a class="doc" href="https://gitlab.com/owasp-blt/blt-netguardian/-/blob/main/README.md">Project README</a>
+      <a class="doc" href="https://gitlab.com/owasp-blt/blt-netguardian/-/tree/main/docs/spec">Documentation</a>
+      <a class="doc" href="https://gitlab.com/owasp-blt/blt-netguardian/-/blob/main/docs/spec/pilot-checklist.md">Pilot checklist</a>
+    </p>
+    <p>
+      <strong style="color:#eee">How access works (production / real orgs)</strong><br>
+      A <em>site owner</em> registers the organization with BLT / NetGuardian and
+      receives org credentials (HMAC ingest secret, AES payload key, triage
+      token). They issue those keys only to the security researchers they want
+      to participate. Downloading the client alone is not enough — without org
+      keys, signed ingest and triage will not work against a real deployment.
+    </p>
+    <ul>
+      <li>Owner: register org → get keys → share keys with chosen researchers</li>
+      <li>Researcher: run the client with those keys → scan (with permission) → triage</li>
+    </ul>
+    <p>
+      Public demo / staging may use shared <code>org-demo</code> keys so mentors can
+      try the pipeline quickly. That is not how a production org should run.
     </p>
     <div class="row">
       <a class="card" href="/get-client">
@@ -54,8 +79,8 @@
       </a>
     </div>
     <p style="margin-top:28px">
-      One line — no signup. Runs on your machine, HMAC-signs, sends to this API:<br>
-      <code style="color:#c9a227;font-size:11px;word-break:break-all">curl -fsSL https://netguardian.owaspblt.org/install.sh | sh -s -- https://your-site.example</code>
+      One-liner (needs valid org keys for the API you post to; demo keys only on staging):<br>
+      <code>curl -fsSL https://netguardian.owaspblt.org/install.sh | sh -s -- https://your-site.example</code>
     </p>
   </main>
 </body>
