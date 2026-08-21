@@ -24,6 +24,19 @@ void main() {
     expect(asStrings.any((s) => s.contains('mailto')), isFalse);
   });
 
+  test('extractUrlsFromHtml picks domains out of JS/CSS source', () {
+    const html = '''
+      <html><script>
+        const api = "https://hidden.test/v1/status";
+      </script>
+      <style>body { background: url(https://cdn.hidden.test/bg.png); }</style>
+    ''';
+    final urls = extractUrlsFromHtml(html, 'https://seed.test/');
+    final hosts = urls.map((u) => u.host).toSet();
+    expect(hosts, contains('hidden.test'));
+    expect(hosts, contains('cdn.hidden.test'));
+  });
+
   test('crawlAndScan discovers external host and header-scans seed', () async {
     final client = MockClient((request) async {
       if (request.url.host == 'seed.test') {
@@ -57,7 +70,7 @@ void main() {
       config: const CrawlConfig(
         maxPages: 5,
         maxNewHosts: 5,
-        maxSameHostPaths: 0,
+        maxPathsPerHost: 0,
         delay: Duration.zero,
       ),
     );
@@ -68,10 +81,118 @@ void main() {
       result.findings.any((f) => f.ruleId == 'crawl.discovered-domain'),
       isTrue,
     );
-    // seed.test had no security headers → findings present
     expect(
       result.findings.any((f) => f.ruleId == 'http.missing-hsts'),
       isTrue,
     );
+  });
+
+  test('crawl spiders paths on discovered hosts, not only the seed', () async {
+    final seen = <String>[];
+    final client = MockClient((request) async {
+      seen.add(request.url.toString());
+      if (request.url.host == 'seed.test') {
+        return http.Response(
+          '<html><a href="https://other.test/">x</a></html>',
+          200,
+          headers: {'content-type': 'text/html'},
+          request: request,
+        );
+      }
+      if (request.url.host == 'other.test' && request.url.path == '/') {
+        return http.Response(
+          '<html><a href="/app">app</a><script>fetch("https://third.test/x")</script></html>',
+          200,
+          headers: {'content-type': 'text/html'},
+          request: request,
+        );
+      }
+      return http.Response(
+        '<html>ok</html>',
+        200,
+        headers: {'content-type': 'text/html'},
+        request: request,
+      );
+    });
+
+    final result = await crawlAndScan(
+      'https://seed.test/',
+      client: client,
+      config: const CrawlConfig(
+        maxPages: 10,
+        maxNewHosts: 10,
+        maxPathsPerHost: 4,
+        delay: Duration.zero,
+      ),
+    );
+
+    expect(seen.any((u) => u.contains('other.test') && u.contains('/app')), isTrue);
+    expect(result.discoveredHosts, containsAll(['other.test', 'third.test']));
+  });
+
+  test('continuous crawl revisits after the frontier drains', () async {
+    var hits = 0;
+    final client = MockClient((request) async {
+      hits += 1;
+      return http.Response(
+        '<html>ok</html>',
+        200,
+        headers: {'content-type': 'text/html'},
+        request: request,
+      );
+    });
+
+    final result = await crawlAndScan(
+      'https://seed.test/',
+      client: client,
+      config: const CrawlConfig(
+        maxPages: 4,
+        maxNewHosts: 1,
+        maxPathsPerHost: 0,
+        delay: Duration.zero,
+        continuous: true,
+        revisitAfter: Duration.zero,
+        idleWait: Duration.zero,
+      ),
+    );
+
+    expect(result.pagesScanned, 4);
+    expect(hits, 4);
+    expect(
+      result.visitedUrls.where((u) => u.contains('seed.test')).length,
+      greaterThan(1),
+    );
+  });
+
+  test('CrawlRun.stop ends a continuous crawl', () async {
+    final run = CrawlRun();
+    var hits = 0;
+    final client = MockClient((request) async {
+      hits += 1;
+      if (hits >= 2) run.stop();
+      return http.Response(
+        '<html>ok</html>',
+        200,
+        headers: {'content-type': 'text/html'},
+        request: request,
+      );
+    });
+
+    final result = await crawlAndScan(
+      'https://seed.test/',
+      client: client,
+      run: run,
+      config: const CrawlConfig(
+        maxPages: 0,
+        delay: Duration.zero,
+        continuous: true,
+        revisitAfter: Duration.zero,
+        idleWait: Duration.zero,
+      ),
+    );
+
+    expect(result.stopped, isTrue);
+    expect(result.pagesScanned, greaterThanOrEqualTo(2));
+    expect(result.pagesScanned, lessThan(20));
   });
 }

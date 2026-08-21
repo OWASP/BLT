@@ -54,6 +54,7 @@ class _HomePageState extends State<HomePage> {
 
   bool _loading = true;
   bool _busy = false;
+  bool _crawling = false;
   bool _redactBeforeSend = true;
   bool _encrypt = true;
   bool _continuousCrawl = true;
@@ -64,6 +65,8 @@ class _HomePageState extends State<HomePage> {
   List<OutboxItem> _queue = [];
   List<HistoryItem> _history = [];
   final Set<String> _selected = {};
+  CrawlRun? _crawlRun;
+  static const _previewCap = 400;
 
   @override
   void initState() {
@@ -136,7 +139,32 @@ class _HomePageState extends State<HomePage> {
     _ping();
   }
 
+  void _ingestLiveFinding(DetectionFinding finding) {
+    if (_preview.any((f) => f.fingerprint == finding.fingerprint)) return;
+    _preview = [..._preview, finding];
+    if (_preview.length > _previewCap) {
+      _preview = _preview.sublist(_preview.length - _previewCap);
+    }
+    _selected.add(finding.fingerprint);
+    if (finding.ruleId == 'crawl.discovered-domain') {
+      final host = finding.evidence['discovered_host']?.toString();
+      if (host != null && host.isNotEmpty && !_discoveredHosts.contains(host)) {
+        _discoveredHosts = [..._discoveredHosts, host];
+      }
+    }
+  }
+
+  void _stopCrawl() {
+    _crawlRun?.stop();
+    setState(() => _status = 'Stopping crawl…');
+  }
+
   Future<void> _scan() async {
+    if (_crawling) return;
+    if (_continuousCrawl) {
+      await _startCrawl();
+      return;
+    }
     setState(() {
       _busy = true;
       _status = null;
@@ -145,22 +173,18 @@ class _HomePageState extends State<HomePage> {
       _selected.clear();
     });
     try {
-      if (_continuousCrawl) {
-        await _crawlScan();
-      } else {
-        final findings = await scanUrlHeaders(
-          _scanUrl.text.trim(),
-          apiBaseUrl: _baseUrl.text.trim(),
-        );
-        if (!mounted) return;
-        setState(() {
-          _preview = findings;
-          _selected.addAll(findings.map((f) => f.fingerprint));
-          _status = findings.isEmpty
-              ? 'Scan complete — no header findings.'
-              : 'Scan complete — ${findings.length} finding(s). Review, then queue or send.';
-        });
-      }
+      final findings = await scanUrlHeaders(
+        _scanUrl.text.trim(),
+        apiBaseUrl: _baseUrl.text.trim(),
+      );
+      if (!mounted) return;
+      setState(() {
+        _preview = findings;
+        _selected.addAll(findings.map((f) => f.fingerprint));
+        _status = findings.isEmpty
+            ? 'Scan complete — no header findings.'
+            : 'Scan complete — ${findings.length} finding(s). Review, then queue or send.';
+      });
     } catch (e) {
       if (mounted) setState(() => _status = 'Scan error: $e');
     } finally {
@@ -168,39 +192,65 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _crawlScan() async {
-    final seed = _scanUrl.text.trim();
-    final result = await crawlAndScan(
-      seed,
-      config: const CrawlConfig(
-        maxPages: 20,
-        maxNewHosts: 30,
-        maxSameHostPaths: 6,
-        delay: Duration(milliseconds: 350),
-      ),
-      onProgress: (p) {
-        if (!mounted) return;
-        setState(() {
-          _status = p.done
-              ? null
-              : 'Crawling ${p.currentUrl} · pages ${p.scanned} · '
+  Future<void> _startCrawl() async {
+    final run = CrawlRun();
+    _crawlRun = run;
+    setState(() {
+      _crawling = true;
+      _status = 'Starting crawl…';
+      _preview = [];
+      _discoveredHosts = [];
+      _selected.clear();
+    });
+    try {
+      final result = await crawlAndScan(
+        _scanUrl.text.trim(),
+        run: run,
+        config: const CrawlConfig(
+          maxPages: 0,
+          maxNewHosts: 200,
+          maxPathsPerHost: 12,
+          delay: Duration(milliseconds: 400),
+          continuous: true,
+          revisitAfter: Duration(minutes: 2),
+          idleWait: Duration(seconds: 3),
+        ),
+        onFinding: (finding) {
+          if (!mounted) return;
+          setState(() => _ingestLiveFinding(finding));
+        },
+        onProgress: (p) {
+          if (!mounted) return;
+          setState(() {
+            if (p.idle) {
+              _status =
+                  'Crawl idle — recycling hosts · pages ${p.scanned} · '
+                  'hosts ${p.discoveredHosts} · findings ${p.findingsSoFar}';
+            } else if (!p.done) {
+              _status =
+                  'Crawling ${p.currentUrl} · pages ${p.scanned} · '
                   'queue ${p.queued} · hosts ${p.discoveredHosts} · '
                   'findings ${p.findingsSoFar}';
-        });
-      },
-    );
-    if (!mounted) return;
-    setState(() {
-      _preview = result.findings;
-      _discoveredHosts = List.of(result.discoveredHosts);
-      _selected
-        ..clear()
-        ..addAll(result.findings.map((f) => f.fingerprint));
-      _status =
-          'Crawl complete — ${result.pagesScanned} page(s), '
-          '${result.discoveredHosts.length} new host(s), '
-          '${result.findings.length} finding(s). Review, then queue or send.';
-    });
+            }
+          });
+        },
+      );
+      if (!mounted) return;
+      setState(() {
+        _status = result.stopped
+            ? 'Crawl stopped — ${result.pagesScanned} page(s), '
+                '${result.discoveredHosts.length} host(s), '
+                '${result.findings.length} finding(s).'
+            : 'Crawl finished — ${result.pagesScanned} page(s), '
+                '${result.discoveredHosts.length} host(s), '
+                '${result.findings.length} finding(s).';
+      });
+    } catch (e) {
+      if (mounted) setState(() => _status = 'Crawl error: $e');
+    } finally {
+      _crawlRun = null;
+      if (mounted) setState(() => _crawling = false);
+    }
   }
 
   List<Map<String, Object?>> _selectedPayloads() {
@@ -381,6 +431,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    _crawlRun?.stop();
     _baseUrl.dispose();
     _orgId.dispose();
     _senderId.dispose();
@@ -432,9 +483,9 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Client-side crawl discovers domains from page source, header-scans '
-            'each target, AES-256-GCM encrypts, HMAC ztr-finding-1 ingest, '
-            'outbox retry, triage deep-link. Worker never spiders third parties.',
+            'Always-on client crawl: extract domains from HTML/JS/CSS, spider '
+            'those hosts, header-scan, recycle when idle. HMAC ingest + triage. '
+            'Worker never spiders third parties. Stop the crawl to send.',
             style: TextStyle(color: Hud.muted, fontSize: 12),
           ),
           if (!cfg.isLoopback) ...[
@@ -500,13 +551,13 @@ class _HomePageState extends State<HomePage> {
             _field(_scanUrl, 'Seed URL'),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Continuous crawl (discover domains)'),
+              title: const Text('Always-on crawl (discover domains)'),
               subtitle: const Text(
-                'Fetch HTML, extract href/src hosts, enqueue + header-scan. '
+                'Keeps spidering hosts found in page source until you hit Stop. '
                 'Runs on this machine only.',
               ),
               value: _continuousCrawl,
-              onChanged: _busy
+              onChanged: _busy || _crawling
                   ? null
                   : (v) => setState(() => _continuousCrawl = v),
             ),
@@ -515,18 +566,27 @@ class _HomePageState extends State<HomePage> {
               runSpacing: 8,
               children: [
                 FilledButton.icon(
-                  onPressed: _busy ? null : _scan,
+                  onPressed: _busy || _crawling ? null : _scan,
                   icon: const Icon(Icons.search, size: 16),
                   label: Text(
-                    _continuousCrawl ? 'Crawl & scan' : 'Scan headers',
+                    _continuousCrawl ? 'Start crawl' : 'Scan headers',
                   ),
                 ),
+                OutlinedButton.icon(
+                  onPressed: _crawling ? _stopCrawl : null,
+                  icon: const Icon(Icons.stop, size: 16),
+                  label: const Text('Stop crawl'),
+                ),
                 OutlinedButton(
-                  onPressed: _busy || _preview.isEmpty ? null : _enqueueSelected,
+                  onPressed: _busy || _crawling || _preview.isEmpty
+                      ? null
+                      : _enqueueSelected,
                   child: const Text('Queue selected'),
                 ),
                 FilledButton(
-                  onPressed: _busy || _preview.isEmpty ? null : _sendSelectedNow,
+                  onPressed: _busy || _crawling || _preview.isEmpty
+                      ? null
+                      : _sendSelectedNow,
                   child: const Text('Sign & send selected'),
                 ),
               ],
@@ -544,9 +604,11 @@ class _HomePageState extends State<HomePage> {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  _busy
-                      ? (_continuousCrawl ? 'Crawling…' : 'Scanning…')
-                      : 'Crawl/scan first — Sign & send enables after findings appear.',
+                  _crawling
+                      ? 'Crawling… findings appear live. Stop to send.'
+                      : (_busy
+                          ? 'Scanning…'
+                          : 'Start crawl/scan first — Sign & send after you stop.'),
                   style: const TextStyle(color: Hud.muted, fontSize: 11),
                 ),
               ),

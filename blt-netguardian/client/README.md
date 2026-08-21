@@ -7,7 +7,7 @@ HUD-styled producer matching web triage: **client-side crawl** (discover domains
 - **C2** HTTP header scan, preview, outbox
 - **C3** redaction, send history, triage `?finding=`
 - **C4** encrypt + packaging ([docs](../docs/spec/client-packaging.md))
-- **Crawl** continuous client-side spider: extract `href`/`src` hosts → enqueue → header-scan (Worker never spiders third parties)
+- **Crawl** always-on client-side spider: extract `href`/`src`/JS/CSS hosts → enqueue → header-scan → recycle when idle (Stop to send). Worker never spiders third parties.
 
 ## Run (macOS)
 

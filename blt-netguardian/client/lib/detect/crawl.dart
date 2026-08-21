@@ -1,7 +1,9 @@
-/// Client-side continuous crawl: fetch page → header scan → extract domains → queue.
+/// Client-side crawl: fetch page → header scan → extract domains from source → queue.
 ///
-/// Runs entirely on the user machine (Flutter desktop). The Worker is never used
-/// as an open proxy to spider third-party sites.
+/// Runs on the user machine. The Worker is never used as an open proxy.
+/// One-shot mode stops at [CrawlConfig.maxPages]. Continuous mode keeps
+/// spidering until [CrawlRun.stop] (revisits host roots when the frontier
+/// drains).
 library;
 
 import 'package:http/http.dart' as http;
@@ -12,31 +14,54 @@ import 'normalize.dart';
 
 class CrawlConfig {
   const CrawlConfig({
-    this.maxPages = 25,
-    this.maxNewHosts = 40,
-    this.maxSameHostPaths = 8,
+    this.maxPages = 0,
+    this.maxNewHosts = 200,
+    this.maxPathsPerHost = 12,
+    this.maxQueue = 400,
     this.delay = const Duration(milliseconds: 400),
     this.followExternalHosts = true,
     this.sameHostPathCrawl = true,
+    this.continuous = false,
+    this.revisitAfter = const Duration(minutes: 2),
+    this.idleWait = const Duration(seconds: 3),
   });
 
-  /// Hard cap on HTTP GETs this run.
+  /// Hard cap on GETs this run. `0` means unlimited (continuous / until stop).
   final int maxPages;
 
-  /// Cap on newly discovered hosts enqueued from HTML.
+  /// Cap on newly discovered hosts enqueued from page source.
   final int maxNewHosts;
 
-  /// Cap on additional same-host paths (beyond the seed URL).
-  final int maxSameHostPaths;
+  /// Cap on extra paths crawled per host (beyond the host root).
+  final int maxPathsPerHost;
 
-  /// Pause between requests (polite continuous crawl).
+  /// Bound the in-memory frontier.
+  final int maxQueue;
+
+  /// Pause between requests.
   final Duration delay;
 
-  /// When true, enqueue absolute links to other hosts found in page source.
+  /// Enqueue other hosts found in HTML/JS/CSS.
   final bool followExternalHosts;
 
-  /// When true, also crawl a few same-host paths discovered from links.
+  /// Also crawl same-host paths discovered from links (every host, not just seed).
   final bool sameHostPathCrawl;
+
+  /// Keep running after the queue drains: revisit known host roots.
+  final bool continuous;
+
+  /// How long before a visited URL may be fetched again in continuous mode.
+  final Duration revisitAfter;
+
+  /// Pause when the frontier is empty before recycling hosts.
+  final Duration idleWait;
+}
+
+/// Cooperative cancel for a running crawl.
+class CrawlRun {
+  bool _stop = false;
+  void stop() => _stop = true;
+  bool get stopped => _stop;
 }
 
 class CrawlProgress {
@@ -47,6 +72,7 @@ class CrawlProgress {
     required this.currentUrl,
     required this.findingsSoFar,
     this.done = false,
+    this.idle = false,
   });
 
   final int scanned;
@@ -55,6 +81,7 @@ class CrawlProgress {
   final String currentUrl;
   final int findingsSoFar;
   final bool done;
+  final bool idle;
 }
 
 class CrawlResult {
@@ -63,15 +90,17 @@ class CrawlResult {
     required this.visitedUrls,
     required this.discoveredHosts,
     required this.pagesScanned,
+    this.stopped = false,
   });
 
   final List<DetectionFinding> findings;
   final List<String> visitedUrls;
   final List<String> discoveredHosts;
   final int pagesScanned;
+  final bool stopped;
 }
 
-DetectionFinding _discoveredHostFinding({
+DetectionFinding discoveredHostFinding({
   required String seedUrl,
   required String discoveredHost,
   required String sourceUrl,
@@ -93,15 +122,38 @@ DetectionFinding _discoveredHostFinding({
   );
 }
 
-/// Continuous client-side crawl starting at [seedUrl].
+bool _looksHtml(http.Response response) {
+  final contentType = response.headers.entries
+      .firstWhere(
+        (e) => e.key.toLowerCase() == 'content-type',
+        orElse: () => const MapEntry('content-type', ''),
+      )
+      .value
+      .toLowerCase();
+  if (contentType.contains('html') || contentType.contains('javascript')) {
+    return true;
+  }
+  final start = response.body.trimLeft().toLowerCase();
+  return contentType.isEmpty ||
+      start.startsWith('<!doctype') ||
+      start.startsWith('<html');
+}
+
+bool _pageCapReached(CrawlConfig config, int pagesScanned) {
+  return config.maxPages > 0 && pagesScanned >= config.maxPages;
+}
+
+/// Crawl starting at [seedUrl].
 ///
-/// For each page: header-scan, parse HTML for links, enqueue new hosts (and a
-/// few same-host paths), then continue until caps are hit.
+/// One-shot (`continuous: false`): stop when the queue is empty or [maxPages].
+/// Continuous: spider until [run.stop], recycling host roots when idle.
 Future<CrawlResult> crawlAndScan(
   String seedUrl, {
   CrawlConfig config = const CrawlConfig(),
   http.Client? client,
+  CrawlRun? run,
   void Function(CrawlProgress progress)? onProgress,
+  void Function(DetectionFinding finding)? onFinding,
 }) async {
   final seed = Uri.tryParse(seedUrl.trim());
   if (seed == null || !seed.hasScheme || seed.host.isEmpty) {
@@ -113,22 +165,82 @@ Future<CrawlResult> crawlAndScan(
 
   final httpClient = client ?? http.Client();
   final owned = client == null;
+  final session = run ?? CrawlRun();
+  final seedClean = stripFragment(seed);
 
-  final queue = <Uri>[seed.replace(fragment: '')];
-  final visited = <String>{};
-  final knownHosts = <String>{hostKey(seed)};
+  final queue = <Uri>[seedClean];
+  final queuedKeys = <String>{seedClean.toString()};
+  final visitedAt = <String, DateTime>{};
+  final knownHosts = <String>{hostKey(seedClean)};
   final discoveredHosts = <String>[];
   final findings = <DetectionFinding>[];
+  final findingKeys = <String>{};
   final visitedUrls = <String>[];
+  final pathsPerHost = <String, int>{};
   var newHostEnqueued = 0;
-  var sameHostPathsEnqueued = 0;
   var pagesScanned = 0;
 
+  bool atPageCap() => _pageCapReached(config, pagesScanned);
+
+  void emitFinding(DetectionFinding finding) {
+    if (!findingKeys.add(finding.fingerprint)) return;
+    findings.add(finding);
+    onFinding?.call(finding);
+  }
+
+  bool enqueue(Uri uri) {
+    final clean = stripFragment(uri);
+    final key = clean.toString();
+    if (queuedKeys.contains(key)) return false;
+    if (queue.length >= config.maxQueue) return false;
+    final last = visitedAt[key];
+    if (last != null) {
+      if (!config.continuous) return false;
+      if (DateTime.now().difference(last) < config.revisitAfter) return false;
+    }
+    queue.add(clean);
+    queuedKeys.add(key);
+    return true;
+  }
+
+  void recycleFrontier() {
+    for (final host in knownHosts) {
+      enqueue(Uri(scheme: 'https', host: host, path: '/'));
+    }
+  }
+
   try {
-    while (queue.isNotEmpty && pagesScanned < config.maxPages) {
+    while (!session.stopped && !atPageCap()) {
+      if (queue.isEmpty) {
+        if (!config.continuous) break;
+        onProgress?.call(CrawlProgress(
+          scanned: pagesScanned,
+          queued: 0,
+          discoveredHosts: discoveredHosts.length,
+          currentUrl: '',
+          findingsSoFar: findings.length,
+          idle: true,
+        ));
+        if (config.idleWait > Duration.zero) {
+          await Future<void>.delayed(config.idleWait);
+        }
+        if (session.stopped) break;
+        recycleFrontier();
+        if (queue.isEmpty) {
+          await Future<void>.delayed(config.idleWait);
+          continue;
+        }
+      }
+
       final url = queue.removeAt(0);
+      queuedKeys.remove(url.toString());
       final urlKey = url.toString();
-      if (!visited.add(urlKey)) continue;
+      final last = visitedAt[urlKey];
+      if (last != null &&
+          (!config.continuous ||
+              DateTime.now().difference(last) < config.revisitAfter)) {
+        continue;
+      }
 
       onProgress?.call(CrawlProgress(
         scanned: pagesScanned,
@@ -138,76 +250,57 @@ Future<CrawlResult> crawlAndScan(
         findingsSoFar: findings.length,
       ));
 
-      http.Response response;
+      http.Response? response;
       try {
-        response = await httpClient.get(url).timeout(const Duration(seconds: 20));
+        response =
+            await httpClient.get(url).timeout(const Duration(seconds: 20));
       } catch (_) {
-        pagesScanned += 1;
-        visitedUrls.add(urlKey);
-        if (config.delay > Duration.zero) {
-          await Future<void>.delayed(config.delay);
-        }
-        continue;
+        response = null;
       }
 
       pagesScanned += 1;
       visitedUrls.add(urlKey);
-      findings.addAll(
-        scanHeaders(urlKey, response.headers, status: response.statusCode),
-      );
+      visitedAt[urlKey] = DateTime.now();
 
-      final contentType = response.headers.entries
-          .firstWhere(
-            (e) => e.key.toLowerCase() == 'content-type',
-            orElse: () => const MapEntry('content-type', ''),
-          )
-          .value
-          .toLowerCase();
-      final looksHtml = contentType.contains('html') ||
-          contentType.isEmpty ||
-          response.body.trimLeft().toLowerCase().startsWith('<!doctype') ||
-          response.body.trimLeft().toLowerCase().startsWith('<html');
+      if (response != null) {
+        for (final f in scanHeaders(
+          urlKey,
+          response.headers,
+          status: response.statusCode,
+        )) {
+          emitFinding(f);
+        }
 
-      if (looksHtml && response.statusCode < 400) {
-        final links = extractUrlsFromHtml(response.body, urlKey);
-        for (final link in links) {
-          final host = hostKey(link);
-          final isNewHost = !knownHosts.contains(host);
+        if (_looksHtml(response) && response.statusCode < 400) {
+          final links = extractUrlsFromHtml(response.body, urlKey);
+          for (final link in links) {
+            final host = hostKey(link);
+            final isNewHost = !knownHosts.contains(host);
 
-          if (isNewHost) {
-            knownHosts.add(host);
-            discoveredHosts.add(host);
-            findings.add(_discoveredHostFinding(
-              seedUrl: seed.toString(),
-              discoveredHost: host,
-              sourceUrl: urlKey,
-            ));
-            if (config.followExternalHosts &&
-                newHostEnqueued < config.maxNewHosts) {
-              final root = Uri(
-                scheme: link.scheme,
-                host: link.host,
-                port: link.hasPort ? link.port : null,
-                path: '/',
-              );
-              final rootKey = root.toString();
-              if (!visited.contains(rootKey) &&
-                  !queue.any((q) => q.toString() == rootKey)) {
-                queue.add(root);
-                newHostEnqueued += 1;
+            if (isNewHost) {
+              knownHosts.add(host);
+              discoveredHosts.add(host);
+              emitFinding(discoveredHostFinding(
+                seedUrl: seedClean.toString(),
+                discoveredHost: host,
+                sourceUrl: urlKey,
+              ));
+              if (config.followExternalHosts &&
+                  newHostEnqueued < config.maxNewHosts) {
+                if (enqueue(hostRoot(link))) newHostEnqueued += 1;
               }
+              continue;
             }
-            continue;
-          }
 
-          if (config.sameHostPathCrawl &&
-              host == hostKey(seed) &&
-              sameHostPathsEnqueued < config.maxSameHostPaths) {
-            final pathKey = link.toString();
-            if (!visited.contains(pathKey) &&
-                !queue.any((q) => q.toString() == pathKey)) {
-              queue.add(link);
-              sameHostPathsEnqueued += 1;
+            if (config.sameHostPathCrawl) {
+              final used = pathsPerHost[host] ?? 0;
+              if (used < config.maxPathsPerHost &&
+                  link.path != '/' &&
+                  link.path.isNotEmpty) {
+                if (enqueue(link)) {
+                  pathsPerHost[host] = used + 1;
+                }
+              }
             }
           }
         }
@@ -222,7 +315,9 @@ Future<CrawlResult> crawlAndScan(
       ));
 
       if (config.delay > Duration.zero &&
-          (queue.isNotEmpty && pagesScanned < config.maxPages)) {
+          !session.stopped &&
+          !atPageCap() &&
+          (queue.isNotEmpty || config.continuous)) {
         await Future<void>.delayed(config.delay);
       }
     }
@@ -241,6 +336,7 @@ Future<CrawlResult> crawlAndScan(
       visitedUrls: visitedUrls,
       discoveredHosts: List.unmodifiable(discoveredHosts),
       pagesScanned: pagesScanned,
+      stopped: session.stopped,
     );
   } finally {
     if (owned) httpClient.close();

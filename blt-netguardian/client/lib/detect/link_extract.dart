@@ -1,4 +1,4 @@
-/// Extract crawlable absolute URLs from HTML (href / src / action / srcset).
+/// Extract crawlable absolute URLs from HTML/JS/CSS source.
 library;
 
 final _attrUrl = RegExp(
@@ -13,10 +13,34 @@ final _srcset = RegExp(
   dotAll: true,
 );
 
+final _cssUrl = RegExp(
+  r'''url\(\s*['"]?([^'")\s]+)['"]?\s*\)''',
+  caseSensitive: false,
+);
+
+/// Absolute http(s) URLs embedded in scripts, JSON, comments, etc.
+final _bareHttp = RegExp(
+  r'''https?://[^\s"'<>\\)]+''',
+  caseSensitive: false,
+);
+
+Uri stripFragment(Uri uri) {
+  return Uri(
+    scheme: uri.scheme,
+    userInfo: uri.userInfo.isEmpty ? null : uri.userInfo,
+    host: uri.host,
+    port: uri.hasPort ? uri.port : null,
+    path: uri.path.isEmpty ? '/' : uri.path,
+    query: uri.hasQuery ? uri.query : null,
+  );
+}
+
 /// Resolve relative/absolute [raw] against [base] into an absolute http(s) URL.
 Uri? resolveCrawlUrl(Uri base, String raw) {
-  final trimmed = raw.trim();
+  var trimmed = raw.trim();
   if (trimmed.isEmpty) return null;
+  // Trailing punctuation common in JS strings / HTML text.
+  trimmed = trimmed.replaceAll(RegExp(r'''[.,;)\]]+$'''), '');
   final lower = trimmed.toLowerCase();
   if (lower.startsWith('javascript:') ||
       lower.startsWith('mailto:') ||
@@ -30,18 +54,19 @@ Uri? resolveCrawlUrl(Uri base, String raw) {
     final resolved = base.resolve(trimmed);
     if (resolved.scheme != 'http' && resolved.scheme != 'https') return null;
     if (resolved.host.isEmpty) return null;
-    // Drop fragment; Uri.replace(fragment: '') can leave a trailing "#".
-    return Uri(
-      scheme: resolved.scheme,
-      userInfo: resolved.userInfo.isEmpty ? null : resolved.userInfo,
-      host: resolved.host,
-      port: resolved.hasPort ? resolved.port : null,
-      path: resolved.path.isEmpty ? '/' : resolved.path,
-      query: resolved.hasQuery ? resolved.query : null,
-    );
+    return stripFragment(resolved);
   } catch (_) {
     return null;
   }
+}
+
+Uri hostRoot(Uri uri) {
+  return Uri(
+    scheme: uri.scheme,
+    host: uri.host,
+    port: uri.hasPort ? uri.port : null,
+    path: '/',
+  );
 }
 
 /// Unique absolute http(s) URLs found in [html], resolved against [pageUrl].
@@ -68,6 +93,12 @@ List<Uri> extractUrlsFromHtml(String html, String pageUrl) {
       final url = part.trim().split(RegExp(r'\s+')).first;
       add(url);
     }
+  }
+  for (final m in _cssUrl.allMatches(html)) {
+    add(m.group(1) ?? '');
+  }
+  for (final m in _bareHttp.allMatches(html)) {
+    add(m.group(0) ?? '');
   }
 
   return out;
