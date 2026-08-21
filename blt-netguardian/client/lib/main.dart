@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'config/sender_config.dart';
 import 'detect/crawl.dart';
+import 'detect/distributed_crawl.dart';
 import 'detect/http_headers.dart';
 import 'detect/normalize.dart';
 import 'history/send_history.dart';
@@ -11,6 +12,7 @@ import 'ingest/envelope.dart';
 import 'ingest/ingest_client.dart';
 import 'ingest/payload_crypto.dart';
 import 'ingest/redact.dart';
+import 'queue/domain_queue.dart';
 import 'queue/outbox.dart';
 import 'theme/hud.dart';
 
@@ -51,6 +53,7 @@ class _HomePageState extends State<HomePage> {
   final _client = IngestClient();
   final _outbox = OutboxStore();
   final _historyStore = SendHistoryStore();
+  final _localDomains = LocalDomainQueue();
 
   bool _loading = true;
   bool _busy = false;
@@ -62,6 +65,8 @@ class _HomePageState extends State<HomePage> {
   String? _status;
   List<DetectionFinding> _preview = [];
   List<String> _discoveredHosts = [];
+  List<DomainJob> _domainJobs = [];
+  Map<String, int> _domainCounts = {};
   List<OutboxItem> _queue = [];
   List<HistoryItem> _history = [];
   final Set<String> _selected = {};
@@ -78,6 +83,7 @@ class _HomePageState extends State<HomePage> {
     final cfg = await SenderConfig.load();
     final queue = await _outbox.load();
     final history = await _historyStore.load();
+    final domains = await _localDomains.load();
     if (!mounted) return;
     setState(() {
       _baseUrl.text = cfg.baseUrl;
@@ -90,6 +96,7 @@ class _HomePageState extends State<HomePage> {
       _redactBeforeSend = cfg.redactBeforeSend;
       _queue = queue;
       _history = history;
+      _domainJobs = domains;
       _loading = false;
     });
     _ping();
@@ -203,18 +210,12 @@ class _HomePageState extends State<HomePage> {
       _selected.clear();
     });
     try {
-      final result = await crawlAndScan(
-        _scanUrl.text.trim(),
+      await runDistributedCrawl(
+        seedUrl: _scanUrl.text.trim(),
+        baseUrl: _baseUrl.text.trim(),
+        senderId: _senderId.text.trim(),
         run: run,
-        config: const CrawlConfig(
-          maxPages: 0,
-          maxNewHosts: 200,
-          maxPathsPerHost: 12,
-          delay: Duration(milliseconds: 400),
-          continuous: true,
-          revisitAfter: Duration(minutes: 2),
-          idleWait: Duration(seconds: 3),
-        ),
+        local: _localDomains,
         onFinding: (finding) {
           if (!mounted) return;
           setState(() => _ingestLiveFinding(finding));
@@ -222,28 +223,19 @@ class _HomePageState extends State<HomePage> {
         onProgress: (p) {
           if (!mounted) return;
           setState(() {
-            if (p.idle) {
-              _status =
-                  'Crawl idle — recycling hosts · pages ${p.scanned} · '
-                  'hosts ${p.discoveredHosts} · findings ${p.findingsSoFar}';
-            } else if (!p.done) {
-              _status =
-                  'Crawling ${p.currentUrl} · pages ${p.scanned} · '
-                  'queue ${p.queued} · hosts ${p.discoveredHosts} · '
-                  'findings ${p.findingsSoFar}';
-            }
+            _status = p.message;
+            if (p.jobs.isNotEmpty) _domainJobs = p.jobs;
+            if (p.counts.isNotEmpty) _domainCounts = p.counts;
           });
         },
       );
       if (!mounted) return;
+      final jobs = await _localDomains.load();
       setState(() {
-        _status = result.stopped
-            ? 'Crawl stopped — ${result.pagesScanned} page(s), '
-                '${result.discoveredHosts.length} host(s), '
-                '${result.findings.length} finding(s).'
-            : 'Crawl finished — ${result.pagesScanned} page(s), '
-                '${result.discoveredHosts.length} host(s), '
-                '${result.findings.length} finding(s).';
+        _domainJobs = jobs;
+        _status = run.stopped
+            ? 'Distributed crawl stopped. Sign & send findings, or Start again.'
+            : 'Distributed crawl finished.';
       });
     } catch (e) {
       if (mounted) setState(() => _status = 'Crawl error: $e');
@@ -483,9 +475,10 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Always-on client crawl: extract domains from HTML/JS/CSS, spider '
-            'those hosts, header-scan, recycle when idle. HMAC ingest + triage. '
-            'Worker never spiders third parties. Stop the crawl to send.',
+            'Distributed crawl: this client pulls a domain from the shared '
+            'server queue, claims it, scans + spiders, submits new hosts, '
+            'then pulls the next job. Other clients do the same. '
+            'Worker never fetches third-party sites itself.',
             style: TextStyle(color: Hud.muted, fontSize: 12),
           ),
           if (!cfg.isLoopback) ...[
@@ -551,10 +544,10 @@ class _HomePageState extends State<HomePage> {
             _field(_scanUrl, 'Seed URL'),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Always-on crawl (discover domains)'),
+              title: const Text('Distributed crawl (shared domain queue)'),
               subtitle: const Text(
-                'Keeps spidering hosts found in page source until you hit Stop. '
-                'Runs on this machine only.',
+                'Pull → claim → scan → spider → submit new domains → next job. '
+                'Coordinates with other clients via the Worker.',
               ),
               value: _continuousCrawl,
               onChanged: _busy || _crawling
@@ -616,6 +609,38 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 12),
               ..._preview.map(_findingTile),
             ],
+          ]),
+          const SizedBox(height: 12),
+          HudPanel(title: 'Shared domain queue', children: [
+            Text(
+              _domainCounts.isEmpty
+                  ? 'Server is the source of truth. Start crawl to sync.'
+                  : 'pending ${_domainCounts['pending'] ?? 0} · '
+                      'in_progress ${_domainCounts['in_progress'] ?? 0} · '
+                      'scanned ${_domainCounts['scanned'] ?? 0} · '
+                      'retry ${_domainCounts['retry_required'] ?? 0} · '
+                      'failed ${_domainCounts['failed'] ?? 0}',
+              style: const TextStyle(color: Hud.gold, fontSize: 11),
+            ),
+            const SizedBox(height: 8),
+            if (_domainJobs.isEmpty)
+              const Text('No cached domains yet.', style: TextStyle(color: Hud.muted))
+            else
+              ..._domainJobs.take(40).map((job) {
+                return ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text('${job.status} · ${job.hostKey}'),
+                  subtitle: Text(
+                    [
+                      if (job.claimedBy != null) 'client=${job.claimedBy}',
+                      if (job.retryCount > 0) 'retries=${job.retryCount}',
+                      if (job.sourceUrl != null) 'from ${job.sourceUrl}',
+                    ].join(' · '),
+                    style: const TextStyle(color: Hud.muted, fontSize: 11),
+                  ),
+                );
+              }),
           ]),
           const SizedBox(height: 12),
           HudPanel(title: 'Outbox (offline queue)', children: [

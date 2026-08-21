@@ -31,6 +31,7 @@ def test_ng_migration_applies_on_fresh_sqlite():
             "oauth_states",
             "auth_sessions",
             "evidence_blobs",
+            "domain_jobs",
         ):
             assert name in tables
 

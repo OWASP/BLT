@@ -54,6 +54,16 @@ from findings_service import (
     update_finding_for_request,
 )
 from detect_service import detect_headers_for_request
+from domain_queue_service import (
+    DomainQueueError,
+    claim_domain_for_request,
+    complete_domain_for_request,
+    error_body as domain_error_body,
+    expire_domain_leases,
+    fail_domain_for_request,
+    list_domains_for_request,
+    submit_domains_for_request,
+)
 from ingest_service import ingest_error_response, process_ingest
 from ingest_store import IngestStore
 from install_sh import INSTALL_SH
@@ -156,6 +166,8 @@ class BLTWorker:
                         self.get_query_params(request),
                     )
                     response = self.json_response(body, status=status)
+            elif path == 'api/domains' or path.startswith('api/domains/'):
+                response = await self.handle_domains(request, path)
             elif path == 'api/findings' or path.startswith('api/findings/'):
                 response = await self.handle_findings(request, path)
             elif path == 'api/auth' or path.startswith('api/auth/'):
@@ -664,6 +676,79 @@ class BLTWorker:
 
         return self.json_response(result.body, status=result.status, headers=result.headers)
 
+    async def handle_domains(self, request, path: str = 'api/domains'):
+        """Shared domain queue: list, submit, claim, complete, fail."""
+        subpath = path[len('api/domains'):].lstrip('/')
+        parts = [p for p in subpath.split('/') if p]
+        db = getattr(self.env, 'DB', None)
+        headers = self.get_request_headers(request)
+
+        try:
+            payload = await self._json_dict(request)
+            if not parts:
+                if request.method == 'GET':
+                    status, body = await list_domains_for_request(
+                        env=self.env,
+                        db=db,
+                        headers=headers,
+                        query_params=self.get_query_params(request),
+                    )
+                    return self.json_response(body, status=status)
+                if request.method == 'POST':
+                    status, body = await submit_domains_for_request(
+                        env=self.env,
+                        db=db,
+                        headers=headers,
+                        body=payload,
+                    )
+                    return self.json_response(body, status=status)
+                return self.json_response({'error': 'Method not allowed'}, status=405)
+            if parts == ['claim']:
+                if request.method != 'POST':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                status, body = await claim_domain_for_request(
+                    env=self.env,
+                    db=db,
+                    headers=headers,
+                    body=payload,
+                )
+                return self.json_response(body, status=status)
+            if len(parts) == 2 and parts[1] in {'complete', 'fail'}:
+                if request.method != 'POST':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                job_id = parts[0]
+                if parts[1] == 'complete':
+                    status, body = await complete_domain_for_request(
+                        env=self.env,
+                        db=db,
+                        headers=headers,
+                        body=payload,
+                        job_id=job_id,
+                    )
+                else:
+                    status, body = await fail_domain_for_request(
+                        env=self.env,
+                        db=db,
+                        headers=headers,
+                        body=payload,
+                        job_id=job_id,
+                    )
+                return self.json_response(body, status=status)
+            return self.json_response({'error': 'Not found'}, status=404)
+        except (DomainQueueError, AuthError) as exc:
+            status, body = domain_error_body(exc)
+            return self.json_response(body, status=status)
+
+    async def _json_dict(self, request) -> dict:
+        raw = await self._read_request_body(request)
+        if not raw.strip():
+            return {}
+        try:
+            decoded = json.loads(raw.decode('utf-8'))
+        except (ValueError, UnicodeDecodeError) as exc:
+            raise DomainQueueError('invalid json', code='invalid_json') from exc
+        return decoded if isinstance(decoded, dict) else {}
+
     async def handle_findings(self, request, path: str = 'api/findings'):
         """Findings triage: list, detail, CSV/PDF export, convert-to-issue."""
         subpath = path[len('api/findings'):].lstrip('/')
@@ -896,8 +981,9 @@ class BLTWorker:
         return self.json_response(result.body, status=result.status, headers=result.headers)
 
     async def handle_scheduled(self):
-        """Cron: drain pending verified-event webhooks."""
+        """Cron: drain pending verified-event webhooks + expire domain leases."""
         db = getattr(self.env, 'DB', None)
+        await expire_domain_leases(db=db)
         return await drain_pending_webhooks(env=self.env, db=db)
 
     async def _read_request_body(self, request) -> bytes:
@@ -996,6 +1082,7 @@ class BLTWorker:
                 'X-API-Key', 'x-api-key',
                 'X-BLT-Body-Digest', 'x-blt-body-digest',
                 'X-BLT-Timestamp', 'x-blt-timestamp',
+                'X-NG-Sender', 'x-ng-sender',
             ):
                 value = headers.get(name)
                 if value is not None and str(value) != '':
@@ -1075,6 +1162,7 @@ class BLTWorker:
             path in ('api/health', 'api/ingest')
             or path == 'api/detect/headers'
             or path.startswith('api/findings')
+            or path.startswith('api/domains')
             or path.startswith('api/auth')
             or path.startswith('api/events')
         ):

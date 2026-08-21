@@ -7,7 +7,7 @@ HUD-styled producer matching web triage: **client-side crawl** (discover domains
 - **C2** HTTP header scan, preview, outbox
 - **C3** redaction, send history, triage `?finding=`
 - **C4** encrypt + packaging ([docs](../docs/spec/client-packaging.md))
-- **Crawl** always-on client-side spider: extract `href`/`src`/JS/CSS hosts → enqueue → header-scan → recycle when idle (Stop to send). Worker never spiders third parties.
+- **Crawl** distributed client spider: pull/claim a host from `/api/domains`, scan + extract new hosts, submit them to the shared queue, complete/fail with lease retry. Worker never spiders third parties.
 
 ## Run (macOS)
 
@@ -40,7 +40,8 @@ Payload key: `netguardian-demo-aesgcm-key-0032`.
 | Path | Role |
 |------|------|
 | `lib/theme/hud.dart` | Triage HUD tokens + panels |
-| `lib/detect/` | Header detector + HTML link extract + crawl queue |
+| `lib/detect/` | Header detector + HTML extract + crawl + shared-queue loop |
+| `lib/queue/domain_queue.dart` | Local cache of centralized domain jobs |
 | `lib/ingest/` | Canonicalize, sign, AES-GCM, HTTP ingest, redact |
 | `lib/history/` | Local send history |
 | `lib/queue/outbox.dart` | Offline outbox + retry |

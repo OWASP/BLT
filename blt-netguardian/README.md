@@ -21,7 +21,7 @@ Pilot script: [`docs/spec/pilot-checklist.md`](docs/spec/pilot-checklist.md).
 
 ## Client
 
-In-repo Flutter desktop producer ([`client/`](client/README.md)): HTTP header scan (Python parity), redact, AES-256-GCM, HMAC ingest, outbox, history, triage deep-link. HUD theme matches `triage.html`.
+In-repo Flutter desktop producer ([`client/`](client/README.md)): distributed domain queue (claim/scan/spider), HTTP header scan, redact, AES-256-GCM, HMAC ingest, outbox, triage deep-link.
 
 ## Shipped API (GSoC spine)
 
@@ -37,6 +37,11 @@ In-repo Flutter desktop producer ([`client/`](client/README.md)): HTTP header sc
 | GET | `/api/events` | Verified outbox |
 | POST | `/api/events/retry` | Webhook drain |
 | GET | `/api/auth/github/*` | OAuth PKCE session |
+| GET | `/api/domains` | Org domain queue (pending / in_progress / scanned / failed / retry) |
+| POST | `/api/domains` | Submit discovered domains (normalized, deduped) |
+| POST | `/api/domains/claim` | Client claims next job (lease) |
+| POST | `/api/domains/{id}/complete` | Record scan result |
+| POST | `/api/domains/{id}/fail` | Fail → retry_required (lease expiry also retries) |
 
 Storage is **D1** (not KV). Optional R2 binding `EVIDENCE`. Cron `*/5 * * * *` retries pending webhooks.
 
