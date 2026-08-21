@@ -110,6 +110,24 @@ class DomainApi {
     return DomainJob.fromJson(job.map((k, v) => MapEntry(k.toString(), v as Object?)));
   }
 
+  Future<void> heartbeat({
+    required String baseUrl,
+    required String jobId,
+    required String senderId,
+    String? token,
+  }) async {
+    final response = await _http
+        .post(
+          _uri(baseUrl, '/api/domains/$jobId/heartbeat'),
+          headers: _headers(token: token, senderId: senderId),
+          body: jsonEncode({'sender_id': senderId}),
+        )
+        .timeout(const Duration(seconds: 15));
+    if (response.statusCode >= 400) {
+      throw Exception('domain heartbeat HTTP ${response.statusCode}');
+    }
+  }
+
   Future<void> complete({
     required String baseUrl,
     required String jobId,

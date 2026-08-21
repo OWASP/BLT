@@ -129,6 +129,18 @@ class DomainQueueStore:
             return row
         return None
 
+    async def heartbeat(
+        self, *, org_id: str, job_id: str, sender_id: str, claim_until: int
+    ) -> Optional[dict]:
+        await self.db.prepare(
+            """
+            UPDATE domain_jobs
+            SET claim_until = ?
+            WHERE org_id = ? AND id = ? AND claimed_by = ? AND status = 'in_progress'
+            """
+        ).bind(claim_until, org_id, job_id, sender_id).run()
+        return await self.get_by_id(org_id, job_id)
+
     async def complete(
         self,
         *,

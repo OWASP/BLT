@@ -167,3 +167,78 @@ class SeverityChip extends StatelessWidget {
     );
   }
 }
+
+class DomainStatusChip extends StatelessWidget {
+  const DomainStatusChip(this.status, {super.key});
+  final String status;
+
+  static Color colorFor(String status) {
+    switch (status) {
+      case 'in_progress':
+        return Hud.accent;
+      case 'scanned':
+        return Hud.low;
+      case 'retry_required':
+        return Hud.high;
+      case 'failed':
+        return Hud.accent;
+      case 'pending':
+        return Hud.gold;
+      default:
+        return Hud.muted;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = colorFor(status);
+    final label = switch (status) {
+      'in_progress' => 'SCAN',
+      'retry_required' => 'RETRY',
+      'scanned' => 'DONE',
+      'failed' => 'FAIL',
+      'pending' => 'WAIT',
+      _ => status.toUpperCase(),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(border: Border.all(color: color)),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 10, letterSpacing: 1.4),
+      ),
+    );
+  }
+}
+
+class HudStat extends StatelessWidget {
+  const HudStat({super.key, required this.label, required this.value, this.color = Hud.gold});
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        decoration: BoxDecoration(border: Border.all(color: Hud.border)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label.toUpperCase(),
+              style: const TextStyle(color: Hud.muted, fontSize: 9, letterSpacing: 1.6),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(color: color, fontSize: 16, letterSpacing: 1.2),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

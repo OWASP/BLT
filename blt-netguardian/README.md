@@ -40,6 +40,7 @@ In-repo Flutter desktop producer ([`client/`](client/README.md)): distributed do
 | GET | `/api/domains` | Org domain queue (pending / in_progress / scanned / failed / retry) |
 | POST | `/api/domains` | Submit discovered domains (normalized, deduped) |
 | POST | `/api/domains/claim` | Client claims next job (lease) |
+| POST | `/api/domains/{id}/heartbeat` | Extend in-progress lease |
 | POST | `/api/domains/{id}/complete` | Record scan result |
 | POST | `/api/domains/{id}/fail` | Fail → retry_required (lease expiry also retries) |
 

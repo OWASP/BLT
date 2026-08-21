@@ -205,3 +205,39 @@ async def test_fail_marks_retry_then_lease_expire():
     )
     assert again["job"]["host_key"] == "fail.test"
     assert again["job"]["claimed_by"] == "c"
+
+
+@pytest.mark.asyncio
+async def test_heartbeat_extends_lease():
+    env, _db = env_with_db()
+    worker = BLTWorker(env)
+    await worker.handle_request(
+        FakeRequest(
+            "http://127.0.0.1:8787/api/domains",
+            method="POST",
+            payload={"domains": ["https://beat.test/"], "sender_id": "a"},
+        )
+    )
+    claimed = parse(
+        await worker.handle_request(
+            FakeRequest(
+                "http://127.0.0.1:8787/api/domains/claim",
+                method="POST",
+                payload={"sender_id": "a"},
+            )
+        )
+    )
+    job_id = claimed["job"]["id"]
+    until = claimed["job"]["claim_until"]
+    beat = parse(
+        await worker.handle_request(
+            FakeRequest(
+                f"http://127.0.0.1:8787/api/domains/{job_id}/heartbeat",
+                method="POST",
+                payload={"sender_id": "a"},
+            )
+        )
+    )
+    assert beat["job"]["status"] == "in_progress"
+    assert beat["job"]["claim_until"] >= until
+

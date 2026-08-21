@@ -136,6 +136,30 @@ async def claim_domain_for_request(
     return 200, {"job": None, "org_id": ctx.org_id, "sender_id": sender}
 
 
+async def heartbeat_domain_for_request(
+    *,
+    env: Any,
+    db: Any,
+    headers: Mapping[str, str],
+    body: Mapping[str, Any],
+    job_id: str,
+) -> tuple[int, dict]:
+    ctx = await _auth(env, headers, db)
+    if db is None:
+        raise DomainQueueError("database unavailable", status=503, code="no_db")
+    store = DomainQueueStore(db)
+    sender = _sender_id(body, headers)
+    job = await store.heartbeat(
+        org_id=ctx.org_id,
+        job_id=job_id,
+        sender_id=sender,
+        claim_until=_now() + LEASE_SECONDS,
+    )
+    if not job or job.get("claimed_by") != sender:
+        raise DomainQueueError("job not claimed by this sender", status=409, code="not_owner")
+    return 200, {"job": job}
+
+
 async def complete_domain_for_request(
     *,
     env: Any,

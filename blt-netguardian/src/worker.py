@@ -61,6 +61,7 @@ from domain_queue_service import (
     error_body as domain_error_body,
     expire_domain_leases,
     fail_domain_for_request,
+    heartbeat_domain_for_request,
     list_domains_for_request,
     submit_domains_for_request,
 )
@@ -713,12 +714,20 @@ class BLTWorker:
                     body=payload,
                 )
                 return self.json_response(body, status=status)
-            if len(parts) == 2 and parts[1] in {'complete', 'fail'}:
+            if len(parts) == 2 and parts[1] in {'complete', 'fail', 'heartbeat'}:
                 if request.method != 'POST':
                     return self.json_response({'error': 'Method not allowed'}, status=405)
                 job_id = parts[0]
                 if parts[1] == 'complete':
                     status, body = await complete_domain_for_request(
+                        env=self.env,
+                        db=db,
+                        headers=headers,
+                        body=payload,
+                        job_id=job_id,
+                    )
+                elif parts[1] == 'heartbeat':
+                    status, body = await heartbeat_domain_for_request(
                         env=self.env,
                         db=db,
                         headers=headers,

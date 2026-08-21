@@ -1,6 +1,8 @@
 /// Distributed crawl: pull → claim → scan → spider → submit → complete.
 library;
 
+import 'dart:async';
+
 import 'package:http/http.dart' as http;
 
 import 'crawl.dart';
@@ -14,11 +16,19 @@ class DistributedProgress {
     required this.message,
     this.jobs = const [],
     this.counts = const {},
+    this.currentHost = '',
+    this.hostsFound = 0,
+    this.pagesScanned = 0,
+    this.findings = 0,
   });
 
   final String message;
   final List<DomainJob> jobs;
   final Map<String, int> counts;
+  final String currentHost;
+  final int hostsFound;
+  final int pagesScanned;
+  final int findings;
 }
 
 Future<void> runDistributedCrawl({
@@ -36,44 +46,64 @@ Future<void> runDistributedCrawl({
     maxPages: 8,
     maxNewHosts: 40,
     maxPathsPerHost: 6,
-    delay: Duration(milliseconds: 350),
+    delay: Duration(milliseconds: 280),
     continuous: false,
   ),
 }) async {
   final domainApi = api ?? DomainApi(httpClient: httpClient);
-  final ownedHttp = httpClient == null && api == null;
+  var pagesTotal = 0;
+  var findingsTotal = 0;
+  var hostsTotal = 0;
+  DateTime lastBeat = DateTime.fromMillisecondsSinceEpoch(0);
 
-  Future<void> sync() async {
+  Future<({List<DomainJob> jobs, Map<String, int> counts})> sync() async {
     final listed = await domainApi.list(
       baseUrl: baseUrl,
       token: token,
       senderId: senderId,
     );
     final merged = await local.merge(listed.jobs);
+    return (jobs: merged, counts: listed.counts);
+  }
+
+  Future<void> emit(
+    String message, {
+    String currentHost = '',
+    List<DomainJob>? jobs,
+    Map<String, int>? counts,
+  }) async {
+    final snap = (jobs != null && counts != null)
+        ? (jobs: jobs, counts: counts)
+        : await sync();
     onProgress?.call(DistributedProgress(
-      message:
-          'Queue sync · pending ${listed.counts['pending'] ?? 0} · '
-          'in_progress ${listed.counts['in_progress'] ?? 0} · '
-          'scanned ${listed.counts['scanned'] ?? 0}',
-      jobs: merged,
-      counts: listed.counts,
+      message: message,
+      jobs: snap.jobs,
+      counts: snap.counts,
+      currentHost: currentHost,
+      hostsFound: hostsTotal,
+      pagesScanned: pagesTotal,
+      findings: findingsTotal,
     ));
   }
 
   try {
     final seed = normalizeDomain(seedUrl);
     if (seed != null) {
-      await domainApi.submit(
+      final created = await domainApi.submit(
         baseUrl: baseUrl,
         domains: [seed.seedUrl],
         senderId: senderId,
         token: token,
       );
+      await emit(
+        created.isEmpty
+            ? 'SEED ${seed.hostKey} already on the grid'
+            : 'SEED ${seed.hostKey} → shared queue',
+        currentHost: seed.hostKey,
+      );
     }
-    await sync();
 
     while (!run.stopped) {
-      await sync();
       if (run.stopped) break;
 
       final job = await domainApi.claim(
@@ -82,18 +112,12 @@ Future<void> runDistributedCrawl({
         token: token,
       );
       if (job == null) {
-        onProgress?.call(const DistributedProgress(
-          message: 'No pending domains — waiting for discoveries…',
-        ));
-        await Future<void>.delayed(const Duration(seconds: 3));
+        await emit('GRID idle — waiting for the next pending domain');
+        await Future<void>.delayed(const Duration(seconds: 2));
         continue;
       }
 
-      await local.merge([job]);
-      onProgress?.call(DistributedProgress(
-        message: 'Claimed ${job.hostKey} — scanning…',
-        jobs: await local.load(),
-      ));
+      await emit('CLAIM ${job.hostKey}  lease ${senderId}', currentHost: job.hostKey);
 
       try {
         final result = await crawlAndScan(
@@ -102,6 +126,27 @@ Future<void> runDistributedCrawl({
           client: httpClient,
           run: run,
           onFinding: onFinding,
+          onProgress: (p) {
+            final now = DateTime.now();
+            if (now.difference(lastBeat) > const Duration(seconds: 20)) {
+              lastBeat = now;
+              unawaited(domainApi
+                  .heartbeat(
+                    baseUrl: baseUrl,
+                    jobId: job.id,
+                    senderId: senderId,
+                    token: token,
+                  )
+                  .catchError((_) {}));
+            }
+            onProgress?.call(DistributedProgress(
+              message: 'SCAN ${job.hostKey}  p${p.scanned}  q${p.queued}',
+              currentHost: job.hostKey,
+              pagesScanned: pagesTotal + p.scanned,
+              hostsFound: hostsTotal + p.discoveredHosts,
+              findings: findingsTotal + p.findingsSoFar,
+            ));
+          },
         );
         if (run.stopped) {
           await domainApi.fail(
@@ -111,12 +156,17 @@ Future<void> runDistributedCrawl({
             error: 'stopped',
             token: token,
           );
+          await emit('STOP released ${job.hostKey} → retry_required');
           break;
         }
-        final discovered = [
-          for (final host in result.discoveredHosts)
-            if (normalizeDomain(host) != null) normalizeDomain(host)!.seedUrl,
-        ];
+        pagesTotal += result.pagesScanned;
+        findingsTotal += result.findings.length;
+        hostsTotal += result.discoveredHosts.length;
+        final discovered = <String>[];
+        for (final host in result.discoveredHosts) {
+          final n = normalizeDomain(host);
+          if (n != null) discovered.add(n.seedUrl);
+        }
         if (discovered.isNotEmpty) {
           await domainApi.submit(
             baseUrl: baseUrl,
@@ -124,6 +174,10 @@ Future<void> runDistributedCrawl({
             senderId: senderId,
             token: token,
             sourceUrl: job.seedUrl,
+          );
+          await emit(
+            'SPIDER ${job.hostKey}  +${discovered.length} hosts → grid',
+            currentHost: job.hostKey,
           );
         }
         await domainApi.complete(
@@ -138,12 +192,11 @@ Future<void> runDistributedCrawl({
             'visited': result.visitedUrls,
           },
         );
-        onProgress?.call(DistributedProgress(
-          message:
-              'Scanned ${job.hostKey} · ${result.pagesScanned} pages · '
-              '${result.discoveredHosts.length} new hosts',
-          jobs: await local.load(),
-        ));
+        await emit(
+          'DONE ${job.hostKey}  ${result.pagesScanned}p  '
+          '${result.findings.length}f  +${result.discoveredHosts.length} hosts',
+          currentHost: job.hostKey,
+        );
       } catch (e) {
         await domainApi.fail(
           baseUrl: baseUrl,
@@ -152,14 +205,10 @@ Future<void> runDistributedCrawl({
           error: e.toString(),
           token: token,
         );
-        onProgress?.call(DistributedProgress(
-          message: 'Failed ${job.hostKey}: $e',
-        ));
+        await emit('FAIL ${job.hostKey} → retry  $e', currentHost: job.hostKey);
       }
     }
   } finally {
-    if (ownedHttp) {
-      // DomainApi owns its client.
-    }
+    await emit('GRID offline');
   }
 }

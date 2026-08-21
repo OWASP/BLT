@@ -67,6 +67,11 @@ class _HomePageState extends State<HomePage> {
   List<String> _discoveredHosts = [];
   List<DomainJob> _domainJobs = [];
   Map<String, int> _domainCounts = {};
+  final List<String> _opsLog = [];
+  String _currentHost = '';
+  int _pagesScanned = 0;
+  int _hostsFound = 0;
+  int _findingsLive = 0;
   List<OutboxItem> _queue = [];
   List<HistoryItem> _history = [];
   final Set<String> _selected = {};
@@ -208,6 +213,11 @@ class _HomePageState extends State<HomePage> {
       _preview = [];
       _discoveredHosts = [];
       _selected.clear();
+      _opsLog.clear();
+      _currentHost = '';
+      _pagesScanned = 0;
+      _hostsFound = 0;
+      _findingsLive = 0;
     });
     try {
       await runDistributedCrawl(
@@ -226,6 +236,17 @@ class _HomePageState extends State<HomePage> {
             _status = p.message;
             if (p.jobs.isNotEmpty) _domainJobs = p.jobs;
             if (p.counts.isNotEmpty) _domainCounts = p.counts;
+            _currentHost = p.currentHost;
+            _pagesScanned = p.pagesScanned;
+            _hostsFound = p.hostsFound;
+            _findingsLive = p.findings;
+            if (p.message.isNotEmpty) {
+              final stamp = DateTime.now().toIso8601String().substring(11, 19);
+              _opsLog.insert(0, '$stamp  ${p.message}');
+              if (_opsLog.length > 48) {
+                _opsLog.removeRange(48, _opsLog.length);
+              }
+            }
           });
         },
       );
@@ -466,7 +487,7 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            'DETECT → SIGN → INGEST → TRIAGE',
+            'CLAIM → SPIDER → INGEST → TRIAGE',
             style: GoogleFonts.orbitron(
               color: Hud.gold,
               fontSize: 12,
@@ -611,33 +632,104 @@ class _HomePageState extends State<HomePage> {
             ],
           ]),
           const SizedBox(height: 12),
-          HudPanel(title: 'Shared domain queue', children: [
-            Text(
-              _domainCounts.isEmpty
-                  ? 'Server is the source of truth. Start crawl to sync.'
-                  : 'pending ${_domainCounts['pending'] ?? 0} · '
-                      'in_progress ${_domainCounts['in_progress'] ?? 0} · '
-                      'scanned ${_domainCounts['scanned'] ?? 0} · '
-                      'retry ${_domainCounts['retry_required'] ?? 0} · '
-                      'failed ${_domainCounts['failed'] ?? 0}',
-              style: const TextStyle(color: Hud.gold, fontSize: 11),
+          HudPanel(title: 'Shared domain grid', children: [
+            Row(
+              children: [
+                HudStat(
+                  label: 'pending',
+                  value: '${_domainCounts['pending'] ?? 0}',
+                ),
+                const SizedBox(width: 6),
+                HudStat(
+                  label: 'scanning',
+                  value: '${_domainCounts['in_progress'] ?? 0}',
+                  color: Hud.accent,
+                ),
+                const SizedBox(width: 6),
+                HudStat(
+                  label: 'scanned',
+                  value: '${_domainCounts['scanned'] ?? 0}',
+                  color: Hud.low,
+                ),
+                const SizedBox(width: 6),
+                HudStat(
+                  label: 'retry',
+                  value: '${_domainCounts['retry_required'] ?? 0}',
+                  color: Hud.high,
+                ),
+              ],
             ),
             const SizedBox(height: 8),
+            Row(
+              children: [
+                HudStat(label: 'pages', value: '$_pagesScanned'),
+                const SizedBox(width: 6),
+                HudStat(label: 'hosts+', value: '$_hostsFound', color: Hud.gold),
+                const SizedBox(width: 6),
+                HudStat(label: 'findings', value: '$_findingsLive', color: Hud.accent),
+                const SizedBox(width: 6),
+                HudStat(
+                  label: 'grid',
+                  value: _crawling ? 'LIVE' : 'IDLE',
+                  color: _crawling ? Hud.accent : Hud.muted,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _crawling
+                  ? (_currentHost.isEmpty
+                      ? 'GRID LIVE — claiming next domain…'
+                      : 'SCANNING  $_currentHost')
+                  : 'Grid idle. Start crawl to pull jobs from the server queue.',
+              style: TextStyle(
+                color: _crawling ? Hud.accent : Hud.muted,
+                fontSize: 13,
+                letterSpacing: 1.2,
+              ),
+            ),
+            if (_opsLog.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 160),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(border: Border.all(color: Hud.border)),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _opsLog.length,
+                  itemBuilder: (context, i) => Text(
+                    _opsLog[i],
+                    style: const TextStyle(color: Hud.gold, fontSize: 11, height: 1.45),
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 10),
             if (_domainJobs.isEmpty)
-              const Text('No cached domains yet.', style: TextStyle(color: Hud.muted))
+              const Text('No domains on the grid yet.', style: TextStyle(color: Hud.muted))
             else
-              ..._domainJobs.take(40).map((job) {
-                return ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text('${job.status} · ${job.hostKey}'),
-                  subtitle: Text(
-                    [
-                      if (job.claimedBy != null) 'client=${job.claimedBy}',
-                      if (job.retryCount > 0) 'retries=${job.retryCount}',
-                      if (job.sourceUrl != null) 'from ${job.sourceUrl}',
-                    ].join(' · '),
-                    style: const TextStyle(color: Hud.muted, fontSize: 11),
+              ..._domainJobs.take(50).map((job) {
+                final c = DomainStatusChip.colorFor(job.status);
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 4),
+                  decoration: BoxDecoration(
+                    border: Border(left: BorderSide(color: c, width: 3)),
+                  ),
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.only(left: 8),
+                    leading: DomainStatusChip(job.status),
+                    title: Text(job.hostKey, style: const TextStyle(fontSize: 13)),
+                    subtitle: Text(
+                      [
+                        if (job.claimedBy != null) job.claimedBy!,
+                        if (job.retryCount > 0) 'r${job.retryCount}',
+                        if (job.sourceUrl != null) job.sourceUrl!,
+                        if (job.result != null)
+                          '${job.result!['pages'] ?? '?'}p ${job.result!['findings'] ?? '?'}f',
+                      ].join(' · '),
+                      style: const TextStyle(color: Hud.muted, fontSize: 11),
+                    ),
                   ),
                 );
               }),
