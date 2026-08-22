@@ -117,6 +117,23 @@ The project is executed in a rigorous 12-week timeline, divided into three major
 Development is strictly tracked via GitLab Issues. Every week corresponds to a specific set of actionable issues mapped directly to our milestones.
 You can view our active progress on the [GitLab Issues page](https://gitlab.com/owasp-blt/blt-toasty/-/issues) or project board.
 
+## Dashboard & Authentication
+
+The React dashboard (served at `/`) provides a secure, internal view of all triage events, metrics, and redaction audit logs. Because this data contains sensitive vulnerability information, the API is secured by a "Zero Trust" JWT (JSON Web Token) architecture.
+
+There is no public login page. To access the dashboard, maintainers must manually generate and inject a cryptographic token into their browser.
+
+### How to access the Dashboard:
+1. **Generate a JWT Keypair:** Run the provided Python script to generate a secure RS256 token and public key:
+   ```bash
+   python scripts/generate_jwt.py
+   ```
+2. **Upload the Public Key:** The script updates `.dev.vars` for local development. For production, you must upload the public key (printed by the script) to Cloudflare:
+   ```bash
+   npx wrangler secret put MCP_PUBLIC_KEY --env production
+   ```
+3. **Inject the Token:** Open the deployed dashboard in your browser. Open Developer Tools (F12) -> **Application** -> **Local Storage**. Add a new row with the Key `dashboard_token` and paste the generated JWT Bearer Token as the Value. Refresh the page to view the live data.
+
 ## Setup & Contribution Guidelines
 
 We enforce the OWASP BLT ecosystem quality standards:
