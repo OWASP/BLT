@@ -120,11 +120,11 @@ dataset = "toasty_telemetry_dev"
 
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["ConversationDO"]
+new_classes = ["ConversationDO"]
 
 [[migrations]]
 tag = "v2"
-new_sqlite_classes = ["RateLimiterDO"]
+new_classes = ["RateLimiterDO"]
 
 [vars]
 ENVIRONMENT = "development"

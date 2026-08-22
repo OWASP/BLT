@@ -14,7 +14,10 @@ from unittest.mock import AsyncMock, MagicMock
 # Solution: for every .py file in src/, ensure that both `src.<name>` and
 # `<name>` point to the **same** module object in sys.modules.
 # ---------------------------------------------------------------------------
-_src_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src")
+_root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _root_dir not in sys.path:
+    sys.path.insert(0, _root_dir)
+_src_dir = os.path.join(_root_dir, "src")
 if _src_dir not in sys.path:
     sys.path.insert(0, _src_dir)
 

@@ -264,18 +264,12 @@ async def index_report(
                 raise
             logger.warning("Failed to check status for event %s during cleanup: %s", event_id, check_exc)
 
-        cleanup_success = False
-
         # Retry logic: attempt cleanup twice
-        for attempt in range(2):
-            try:
-                await env.VECTORIZE.deleteByIds([event_id])
-                cleanup_success = True
-                break
-            except Exception as cleanup_exc:
-                logger.error(
-                    "Failed to cleanup vector for event %s on attempt %d: %s", event_id, attempt + 1, cleanup_exc
-                )
+        try:
+            await delete_vector(event_id, env)
+            cleanup_success = True
+        except Exception as cleanup_exc:
+            logger.error("Failed to cleanup vector for event %s: %s", event_id, cleanup_exc)
 
         if not cleanup_success:
             # Mark the event so a cron trigger can clean up the phantom vector later

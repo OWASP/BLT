@@ -79,15 +79,15 @@ async def get_embedding(text: str, env) -> list[float]:
     if _abort_controller_cls is None:
         _abort_controller_cls = getattr(env, "_abort_controller_cls", None)
 
-    if _fetch is None or _abort_controller_cls is None:
-        raise RuntimeError("fetch/AbortController unavailable and no mock provided via env")
-
     sidecar_url = getattr(env, "FASTEMBED_URL", None)
     if not sidecar_url:
         raise EmbeddingServiceError("FASTEMBED_URL not configured in environment", status_code=503)
 
     if sidecar_url == "mock://fastembed":
         return [0.1] * EMBEDDING_DIMENSIONS
+
+    if _fetch is None or _abort_controller_cls is None:
+        raise RuntimeError("fetch/AbortController unavailable and no mock provided via env")
 
     controller = _abort_controller_cls.new()
     # Schedule the abort after EMBEDDING_TIMEOUT_SECONDS.

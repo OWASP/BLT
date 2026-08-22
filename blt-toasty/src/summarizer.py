@@ -657,17 +657,13 @@ async def summarize(
                 "completion_tokens": estimate_tokens(raw_response),
             },
         )
-
-        # ── Persist and transition ────────────────────────────────────────
-        await _store_summary(db, summary)
-        await _transition_state(db, event_id, "summarized")
-        logger.info("Summarized event %s (confidence=%.2f, cwes=%s)", event_id, confidence, sanitized_cwes)
-
-        return summary
-
     except Exception as exc:
         logger.warning("Unexpected error building summary from LLM output for %s: %s", event_id, exc)
-        fallback = _build_fallback_summary(event_id, redacted_text)
-        await _store_summary(db, fallback)
-        await _transition_state(db, event_id, "summarized")
-        return fallback
+        summary = _build_fallback_summary(event_id, redacted_text)
+
+    # ── Persist and transition ────────────────────────────────────────
+    await _store_summary(db, summary)
+    await _transition_state(db, event_id, "summarized")
+    logger.info("Summarized event %s (confidence=%.2f, cwes=%s)", event_id, summary.confidence, summary.cwe_hints)
+
+    return summary

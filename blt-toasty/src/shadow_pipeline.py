@@ -168,12 +168,8 @@ async def run_shadow_triage(issue: dict, env: Any, db: Any) -> dict:
         redacted_text = redact_result.redacted_text if hasattr(redact_result, "redacted_text") else str(redact_result)
     except Exception as exc:
         logger.warning("Shadow redaction failed for issue #%d: %s", issue["iid"], exc)
-        # Fallback: apply native regex redaction only
-        native_result = apply_native_redaction(issue["description"])
-        # Handle both tuple return (text, matches) and plain string (from mocks)
-        redacted_text = native_result[0] if isinstance(native_result, tuple) else str(native_result)
-        # Manually transition past redaction gate
-        await db.prepare("UPDATE triage_events SET status = 'redaction_passed' WHERE id = ?").bind(event_id).run()
+        await db.prepare("UPDATE triage_events SET status = 'failed' WHERE id = ?").bind(event_id).run()
+        return {"event_id": event_id, "predicted_cwe": [], "predicted_duplicate_of": None, "confidence": 0.0}
 
     # 3. Summarize (produces CWE predictions)
     predicted_cwe: list[str] = []
@@ -194,11 +190,8 @@ async def run_shadow_triage(issue: dict, env: Any, db: Any) -> dict:
         import traceback
 
         logger.warning("Shadow summarization failed for %s: %s\n%s", event_id, exc, traceback.format_exc())
-        # Force state to 'summarized' so embedding step doesn't get blocked
-        try:
-            await db.prepare("UPDATE triage_events SET status = 'summarized' WHERE id = ?").bind(event_id).run()
-        except Exception:
-            pass  # nosec
+        await db.prepare("UPDATE triage_events SET status = 'failed' WHERE id = ?").bind(event_id).run()
+        return {"event_id": event_id, "predicted_cwe": [], "predicted_duplicate_of": None, "confidence": 0.0}
 
     # 4. Embed and index (with shadow: prefix — already in event_id)
     try:
