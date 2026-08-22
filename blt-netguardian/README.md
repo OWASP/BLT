@@ -1,17 +1,20 @@
 # BLT-NetGuardian
 
-Signed findings ingest + org triage + BLT convert, on Cloudflare Workers (D1).
+Signed findings ingest + **distributed domain crawl** + org triage + BLT convert, on Cloudflare Workers (D1).
 
 ```
-Detect (CLI or Flutter) → HMAC ztr-finding-1 → POST /api/ingest → D1
-  → triage.html (status / remediation / disclosure / events / CSV / PDF)
-  → convert-to-issue (BLT-API)
+Flutter client: claim domain → spider page source → header-scan → HMAC ztr-finding-1
+  → POST /api/ingest → D1 → triage.html → convert-to-issue (BLT-API)
+Shared queue: GET/POST /api/domains* (claim / heartbeat / complete / fail)
 ```
+
+**Quickstart (install + crawl + triage):** [`docs/spec/quickstart.md`](docs/spec/quickstart.md)
 
 ## Local
 
 ```bash
 python3 local_dev/serve.py
+# http://127.0.0.1:8787/          home
 # http://127.0.0.1:8787/triage.html  token: triage-token
 .venv/bin/python local_dev/send_finding.py
 cd client && flutter pub get && flutter test && flutter run -d macos
@@ -21,7 +24,7 @@ Pilot script: [`docs/spec/pilot-checklist.md`](docs/spec/pilot-checklist.md).
 
 ## Client
 
-In-repo Flutter desktop producer ([`client/`](client/README.md)): HTTP header scan (Python parity), redact, AES-256-GCM, HMAC ingest, outbox, history, triage deep-link. HUD theme matches `triage.html`.
+In-repo Flutter desktop producer ([`client/`](client/README.md)): distributed domain queue (claim/scan/spider), HTTP header scan, redact, AES-256-GCM, HMAC ingest, outbox, triage deep-link. Start/Stop stay pinned; live lists are capped during long crawls.
 
 ## Shipped API (GSoC spine)
 
@@ -37,6 +40,12 @@ In-repo Flutter desktop producer ([`client/`](client/README.md)): HTTP header sc
 | GET | `/api/events` | Verified outbox |
 | POST | `/api/events/retry` | Webhook drain |
 | GET | `/api/auth/github/*` | OAuth PKCE session |
+| GET | `/api/domains` | Org domain queue (pending / in_progress / scanned / failed / retry) |
+| POST | `/api/domains` | Submit discovered domains (normalized, deduped) |
+| POST | `/api/domains/claim` | Client claims next job (lease) |
+| POST | `/api/domains/{id}/heartbeat` | Extend in-progress lease |
+| POST | `/api/domains/{id}/complete` | Record scan result |
+| POST | `/api/domains/{id}/fail` | Fail → retry_required (lease expiry also retries) |
 
 Storage is **D1** (not KV). Optional R2 binding `EVIDENCE`. Cron `*/5 * * * *` retries pending webhooks.
 

@@ -14,6 +14,6 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('NETGUARDIAN'), findsOneWidget);
-    expect(find.text('DETECT → SIGN → INGEST → TRIAGE'), findsOneWidget);
+    expect(find.text('CLAIM → SPIDER → INGEST → TRIAGE'), findsOneWidget);
   });
 }

@@ -185,6 +185,7 @@
             overflow-x: hidden;
             padding: 0.85rem 0.75rem 1rem;
             min-width: 0;
+            min-height: 0;
         }
 
         .filter-controls-panel {
@@ -422,6 +423,8 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
+            min-height: 0;
+            overflow: hidden;
             position: relative;
         }
 
@@ -494,10 +497,15 @@
         }
 
         .table-wrap {
-            flex: 1;
+            flex: 1 1 auto;
+            min-height: 0;
             overflow: auto;
             position: relative;
+            -webkit-overflow-scrolling: touch;
         }
+
+        .table-wrap::-webkit-scrollbar { width: 8px; }
+        .table-wrap::-webkit-scrollbar-thumb { background: #ff4040; }
 
         table.findings-table {
             width: 100%;
@@ -1092,10 +1100,11 @@
         .hidden { display: none !important; }
 
         .findings-list-view {
-            flex: 1;
+            flex: 1 1 auto;
+            min-height: 0;
             overflow-y: auto;
             padding: 0.5rem 0.75rem 1rem;
-            min-height: 0;
+            -webkit-overflow-scrolling: touch;
         }
 
         .findings-list-view.hidden {

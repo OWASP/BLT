@@ -1,5 +1,25 @@
 # Deployment Guide for BLT-NetGuardian
 
+## Staging (personal Cloudflare — mentors / demos)
+
+```bash
+./scripts/deploy-staging.sh
+```
+
+- Config: `wrangler.staging.toml` (personal D1)
+- URL: https://blt-netguardian.preethampujari395.workers.dev/
+- Applies D1 migrations (including domain queue `0006`) + demo secrets + static `public/`
+
+Quickstart after deploy: [`docs/spec/quickstart.md`](docs/spec/quickstart.md)
+
+## Production (OWASP account)
+
+```bash
+./scripts/deploy-live.sh
+```
+
+Uses `wrangler.toml` (OWASP D1 → https://netguardian.owaspblt.org/). Requires wrangler login to the OWASP Cloudflare account.
+
 ## Quick Deploy - One-Click Button
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/OWASP-BLT/BLT-NetGuardian)
@@ -14,11 +34,64 @@ For advanced configuration and manual deployment options, continue reading below
 
 ## Architecture Overview
 
-BLT-NetGuardian uses a split architecture:
-- **Frontend**: Static HTML/CSS/JS hosted on GitHub Pages
-- **Backend**: Python worker running on Cloudflare Workers
+BLT-NetGuardian uses:
+- **Static UI**: `public/` (home, get-client, triage) served as Worker assets
+- **Backend**: Python worker on Cloudflare Workers + D1
+- **Client**: Flutter app run on the researcher’s machine (distributed crawl)
 
-## Frontend Deployment (GitHub Pages)
+## Frontend (Workers assets)
+
+Served from `public/` on the Worker origin:
+
+- `/` — product home + links to README / quickstart
+- `/get-client` — install & run instructions
+- `/triage` — findings triage HUD
+- `/install.sh` — headless one-liner helper
+
+## Backend Deployment (Cloudflare Workers)
+
+### Option 1. Staging script (recommended for demos)
+
+```bash
+./scripts/deploy-staging.sh
+```
+
+### Option 2. Manual Wrangler
+
+#### Prerequisites
+
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) installed
+- Cloudflare account
+- Node.js **≥ 20** (`nvm use 20`)
+
+#### Login + migrate + deploy
+
+```bash
+source ~/.nvm/nvm.sh && nvm use 20
+npx wrangler@3 login
+npx wrangler@3 d1 migrations apply blt-netguardian --remote --config wrangler.staging.toml
+npx wrangler@3 deploy --config wrangler.staging.toml
+```
+
+For production, omit `--config` (uses `wrangler.toml`).
+
+#### Secrets (demo org)
+
+```bash
+printf '%s' '{"triage-token":"org-demo"}' | npx wrangler@3 secret put NG_ORG_API_TOKENS --config wrangler.staging.toml
+printf '%s' '{"org-demo:scanner-1:k1":"736563726574"}' | npx wrangler@3 secret put NG_SENDER_SECRETS --config wrangler.staging.toml
+printf '%s' '{"org-demo":"bmV0Z3VhcmRpYW4tZGVtby1hZXNnY20ta2V5LTAwMzI="}' | npx wrangler@3 secret put NG_PAYLOAD_KEYS --config wrangler.staging.toml
+```
+
+Rotate before any external org.
+
+## Legacy notes below
+
+Older sections mention GitHub Pages + KV. The shipped product uses **Workers assets + D1**, not Pages/KV for the GSoC spine. Keep the remainder only if you are maintaining historical one-click templates.
+
+---
+
+## Frontend Deployment (GitHub Pages) — legacy
 
 ### 1. Enable GitHub Pages
 
@@ -51,7 +124,7 @@ const CONFIG = {
 };
 ```
 
-## Backend Deployment (Cloudflare Workers)
+## Backend Deployment (Cloudflare Workers) — continued legacy
 
 ### Option 1: One-Click Deploy (Recommended)
 
