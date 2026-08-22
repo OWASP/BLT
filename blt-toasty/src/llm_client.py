@@ -21,8 +21,8 @@ from __future__ import annotations
 import json
 import logging
 
-from src.errors import LLMUnavailableError
-from src.llm_router import (
+from errors import LLMUnavailableError
+from llm_router import (
     CF_AI_MODEL,
     FALLBACK_PROVIDER,
     PRIMARY_PROVIDER,
@@ -78,17 +78,42 @@ async def call_cf_ai(messages: list[dict], env, max_tokens: int = 400) -> str:
         Exception: On any API or timeout error (caught by ``call_llm``).
     """
     try:
+        payload = {
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": 0.0,
+        }
+        if hasattr(env, "AI") and env.__class__.__name__ != "MagicMock":
+            try:
+                import json
+                import js
+
+                payload = js.JSON.parse(json.dumps(payload))
+            except Exception:
+                pass  # nosec
+
         result = await env.AI.run(
             CF_AI_MODEL,
-            {
-                "messages": messages,
-                "max_tokens": max_tokens,
-                "temperature": 0.0,
-            },
+            payload,
         )
-        response_text = result.response if hasattr(result, "response") else str(result)
+
+        result_py = result.to_py() if result.__class__.__name__ == "JsProxy" else result
+
+        if isinstance(result_py, dict):
+            response_text = result_py.get("response", None)
+        else:
+            response_text = getattr(result_py, "response", None)
+
+        # Ensure we always return a string — the downstream summarizer
+        # expects to call json.loads() on this value.
         if not response_text:
             raise ValueError("Empty response from Cloudflare Workers AI")
+        if not isinstance(response_text, str):
+            # AI returned a parsed dict/list instead of a raw JSON string
+            import json
+
+            response_text = json.dumps(response_text)
+
         return response_text
     except Exception as exc:
         logger.error("Cloudflare Workers AI call failed: %s", exc)

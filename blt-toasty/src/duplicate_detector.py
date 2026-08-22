@@ -28,11 +28,11 @@ import json
 import logging
 from typing import Any
 
-from src.errors import LLMUnavailableError
-from src.llm_client import call_llm
-from src.redaction_engine import assert_redacted_before_downstream
-from src.summarizer import truncate_to_token_budget
-from src.vectorize_client import find_duplicates
+from errors import LLMUnavailableError
+from llm_client import call_llm
+from redaction_engine import assert_redacted_before_downstream
+from summarizer import truncate_to_token_budget
+from vectorize_client import find_duplicates
 
 logger = logging.getLogger("toasty.duplicate_detector")
 
@@ -175,7 +175,17 @@ async def _get_candidate_summary_text(candidate_event_id: str, db: Any) -> str |
     )
     if row is None:
         return None
-    return row["executive_summary"] if hasattr(row, "__getitem__") else row[0]
+    if row.__class__.__name__ == "JsProxy":
+        row = row.to_py()
+    return (
+        row.get("executive_summary")
+        if hasattr(row, "get")
+        else (
+            row["executive_summary"]
+            if hasattr(row, "__getitem__")
+            else getattr(row, "executive_summary", row[0] if isinstance(row, (list, tuple)) else None)
+        )
+    )
 
 
 async def _store_candidates(db: Any, event_id: str, candidates: list[DuplicateCandidate]) -> None:
@@ -201,8 +211,8 @@ async def _store_candidates(db: Any, event_id: str, candidates: list[DuplicateCa
                 candidate.event_id,
                 candidate.similarity_score,
                 1 if candidate.llm_confirmed else 0,
-                candidate.llm_confidence,
-                candidate.llm_rationale,
+                candidate.llm_confidence if candidate.llm_confidence is not None else 0.0,
+                candidate.llm_rationale if candidate.llm_rationale is not None else "",
                 candidate.detection_method,
             )
         )
@@ -315,7 +325,8 @@ async def detect_duplicates(
     await assert_redacted_before_downstream(event_id, db)
 
     # ── Retrieve candidates from Vectorize ────────────────────────────────
-    raw_matches = await find_duplicates(redacted_text, repo_full_name, env, top_k=20)
+    is_shadow = event_id.startswith("shadow:")
+    raw_matches = await find_duplicates(redacted_text, repo_full_name, env, top_k=20, include_shadow=is_shadow)
 
     if not raw_matches:
         return DuplicateDetectionResult(

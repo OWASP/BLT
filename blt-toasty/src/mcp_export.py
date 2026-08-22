@@ -11,9 +11,9 @@ import logging
 from typing import Any
 from js import Date
 
-from src.auth import verify_agent_jwt
-from src.errors import AuditIncompleteError, JWTExpiredError, JWTInvalidError
-from src.rationale_builder import audit_completeness_check
+from auth import verify_agent_jwt
+from errors import AuditIncompleteError, JWTExpiredError, JWTInvalidError
+from rationale_builder import audit_completeness_check
 from js import Response, Headers
 
 logger = logging.getLogger("toasty.mcp_export")
@@ -213,7 +213,7 @@ async def handle_mcp_export(request: Any, env: Any, triage_id: str) -> Any:
         record = await get_triage_record(triage_id, db)
 
         # Transition state to exported (will emit telemetry if configured)
-        from src.state_machine import transition_state
+        from state_machine import transition_state
 
         event_status_res = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(triage_id).first()
         current_status = (

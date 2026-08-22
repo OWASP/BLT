@@ -258,7 +258,7 @@ class TestRunShadowTriage:
 
         with (
             patch("src.redaction_engine.redact", new_callable=AsyncMock, side_effect=Exception("redaction error")),
-            patch("src.native_recognizers.apply_native_redaction", return_value="native redacted") as mock_native,
+            patch("src.native_recognizers.apply_native_redaction", return_value=("native redacted", [])) as mock_native,
             patch("src.summarizer.summarize", new_callable=AsyncMock) as mock_summarize,
             patch("src.vectorize_client.index_report", new_callable=AsyncMock),
             patch("src.duplicate_detector.detect_duplicates", new_callable=AsyncMock) as mock_dup,

@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 import logging
 
-from src.errors import GitLabAPIError
+from errors import GitLabAPIError
 
 logger = logging.getLogger("toasty.gitlab_linker")
 

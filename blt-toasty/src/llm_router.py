@@ -37,7 +37,7 @@ logger = logging.getLogger("toasty.llm_router")
 PRIMARY_PROVIDER = "cf_ai"
 FALLBACK_PROVIDER = "openai"
 FAILURE_THRESHOLD = 3
-CF_AI_MODEL = "@cf/meta/llama-3.1-8b-instruct"
+CF_AI_MODEL = "@cf/meta/llama-3.2-3b-instruct"
 
 # ---------------------------------------------------------------------------
 # Data model

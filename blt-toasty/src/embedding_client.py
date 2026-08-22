@@ -23,7 +23,7 @@ from __future__ import annotations
 import json
 import logging
 
-from src.errors import EmbeddingServiceError
+from errors import EmbeddingServiceError
 
 logger = logging.getLogger("toasty.embedding_client")
 
@@ -86,6 +86,9 @@ async def get_embedding(text: str, env) -> list[float]:
     if not sidecar_url:
         raise EmbeddingServiceError("FASTEMBED_URL not configured in environment", status_code=503)
 
+    if sidecar_url == "mock://fastembed":
+        return [0.1] * EMBEDDING_DIMENSIONS
+
     controller = _abort_controller_cls.new()
     # Schedule the abort after EMBEDDING_TIMEOUT_SECONDS.
     # In Pyodide: ``setTimeout`` is on the global scope.
@@ -136,7 +139,8 @@ async def get_embedding(text: str, env) -> list[float]:
         )
 
     try:
-        data = await response.json()
+        raw_data = await response.json()
+        data = raw_data.to_py() if raw_data.__class__.__name__ == "JsProxy" else raw_data
     except Exception:
         raise EmbeddingServiceError(
             "FastEmbed sidecar returned non-JSON response",

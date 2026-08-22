@@ -35,10 +35,10 @@ import re
 import uuid
 from typing import Any
 
-from src.errors import LLMUnavailableError
-from src.llm_client import call_llm
-from src.native_recognizers import apply_native_redaction
-from src.redaction_engine import assert_redacted_before_downstream
+from errors import LLMUnavailableError
+from llm_client import call_llm
+from native_recognizers import apply_native_redaction
+from redaction_engine import assert_redacted_before_downstream
 
 logger = logging.getLogger("toasty.summarizer")
 
@@ -616,49 +616,58 @@ async def summarize(
         await _transition_state(db, event_id, "summarized")
         return fallback
 
-    # ── Post-process: sanitize CWEs ───────────────────────────────────
-    raw_cwes = parsed.get("cwe_hints", [])
-    sanitized_cwes = sanitize_cwe_hints(raw_cwes)
+    try:
+        # ── Post-process: sanitize CWEs ───────────────────────────────────
+        raw_cwes = parsed.get("cwe_hints", [])
+        sanitized_cwes = sanitize_cwe_hints(raw_cwes)
 
-    # ── Post-process: executive summary word limit ────────────────────
-    exec_summary = _truncate_to_word_limit(
-        parsed.get("executive_summary", ""),
-        MAX_EXECUTIVE_WORDS,
-    )
+        # ── Post-process: executive summary word limit ────────────────────
+        exec_summary = _truncate_to_word_limit(
+            parsed.get("executive_summary", ""),
+            MAX_EXECUTIVE_WORDS,
+        )
 
-    # ── Post-process: reviewer pack word limit ────────────────────────
-    reviewer_pack = _truncate_to_word_limit(
-        parsed.get("reviewer_pack", "") or "",
-        MAX_REVIEWER_WORDS,
-    )
+        # ── Post-process: reviewer pack word limit ────────────────────────
+        reviewer_pack = _truncate_to_word_limit(
+            parsed.get("reviewer_pack", "") or "",
+            MAX_REVIEWER_WORDS,
+        )
 
-    # ── Post-process: extract and re-redact repro steps ───────────────
-    raw_repro = parsed.get("repro_steps", []) or []
-    repro_steps = _re_redact_repro_steps(raw_repro[:MAX_REPRO_STEPS])
+        # ── Post-process: extract and re-redact repro steps ───────────────
+        raw_repro = parsed.get("repro_steps", []) or []
+        repro_steps = _re_redact_repro_steps(raw_repro[:MAX_REPRO_STEPS])
 
-    # ── Build result ──────────────────────────────────────────────────
-    confidence = float(parsed.get("confidence", 0.0))
-    confidence = max(0.0, min(1.0, confidence))  # Clamp to [0.0, 1.0]
+        # ── Build result ──────────────────────────────────────────────────
+        conf_raw = parsed.get("confidence")
+        confidence = float(conf_raw) if conf_raw is not None else 0.0
+        confidence = max(0.0, min(1.0, confidence))  # Clamp to [0.0, 1.0]
 
-    prompt_tokens = estimate_tokens(messages[0]["content"] + messages[1]["content"])
+        prompt_tokens = estimate_tokens(messages[0]["content"] + messages[1]["content"])
 
-    summary = TriageSummary(
-        event_id=event_id,
-        executive_summary=exec_summary,
-        reviewer_pack=reviewer_pack,
-        cwe_hints=sanitized_cwes,
-        repro_steps=repro_steps,
-        confidence=confidence,
-        model_used="llm_router",
-        token_usage={
-            "prompt_tokens": prompt_tokens,
-            "completion_tokens": estimate_tokens(raw_response),
-        },
-    )
+        summary = TriageSummary(
+            event_id=event_id,
+            executive_summary=exec_summary,
+            reviewer_pack=reviewer_pack,
+            cwe_hints=sanitized_cwes,
+            repro_steps=repro_steps,
+            confidence=confidence,
+            model_used="llm_router",
+            token_usage={
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": estimate_tokens(raw_response),
+            },
+        )
 
-    # ── Persist and transition ────────────────────────────────────────
-    await _store_summary(db, summary)
-    await _transition_state(db, event_id, "summarized")
-    logger.info("Summarized event %s (confidence=%.2f, cwes=%s)", event_id, confidence, sanitized_cwes)
+        # ── Persist and transition ────────────────────────────────────────
+        await _store_summary(db, summary)
+        await _transition_state(db, event_id, "summarized")
+        logger.info("Summarized event %s (confidence=%.2f, cwes=%s)", event_id, confidence, sanitized_cwes)
 
-    return summary
+        return summary
+
+    except Exception as exc:
+        logger.warning("Unexpected error building summary from LLM output for %s: %s", event_id, exc)
+        fallback = _build_fallback_summary(event_id, redacted_text)
+        await _store_summary(db, fallback)
+        await _transition_state(db, event_id, "summarized")
+        return fallback

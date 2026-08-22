@@ -141,7 +141,15 @@ We enforce the OWASP BLT ecosystem quality standards:
    ```bash
    docker compose up -d
    ```
-4. **Run the local Cloudflare Worker:**
+4. **Configure Vectorize Metadata Indexes:**
+   For the semantic duplicate detection to work properly, you must configure Vectorize metadata indexes for the filter properties. Run these commands:
+   ```bash
+   npx wrangler vectorize create-metadata-index toasty-embeddings --property-name repo --type string
+   npx wrangler vectorize create-metadata-index toasty-embeddings --property-name model_version --type string
+   ```
+   *(Note: Without these metadata indexes, `env.VECTORIZE.query` will silently return 0 results!)*
+
+5. **Run the local Cloudflare Worker:**
    ```bash
    npx wrangler dev
    ```

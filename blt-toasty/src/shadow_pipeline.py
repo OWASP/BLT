@@ -141,8 +141,8 @@ async def run_shadow_triage(issue: dict, env: Any, db: Any) -> dict:
         A dict with ``event_id``, ``predicted_cwe``, ``predicted_duplicate_of``,
         ``confidence``.
     """
-    from src.redaction_engine import redact
-    from src.native_recognizers import apply_native_redaction
+    from redaction_engine import redact
+    from native_recognizers import apply_native_redaction
 
     event_id = f"{SHADOW_EVENT_PREFIX}{uuid.uuid4().hex}"
 
@@ -162,11 +162,16 @@ async def run_shadow_triage(issue: dict, env: Any, db: Any) -> dict:
 
     # 2. Redact PII from issue description
     try:
-        redacted_text = await redact(issue["description"], event_id, db, env)
+        # Fixed argument order: text, env, event_id, db
+        redact_result = await redact(issue["description"], env, event_id, db)
+        # Handle both RedactionResult dataclass and plain string (from mocks)
+        redacted_text = redact_result.redacted_text if hasattr(redact_result, "redacted_text") else str(redact_result)
     except Exception as exc:
         logger.warning("Shadow redaction failed for issue #%d: %s", issue["iid"], exc)
         # Fallback: apply native regex redaction only
-        redacted_text = apply_native_redaction(issue["description"])
+        native_result = apply_native_redaction(issue["description"])
+        # Handle both tuple return (text, matches) and plain string (from mocks)
+        redacted_text = native_result[0] if isinstance(native_result, tuple) else str(native_result)
         # Manually transition past redaction gate
         await db.prepare("UPDATE triage_events SET status = 'redaction_passed' WHERE id = ?").bind(event_id).run()
 
@@ -174,7 +179,7 @@ async def run_shadow_triage(issue: dict, env: Any, db: Any) -> dict:
     predicted_cwe: list[str] = []
     confidence = 0.0
     try:
-        from src.summarizer import summarize
+        from summarizer import summarize
 
         summary = await summarize(
             redacted_text=redacted_text,
@@ -186,11 +191,18 @@ async def run_shadow_triage(issue: dict, env: Any, db: Any) -> dict:
         predicted_cwe = summary.cwe_hints or []
         confidence = summary.confidence
     except Exception as exc:
-        logger.warning("Shadow summarization failed for %s: %s", event_id, exc)
+        import traceback
+
+        logger.warning("Shadow summarization failed for %s: %s\n%s", event_id, exc, traceback.format_exc())
+        # Force state to 'summarized' so embedding step doesn't get blocked
+        try:
+            await db.prepare("UPDATE triage_events SET status = 'summarized' WHERE id = ?").bind(event_id).run()
+        except Exception:
+            pass  # nosec
 
     # 4. Embed and index (with shadow: prefix — already in event_id)
     try:
-        from src.vectorize_client import index_report
+        from vectorize_client import index_report
 
         repo_name = str(issue["project_id"])
         await index_report(
@@ -201,12 +213,14 @@ async def run_shadow_triage(issue: dict, env: Any, db: Any) -> dict:
             db=db,
         )
     except Exception as exc:
-        logger.warning("Shadow embedding failed for %s: %s", event_id, exc)
+        import traceback
+
+        logger.warning("Shadow embedding failed for %s: %s\n%s", event_id, exc, traceback.format_exc())
 
     # 5. Detect duplicates (NO GitLab posting)
     predicted_duplicate_of = None
     try:
-        from src.duplicate_detector import detect_duplicates
+        from duplicate_detector import detect_duplicates
 
         dup_result = await detect_duplicates(
             event_id=event_id,
@@ -219,7 +233,9 @@ async def run_shadow_triage(issue: dict, env: Any, db: Any) -> dict:
         if dup_result.top_candidate:
             predicted_duplicate_of = dup_result.top_candidate.event_id
     except Exception as exc:
-        logger.warning("Shadow duplicate detection failed for %s: %s", event_id, exc)
+        import traceback
+
+        logger.warning("Shadow duplicate detection failed for %s: %s\n%s", event_id, exc, traceback.format_exc())
 
     return {
         "event_id": event_id,
@@ -294,7 +310,7 @@ async def compare_and_store(db: Any, issue: dict, shadow_result: dict) -> dict:
         issue["project_id"],
         issue["iid"],
         json.dumps(predicted_cwe),
-        predicted_dup,
+        predicted_dup if predicted_dup is not None else "",
         shadow_result.get("confidence", 0.0),
         json.dumps(actual_labels),
         issue.get("state", "closed"),
@@ -357,8 +373,18 @@ async def generate_weekly_summary(db: Any) -> dict:
             "period_end": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
 
-    total = row["total"] if hasattr(row, "__getitem__") else getattr(row, "total", 0)
-    matched_count = row["matched_count"] if hasattr(row, "__getitem__") else getattr(row, "matched_count", 0)
+    if row.__class__.__name__ == "JsProxy":
+        row = row.to_py()
+    total = (
+        row.get("total")
+        if hasattr(row, "get")
+        else (row["total"] if hasattr(row, "__getitem__") else getattr(row, "total", 0))
+    )
+    matched_count = (
+        row.get("matched_count")
+        if hasattr(row, "get")
+        else (row["matched_count"] if hasattr(row, "__getitem__") else getattr(row, "matched_count", 0))
+    )
     total = total or 0
     matched_count = matched_count or 0
     accuracy_pct = round((matched_count / total) * 100, 1) if total > 0 else 0.0

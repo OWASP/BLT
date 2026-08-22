@@ -36,9 +36,9 @@ import logging
 import re
 from typing import Any
 
-from src.errors import RedactionFailedError, StateTransitionError
-from src.markdown_preprocessor import extract_plain_text
-from src.native_recognizers import RecogniserMatch, apply_native_redaction, scan_text
+from errors import RedactionFailedError, StateTransitionError
+from markdown_preprocessor import extract_plain_text
+from native_recognizers import RecogniserMatch, apply_native_redaction, scan_text
 
 logger = logging.getLogger(__name__)
 
@@ -205,10 +205,23 @@ async def assert_redacted_before_downstream(event_id: str, db: Any) -> None:
             http_status=404,
         )
 
-    status = row["status"] if hasattr(row, "__getitem__") else row[0]
-    if status != "redaction_passed":
+    if row.__class__.__name__ == "JsProxy":
+        row = row.to_py()
+    status = (
+        row.get("status")
+        if hasattr(row, "get")
+        else (
+            row["status"]
+            if hasattr(row, "__getitem__")
+            else getattr(row, "status", row[0] if isinstance(row, (list, tuple)) else None)
+        )
+    )
+    # Accept redaction_passed and any downstream state (summarized, embedded, etc.)
+    # The key invariant is that redaction HAS happened before this point.
+    _post_redaction_states = ("redaction_passed", "summarized", "embedded_pending", "embedded", "exported")
+    if status not in _post_redaction_states:
         raise StateTransitionError(
-            f"Event {event_id} has status '{status}'; expected 'redaction_passed'. "
+            f"Event {event_id} has status '{status}'; expected a post-redaction state. "
             f"Downstream processing is blocked.",
             event_id=event_id,
             current_status=status,
@@ -260,7 +273,7 @@ async def _store_redaction_audit(db: Any, event_id: str, redaction_map: list[dic
 
 async def _quarantine_event(db: Any, event_id: str, reason: str) -> None:
     """Mark an event as quarantined in D1."""
-    from src.state_machine import quarantine_event
+    from state_machine import quarantine_event
 
     # redaction happens before vectorization, so there is no vector to delete
     # we pass env=None which safely skips vector deletion while preserving the audit trail

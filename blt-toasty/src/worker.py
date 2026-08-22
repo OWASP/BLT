@@ -15,12 +15,12 @@ try:
     from pyodide.ffi import to_js
 except ImportError:
     to_js = lambda x, **kw: x  # noqa: E731
-from src.rationale_builder import audit_completeness_check
-from src.webhook_handler import handle_webhook
-from src.mcp_export import handle_mcp_export
-from src.auth import verify_agent_jwt
-from src.errors import JWTExpiredError, JWTInvalidError
-from src.durable_objects import ConversationDO, RateLimiterDO
+from rationale_builder import audit_completeness_check
+from webhook_handler import handle_webhook
+from mcp_export import handle_mcp_export
+from auth import verify_agent_jwt
+from errors import JWTExpiredError, JWTInvalidError
+from durable_objects import ConversationDO, RateLimiterDO
 
 __all__ = ["ConversationDO", "RateLimiterDO"]
 
@@ -99,6 +99,7 @@ async def on_fetch(request, env):
             return handle_status(request)
         else:
             return create_method_not_allowed_response(path, ["GET", "HEAD"])
+
     elif path == "/api/metrics":
         if method == "GET":
             return await handle_api_metrics(request, env)
@@ -167,8 +168,9 @@ async def on_fetch(request, env):
             return create_method_not_allowed_response(path, ["GET"])
     elif path.startswith("/conversations/"):
         return await _route_conversation(path, method, request, env)
-    else:
-        return create_error_response(f"Not Found: {path}", 404)
+
+    # 404 for anything else
+    return create_error_response("Not found", 404)
 
 
 def handle_options(request, env=None):
@@ -482,7 +484,7 @@ async def handle_rationale(request, env, event_id):
 
 async def handle_dashboard(request, env):
     """Handle GET /admin/dashboard."""
-    from src.dashboard import aggregate_dashboard
+    from dashboard import aggregate_dashboard
 
     try:
         summary = await aggregate_dashboard(env.DB)
@@ -1135,7 +1137,7 @@ async def handle_shadow_report(request, env):
         Response: 200 with JSON accuracy summary.
     """
     try:
-        from src.shadow_pipeline import generate_weekly_summary
+        from shadow_pipeline import generate_weekly_summary
 
         summary = await generate_weekly_summary(env.DB)
         return create_json_response(summary, 200)
@@ -1167,7 +1169,7 @@ async def on_scheduled(event, env, ctx):
     if shadow_mode != "true":
         return
 
-    from src.shadow_pipeline import (
+    from shadow_pipeline import (
         fetch_recent_closed_issues,
         run_shadow_triage,
         compare_and_store,
