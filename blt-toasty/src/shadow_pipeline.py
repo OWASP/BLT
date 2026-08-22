@@ -142,7 +142,6 @@ async def run_shadow_triage(issue: dict, env: Any, db: Any) -> dict:
         ``confidence``.
     """
     from redaction_engine import redact
-    from native_recognizers import apply_native_redaction
 
     event_id = f"{SHADOW_EVENT_PREFIX}{uuid.uuid4().hex}"
 

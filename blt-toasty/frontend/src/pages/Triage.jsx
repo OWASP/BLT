@@ -338,9 +338,9 @@ export default function Triage() {
                     <span className={`badge ${statusMap[dup.status] || 'badge-pending'}`}>
                       {dup.status}
                     </span>
-                    <button 
-                      className="btn-outline text-xs opacity-50 cursor-not-allowed" 
-                      title="Coming Soon: Review this match" 
+                    <button
+                      className="btn-outline text-xs opacity-50 cursor-not-allowed"
+                      title="Coming Soon: Review this match"
                       disabled
                     >
                       Review Match
