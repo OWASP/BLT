@@ -49,12 +49,25 @@ flutter run -d chrome --web-port=8888
 # Real device-side scan (no browser CORS): macOS / Windows / Linux desktop
 flutter run -d macos</pre>
     <p>
+      Production orgs: the <strong style="color:#eee">site owner</strong> registers with
+      BLT / NetGuardian and issues HMAC + payload + triage keys to researchers.
+      The client alone is not enough without those org keys.
+      Docs:
+      <a href="https://gitlab.com/owasp-blt/blt-netguardian/-/blob/main/README.md">README</a>
+      ·
+      <a href="https://gitlab.com/owasp-blt/blt-netguardian/-/tree/main/docs/spec">docs/spec</a>.
+    </p>
+    <p>
       In the app, set API base URL to
       <code style="display:inline;padding:2px 6px">https://netguardian.owaspblt.org</code>
-      to Sign &amp; send into hosted triage. Scan headers from the desktop build
-      (your IP). Chrome-on-localhost can still talk to a local
+      (or your staging Worker) and paste the keys your org issued.
+      Staging demos may use shared <code style="display:inline;padding:2px 6px">org-demo</code> keys.
+      Chrome on localhost needs that origin listed in
+      <code style="display:inline;padding:2px 6px">CORS_ALLOWED_ORIGINS</code>.
+      For a fully offline demo, run
       <code style="display:inline;padding:2px 6px">python3 local_dev/serve.py</code>
-      for a loopback demo.
+      and set the base URL to
+      <code style="display:inline;padding:2px 6px">http://127.0.0.1:8787</code>.
     </p>
     <p>
       Source:
