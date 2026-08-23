@@ -34,13 +34,15 @@ export function scoreSignals(signals: ExtractedSignals): ScoreBreakdown {
   raw = Math.max(0, Math.min(1, raw));
 
   let severity: Severity;
-  if (flags.secret || raw > 0.85) severity = "CRITICAL";
+  const hardSecret = flags.secret && !flags.docsOnly;
+
+  if (hardSecret || raw > 0.85) severity = "CRITICAL";
   else if (raw > 0.7) severity = "HIGH";
   else if (raw >= 0.4) severity = "MEDIUM";
   else if (raw > 0.15) severity = "LOW";
   else severity = "INFO";
 
-  if (flags.docsOnly && !flags.secret) severity = raw > 0.3 ? "LOW" : "INFO";
+  if (flags.docsOnly && !hardSecret) severity = raw > 0.3 ? "LOW" : "INFO";
 
   return {
     authFile: authScore,
