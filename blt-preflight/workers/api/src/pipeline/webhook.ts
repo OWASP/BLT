@@ -101,6 +101,18 @@ export async function handleGitLabWebhook(request: Request): Promise<{
     };
   }
 
+  if (
+    typeof event.project.id !== "number" ||
+    typeof event.object_attributes.iid !== "number" ||
+    (event.labels !== undefined && !Array.isArray(event.labels)) ||
+    (event.changed_files !== undefined && !Array.isArray(event.changed_files))
+  ) {
+    return {
+      status: 400,
+      body: { accepted: false, error: "Malformed merge request payload", code: "missing_payload" },
+    };
+  }
+
   const pipeline: PipelineStep[] = [];
   const t0 = Date.now();
   pipeline.push(step("received", "Webhook received", "ok", gitlabEventName(request) || "Merge Request Hook", t0));
