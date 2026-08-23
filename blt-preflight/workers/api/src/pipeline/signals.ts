@@ -46,7 +46,8 @@ function inferChangedFiles(event: GitLabMergeRequestEvent): string[] {
     if (key.includes("/") || key.includes(".")) fromChanges.push(key);
   }
   const desc = event.object_attributes.description ?? "";
-  const listed = [...desc.matchAll(/`([^`]+\.[a-zA-Z0-9]+)`/g)].map((m) => m[1]);
+  const listed = [...desc.matchAll(/`([\w./-]+\.(?:[jt]sx?|py|rb|go|java|sql|ya?ml|env|md|mdx|rst|txt|json|toml|ini|sh))`/gi)]
+    .map((m) => m[1]);
   return unique([...fromChanges, ...listed]);
 }
 
