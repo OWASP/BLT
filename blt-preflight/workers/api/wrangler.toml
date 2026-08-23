@@ -1,0 +1,6 @@
+name = "blt-preflight-api"
+main = "src/index.ts"
+compatibility_date = "2025-10-01"
+
+[vars]
+ENVIRONMENT = "development"
