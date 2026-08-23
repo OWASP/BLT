@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="toasty-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#991B1B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="90" fill="url(#toasty-grad)"/>
+  <circle cx="75" cy="90" r="8" fill="white"/>
+  <circle cx="125" cy="90" r="8" fill="white"/>
+  <path d="M70 120 Q100 140 130 120" stroke="white" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M100 40 Q80 50 75 70" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M100 40 Q120 50 125 70" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+</svg>

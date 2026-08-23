@@ -1,19 +1,19 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
 
 const pageTitles = {
-  '/': { eyebrow: 'OWASP BLT · TOASTY', title: 'Triage Operations Dashboard' },
+  '/dashboard': { eyebrow: 'OWASP BLT \u00b7 TOASTY', title: 'Triage Operations Dashboard' },
   '/triage': { eyebrow: 'OPERATIONS', title: 'Triage & Quarantine' },
   '/security': { eyebrow: 'SECURITY', title: 'PII Redaction Audit Log' },
   '/activity': { eyebrow: 'MONITORING', title: 'Activity Stream' },
   '/settings': { eyebrow: 'CONFIGURATION', title: 'Settings' },
 };
 
-export default function Layout({ children }) {
+export default function Layout() {
   const location = useLocation();
-  const pageInfo = pageTitles[location.pathname] || pageTitles['/'];
+  const pageInfo = pageTitles[location.pathname] || pageTitles['/dashboard'];
 
   return (
     <div className="min-h-screen lg:flex">
@@ -42,7 +42,7 @@ export default function Layout({ children }) {
 
         {/* Main Content */}
         <main className="flex-1 space-y-6 px-5 py-6 lg:px-8">
-          {children}
+          <Outlet />
         </main>
 
         {/* Footer */}
