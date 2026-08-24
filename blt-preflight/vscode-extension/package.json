@@ -1,0 +1,28 @@
+{
+    "name": "blt-preflight",
+    "displayName": "BLT Preflight",
+    "description": "OWASP BLT security diagnostics on save (Week 8 foundation)",
+    "version": "0.1.0",
+    "publisher": "owasp-blt",
+    "engines": { "vscode": "^1.90.0" },
+    "activationEvents": ["onStartupFinished"],
+    "main": "./out/extension.js",
+    "contributes": {
+      "configuration": {
+        "title": "BLT Preflight",
+        "properties": {
+          "preflight.serverUrl": {
+            "type": "string",
+            "default": "http://127.0.0.1:8000"
+          }
+        }
+      }
+    },
+    "scripts": {
+      "compile": "tsc -p ."
+    },
+    "devDependencies": {
+      "@types/vscode": "^1.90.0",
+      "typescript": "^5.7.0"
+    }
+  }

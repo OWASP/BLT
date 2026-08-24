@@ -1,12 +1,10 @@
-/**
- * BLT Preflight API Worker — GitLab webhook (Phase 2)
- * Overlay onto gitlab.com/owasp-blt/blt-preflight  workers/api/
- */
-import { handleGitLabWebhook, setWebhookSecret } from "./pipeline/webhook";
+import { handleGitLabWebhook } from "./pipeline/webhook";
+import type { D1Like } from "./pipeline/store";
 
 export interface Env {
   ENVIRONMENT?: string;
-  GITLAB_WEBHOOK_SECRET: string;
+  GITLAB_WEBHOOK_SECRET?: string;
+  DB: D1Like;
 }
 
 function json(data: unknown, status = 200): Response {
@@ -19,7 +17,7 @@ function json(data: unknown, status = 200): Response {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const path = new URL(request.url).pathname;
-    if (env.GITLAB_WEBHOOK_SECRET) setWebhookSecret(env.GITLAB_WEBHOOK_SECRET);
+    const ctx = { db: env.DB, secret: env.GITLAB_WEBHOOK_SECRET };
 
     if (path === "/health" || path === "/healthz") {
       return json({
@@ -27,20 +25,21 @@ export default {
         service: "blt-preflight-api",
         phase: 2,
         environment: env.ENVIRONMENT ?? "unknown",
+        secretConfigured: Boolean(env.GITLAB_WEBHOOK_SECRET?.trim()),
+        d1Bound: Boolean(env.DB),
       });
     }
 
     if (path === "/" || path === "") {
       return json({
         name: "BLT Preflight API",
-        version: "0.2.0",
-        phase: 2,
+        version: "0.2.1",
         endpoints: { health: "GET /health", webhook: "POST /webhooks/gitlab" },
       });
     }
 
     if (path === "/webhooks/gitlab" || path === "/api/webhooks/gitlab") {
-      const result = await handleGitLabWebhook(request);
+      const result = await handleGitLabWebhook(request, ctx);
       return json(result.body, result.status);
     }
 

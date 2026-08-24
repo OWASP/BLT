@@ -1,0 +1,22 @@
+# Maintainer-tunable flags (proposal Weeks 6–9). No code change required.
+
+hook_mode: advisory          # advisory | blocking
+minimum_severity: HIGH       # blocking only if hook_mode=blocking and severity >= this
+similarity_threshold: 0.6    # unused on Workers keyword path; used by Python Chroma
+retention_days: 90
+
+heuristic_weights:
+  auth_file: 0.4
+  label_severity: 0.3
+  keyword: 0.25
+  secret_file: 0.45
+  docs_only: -0.3
+
+thresholds:
+  critical: 0.85
+  high: 0.7
+  medium: 0.4
+
+server:
+  url: http://127.0.0.1:8000
+  timeout_seconds: 4

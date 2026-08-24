@@ -138,15 +138,25 @@ export async function handleGitLabWebhook(request: Request): Promise<{
     ),
   );
 
+  const expected = resolveWebhookSecret(ctx.secret);
+if (!expected) {
+  return { status: 503, body: { accepted: false, error: "GITLAB_WEBHOOK_SECRET is not configured", code: "misconfigured" } };
+}
+  
   const tScore = Date.now();
-  const knowledge = retrieveFor(signals);
+  const score = scoreSignals(signals);
   pipeline.push(step("heuristic_scored", "Heuristic risk scored", "ok", undefined, tScore));
+
+  const tKnowledge = Date.now();
+  const knowledge = retrieveFor(signals);
+  
   pipeline.push(
     step(
       "knowledge_retrieved",
       "OWASP corpus retrieved",
       knowledge.length ? "ok" : "skipped",
       knowledge.map((k) => k.owasp).join(", ") || "no chunks above threshold",
+      tKnowledge,
     ),
   );
 
