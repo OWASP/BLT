@@ -20,6 +20,9 @@ export function activate(ctx: vscode.ExtensionContext) {
       vscode.workspace.getConfiguration("preflight").get<string>("serverUrl") ??
       "http://127.0.0.1:8000";
     const rel = vscode.workspace.asRelativePath(doc.uri);
+    const ANALYZE_TIMEOUT_MS = 4000;
+    const ac = new  AbortController()
+    const timer = setTimeout(() => ac.abort(), ANALYZE_TIMEOUT_MS);
     try {
       const res = await fetch(`${url.replace(/\/$/, "")}/analyze`, {
         method: "POST",
@@ -45,7 +48,8 @@ export function activate(ctx: vscode.ExtensionContext) {
       bar.text = "Preflight: server not running";
       diags.delete(doc.uri);
       COL.appendLine(String(e));
-    }
+    } finally {
+      clearTimeout(timer);
   }
 
   ctx.subscriptions.push(

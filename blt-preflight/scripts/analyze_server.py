@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Minimal /analyze for the hook + VS Code (proposal localhost:8000)."""
 from __future__ import annotations
 
 import json
+import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from hooks.preflight_hook import offline
 
