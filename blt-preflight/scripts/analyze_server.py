@@ -22,6 +22,13 @@ class H(BaseHTTPRequestHandler):
         body = json.loads(self.rfile.read(n) or b"{}")
         files = body.get("changed_files") or []
         adv = offline(files)
+        adv.update(
+            {
+                "title": "Local preflight analysis",
+                "explanation": "Rule-based local analysis. No LLM.",
+                "source": "server",
+            }
+        )
         raw = json.dumps(adv).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
