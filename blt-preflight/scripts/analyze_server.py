@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import json
+import sys
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from hooks.preflight_hook import offline
+
+
+class H(BaseHTTPRequestHandler):
+    def do_POST(self) -> None:
+        if self.path != "/analyze":
+            self.send_error(404)
+            return
+        n = int(self.headers.get("Content-Length", "0"))
+        body = json.loads(self.rfile.read(n) or b"{}")
+        files = body.get("changed_files") or []
+        adv = offline(files)
+        adv.update(
+            {
+                "title": "Local preflight analysis",
+                "explanation": "Rule-based local analysis. No LLM.",
+                "source": "server",
+            }
+        )
+        raw = json.dumps(adv).encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(raw)))
+        self.end_headers()
+        self.wfile.write(raw)
+
+    def log_message(self, fmt: str, *args) -> None:
+        print("[analyze]", fmt % args)
+
+
+if __name__ == "__main__":
+    HTTPServer(("127.0.0.1", 8000), H).serve_forever()

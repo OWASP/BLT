@@ -1,0 +1,14 @@
+{
+  "name": "blt-preflight-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.0.0"
+  }
+}
