@@ -1,0 +1,10 @@
+name = "blt-hackathons"
+compatibility_date = "2026-08-29"
+
+[assets]
+directory = "./public"
+not_found_handling = "single-page-application"
+
+[[routes]]
+pattern = "hackathons.owaspblt.org"
+custom_domain = true
