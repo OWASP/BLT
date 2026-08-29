@@ -1,6 +1,7 @@
 import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
+import Home from './pages/Home';
 import Overview from './pages/Overview';
 import Triage from './pages/Triage';
 import Security from './pages/Security';
@@ -8,9 +9,13 @@ import Security from './pages/Security';
 export default function App() {
   return (
     <HashRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Overview />} />
+      <Routes>
+        {/* Public landing page — no sidebar */}
+        <Route path="/" element={<Home />} />
+
+        {/* Dashboard routes — wrapped in Layout with sidebar */}
+        <Route element={<Layout />}>
+          <Route path="/dashboard" element={<Overview />} />
           <Route path="/triage" element={<Triage />} />
           <Route path="/security" element={<Security />} />
           {/* Placeholder routes for future pages */}
@@ -36,8 +41,8 @@ export default function App() {
               </div>
             }
           />
-        </Routes>
-      </Layout>
+        </Route>
+      </Routes>
     </HashRouter>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   ShieldAlert,
@@ -8,7 +8,7 @@ import {
   Settings,
   Menu,
   X,
-  Flame,
+  Home,
 } from 'lucide-react';
 
 const iconMap = {
@@ -23,7 +23,7 @@ const navigation = [
   {
     group: 'Platform',
     items: [
-      { label: 'Overview', path: '/', icon: 'LayoutDashboard' },
+      { label: 'Overview', path: '/dashboard', icon: 'LayoutDashboard' },
       { label: 'Triage & Operations', path: '/triage', icon: 'ShieldAlert' },
       { label: 'Security Log', path: '/security', icon: 'Lock' },
     ],
@@ -45,13 +45,18 @@ export default function Sidebar() {
     <>
       {/* Logo & Branding */}
       <div className="border-b border-neutral-border px-6 py-6">
+        <Link
+          to="/"
+          className="mb-3 inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors hover:text-brand"
+        >
+          <Home size={12} />
+          Back to Home
+        </Link>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
           OWASP BLT
         </p>
         <div className="mt-2 flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-white shadow-md">
-            <Flame size={20} />
-          </div>
+          <img src="/logo.svg" alt="BLT-Toasty" className="h-9 w-9" />
           <div>
             <h1 className="text-lg font-extrabold text-dark-base">BLT-Toasty</h1>
             <p className="text-xs text-gray-500">AI Code Review Engine</p>
@@ -70,8 +75,8 @@ export default function Sidebar() {
               {group.items.map((item) => {
                 const Icon = iconMap[item.icon];
                 const isActive =
-                  item.path === '/'
-                    ? location.pathname === '/'
+                  item.path === '/dashboard'
+                    ? location.pathname === '/dashboard'
                     : location.pathname.startsWith(item.path);
 
                 return (
