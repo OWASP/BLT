@@ -1,5 +1,7 @@
 # BLT-MAYO — Shell Dangerous-Execution Analyzer
 
+**Source Code:** [https://gitlab.com/owasp-blt/blt-mayo](https://gitlab.com/owasp-blt/blt-mayo)
+
 BLT-MAYO stands for **Monitor, Analyze, Yield, Observe**. It is a read-only Linux security-auditing workflow that turns filesystem artifacts into structured, explainable security findings.
 
 ## Architecture
