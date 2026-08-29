@@ -22,6 +22,4 @@
       <circle cx="0" cy="0" r="10" fill="white" opacity="0.8"/>
     </g>
   </g>
-  <text x="400" y="320" font-family="Arial, sans-serif" font-size="36" font-weight="bold" 
-        fill="white" text-anchor="middle" opacity="0.95">Cryptography for Developers</text>
 </svg>

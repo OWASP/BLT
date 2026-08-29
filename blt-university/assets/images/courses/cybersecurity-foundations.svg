@@ -1,0 +1,18 @@
+<svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="foundations-title foundations-description">
+  <title id="foundations-title">Cybersecurity Foundations</title>
+  <desc id="foundations-description">A protective shield with connected learning steps.</desc>
+  <defs>
+    <linearGradient id="foundations-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a" />
+      <stop offset="100%" stop-color="#14532d" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="400" fill="url(#foundations-gradient)" />
+  <g transform="translate(400 178) scale(.75)" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0-105l78 35v58c0 64-34 105-78 127-44-22-78-63-78-127v-58z" stroke-width="8" fill="#fff" fill-opacity=".12" opacity=".92" />
+    <path d="M-28-3l19 19 40-46" stroke-width="9" />
+    <path d="M-130 61h58M72 61h58" stroke-width="5" opacity=".55" />
+    <circle cx="-151" cy="61" r="16" stroke-width="5" fill="#fff" fill-opacity=".16" />
+    <circle cx="151" cy="61" r="16" stroke-width="5" fill="#fff" fill-opacity=".16" />
+  </g>
+</svg>
