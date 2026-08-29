@@ -70,6 +70,7 @@ test_js:
       - .npm/
   script:
     - npm ci --cache .npm --prefer-offline
+    - npm audit --audit-level=high
     - npm run test:js
 
 test_e2e:

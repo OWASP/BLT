@@ -69,6 +69,10 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - LICENSE
+  - docs/
+  - package-lock.json
+  - package.json
+  - playwright.config.js
   - QUICKSTART.md
   - node_modules
   - public/
@@ -77,6 +81,7 @@ exclude:
   - schemas/
   - scripts/
   - tests/
+  - tmp/
   - wrangler.toml
   - _config.yml
   - assets/images/courses/README.md

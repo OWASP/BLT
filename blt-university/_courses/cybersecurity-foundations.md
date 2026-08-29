@@ -7,6 +7,7 @@ track: hygiene
 duration: 60 to 90 minutes
 instructor: OWASP BLT Community
 featured: true
+image: /assets/images/courses/cybersecurity-foundations.svg
 next_course: web-security-intro
 prerequisites: No prior cybersecurity experience
 description: Build safer online habits through three short lessons, realistic examples, and focused practice labs.

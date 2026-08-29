@@ -7,6 +7,7 @@ duration: About 2 hours
 instructor: OWASP BLT Community
 featured: true
 next_course: crypto-for-devs
+image: /assets/images/courses/cloud-security.svg
 prerequisites: Familiarity with cloud accounts, roles, and storage services
 description: Trace identity, public exposure, and audit evidence through an approachable cloud incident scenario.
 outcomes:
