@@ -32,7 +32,7 @@
             document.documentElement.classList.add('dark');
         }
     </script>
-    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.17?plugins=typography@0.5.16"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -351,17 +351,187 @@
 
   
   
+  
+  
   <section class="w-full px-4 pb-24 pt-4" aria-labelledby="featured-heading">
     <div class="mx-auto w-[min(72rem,calc(100%_-_1rem))]">
       <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 id="featured-heading" class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500">Featured courses</h2>
-          <p class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance">Start with a focused security module.</p>
+          <h2 id="featured-heading" class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500">Choose your starting point</h2>
+          <p class="mt-2 max-w-[46rem] text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance">Start with the path that matches your experience.</p>
         </div>
         <a class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50" href="/courses/">View all courses</a>
       </div>
 
-      <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        <div class="flex min-w-0 flex-col">
+          <a class="group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" href="/courses/cybersecurity-foundations/">
+            <div class="h-48 overflow-hidden bg-gray-900">
+              <img class="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105" src="/assets/images/courses/cybersecurity-foundations.svg" alt="Cybersecurity Foundations">
+            </div>
+            <div class="p-5">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">
+                  New to cybersecurity
+                </span>
+                <span class="inline-flex rounded-md bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">3 practice labs</span>
+              </div>
+              <h3 class="mt-4 text-lg font-semibold text-gray-900 group-hover:text-red-600">Cybersecurity Foundations</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">Build safer online habits through three short lessons, realistic examples, and focused practice labs.</p>
+            </div>
+          </a>
+
+          <div class="mt-3 flex flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_18px_50px_-42px_rgba(15,23,42,.75)]">
+            <div class="flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 bg-gray-50 p-5">
+              <div>
+                <span class="font-mono text-xs font-semibold uppercase tracking-[.16em] text-red-500">Practice it</span>
+                <h3 class="mt-2 text-xl font-semibold tracking-[-.02em] text-gray-900">Cyber Hygiene labs</h3>
+              </div>
+              <span class="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-500">
+                All 3 labs
+              </span>
+            </div>
+            <div class="grid flex-1 content-start gap-2 p-3">
+              
+              
+              
+              <a class="group flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 transition hover:border-red-200 hover:bg-red-50" href="/labs/phishing-awareness/">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 font-mono text-xs font-semibold text-red-700">01</span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-sm font-semibold text-gray-900 group-hover:text-red-700">Phishing Awareness</span>
+                  <span class="mt-1 block text-xs text-gray-500">6 tasks · 45 mins</span>
+                </span>
+                <span class="text-lg text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-red-700" aria-hidden="true">→</span>
+              </a>
+              
+              
+              
+              
+              <a class="group flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 transition hover:border-red-200 hover:bg-red-50" href="/labs/passwords-and-mfa/">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 font-mono text-xs font-semibold text-red-700">02</span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-sm font-semibold text-gray-900 group-hover:text-red-700">Passwords and Multi-Factor Authentication</span>
+                  <span class="mt-1 block text-xs text-gray-500">6 tasks · 45 mins</span>
+                </span>
+                <span class="text-lg text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-red-700" aria-hidden="true">→</span>
+              </a>
+              
+              
+              
+              
+              <a class="group flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 transition hover:border-red-200 hover:bg-red-50" href="/labs/safe-browsing-and-downloads/">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 font-mono text-xs font-semibold text-red-700">03</span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-sm font-semibold text-gray-900 group-hover:text-red-700">Safe Browsing and Downloads</span>
+                  <span class="mt-1 block text-xs text-gray-500">6 tasks · 45 mins</span>
+                </span>
+                <span class="text-lg text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-red-700" aria-hidden="true">→</span>
+              </a>
+              
+              
+            </div>
+            <a class="flex items-center justify-center border-t border-gray-100 px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-red-600" href="/labs/">Show all labs</a>
+          </div>
+        </div>
+        
+        
+        
+        
+        
+        
+        
+        <div class="flex min-w-0 flex-col">
+          <a class="group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" href="/courses/web-security-intro/">
+            <div class="h-48 overflow-hidden bg-gray-900">
+              <img class="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105" src="/assets/images/courses/web-security.svg" alt="Introduction to Web Application Security">
+            </div>
+            <div class="p-5">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">
+                  Familiar with the basics
+                </span>
+                <span class="inline-flex rounded-md bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">10 practice labs</span>
+              </div>
+              <h3 class="mt-4 text-lg font-semibold text-gray-900 group-hover:text-red-600">Introduction to Web Application Security</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">Learn where web applications lose trust, then practice each idea in the existing hands-on security labs.</p>
+            </div>
+          </a>
+
+          <div class="mt-3 flex flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_18px_50px_-42px_rgba(15,23,42,.75)]">
+            <div class="flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 bg-gray-50 p-5">
+              <div>
+                <span class="font-mono text-xs font-semibold uppercase tracking-[.16em] text-red-500">Practice it</span>
+                <h3 class="mt-2 text-xl font-semibold tracking-[-.02em] text-gray-900">Web Security labs</h3>
+              </div>
+              <span class="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-500">
+                3 featured of 10
+              </span>
+            </div>
+            <div class="grid flex-1 content-start gap-2 p-3">
+              
+              
+              
+              <a class="group flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 transition hover:border-red-200 hover:bg-red-50" href="/labs/sql_injection/">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 font-mono text-xs font-semibold text-red-700">01</span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-sm font-semibold text-gray-900 group-hover:text-red-700">SQL Injection</span>
+                  <span class="mt-1 block text-xs text-gray-500">10 tasks · 60 mins</span>
+                </span>
+                <span class="text-lg text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-red-700" aria-hidden="true">→</span>
+              </a>
+              
+              
+              
+              
+              <a class="group flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 transition hover:border-red-200 hover:bg-red-50" href="/labs/cross_site_scripting_xss/">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 font-mono text-xs font-semibold text-red-700">02</span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-sm font-semibold text-gray-900 group-hover:text-red-700">Cross-Site Scripting (XSS)</span>
+                  <span class="mt-1 block text-xs text-gray-500">8 tasks · 50 mins</span>
+                </span>
+                <span class="text-lg text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-red-700" aria-hidden="true">→</span>
+              </a>
+              
+              
+              
+              
+              <a class="group flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 transition hover:border-red-200 hover:bg-red-50" href="/labs/cross_site_request_forgery/">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 font-mono text-xs font-semibold text-red-700">03</span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-sm font-semibold text-gray-900 group-hover:text-red-700">Cross-Site Request Forgery</span>
+                  <span class="mt-1 block text-xs text-gray-500">7 tasks · 45 mins</span>
+                </span>
+                <span class="text-lg text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-red-700" aria-hidden="true">→</span>
+              </a>
+              
+              
+            </div>
+            <a class="flex items-center justify-center border-t border-gray-100 px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-red-600" href="/labs/">Show all labs</a>
+          </div>
+        </div>
+        
+        
+      </div>
+
+      <div class="mb-6 mt-14">
+        <p class="font-mono text-xs font-semibold uppercase tracking-[.16em] text-red-500">Continue learning</p>
+        <h3 class="mt-2 text-2xl font-semibold tracking-[-.03em] text-gray-900">Explore advanced security topics.</h3>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        
         
         <a class="group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" href="/courses/advanced-pentesting/">
           <div class="h-44 overflow-hidden bg-gray-900">
@@ -374,9 +544,11 @@
           </div>
         </a>
         
+        
+        
         <a class="group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" href="/courses/cloud-security-essentials/">
           <div class="h-44 overflow-hidden bg-gray-900">
-            <img class="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105" src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&q=80" alt="Cloud Security Essentials">
+            <img class="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105" src="/assets/images/courses/cloud-security.svg" alt="Cloud Security Essentials">
           </div>
           <div class="p-5">
             <span class="inline-flex rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Advanced</span>
@@ -384,6 +556,8 @@
             <p class="mt-3 text-sm leading-6 text-gray-600">Trace identity, public exposure, and audit evidence through an approachable cloud incident scenario.</p>
           </div>
         </a>
+        
+        
         
         <a class="group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" href="/courses/crypto-for-devs/">
           <div class="h-44 overflow-hidden bg-gray-900">
@@ -395,6 +569,11 @@
             <p class="mt-3 text-sm leading-6 text-gray-600">Make safer engineering decisions about encoding, password storage, encryption, nonces, and signature verification.</p>
           </div>
         </a>
+        
+        
+        
+        
+        
         
       </div>
     </div>
@@ -516,8 +695,8 @@
 
     </div>
 
-    <script src="/assets/js/learning-state.js?v=1787235344"></script>
-    <script src="/assets/js/recommendations.js?v=1787235344"></script>
-    <script src="/assets/js/main.js?v=1787235344"></script>
+    <script src="/assets/js/learning-state.js?v=1788024548"></script>
+    <script src="/assets/js/recommendations.js?v=1788024548"></script>
+    <script src="/assets/js/main.js?v=1788024548"></script>
 </body>
 </html>
