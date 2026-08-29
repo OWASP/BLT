@@ -1,5 +1,6 @@
 .agents
 .codex
+.wrangler
 .git
 .gitignore
 .assetsignore

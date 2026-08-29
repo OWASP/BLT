@@ -1,5 +1,10 @@
 # BLT-Design
 
+**Live Site:** [https://design.owaspblt.org/](https://design.owaspblt.org/)<br>
+**Source Code:** [https://gitlab.com/owasp-blt/blt-design](https://gitlab.com/owasp-blt/blt-design)
+
+<p align="center"><img src="logo.png" alt="blt-design logo" width="160" height="160"></p>
+
 Static BLT design system for light/dark mode, logos, colors, typography, and copy-paste component patterns.
 
 ## Cloudflare Pages
