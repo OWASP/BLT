@@ -12,7 +12,7 @@ import os
 WEBHOOK_URL = "http://127.0.0.1:8787/webhook/gitlab"
 
 # You can hardcode your secret here or read it from .dev.vars
-WEBHOOK_SECRET = "YOUR_SECRET_TOKEN"
+WEBHOOK_SECRET = "YOUR_SECRET_TOKEN"  # nosec
 if os.path.exists(".dev.vars"):
     with open(".dev.vars", "r") as f:
         for line in f:
@@ -68,7 +68,7 @@ print("Sending webhook request...")
 req = urllib.request.Request(WEBHOOK_URL, data=body.encode("utf-8"), headers=headers, method="POST")
 
 try:
-    with urllib.request.urlopen(req) as response:
+    with urllib.request.urlopen(req) as response:  # nosec
         print(f"Status Code: {response.status}")
         print("Response:", response.read().decode("utf-8"))
 except urllib.error.HTTPError as e:

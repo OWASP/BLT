@@ -51,7 +51,7 @@ export default function Footer() {
     <footer className="footer-grid-overlay relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-blt-footer py-10 pb-8 text-white max-md:rounded-t-[0.8rem]">
       {/* Domain heading */}
       <h2 className="relative m-0 break-all px-2 text-center text-[clamp(2rem,5vw,4.5rem)] font-light leading-[1.02] tracking-[-0.045em] text-white sm:break-normal">
-        owaspblt.org
+        toasty.owaspblt.org
       </h2>
 
       {/* Red divider */}

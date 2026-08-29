@@ -2,7 +2,7 @@
 # https://developers.cloudflare.com/workers/wrangler/configuration/
 
 name = "blt-toasty"
-main = "worker.py"
+main = "src/worker.py"
 compatibility_date = "2024-12-10"
 
 # Python Workers configuration
@@ -10,10 +10,11 @@ compatibility_date = "2024-12-10"
 # Specify that this is a Python worker
 compatibility_flags = ["python_workers"]
 
+[ai]
+binding = "AI"
+
 # Worker settings
 workers_dev = true
-route = ""
-zone_id = ""
 
 [build]
 command = ""
@@ -27,6 +28,7 @@ run_worker_first = ["/api/*", "/health", "/mcp/*", "/admin/*", "/conversations/*
 # Cron Triggers — shadow mode validation runs hourly
 [triggers]
 crons = ["0 * * * *"]
+
 
 # Environment variables
 [env.production]

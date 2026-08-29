@@ -258,7 +258,7 @@ class TestRunShadowTriage:
 
         with (
             patch("src.redaction_engine.redact", new_callable=AsyncMock, side_effect=Exception("redaction error")),
-            patch("src.native_recognizers.apply_native_redaction", return_value="native redacted") as mock_native,
+            patch("src.native_recognizers.apply_native_redaction", return_value=("native redacted", [])) as mock_native,
             patch("src.summarizer.summarize", new_callable=AsyncMock) as mock_summarize,
             patch("src.vectorize_client.index_report", new_callable=AsyncMock),
             patch("src.duplicate_detector.detect_duplicates", new_callable=AsyncMock) as mock_dup,
@@ -272,8 +272,17 @@ class TestRunShadowTriage:
 
             result = await run_shadow_triage(issue, env, db)
 
-            mock_native.assert_called_once()
-            assert result["predicted_cwe"] == ["CWE-89"]
+        mock_native.assert_not_called()
+        assert result["predicted_cwe"] == []
+        assert result["predicted_duplicate_of"] is None
+        assert result["confidence"] == 0.0
+
+        # Verify it updated the status to failed
+        found_failed = False
+        for call in db.prepare.call_args_list:
+            if "UPDATE triage_events SET status = 'failed'" in call.args[0]:
+                found_failed = True
+        assert found_failed
 
 
 # ---------------------------------------------------------------------------

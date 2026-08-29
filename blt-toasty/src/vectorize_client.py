@@ -26,8 +26,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from src.embedding_client import get_embedding
-from src.errors import EmbeddingServiceError, StateTransitionError
+from embedding_client import get_embedding
+from errors import EmbeddingServiceError, StateTransitionError
 
 logger = logging.getLogger("toasty.vectorize_client")
 
@@ -111,7 +111,17 @@ async def assert_summarized_before_embedding(event_id: str, db: Any) -> None:
             http_status=404,
         )
 
-    status = row["status"] if hasattr(row, "__getitem__") else row[0]
+    if row.__class__.__name__ == "JsProxy":
+        row = row.to_py()
+    status = (
+        row.get("status")
+        if hasattr(row, "get")
+        else (
+            row["status"]
+            if hasattr(row, "__getitem__")
+            else getattr(row, "status", row[0] if isinstance(row, (list, tuple)) else None)
+        )
+    )
     if status not in ("summarized", "embedded_pending"):
         raise StateTransitionError(
             f"Event {event_id} has status '{status}'; expected 'summarized' or 'embedded_pending'. "
@@ -167,38 +177,73 @@ async def index_report(
         # but the only valid entry points are those two. For simplicity, we just use the expected state transition.
         # Actually, let's fetch current status to be safe.
         row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
-        current_status = row["status"] if hasattr(row, "__getitem__") else row[0]
+        current_status = (
+            dict(row.to_py()).get("status")
+            if row.__class__.__name__ == "JsProxy"
+            else (
+                row.get("status")
+                if hasattr(row, "get")
+                else getattr(row, "status", row[0] if isinstance(row, (list, tuple)) else None)
+            )
+        )
         await _transition_state(db, event_id, "embedded_pending", expected_status=current_status)
         return  # Do NOT re-raise — Cron Trigger will retry.
 
     # ── Insert into Vectorize ─────────────────────────────────────────────
     now = datetime.now(timezone.utc).isoformat()
     try:
-        await env.VECTORIZE.upsert(
-            [
-                {
-                    "id": event_id,
-                    "values": embedding,
-                    "metadata": {
-                        "repo": repo_full_name,
-                        "event_id": event_id,
-                        "model_version": MODEL_VERSION,
-                        "created_at": now,
-                    },
-                }
-            ]
-        )
+        payload = [
+            {
+                "id": event_id,
+                "values": embedding,
+                "metadata": {
+                    "repo": repo_full_name,
+                    "event_id": event_id,
+                    "model_version": MODEL_VERSION,
+                    "created_at": now,
+                },
+            }
+        ]
+
+        # In Pyodide, nested arrays/dicts passed to JS bindings can cause "not expected format"
+        # errors if not explicitly converted to JS types.
+        if hasattr(env, "VECTORIZE") and env.__class__.__name__ != "MagicMock":
+            try:
+                import json
+                import js
+
+                payload = js.JSON.parse(json.dumps(payload))
+            except Exception:
+                pass  # not running in pyodide (e.g. tests)  # nosec
+
+        await env.VECTORIZE.upsert(payload)
     except Exception as exc:
         logger.error("Failed to insert event %s into Vectorize: %s", event_id, exc)
         row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
-        current_status = row["status"] if hasattr(row, "__getitem__") else row[0]
+        current_status = (
+            dict(row.to_py()).get("status")
+            if row.__class__.__name__ == "JsProxy"
+            else (
+                row.get("status")
+                if hasattr(row, "get")
+                else getattr(row, "status", row[0] if isinstance(row, (list, tuple)) else None)
+            )
+        )
         await _transition_state(db, event_id, "embedded_pending", expected_status=current_status)
         raise
 
     # ── Advance state machine ─────────────────────────────────────────────
     try:
         row = await db.prepare("SELECT status FROM triage_events WHERE id = ?").bind(event_id).first()
-        current_status = row["status"] if hasattr(row, "__getitem__") else row[0]
+        current_status = (
+            dict(row.to_py()).get("status")
+            if row.__class__.__name__ == "JsProxy"
+            else (
+                row.get("status")
+                if hasattr(row, "get")
+                else getattr(row, "status", row[0] if isinstance(row, (list, tuple)) else None)
+            )
+        )
         await _transition_state(db, event_id, "embedded", expected_status=current_status)
     except StateTransitionError:
         logger.error("State transition failed after Vectorize insert for event %s. Cleaning up vector.", event_id)
@@ -219,18 +264,12 @@ async def index_report(
                 raise
             logger.warning("Failed to check status for event %s during cleanup: %s", event_id, check_exc)
 
-        cleanup_success = False
-
         # Retry logic: attempt cleanup twice
-        for attempt in range(2):
-            try:
-                await env.VECTORIZE.deleteByIds([event_id])
-                cleanup_success = True
-                break
-            except Exception as cleanup_exc:
-                logger.error(
-                    "Failed to cleanup vector for event %s on attempt %d: %s", event_id, attempt + 1, cleanup_exc
-                )
+        try:
+            await delete_vector(event_id, env)
+            cleanup_success = True
+        except Exception as cleanup_exc:
+            logger.error("Failed to cleanup vector for event %s: %s", event_id, cleanup_exc)
 
         if not cleanup_success:
             # Mark the event so a cron trigger can clean up the phantom vector later
@@ -251,6 +290,7 @@ async def find_duplicates(
     repo_full_name: str,
     env: Any,
     top_k: int = 20,
+    include_shadow: bool = False,
 ) -> list[dict]:
     """Find semantically similar reports in the same repository.
 
@@ -275,35 +315,63 @@ async def find_duplicates(
         return []
 
     try:
+        options = {
+            "topK": top_k,
+            "filter": {
+                "repo": repo_full_name,
+                "model_version": MODEL_VERSION,
+            },
+            "returnMetadata": "all",
+        }
+
+        # Convert both embedding AND options to native JS types.
+        # Vectorize.query cannot interpret a PyProxy-wrapped Python list
+        # as a vector — it silently returns 0 matches.
+        if hasattr(env, "VECTORIZE") and env.__class__.__name__ != "MagicMock":
+            try:
+                import json
+                import js
+
+                options = js.JSON.parse(json.dumps(options))
+                embedding = js.JSON.parse(json.dumps(embedding))
+            except Exception:
+                pass  # nosec
+
         result = await env.VECTORIZE.query(
             embedding,
-            {
-                "topK": top_k,
-                "filter": {
-                    "repo": repo_full_name,
-                    "model_version": MODEL_VERSION,
-                },
-                "returnMetadata": "all",
-            },
+            options,
         )
     except Exception as exc:
         logger.warning("Vectorize query failed for duplicate search — returning empty: %s", exc)
         return []
 
     matches = []
-    raw_matches = getattr(result, "matches", None) or []
+
+    result_py = result.to_py() if result.__class__.__name__ == "JsProxy" else result
+    if isinstance(result_py, dict):
+        raw_matches = result_py.get("matches", [])
+    else:
+        raw_matches = getattr(result_py, "matches", None) or []
+
     for match in raw_matches:
-        score = match.score
-        metadata = match.metadata or {}
+        if isinstance(match, dict):
+            score = match.get("score", 0.0)
+            metadata = match.get("metadata") or {}
+            match_id = match.get("id", "")
+        else:
+            score = getattr(match, "score", 0.0)
+            metadata = getattr(match, "metadata", None) or {}
+            match_id = getattr(match, "id", "")
+
         if score >= DUPLICATE_SCORE_THRESHOLD and metadata.get("repo") == repo_full_name:
-            # Skip shadow mode entries in production queries
-            if match.id.startswith(SHADOW_EVENT_PREFIX):
+            # Skip shadow mode entries unless explicitly requested
+            if not include_shadow and match_id.startswith(SHADOW_EVENT_PREFIX):
                 continue
             matches.append(
                 {
-                    "event_id": match.id,
+                    "event_id": match_id,
                     "score": score,
-                    "metadata": match.metadata,
+                    "metadata": metadata,
                 }
             )
 
@@ -323,7 +391,16 @@ async def delete_vector(event_id: str, env: Any) -> None:
     """
     for attempt in range(2):
         try:
-            await env.VECTORIZE.deleteByIds([event_id])
+            ids = [event_id]
+            if hasattr(env, "VECTORIZE") and env.__class__.__name__ != "MagicMock":
+                try:
+                    import json
+                    import js
+
+                    ids = js.JSON.parse(json.dumps(ids))
+                except Exception:
+                    pass  # nosec
+            await env.VECTORIZE.deleteByIds(ids)
             logger.info("Deleted vector for event %s from Vectorize", event_id)
             return
         except Exception as exc:

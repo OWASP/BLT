@@ -36,7 +36,7 @@ import logging
 import re
 from typing import Any
 
-from src.native_recognizers import apply_native_redaction
+from native_recognizers import apply_native_redaction
 
 logger = logging.getLogger("toasty.rationale_builder")
 

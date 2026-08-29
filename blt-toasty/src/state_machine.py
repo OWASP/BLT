@@ -8,7 +8,7 @@ with Cloudflare D1.
 import logging
 import secrets
 
-from src.errors import StateTransitionError
+from errors import StateTransitionError
 
 logger = logging.getLogger("toasty.state_machine")
 
@@ -168,7 +168,7 @@ async def quarantine_event(db, event_id: str, reason: str, env=None, has_vector:
     if has_vector:
         if not env or not hasattr(env, "VECTORIZE"):
             raise ValueError("env.VECTORIZE is required to cleanup a vectorized event")
-        from src.vectorize_client import delete_vector
+        from vectorize_client import delete_vector
 
         try:
             await delete_vector(event_id, env)

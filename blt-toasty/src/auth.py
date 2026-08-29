@@ -8,7 +8,7 @@ import logging
 from typing import Any
 from js import crypto, Date
 
-from src.errors import JWTExpiredError, JWTInvalidError
+from errors import JWTExpiredError, JWTInvalidError
 
 logger = logging.getLogger("toasty.auth")
 

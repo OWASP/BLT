@@ -147,3 +147,6 @@ package-lock.json
 # Golden Set
 tests/golden_set/historical/
 .dev.vars
+
+# Local test keys
+*.pem
