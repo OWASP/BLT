@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="cve-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#991B1B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="90" fill="url(#cve-grad)"/>
+  <path d="M50 100 L80 100 L80 70 L120 70 L120 100 L150 100 L150 130 L50 130 Z" fill="white"/>
+  <text x="100" y="115" font-family="monospace" font-size="18" font-weight="bold" fill="#DC2626" text-anchor="middle">CVE</text>
+</svg>

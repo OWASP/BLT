@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="hackathon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#991B1B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="90" fill="url(#hackathon-grad)"/>
+  <path d="M70 80 L70 120 L85 120 L85 105 L100 105 L100 120 L115 120 L115 105 L130 105 L130 120 L145 120 L145 80 L130 80 L130 95 L115 95 L115 80 L100 80 L100 95 L85 95 L85 80 Z" fill="white"/>
+  <rect x="55" y="125" width="90" height="5" fill="white"/>
+</svg>

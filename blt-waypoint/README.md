@@ -1,5 +1,8 @@
 # OWASP BLT Organization Dashboard
 
+**Live Site:** [https://waypoint.owaspblt.org/](https://waypoint.owaspblt.org/)<br>
+**Source Code:** [https://gitlab.com/owasp-blt/blt-waypoint](https://gitlab.com/owasp-blt/blt-waypoint)
+
 A live interactive dashboard for exploring OWASP-BLT GitHub and GitLab repositories, migration progress, and repository statistics.
 
 **Live Demo:** [waypoint.owaspblt.org](https://waypoint.owaspblt.org/)

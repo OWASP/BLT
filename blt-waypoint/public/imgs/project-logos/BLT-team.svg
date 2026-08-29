@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="team-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#991B1B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="90" fill="url(#team-grad)"/>
+  <circle cx="70" cy="85" r="15" fill="white"/>
+  <circle cx="100" cy="85" r="15" fill="white"/>
+  <circle cx="130" cy="85" r="15" fill="white"/>
+  <path d="M50 120 L50 140 L90 140 L90 120 Q70 110 50 120 Z" fill="white"/>
+  <path d="M80 120 L80 140 L120 140 L120 120 Q100 110 80 120 Z" fill="white"/>
+  <path d="M110 120 L110 140 L150 140 L150 120 Q130 110 110 120 Z" fill="white"/>
+</svg>

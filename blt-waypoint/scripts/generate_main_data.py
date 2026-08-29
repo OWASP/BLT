@@ -64,7 +64,7 @@ GITLAB_URLS = {
     "BLT-Zero": "https://gitlab.com/owasp-blt/blt-zero",
     "coderabbit": "https://gitlab.com/owasp-blt/coderabbit",
     "MY-GSOC-TOOL": "https://gitlab.com/owasp-blt/my-gsoc-tool",
-    "owasp-blt.github.io": "https://gitlab.com/owasp-blt/blt-waypoint",
+    "BLT-Waypoint": "https://gitlab.com/owasp-blt/blt-waypoint",
 }
 FIELDS = (
     "id",

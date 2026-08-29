@@ -28,7 +28,7 @@ const MIGRATION_TOTAL_REPOS = 55;
 const MIGRATION_MIGRATED_REPOS = 55;
 const MIGRATION_COMPLETION_POINTS = MIGRATION_TOTAL_REPOS * 100;
 
-// Project board URLs sourced from https://github.com/OWASP-BLT/.github/blob/main/scripts/project_urls.json
+// Project board URLs sourced from https://gitlab.com/owasp-blt/dot_github/-/blob/main/scripts/project_urls.json
 const PROJECT_URLS = {
   'BLT':                          'https://github.com/orgs/OWASP-BLT/projects/2',
   'BLT-Flutter':                  'https://github.com/orgs/OWASP-BLT/projects/60',
@@ -237,8 +237,98 @@ function gitlabMigrationProgress(r) {
 }
 
 function repoDisplayName(r) {
-  if (r.name === 'owasp-blt.github.io') return 'BLT-Waypoint owasp-blt.github.io';
+  if (String(r.name || '').toLowerCase() === 'blt-waypoint') return 'BLT-Waypoint';
   return r.name;
+}
+
+function repoDescription(r) {
+  if (String(r.name || '').toLowerCase() === 'blt-waypoint') {
+    return 'OWASP BLT project directory and deployment waypoint';
+  }
+  return r.description || '';
+}
+
+function isOrgMetaRepo(r) {
+  return ['.github', 'dot_github'].includes(String(r.name || '').toLowerCase());
+}
+
+function orgMetaRepoLast(a, b) {
+  if (isOrgMetaRepo(a) === isOrgMetaRepo(b)) return 0;
+  return isOrgMetaRepo(a) ? 1 : -1;
+}
+
+// Canonical project artwork from https://blt-logo.vercel.app/. Every PNG is
+// normalized to a 512×512 transparent canvas. Projects without a published
+// mark use the core BLT logo instead of a broken image.
+const PROJECT_LOGOS = {
+  '.github': 'project-logos/.github.svg',
+  'blt': 'project-logos-v2/BLT-Core.svg',
+  'blt-action': 'canonical-logos/blt-action.png',
+  'blt-api': 'canonical-logos/blt-api.png',
+  'blt-bacon': 'canonical-logos/blt-bacon.png',
+  'blt-byte': 'canonical-logos/blt-bytes.png',
+  'blt-cve': 'canonical-logos/blt-cve.png',
+  'blt-design': 'canonical-logos/blt-design.png',
+  'blt-design-contest': 'project-logos-v2/BLT-Design-Contest.svg',
+  'blt-dash': 'project-logos-v2/BLT-Dash.svg',
+  'blt-docs': 'canonical-logos/blt-docs.png',
+  'blt-extension': 'canonical-logos/blt-extension.png',
+  'blt-github-sportscaster': 'canonical-logos/github-sport-caster.png',
+  'blt-gsoc': 'canonical-logos/blt-gsoc.png',
+  'blt-hackathon': 'canonical-logos/blt-hackathon.png',
+  'blt-hackathons': 'canonical-logos/blt-hackathon.png',
+  'blt-jobs': 'canonical-logos/blt-jobs.png',
+  'blt-ketchup': 'project-logos-v2/BLT-Ketchup.svg',
+  'blt-leaf': 'canonical-logos/blt-leaf.png',
+  'blt-mcp': 'canonical-logos/blt-mcp.png',
+  'blt-monitor': 'project-logos/BLT-Monitor.svg',
+  'blt-netguardian': 'canonical-logos/blt-netguardian.png',
+  'blt-netguardian-client': 'project-logos/BLT-NetGuardian-Client.svg',
+  'blt-newsletter': 'canonical-logos/blt-newletter.png',
+  'blt-next': 'canonical-logos/blt-next.png',
+  'blt-nexus': 'project-logos-v2/BLT-Nexus.svg',
+  'blt-ossh': 'canonical-logos/blt-ossh.png',
+  'blt-owasp-bumper': 'canonical-logos/blt-bumper.png',
+  'blt-owasp-metadata': 'project-logos/BLT-OWASP-metadata.svg',
+  'blt-owasp-projects': 'project-logos/BLT-OWASP-Projects.svg',
+  'blt-owasp-wich': 'canonical-logos/blt-wich.png',
+  'blt-panini': 'project-logos/BLT-Panini.svg',
+  'blt-pages': 'canonical-logos/blt-pages.png',
+  'blt-pool': 'project-logos-v2/BLT-Pool.svg',
+  'blt-preflight': 'canonical-logos/blt-preflight.png',
+  'blt-safecloak': 'canonical-logos/blt-safecloack.png',
+  'blt-sammich': 'canonical-logos/blt-sammich.png',
+  'blt-sizzle': 'canonical-logos/sizzle.png',
+  'blt-start': 'project-logos-v2/BLT-Start.svg',
+  'blt-toasty': 'project-logos/BLT-Toasty.svg',
+  'blt-timer-flutter': 'canonical-logos/blt-timer.png',
+  'blt-timer-web': 'canonical-logos/blt-timer.png',
+  'blt-tomato': 'canonical-logos/blt-tomato.png',
+  'blt-university': 'canonical-logos/blt-university.png',
+  'blt-vanish-flutter': 'canonical-logos/blt-vanish.png',
+  'blt-vanish-web': 'canonical-logos/blt-vanish.png',
+  'blt-waypoint': 'project-logos-v2/BLT-Waypoint.svg',
+  'blt-zero': 'canonical-logos/blt-zero.png',
+  'blt-cli': 'project-logos-v2/BLT-CLI.svg',
+  'blt-enforcement': 'project-logos-v2/BLT-Enforcement.svg',
+  'blt-flutter': 'project-logos/BLT-Flutter.svg',
+  'blt-ideas': 'project-logos/BLT-Ideas.svg',
+  'blt-lettuce': 'project-logos/BLT-Lettuce.svg',
+  'blt-profiles': 'project-logos-v2/BLT-Profiles.svg',
+  'blt-rewards': 'project-logos-v2/BLT-Rewards.svg',
+  'coderabbit': 'project-logos-v2/CodeRabbit.svg',
+  'my-gsoc-tool': 'canonical-logos/blt-gsoc-tool.png',
+};
+
+function projectLogoPath(r) {
+  const filename = PROJECT_LOGOS[String(r.name || '').toLowerCase()];
+  return filename ? `./imgs/${filename}` : './imgs/project-logos-v2/BLT-Core.svg';
+}
+
+function projectLogoHTML(r, classes = 'h-9 w-9') {
+  const path = projectLogoPath(r);
+  const scale = path.includes('/canonical-logos/') ? 'scale-[1.28]' : '';
+  return `<span class="${classes} shrink-0 rounded-lg overflow-hidden flex items-center justify-center"><img src="${escapeHtml(path)}" alt="${escapeHtml(repoDisplayName(r))} logo" class="h-full w-full object-contain ${scale}" loading="lazy" /></span>`;
 }
 
 function gitlabMigrationClasses(progress) {
@@ -282,8 +372,66 @@ function updateVersionLabel() {
   if (label) label.textContent = APP_VERSION;
 }
 
+const CLOUDFLARE_LIVE_SITES = {
+  'blt-action': 'https://action.owaspblt.org/',
+  'blt-api': 'https://api.owaspblt.org/',
+  'blt-autopatch': 'https://autopatch.owaspblt.org/',
+  'blt-byte': 'https://byte.owaspblt.org/',
+  'blt-cli': 'https://cli.owaspblt.org/',
+  'blt-cve': 'https://cve.owaspblt.org/',
+  'blt-dash': 'https://dash.owaspblt.org/',
+  'blt-design': 'https://design.owaspblt.org/',
+  'blt-design-contest': 'https://contest.owaspblt.org/',
+  'blt-docs': 'https://docs.owaspblt.org/',
+  'blt-enforcement': 'https://enforcement.owaspblt.org/',
+  'blt-extension': 'https://extension.owaspblt.org/',
+  'blt-flutter': 'https://flutter.owaspblt.org/',
+  'blt-github-sportscaster': 'https://gitcaster.owaspblt.org/',
+  'blt-gitcaster': 'https://gitcaster.owaspblt.org/',
+  'blt-gsoc': 'https://gsoc.owaspblt.org/',
+  'blt-hackerhouse': 'https://hackerhouse.owaspblt.org/',
+  'blt-hackathons': 'https://hackathons.owaspblt.org/',
+  'blt-ideas': 'https://ideas.owaspblt.org/',
+  'blt-jobs': 'https://jobs.owaspblt.org/',
+  'blt-ketchup': 'https://ketchup.owaspblt.org/',
+  'blt-leaf': 'https://leaf.owaspblt.org/',
+  'blt-lettuce': 'https://lettuce.owaspblt.org/',
+  'blt-mcp': 'https://mcp.owaspblt.org/',
+  'blt-mayo': 'https://mayo.owaspblt.org/',
+  'blt-monitor': 'https://monitor.owaspblt.org/',
+  'blt-netguardian': 'https://netguardian.owaspblt.org/',
+  'blt-newsletter': 'https://newsletter.owaspblt.org/',
+  'blt-next': 'https://next.owaspblt.org/',
+  'blt-nexus': 'https://nexus.owaspblt.org/',
+  'blt-ossh': 'https://ossh.owaspblt.org/',
+  'blt-owasp-bumper': 'https://bumper.owaspblt.org/',
+  'blt-owasp-metadata': 'https://metadata.owaspblt.org/',
+  'blt-owasp-projects': 'https://projects.owaspblt.org/',
+  'blt-owasp-wich': 'https://wich.owaspblt.org/',
+  'blt-pages': 'https://pages.owaspblt.org/',
+  'blt-panini': 'https://panini.owaspblt.org/',
+  'blt-pool': 'https://pool.owaspblt.org/',
+  'blt-preflight': 'https://preflight.owaspblt.org/',
+  'blt-profiles': 'https://profiles.owaspblt.org/',
+  'blt-rewards': 'https://rewards.owaspblt.org/',
+  'blt-safecloak': 'https://safecloak.owaspblt.org/',
+  'blt-sammich': 'https://sammich.owaspblt.org/',
+  'blt-sizzle': 'https://sizzle.owaspblt.org/',
+  'blt-start': 'https://start.owaspblt.org/',
+  'blt-timer-web': 'https://timer.owaspblt.org/',
+  'blt-toasty': 'https://toasty.owaspblt.org/',
+  'blt-tomato': 'https://tomato.owaspblt.org/',
+  'blt-university': 'https://university.owaspblt.org/',
+  'blt-vanish': 'https://vanish.owaspblt.org/',
+  'blt-vanish-web': 'https://vanish.owaspblt.org/',
+  'blt-waypoint': 'https://waypoint.owaspblt.org/',
+  'blt-zero': 'https://zero.owaspblt.org/',
+  'my-gsoc-tool': 'https://gsoc-tool.owaspblt.org/',
+};
+
 function liveSiteMeta(r) {
-  if (!r.homepage) {
+  const liveUrl = CLOUDFLARE_LIVE_SITES[String(r.name || '').toLowerCase()] || r.homepage;
+  if (!liveUrl) {
     return {
       url: '',
       label: 'No live site',
@@ -294,7 +442,7 @@ function liveSiteMeta(r) {
 
   let host = '';
   try {
-    host = new URL(r.homepage).hostname.toLowerCase();
+    host = new URL(liveUrl).hostname.toLowerCase();
   } catch (e) {
     host = '';
   }
@@ -303,7 +451,7 @@ function liveSiteMeta(r) {
   const isOwaspBlt = host === 'owaspblt.org' || host.endsWith('.owaspblt.org');
   if (isGitHubPage) {
     return {
-      url: r.homepage,
+      url: liveUrl,
       label: 'GitHub Pages',
       classes: 'text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/30 ring-red-200 dark:ring-red-800',
       icon: 'fa-brands fa-github',
@@ -311,14 +459,14 @@ function liveSiteMeta(r) {
   }
   if (isOwaspBlt) {
     return {
-      url: r.homepage,
+      url: liveUrl,
       label: 'owaspblt.org',
       classes: 'text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 ring-green-200 dark:ring-green-800',
       icon: 'fa-solid fa-globe',
     };
   }
   return {
-    url: r.homepage,
+    url: liveUrl,
     label: 'Live site',
     classes: 'text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 ring-gray-200 dark:ring-gray-700',
     icon: 'fa-solid fa-arrow-up-right-from-square',
@@ -752,7 +900,7 @@ function applyFilters() {
     repos = repos.filter(r =>
       r.name.toLowerCase().includes(q) ||
       repoDisplayName(r).toLowerCase().includes(q) ||
-      (r.description || '').toLowerCase().includes(q) ||
+      repoDescription(r).toLowerCase().includes(q) ||
       (r.topics || []).some(t => t.toLowerCase().includes(q))
     );
   }
@@ -760,6 +908,8 @@ function applyFilters() {
   // Sort (card view only; table view sorts in renderTableView)
   if (currentView === 'card') {
     repos.sort((a, b) => {
+      const metaOrder = orgMetaRepoLast(a, b);
+      if (metaOrder) return metaOrder;
       if (currentSort === 'name') return a.name.localeCompare(b.name);
       if (currentSort === 'updated_at' || currentSort === 'created_at')
         return new Date(b[currentSort]) - new Date(a[currentSort]);
@@ -935,6 +1085,7 @@ function repoCardHTML(r) {
 
     <!-- Header -->
     <div class="flex items-start gap-3">
+      ${projectLogoHTML(r, 'h-11 w-11')}
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2 flex-wrap mb-1">
           <a
@@ -948,7 +1099,7 @@ function repoCardHTML(r) {
           ${wranglerIcon}${pagesIcon}
         </div>
         <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
-          ${escapeHtml(r.description) || '<span class="italic">No description</span>'}
+          ${escapeHtml(repoDescription(r)) || '<span class="italic">No description</span>'}
         </p>
       </div>
     </div>
@@ -1123,6 +1274,8 @@ function repoCardHTML(r) {
 /* ------------------------------------------------------------------ */
 function renderMainSummaryView(repos, container) {
   const sorted = [...repos].sort((a, b) => {
+    const metaOrder = orgMetaRepoLast(a, b);
+    if (metaOrder) return metaOrder;
     const progressDiff = gitlabMigrationProgress(b) - gitlabMigrationProgress(a);
     return progressDiff || a.name.localeCompare(b.name);
   });
@@ -1141,8 +1294,13 @@ function renderMainSummaryView(repos, container) {
 
     return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
       <td class="px-3 py-2 font-medium">
-        <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(repoDisplayName(r))}</a>
-        ${r.description ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-sm mt-0.5">${escapeHtml(r.description)}</p>` : ''}
+        <div class="flex items-center gap-2">
+          ${projectLogoHTML(r, 'h-9 w-9')}
+          <div class="min-w-0">
+            <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(repoDisplayName(r))}</a>
+            ${repoDescription(r) ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-sm mt-0.5">${escapeHtml(repoDescription(r))}</p>` : ''}
+          </div>
+        </div>
       </td>
       <td class="px-3 py-2 whitespace-nowrap">
         <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ring-1 ${migrationClasses}" title="GitLab migration progress: ${migrationProgress}%">
@@ -1208,6 +1366,8 @@ const TABLE_COLS = [
 function renderTableView(repos, container) {
   // Sort repos by current table sort state
   const sorted = [...repos].sort((a, b) => {
+    const metaOrder = orgMetaRepoLast(a, b);
+    if (metaOrder) return metaOrder;
     let v;
     if (tableSortCol === 'name')       v = a.name.localeCompare(b.name);
     else if (tableSortCol === 'gitlab_migration') {
@@ -1297,6 +1457,7 @@ function renderTableView(repos, container) {
       ? `<span class="ml-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 rounded-full">Fork</span>`
       : '';
     const projectUrl = PROJECT_URLS[r.name];
+    const live = liveSiteMeta(r);
     const topics = r.topics || [];
     const topicCount = topics.length;
     const gsocTopic = topics.find(t => t.toLowerCase().includes('gsoc'));
@@ -1312,10 +1473,15 @@ function renderTableView(repos, container) {
     const gitlabUrl = gitlabRepoUrl(r);
     return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
       <td class="px-3 py-2 font-medium">
-        <div class="flex items-center gap-1 flex-wrap">
-          <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(repoDisplayName(r))}</a>${archiveBadge}${forkBadge}${gsocBadge}
+        <div class="flex items-center gap-2">
+          ${projectLogoHTML(r, 'h-9 w-9')}
+          <div class="min-w-0">
+            <div class="flex items-center gap-1 flex-wrap">
+              <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(repoDisplayName(r))}</a>${archiveBadge}${forkBadge}${gsocBadge}
+            </div>
+            ${repoDescription(r) ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs mt-0.5">${escapeHtml(repoDescription(r))}</p>` : ''}
+          </div>
         </div>
-        ${r.description ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs mt-0.5">${escapeHtml(r.description)}</p>` : ''}
       </td>
       <td class="px-3 py-2 whitespace-nowrap">
         <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ring-1 ${migrationClasses}" title="GitLab migration progress: ${migrationProgress}%">
@@ -1410,7 +1576,7 @@ function renderTableView(repos, container) {
         <div class="flex gap-1.5">
           <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 bg-brand text-white rounded hover:bg-red-700 transition-colors" title="View on GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
           ${gitlabUrl ? `<a href="${escapeHtml(gitlabUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-orange-500 text-orange-600 dark:text-orange-400 rounded hover:bg-orange-500 hover:text-white transition-colors" title="View on GitLab"><i class="fa-brands fa-gitlab" aria-hidden="true"></i></a>` : ''}
-          ${r.homepage ? (() => { let isGhPages = false; try { const h = new URL(r.homepage).hostname; isGhPages = h === 'github.io' || h.endsWith('.github.io'); } catch (e) { /* invalid URL */ } return `<a href="${escapeHtml(r.homepage)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="${isGhPages ? 'GitHub Pages' : 'Live Site (Custom Domain)'}"><i class="${isGhPages ? 'fa-brands fa-github' : 'fa-solid fa-globe'}" aria-hidden="true"></i></a>`; })() : `<span role="button" aria-disabled="true" class="text-xs px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded cursor-not-allowed" title="No live site"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></span>`}
+          ${live.url ? `<a href="${escapeHtml(live.url)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="${escapeHtml(live.label)}"><i class="${live.icon}" aria-hidden="true"></i></a>` : `<span role="button" aria-disabled="true" class="text-xs px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded cursor-not-allowed" title="No live site"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></span>`}
           ${projectUrl ? `<a href="${escapeHtml(projectUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Project Board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></a>` : `<span role="button" aria-disabled="true" class="text-xs px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded cursor-not-allowed" title="No project board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></span>`}
           <a href="${escapeHtml(r.html_url)}/issues/new" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="New Issue"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i></a>
           <a href="https://github.com/${ORG}/${r.name}/agents" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="Open agent tasks for this repo"><i class="fa-solid fa-robot" aria-hidden="true"></i></a>

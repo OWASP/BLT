@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="university-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#991B1B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="90" fill="url(#university-grad)"/>
+  <path d="M100 50 L160 75 L160 125 L40 125 L40 75 Z" fill="white"/>
+  <rect x="55" y="85" width="15" height="40" fill="#DC2626"/>
+  <rect x="75" y="85" width="15" height="40" fill="#DC2626"/>
+  <rect x="95" y="85" width="15" height="40" fill="#DC2626"/>
+  <rect x="115" y="85" width="15" height="40" fill="#DC2626"/>
+  <rect x="135" y="85" width="15" height="40" fill="#DC2626"/>
+  <path d="M40 50 L100 70 L160 50" stroke="white" stroke-width="4" fill="none"/>
+</svg>
