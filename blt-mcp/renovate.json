@@ -49,9 +49,6 @@
       "automerge": true
     }
   ],
-  "cargo": {
-    "fileMatch": ["(^|/)blt-cli/Cargo\\.toml$"]
-  },
   "pep621": {
     "fileMatch": ["(^|/)pyproject\\.toml$"]
   },

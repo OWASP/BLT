@@ -1,5 +1,10 @@
 # BLT-MCP
 
+**Live Site:** [https://mcp.owaspblt.org/](https://mcp.owaspblt.org/)<br>
+**Source Code:** [https://gitlab.com/owasp-blt/blt-mcp](https://gitlab.com/owasp-blt/blt-mcp)
+
+<p align="center"><img src="logo.png" alt="blt-mcp logo" width="160" height="160"></p>
+
 An MCP (Model Context Protocol) server that provides AI agents and developers with structured access to the OWASP BLT (Bug Logging Tool) ecosystem. This server enables seamless integration with IDEs and chat interfaces to log bugs, triage issues, query data, and manage security workflows.
 
 ## Overview
@@ -227,17 +232,12 @@ uv run blt-mcp
 
 ### Step 3 — Run the CLI via MCP
 
-From WSL, inside the `BLT-MCP` root directory:
+Clone the standalone CLI alongside `BLT-MCP`, then run it from its own repository:
 
 ```bash
-cargo run --manifest-path blt-cli/Cargo.toml -- --mcp-path "uv run blt-mcp"
-```
-
-Or from inside `blt-cli/`:
-
-```bash
+git clone https://gitlab.com/owasp-blt/blt-cli.git
 cd blt-cli
-cargo run -- --mcp-path "uv run blt-mcp"
+cargo run -- --mcp-path "uv run --project ../blt-mcp blt-mcp"
 ```
 
 The CLI will:
@@ -367,7 +367,7 @@ When running within an IDE, the MCP server can execute complex tasks across both
 
 #### 2. Terminal UI (BLT-CLI)
 The high-performance Rust TUI offers a built-in form to interface directly with the BLT backend:
-- **Launching:** Run `cargo run --manifest-path blt-cli/Cargo.toml -- --mcp-path "uv run -m blt_mcp.server"`
+- **Launching:** Clone [BLT-CLI](https://gitlab.com/owasp-blt/blt-cli), then run `cargo run -- --mcp-path "uv run --project ../blt-mcp -m blt_mcp.server"` from that repository.
 - **Direct API Submission:** Press `Ctrl+S` or `s` anywhere in the CLI to open the "Report a Bug" form. The CLI prompts for Title, URL, Severity, Bug Type, Description, Steps to Reproduce, and a Screenshot.
 - **Local Image Upload:** Providing a local file path (e.g., `./screenshot.png`) in the `Screenshot` field automatically Base64-encodes the image and securely submits it into the JSON payload for the BLT API `/bugs` endpoint.
 - **CLI AI Vision Pipeline:** Open the Command Palette (`Ctrl+P`) and type `vision /path/to/screenshot.png` to leverage the MCP server's Cloudflare Vision AI pipeline from entirely within the terminal.
@@ -379,11 +379,12 @@ BLT-MCP/
 ├── blt_mcp/
 │   ├── __init__.py
 │   └── server.py         # Main server implementation
-├── blt-cli/              # Rust Terminal UI application
 ├── tests/                # Test suite
 ├── pyproject.toml        # Project metadata and dependencies
 ├── .env.example          # Example environment configuration
 ```
+
+The Rust terminal client now lives in the standalone [BLT-CLI repository](https://gitlab.com/owasp-blt/blt-cli), with its original commit history preserved.
 
 ## Security Considerations
 

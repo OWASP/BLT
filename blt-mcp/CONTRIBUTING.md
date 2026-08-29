@@ -1,8 +1,6 @@
-# Contributing to BLT-MCP & BLT-CLI
+# Contributing to BLT-MCP
 
-Thank you for your interest in contributing to the BLT-MCP project! This repository contains two major components:
-1. **`blt_mcp`**: The Python-based Model Context Protocol (MCP) Server.
-2. **`blt-cli`**: The high-performance Rust-based Terminal UI (TUI).
+Thank you for your interest in contributing to the BLT-MCP project. This repository contains the Python-based Model Context Protocol server. The Rust terminal client is maintained separately in [BLT-CLI](https://gitlab.com/owasp-blt/blt-cli).
 
 This guide will help you get started with your first contribution.
 
@@ -23,17 +21,9 @@ This guide will help you get started with your first contribution.
    cp .env.example .env
    ```
 
-### Rust CLI (`blt-cli`)
-5. **Rust Version**: Ensure you have the latest stable Rust toolchain installed via [rustup](https://rustup.rs/).
-6. **Build**:
-   ```bash
-   cd blt-cli
-   cargo build
-   ```
-
 ### Pre-Commit Hooks Setup
 
-We use `pre-commit` to automatically run formatters and linters (like Ruff, `cargo fmt`, and `cargo clippy`) before each commit, preventing syntax issues  from being committed.
+We use `pre-commit` to automatically run formatters and linters before each commit.
 
 To set it up:
 1. Ensure your virtual environment is active, then install `pre-commit`:
@@ -61,11 +51,6 @@ To set it up:
   - Define new resources using the `@server.resource()` decorators.
   - Define new prompts using the `@server.prompt()` decorators.
 
-### Rust Coding Standards (`blt-cli`)
-- Format code using `cargo fmt`.
-- Ensure no warnings are produced by `cargo clippy`.
-- Keep TUI layout logic in `src/ui.rs` and event handling in `src/tui.rs`.
-
 ## Testing
 
 ### Deterministic MCP Testing (`mcp-vcr`)
@@ -87,13 +72,6 @@ Before submitting a PR for the Python server, ensure all Pytest tests pass:
 pytest
 ```
 
-Before submitting a PR for the Rust CLI, ensure the codebase compiles cleanly:
-```bash
-cd blt-cli
-cargo check
-cargo test
-```
-
 ## Pull Request Process
 
 1. Create a new branch for your feature or bugfix: `git checkout -b feature/your-feature-name`.
@@ -111,4 +89,4 @@ cargo test
 
 Join the OWASP BLT community:
 - Website: [https://owasp.org/www-project-bug-logging-tool/](https://owasp.org/www-project-bug-logging-tool/)
-- GitHub: [https://github.com/OWASP-BLT](https://github.com/OWASP-BLT)
+- GitHub: [https://github.com/OWASP-BLT](https://gitlab.com/owasp-blt)
