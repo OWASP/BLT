@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content="{desc}">
+  <link rel="icon" type="image/x-icon" href="../../../favicon.ico">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: '#E10101',
+            'neutral-border': '#E5E5E5',
+            'dark-base': '#111827',
+            'dark-surface': '#1F2937'
+          },
+          fontFamily: { sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+          boxShadow: { soft: '0 10px 24px -16px rgba(17, 24, 39, 0.35)' }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../../css/main.css">
+</head>
+<body class="bg-[#fafafa] font-sans text-gray-900 antialiased transition-colors duration-200 dark:bg-dark-base dark:text-gray-100">
+<header class="sticky top-0 z-50 border-b border-neutral-border bg-white transition-colors duration-200 dark:border-gray-800 dark:bg-dark-surface">
+  <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <a href="../../../index.html" class="flex items-center gap-3" aria-label="OWASP BLT GSoC Home">
+      <img src="../../../images/logo.png" alt="OWASP BLT Logo" class="h-8 w-8">
+      <div>
+        <p class="text-sm font-extrabold leading-none">OWASP BLT</p>
+        <p class="text-xs font-semibold text-gray-500">Google Summer of Code 2026</p>
+      </div>
+    </a>
+    <div class="flex items-center gap-2">
+      <button id="theme-toggle" type="button" class="theme-toggle-btn inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800" aria-label="Toggle dark mode">
+        <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+        <i class="fa-solid fa-sun hidden dark:block" aria-hidden="true"></i>
+      </button>
+      <a href="../../../gsoc2026.html" class="hidden items-center justify-center rounded-md border border-[#E10101] px-4 py-2 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:inline-flex">
+        <i class="fa-solid fa-arrow-left mr-2" aria-hidden="true"></i>GSoC 2026
+      </a>
+    </div>
+  </div>
+</header>
+<main class="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:px-6 lg:px-8 prose prose-sm sm:prose-base dark:prose-invert max-w-none">
+<div class="not-prose mb-4"><span class="inline-flex rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand dark:bg-red-950/30">Archived final blog</span></div>
+    <p class="nav">
+      <a href="./">← Work product</a>
+      <a href="./midterm.html">Midterm blog</a>
+      <a href="https://blt-netguardian.preethampujari395.workers.dev/">NetGuardian demo</a>
+    </p>
+    <p class="badge">ARCHIVED FINAL BLOG</p>
+    <h1>From a Signed Finding to a Distributed Security Workflow: My GSoC 2026 Journey with OWASP BLT</h1>
+    <p class="meta">
+      Google Summer of Code 2026 · OWASP Foundation · BLT-NetGuardian<br>
+      By Preetham Poojari
+    </p>
+
+    <p>
+      When I started working on BLT-NetGuardian, I thought the hardest part would be
+      writing the code.
+    </p>
+    <p>It was not.</p>
+    <p>
+      The harder part was understanding what the project genuinely needed, cutting through
+      old ideas and stub features, accepting when my first interpretation was wrong, and
+      turning a broad security proposal into one flow that could actually be run, tested,
+      and demonstrated.
+    </p>
+    <p>That is probably the biggest thing I am taking away from GSoC.</p>
+
+    <h2>WHERE I STARTED</h2>
+    <p>
+      I was already contributing to OWASP BLT before GSoC, so I was familiar with the
+      community and the way the project worked. NetGuardian was still a different kind of
+      challenge. It touched security contracts, ingestion, storage, authentication, triage,
+      a desktop client, deployment, and eventually distributed crawling.
+    </p>
+    <p>The original goal was to build a trustworthy path for security findings:</p>
+    <pre>scanner/client → signed finding → secure storage → triage → BLT issue</pre>
+    <p>
+      The first few weeks were intentionally not glamorous. I defined the
+      <code>ztr-finding-1</code> envelope, created the D1 schema, added canonical JSON
+      signing, and wrote verification helpers. Findings were signed with HMAC-SHA256, tied
+      to a body digest, and protected using timestamps and one-time nonces.
+    </p>
+    <p>
+      I learned very early that security work is mostly about refusing bad states. The happy
+      path is easy. The real work is rejecting altered bodies, expired requests, replayed
+      nonces, unknown keys, malformed ciphertext, and requests from the wrong
+      organization—and returning an error that is useful instead of a mysterious 500.
+    </p>
+
+    <h2>BUILDING THE TRUST AND TRIAGE BACKBONE</h2>
+    <p>Once signed ingestion worked, I moved into org-scoped findings and the triage interface.</p>
+    <p>By the midterm, I had an end-to-end path where I could:</p>
+    <ol>
+      <li>submit a signed finding;</li>
+      <li>store its evidence encrypted using AES-256-GCM;</li>
+      <li>open it in the triage UI;</li>
+      <li>decrypt and redact it on an authorized view;</li>
+      <li>record an access event;</li>
+      <li>update its status; and</li>
+      <li>convert it into a BLT issue without creating duplicates.</li>
+    </ol>
+    <p>
+      At that point, 186 tests were passing. More importantly, I could show the full flow
+      live instead of explaining it with slides.
+    </p>
+    <p>
+      The triage UI became much more than a list. I added severity and status filters,
+      risk-ranked sorting, evidence views, remediation guidance, responsible-disclosure
+      hints from <code>security.txt</code>, CSV and PDF exports, GitHub OAuth with PKCE,
+      verified events, and BLT-API conversion.
+    </p>
+
+    <h2>THE POINT WHERE THE PROJECT CHANGED</h2>
+    <p>
+      The biggest shift came when we started discussing discovery. There were older
+      documents describing autonomous certificate-transparency monitoring, blockchain
+      scanners, GitHub discovery, WHOIS outreach, and other ambitious features. Some routes
+      and UI surfaces existed, but much of that was sample or stub behavior.
+    </p>
+    <p>
+      Donnie pushed me to explain what was actually unique about NetGuardian. A one-time
+      HTTP header scan was useful, but it was not enough. The stronger idea was continuous
+      domain discovery from real page source: a client visits an authorized seed, extracts
+      hosts from HTML, JavaScript, CSS, links and assets, scans them, and keeps expanding
+      the queue.
+    </p>
+    <p>
+      I first built a local continuous crawler in the Flutter client. Then I made it
+      always-on until the user pressed Stop. After that, I moved the queue into D1 so
+      multiple clients could participate in the same crawl without repeatedly claiming the
+      same domain.
+    </p>
+    <pre>submit seed
+  → claim domain with a lease
+  → fetch and scan on the user's machine
+  → discover more hosts
+  → submit them to the shared queue
+  → complete or retry the job
+  → claim the next domain</pre>
+    <p>
+      The Worker coordinates; it does not scan third-party sites. That boundary matters.
+      It keeps network activity on the researcher-operated client, makes the actor visible,
+      and avoids turning a hosted OWASP service into an unsolicited scanner.
+    </p>
+
+    <h2>MAKING IT USABLE INSTEAD OF MERELY FUNCTIONAL</h2>
+    <p>
+      The crawler worked, and then immediately created another problem: it worked too
+      continuously. The findings, operations log, and domain grid kept growing until the
+      application felt like doomscrolling.
+    </p>
+    <p>The better fix was simpler:</p>
+    <ul>
+      <li>keep Start and Stop pinned;</li>
+      <li>cap the number of live rows shown;</li>
+      <li>keep full totals separately;</li>
+      <li>continuously update the visible state; and</li>
+      <li>retain older findings for sending without rendering all of them.</li>
+    </ul>
+    <p>
+      This part of the project taught me that “real-time” is not automatically good UX.
+      A live interface still needs to let the user remain in control.
+    </p>
+
+    <h2>ASKING BEFORE LOOKING DEEPER</h2>
+    <p>
+      Near the end, Donnie suggested one more flow: before taking a deeper look at a domain,
+      help the researcher ask the site owner for permission.
+    </p>
+    <p>
+      The client can now look for a contact in <code>security.txt</code>,
+      <code>mailto:</code> links, and visible page text. If nothing useful is found, it can
+      suggest addresses such as <code>security@domain</code> or <code>support@domain</code>.
+    </p>
+    <p>
+      It then prepares an email with a unique link where the owner can choose
+      <strong class="font-semibold text-gray-900 dark:text-white">Yes</strong> or <strong class="font-semibold text-gray-900 dark:text-white">No</strong>.
+      Choosing Yes requires accepting a short set of terms. NetGuardian prepares the email
+      but does not silently send it — the researcher remains responsible for reviewing and
+      sending the message.
+    </p>
+
+    <h2>DEPLOYMENT WAS ITS OWN PROJECT</h2>
+    <p>
+      Cloudflare’s Python Workers runtime, D1 bindings, static assets, CORS, secrets, and
+      deployment configuration introduced a completely different set of failures. I
+      eventually created separate staging deployment configuration, migration and smoke
+      scripts, a local in-memory D1-compatible server, and a <code>--no-seed</code> mode so
+      I could begin recordings with a genuinely empty system.
+    </p>
+
+    <h2>WHAT I FINISHED WITH</h2>
+    <ul>
+      <li>HMAC-signed and replay-protected finding ingestion</li>
+      <li>AES-256-GCM encrypted evidence and redacted authorized views</li>
+      <li>Org-scoped triage, status updates, audit events, CSV/PDF export, and BLT issue conversion</li>
+      <li>HTTP security-header detection and dynamic Semgrep findings</li>
+      <li>Flutter producer with offline outbox, history, encryption, and triage deep links</li>
+      <li>Distributed page-source domain discovery backed by a leased D1 queue</li>
+      <li>Verified events and GitHub OAuth</li>
+      <li>Remediation and responsible-disclosure guidance</li>
+      <li>Site-owner permission request with contact discovery, email drafting, Yes/No, and terms</li>
+    </ul>
+    <p>
+      I am proud that the main path is real. I can start with an empty database, run the
+      client, discover and scan domains, sign findings, send them, open triage, and follow
+      them through remediation or conversion.
+    </p>
+
+    <h2>THANK YOU</h2>
+    <p>
+      I am extremely grateful to my mentors, <strong class="font-semibold text-gray-900 dark:text-white">Donnie, Carla, and
+      Jisan</strong>, for trusting me with this project. Donnie kept pushing me to find the
+      real product inside the proposal. Carla made me look harder at how we explain the
+      system to somebody arriving for the first time. Jisan’s guidance and steady support
+      helped me keep moving through the less visible parts of the work.
+    </p>
+    <p>
+      I am also grateful to the wider OWASP BLT community. The connections I made are as
+      important to me as the code.
+    </p>
+
+    <h2>WHAT I AM TAKING FORWARD</h2>
+    <p>
+      I started this project thinking mostly about secure ingestion. I am ending it thinking
+      about the whole chain: who is allowed to scan, where the network request runs, how a
+      finding proves its origin, who can decrypt it, how an analyst acts on it, and how a
+      site owner can say yes or no.
+    </p>
+    <p>
+      I intend to keep contributing after GSoC. That is a journey I am genuinely grateful for.
+    </p>
+
+    <hr>
+    <p class="text-xs text-gray-500">
+      Source markdown:
+      <a href="https://gitlab.com/owasp-blt/blt-netguardian/-/blob/main/docs/final-blog-post.md">docs/final-blog-post.md</a>
+      · Crawl sync MR:
+      <a href="https://gitlab.com/owasp-blt/blt-netguardian/-/merge_requests/34">!34</a>
+      · Permission / blog MR:
+      <a href="https://gitlab.com/owasp-blt/blt-netguardian/-/merge_requests/35">!35</a>
+      · <a href="./">Work product hub</a>
+    </p>
+  
+</main>
+<footer class="border-t border-neutral-border bg-white transition-colors duration-200 dark:border-gray-800 dark:bg-dark-surface">
+  <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-4 py-6 sm:px-6 lg:flex-row lg:items-center lg:px-8">
+    <p class="text-sm text-gray-600 dark:text-gray-400">© <span id="year"></span> OWASP BLT GSoC · BLT-NetGuardian work product</p>
+    <div class="flex flex-wrap items-center gap-4 text-sm">
+      <a href="../../../gsoc2026.html" class="text-red-600 hover:underline">GSoC 2026</a>
+      <a href="https://blt-netguardian.preethampujari395.workers.dev/" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">NetGuardian demo</a>
+      <a href="https://gitlab.com/owasp-blt/blt-netguardian" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">NetGuardian repo</a>
+    </div>
+  </div>
+</footer>
+<script src="../../../js/theme.js"></script>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body></html>

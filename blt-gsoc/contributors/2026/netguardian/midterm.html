@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content="{desc}">
+  <link rel="icon" type="image/x-icon" href="../../../favicon.ico">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: '#E10101',
+            'neutral-border': '#E5E5E5',
+            'dark-base': '#111827',
+            'dark-surface': '#1F2937'
+          },
+          fontFamily: { sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+          boxShadow: { soft: '0 10px 24px -16px rgba(17, 24, 39, 0.35)' }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../../css/main.css">
+</head>
+<body class="bg-[#fafafa] font-sans text-gray-900 antialiased transition-colors duration-200 dark:bg-dark-base dark:text-gray-100">
+<header class="sticky top-0 z-50 border-b border-neutral-border bg-white transition-colors duration-200 dark:border-gray-800 dark:bg-dark-surface">
+  <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <a href="../../../index.html" class="flex items-center gap-3" aria-label="OWASP BLT GSoC Home">
+      <img src="../../../images/logo.png" alt="OWASP BLT Logo" class="h-8 w-8">
+      <div>
+        <p class="text-sm font-extrabold leading-none">OWASP BLT</p>
+        <p class="text-xs font-semibold text-gray-500">Google Summer of Code 2026</p>
+      </div>
+    </a>
+    <div class="flex items-center gap-2">
+      <button id="theme-toggle" type="button" class="theme-toggle-btn inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800" aria-label="Toggle dark mode">
+        <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+        <i class="fa-solid fa-sun hidden dark:block" aria-hidden="true"></i>
+      </button>
+      <a href="../../../gsoc2026.html" class="hidden items-center justify-center rounded-md border border-[#E10101] px-4 py-2 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:inline-flex">
+        <i class="fa-solid fa-arrow-left mr-2" aria-hidden="true"></i>GSoC 2026
+      </a>
+    </div>
+  </div>
+</header>
+<main class="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:px-6 lg:px-8 prose prose-sm sm:prose-base dark:prose-invert max-w-none">
+<div class="not-prose mb-4"><span class="inline-flex rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand dark:bg-red-950/30">Archived midterm blog</span></div>
+    <p class="nav">
+      <a href="./">← Work product</a>
+      <a href="./final.html">Final blog</a>
+      <a href="https://blt-netguardian.preethampujari395.workers.dev/">NetGuardian demo</a>
+    </p>
+    <p class="badge">ARCHIVED MIDTERM BLOG</p>
+    <h1>Midterm Update: Building a Zero-Trust Triage Path for BLT-NetGuardian</h1>
+    <p class="meta">
+      Google Summer of Code 2026 · OWASP BLT · BLT-NetGuardian<br>
+      Author: Preetham Poojari · July 2026
+    </p>
+
+    <h2>THE PROBLEM WE'RE SOLVING</h2>
+    <p>
+      Security scanners produce findings. Triage teams need to review them, understand
+      the evidence, and turn the important ones into tracked issues — without leaking
+      secrets along the way. In a zero-trust model, that means every finding should arrive
+      <strong class="font-semibold text-gray-900 dark:text-white">signed</strong>, be stored
+      <strong class="font-semibold text-gray-900 dark:text-white">encrypted</strong>, and only be decrypted
+      <strong class="font-semibold text-gray-900 dark:text-white">on authorized view</strong>, with a full audit trail.
+    </p>
+    <p>
+      At the midterm checkpoint, BLT-NetGuardian ran that path end-to-end: from signed
+      ingest through encrypted storage, server-side decrypt, triage, and conversion into
+      a BLT issue.
+    </p>
+
+    <h2>WHAT SHIPPED BY MIDTERM</h2>
+    <h3>1. Signed ingestion (ztr-finding-1)</h3>
+    <p>Findings enter through <code>POST /api/ingest</code> as <code>ztr-finding-1</code> envelopes:</p>
+    <ul>
+      <li><strong class="font-semibold text-gray-900 dark:text-white">HMAC-SHA256</strong> signature over canonical JSON</li>
+      <li><strong class="font-semibold text-gray-900 dark:text-white">Body digest</strong> (<code>X-BLT-Body-Digest</code>) so the wire payload cannot be tampered with</li>
+      <li><strong class="font-semibold text-gray-900 dark:text-white">Nonce + clock skew</strong> checks for replay protection</li>
+      <li>Support for both plaintext mode (dev) and <code>payload_ciphertext</code> (production-shaped)</li>
+    </ul>
+    <p>
+      Ingest rejects bad signatures, digest mismatches, expired timestamps, and replayed
+      nonces with structured error codes — not generic 500s.
+    </p>
+
+    <h3>2. Evidence encryption and decrypt-on-view</h3>
+    <p>
+      Evidence payloads can be stored AES-256-GCM encrypted at rest. On
+      <code>GET /api/findings/{id}</code>:
+    </p>
+    <ol>
+      <li>The server decrypts only for an authorized org token</li>
+      <li>Sensitive keys (<code>password</code>, <code>token</code>, etc.) are redacted before the response leaves the server</li>
+      <li>Access is logged as <code>decrypt_view</code> (plaintext views log as <code>view_detail</code>)</li>
+    </ol>
+    <p>
+      The triage UI shows a badge when evidence was encrypted at rest and successfully
+      decrypted — so analysts can see the cryptographic state, not just the text.
+    </p>
+
+    <h3>3. Triage dashboard</h3>
+    <p>The SPA at <code>/triage.html</code> is wired to the backend:</p>
+    <table>
+      <thead><tr><th>Capability</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Org-scoped findings list</td><td>done</td></tr>
+        <tr><td>Filters (severity, status, CVE, date range)</td><td>done</td></tr>
+        <tr><td>Priority triage queue (open critical/high, no BLT issue)</td><td>done</td></tr>
+        <tr><td>Risk-ranked severity sort</td><td>done</td></tr>
+        <tr><td>Detail panel (evidence / risk / status)</td><td>done</td></tr>
+        <tr><td>Status update via PATCH</td><td>done</td></tr>
+        <tr><td>Convert to Issue via BLT-API</td><td>done</td></tr>
+        <tr><td>CSV export with redaction</td><td>done</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4. BLT-API integration</h3>
+    <p>
+      “Convert to Issue” calls the real BLT-API client. On success, the returned issue ID
+      is stored on the finding and status moves to <code>converted</code>. The operation is
+      idempotent: converting again returns the existing issue instead of creating duplicates.
+    </p>
+
+    <h3>5. Tests and reproducibility</h3>
+    <ul>
+      <li>186 tests passing at midterm</li>
+      <li>Local demo: <code>python local_dev/serve.py</code> → <code>http://localhost:8787/triage.html</code> with token <code>triage-token</code></li>
+      <li>Live-ingest helper: <code>python local_dev/send_finding.py</code></li>
+    </ul>
+
+    <h2>MIDTERM DEMO FLOW</h2>
+    <p>From the proposal:</p>
+    <p><em>signed ingestion → Finding in DB → triage list with filters → server-side decrypt/view evidence → Convert to Issue</em></p>
+    <ol>
+      <li><strong class="font-semibold text-gray-900 dark:text-white">Ingest</strong> — seed data or <code>send_finding.py</code> posts a signed envelope</li>
+      <li><strong class="font-semibold text-gray-900 dark:text-white">List</strong> — triage UI loads org-scoped findings</li>
+      <li><strong class="font-semibold text-gray-900 dark:text-white">Detail</strong> — open encrypted finding; see redacted payload + decrypt badge + audit log</li>
+      <li><strong class="font-semibold text-gray-900 dark:text-white">Convert</strong> — BLT-API returns an issue ID; status → <code>converted</code></li>
+      <li><strong class="font-semibold text-gray-900 dark:text-white">Export</strong> — CSV with no plaintext secrets</li>
+    </ol>
+
+    <h2>LESSONS LEARNED (MIDTERM)</h2>
+    <ol>
+      <li>Sort by meaning, not alphabet — severity needs an explicit risk rank.</li>
+      <li>One source of truth for API shapes — consolidate finding row mappers.</li>
+      <li>Demo contrast beats demo decoration — show encrypted vs plaintext side by side.</li>
+      <li>Same-origin local dev matters — serve the SPA from the API process.</li>
+    </ol>
+
+    <h2>WHAT WAS NEXT AFTER MIDTERM</h2>
+    <ul>
+      <li>Cloudflare deployment with persistent D1</li>
+      <li>Detection pack (Semgrep + HTTP checks)</li>
+      <li>GitHub OAuth / verified events</li>
+      <li>Flutter client + distributed crawl</li>
+      <li>Pilot polish and documentation</li>
+    </ul>
+    <p>
+      Those items are covered in the
+      <a href="./final.html">final blog</a>.
+    </p>
+
+    <hr>
+    <p class="text-xs text-gray-500">
+      Source markdown:
+      <a href="https://gitlab.com/owasp-blt/blt-netguardian/-/blob/main/docs/midterm-blog-post.md">docs/midterm-blog-post.md</a>
+      · Midterm MR:
+      <a href="https://gitlab.com/owasp-blt/blt-netguardian/-/merge_requests/12">!12</a>
+      · <a href="./">Work product hub</a>
+    </p>
+  
+</main>
+<footer class="border-t border-neutral-border bg-white transition-colors duration-200 dark:border-gray-800 dark:bg-dark-surface">
+  <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-4 py-6 sm:px-6 lg:flex-row lg:items-center lg:px-8">
+    <p class="text-sm text-gray-600 dark:text-gray-400">© <span id="year"></span> OWASP BLT GSoC · BLT-NetGuardian work product</p>
+    <div class="flex flex-wrap items-center gap-4 text-sm">
+      <a href="../../../gsoc2026.html" class="text-red-600 hover:underline">GSoC 2026</a>
+      <a href="https://blt-netguardian.preethampujari395.workers.dev/" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">NetGuardian demo</a>
+      <a href="https://gitlab.com/owasp-blt/blt-netguardian" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">NetGuardian repo</a>
+    </div>
+  </div>
+</footer>
+<script src="../../../js/theme.js"></script>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body></html>
