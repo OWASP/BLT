@@ -6,29 +6,48 @@
   <title>Midterm Blog — GSoC 2026 BLT-NetGuardian</title>
   <meta name="description" content="Midterm blog for BLT-NetGuardian GSoC 2026.">
   <link rel="icon" type="image/x-icon" href="../../../favicon.ico">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
-    tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: '#E10101', 'neutral-border': '#E5E5E5', 'dark-base': '#111827', 'dark-surface': '#1F2937' }, fontFamily: { sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'] }, boxShadow: { soft: '0 10px 24px -16px rgba(17, 24, 39, 0.35)' } } } };
-  </script>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="../../../css/main.css">
+    <style>
+    :root { --bg:#fafafa; --fg:#111; --muted:#444; --brand:#E10101; --border:#e5e5e5; --card:#fff; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#111827; --fg:#f3f4f6; --muted:#9ca3af; --border:#374151; --card:#1f2937; }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--fg); line-height:1.55; }
+    a { color: var(--brand); }
+    header { position:sticky; top:0; z-index:10; border-bottom:1px solid var(--border); background:var(--card); }
+    header > div { max-width:56rem; margin:0 auto; padding:0.85rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+    header img { width:2rem; height:2rem; }
+    main { max-width:56rem; margin:0 auto; padding:1.25rem 1rem 3rem; }
+    h1 { font-size:1.6rem; line-height:1.25; margin:0.5rem 0 1rem; }
+    h2 { font-size:1.15rem; color:var(--brand); margin:1.75rem 0 0.6rem; }
+    h3 { font-size:1rem; margin:1.25rem 0 0.4rem; }
+    p, li { color:var(--muted); font-size:0.95rem; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:0.82rem; word-break:break-word; background:rgba(0,0,0,.05); padding:0.1rem 0.25rem; border-radius:0.25rem; }
+    pre { overflow:auto; background:var(--card); border:1px solid var(--border); border-radius:0.5rem; padding:0.85rem; font-size:0.8rem; }
+    pre code { background:transparent; padding:0; }
+    ul, ol { padding-left:1.2rem; }
+    blockquote { border-left:4px solid var(--brand); margin:1rem 0; padding-left:0.85rem; color:var(--muted); }
+    hr { border:0; border-top:1px solid var(--border); margin:1.5rem 0; }
+    table { width:100%; border-collapse:collapse; font-size:0.85rem; margin:1rem 0; }
+    th, td { border:1px solid var(--border); padding:0.5rem; text-align:left; color:var(--muted); }
+    th { color:var(--fg); }
+    footer { border-top:1px solid var(--border); background:var(--card); padding:1rem; font-size:0.85rem; color:var(--muted); }
+    .nav { display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem; font-size:0.9rem; }
+  </style>
 </head>
-<body class="bg-[#fafafa] font-sans text-gray-900 antialiased transition-colors duration-200 dark:bg-dark-base dark:text-gray-100">
-<header class="sticky top-0 z-50 border-b border-neutral-border bg-white dark:border-gray-800 dark:bg-dark-surface">
-  <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-    <a href="../../../index.html" class="flex items-center gap-3"><img src="../../../images/logo.png" alt="OWASP BLT" class="h-8 w-8"><div><p class="text-sm font-extrabold leading-none">OWASP BLT</p><p class="text-xs font-semibold text-gray-500">GSoC 2026</p></div></a>
-    <a href="../../../gsoc2026.html" class="hidden sm:inline-flex items-center rounded-md border border-brand px-4 py-2 text-sm font-semibold text-brand hover:bg-brand hover:text-white"><i class="fa-solid fa-arrow-left mr-2"></i>GSoC 2026</a>
+<body>
+<header>
+  <div>
+    <a href="../../../index.html" style="display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:inherit"><img src="../../../images/logo.png" alt="OWASP BLT"><div><p style="margin:0;font-size:0.9rem;font-weight:800">OWASP BLT</p><p style="margin:0;font-size:0.75rem;color:var(--muted)">GSoC 2026</p></div></a>
+    <a href="../../../gsoc2026.html" style="border:1px solid var(--brand);color:var(--brand);text-decoration:none;padding:0.4rem 0.75rem;border-radius:0.4rem;font-size:0.85rem;font-weight:600">GSoC 2026</a>
   </div>
 </header>
-<main class="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-<div class="not-prose mb-6 flex flex-wrap gap-3 text-sm">
-  <a href="./" class="text-brand hover:underline">← Work product</a>
-  <a href="final.html" class="text-brand hover:underline">Final blog</a>
-  <a href="https://blt-netguardian.preethampujari395.workers.dev/" target="_blank" rel="noopener" class="text-brand hover:underline">NetGuardian demo</a>
-  <a href="midterm.md" class="text-brand hover:underline">Markdown source</a>
+<main>
+<div class="nav">
+  <a href="./">← Work product</a>
+  <a href="final.html">Final blog</a>
+  <a href="https://blt-netguardian.preethampujari395.workers.dev/" target="_blank" rel="noopener">NetGuardian demo</a>
+  <a href="midterm.md">Markdown source</a>
 </div>
 <h1 class="text-3xl font-extrabold mt-2 mb-4">Midterm Update: Building a Zero-Trust Triage Path for BLT-NetGuardian</h1>
 <p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300"><strong>Google Summer of Code 2026 · OWASP BLT · BLT-NetGuardian</strong>  </p>
@@ -127,6 +146,5 @@ python3 -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements.txt
 <footer class="border-t border-neutral-border bg-white dark:border-gray-800 dark:bg-dark-surface">
   <div class="mx-auto max-w-7xl px-4 py-6 text-sm text-gray-600 dark:text-gray-400 sm:px-6">© <span id="year"></span> OWASP BLT GSoC · BLT-NetGuardian</div>
 </footer>
-<script src="../../../js/theme.js"></script>
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body></html>
