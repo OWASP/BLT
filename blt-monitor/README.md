@@ -1,5 +1,8 @@
 # Website Monitor
 
+**Live Site:** [https://monitor.owaspblt.org/](https://monitor.owaspblt.org/)<br>
+**Source Code:** [https://gitlab.com/owasp-blt/blt-monitor](https://gitlab.com/owasp-blt/blt-monitor)
+
 A Cloudflare Python Worker website monitor. It checks website availability and
 content every twenty minutes, stores recent history in Workers KV, and provides a
 visual dashboard with a compact list view and detailed monitor pages.
