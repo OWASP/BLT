@@ -36,8 +36,8 @@ async def handle_health(
             "repos": "/repos"
         },
         "links": {
-            "github": "https://github.com/OWASP-BLT/BLT",
+            "github": "https://gitlab.com/owasp-blt/blt",
             "website": "https://owaspblt.org",
-            "documentation": "https://github.com/OWASP-BLT/BLT-API"
+            "documentation": "https://gitlab.com/owasp-blt/blt-api"
         }
     })

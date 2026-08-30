@@ -44,7 +44,7 @@ class TestListRepos:
         db = MockDB()
         db.queue_first({"total": 2})
         db.set_all([
-            {"id": 1, "organization_id": 1, "project_id": 1, "name": "BLT", "url": "https://github.com/OWASP-BLT/BLT"},
+            {"id": 1, "organization_id": 1, "project_id": 1, "name": "BLT", "url": "https://gitlab.com/owasp-blt/blt"},
             {"id": 2, "organization_id": 1, "project_id": 1, "name": "blt-api", "url": "https://gitlab.com/owasp-blt/blt-api"},
         ])
         with patch("handlers.repos.get_db_safe", AsyncMock(return_value=db)):

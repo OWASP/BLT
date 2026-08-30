@@ -1,5 +1,10 @@
 # BLT-API
 
+**Live Site:** [https://api.owaspblt.org/](https://api.owaspblt.org/)<br>
+**Source Code:** [https://gitlab.com/owasp-blt/blt-api](https://gitlab.com/owasp-blt/blt-api)
+
+<p align="center"><img src="logo.png" alt="blt-api logo" width="160" height="160"></p>
+
 <p align="center">
   <strong>Full-featured REST API for OWASP BLT running on Cloudflare Workers</strong>
 </p>
@@ -13,7 +18,7 @@
 </p>
 
 <p align="center">
-  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/OWASP-BLT/BLT-API">
+  <a href="https://deploy.workers.cloudflare.com/?url=https://gitlab.com/owasp-blt/blt-api">
     <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare Workers" />
   </a>
 </p>
@@ -22,7 +27,7 @@
 
 ## Overview
 
-BLT-API is a high-performance, edge-deployed REST API that interfaces with all aspects of the [OWASP BLT (Bug Logging Tool)](https://github.com/OWASP-BLT/BLT) project. Built using Python on Cloudflare Workers, it provides efficient, globally-distributed access to BLT's bug bounty platform.
+BLT-API is a high-performance, edge-deployed REST API that interfaces with all aspects of the [OWASP BLT (Bug Logging Tool)](https://gitlab.com/owasp-blt/blt) project. Built using Python on Cloudflare Workers, it provides efficient, globally-distributed access to BLT's bug bounty platform.
 
 ## Features
 
@@ -47,7 +52,7 @@ BLT-API is a high-performance, edge-deployed REST API that interfaces with all a
 
 ```bash
 # Clone the repository
-git clone https://github.com/OWASP-BLT/BLT-API.git
+git clone https://gitlab.com/owasp-blt/blt-api.git
 cd BLT-API
 
 # Install dependencies
@@ -63,7 +68,7 @@ Follow these steps to quickly set up and run the project locally in one place (c
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/OWASP-BLT/BLT-API.git
+git clone https://gitlab.com/owasp-blt/blt-api.git
 cd BLT-API
 ```
 
@@ -794,7 +799,7 @@ For database changes, see [docs/DATABASE.md](docs/DATABASE.md).
 
 ## Related Projects
 
-- [OWASP BLT](https://github.com/OWASP-BLT/BLT) - Main BLT project
+- [OWASP BLT](https://gitlab.com/owasp-blt/blt) - Main BLT project
 - [BLT Website](https://owaspblt.org) - Live BLT platform
 
 ## License
@@ -805,7 +810,7 @@ This project is licensed under the AGPL-3.0 License - see the [LICENSE](LICENSE)
 
 - 💬 [OWASP Slack](https://owasp.org/slack/invite) - Join #project-blt
 - 🐛 [GitHub Issues](https://github.com/OWASP-BLT/BLT-API/issues) - Report bugs
-- 📖 [BLT Documentation](https://github.com/OWASP-BLT/BLT/blob/main/README.md)
+- 📖 [BLT Documentation](https://gitlab.com/owasp-blt/blt/-/blob/main/README.md)
 
 ---
 
