@@ -57,7 +57,7 @@ jobs:
           fetch-depth: 0
       - name: Pull upstream
         run: |
-          git remote add upstream https://github.com/OWASP-BLT/BLT-CVE.git
+          git remote add upstream https://gitlab.com/owasp-blt/blt-cve
           git fetch upstream
           git merge upstream/main --ff-only
           git push origin main

@@ -1,5 +1,10 @@
 # BLT-CVE: Decentralized, Federated Vulnerability Registry
 
+**Live Site:** [https://cve.owaspblt.org/](https://cve.owaspblt.org/)<br>
+**Source Code:** [https://gitlab.com/owasp-blt/blt-cve](https://gitlab.com/owasp-blt/blt-cve)
+
+<p align="center"><img src="logo.png" alt="blt-cve logo" width="160" height="160"></p>
+
 A standards-driven, machine-readable, cryptographically verifiable, federated vulnerability namespace that runs entirely on **Cloudflare static hosting** and automation — no backend required.
 
 > ⚠️ BLT IDs are **not** MITRE-issued CVE IDs. They are community-assigned identifiers within the OWASP BLT ecosystem. Always cross-reference with official CVE sources for production security decisions.
