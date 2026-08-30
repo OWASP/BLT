@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Midterm Blog — GSoC 2026 BLT-NetGuardian</title>
+  <meta name="description" content="Midterm blog for BLT-NetGuardian GSoC 2026.">
+  <link rel="icon" type="image/x-icon" href="../../../favicon.ico">
+    <style>
+    :root { --bg:#fafafa; --fg:#111; --muted:#444; --brand:#E10101; --border:#e5e5e5; --card:#fff; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#111827; --fg:#f3f4f6; --muted:#9ca3af; --border:#374151; --card:#1f2937; }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--fg); line-height:1.55; }
+    a { color: var(--brand); }
+    header { position:sticky; top:0; z-index:10; border-bottom:1px solid var(--border); background:var(--card); }
+    header > div { max-width:56rem; margin:0 auto; padding:0.85rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+    header img { width:2rem; height:2rem; }
+    main { max-width:56rem; margin:0 auto; padding:1.25rem 1rem 3rem; }
+    h1 { font-size:1.6rem; line-height:1.25; margin:0.5rem 0 1rem; }
+    h2 { font-size:1.15rem; color:var(--brand); margin:1.75rem 0 0.6rem; }
+    h3 { font-size:1rem; margin:1.25rem 0 0.4rem; }
+    p, li { color:var(--muted); font-size:0.95rem; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:0.82rem; word-break:break-word; background:rgba(0,0,0,.05); padding:0.1rem 0.25rem; border-radius:0.25rem; }
+    pre { overflow:auto; background:var(--card); border:1px solid var(--border); border-radius:0.5rem; padding:0.85rem; font-size:0.8rem; }
+    pre code { background:transparent; padding:0; }
+    ul, ol { padding-left:1.2rem; }
+    blockquote { border-left:4px solid var(--brand); margin:1rem 0; padding-left:0.85rem; color:var(--muted); }
+    hr { border:0; border-top:1px solid var(--border); margin:1.5rem 0; }
+    table { width:100%; border-collapse:collapse; font-size:0.85rem; margin:1rem 0; }
+    th, td { border:1px solid var(--border); padding:0.5rem; text-align:left; color:var(--muted); }
+    th { color:var(--fg); }
+    footer { border-top:1px solid var(--border); background:var(--card); padding:1rem; font-size:0.85rem; color:var(--muted); }
+    .nav { display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem; font-size:0.9rem; }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <a href="../../../index.html" style="display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:inherit"><img src="../../../images/logo.png" alt="OWASP BLT"><div><p style="margin:0;font-size:0.9rem;font-weight:800">OWASP BLT</p><p style="margin:0;font-size:0.75rem;color:var(--muted)">GSoC 2026</p></div></a>
+    <a href="../../../gsoc2026.html" style="border:1px solid var(--brand);color:var(--brand);text-decoration:none;padding:0.4rem 0.75rem;border-radius:0.4rem;font-size:0.85rem;font-weight:600">GSoC 2026</a>
+  </div>
+</header>
+<main>
+<div class="nav">
+  <a href="./">← Work product</a>
+  <a href="final.html">Final blog</a>
+  <a href="https://blt-netguardian.preethampujari395.workers.dev/" target="_blank" rel="noopener">NetGuardian demo</a>
+  <a href="midterm.md">Markdown source</a>
+</div>
+<h1 class="text-3xl font-extrabold mt-2 mb-4">Midterm Update: Building a Zero-Trust Triage Path for BLT-NetGuardian</h1>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300"><strong>Google Summer of Code 2026 · OWASP BLT · BLT-NetGuardian</strong>  </p>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300"><strong>Author:</strong> Preetham Poojari · July 2026</p>
+<blockquote class="border-l-4 border-brand pl-4 text-gray-600 dark:text-gray-400 my-4">Archived on the GSoC work-product page: <a href="midterm.html">midterm.html</a></blockquote>
+<hr class="my-8 border-neutral-border dark:border-gray-700">
+<h2 class="text-xl font-extrabold mt-8 mb-3 text-brand">The problem we&#x27;re solving</h2>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">Security scanners produce findings. Triage teams need to review them, understand the evidence, and turn the important ones into tracked issues — without leaking secrets along the way. In a zero-trust model, that means every finding should arrive <strong>signed</strong>, be stored <strong>encrypted</strong>, and only be decrypted <strong>on authorized view</strong>, with a full audit trail.</p>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">At the midterm checkpoint, BLT-NetGuardian now runs that path end-to-end: from signed ingest through encrypted storage, server-side decrypt, triage, and conversion into a BLT issue.</p>
+<hr class="my-8 border-neutral-border dark:border-gray-700">
+<h2 class="text-xl font-extrabold mt-8 mb-3 text-brand">What shipped by midterm</h2>
+<h3 class="text-lg font-bold mt-6 mb-2">1. Signed ingestion (<code>ztr-finding-1</code>)</h3>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">Findings enter through <code>POST /api/ingest</code> as <code>ztr-finding-1</code> envelopes:</p>
+<ul class="list-disc pl-6 my-4 space-y-1"><li><strong>HMAC-SHA256</strong> signature over canonical JSON</li><li><strong>Body digest</strong> (<code>X-BLT-Body-Digest</code>) so the wire payload cannot be tampered with</li><li><strong>Nonce + clock skew</strong> checks for replay protection</li><li>Support for both <strong>plaintext mode</strong> (dev) and <strong><code>payload_ciphertext</code></strong> (production-shaped)</li></ul>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">Ingest rejects bad signatures, digest mismatches, expired timestamps, and replayed nonces with structured error codes — not generic 500s.</p>
+<h3 class="text-lg font-bold mt-6 mb-2">2. Evidence encryption and decrypt-on-view</h3>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">This was the biggest midterm gap to close. Evidence payloads can now be stored <strong>AES-256-GCM encrypted at rest</strong>. On <code>GET /api/findings/{id}</code>:</p>
+<ol class="list-decimal pl-6 my-4 space-y-1"><li>The server decrypts only for an authorized org token</li><li>Sensitive keys (<code>password</code>, <code>token</code>, etc.) are <strong>redacted</strong> before the response leaves the server</li><li>Access is logged as <strong><code>decrypt_view</code></strong> (plaintext views log as <code>view_detail</code>)</li></ol>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">The triage UI shows a badge when evidence was encrypted at rest and successfully decrypted — so analysts can see the cryptographic state, not just the text.</p>
+<h3 class="text-lg font-bold mt-6 mb-2">3. Triage dashboard (live, same-origin)</h3>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">The SPA at <code>/triage.html</code> is fully wired to the backend:</p>
+<table class="w-full border-collapse text-sm my-4 border border-neutral-border dark:border-gray-700"><tbody><tr><th>Capability</th><th>Status</th></tr><tr><td>Org-scoped findings list</td><td>✅</td></tr><tr><td>Filters (severity, status, CVE, date range)</td><td>✅</td></tr><tr><td>Priority triage queue (open critical/high, no BLT issue)</td><td>✅</td></tr><tr><td>Risk-ranked severity sort</td><td>✅</td></tr><tr><td>Detail panel (evidence / risk / status tabs)</td><td>✅</td></tr><tr><td>Status update via PATCH</td><td>✅</td></tr><tr><td>Convert to Issue via <strong>BLT-API</strong></td><td>✅</td></tr><tr><td>CSV export with redaction</td><td>✅</td></tr><tr><td>BLT-API health probe in UI</td><td>✅</td></tr></tbody></table>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">Nothing on the dashboard is decorative — connection status, badges, and actions all reflect real API state.</p>
+<h3 class="text-lg font-bold mt-6 mb-2">4. BLT-API integration</h3>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">&quot;Convert to Issue&quot; calls the real BLT-API client. On success, the returned issue ID is stored on the finding and status moves to <code>converted</code>. The operation is <strong>idempotent</strong>: converting again returns the existing issue instead of creating duplicates.</p>
+<h3 class="text-lg font-bold mt-6 mb-2">5. Tests and reproducibility</h3>
+<ul class="list-disc pl-6 my-4 space-y-1"><li><strong>186 tests</strong> passing (ingest verification, crypto roundtrip, encrypted ingest → decrypt e2e, findings API, PATCH, filters, sort)</li><li>Local dev is one command: <code>python local_dev/serve.py</code> → open <code>http://localhost:8787/triage.html</code> with token <code>triage-token</code></li><li>Optional BLT-API stub on port 8788 for live convert-to-issue demos</li><li>Live-ingest helper: <code>python local_dev/send_finding.py</code> posts a fresh signed+encrypted finding through the real pipeline (useful for screen recordings)</li></ul>
+<hr class="my-8 border-neutral-border dark:border-gray-700">
+<h2 class="text-xl font-extrabold mt-8 mb-3 text-brand">Architecture (midterm slice)</h2>
+<pre class="overflow-x-auto rounded-lg border border-neutral-border bg-gray-50 p-4 text-xs dark:border-gray-700 dark:bg-dark-surface"><code>
+flowchart LR
+  Scanner[Scanner / Agent] --&gt;|signed ztr-finding-1| Ingest[&quot;POST /api/ingest&quot;]
+  Ingest --&gt; D1[(D1 / SQLite)]
+  D1 --&gt; List[&quot;GET /api/findings&quot;]
+  D1 --&gt; Detail[&quot;GET /api/findings/{id}&quot;]
+  Detail --&gt;|decrypt + redact + audit| UI[Triage SPA]
+  UI --&gt;|PATCH status| D1
+  UI --&gt;|POST convert-to-issue| BLT[BLT-API]
+  BLT --&gt; D1
+  UI --&gt;|GET export.csv| D1
+</code></pre>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300"><strong>Stack:</strong> Cloudflare Python Worker (<code>BLTWorker</code>) + D1-compatible store + static SPA in <code>public/</code>. Locally, <code>serve.py</code> bridges the same worker logic to an in-memory SQLite stand-in so the full flow is testable without a Cloudflare deploy.</p>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300"><strong>Security invariants we enforce today:</strong></p>
+<ul class="list-disc pl-6 my-4 space-y-1"><li>Org isolation on every findings route (Bearer token → <code>org_id</code>)</li><li>No plaintext secrets in API responses or CSV export</li><li>Decrypt events are auditable (<code>decrypt_view</code> in access logs)</li><li>Ingest never stores raw ciphertext as readable JSON without the wrapper format</li></ul>
+<hr class="my-8 border-neutral-border dark:border-gray-700">
+<h2 class="text-xl font-extrabold mt-8 mb-3 text-brand">Midterm demo flow</h2>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">The checkpoint from the proposal is:</p>
+<blockquote class="border-l-4 border-brand pl-4 text-gray-600 dark:text-gray-400 my-4">signed ingestion → Finding in DB → triage list with filters → server-side decrypt/view evidence → Convert to Issue with CVE autopopulated</blockquote>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">That flow is demonstrable today:</p>
+<ol class="list-decimal pl-6 my-4 space-y-1"><li><strong>Ingest</strong> — seed data or <code>send_finding.py</code> posts a signed envelope; server returns <code>201 created</code></li><li><strong>List</strong> — triage UI loads org-scoped findings with filters and sort</li><li><strong>Detail</strong> — open the encrypted finding (<code>semgrep.python.sql-injection</code>); see redacted payload + decrypt badge + audit log</li><li><strong>Convert</strong> — click Convert to Issue; BLT-API returns an issue ID; finding status → <code>converted</code></li><li><strong>Export</strong> — CSV download with no plaintext secrets</li></ol>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">A shot-by-shot recording script lives in the repo: the midterm demo script (local working notes).</p>
+<hr class="my-8 border-neutral-border dark:border-gray-700">
+<h2 class="text-xl font-extrabold mt-8 mb-3 text-brand">Code delivery</h2>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">Work is in <strong><a href="https://gitlab.com/owasp-blt/blt-netguardian/-/merge_requests/12">MR !12</a></strong> on <code>owasp-blt/blt-netguardian</code> (branch <code>gsoc/evidence-encryption</code>), including:</p>
+<ol class="list-decimal pl-6 my-4 space-y-1"><li>AES-256-GCM evidence encryption + decrypt-on-view</li><li>Wording fix for ciphertext ingest validation</li><li>Findings API hardening (risk-ranked severity sort, deduplicated row mapper, PATCH 400 on bad JSON)</li></ol>
+<hr class="my-8 border-neutral-border dark:border-gray-700">
+<h2 class="text-xl font-extrabold mt-8 mb-3 text-brand">What we intentionally deferred</h2>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">Honest scope boundaries for the second half of GSoC:</p>
+<table class="w-full border-collapse text-sm my-4 border border-neutral-border dark:border-gray-700"><tbody><tr><th>Item</th><th>Why deferred</th></tr><tr><td><strong>Cloudflare deployment</strong> (Worker + persistent D1)</td><td>Final deliverable; local path is reproducible for midterm</td></tr><tr><td><strong>Workers WebCrypto adapter</strong></td><td>Local/dev uses Python <code>cryptography</code>; port for production runtime</td></tr><tr><td><strong>GitHub OAuth / PKCE</strong></td><td>Org Bearer token auth works for midterm; OAuth is a larger auth slice</td></tr><tr><td><strong>Flutter desktop client</strong></td><td>Server contracts are stable; client can integrate later</td></tr><tr><td><strong>Verified events webhook</strong></td><td>Week 11 milestone</td></tr><tr><td><strong>Detection MVP</strong> (Semgrep + HTTP checks)</td><td>Week 7–9 milestone</td></tr><tr><td><strong>PDF export</strong></td><td>Week 12, timeboxed</td></tr></tbody></table>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">These are schedule choices, not unknowns — the midterm slice is the <strong>trust + triage backbone</strong>; the second half adds scanners, events, deployment, and polish.</p>
+<hr class="my-8 border-neutral-border dark:border-gray-700">
+<h2 class="text-xl font-extrabold mt-8 mb-3 text-brand">Lessons learned</h2>
+<ol class="list-decimal pl-6 my-4 space-y-1"><li><strong>Sort by meaning, not alphabet.</strong> Severity is a category. Lexical sort put <code>medium</code> above <code>critical</code>. We fixed it with an explicit risk rank in SQL — a small bug that would have confused every analyst using &quot;Severity (high first).&quot;</li></ol>
+<ol class="list-decimal pl-6 my-4 space-y-1"><li><strong>One source of truth for API shapes.</strong> The finding object was duplicated in three places. Consolidating to <code>finding_row_to_item()</code> prevented detail and PATCH from drifting apart.</li></ol>
+<ol class="list-decimal pl-6 my-4 space-y-1"><li><strong>Demo contrast beats demo decoration.</strong> Seeding one encrypted and two plaintext findings lets you <em>show</em> decrypt-on-view is real (badge + <code>decrypt_view</code> audit) instead of claiming it in slides.</li></ol>
+<ol class="list-decimal pl-6 my-4 space-y-1"><li><strong>Same-origin local dev matters.</strong> Serving the SPA from <code>serve.py</code> (not <code>file://</code> or a separate Live Server) avoids CORS/auth confusion and matches how the Worker will serve <code>public/</code> in production.</li></ol>
+<hr class="my-8 border-neutral-border dark:border-gray-700">
+<h2 class="text-xl font-extrabold mt-8 mb-3 text-brand">What&#x27;s next (Weeks 7–12)</h2>
+<ul class="list-disc pl-6 my-4 space-y-1"><li>Merge MR !12 and deploy to Cloudflare with persistent D1</li><li>Detection pack: Semgrep rules + HTTP checks feeding the ingest pipeline</li><li>GitHub OAuth for triage sessions</li><li>Verified events for Rewards / RepoTrust downstream</li><li>Flutter client against the stable ingest contract</li><li>Pilot with a first org and metrics (time-to-triage, FP/FN on fixtures)</li></ul>
+<hr class="my-8 border-neutral-border dark:border-gray-700">
+<h2 class="text-xl font-extrabold mt-8 mb-3 text-brand">Try it yourself</h2>
+<pre class="overflow-x-auto rounded-lg border border-neutral-border bg-gray-50 p-4 text-xs dark:border-gray-700 dark:bg-dark-surface"><code>
+git clone https://gitlab.com/owasp-blt/blt-netguardian.git
+cd blt-netguardian
+git checkout gsoc/evidence-encryption
+python3 -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements.txt
+
+# Terminal A
+.venv/bin/python local_dev/blt_api_stub.py
+
+# Terminal B
+.venv/bin/python local_dev/serve.py
+</code></pre>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">Open <strong>http://localhost:8787/triage.html</strong> · token: <code>triage-token</code></p>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">Post a live finding:</p>
+<pre class="overflow-x-auto rounded-lg border border-neutral-border bg-gray-50 p-4 text-xs dark:border-gray-700 dark:bg-dark-surface"><code>
+.venv/bin/python local_dev/send_finding.py
+</code></pre>
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300">Refresh the UI — a new <code>zap.ssrf</code> critical finding should appear, encrypted at rest.</p>
+<hr class="my-8 border-neutral-border dark:border-gray-700">
+<h2 class="text-xl font-extrabold mt-8 mb-3 text-brand">Links</h2>
+<ul class="list-disc pl-6 my-4 space-y-1"><li>Repo: <a href="https://gitlab.com/owasp-blt/blt-netguardian">gitlab.com/owasp-blt/blt-netguardian</a></li><li>Midterm MR: <a href="https://gitlab.com/owasp-blt/blt-netguardian/-/merge_requests/12">!12 — Evidence encryption + findings API hardening</a></li><li>Production (future): <a href="https://netguardian.owaspblt.org">netguardian.owaspblt.org</a></li></ul>
+<hr class="my-8 border-neutral-border dark:border-gray-700">
+<p class="my-3 leading-relaxed text-gray-700 dark:text-gray-300"><em>Questions or feedback welcome on the MR or OWASP BLT channels.</em></p>
+</main>
+<footer class="border-t border-neutral-border bg-white dark:border-gray-800 dark:bg-dark-surface">
+  <div class="mx-auto max-w-7xl px-4 py-6 text-sm text-gray-600 dark:text-gray-400 sm:px-6">© <span id="year"></span> OWASP BLT GSoC · BLT-NetGuardian</div>
+</footer>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body></html>
