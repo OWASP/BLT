@@ -95,7 +95,13 @@ Nachiket made Model Context Protocol practical for the BLT contributor ecosystem
 
 With **88 coding-period commits**, Nachiket delivered one of the summer’s most active repositories. The live service makes the work immediately discoverable to both contributors and tool builders.
 
-![BLT-MCP live site](https://gsoc.owaspblt.org/blog/gsoc-2026/screenshots/07-mcp.png)
+**BLT-MCP project experience**
+
+![BLT-MCP project experience](https://gsoc.owaspblt.org/blog/gsoc-2026/screenshots/07-mcp-site.png)
+
+**BLT-MCP live CLI and vulnerability triage view**
+
+![BLT-MCP live CLI and vulnerability triage view](https://gsoc.owaspblt.org/blog/gsoc-2026/screenshots/07-mcp-cli.png)
 
 [Explore BLT-MCP](https://mcp.owaspblt.org/) · [Source code](https://gitlab.com/owasp-blt/blt-mcp)
 
