@@ -1,6 +1,6 @@
 ---
 title: "Eleven Projects, One Remarkable Team: Celebrating OWASP BLT’s GSoC 2026"
-published: false
+published: true
 description: "Meet the contributors and mentors who turned OWASP BLT’s 2026 summer into working security tools, learning platforms, and edge-native infrastructure."
 tags: opensource, security, gsoc, webdev
 cover_image: https://gsoc.owaspblt.org/blog/gsoc-2026/assets/owasp-blt-gsoc-2026-hero.png
