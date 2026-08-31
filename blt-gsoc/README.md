@@ -1,5 +1,10 @@
 # BLT-GSOC
 
+**Live Site:** [https://gsoc.owaspblt.org/](https://gsoc.owaspblt.org/)<br>
+**Source Code:** [https://gitlab.com/owasp-blt/blt-gsoc](https://gitlab.com/owasp-blt/blt-gsoc)
+
+<p align="center"><img src="logo.png" alt="blt-gsoc logo" width="160" height="160"></p>
+
 This repository contains the Google Summer of Code (GSoC) pages for the OWASP BLT project, hosted as a static GitHub Pages site.
 
 ## 🌐 Live Site
@@ -128,6 +133,6 @@ This project is part of the OWASP BLT project and inherits its license.
 
 ## 🔗 Related Links
 
-- **Main BLT Repository**: [OWASP-BLT/BLT](https://github.com/OWASP-BLT/BLT)
+- **Main BLT Repository**: [OWASP-BLT/BLT](https://gitlab.com/owasp-blt/blt)
 - **OWASP GSoC Info**: [owasp.org/www-community/initiatives/gsoc/](https://owasp.org/www-community/initiatives/gsoc/)
 - **Google Summer of Code**: [summerofcode.withgoogle.com](https://summerofcode.withgoogle.com/)

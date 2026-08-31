@@ -5,4 +5,4 @@ name = "blt-gsoc"
 compatibility_date = "2026-06-11"
 
 [assets]
-directory = "."
+directory = "./public"
