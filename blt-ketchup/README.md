@@ -1,0 +1,2 @@
+# BLT-Ketchup
+BLT Penetration Testing Collaboration Workspace A real-time collaboration environment for red-team engagements where multiple pentesters can share findings, tag team members, and escalate issues directly to BLT. Think "Google Docs for pentest reports" with built-in CVSS scoring and evidence management.

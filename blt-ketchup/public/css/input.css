@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Thin custom scrollbar for sidebar */
+.sidebar-scroll::-webkit-scrollbar { width: 4px; }
+.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 9999px; }
+
+/* Blinking cursor for collaborative presence */
+@keyframes blink { 50% { opacity: 0; } }
+.cursor-blink { animation: blink 1s step-end infinite; }
