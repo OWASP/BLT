@@ -56,7 +56,7 @@ Also check out other BLT projects!
 - [OWASP/BLT](https://www.github.com/OWASP/BLT)
 - [OWASP/BLT-Extension](https://www.github.com/OWASP/BLT-Extension)
 - [OWASP/BLT-Bacon](https://www.github.com/OWASP/BLT-Bacon)
-- [OWASP/BLT-Action](https://www.github.com/OWASP/BLT-Action)  
+- [OWASP/BLT-Action](https://www.github.com/OWASP/BLT-Action)<br>
 
 ### License
 The BLT-Flutter code is released under [BSD 3-Clause "New" or "Revised" License](https://github.com/OWASP/BLT-Flutter/blob/main/LICENSE).
