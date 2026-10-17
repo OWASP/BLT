@@ -1,0 +1,91 @@
+# Ported from blt-university/.github/workflows/course-submission.yml (runs inside blt-university/)
+name: 'blt-university: Process Course Submission'
+on:
+  issues:
+    types:
+    - opened
+    - labeled
+defaults:
+  run:
+    working-directory: blt-university
+jobs:
+  process-course-submission:
+    if: |
+      contains(github.event.issue.labels.*.name, 'course-submission') ||
+      startsWith(github.event.issue.title, '[COURSE]')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Add course submission labels
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const currentLabels = context.payload.issue.labels.map(label => label.name);
+          const requiredLabels = ['course-submission', 'instructor'];
+          const labelsToAdd = requiredLabels.filter(label => !currentLabels.includes(label));
+
+          if (labelsToAdd.length > 0) {
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: labelsToAdd
+            });
+          }
+    - name: Add welcome comment
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const comment = `🎓 Thank you for your course submission, @${context.payload.issue.user.login}!
+
+          We're excited to review your course proposal. Here's what happens next:
+
+          ## Review Process
+
+          1. **Initial Review (3-5 days)**: Our curriculum team will review your proposal
+          2. **Feedback Round**: We may request clarifications or suggest improvements
+          3. **Approval**: Once approved, you'll be guided through the course creation process
+          4. **Publishing**: Your course will be added to the BLT University catalog
+
+          ## Next Steps
+
+          While you wait:
+          - 📝 Start preparing your course materials
+          - 🔍 Review existing courses for format reference
+          - 📖 Read our [Instructor Guide](${context.payload.repository.html_url}/blob/main/contributing.html)
+          - 💬 Join our instructor discussions
+
+          ## Resources for Instructors
+
+          - [Course Template](${context.payload.repository.html_url}/tree/main/_courses)
+          - [Style Guide](${context.payload.repository.html_url}/blob/main/CONTRIBUTING.md)
+          - [Instructor Handbook](${context.payload.repository.html_url}/wiki/Instructor-Handbook)
+
+          Thank you for contributing to open-source security education! 🌟`;
+
+          github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body: comment
+          });
+    - name: Add review labels
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.addLabels({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            labels: ['under-review', 'instructor-application']
+          });
+    - name: Assign to curriculum team
+      uses: actions/github-script@v7
+      with:
+        script: |
+          // In production, assign to actual curriculum team members
+          console.log('Course submission received and will be reviewed by the curriculum team');

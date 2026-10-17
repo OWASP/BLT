@@ -1,0 +1,29 @@
+# project	toolchain	command (bash, run inside the project folder; Python commands run in a fresh virtualenv)
+blt-action	node	npm_install && npm test
+blt-api	python	pip install -e '.[dev]' && python -m pytest -q
+blt-byte	python	pip install -e . --group dev && python -m pytest tests/ -q
+blt-cli	rust	cargo test --quiet
+blt-core	python	export SECRET_KEY=ci-test-secret-key DATABASE_URL=sqlite:///db.sqlite3 && pip install poetry && poetry install --with dev && poetry run python manage.py collectstatic --noinput && $(command -v xvfb-run >/dev/null && echo 'xvfb-run --auto-servernum') poetry run python manage.py test --parallel --failfast
+blt-cve	python	pip install jsonschema && python scripts/validate_cves.py && python scripts/build_index.py && git diff --exit-code -I '"updated"' -- public/index.json public/feed.json; rc=$?; git checkout -- public/index.json public/feed.json; exit $rc
+blt-extension	node	npm_install && npm test
+blt-flutter	flutter	flutter pub get && flutter test
+blt-jobs	node	npm_install && npm test
+blt-leaf	node	npm_install && npm test
+blt-lettuce	python	pip install pytest pytest-cov pytest-asyncio && PYTHONPATH=src python -m pytest tests/ -q
+blt-mayo	python	pip install -e '.[dev]' && python -m pytest -q
+blt-mcp	python	pip install -e '.[dev]' && python -m pytest -q
+blt-netguardian	python	pip install -r requirements-dev.txt && python -m pytest -q
+blt-netguardian-client	flutter	flutter pub get && flutter test
+blt-newsletter	python	pip install --group dev && python -m unittest discover -s tests
+blt-pool	python	pip install pytest && python -m compileall -q src/worker.py && python -m pytest test_worker.py -q
+blt-preflight	python	pip install -r requirements.txt && python -m pytest -q
+blt-safecloak	python	npm_install && pip install -r requirements-dev.txt && python -m playwright install chromium --with-deps && python -m pytest tests/ -q
+blt-sammich	python	pip install pytest pytest-asyncio && python -m pytest tests/ -q
+blt-sizzle	python	pip install pytest && python -m pytest tests/ -q
+blt-timer-flutter	flutter	flutter pub get && flutter test
+blt-timer-web	python	pip install pytest && python -m pytest tests/ -q
+blt-toasty	python	pip install --group dev && python -m pytest -q
+blt-university	node	npm_install && npm test
+blt-vanish	python	cd cloudflare_workers && python -m compileall -q src
+blt-vanish-flutter	flutter	flutter pub get && flutter test
+blt-zero	python	pip install pytest==8.3.3 pytest-asyncio==0.24.0 cryptography==46.0.5 && PYTHONPATH=. python -m pytest tests/ -q

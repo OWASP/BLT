@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Run one or more projects' tests:  scripts/ci/test.sh <project>... | --all | --changed <base-ref>
+# Commands live in scripts/ci/tests.tsv. Python projects get a fresh virtualenv each run.
+set -uo pipefail
+
+ROOT="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)"
+TABLE="$ROOT/scripts/ci/tests.tsv"
+WORK="${CI_WORK_DIR:-${RUNNER_TEMP:-${TMPDIR:-/tmp}}/blt-ci}"
+mkdir -p "$WORK"
+
+projects=()
+case "${1:-}" in
+  --all) mapfile -t projects < <(grep -v '^#' "$TABLE" | cut -f1) ;;
+  --changed)
+    base="${2:?usage: --changed <base-ref>}"
+    mapfile -t changed < <(git -C "$ROOT" diff --name-only "$base"...HEAD | cut -d/ -f1 | sort -u)
+    for p in $(grep -v '^#' "$TABLE" | cut -f1); do
+      [[ " ${changed[*]} " == *" $p "* ]] && projects+=("$p")
+    done ;;
+  ""|-h|--help) sed -n '2,3p' "${BASH_SOURCE[0]}" | sed 's/^# //'; exit 2 ;;
+  *) projects=("$@") ;;
+esac
+[[ ${#projects[@]} -eq 0 ]] && { echo "no projects to test"; exit 0; }
+
+passed=(); failed=(); skipped=()
+for p in "${projects[@]}"; do
+  line="$(awk -F'\t' -v p="$p" '$1==p' "$TABLE")"
+  [[ -z "$line" ]] && { echo "unknown project: $p" >&2; failed+=("$p"); continue; }
+  tool="$(cut -f2 <<<"$line")"; cmd="$(cut -f3- <<<"$line")"
+  if ! command -v "$( [[ $tool == python ]] && echo python3 || ([[ $tool == rust ]] && echo cargo) || echo "$tool")" >/dev/null; then
+    echo "--- $p: SKIPPED ($tool not installed)"; skipped+=("$p"); continue
+  fi
+  echo "=== $p ($tool): $cmd"
+  log="$WORK/$p.log"
+  (
+    cd "$ROOT/$p" || exit 1
+    npm_install() { if [[ -f package-lock.json ]]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi; }
+    export -f npm_install
+    if [[ $tool == python ]]; then
+      python3 -m venv "$WORK/venv-$p" && . "$WORK/venv-$p/bin/activate" && python -m pip install -q --upgrade "pip>=25.1" || exit 1
+    fi
+    bash -c "$cmd"
+  ) >"$log" 2>&1
+  if [[ $? -eq 0 ]]; then echo "--- $p: PASS"; passed+=("$p")
+  else echo "--- $p: FAIL (log: $log)"; tail -n 15 "$log" | sed 's/^/    /'; failed+=("$p"); fi
+done
+
+echo
+echo "passed:  ${#passed[@]} ${passed[*]}"
+echo "failed:  ${#failed[@]} ${failed[*]}"
+echo "skipped: ${#skipped[@]} ${skipped[*]}"
+[[ ${#failed[@]} -eq 0 ]]

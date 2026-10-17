@@ -1,0 +1,37 @@
+# Ported from blt-owasp-bumper/.github/workflows/generate-repo-list.yml (runs inside blt-owasp-bumper/).
+# The GitHub Pages deploy steps were dropped; Cloudflare serves the site (scripts/deploy.sh blt-owasp-bumper).
+name: "blt-owasp-bumper: Generate OWASP Repository List"
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'blt-owasp-bumper/generate_repo_list.py'
+      - '.github/workflows/blt-owasp-bumper--generate-repo-list.yml'
+permissions:
+  contents: write
+defaults:
+  run:
+    working-directory: blt-owasp-bumper
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Generate repository list
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ORG: owasp
+          OUTPUT_FILE: index.html
+        run: python generate_repo_list.py
+      - name: Commit and push generated file
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add index.html
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update repository list [skip ci]" && git push)

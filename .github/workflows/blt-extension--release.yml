@@ -1,0 +1,26 @@
+# Ported from blt-extension/.github/workflows/release.yaml (runs inside blt-extension/)
+name: 'blt-extension: Publish'
+on:
+  push:
+    tags:
+    - blt-extension/*
+defaults:
+  run:
+    working-directory: blt-extension
+jobs:
+  build:
+    name: Publish webextension
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - name: Upload & release
+      uses: mnao305/chrome-extension-upload@v4.0.1
+      with:
+        file-path: blt-extension/dist/file.zip
+        extension-id: bififchikfckcnblimmncopjinfgccme
+        client-id: ${{ secrets.CLIENT_ID }}
+        client-secret: ${{ secrets.CLIENT_SECRET }}
+        refresh-token: ${{ secrets.REFRESH_TOKEN }}

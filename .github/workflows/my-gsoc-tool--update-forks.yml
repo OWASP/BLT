@@ -1,0 +1,38 @@
+# Ported from my-gsoc-tool/.github/workflows/update-forks.yml (runs inside my-gsoc-tool/)
+name: 'my-gsoc-tool: Update README with Forks'
+on:
+  schedule:
+  - cron: 0 0 * * *
+  workflow_dispatch: null
+  push:
+    branches:
+    - main
+    paths:
+    - my-gsoc-tool/**
+permissions:
+  contents: write
+defaults:
+  run:
+    working-directory: my-gsoc-tool
+jobs:
+  update-forks:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Fetch forks and update README
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: "# Get repository info\nREPO=\"${{ github.repository }}\"\n\n# Fetch forks from GitHub API\nFORKS_JSON=$(curl -s -H \"Authorization: token $GITHUB_TOKEN\" \\\n  -H \"Accept: application/vnd.github.v3+json\" \\\n  \"https://api.github.com/repos/${REPO}/forks?per_page=100&sort=stargazers\")\n\n# Generate forks list in markdown format\nFORKS_LIST=$(echo \"$FORKS_JSON\" | jq -r 'if length == 0 then \"No forks yet. Be the first to fork this project!\" else .[] | \"- [\" + .full_name + \"](\" + .html_url + \") - ⭐ \" + (.stargazers_count | tostring) + \" stars\" end')\n\n# Get current timestamp\nTIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')\n\n# Create the forks section content using a temp file\n{\n  echo \"## \U0001F374 Project Forks\"\n  echo \"\"\n  echo \"The following users have forked this project:\"\n  echo \"\"\n  echo \"$FORKS_LIST\"\n  echo \"\"\n  echo \"_Last updated: ${TIMESTAMP}_\"\n} > /tmp/forks_section.txt\n\n# Check if forks section exists in README\nif grep -q \"\
+        FORKS_START\" README.md; then\n  # Get line numbers for markers\n  START_LINE=$(grep -n \"FORKS_START\" README.md | cut -d: -f1)\n  END_LINE=$(grep -n \"FORKS_END\" README.md | cut -d: -f1)\n  \n  # Extract content before FORKS_START (inclusive of the marker line)\n  head -n \"$START_LINE\" README.md > /tmp/readme_top.txt\n  \n  # Extract content from FORKS_END onwards (inclusive of the marker line)\n  tail -n +\"$END_LINE\" README.md > /tmp/readme_bottom.txt\n  \n  # Combine the files\n  cat /tmp/readme_top.txt /tmp/forks_section.txt /tmp/readme_bottom.txt > README.md\nelse\n  echo \"Forks section markers not found in README.md\"\n  exit 0\nfi\n"
+    - name: Commit updated README
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add README.md
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update README with forks list [skip ci]"
+          git push
+        fi
