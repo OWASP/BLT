@@ -1,0 +1,59 @@
+name = "blt-leaf"
+main = "src/index.py"
+compatibility_date = "2025-04-22"
+compatibility_flags = ["python_workers"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pr_tracker"
+database_id = "014201e7-6c0e-4b6a-8c0e-c53d18305dca"
+
+# Automatically run D1 migrations before deployment
+[build]
+command = "bash scripts/migration.sh"
+
+[vars]
+ENVIRONMENT = "production"
+# Set SLACK_ERROR_WEBHOOK as a Cloudflare secret (wrangler secret put SLACK_ERROR_WEBHOOK)
+# See .env.example for details.
+# Optional OAuth secrets for per-user GitHub tokens:
+# wrangler secret put GITHUB_OAUTH_CLIENT_ID
+# wrangler secret put GITHUB_OAUTH_CLIENT_SECRET
+# wrangler secret put ENCRYPTION_KEY
+# Optional: wrangler secret put GITHUB_TOKEN (shared fallback token)
+
+# Cron Trigger: refresh all tracked PRs every hour
+[triggers]
+crons = ["0 * * * *"]
+
+# Configure assets (static files)
+[assets]
+directory = "./public"
+
+# the database_id for prod needs to be hardcoded above so use this:
+# wrangler dev --env dev
+# wrangler deploy --env dev
+
+[env.dev]
+name = "pr-tracker-dev"
+
+[[env.dev.d1_databases]]
+binding = "DB"
+database_name = "pr_tracker_dev"
+database_id = "DEV_DATABASE_ID"
+
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1

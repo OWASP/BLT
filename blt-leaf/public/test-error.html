@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Test Error Tracking — BLT-Leaf</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            darkMode: 'class'
+        };
+
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const shouldUseDark = savedTheme === 'dark' || (savedTheme === null && prefersDark);
+            document.documentElement.classList.toggle('dark', shouldUseDark);
+        })();
+    </script>
+    <script src="error-reporter.js"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.tailwind.config = {
+            ...(window.tailwind.config || {}),
+            darkMode: 'class'
+        };
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body class="flex min-h-screen flex-col bg-white text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
+
+    <!-- Header -->
+    <header
+        class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/95">
+        <div class="mx-auto flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center gap-3">
+                <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <img width="26" src="./static/logo.png" alt="OWASP BLT-Leaf" onerror="this.style.display='none'" />
+                    <span class="font-bold text-slate-900 dark:text-white text-sm tracking-tight">BLT-LEAF</span>
+                </a>
+            </div>
+            <nav class="flex items-center gap-4 text-sm">
+                <a href="/"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Dashboard</a>
+                <a href="/how-it-works.html"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">How It Works</a>
+                <a href="/diagnostics.html"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Diagnostics</a>
+                <a href="/test-error.html" class="text-red-600 font-semibold dark:text-red-400">Test Error</a>
+                <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
+                    <i class="fab fa-github"></i>Source Code</a>
+                <button id="themeToggle"
+                    class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
+                    title="Toggle dark/light mode">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 mx-auto max-w-3xl w-full px-4 py-8 sm:px-6 lg:px-8">
+
+        <!-- Title -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-3">
+                <i class="fas fa-bug text-red-600"></i> Test Error Tracking
+            </h1>
+            <p class="text-slate-600 dark:text-slate-400">
+                Use these buttons to fire test exceptions and verify that they appear in your Slack channel.
+            </p>
+        </div>
+
+        <!-- Cards -->
+        <div class="space-y-6">
+
+            <!-- Server-side error card -->
+            <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-6">
+                <div class="flex items-start gap-4">
+                    <div class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/40">
+                        <i class="fas fa-server text-orange-600 dark:text-orange-400"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-lg font-semibold text-slate-900 dark:text-white mb-1">Server-side exception</h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                            POSTs to <code class="font-mono bg-slate-50 dark:bg-slate-700 rounded px-1">/api/test-error</code>,
+                            which raises a <code class="font-mono bg-slate-50 dark:bg-slate-700 rounded px-1">RuntimeError</code>
+                            on the Cloudflare Worker. The exception is caught and forwarded to Slack via the error webhook.
+                        </p>
+                        <button id="btnServerError"
+                            class="inline-flex items-center gap-2 rounded-lg bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white text-sm font-semibold px-4 py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-bolt"></i> Fire server-side error
+                        </button>
+                    </div>
+                </div>
+                <div id="serverResult" class="mt-4 hidden"></div>
+            </div>
+
+            <!-- Frontend error card -->
+            <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-6">
+                <div class="flex items-start gap-4">
+                    <div class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/40">
+                        <i class="fas fa-window-maximize text-purple-600 dark:text-purple-400"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-lg font-semibold text-slate-900 dark:text-white mb-1">Frontend JS exception</h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                            POSTs to <code class="font-mono bg-slate-50 dark:bg-slate-700 rounded px-1">/api/client-error</code>
+                            from the browser, which forwards the error to Slack via the server-side error webhook.
+                        </p>
+                        <button id="btnFrontendError"
+                            class="inline-flex items-center gap-2 rounded-lg bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white text-sm font-semibold px-4 py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-bolt"></i> Fire frontend error
+                        </button>
+                    </div>
+                </div>
+                <div id="frontendResult" class="mt-4 hidden"></div>
+            </div>
+
+        </div>
+
+        <!-- Info box -->
+        <div class="mt-8 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 px-5 py-4">
+            <p class="text-sm text-blue-700 dark:text-blue-300 flex items-start gap-2">
+                <i class="fas fa-info-circle mt-0.5 shrink-0"></i>
+                After firing a test error, check your configured Slack channel for the error notification.
+                Make sure the <code class="font-mono bg-blue-100 dark:bg-blue-900/40 rounded px-1">SLACK_ERROR_WEBHOOK</code>
+                secret is set in your Cloudflare Worker environment.
+            </p>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 mt-auto">
+        <div class="mx-auto max-w-3xl px-4 py-4 sm:px-6 lg:px-8">
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer"
+                    class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">OWASP Bug Logging Tool (BLT)</a> project
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // ── Helpers ──────────────────────────────────────────────────────────────
+
+        /**
+         * Display a result banner inside a container element.
+         * @param {string} containerId - ID of the container element.
+         * @param {boolean} ok - true for a success (green) banner, false for error (red).
+         * @param {string} message - HTML message to display inside the banner.
+         */
+        function showResult(containerId, ok, message) {
+            const el = document.getElementById(containerId);
+            el.className = 'mt-4 rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2 ' + (
+                ok
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
+                    : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'
+            );
+            el.innerHTML = '<i class="fas ' + (ok ? 'fa-check-circle' : 'fa-times-circle') + '"></i> ' + message;
+        }
+
+        // ── Server-side error ─────────────────────────────────────────────────────
+
+        document.getElementById('btnServerError').addEventListener('click', async function () {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+
+            try {
+                const res = await fetch('/api/test-error', { method: 'POST' });
+                const json = await res.json().catch(() => ({}));
+                if (res.status === 500) {
+                    showResult('serverResult', true,
+                        'Server returned 500 — exception was raised and forwarded to Slack. Check your Slack channel for the error notification.');
+                } else {
+                    showResult('serverResult', false,
+                        'Unexpected response: HTTP ' + res.status + ' — ' + JSON.stringify(json));
+                }
+            } catch (err) {
+                showResult('serverResult', false, 'Network error: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-bolt"></i> Fire server-side error';
+            }
+        });
+
+        // ── Frontend JS error ─────────────────────────────────────────────────────
+
+        document.getElementById('btnFrontendError').addEventListener('click', async function () {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+
+            try {
+                const err = new Error('Slack test error — triggered from test-error.html frontend button');
+                await fetch('/api/client-error', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        error_type: err.name,
+                        message: err.message,
+                        stack: err.stack || '',
+                        source: 'test-error.html',
+                    }),
+                });
+                showResult('frontendResult', true,
+                    'Frontend error sent to Slack via <code class="font-mono">/api/client-error</code>. Check your Slack channel for the error notification.');
+            } catch (captureErr) {
+                showResult('frontendResult', false, 'Failed to report frontend error: ' + captureErr.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-bolt"></i> Fire frontend error';
+            }
+        });
+
+    </script>
+    <script>
+        function initTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const themeIcon = document.getElementById('themeIcon');
+
+            if (themeIcon) {
+                themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = !document.documentElement.classList.contains('dark');
+            document.documentElement.classList.toggle('dark', isDark);
+            const themeIcon = document.getElementById('themeIcon');
+
+            if (isDark) {
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                if (themeIcon) themeIcon.className = 'fas fa-moon';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        initTheme();
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', toggleTheme);
+        }
+    </script>
+</body>
+
+</html>

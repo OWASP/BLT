@@ -1,0 +1,29 @@
+{
+  "name": "blt-leaf",
+  "version": "1.0.0",
+  "description": "PR Readiness Checker - Track and monitor GitHub Pull Request status",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create pr_tracker",
+    "db:migrate:local": "wrangler d1 migrations apply pr_tracker --local",
+    "db:migrate:remote": "wrangler d1 migrations apply pr_tracker --remote",
+    "db:migrations:list": "wrangler d1 migrations list pr_tracker",
+    "lint": "echo 'Linting not configured yet' && exit 0",
+    "format:check": "echo 'Format checking not configured yet' && exit 0",
+    "test": "node test-data-display.js",
+    "test:data-display": "node test-data-display.js"
+  },
+  "keywords": [
+    "github",
+    "pull-request",
+    "cloudflare",
+    "workers",
+    "pr_tracker"
+  ],
+  "author": "OWASP BLT",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^4.75.0"
+  }
+}
