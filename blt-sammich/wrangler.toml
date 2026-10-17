@@ -1,0 +1,40 @@
+name = "blt-sammich"
+main = "src/worker.py"
+compatibility_date = "2026-03-22"
+compatibility_flags = ["python_workers"]
+workers_dev = false
+preview_urls = false
+
+[vars]
+APP_VERSION = "0.1.0"
+
+[build]
+command = "./script/migrate.sh"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = ["/slack/*", "/oauth/*", "/api/*", "/health", "/logo-hit", "/admin-*"]
+html_handling = "auto-trailing-slash"
+not_found_handling = "404-page"
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
+
+[[d1_databases]]
+binding = "DB"
+database_name = "blt-sammich"
+database_id = "409b2fbf-ee3d-4204-a65d-c6994861a8ce"
+migrations_dir = "migrations"

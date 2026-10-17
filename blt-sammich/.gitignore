@@ -1,0 +1,11 @@
+__pycache__
+.env
+.env.*
+!.env.example
+.ruff_cache
+.secrets
+.venv
+*.code-workspace
+.wrangler/*
+node_modules/
+.wrangler/

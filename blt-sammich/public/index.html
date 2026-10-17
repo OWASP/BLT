@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title id="hackathon-title">BLT-Sammich</title>
+    <meta name="description" content="A slack bot that can help manage and track your projects and contributions" />
+    <link rel="icon" type="image/png" href="./static/logo.png" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .trophy-gold {
+        color: #ffd700;
+      }
+      .trophy-silver {
+        color: #c0c0c0;
+      }
+      .trophy-bronze {
+        color: #cd7f32;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center">
+            <img src="./static/logo.png" alt="BLT-Sammich Logo" class="h-8 w-8 mr-2" />
+            <h1 class="text-xl font-bold text-gray-900" id="nav-title">BLT-Sammich</h1>
+          </div>
+          <div class="flex items-center space-x-4">
+            <a class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-5 rounded-lg" href="/install-slack">
+              <button><i class="fab fa-slack mr-2"></i> Install to Workspace</button>
+            </a>
+            <a class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-5 rounded-lg" href="https://github.com/OWASP-BLT/BLT-Sammich" target="_blank" rel="noopener noreferrer">
+              <button><i class="fab fa-github mr-2"></i> Contribute</button>
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Hero Section -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8 text-center">
+        <div class="max-w-3xl mx-auto">
+          <h1 class="text-4xl font-bold text-gray-900 mb-4">BLT-Sammich Slack Bot</h1>
+          <p class="text-xl text-gray-600 mb-6">A feature-rich Slack bot that bridges your team communication with GitHub workflows, contributor tracking, and OWASP project discovery - all from within Slack.</p>
+          <div class="flex justify-center space-x-4">
+            <span class="inline-flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-lg">
+              <i class="fab fa-slack mr-2"></i>
+              Slack Integration
+            </span>
+            <span class="inline-flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-lg">
+              <i class="fab fa-github mr-2"></i>
+              GitHub API
+            </span>
+            <span class="inline-flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-lg">
+              <i class="fas fa-shield-alt mr-2"></i>
+              OWASP Community
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live Connections -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8" id="connections">
+        <div class="mb-6">
+          <div>
+            <h2 class="text-3xl font-bold text-gray-900">Live Connections</h2>
+            <p class="text-gray-500 text-sm mt-1">Connected Slack workspaces and managed servers running BLT-Sammich</p>
+          </div>
+        </div>
+        <div id="connection-stats" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div class="text-center py-8 text-gray-500 sm:col-span-2 lg:col-span-4">
+            <span class="loading align-middle mr-2"></span> Loading live statistics...
+          </div>
+        </div>
+        <div class="grid lg:grid-cols-2 gap-8">
+          <div>
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Connected Workspaces</h3>
+            <div id="workspaces-container" class="grid gap-4">
+              <div class="text-center py-8 text-gray-400 border border-dashed border-gray-200 rounded-lg">Loading workspaces...</div>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Managed Servers</h3>
+            <div id="servers-container" class="grid gap-4">
+              <div class="text-center py-8 text-gray-400 border border-dashed border-gray-200 rounded-lg">Loading servers...</div>
+            </div>
+          </div>
+        </div>
+        <div id="connections-updated" class="text-center text-xs text-gray-400 mt-6 h-4"></div>
+      </section>
+
+      <!-- How It Works -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">How It Works</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-comment-slash text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Type Slash Commands</h3>
+            <p class="text-gray-600">Use simple commands like <code class="bg-gray-100 px-2 py-1 rounded">/contributors</code> directly in any Slack channel</p>
+          </div>
+          <div class="text-center">
+            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-exchange-alt text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Real-time Processing</h3>
+            <p class="text-gray-600">Bot fetches live data from GitHub API and OWASP repositories via WebSocket connection</p>
+          </div>
+          <div class="text-center">
+            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-chart-bar text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Instant Results</h3>
+            <p class="text-gray-600">Get formatted responses with contributor stats, project info, and repository links</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Available Commands -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Available Commands</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Contributors Command -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <code class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm">/contributors</code>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Track Contributor Activity</h4>
+            <p class="text-gray-600 text-sm mb-3">Shows PR merges, issues resolved, and comments from the last 7 days</p>
+            <div class="bg-gray-50 p-2 rounded text-xs font-mono">
+              📊 Contributors Activity<br />
+              • john_dev: 3 PRs, 2 issues, 5 comments<br />
+              • jane_contributor: 1 PR, 4 issues, 2 comments
+            </div>
+          </div>
+
+          <!-- GitHub Issue Command -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <code class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm">/ghissue [title]</code>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Create GitHub Issues</h4>
+            <p class="text-gray-600 text-sm mb-3">Instantly create GitHub issues from Slack conversations</p>
+            <div class="bg-gray-50 p-2 rounded text-xs font-mono">
+              /ghissue Fix mobile login bug<br />
+              ✅ Issue created: <span class="text-blue-600">github.com/repo/issues/123</span>
+            </div>
+          </div>
+
+          <!-- Project Discovery Command -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <code class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm">/project [name]</code>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Discover OWASP Projects</h4>
+            <p class="text-gray-600 text-sm mb-3">Browse 800+ OWASP projects with descriptions and links</p>
+            <div class="bg-gray-50 p-2 rounded text-xs font-mono">
+              /project zap<br />
+              🔍 OWASP ZAP - Web security scanner<br />
+              📋 Features, docs, and community links
+            </div>
+          </div>
+
+          <!-- Repository Command -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <code class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm">/repo [technology]</code>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Find Repos by Tech Stack</h4>
+            <p class="text-gray-600 text-sm mb-3">Get repositories matching your programming skills and interests</p>
+            <div class="bg-gray-50 p-2 rounded text-xs font-mono">
+              /repo python<br />
+              🐍 Python repositories where you can contribute:<br />
+              • OWASP-Project-A • Security-Tool-B
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Technical Architecture -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Under the Hood</h2>
+        <div class="max-w-4xl mx-auto">
+          <div class="bg-gray-50 p-6 rounded-lg mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Socket Mode Connection</h3>
+            <div class="flex items-center justify-center space-x-8 text-sm">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
+                  <i class="fab fa-slack text-2xl text-blue-600"></i>
+                </div>
+                <span class="text-gray-600">Slack Servers</span>
+              </div>
+              <div class="flex-1 border-t-2 border-dashed border-gray-300 relative">
+                <span class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-50 px-2 text-xs text-gray-500"> WebSocket </span>
+              </div>
+              <div class="text-center">
+                <div class="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center mb-2">
+                  <i class="fas fa-robot text-2xl text-red-600"></i>
+                </div>
+                <span class="text-gray-600">BLT-Sammich</span>
+              </div>
+              <div class="flex-1 border-t-2 border-dashed border-gray-300 relative">
+                <span class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-50 px-2 text-xs text-gray-500"> REST API </span>
+              </div>
+              <div class="text-center">
+                <div class="w-16 h-16 bg-gray-900 rounded-lg flex items-center justify-center mb-2">
+                  <i class="fab fa-github text-2xl text-white"></i>
+                </div>
+                <span class="text-gray-600">GitHub API</span>
+              </div>
+            </div>
+          </div>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-2">Why Socket Mode?</h4>
+              <ul class="text-sm text-gray-600 space-y-1">
+                <li>• Works behind firewalls (outbound connection)</li>
+                <li>• No public URL needed for development</li>
+                <li>• Real-time bidirectional communication</li>
+                <li>• Perfect for internal team tools</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-2">Built With</h4>
+              <ul class="text-sm text-gray-600 space-y-1">
+                <li>• <strong>Slack Bolt:</strong> Python framework for Slack apps</li>
+                <li>• <strong>PyGithub:</strong> GitHub REST API integration</li>
+                <li>• <strong>Poetry:</strong> Dependency management</li>
+                <li>• <strong>Plugin Architecture:</strong> Modular command system</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Getting Started -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Getting Started</h2>
+        <div class="max-w-4xl mx-auto">
+          <div class="grid md:grid-cols-2 gap-8">
+            <div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-4">For Users</h3>
+              <ol class="space-y-3 text-gray-600">
+                <li class="flex items-start">
+                  <span class="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">1</span>
+                  <span>Join your team's Slack workspace</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">2</span>
+                  <span>Find the BLT-Sammich bot in your workspace</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">3</span>
+                  <span>Start using commands like <code class="bg-gray-100 px-1 rounded">/contributors</code></span>
+                </li>
+              </ol>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-4">For Developers</h3>
+              <ol class="space-y-3 text-gray-600">
+                <li class="flex items-start">
+                  <span class="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">1</span>
+                  <span>Clone the repository and install dependencies</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">2</span>
+                  <span>Create Slack app and get tokens</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">3</span>
+                  <span>Run locally with <code class="bg-gray-100 px-1 rounded">python app.py</code></span>
+                </li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="mt-8 text-center">
+            <a href="https://github.com/OWASP-BLT/BLT-Sammich" class="inline-flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" target="_blank">
+              <i class="fab fa-github mr-2"></i>
+              View on GitHub
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- OWASP Connection -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Part of the OWASP Ecosystem</h2>
+        <div class="max-w-3xl mx-auto text-center">
+          <p class="text-gray-600 mb-6">BLT-Sammich is built for the <strong>OWASP BLT (Bug Logging Tool)</strong> community. It helps teams manage security projects, track contributions, and discover the vast ecosystem of OWASP security tools.</p>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="bg-red-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-red-600 mb-2">Security First</h4>
+              <p class="text-sm text-gray-600">Built with security best practices for the cybersecurity community</p>
+            </div>
+            <div class="bg-red-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-red-600 mb-2">Open Source</h4>
+              <p class="text-sm text-gray-600">Fully open source, transparent, and community-driven development</p>
+            </div>
+            <div class="bg-red-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-red-600 mb-2">Community</h4>
+              <p class="text-sm text-gray-600">Connects developers with 800+ OWASP projects and active contributors</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-600">
+        <p>Powered by <a href="https://github.com/OWASP-BLT/BLT-Sammich" class="text-red-600 hover:underline" target="_blank">BLT-Sammich</a></p>
+      </div>
+    </footer>
+    <script>
+      const CONNECTIONS_API_URL = window.location.origin + "/api/workspaces-public";
+      const formatNumber = (value) => Number(value || 0).toLocaleString();
+      const timeAgo = (iso) => {
+        if (!iso) return "No activity yet";
+        const ts = new Date(iso).getTime();
+        if (!Number.isFinite(ts)) return "No activity yet";
+        const diff = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+        if (diff < 60) return "Just now";
+        if (diff < 3600) return Math.floor(diff / 60) + "m ago";
+        if (diff < 86400) return Math.floor(diff / 3600) + "h ago";
+        return Math.floor(diff / 86400) + "d ago";
+      };
+      const escapeHtml = (value) => String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#x27;");
+      const statusClass = (status) => {
+        const normalized = String(status || "").toLowerCase();
+        if (["online", "connected"].includes(normalized)) return "bg-green-50 text-green-700 border-green-200";
+        if (normalized === "degraded") return "bg-yellow-50 text-yellow-700 border-yellow-200";
+        if (normalized === "offline") return "bg-red-50 text-red-700 border-red-200";
+        return "bg-gray-50 text-gray-700 border-gray-200";
+      };
+      const statusChip = (status) => `<span class="px-2 py-1 rounded-md border text-xs font-semibold ${statusClass(status)}">${escapeHtml(status || "unknown")}</span>`;
+      const shortDate = (dateText) => {
+        const date = new Date(String(dateText || "") + "T00:00:00Z");
+        if (!Number.isFinite(date.getTime())) return "";
+        return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      };
+      const renderTeamJoinChart = (history) => {
+        const rows = Array.isArray(history) ? history : [];
+        const total = rows.reduce((sum, row) => sum + Number(row.joins || 0), 0);
+        const maxJoins = Math.max(1, ...rows.map((row) => Number(row.joins || 0)));
+        const bars = rows.map((row) => {
+          const joins = Number(row.joins || 0);
+          const height = joins > 0 ? Math.max(10, Math.round((joins / maxJoins) * 56)) : 3;
+          const label = `${shortDate(row.date)}: ${formatNumber(joins)} join${joins === 1 ? "" : "s"}`;
+          return `<div class="flex-1 min-w-[3px] rounded-t bg-red-500/80" style="height:${height}px" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"></div>`;
+        }).join("");
+        return `
+          <div class="mb-4 border border-gray-100 rounded-md bg-white p-3">
+            <div class="mb-2 flex items-center justify-between gap-3">
+              <span class="text-xs font-semibold text-gray-600">Team joins, last 30 days</span>
+              <span class="text-xs font-bold text-gray-900">${formatNumber(total)}</span>
+            </div>
+            <div class="flex h-14 items-end gap-[2px]" role="img" aria-label="Team joins over the past 30 days">
+              ${bars || `<div class="h-[3px] w-full rounded bg-gray-200"></div>`}
+            </div>
+            <div class="mt-2 flex justify-between text-[10px] text-gray-400">
+              <span>30d ago</span>
+              <span>Today</span>
+            </div>
+          </div>
+        `;
+      };
+
+      function renderStats(stats) {
+        const container = document.getElementById("connection-stats");
+        const cards = [
+          ["fa-slack", "Workspaces", stats.connected_workspaces],
+          ["fa-server", "Servers", stats.managed_servers],
+          ["fa-chart-line", "Activities", stats.total_activities],
+          ["fa-terminal", "Commands", stats.commands],
+        ];
+        container.innerHTML = cards.map(([icon, label, value]) => `
+          <div class="border border-gray-200 rounded-lg p-4 text-center">
+            <div class="w-11 h-11 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-3 text-lg"><i class="fas ${icon}"></i></div>
+            <div class="text-2xl font-bold text-gray-900">${formatNumber(value)}</div>
+            <div class="text-sm text-gray-500">${label}</div>
+          </div>
+        `).join("");
+        if (stats.last_updated) {
+          document.getElementById("connections-updated").textContent = "Last updated " + timeAgo(stats.last_updated);
+        }
+      }
+
+      function renderWorkspaces(workspaces) {
+        const container = document.getElementById("workspaces-container");
+        if (!workspaces.length) {
+          container.innerHTML = `<div class="text-center py-8 text-gray-400 border border-dashed border-gray-200 rounded-lg"><i class="fab fa-slack text-3xl mb-2 block"></i>No workspaces connected yet.</div>`;
+          return;
+        }
+        container.innerHTML = workspaces.map((workspace) => {
+          const invite = String(workspace.invite_link || "").trim();
+          const github = String(workspace.github_org_url || "").trim();
+          return `
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div class="flex items-start justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3 min-w-0">
+                  ${workspace.icon_url ? `<img src="${escapeHtml(workspace.icon_url)}" alt="" class="w-10 h-10 rounded-lg object-cover" />` : `<div class="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center font-bold">${escapeHtml(String(workspace.team_name || "W").slice(0, 1))}</div>`}
+                  <div class="min-w-0">
+                    <h4 class="font-bold text-gray-900 truncate">${escapeHtml(workspace.team_name || "Workspace")}</h4>
+                    <p class="text-xs text-gray-400 font-mono">${escapeHtml(workspace.team_id || "")}</p>
+                  </div>
+                </div>
+                ${statusChip(workspace.status || "connected")}
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-center text-xs mb-4">
+                <div class="bg-gray-50 rounded-md p-2"><div class="font-bold text-gray-900">${formatNumber(workspace.total_activities)}</div><div class="text-gray-500">activities</div></div>
+                <div class="bg-gray-50 rounded-md p-2"><div class="font-bold text-gray-900">${formatNumber(workspace.channel_count)}</div><div class="text-gray-500">channels</div></div>
+                <div class="bg-gray-50 rounded-md p-2"><div class="font-bold text-gray-900">${formatNumber(workspace.member_count)}</div><div class="text-gray-500">members</div></div>
+              </div>
+              ${renderTeamJoinChart(workspace.team_join_history)}
+              <div class="flex flex-wrap gap-2">
+                ${invite ? `<a href="${escapeHtml(invite)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-md px-2 py-1 hover:bg-red-100"><i class="fas fa-user-plus"></i>Join</a>` : ""}
+                ${github ? `<a href="${escapeHtml(github)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-md px-2 py-1 hover:bg-gray-100"><i class="fab fa-github"></i>Source Code</a>` : ""}
+                <span class="ml-auto text-xs text-gray-400">${timeAgo(workspace.last_event_time || workspace.updated_at)}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderServers(servers) {
+        const container = document.getElementById("servers-container");
+        if (!servers.length) {
+          container.innerHTML = `<div class="text-center py-8 text-gray-400 border border-dashed border-gray-200 rounded-lg"><i class="fas fa-server text-3xl mb-2 block"></i>No servers managed yet.</div>`;
+          return;
+        }
+        container.innerHTML = servers.map((server) => `
+          <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between gap-3 mb-2">
+              <div>
+                <h4 class="font-bold text-gray-900">${escapeHtml(server.name || "Server")}</h4>
+                <a href="${escapeHtml(server.url || "#")}" target="_blank" rel="noopener noreferrer" class="text-sm text-red-600 hover:underline break-all">${escapeHtml(server.url || "")}</a>
+              </div>
+              ${statusChip(server.status || "online")}
+            </div>
+            <p class="text-sm text-gray-500">${escapeHtml(server.description || "No description provided.")}</p>
+          </div>
+        `).join("");
+      }
+
+      async function initConnections() {
+        try {
+          const response = await fetch(CONNECTIONS_API_URL);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const payload = await response.json();
+          renderStats(payload.stats || {});
+          renderWorkspaces(Array.isArray(payload.workspaces) ? payload.workspaces : []);
+          renderServers(Array.isArray(payload.servers) ? payload.servers : []);
+        } catch (error) {
+          document.getElementById("connection-stats").innerHTML = `<div class="text-center py-8 text-gray-400 sm:col-span-2 lg:col-span-4">Live connection data is unavailable.</div>`;
+          renderWorkspaces([]);
+          renderServers([]);
+        }
+      }
+      initConnections();
+    </script>
+  </body>
+</html>

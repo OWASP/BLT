@@ -1,0 +1,38 @@
+{
+    "django": [
+      "https://github.com/OWASP-BLT/BLT"
+    ],
+    "python": [
+      "https://github.com/OWASP-BLT/BLT",
+      "https://github.com/OWASP-BLT/BLT-Flutter",
+      "https://github.com/OWASP-BLT/BLT-Lettuce"
+    ],
+    "dart": [
+      "https://github.com/OWASP-BLT/BLT-Flutter",
+      "https://github.com/OWASP-BLT/BLT-Lettuce"
+    ],
+    "flutter": [
+      "https://github.com/OWASP-BLT/BLT-Flutter",
+      "https://github.com/OWASP-BLT/BLT-Lettuce"
+    ],
+    "blockchain": [
+      "https://github.com/OWASP-BLT/BLT-Bacon"
+    ],
+    "cryptography": [
+      "https://github.com/OWASP-BLT/BLT-Bacon"
+    ],
+    "javascript": [
+      "https://github.com/OWASP-BLT/BLT-Action",
+      "https://github.com/OWASP-BLT/BLT-Extension",
+      "https://github.com/OWASP-BLT/BLT"
+    ],
+    "css": [
+      "https://github.com/OWASP-BLT/BLT-Extension",
+      "https://github.com/OWASP-BLT/BLT"
+    ],
+    "html": [
+      "https://github.com/OWASP-BLT/BLT-Extension",
+      "https://github.com/OWASP-BLT/BLT"
+    ]
+  }
+  
