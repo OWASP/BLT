@@ -1,0 +1,60 @@
+workflows:
+  ios-workflow:
+    triggering:
+      events:
+        - push
+      cancel_previous_builds: true
+    name: iOS Workflow
+    max_build_duration: 120
+    integrations:
+      app_store_connect: codemagic
+    environment:
+#       ios_signing:
+#         distribution_type: app_store
+#         bundle_identifier: $PRODUCT_BUNDLE_IDENTIFIER
+      flutter: stable
+      groups:
+        - main
+    scripts:
+      - name: Run setups
+        script: | 
+          chmod +x setup.sh
+          ./setup.sh
+      - name: Set up code signing settings on Xcode project
+        script: | 
+          xcode-project use-profiles
+      - name: Get Flutter packages
+        script: | 
+          flutter packages pub 
+      - name: Install pods
+        script: | 
+          find . -name "Podfile" -execdir pod install \;
+      - name: Flutter analyze
+        script: | 
+          flutter analyze
+#       - name: Flutter unit tests
+#         script: | 
+#           flutter test
+#         ignore_failure: true
+      - name: Copy Runner.entitlements to ios directory
+        script: |
+          cp Runner.entitlements ios/
+      - name: Set aps-environment entitlement in project.pbxproj
+        script: |
+          plutil -insert aps-environment -string development ios/Runner.xcodeproj/project.pbxproj
+      - name: Flutter build ipa
+        script: | 
+          flutter build ipa --release \
+            --build-number=$(($(app-store-connect get-latest-app-store-build-number "$APP_ID") + 1)) \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+

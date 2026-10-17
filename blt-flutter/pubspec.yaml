@@ -1,0 +1,60 @@
+name: blt
+description: The BLT-Flutter App
+
+version: 1.0.8+1
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_markdown: ^0.7.1
+  google_fonts: ">=3.0.1 <5.0.0"
+  http: ^1.1.0
+  image_picker: ^1.1.1
+  receive_sharing_intent:
+    git:
+      url: https://github.com/Thogsit/receive_sharing_intent
+  shared_preferences: ^2.0.5
+  flutter_svg: ">=1.0.3 <3.0.0"
+  flutter_riverpod: ^1.0.3
+  intl:
+  flutter_secure_storage: ^9.0.0
+  smooth_page_indicator: ^1.0.0+2
+  pasteboard: ^0.2.0
+  path_provider: ^2.0.13
+  url_launcher: ^6.2.5
+  #flutter_inappwebview: ^5.7.2+3
+  font_awesome_flutter: ^10.4.0
+  sentry_flutter: ^8.2.0
+  cached_network_image: ^3.2.3
+  flutter_localizations:
+    sdk: flutter
+  primer_progress_bar: ^0.4.2
+  testing: ^0.0.11
+  lottie: ^3.1.2
+  webview_flutter: ^3.0.4
+  permission_handler: ^11.3.1
+  awesome_notifications: ^0.10.1
+  local_notifier: ^0.1.6
+  sqflite: ^2.4.1
+
+dev_dependencies:
+  flutter_launcher_icons: ">=0.9.0 <0.13.0"
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  generate: true
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/login_signup/
+
+flutter_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "assets/app_large_icon.png"
+  remove_alpha_ios: true

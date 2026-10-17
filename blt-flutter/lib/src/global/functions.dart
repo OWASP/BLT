@@ -1,0 +1,1 @@
+// Global functions that work throughout the app.
