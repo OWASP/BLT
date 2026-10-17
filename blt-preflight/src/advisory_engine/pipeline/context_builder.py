@@ -55,6 +55,16 @@ class AdvisoryContext:
 
     metadata: dict[str, Any] = field(default_factory=dict)
 
+    @property
+    def contributor_intent(self) -> str:
+        """Merge request title, under the name older callers use."""
+        return self.merge_request_title
+
+    @property
+    def files_changed(self) -> list[str]:
+        """Changed files, under the name older callers use."""
+        return self.changed_files
+
 
 class ContextBuilder:
     """

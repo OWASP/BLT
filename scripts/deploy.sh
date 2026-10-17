@@ -7,6 +7,7 @@
 #   add --dry-run to build and validate without publishing
 #
 # Needs CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID (or a `wrangler login` session).
+# Workers keep variables set in the Cloudflare dashboard (--keep-vars).
 # Per-project settings (folder, deploy type, extra args, build step) live in scripts/deploy/projects.tsv.
 set -euo pipefail
 
@@ -46,18 +47,10 @@ deploy_one() {
     case "$type" in
       worker)
         if [[ $DRY_RUN -eq 1 ]]; then $WRANGLER deploy $args --dry-run --outdir "$(mktemp -d)"
-        else $WRANGLER deploy $args; fi ;;
-      pages)
-        local name out
-        name="$(sed -n 's/^name *= *"\(.*\)"/\1/p' wrangler.toml | head -n1)"
-        out="$(sed -n 's/^pages_build_output_dir *= *"\(.*\)"/\1/p' wrangler.toml | head -n1)"
-        if [[ $DRY_RUN -eq 1 ]]; then
-          [[ -d "$out" ]] || { echo "    missing output dir $out" >&2; exit 1; }
-          echo "    would run: wrangler pages deploy $out --project-name $name --branch main"
-        else $WRANGLER pages deploy "$out" --project-name "$name" --branch main; fi ;;
+        else $WRANGLER deploy $args --keep-vars; fi ;;
       pywrangler)
         if [[ $DRY_RUN -eq 1 ]]; then uv run pywrangler deploy --dry-run --outdir "$(mktemp -d)"
-        else uv run pywrangler deploy; fi ;;
+        else uv run pywrangler deploy --keep-vars; fi ;;
       script)
         if [[ $DRY_RUN -eq 1 ]]; then echo "    would run: $args"
         else bash -c "$args"; fi ;;

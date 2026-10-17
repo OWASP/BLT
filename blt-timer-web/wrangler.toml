@@ -8,7 +8,7 @@ workers_dev = true
 directory = "./public"
 
 [env.production]
-name = "fresh-time-tracker-prod"
+name = "blt-timer"
 
 # Local development binding. Wrangler uses this binding for `wrangler dev` and
 # `./migrate.sh dev` with a local D1 database.

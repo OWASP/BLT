@@ -138,18 +138,12 @@ export async function handleGitLabWebhook(request: Request): Promise<{
     ),
   );
 
-  const expected = resolveWebhookSecret(ctx.secret);
-if (!expected) {
-  return { status: 503, body: { accepted: false, error: "GITLAB_WEBHOOK_SECRET is not configured", code: "misconfigured" } };
-}
-  
   const tScore = Date.now();
   const score = scoreSignals(signals);
   pipeline.push(step("heuristic_scored", "Heuristic risk scored", "ok", undefined, tScore));
 
   const tKnowledge = Date.now();
   const knowledge = retrieveFor(signals);
-  
   pipeline.push(
     step(
       "knowledge_retrieved",

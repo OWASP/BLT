@@ -1327,7 +1327,7 @@ def test_record_activity_logs_slash_command_fields():
     assert len(app_inserts) == 1
     assert app_inserts[0][1][0] == "A0AK9DQG1DG"
     assert len(workspace_inserts) == 1
-    assert workspace_inserts[0][1][6] == "A0AK9DQG1DG"
+    assert workspace_inserts[0][1][2] == "A0AK9DQG1DG"
     assert len(event_inserts) == 1
     values = event_insert_values(event_inserts[0][1])
     assert values["event_type"] == "Command"
@@ -1525,15 +1525,20 @@ def test_db_get_workspace_bot_token_prefers_matching_app_row():
 
     async def fake_d1_run(env, query, params=None):
         captured["queries"].append((query, params))
-        if "WHERE team_id = ? AND app_id = ?" in query:
+        if "FROM slack_apps WHERE app_id = ?" in query:
+            if params == ["A089A036135"]:
+                return {
+                    "results": [
+                        {
+                            "id": 9,
+                            "app_id": "A089A036135",
+                            "bot_token": "xoxb-app-specific",
+                        }
+                    ]
+                }
             return {
                 "results": [
-                    {
-                        "id": 9,
-                        "team_id": "T123",
-                        "app_id": "A089A036135",
-                        "bot_token": "xoxb-app-specific",
-                    }
+                    {"id": 4, "app_id": "AOLD", "bot_token": "xoxb-old"}
                 ]
             }
         if "WHERE team_id = ?" in query:
@@ -1543,7 +1548,6 @@ def test_db_get_workspace_bot_token_prefers_matching_app_row():
                         "id": 7,
                         "team_id": "T123",
                         "app_id": "AOLD",
-                        "bot_token": "xoxb-old",
                     }
                 ]
             }
@@ -1564,7 +1568,8 @@ def test_db_get_workspace_bot_token_prefers_matching_app_row():
         worker.SCHEMA_READY = original_schema_ready
 
     assert token == "xoxb-app-specific"
-    assert captured["queries"][0][1] == ["T123", "A089A036135"]
+    assert "FROM slack_apps WHERE app_id = ?" in captured["queries"][0][0]
+    assert captured["queries"][0][1] == ["A089A036135"]
     assert len(captured["queries"]) == 1
 
 
@@ -1575,8 +1580,6 @@ def test_db_get_workspace_bot_token_falls_back_to_slack_app_row():
 
     async def fake_d1_run(env, query, params=None):
         captured["queries"].append((query, params))
-        if "WHERE team_id = ? AND app_id = ?" in query:
-            return {"results": []}
         if "FROM slack_apps WHERE app_id = ?" in query:
             return {
                 "results": [
@@ -1594,7 +1597,7 @@ def test_db_get_workspace_bot_token_falls_back_to_slack_app_row():
                     {
                         "id": 7,
                         "team_id": "T123",
-                        "bot_token": "xoxb-team-row",
+                        "app_id": "A089A036135",
                     }
                 ]
             }
@@ -1606,14 +1609,10 @@ def test_db_get_workspace_bot_token_falls_back_to_slack_app_row():
     worker.SCHEMA_READY = True
     try:
         token = asyncio.run(
-            worker.db_get_workspace_bot_token(
-                env, team_id="T123", app_id="A089A036135"
-            )
+            worker.db_get_workspace_bot_token(env, team_id="T123")
         )
         bot_user_id = asyncio.run(
-            worker.db_get_workspace_bot_user_id(
-                env, team_id="T123", app_id="A089A036135"
-            )
+            worker.db_get_workspace_bot_user_id(env, team_id="T123")
         )
     finally:
         worker.d1_run = original_d1_run
@@ -1621,11 +1620,13 @@ def test_db_get_workspace_bot_token_falls_back_to_slack_app_row():
 
     assert token == "xoxb-app-row"
     assert bot_user_id == "UBOT"
-    assert captured["queries"][0][1] == ["T123", "A089A036135"]
+    assert captured["queries"][0][1] == ["T123"]
     assert captured["queries"][1][1] == ["A089A036135"]
+    assert captured["queries"][2][1] == ["T123"]
+    assert captured["queries"][3][1] == ["A089A036135"]
 
 
-def test_db_upsert_workspace_does_not_relabel_app_id_without_token():
+def test_db_upsert_workspace_keeps_existing_app_id_when_blank():
     captured = {}
     original_d1_run = worker.d1_run
     original_schema_ready = worker.SCHEMA_READY
@@ -1649,7 +1650,6 @@ def test_db_upsert_workspace_does_not_relabel_app_id_without_token():
                 env,
                 team_id="T123",
                 team_name="Security Team",
-                app_id="A089A036135",
             )
         )
     finally:
@@ -1658,9 +1658,10 @@ def test_db_upsert_workspace_does_not_relabel_app_id_without_token():
 
     assert workspace_id == 9
     assert captured["params"][2] == ""
-    assert captured["params"][4] == ""
-    assert captured["params"][6] == "A089A036135"
-    assert "excluded.access_token != '' OR excluded.bot_token != ''" in captured["query"]
+    assert (
+        "app_id = CASE WHEN excluded.app_id != '' THEN excluded.app_id ELSE teams.app_id END"
+        in captured["query"]
+    )
 
 
 def test_refresh_workspace_channels_fetches_pages_and_persists_metadata():
@@ -1715,7 +1716,14 @@ def test_refresh_workspace_channels_fetches_pages_and_persists_metadata():
         if "SELECT * FROM teams WHERE id = ?" in query:
             return {
                 "results": [
-                    {"id": 7, "team_id": "T123", "bot_token": "xoxb-workspace"}
+                    {"id": 7, "team_id": "T123", "app_id": "A089A036135"}
+                ]
+            }
+        if "FROM slack_apps WHERE app_id = ?" in query:
+            calls["app_params"] = params
+            return {
+                "results": [
+                    {"id": 3, "app_id": "A089A036135", "bot_token": "xoxb-workspace"}
                 ]
             }
         if "INSERT INTO channels" in query:
@@ -1739,6 +1747,7 @@ def test_refresh_workspace_channels_fetches_pages_and_persists_metadata():
         worker.SCHEMA_READY = original_schema_ready
 
     assert result == {"channel_count": 2, "member_count": 44}
+    assert calls["app_params"] == ["A089A036135"]
     assert len(calls["fetch_urls"]) == 2
     assert calls["channel_params"][0][1] == "T123"
     assert calls["channel_params"][0][2] == "C123"
@@ -1779,8 +1788,14 @@ def test_refresh_workspace_channels_missing_scope_names_workspace_and_scopes():
                         "id": 7,
                         "team_id": "T123",
                         "team_name": "Security Team",
-                        "bot_token": "xoxb-workspace",
+                        "app_id": "A089A036135",
                     }
+                ]
+            }
+        if "FROM slack_apps WHERE app_id = ?" in query:
+            return {
+                "results": [
+                    {"id": 3, "app_id": "A089A036135", "bot_token": "xoxb-workspace"}
                 ]
             }
         return {"success": True}
@@ -2055,7 +2070,7 @@ def test_handle_team_join_event_uses_joined_users_team_for_real_member_dm():
             return {"id": 7, "team_id": team_id, "team_name": "OWASP"}
         return None
 
-    async def fake_bot_user_id(env, team_id="", channel_id=""):
+    async def fake_bot_user_id(env, team_id="", channel_id="", app_id=""):
         return "UBOT"
 
     async def fake_has_event(env, workspace_id, event_id):
@@ -2132,7 +2147,7 @@ def test_handle_team_join_event_skips_bot_user_before_opening_dm():
     async def fake_get_workspace(env, team_id):
         return {"id": 7, "team_id": team_id, "team_name": "OWASP"}
 
-    async def fake_bot_user_id(env, team_id="", channel_id=""):
+    async def fake_bot_user_id(env, team_id="", channel_id="", app_id=""):
         return "UBOT"
 
     async def fake_open(user_id, env, team_id=""):
@@ -2469,16 +2484,23 @@ def test_db_admin_confirmed_delete_cascades_children_before_parent():
 
 def test_admin_bulk_delete_action_deletes_each_selected_row():
     deleted = []
+    captured = {}
     original_delete = worker.db_admin_delete_row_cascade
+    original_redirect = worker.admin_redirect
 
     async def fake_delete(env, table_name, pk_value):
         deleted.append((table_name, pk_value))
 
+    def fake_redirect(env, message="", table_name=""):
+        captured["redirect"] = (message, table_name)
+        return {"redirected": True}
+
     env = _Env()
     setattr(env, "ADMIN_URL", "/private-admin")
     worker.db_admin_delete_row_cascade = fake_delete
+    worker.admin_redirect = fake_redirect
     try:
-        asyncio.run(
+        response = asyncio.run(
             worker.handle_admin_form_action(
                 env,
                 {
@@ -2492,8 +2514,11 @@ def test_admin_bulk_delete_action_deletes_each_selected_row():
         )
     finally:
         worker.db_admin_delete_row_cascade = original_delete
+        worker.admin_redirect = original_redirect
 
     assert deleted == [("channels", "1"), ("channels", "2")]
+    assert response == {"redirected": True}
+    assert captured["redirect"] == ("Deleted 2 rows", "channels")
 
 
 def test_admin_form_action_tests_slack_app_settings():
@@ -2655,9 +2680,10 @@ def test_handle_event_payload_publishes_app_home_commands():
     original_publish_home = worker.slack_api_publish_home
     original_json_response = worker.json_response
 
-    async def fake_publish_home(user_id, env, team_id=""):
+    async def fake_publish_home(user_id, env, team_id="", app_id=""):
         published["user_id"] = user_id
         published["team_id"] = team_id
+        published["app_id"] = app_id
 
     worker.slack_api_publish_home = fake_publish_home
     worker.json_response = lambda payload, status=200, headers=None: payload
@@ -2667,6 +2693,7 @@ def test_handle_event_payload_publishes_app_home_commands():
                 {
                     "type": "event_callback",
                     "team_id": "T123",
+                    "api_app_id": "A089A036135",
                     "event": {
                         "type": "app_home_opened",
                         "user": "U123",
@@ -2679,7 +2706,11 @@ def test_handle_event_payload_publishes_app_home_commands():
         worker.slack_api_publish_home = original_publish_home
         worker.json_response = original_json_response
 
-    assert published == {"user_id": "U123", "team_id": "T123"}
+    assert published == {
+        "user_id": "U123",
+        "team_id": "T123",
+        "app_id": "A089A036135",
+    }
     assert response == {"ok": True}
 
 
@@ -2687,7 +2718,7 @@ def test_handle_event_payload_acknowledges_app_home_publish_errors():
     original_publish_home = worker.slack_api_publish_home
     original_json_response = worker.json_response
 
-    async def fake_publish_home(user_id, env, team_id=""):
+    async def fake_publish_home(user_id, env, team_id="", app_id=""):
         raise RuntimeError("views.publish failed")
 
     worker.slack_api_publish_home = fake_publish_home
@@ -2746,7 +2777,7 @@ def test_slack_api_publish_home_uses_views_publish_shape():
         captured["token_app_id"] = app_id
         return "xoxb-token"
 
-    async def fake_bot_user_id(env, team_id="", channel_id=""):
+    async def fake_bot_user_id(env, team_id="", channel_id="", app_id=""):
         return "UBOT"
 
     worker.fetch_json = fake_fetch_json
@@ -2802,10 +2833,10 @@ def test_slack_api_publish_home_skips_bot_user_from_auth_test():
         captured["token_app_id"] = app_id
         return "xoxb-token"
 
-    async def fake_bot_user_id(env, team_id="", channel_id=""):
+    async def fake_bot_user_id(env, team_id="", channel_id="", app_id=""):
         return ""
 
-    async def fake_update_bot_user_id(env, team_id, bot_user_id):
+    async def fake_update_bot_user_id(env, team_id, bot_user_id, app_id=""):
         captured["updates"].append((team_id, bot_user_id))
         return True
 
@@ -2864,7 +2895,7 @@ def test_slack_api_publish_home_skips_invalid_home_user_response():
         captured["token_app_id"] = app_id
         return "xoxb-token"
 
-    async def fake_bot_user_id(env, team_id="", channel_id=""):
+    async def fake_bot_user_id(env, team_id="", channel_id="", app_id=""):
         return "UBOT"
 
     worker.fetch_json = fake_fetch_json
@@ -2893,10 +2924,11 @@ def test_slack_api_post_message_logs_slack_response_payload():
     captured = {}
     original_fetch_json = worker.fetch_json
     original_log_response = worker.log_slack_api_response
-    original_bot_token = worker.db_get_workspace_bot_token
+    original_token_details = worker.workspace_slack_token_details
 
     async def fake_fetch_json(url, method="GET", headers=None, body=None):
         captured["url"] = url
+        captured["headers"] = headers
         captured["body"] = body
         return True, {"ok": True, "ts": "123.456"}, 200
 
@@ -2925,13 +2957,19 @@ def test_slack_api_post_message_logs_slack_response_payload():
             "diagnostics": diagnostics,
         }
 
-    async def fake_bot_token(env, team_id="", channel_id="", app_id=""):
+    async def fake_token_details(env, team_id="", channel_id="", app_id=""):
         captured["token_app_id"] = app_id
-        return "xoxb-token"
+        return {
+            "token": "xoxb-token",
+            "source": "slack_apps.bot_token",
+            "token_kind": "xoxb",
+            "team_id": team_id,
+            "app_id": app_id,
+        }
 
     worker.fetch_json = fake_fetch_json
     worker.log_slack_api_response = fake_log_response
-    worker.db_get_workspace_bot_token = fake_bot_token
+    worker.workspace_slack_token_details = fake_token_details
     try:
         asyncio.run(
             worker.slack_api_post_message(
@@ -2945,9 +2983,10 @@ def test_slack_api_post_message_logs_slack_response_payload():
     finally:
         worker.fetch_json = original_fetch_json
         worker.log_slack_api_response = original_log_response
-        worker.db_get_workspace_bot_token = original_bot_token
+        worker.workspace_slack_token_details = original_token_details
 
     assert captured["url"] == "https://slack.com/api/chat.postMessage"
+    assert captured["headers"]["Authorization"] == "Bearer xoxb-token"
     assert captured["log"]["team_id"] == "T123"
     assert captured["log"]["channel_id"] == "C123"
     assert captured["log"]["app_id"] == "A089A036135"

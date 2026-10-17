@@ -1,19 +1,19 @@
 # project	dir	type	args	prebuild
-# type: worker = wrangler deploy | pages = wrangler pages deploy | pywrangler = uv run pywrangler deploy | script = the project's own script (args) | "-" = empty
-blt-action	blt-action	pages	-	-
+# type: worker = wrangler deploy | pywrangler = uv run pywrangler deploy | script = the project's own script (args) | "-" = empty
+blt-action	blt-action	worker	-	-
 blt-api	blt-api	worker	-	-
 blt-autopatch	blt-autopatch	worker	-	-
 blt-byte	blt-byte	pywrangler	-	-
 blt-cli	blt-cli	worker	-	-
-blt-cve	blt-cve	pages	-	-
+blt-cve	blt-cve	worker	-	-
 blt-dash	blt-dash	worker	-	-
 blt-design-contest	blt-design-contest	worker	-	-
 blt-design	blt-design	worker	-	-
 blt-docs	blt-docs	worker	-	python3 -m pip install -q -r requirements.txt
-blt-enforcement	blt-enforcement	pages	-	-
+blt-enforcement	blt-enforcement	worker	-	-
 blt-extension	blt-extension	worker	-	-
-blt-flutter	blt-flutter	pages	-	-
-blt-gitcaster	blt-gitcaster	pages	-	-
+blt-flutter	blt-flutter	worker	-	-
+blt-gitcaster	blt-gitcaster	worker	-	-
 blt-gsoc	blt-gsoc	worker	-	rm -rf public && mkdir public && cp -r CNAME css favicon.ico gsoc2026.html images index.html js mentor-guide.html pr-report.html progress-tracker.html data public/
 blt-hackathons	blt-hackathons	worker	-	-
 blt-hackerhouse	blt-hackerhouse	pywrangler	-	-
@@ -28,13 +28,13 @@ blt-monitor	blt-monitor	worker	-	-
 blt-netguardian	blt-netguardian	worker	-	git archive --format=tar.gz --prefix=blt-netguardian-main/ -o public/blt-netguardian-main.tar.gz HEAD:blt-netguardian
 blt-newsletter	blt-newsletter	worker	-	-
 blt-next	blt-next	worker	-	-
-blt-nexus	blt-nexus	pages	-	-
-blt-ossh	blt-ossh	pages	-	-
-blt-owasp-bumper	blt-owasp-bumper	pages	-	-
-blt-owasp-metadata	blt-owasp-metadata	pages	-	-
-blt-owasp-projects	blt-owasp-projects	pages	-	-
-blt-owasp-wich	blt-owasp-wich	pages	-	-
-blt-pages	blt-pages	pages	-	-
+blt-nexus	blt-nexus	worker	-	-
+blt-ossh	blt-ossh	worker	-	-
+blt-owasp-bumper	blt-owasp-bumper	worker	-	-
+blt-owasp-metadata	blt-owasp-metadata	worker	-	-
+blt-owasp-projects	blt-owasp-projects	worker	-	-
+blt-owasp-wich	blt-owasp-wich	worker	-	-
+blt-pages	blt-pages	worker	-	-
 blt-panini	blt-panini	worker	-	-
 blt-pool	blt-pool	worker	-	-
 blt-preflight	blt-preflight	worker	-	-
@@ -45,11 +45,10 @@ blt-sammich	blt-sammich	worker	-	-
 blt-sizzle	blt-sizzle	script	./deploy.sh	-
 blt-start	blt-start	worker	-	-
 blt-timer-web	blt-timer-web	script	./deploy.sh	-
-blt-toasty	blt-toasty	worker	--env production	cd frontend && npm ci && npm run build
-blt-tomato	blt-tomato	pages	-	-
-blt-university	blt-university	pages	-	-
-blt-waypoint	blt-waypoint	pages	-	-
+blt-toasty	blt-toasty	worker	-	cd frontend && npm ci && npm run build
+blt-tomato	blt-tomato	worker	-	-
+blt-university	blt-university	worker	-	-
+blt-waypoint	blt-waypoint	worker	-	-
 blt-zero	blt-zero	worker	-	-
-my-gsoc-tool	my-gsoc-tool	pages	-	-
+my-gsoc-tool	my-gsoc-tool	worker	-	-
 blt-vanish	blt-vanish/cloudflare_workers	worker	-	-
-blt-preflight-api	blt-preflight/workers/api	worker	-	-

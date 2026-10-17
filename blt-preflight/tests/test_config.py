@@ -339,6 +339,7 @@ def test_multiple_overrides(tmp_path):
         {
             "retrieval": {
                 "top_k": 20,
+                "max_results": 20,
                 "similarity_threshold": 0.85,
             },
             "llm": {

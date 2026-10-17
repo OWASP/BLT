@@ -16,7 +16,7 @@ blt-netguardian	python	pip install -r requirements-dev.txt && python -m pytest -
 blt-netguardian-client	flutter	flutter pub get && flutter test
 blt-newsletter	python	pip install --group dev && python -m unittest discover -s tests
 blt-pool	python	pip install pytest && python -m compileall -q src/worker.py && python -m pytest test_worker.py -q
-blt-preflight	python	pip install -r requirements.txt && python -m pytest -q
+blt-preflight	python	pip install -r requirements.txt -e . && python -m pytest -q
 blt-safecloak	python	npm_install && pip install -r requirements-dev.txt && python -m playwright install chromium --with-deps && python -m pytest tests/ -q
 blt-sammich	python	pip install pytest pytest-asyncio && python -m pytest tests/ -q
 blt-sizzle	python	pip install pytest && python -m pytest tests/ -q

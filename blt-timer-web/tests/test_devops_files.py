@@ -1,5 +1,6 @@
 from pathlib import Path
 import stat
+import tomllib
 import unittest
 
 
@@ -33,11 +34,11 @@ class DevopsFileTests(unittest.TestCase):
         self.assertIn("BLT_D1_PERSIST_TO", content)
         self.assertIn("--persist-to", content)
 
-    def test_wrangler_uses_blt_timer_production_name(self):
-        config = (ROOT / "wrangler.toml").read_text()
+    def test_wrangler_production_deploys_the_live_blt_timer_worker(self):
+        config = tomllib.loads((ROOT / "wrangler.toml").read_text())
 
-        self.assertIn('name = "blt-timer-production"', config)
-        self.assertNotIn("fresh-time-tracker-prod", config)
+        self.assertEqual(config["env"]["production"]["name"], "blt-timer")
+        self.assertNotIn("fresh-time-tracker-prod", (ROOT / "wrangler.toml").read_text())
 
     def test_deploy_script_runs_migration_before_production_deploy(self):
         self.assertTrue(DEPLOY.exists(), "deploy.sh must exist")
