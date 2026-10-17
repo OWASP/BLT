@@ -1,0 +1,18 @@
+stages:
+  - build
+
+pages:
+  stage: build
+  image: python:3.11-slim
+  variables:
+    GITHUB_ORG: owasp
+    OUTPUT_FILE: public/index.html
+  script:
+    - python3 generate_repo_list.py
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
