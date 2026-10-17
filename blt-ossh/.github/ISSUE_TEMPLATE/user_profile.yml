@@ -1,0 +1,185 @@
+name: Create Developer Profile
+description: Share your developer profile with the OSSH community
+title: "[PROFILE] "
+labels:
+  - profile
+  - community
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 👋 Welcome to OSSH Community!
+        
+        Create your developer profile to connect with other open source enthusiasts. Your profile will be visible to the entire community.
+        
+        **Tip:** If you came here after analyzing your GitHub profile, some fields may be pre-filled!
+
+  - type: input
+    id: github_username
+    attributes:
+      label: GitHub Username
+      description: Your GitHub username (required for profile analysis)
+      placeholder: "octocat"
+    validations:
+      required: true
+
+  - type: input
+    id: display_name
+    attributes:
+      label: Display Name
+      description: How should we display your name?
+      placeholder: "John Doe"
+    validations:
+      required: true
+
+  - type: textarea
+    id: bio
+    attributes:
+      label: Bio
+      description: Tell us about yourself! What are you passionate about?
+      placeholder: "Full-stack developer passionate about open source and security..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: experience_level
+    attributes:
+      label: Experience Level
+      description: What's your development experience level?
+      options:
+        - Beginner (< 1 year)
+        - Intermediate (1-3 years)
+        - Advanced (3-5 years)
+        - Expert (5+ years)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: interests
+    attributes:
+      label: Areas of Interest
+      description: What technologies or areas are you interested in? (Select all that apply)
+      options:
+        - label: Web Development
+        - label: Mobile Development
+        - label: DevOps/Cloud
+        - label: Machine Learning/AI
+        - label: Security/Ethical Hacking
+        - label: Open Source
+        - label: UI/UX Design
+        - label: Game Development
+        - label: Blockchain
+        - label: Data Science
+
+  - type: textarea
+    id: skills
+    attributes:
+      label: Skills & Technologies
+      description: List your main programming languages and technologies (comma-separated)
+      placeholder: "JavaScript, Python, React, Node.js, Docker"
+    validations:
+      required: true
+
+  - type: textarea
+    id: looking_for
+    attributes:
+      label: What are you looking for?
+      description: What brings you to the OSSH community?
+      placeholder: "Looking to contribute to open source projects, find mentors, collaborate on projects..."
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Location (Optional)
+      description: City, Country (helps connect with local developers)
+      placeholder: "San Francisco, USA"
+    validations:
+      required: false
+
+  - type: input
+    id: website
+    attributes:
+      label: Website/Portfolio (Optional)
+      description: Link to your personal website or portfolio
+      placeholder: "https://yourportfolio.com"
+    validations:
+      required: false
+
+  - type: input
+    id: twitter
+    attributes:
+      label: Twitter/X Handle (Optional)
+      description: Your Twitter/X username (without @)
+      placeholder: "yourusername"
+    validations:
+      required: false
+
+  - type: input
+    id: linkedin
+    attributes:
+      label: LinkedIn Profile (Optional)
+      description: Link to your LinkedIn profile
+      placeholder: "https://linkedin.com/in/yourprofile"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## 🎯 OSSH Analysis Results
+        
+        If you analyzed your GitHub profile with OSSH, the following sections will be pre-filled with personalized recommendations.
+
+  - type: textarea
+    id: recommended_projects
+    attributes:
+      label: Recommended Projects (Optional)
+      description: Projects that match your skills and interests (auto-generated from OSSH analysis)
+      placeholder: "Leave blank if not analyzed with OSSH"
+    validations:
+      required: false
+
+  - type: textarea
+    id: recommended_communities
+    attributes:
+      label: Recommended Communities (Optional)
+      description: Communities you might want to join (auto-generated from OSSH analysis)
+      placeholder: "Leave blank if not analyzed with OSSH"
+    validations:
+      required: false
+
+  - type: textarea
+    id: recommended_reading
+    attributes:
+      label: Recommended Reading (Optional)
+      description: Articles and resources for you (auto-generated from OSSH analysis)
+      placeholder: "Leave blank if not analyzed with OSSH"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## 📊 GitHub Stats (Auto-generated)
+        
+        After submitting your profile, your GitHub stats will be displayed on the community page based on your username.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Community Guidelines
+      description: By submitting this profile, you agree to our community guidelines
+      options:
+        - label: I agree to be respectful and professional in all community interactions
+          required: true
+        - label: I understand my profile will be publicly visible
+          required: true
+        - label: I confirm all information provided is accurate
+          required: true
