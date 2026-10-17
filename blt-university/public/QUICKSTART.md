@@ -6,7 +6,7 @@ Welcome to BLT University! This guide will help you get started whether you're a
 
 ### 1. Browse Courses
 
-Visit the [Course Catalog](https://owasp-blt.github.io/BLT-University/courses/) to explore available courses.
+Visit the [Course Catalog](https://university.owaspblt.org/courses/) to explore available courses.
 
 ### 2. Prerequisites Check
 
@@ -14,7 +14,7 @@ Each course lists prerequisites. Make sure you meet them before enrolling.
 
 ### 3. Enroll
 
-1. Go to the [Enrollment Page](https://owasp-blt.github.io/BLT-University/enroll/)
+1. Go to the [Enrollment Page](https://university.owaspblt.org/enroll/)
 2. Click "Submit Enrollment Request"
 3. Fill out the GitHub issue form
 4. Wait for approval (2-3 business days)
@@ -263,7 +263,7 @@ resources:
 
 Ready to get started? Choose your path:
 
-- **Students**: [Browse Courses](https://owasp-blt.github.io/BLT-University/courses/) → [Enroll](https://owasp-blt.github.io/BLT-University/enroll/)
+- **Students**: [Browse Courses](https://university.owaspblt.org/courses/) → [Enroll](https://university.owaspblt.org/enroll/)
 - **Instructors**: [Read Contributing Guide](CONTRIBUTING.md) → [Submit Course](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml)
 
 Welcome to BLT University! 🎓
