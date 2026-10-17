@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OWASP BLT – Organization Dashboard</title>
+  <meta name="description"
+    content="Live dashboard for all OWASP-BLT GitHub and GitLab repositories – stats, commits, issues, PRs, migration progress, and more." />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="./imgs/logo.png" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#E10101',
+              hover: '#b91c1c',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="styles.css?v=0.2.9" />
+</head>
+
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen font-sans">
+
+  <!-- ===== TOP NAV ===== -->
+  <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm table-view-header">
+    <div id="header-inner"
+      class="max-w-screen-xl mx-auto px-2 sm:px-4 h-14 flex items-center justify-between gap-2 sm:gap-4">
+
+      <!-- Logo -->
+      <a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer"
+        class="flex items-center shrink-0">
+        <!-- Favicon only on mobile, full logo on sm+ -->
+        <img src="./imgs/logo.png" alt="OWASP BLT" class="block sm:hidden h-7 w-7 rounded" />
+        <img src="./imgs/owasp-blt-logo.svg" alt="OWASP BLT" class="hidden sm:block h-7" />
+      </a>
+
+      <!-- Search -->
+      <div class="relative flex-1 min-w-0 max-w-sm">
+        <i class="fa-solid fa-magnifying-glass absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs sm:text-sm"
+          aria-hidden="true"></i>
+        <input id="search-input" type="search" placeholder="Search repositories…" aria-label="Search repositories"
+          class="w-full pl-6 sm:pl-9 pr-2 sm:pr-4 py-1.5 sm:py-2 border border-gray-400 rounded-md text-xs sm:text-sm bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 focus-brand" />
+      </div>
+
+      <!-- Data source tabs -->
+      <div class="hidden md:flex items-center gap-1 shrink-0" role="tablist" aria-label="Repository data source">
+        <button id="data-source-main" type="button" role="tab" aria-selected="true" aria-current="page" data-source="main"
+          title="Show migration summary data"
+          class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all text-xs font-bold ring-2 ring-offset-1 dark:ring-offset-gray-900 ring-gray-500 shadow-sm scale-[1.03]">
+          <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+          <span>Main</span>
+        </button>
+        <button id="data-source-github" type="button" role="tab" aria-selected="false" aria-current="false" data-source="github"
+          title="Show GitHub repository data"
+          class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all text-xs font-semibold opacity-60 grayscale">
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          <span>GitHub</span>
+        </button>
+        <button id="data-source-gitlab" type="button" role="tab" aria-selected="false" aria-current="false" data-source="gitlab"
+          title="Show GitLab repository data"
+          class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 transition-all text-xs font-semibold opacity-60 grayscale">
+          <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
+          <i class="fa-solid fa-check" aria-hidden="true"></i>
+          <span>GitLab</span>
+        </button>
+      </div>
+
+      <div id="migration-summary"
+        class="hidden xl:flex h-8 items-center gap-1.5 rounded-md border border-green-200 dark:border-green-800 bg-white dark:bg-gray-800 px-2 text-xs font-semibold text-gray-700 dark:text-gray-200 whitespace-nowrap"
+        title="GitLab migration progress">
+        <i class="fa-brands fa-gitlab text-green-600 dark:text-green-400" aria-hidden="true"></i>
+        <span id="migration-summary-text">Migration 55/55 (100%)</span>
+      </div>
+
+      <span id="version-label"
+        class="hidden md:inline-flex h-8 items-center rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400"
+        title="Dashboard version">v0.2.9</span>
+
+      <!-- Right controls -->
+      <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+        <!-- Sort -->
+        <select id="sort-select" aria-label="Sort repositories"
+          class="hidden sm:block text-sm border border-gray-400 rounded-md px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus-brand">
+          <option value="stars">★ Stars</option>
+          <option value="forks">⑂ Forks</option>
+          <option value="open_issues_count">Issues</option>
+          <option value="updated_at" selected>Updated</option>
+          <option value="name">Name</option>
+          <option value="created_at">Created</option>
+          <option value="readme_chars">README Size</option>
+          <option value="maturity">Maturity Score</option>
+          <option value="open_pr_count">Open PRs</option>
+          <option value="agent_pr_count">Bot PRs</option>
+          <option value="latest_pr">Latest PR</option>
+        </select>
+
+        <!-- View toggle -->
+        <button id="view-table-btn" aria-label="Table view"
+          class="w-7 h-7 sm:w-auto sm:h-auto sm:p-2 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          title="Table view (default)">
+          <i class="fa-solid fa-table-list text-xs sm:text-sm" aria-hidden="true"></i>
+        </button>
+        <button id="view-card-btn" aria-label="Card view"
+          class="w-7 h-7 sm:w-auto sm:h-auto sm:p-2 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          title="Card view">
+          <i class="fa-solid fa-grip text-xs sm:text-sm" aria-hidden="true"></i>
+        </button>
+
+        <!-- Open Issues -->
+        <a href="./issues.html" aria-label="View all open issues"
+          title="All open issues across repositories"
+          class="w-7 h-7 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-xs font-medium gap-1">
+          <i class="fa-solid fa-circle-dot text-brand text-xs sm:text-sm" aria-hidden="true"></i>
+          <span class="hidden sm:inline">Issues</span>
+        </a>
+
+        <!-- Dark mode toggle -->
+        <button id="dark-toggle" aria-label="Toggle dark mode"
+          class="w-7 h-7 sm:w-auto sm:h-auto sm:p-2 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <i id="dark-icon" class="fa-solid fa-moon text-xs sm:text-sm" aria-hidden="true"></i>
+        </button>
+
+        <!-- Screenshots link -->
+        <a href="./screenshots.html" aria-label="Website Screenshots" title="Website Screenshots"
+          class="w-7 h-7 sm:w-auto sm:h-auto sm:p-2 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <i class="fa-solid fa-camera text-xs sm:text-sm" aria-hidden="true"></i>
+        </a>
+
+        <!-- Source code link -->
+        <a href="https://gitlab.com/owasp-blt" target="_blank" rel="noopener noreferrer"
+          aria-label="OWASP BLT source code on GitLab"
+          class="w-7 h-7 sm:w-auto sm:h-auto sm:p-2 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <i class="fa-brands fa-gitlab text-xs sm:text-base" aria-hidden="true"></i>
+        </a>
+
+        <!-- GitLab link -->
+        <a href="https://gitlab.com/owasp-blt" target="_blank" rel="noopener noreferrer"
+          aria-label="OWASP BLT on GitLab"
+          class="w-7 h-7 sm:w-auto sm:h-auto sm:p-2 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <i class="fa-brands fa-gitlab text-xs sm:text-base" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN LAYOUT ===== -->
+  <div id="main-layout" class="max-w-screen-xl mx-auto px-2 sm:px-4 py-6 flex gap-2 sm:gap-6 table-view">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside id="main-sidebar" class="hidden lg:flex flex-col gap-2 w-52 shrink-0 force-hidden">
+      <div id="label-filter-sidebar">
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2">Labels</p>
+        <div class="space-y-2 px-2">
+          <div class="relative">
+            <input id="label-search-input" type="text" placeholder="Search labels…" aria-label="Search labels"
+              class="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-xs bg-white dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 focus-brand" />
+            <div id="label-dropdown"
+              class="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg hidden z-10 max-h-48 overflow-y-auto">
+              <ul id="label-list" class="space-y-0"></ul>
+            </div>
+          </div>
+          <button id="clear-label-btn"
+            class="w-full text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-brand hover:text-brand transition-colors"
+            title="Clear label filter">
+            <i class="fa-solid fa-times mr-1" aria-hidden="true"></i>Clear
+          </button>
+        </div>
+      </div>
+
+      <hr class="border-gray-200 dark:border-gray-700 my-2" />
+
+      <nav aria-label="Filter by type">
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2">Filter</p>
+        <ul class="space-y-0.5">
+          <li>
+            <button data-filter="all"
+              class="filter-btn nav-active w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
+              <i class="fa-solid fa-layer-group w-4 mr-2" aria-hidden="true"></i>All repos
+            </button>
+          </li>
+          <li>
+            <button data-filter="source"
+              class="filter-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
+              <i class="fa-solid fa-code-branch w-4 mr-2" aria-hidden="true"></i>Source
+            </button>
+          </li>
+          <li>
+            <button data-filter="fork"
+              class="filter-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
+              <i class="fa-solid fa-code-fork w-4 mr-2" aria-hidden="true"></i>Forks
+            </button>
+          </li>
+          <li>
+            <button data-filter="archived"
+              class="filter-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
+              <i class="fa-solid fa-archive w-4 mr-2" aria-hidden="true"></i>Archived
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <hr class="border-gray-200 dark:border-gray-700 my-2" />
+
+      <nav aria-label="Sort options (mobile-friendly sidebar)">
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2">Sort by</p>
+        <ul class="space-y-0.5" id="sort-sidebar">
+          <li><button data-sort="stars"
+              class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i
+                class="fa-solid fa-star w-4 mr-2" aria-hidden="true"></i>Stars</button></li>
+          <li><button data-sort="forks"
+              class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i
+                class="fa-solid fa-code-fork w-4 mr-2" aria-hidden="true"></i>Forks</button></li>
+          <li><button data-sort="open_issues_count"
+              class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i
+                class="fa-solid fa-circle-dot w-4 mr-2" aria-hidden="true"></i>Issues</button></li>
+          <li><button data-sort="updated_at"
+              class="sort-btn nav-active w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i
+                class="fa-solid fa-clock w-4 mr-2" aria-hidden="true"></i>Updated</button></li>
+          <li><button data-sort="created_at"
+              class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i
+                class="fa-solid fa-calendar-plus w-4 mr-2" aria-hidden="true"></i>Created</button></li>
+          <li><button data-sort="name"
+              class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i
+                class="fa-solid fa-a w-4 mr-2" aria-hidden="true"></i>Name</button></li>
+          <li><button data-sort="readme_chars"
+              class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i
+                class="fa-solid fa-file-lines w-4 mr-2" aria-hidden="true"></i>README Size</button></li>
+          <li><button data-sort="maturity"
+              class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i
+                class="fa-solid fa-rocket w-4 mr-2" aria-hidden="true"></i>Maturity Score</button></li>
+          <li><button data-sort="open_pr_count"
+              class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i
+                class="fa-solid fa-code-pull-request w-4 mr-2" aria-hidden="true"></i>Open PRs</button></li>
+          <li><button data-sort="agent_pr_count"
+              class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i
+                class="fa-solid fa-robot w-4 mr-2" aria-hidden="true"></i>Bot PRs</button></li>
+          <li><button data-sort="latest_pr"
+              class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i
+                class="fa-solid fa-code-pull-request w-4 mr-2" aria-hidden="true"></i>Latest PR</button></li>
+        </ul>
+      </nav>
+
+      <hr class="border-gray-200 dark:border-gray-700 my-2" />
+
+      <div id="lang-filter-sidebar">
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2">Language
+        </p>
+        <ul class="space-y-0.5" id="lang-list"></ul>
+      </div>
+    </aside>
+
+    <!-- ===== CONTENT ===== -->
+    <main class="flex-1 min-w-0 overflow-x-auto">
+      <div id="content-inner">
+
+        <!-- Mobile sort/filter bar -->
+        <div class="flex lg:hidden items-center gap-2 mb-4 flex-wrap">
+          <select id="sort-select-mobile" aria-label="Sort repositories"
+            class="text-sm border border-gray-400 rounded-md px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus-brand flex-1">
+            <option value="stars">★ Stars</option>
+            <option value="forks">⑂ Forks</option>
+            <option value="open_issues_count">Issues</option>
+            <option value="updated_at" selected>Updated</option>
+            <option value="name">Name</option>
+            <option value="created_at">Created</option>
+            <option value="readme_chars">README Size</option>
+            <option value="maturity">Maturity Score</option>
+            <option value="open_pr_count">Open PRs</option>
+            <option value="agent_pr_count">Bot PRs</option>
+            <option value="latest_pr">Latest PR</option>
+          </select>
+          <select id="filter-select-mobile" aria-label="Filter repositories"
+            class="text-sm border border-gray-400 rounded-md px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus-brand flex-1">
+            <option value="all">All repos</option>
+            <option value="source">Source</option>
+            <option value="fork">Forks</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+
+        <!-- Repo grid -->
+        <div id="repo-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 hidden">
+          <!-- Skeleton cards -->
+          <div class="skeleton h-48 rounded-xl"></div>
+          <div class="skeleton h-48 rounded-xl"></div>
+          <div class="skeleton h-48 rounded-xl"></div>
+          <div class="skeleton h-48 rounded-xl"></div>
+          <div class="skeleton h-48 rounded-xl"></div>
+          <div class="skeleton h-48 rounded-xl"></div>
+        </div>
+
+        <!-- Repo table (default view) -->
+        <div id="repo-table" class="overflow-x-auto">
+          <table class="border-collapse text-sm">
+            <tbody>
+              <tr>
+                <td colspan="14" class="py-2">
+                  <div class="skeleton h-8 rounded"></div>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="14" class="py-2">
+                  <div class="skeleton h-8 rounded"></div>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="14" class="py-2">
+                  <div class="skeleton h-8 rounded"></div>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="14" class="py-2">
+                  <div class="skeleton h-8 rounded"></div>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="14" class="py-2">
+                  <div class="skeleton h-8 rounded"></div>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="14" class="py-2">
+                  <div class="skeleton h-8 rounded"></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Error state -->
+        <div id="error-state" class="hidden text-center py-16">
+          <i class="fa-solid fa-triangle-exclamation text-4xl text-brand mb-3" aria-hidden="true"></i>
+          <p class="font-semibold text-lg">Failed to load repositories</p>
+          <p id="error-msg" class="text-sm text-gray-500 dark:text-gray-400 mt-1"></p>
+          <button id="retry-btn"
+            class="mt-4 px-5 py-2 bg-brand hover:bg-brand-hover text-white text-sm font-semibold rounded-md transition-colors">
+            <i class="fa-solid fa-rotate-right mr-2" aria-hidden="true"></i>Retry
+          </button>
+        </div>
+
+        <!-- Empty state -->
+        <div id="empty-state" class="hidden text-center py-16">
+          <i class="fa-solid fa-box-open text-4xl text-gray-300 dark:text-gray-600 mb-3" aria-hidden="true"></i>
+          <p class="font-semibold text-lg">No repositories match your search</p>
+          <button id="clear-btn"
+            class="mt-3 px-4 py-2 border border-brand text-brand text-sm font-semibold rounded-md hover:bg-brand hover:text-white transition-colors">
+            Clear filters
+          </button>
+        </div>
+
+      </div><!-- #content-inner -->
+    </main>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer
+    class="mt-10 border-t border-gray-200 dark:border-gray-700 py-6 text-center text-xs text-gray-400 dark:text-gray-500">
+    <p>
+      Data sourced from the GitHub and GitLab APIs.
+      Built for <a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer"
+        class="text-brand underline-offset-2 hover:underline">OWASP BLT</a>.
+    </p>
+    <p id="footer-ts" class="mt-1"></p>
+  </footer>
+
+
+  <!-- ===== JAVASCRIPT ===== -->
+  <script src="main_data.js?v=0.2.9"></script>
+  <script src="script.js?v=0.2.9"></script>
+</body>
+
+</html>
