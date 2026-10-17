@@ -1,0 +1,39 @@
+# Cloudflare Workers Configuration for BLT-Next
+
+name = "blt-next"
+main = "workers/main.py"
+compatibility_date = "2026-03-12"
+compatibility_flags = [ "python_workers" ]
+
+[assets]
+directory = "src"
+binding = "ASSETS"
+
+# Environment variables (set production values in Cloudflare dashboard or override in [env.*])
+[vars]
+ALLOWED_ORIGIN = "http://localhost"  # Override in production via Cloudflare dashboard
+# ENVIRONMENT = "production"
+
+# Secrets (set via wrangler secret put)
+# - JWT_SECRET
+# - ENCRYPTION_KEY
+
+# KV Namespaces for caching
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "your-kv-namespace-id"
+
+# Development
+[env.development]
+name = "blt-api-dev"
+
+
+
+# Triggers
+[triggers]
+crons = []
+
+# Observability
+[observability]
+enabled = true
+head_sampling_rate = 1
