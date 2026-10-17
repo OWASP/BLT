@@ -1,0 +1,9 @@
+name = "blt-autopatch"
+compatibility_date = "2026-08-29"
+
+[assets]
+directory = "./public"
+
+[[routes]]
+pattern = "autopatch.owaspblt.org"
+custom_domain = true
