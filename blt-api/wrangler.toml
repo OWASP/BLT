@@ -1,0 +1,36 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "blt-api"
+main = "src/main.py"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["python_workers"]
+
+# Automatically run D1 migrations before deployment
+[build]
+command = "bash scripts/migrate.sh"
+
+# Static assets configuration
+[assets]
+directory = "./static"
+
+[[d1_databases]]
+binding = "blt_api"
+database_name = "blt-api"
+database_id = "bb8bc336-a8d2-4aa4-a244-f492b15a97dd"
+migrations_dir = "migrations"
+migrations_table = "d1_migrations"
+
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1

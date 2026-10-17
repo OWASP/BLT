@@ -1,0 +1,282 @@
+"""
+Main entry point for the BLT API Cloudflare Worker.
+
+This module provides a full-featured REST API that interfaces with
+the OWASP BLT project, running efficiently on Cloudflare Workers.
+"""
+
+# Try to import Cloudflare Workers JS bindings
+try:
+    from js import Response, Headers, JSON # pyright: ignore[reportMissingImports]
+    _WORKERS_RUNTIME = True
+except ImportError:
+    _WORKERS_RUNTIME = False
+    from utils import Response, Headers
+
+from workers import WorkerEntrypoint # type: ignore [as worker instance is available at runtime]
+from os import path
+from router import Router
+from handlers import (
+    handle_bugs,
+    handle_users,
+    handle_domains,
+    handle_organizations,
+    handle_projects,
+    handle_hunts,
+    handle_stats,
+    handle_leaderboard,
+    handle_contributors, 
+    handle_repos,
+    handle_jobs,
+    handle_hackathons,
+    handle_health,
+    handle_blt_api_logo,
+    handle_llm_txt,
+    handle_dashboard,
+    handle_homepage,
+    handle_auth_page,
+    handle_signup,
+    handle_signin,
+    handle_verify_email,
+    handle_verify_local,
+    handle_api_keys,
+    make_routes_handler
+)
+from route_metadata import metadata_for
+from utils import json_response, error_response, cors_headers
+from libs.db import get_db_safe 
+from libs.api_key import is_api_key_required, is_user_api_key_candidate, validate_api_key_request
+
+# Initialize the router
+router = Router()
+
+
+def _add_route(method: str, pattern: str, handler) -> None:
+    """Register a route with matching /routes discovery metadata."""
+    router.add_route(method, pattern, handler, metadata=metadata_for(method, pattern))
+
+
+# Register routes
+
+# Homepage and health check
+_add_route("GET", "/", handle_homepage)
+_add_route("GET", "/blt-api.png", handle_blt_api_logo)
+_add_route("GET", "/llm.txt", handle_llm_txt)
+_add_route("GET", "/dashboard", handle_dashboard)
+_add_route("GET", "/auth", handle_auth_page)
+_add_route("GET", "/health", handle_health)
+
+# Bugs API
+_add_route("GET", "/bugs/search", handle_bugs)
+_add_route("GET", "/bugs", handle_bugs)
+_add_route("POST", "/bugs", handle_bugs)
+_add_route("PATCH", "/bugs/{id}", handle_bugs)
+_add_route("GET", "/bugs/{id}", handle_bugs)
+_add_route("DELETE", "/bugs/{id}", handle_bugs)
+
+# Users API
+_add_route("GET", "/users", handle_users)
+_add_route("POST", "/users", handle_users)
+_add_route("GET", "/users/{id}", handle_users)
+_add_route("GET", "/users/{id}/profile", handle_users)
+_add_route("GET", "/users/{id}/bugs", handle_users)
+_add_route("GET", "/users/{id}/domains", handle_users)
+_add_route("GET", "/users/{id}/followers", handle_users)
+_add_route("GET", "/users/{id}/following", handle_users)
+
+# Auth API
+_add_route("POST", "/api/auth/signup", handle_signup)
+_add_route("POST", "/api/auth/signin", handle_signin)
+_add_route("GET", "/api/auth/verify-email", handle_verify_email)
+_add_route("POST", "/api/auth/verify-local", handle_verify_local)
+_add_route("GET", "/api/auth/api-keys", handle_api_keys)
+_add_route("POST", "/api/auth/api-keys", handle_api_keys)
+_add_route("DELETE", "/api/auth/api-keys/{id}", handle_api_keys)
+_add_route("POST", "/auth/signup", handle_signup)
+_add_route("POST", "/auth/signin", handle_signin)
+_add_route("GET", "/auth/verify-email", handle_verify_email)  # Email verification route
+_add_route("POST", "/auth/verify-local", handle_verify_local)
+_add_route("GET", "/auth/api-keys", handle_api_keys)
+_add_route("POST", "/auth/api-keys", handle_api_keys)
+_add_route("DELETE", "/auth/api-keys/{id}", handle_api_keys)
+
+# Domains API
+_add_route("GET", "/domains", handle_domains)
+_add_route("GET", "/domains/{id}", handle_domains)
+_add_route("GET", "/domains/{id}/tags", handle_domains)
+
+# Organizations API
+_add_route("GET", "/organizations", handle_organizations)
+_add_route("GET", "/organizations/{id}", handle_organizations)
+_add_route("GET", "/organizations/{id}/domains", handle_organizations)
+_add_route("GET", "/organizations/{id}/bugs", handle_organizations)
+_add_route("GET", "/organizations/{id}/managers", handle_organizations)
+_add_route("GET", "/organizations/{id}/tags", handle_organizations)
+_add_route("GET", "/organizations/{id}/integrations", handle_organizations)
+_add_route("GET", "/organizations/{id}/stats", handle_organizations)
+
+# Projects API
+_add_route("GET", "/projects", handle_projects)
+_add_route("GET", "/projects/{id}", handle_projects)
+_add_route("GET", "/projects/{id}/contributors", handle_projects)
+
+# Bug Hunts API
+_add_route("GET", "/hunts/active", handle_hunts)
+_add_route("GET", "/hunts/previous", handle_hunts)
+_add_route("GET", "/hunts/upcoming", handle_hunts)
+_add_route("GET", "/hunts", handle_hunts)
+_add_route("GET", "/hunts/{id}", handle_hunts)
+
+# Stats API
+_add_route("GET", "/stats", handle_stats)
+
+# Leaderboard API
+_add_route("GET", "/leaderboard", handle_leaderboard)
+_add_route("GET", "/leaderboard/monthly", handle_leaderboard)
+_add_route("GET", "/leaderboard/organizations", handle_leaderboard)
+
+# Contributors API
+_add_route("GET", "/contributors", handle_contributors)
+_add_route("GET", "/contributors/{id}", handle_contributors)
+
+# Repositories API
+_add_route("GET", "/repos", handle_repos)
+_add_route("GET", "/repos/{id}", handle_repos)
+
+# API Discoverability - uses factory pattern to avoid circular imports
+_add_route("GET", "/routes", make_routes_handler(router))
+
+def _add_v2_route(method: str, pattern: str, handler) -> None:
+    """Register a v2-prefixed route while preserving existing unversioned routes."""
+    v2_pattern = "/v2" if pattern == "/" else f"/v2{pattern}"
+    _add_route(method, v2_pattern, handler)
+
+
+# v2 API routes (backward compatible with existing unversioned API routes)
+_add_v2_route("GET", "/health", handle_health)
+
+_add_v2_route("GET", "/bugs/search", handle_bugs)
+_add_v2_route("GET", "/bugs", handle_bugs)
+_add_v2_route("POST", "/bugs", handle_bugs)
+_add_v2_route("PATCH", "/bugs/{id}", handle_bugs)
+_add_v2_route("GET", "/bugs/{id}", handle_bugs)
+_add_v2_route("DELETE", "/bugs/{id}", handle_bugs)
+
+_add_v2_route("GET", "/users", handle_users)
+_add_v2_route("POST", "/users", handle_users)
+_add_v2_route("GET", "/users/{id}", handle_users)
+_add_v2_route("GET", "/users/{id}/profile", handle_users)
+_add_v2_route("GET", "/users/{id}/bugs", handle_users)
+_add_v2_route("GET", "/users/{id}/domains", handle_users)
+_add_v2_route("GET", "/users/{id}/followers", handle_users)
+_add_v2_route("GET", "/users/{id}/following", handle_users)
+
+_add_v2_route("GET", "/auth", handle_auth_page)
+_add_v2_route("POST", "/auth/signup", handle_signup)
+_add_v2_route("POST", "/auth/signin", handle_signin)
+_add_v2_route("GET", "/auth/verify-email", handle_verify_email)
+_add_v2_route("POST", "/auth/verify-local", handle_verify_local)
+_add_v2_route("GET", "/auth/api-keys", handle_api_keys)
+_add_v2_route("POST", "/auth/api-keys", handle_api_keys)
+_add_v2_route("DELETE", "/auth/api-keys/{id}", handle_api_keys)
+
+_add_v2_route("GET", "/domains", handle_domains)
+_add_v2_route("GET", "/domains/{id}", handle_domains)
+_add_v2_route("GET", "/domains/{id}/tags", handle_domains)
+
+_add_v2_route("GET", "/organizations", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}/domains", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}/bugs", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}/managers", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}/tags", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}/integrations", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}/stats", handle_organizations)
+
+_add_v2_route("GET", "/projects", handle_projects)
+_add_v2_route("GET", "/projects/{id}", handle_projects)
+_add_v2_route("GET", "/projects/{id}/contributors", handle_projects)
+
+_add_v2_route("GET", "/hunts/active", handle_hunts)
+_add_v2_route("GET", "/hunts/previous", handle_hunts)
+_add_v2_route("GET", "/hunts/upcoming", handle_hunts)
+_add_v2_route("GET", "/hunts", handle_hunts)
+_add_v2_route("GET", "/hunts/{id}", handle_hunts)
+
+_add_v2_route("GET", "/stats", handle_stats)
+
+_add_v2_route("GET", "/leaderboard", handle_leaderboard)
+_add_v2_route("GET", "/leaderboard/monthly", handle_leaderboard)
+_add_v2_route("GET", "/leaderboard/organizations", handle_leaderboard)
+
+_add_v2_route("GET", "/contributors", handle_contributors)
+_add_v2_route("GET", "/contributors/{id}", handle_contributors)
+
+_add_v2_route("GET", "/repos", handle_repos)
+_add_v2_route("GET", "/repos/{id}", handle_repos)
+
+_add_v2_route("GET", "/jobs/stats", handle_jobs)
+_add_v2_route("GET", "/jobs", handle_jobs)
+_add_v2_route("POST", "/jobs", handle_jobs)
+_add_v2_route("POST", "/jobs/{id}/view", handle_jobs)
+_add_v2_route("GET", "/jobs/{id}", handle_jobs)
+_add_v2_route("PATCH", "/jobs/{id}", handle_jobs)
+
+_add_v2_route("GET", "/hackathons", handle_hackathons)
+_add_v2_route("POST", "/hackathons", handle_hackathons)
+_add_v2_route("POST", "/hackathons/{id}/register", handle_hackathons)
+_add_v2_route("GET", "/hackathons/{slug}", handle_hackathons)
+_add_v2_route("PATCH", "/hackathons/{id}", handle_hackathons)
+# v2 API discoverability
+_add_v2_route("GET", "/routes", make_routes_handler(router))
+
+class Default(WorkerEntrypoint):
+    async def on_fetch(self, request):
+        """
+        Main entry point for Cloudflare Workers.
+        
+        This function handles all incoming HTTP requests and routes them
+        to the appropriate handler based on the URL path and method.
+    
+        Args:
+            request: The incoming Request object
+            env: Environment bindings (variables, secrets, KV namespaces, etc.)
+        
+        Returns:
+            Response: The HTTP response to return to the client
+        """
+        try:
+            # Handle CORS preflight requests
+            if request.method == "OPTIONS":
+                return Response.new(
+                    None,
+                    status=204,
+                    headers=Headers.new(cors_headers())
+                )
+
+            db = None
+            if is_api_key_required(request.method, request.url):
+                if is_user_api_key_candidate(request):
+                    db = await get_db_safe(self.env)
+                api_key_error = await validate_api_key_request(request, self.env, db)
+                if api_key_error is not None:
+                    return api_key_error
+
+            if db is None:
+                db = await get_db_safe(self.env)  # Ensure database is available and initialized
+        
+            # Get URL and method
+            url = request.url
+            method = request.method
+        
+
+            # Route the request
+            response = await router.handle(request, self.env)
+            
+            return response
+            
+        except Exception as e:
+            return error_response(
+                message=f"Internal Server Error: {str(e)}",
+                status=500
+            )
