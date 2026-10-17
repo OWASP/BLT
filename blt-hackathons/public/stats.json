@@ -1,0 +1,33 @@
+{
+  "lastUpdated": "2026-05-30T17:53:18.982884+00:00",
+  "repositories": 7,
+  "hackathonName": "BLT Mentor Warmup Hackathon",
+  "startTime": "2025-10-31T00:00:00Z",
+  "endTime": "2026-03-30T18:00:00Z",
+  "hackathons": [
+    {
+      "slug": "blt-mentor-warmup",
+      "name": "BLT Mentor Warmup Hackathon",
+      "startTime": "2025-10-31T00:00:00Z",
+      "endTime": "2026-03-30T18:00:00Z"
+    },
+    {
+      "slug": "gsoc-2026-warmup",
+      "name": "GSOC 2026 Warmup",
+      "startTime": "2025-11-01T00:00:00Z",
+      "endTime": "2026-05-09T23:59:59Z"
+    },
+    {
+      "slug": "may-2025-hackathon",
+      "name": "May Hackathon $100 prize",
+      "startTime": "2025-05-11T00:00:00Z",
+      "endTime": "2025-06-01T23:59:59Z"
+    },
+    {
+      "slug": "summer-2025-hackathon",
+      "name": "OWASP BLT Summer 2025 hackathon $200 prize",
+      "startTime": "2025-02-28T00:00:00Z",
+      "endTime": "2025-05-08T23:59:59Z"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+name: Become a Sponsor
+description: Express interest in sponsoring a hackathon
+title: "[Sponsor]: "
+labels: ["sponsorship"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for your interest in sponsoring a BLT Hackathon!
+
+        **Important:** Payment must be made directly to the contributors through [GitHub Sponsors](https://github.com/sponsors). Once your sponsorship is confirmed, a maintainer will add your information to the hackathon page.
+
+  - type: input
+    id: hackathon
+    attributes:
+      label: Hackathon Name
+      description: Which hackathon would you like to sponsor?
+      placeholder: e.g., "GSOC 2026 Warmup"
+    validations:
+      required: true
+
+  - type: input
+    id: name
+    attributes:
+      label: Sponsor Name / Company
+      placeholder: e.g., "Acme Corp" or your GitHub username
+    validations:
+      required: true
+
+  - type: input
+    id: website
+    attributes:
+      label: Website (optional)
+      placeholder: e.g., "https://example.com"
+
+  - type: input
+    id: amount
+    attributes:
+      label: Sponsorship Amount
+      description: Cash value you would like to contribute.
+      placeholder: e.g., "$50"
+    validations:
+      required: true
+
+  - type: textarea
+    id: message
+    attributes:
+      label: Additional Notes (optional)
+      placeholder: Any extra information you'd like to share…
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        After submitting this issue, a maintainer will contact you with payment instructions via [GitHub Sponsors](https://github.com/sponsors).

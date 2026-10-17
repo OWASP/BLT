@@ -1,0 +1,1044 @@
+#!/usr/bin/env python3
+"""
+Fetch GitHub or GitLab stats for hackathons and save to public/hackathon-data/.
+The CI workflow selects which date range it owns.
+
+The frontend simply loads the resulting JSON files without making any live
+GitHub API calls.
+
+OPTIMIZATIONS:
+- Skip ended hackathons (keeps historical data static)
+- Incremental review fetching (only fetch reviews for PRs updated since last run)
+- Org repos caching (fetch once, reuse for all hackathons)
+"""
+
+import json
+import logging
+import os
+import sys
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import date, datetime, timedelta, timezone
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote
+from urllib.request import Request, urlopen
+
+import yaml
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+GITHUB_API_BASE = "https://api.github.com"
+DEFAULT_GITLAB_URL = "https://gitlab.com"
+PUBLIC_DIR = os.environ.get("PUBLIC_DIR", "public")
+
+
+def public_path(*parts):
+    """Return a path inside the static deployment directory."""
+    return os.path.join(PUBLIC_DIR, *parts)
+
+
+def is_hackathon_active(start_time, end_time):
+    """Check if a hackathon is currently active or upcoming."""
+    now = datetime.now(timezone.utc)
+    end_dt = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
+    # Keep updating if hackathon hasn't ended yet
+    return now <= end_dt
+
+
+def load_existing_data(slug):
+    """Load existing hackathon data if it exists."""
+    output_path = public_path("hackathon-data", f"{slug}.json")
+    if os.path.exists(output_path):
+        try:
+            with open(output_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as exc:
+            logger.warning("Could not load existing data for %s: %s", slug, exc)
+    return None
+
+
+def make_request(url, token=None, retry_count=3):
+    """Make a single GitHub API request with retry/back-off logic."""
+    headers = {
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "BLT-Hackathons-Stats-Fetcher/1.0",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    for attempt in range(retry_count):
+        try:
+            req = Request(url, headers=headers)
+            with urlopen(req, timeout=30) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except HTTPError as e:
+            if e.code in (429, 403):
+                reset = e.headers.get("X-RateLimit-Reset")
+                wait = max(int(reset) - int(time.time()) + 5, 10) if reset else 60
+                logger.warning("Rate limited on %s. Waiting %ds...", url, min(wait, 300))
+                time.sleep(min(wait, 300))
+            elif e.code == 404:
+                logger.warning("Not found: %s", url)
+                return None
+            else:
+                logger.error("HTTP %d for %s: %s", e.code, url, e.reason)
+                if attempt < retry_count - 1:
+                    time.sleep(5 * (attempt + 1))
+                else:
+                    return None
+        except URLError as e:
+            logger.error("URL error for %s: %s", url, e)
+            if attempt < retry_count - 1:
+                time.sleep(5 * (attempt + 1))
+            else:
+                return None
+    return None
+
+
+def make_gitlab_request(url, token=None, retry_count=3):
+    """Make a GitLab API request with retry/back-off logic."""
+    headers = {
+        "Accept": "application/json",
+        "User-Agent": "BLT-Hackathons-Stats-Fetcher/1.0",
+    }
+    if token:
+        headers["PRIVATE-TOKEN"] = token
+
+    for attempt in range(retry_count):
+        try:
+            req = Request(url, headers=headers)
+            with urlopen(req, timeout=30) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except HTTPError as exc:
+            if exc.code == 429:
+                wait = int(exc.headers.get("Retry-After", "60"))
+                logger.warning("Rate limited on %s. Waiting %ds...", url, min(wait, 300))
+                time.sleep(min(wait, 300))
+            elif exc.code == 404:
+                logger.warning("Not found: %s", url)
+                return None
+            else:
+                logger.error("HTTP %d for %s: %s", exc.code, url, exc.reason)
+                if attempt < retry_count - 1:
+                    time.sleep(5 * (attempt + 1))
+                else:
+                    return None
+        except URLError as exc:
+            logger.error("URL error for %s: %s", url, exc)
+            if attempt < retry_count - 1:
+                time.sleep(5 * (attempt + 1))
+            else:
+                return None
+    return None
+
+
+def fetch_all_pages(base_url, token=None, max_pages=100):
+    """Fetch all pages from a paginated GitHub API endpoint."""
+    all_items = []
+    page = 1
+    per_page = 100
+
+    while True:
+        sep = "&" if "?" in base_url else "?"
+        url = f"{base_url}{sep}per_page={per_page}&page={page}"
+        items = make_request(url, token)
+
+        if not items:
+            break
+
+        all_items.extend(items)
+
+        if len(items) < per_page or page >= max_pages:
+            break
+
+        page += 1
+        # Reduced sleep when token is present, as we are parallelizing
+        if not token:
+            time.sleep(0.2)
+
+    logger.info("Fetched %d items from %s", len(all_items), base_url.split("?")[0])
+    return all_items
+
+
+def fetch_all_gitlab_pages(base_url, token=None, max_pages=100):
+    """Fetch all pages from a paginated GitLab API endpoint."""
+    all_items = []
+    for page in range(1, max_pages + 1):
+        sep = "&" if "?" in base_url else "?"
+        items = make_gitlab_request(f"{base_url}{sep}per_page=100&page={page}", token)
+        if not items:
+            break
+        all_items.extend(items)
+        if len(items) < 100:
+            break
+    logger.info("Fetched %d items from %s", len(all_items), base_url.split("?")[0])
+    return all_items
+
+
+def gitlab_api_base(gitlab_config):
+    """Return the API base for gitlab.com or a self-managed GitLab instance."""
+    return f"{gitlab_config.get('url', DEFAULT_GITLAB_URL).rstrip('/')}/api/v4"
+
+
+def gitlab_project_id(project_path):
+    return quote(project_path, safe="")
+
+
+def fetch_gitlab_group_projects(group, gitlab_config, token=None):
+    """Fetch all public projects for a GitLab group, including subgroups."""
+    group_id = quote(group, safe="")
+    url = f"{gitlab_api_base(gitlab_config)}/groups/{group_id}/projects?include_subgroups=true"
+    projects = fetch_all_gitlab_pages(url, token)
+    return [p["path_with_namespace"] for p in projects if p.get("path_with_namespace")]
+
+
+def gitlab_user(user):
+    """Normalize GitLab user fields to the existing GitHub-shaped contract."""
+    user = user or {}
+    return {
+        "login": user.get("username", "unknown"),
+        "avatar_url": user.get("avatar_url", ""),
+        "html_url": user.get("web_url", ""),
+    }
+
+
+def fetch_gitlab_merge_requests(project_path, start_dt, end_dt, gitlab_config, token=None):
+    """Fetch GitLab merge requests and normalize them as pull requests."""
+    project_id = gitlab_project_id(project_path)
+    url = f"{gitlab_api_base(gitlab_config)}/projects/{project_id}/merge_requests?state=all&order_by=created_at&sort=desc"
+    merge_requests = fetch_all_gitlab_pages(url, token)
+    filtered = []
+    for mr in merge_requests:
+        created_at = datetime.fromisoformat(mr["created_at"].replace("Z", "+00:00"))
+        merged_at = datetime.fromisoformat(mr["merged_at"].replace("Z", "+00:00")) if mr.get("merged_at") else None
+        if start_dt <= created_at <= end_dt or (merged_at and start_dt <= merged_at <= end_dt):
+            filtered.append({
+                **mr,
+                "number": mr["iid"],
+                "html_url": mr["web_url"],
+                "user": gitlab_user(mr.get("author")),
+                "repository": project_path,
+            })
+    return filtered
+
+
+def fetch_gitlab_reviews(project_path, mr_number, gitlab_config, token=None):
+    """Treat human GitLab merge-request notes as review activity."""
+    project_id = gitlab_project_id(project_path)
+    url = f"{gitlab_api_base(gitlab_config)}/projects/{project_id}/merge_requests/{mr_number}/notes"
+    notes = fetch_all_gitlab_pages(url, token)
+    return [
+        {
+            "id": note.get("id"),
+            "state": "COMMENTED",
+            "submitted_at": note.get("created_at"),
+            "html_url": f"{gitlab_config.get('url', DEFAULT_GITLAB_URL).rstrip('/')}/{project_path}/-/merge_requests/{mr_number}#note_{note.get('id')}",
+            "user": gitlab_user(note.get("author")),
+        }
+        for note in notes
+        if not note.get("system")
+    ]
+
+
+def fetch_gitlab_issues(project_path, start_dt, end_dt, gitlab_config, token=None):
+    """Fetch GitLab issues and normalize them for the shared stats processor."""
+    project_id = gitlab_project_id(project_path)
+    url = f"{gitlab_api_base(gitlab_config)}/projects/{project_id}/issues?scope=all&state=all&order_by=created_at&sort=desc"
+    issues = fetch_all_gitlab_pages(url, token)
+    filtered = []
+    for issue in issues:
+        created_at = datetime.fromisoformat(issue["created_at"].replace("Z", "+00:00"))
+        closed_at = datetime.fromisoformat(issue["closed_at"].replace("Z", "+00:00")) if issue.get("closed_at") else None
+        if start_dt <= created_at <= end_dt or (closed_at and start_dt <= closed_at <= end_dt):
+            filtered.append({**issue, "repository": project_path})
+    return filtered
+
+
+def fetch_gitlab_project_metadata(project_path, gitlab_config, token=None):
+    """Fetch GitLab project metadata and normalize repository card fields."""
+    project_id = gitlab_project_id(project_path)
+    data = make_gitlab_request(f"{gitlab_api_base(gitlab_config)}/projects/{project_id}", token)
+    if not data:
+        return None
+    return {
+        "full_name": data.get("path_with_namespace"),
+        "description": data.get("description"),
+        "stargazers_count": data.get("star_count", 0),
+        "forks_count": data.get("forks_count", 0),
+        "language": None,
+        "html_url": data.get("web_url"),
+    }
+
+
+def load_participants_allowlist(participants_file):
+    """Load an optional YAML allowlist of permitted participant usernames.
+
+    Returns a set of lowercase usernames, or None if no file is specified.
+    Both contributors (merged PRs) and reviewers are filtered by this list.
+    """
+    if not participants_file:
+        return None
+    if not os.path.exists(participants_file):
+        logger.warning("Participants file not found: %s — no filtering applied", participants_file)
+        return None
+    try:
+        with open(participants_file, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        if not isinstance(data, dict):
+            logger.warning(
+                "Participants file %s is malformed (expected a YAML mapping, got %s) "
+                "— no filtering applied",
+                participants_file, type(data).__name__,
+            )
+            return None
+        usernames = data.get("participants")
+        if usernames is None:
+            logger.warning(
+                "Participants file %s is missing the 'participants' key — no filtering applied",
+                participants_file,
+            )
+            return None
+        if not isinstance(usernames, list):
+            logger.warning(
+                "Participants file %s: 'participants' must be a list, got %s "
+                "— no filtering applied",
+                participants_file, type(usernames).__name__,
+            )
+            return None
+        allowlist = {str(u).lower() for u in usernames if u}
+        logger.info("Loaded %d allowed participant(s) from %s", len(allowlist), participants_file)
+        return allowlist
+    except Exception as exc:
+        logger.error("Failed to load participants file %s: %s", participants_file, exc)
+        return None
+
+
+def fetch_org_repos(org, token=None):
+    """Fetch all public repositories for a GitHub organization."""
+    logger.info("Fetching repositories for organization: %s", org)
+    url = f"{GITHUB_API_BASE}/orgs/{org}/repos?type=public"
+    repos = fetch_all_pages(url, token)
+    return [r["full_name"] for r in repos if r and "full_name" in r]
+
+
+def fetch_pull_requests(owner, repo, start_dt, end_dt, token=None):
+    """Fetch all pull requests for a repository within the date range."""
+    logger.info("Fetching PRs for %s/%s", owner, repo)
+    url = (
+        f"{GITHUB_API_BASE}/repos/{owner}/{repo}"
+        "/pulls?state=all&sort=created&direction=desc"
+    )
+    all_prs = fetch_all_pages(url, token)
+
+    filtered = []
+    for pr in all_prs:
+        created_at = datetime.fromisoformat(pr["created_at"].replace("Z", "+00:00"))
+        merged_at = (
+            datetime.fromisoformat(pr["merged_at"].replace("Z", "+00:00"))
+            if pr.get("merged_at")
+            else None
+        )
+        relevant_by_creation = start_dt <= created_at <= end_dt
+        relevant_by_merge = merged_at and start_dt <= merged_at <= end_dt
+        if relevant_by_creation or relevant_by_merge:
+            pr["repository"] = f"{owner}/{repo}"
+            filtered.append(pr)
+
+    logger.info("  -> %d PRs in date range for %s/%s", len(filtered), owner, repo)
+    return filtered
+
+
+def fetch_reviews_for_pr(owner, repo, pr_number, token=None):
+    """Fetch all reviews for a specific pull request (full pagination)."""
+    url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
+    return fetch_all_pages(url, token)
+
+
+def fetch_issues(owner, repo, start_dt, end_dt, token=None):
+    """Fetch all issues (excluding PRs) for a repository within the date range."""
+    logger.info("Fetching issues for %s/%s", owner, repo)
+    url = (
+        f"{GITHUB_API_BASE}/repos/{owner}/{repo}"
+        "/issues?state=all&sort=created&direction=desc"
+    )
+    all_items = fetch_all_pages(url, token)
+
+    filtered = []
+    for item in all_items:
+        if "pull_request" in item:
+            continue  # GitHub returns PRs via the issues endpoint; skip them
+        created_at = datetime.fromisoformat(item["created_at"].replace("Z", "+00:00"))
+        closed_at = (
+            datetime.fromisoformat(item["closed_at"].replace("Z", "+00:00"))
+            if item.get("closed_at")
+            else None
+        )
+        relevant_by_creation = start_dt <= created_at <= end_dt
+        relevant_by_closure = closed_at and start_dt <= closed_at <= end_dt
+        if relevant_by_creation or relevant_by_closure:
+            item["repository"] = f"{owner}/{repo}"
+            filtered.append(item)
+
+    logger.info("  -> %d issues in date range for %s/%s", len(filtered), owner, repo)
+    return filtered
+
+
+def fetch_repo_metadata(owner, repo, token=None):
+    """Fetch repository metadata (stars, forks, language, description)."""
+    url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}"
+    data = make_request(url, token)
+    if data:
+        return {
+            "full_name": data.get("full_name"),
+            "description": data.get("description"),
+            "stargazers_count": data.get("stargazers_count", 0),
+            "forks_count": data.get("forks_count", 0),
+            "language": data.get("language"),
+            "html_url": data.get("html_url"),
+        }
+    return None
+
+
+def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, repositories,
+                            allowed_participants=None):
+    """Process fetched data and compute hackathon statistics.
+
+    Args:
+        allowed_participants: Optional set of lowercase usernames.  When
+            provided, only these users are counted in both the contributors
+            (merged-PR) leaderboard and the review leaderboard.
+    """
+    # Build daily activity map for the full date range
+    daily_activity = {}
+    current_date = start_dt.date()
+    end_date = end_dt.date()
+    while current_date <= end_date:
+        daily_activity[current_date.isoformat()] = {"total": 0, "merged": 0}
+        current_date += timedelta(days=1)
+
+    participants = {}
+    repo_stats = {
+        r: {"total": 0, "merged": 0, "issues": 0, "closedIssues": 0}
+        for r in repositories
+    }
+    total_prs = 0
+    merged_prs = 0
+    # Pre-computed merged PR counts per day (used for the activity chart)
+    daily_merged_prs = {}
+
+    for pr in prs:
+        is_merged = bool(pr.get("merged_at"))
+        username = pr["user"]["login"]
+        is_bot = "[bot]" in username or username.lower().endswith("bot")
+        title = pr.get("title", "")
+        is_copilot = "copilot" in username.lower() or "copilot" in title.lower()
+
+        total_prs += 1
+        if is_merged:
+            merged_prs += 1
+
+        # Track per-repository stats
+        repo_key = pr.get("repository", "unknown")
+        if repo_key not in repo_stats:
+            repo_stats[repo_key] = {"total": 0, "merged": 0, "issues": 0, "closedIssues": 0}
+        repo_stats[repo_key]["total"] += 1
+        if is_merged:
+            repo_stats[repo_key]["merged"] += 1
+
+        # Track daily creation activity
+        created_at = datetime.fromisoformat(pr["created_at"].replace("Z", "+00:00"))
+        created_date = created_at.date().isoformat()
+        if created_date in daily_activity and start_dt <= created_at <= end_dt:
+            daily_activity[created_date]["total"] += 1
+
+        # Track daily merged activity
+        if is_merged:
+            merged_date = pr["merged_at"][:10]
+            if merged_date in daily_activity:
+                daily_activity[merged_date]["merged"] += 1
+            daily_merged_prs[merged_date] = daily_merged_prs.get(merged_date, 0) + 1
+
+        # Track participants (skip bots and Copilot)
+        # When an allowlist is active, also skip users not on the list.
+        if not is_bot and not is_copilot:
+            if allowed_participants is not None and username.lower() not in allowed_participants:
+                continue
+            if username not in participants:
+                participants[username] = {
+                    "username": username,
+                    "avatar": pr["user"].get("avatar_url", ""),
+                    "url": pr["user"].get(
+                        "html_url", f"https://github.com/{username}"
+                    ),
+                    "mergedCount": 0,
+                    "prCount": 0,
+                    "reviewCount": 0,
+                    "reviews": [],
+                }
+            participants[username]["prCount"] += 1
+            if is_merged:
+                participants[username]["mergedCount"] += 1
+
+    # Map PR URL to author
+    pr_authors = {pr["html_url"]: pr["user"]["login"] for pr in prs}
+
+    # Process reviews
+    for review in all_reviews:
+        username = review["user"]["login"]
+        is_bot = "[bot]" in username or username.lower().endswith("bot")
+        is_copilot = "copilot" in username.lower()
+        state = review.get("state", "")
+
+        if is_bot or is_copilot or state == "DISMISSED":
+            continue
+
+        # When an allowlist is active, skip reviewers not on the list.
+        if allowed_participants is not None and username.lower() not in allowed_participants:
+            continue
+
+        submitted_at_str = review.get("submitted_at")
+        if not submitted_at_str:
+            continue
+
+        submitted_at = datetime.fromisoformat(submitted_at_str.replace("Z", "+00:00"))
+        if not (start_dt <= submitted_at <= end_dt):
+            continue
+
+        # Exclude self-reviews
+        pr_url = review.get("pull_request_url")
+        pr_author = pr_authors.get(pr_url) or review.get("pull_request_author")
+        if pr_author and username == pr_author:
+            continue
+
+        if username not in participants:
+            participants[username] = {
+                "username": username,
+                "avatar": review["user"].get("avatar_url", ""),
+                "url": review["user"].get(
+                    "html_url", f"https://github.com/{username}"
+                ),
+                "mergedCount": 0,
+                "prCount": 0,
+                "reviewCount": 0,
+                "reviews": [],
+            }
+
+        participants[username]["reviewCount"] += 1
+        participants[username]["reviews"].append(
+            {
+                "id": review.get("id"),
+                "state": review.get("state"),
+                "submitted_at": review.get("submitted_at"),
+                "html_url": review.get("html_url", ""),
+                "pull_request_url": pr_url,
+                "pull_request_title": review.get("pull_request_title", ""),
+                "pull_request_author": pr_author,
+            }
+        )
+
+    # Process issues
+    total_issues = 0
+    closed_issues = 0
+    for issue in issues:
+        repo_key = issue.get("repository", "unknown")
+        if repo_key not in repo_stats:
+            repo_stats[repo_key] = {"total": 0, "merged": 0, "issues": 0, "closedIssues": 0}
+        repo_stats[repo_key]["issues"] += 1
+        total_issues += 1
+        if issue["state"] == "closed":
+            repo_stats[repo_key]["closedIssues"] += 1
+            closed_issues += 1
+
+    # Get last 10 PRs (filtered for humans and optionally by allowlist)
+    recent_prs_list = sorted(
+        [
+            pr for pr in prs
+            if not (
+                "[bot]" in pr["user"]["login"] or
+                pr["user"]["login"].lower().endswith("bot") or
+                "copilot" in pr["user"]["login"].lower() or
+                "copilot" in pr.get("title", "").lower()
+            ) and (allowed_participants is None or pr["user"]["login"].lower() in allowed_participants)
+        ],
+        key=lambda x: x["created_at"],
+        reverse=True
+    )[:10]
+
+    recent_prs = [
+        {
+            "title": pr.get("title"),
+            "url": pr.get("html_url"),
+            "username": pr["user"]["login"],
+            "avatar": pr["user"].get("avatar_url"),
+            "state": pr.get("state"),
+            "created_at": pr.get("created_at"),
+            "merged_at": pr.get("merged_at"),
+            "repository": pr.get("repository"),
+        }
+        for pr in recent_prs_list
+    ]
+
+    # Build sorted leaderboards
+    leaderboard = sorted(
+        [p for p in participants.values() if p["mergedCount"] > 0],
+        key=lambda x: x["mergedCount"],
+        reverse=True,
+    )
+    review_leaderboard = sorted(
+        [p for p in participants.values() if p["reviewCount"] > 0],
+        key=lambda x: x["reviewCount"],
+        reverse=True,
+    )
+
+    return {
+        "totalPRs": total_prs,
+        "mergedPRs": merged_prs,
+        "totalIssues": total_issues,
+        "closedIssues": closed_issues,
+        "participantCount": len(participants),
+        "recentPRs": recent_prs,
+        "leaderboard": leaderboard,
+        "reviewLeaderboard": review_leaderboard,
+        "repoStats": repo_stats,
+        "dailyActivity": daily_activity,
+        "dailyMergedPRs": daily_merged_prs,
+    }
+
+
+def process_hackathon(hackathon_config, token, org_repos_cache=None):
+    """Fetch all data for a single hackathon and return the processed stats.
+    
+    Args:
+        org_repos_cache: Optional dict to cache org repos across hackathons
+    """
+    slug = hackathon_config["slug"]
+    name = hackathon_config["name"]
+    start_time = hackathon_config["startTime"]
+    end_time = hackathon_config["endTime"]
+    provider = hackathon_config.get("provider", "github").lower()
+    github_config = hackathon_config.get("github", {})
+    gitlab_config = hackathon_config.get("gitlab", {})
+    provider_config = gitlab_config if provider == "gitlab" else github_config
+    organization = provider_config.get("group") if provider == "gitlab" else provider_config.get("organization")
+    explicit_repos = list(provider_config.get("projects", [])) if provider == "gitlab" else list(provider_config.get("repositories", []))
+
+    # Optional participants allowlist: limits who counts as a contributor
+    # and who appears in the review leaderboard.
+    participants_file = hackathon_config.get("participantsFile")
+    allowed_participants = load_participants_allowlist(participants_file)
+
+    start_dt = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+    end_dt = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
+    
+    # Load existing data for incremental review fetching
+    existing_data = load_existing_data(slug)
+    since = None
+    
+    if existing_data:
+        last_updated = existing_data.get("lastUpdated")
+        if last_updated:
+            # Use this to determine which PRs need review fetching
+            since = datetime.fromisoformat(last_updated.replace("Z", "+00:00")) - timedelta(minutes=5)
+            logger.info("Incremental review fetch for %s since %s", name, since.isoformat())
+
+    # Resolve repositories (explicit list + org repos)
+    repositories = list(explicit_repos)
+    if organization:
+        # Use cached org repos if available
+        cache_key = f"{provider}:{organization}"
+        if org_repos_cache and cache_key in org_repos_cache:
+            org_repos = org_repos_cache[cache_key]
+            logger.info("Using cached org repos for %s (%d repos)", organization, len(org_repos))
+        else:
+            try:
+                org_repos = (
+                    fetch_gitlab_group_projects(organization, gitlab_config, token)
+                    if provider == "gitlab"
+                    else fetch_org_repos(organization, token)
+                )
+                if org_repos and org_repos_cache is not None:
+                    org_repos_cache[cache_key] = org_repos
+            except Exception as exc:
+                logger.error(
+                    "Failed to fetch org repos for %s, using explicit list: %s",
+                    organization,
+                    exc,
+                )
+                org_repos = []
+        
+        if org_repos:
+            combined = list({*repositories, *org_repos})
+            repositories = combined
+            logger.info(
+                "Resolved %d repositories for %s (%d explicit + %d from org)",
+                len(repositories),
+                name,
+                len(explicit_repos),
+                len(org_repos),
+            )
+
+    if not repositories:
+        logger.warning("No repositories found for hackathon: %s", name)
+        return None
+
+    # Fetch all PRs across all repositories in parallel
+    all_prs = []
+    logger.info("Fetching PRs for %d repositories in parallel...", len(repositories))
+    
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_repo = {}
+        for repo_path in repositories:
+            parts = repo_path.split("/")
+            if provider != "gitlab" and len(parts) != 2:
+                logger.warning("Skipping invalid repo path: %s", repo_path)
+                continue
+            owner, repo = parts[-2:]
+            future = (
+                executor.submit(fetch_gitlab_merge_requests, repo_path, start_dt, end_dt, gitlab_config, token)
+                if provider == "gitlab"
+                else executor.submit(fetch_pull_requests, owner, repo, start_dt, end_dt, token)
+            )
+            future_to_repo[future] = repo_path
+
+        for future in as_completed(future_to_repo):
+            repo_path = future_to_repo[future]
+            try:
+                prs = future.result()
+                if prs:
+                    all_prs.extend(prs)
+            except Exception as exc:
+                logger.error("Failed to fetch PRs for %s: %s", repo_path, exc)
+
+    logger.info("Total PRs fetched for %s: %d", name, len(all_prs))
+    
+    # Determine which PRs need review fetching (only recently updated ones)
+    if since:
+        prs_to_fetch_reviews = [
+            pr for pr in all_prs
+            if datetime.fromisoformat(pr["updated_at"].replace("Z", "+00:00")) >= since
+        ]
+        logger.info("PRs updated since last run: %d (will fetch reviews for these)", len(prs_to_fetch_reviews))
+    else:
+        prs_to_fetch_reviews = all_prs
+
+    # Fetch reviews only for updated PRs in parallel
+    all_reviews = []
+    
+    if prs_to_fetch_reviews:
+        logger.info("Fetching reviews for %d PRs in parallel...", len(prs_to_fetch_reviews))
+        
+        def fetch_enriched_reviews(pr):
+            repo_path = pr.get("repository", "")
+            parts = repo_path.split("/")
+            if provider != "gitlab" and len(parts) != 2:
+                return []
+            owner, repo = parts[-2:]
+            pr_number = pr["number"]
+            try:
+                reviews = (
+                    fetch_gitlab_reviews(repo_path, pr_number, gitlab_config, token)
+                    if provider == "gitlab"
+                    else fetch_reviews_for_pr(owner, repo, pr_number, token)
+                )
+                for review in reviews:
+                    review["repository"] = repo_path
+                    review["pull_request_url"] = pr.get("html_url", "")
+                    review["pull_request_title"] = pr.get("title", "")
+                    review["pull_request_author"] = pr["user"]["login"]
+                return reviews
+            except Exception as exc:
+                logger.error("Failed to fetch reviews for %s#%d: %s", repo_path, pr_number, exc)
+                return []
+
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            future_to_pr = {executor.submit(fetch_enriched_reviews, pr): pr for pr in prs_to_fetch_reviews}
+            for future in as_completed(future_to_pr):
+                reviews = future.result()
+                if reviews:
+                    all_reviews.extend(reviews)
+    
+        logger.info("Total reviews fetched for %s: %d", name, len(all_reviews))
+    else:
+        logger.info("No new PRs to fetch reviews for %s", name)
+
+    # Merge with old reviews if incremental
+    if since and existing_data:
+        old_reviews = []
+        old_participants = existing_data.get("stats", {}).get("leaderboard", []) + \
+                          existing_data.get("stats", {}).get("reviewLeaderboard", [])
+        
+        # Track which PRs we just fetched reviews for, so we don't duplicate them
+        newly_fetched_pr_urls = {pr["html_url"] for pr in prs_to_fetch_reviews}
+        
+        # Extract reviews from existing leaderboard/paticipants
+        seen_review_ids = {r["id"] for r in all_reviews if r.get("id")}
+        
+        for p in old_participants:
+            for r in p.get("reviews", []):
+                review_id = r.get("id")
+                pr_url = r.get("pull_request_url")
+                
+                # Skip if we just fetched fresh reviews for this PR
+                if pr_url in newly_fetched_pr_urls:
+                    continue
+                    
+                # Skip if we somehow already have this review ID
+                if review_id and review_id in seen_review_ids:
+                    continue
+                
+                # Reconstruct enough of the review object for process_hackathon_stats
+                # We need: user.login, submitted_at, state, id, html_url, pull_request_url, pull_request_title, pull_request_author
+                reconstructed_review = {
+                    "id": review_id,
+                    "user": {"login": p["username"]},
+                    "submitted_at": r.get("submitted_at"),
+                    "state": r.get("state"),
+                    "html_url": r.get("html_url"),
+                    "pull_request_url": pr_url,
+                    "pull_request_title": r.get("pull_request_title"),
+                    "pull_request_author": r.get("pull_request_author"),
+                }
+                old_reviews.append(reconstructed_review)
+                if review_id:
+                    seen_review_ids.add(review_id)
+        
+        logger.info("Merged %d old reviews from existing data", len(old_reviews))
+        all_reviews.extend(old_reviews)
+
+    # Fetch all issues across all repositories
+    all_issues = []
+    logger.info("Fetching issues for %d repositories in parallel...", len(repositories))
+    
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_repo_issues = {}
+        for repo_path in repositories:
+            parts = repo_path.split("/")
+            if provider != "gitlab" and len(parts) != 2:
+                continue
+            owner, repo = parts[-2:]
+            future = (
+                executor.submit(fetch_gitlab_issues, repo_path, start_dt, end_dt, gitlab_config, token)
+                if provider == "gitlab"
+                else executor.submit(fetch_issues, owner, repo, start_dt, end_dt, token)
+            )
+            future_to_repo_issues[future] = repo_path
+
+        for future in as_completed(future_to_repo_issues):
+            repo_path = future_to_repo_issues[future]
+            try:
+                issues = future.result()
+                if issues:
+                    all_issues.extend(issues)
+            except Exception as exc:
+                logger.error("Failed to fetch issues for %s: %s", repo_path, exc)
+
+    logger.info("Total issues fetched for %s: %d", name, len(all_issues))
+
+    # Fetch repository metadata in parallel
+    repo_data = []
+    logger.info("Fetching repository metadata in parallel...")
+    
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_repo_meta = {}
+        for repo_path in repositories:
+            parts = repo_path.split("/")
+            if provider != "gitlab" and len(parts) != 2:
+                continue
+            owner, repo = parts[-2:]
+            future = (
+                executor.submit(fetch_gitlab_project_metadata, repo_path, gitlab_config, token)
+                if provider == "gitlab"
+                else executor.submit(fetch_repo_metadata, owner, repo, token)
+            )
+            future_to_repo_meta[future] = repo_path
+
+        for future in as_completed(future_to_repo_meta):
+            repo_path = future_to_repo_meta[future]
+            try:
+                meta = future.result()
+                if meta:
+                    repo_data.append(meta)
+            except Exception as exc:
+                logger.error("Failed to fetch metadata for %s: %s", repo_path, exc)
+
+    # Compute stats
+    stats = process_hackathon_stats(
+        all_prs, all_reviews, all_issues, start_dt, end_dt, repositories,
+        allowed_participants=allowed_participants,
+    )
+    stats["repoData"] = repo_data
+
+    return {
+        "lastUpdated": datetime.now(timezone.utc).isoformat(),
+        "slug": slug,
+        "name": name,
+        "startTime": start_time,
+        "endTime": end_time,
+        "provider": provider,
+        "repositories": repositories,
+        "stats": stats,
+    }
+
+
+def build_summary(data):
+    """Build a lightweight summary dict from a full hackathon data dict."""
+    stats = data.get("stats", {})
+    leaderboard = stats.get("leaderboard", [])
+    top_contributors = [
+        {
+            "username": p["username"],
+            "avatar": p.get("avatar", ""),
+            "url": p.get("url", f"https://github.com/{p['username']}"),
+            "mergedCount": p.get("mergedCount", 0),
+        }
+        for p in leaderboard[:3]
+    ]
+    return {
+        "provider": data.get("provider", "github"),
+        "lastUpdated": data.get("lastUpdated"),
+        "participantCount": stats.get("participantCount", 0),
+        "totalPRs": stats.get("totalPRs", 0),
+        "mergedPRs": stats.get("mergedPRs", 0),
+        "totalIssues": stats.get("totalIssues", 0),
+        "repositories": len(data.get("repositories", [])),
+        "topContributors": top_contributors,
+        "recentPRs": stats.get("recentPRs", []),
+    }
+
+
+def parse_optional_datetime(value):
+    """Parse an optional ISO 8601 workflow boundary."""
+    return datetime.fromisoformat(value.replace("Z", "+00:00")) if value else None
+
+
+def is_owned_by_workflow(hackathon, starts_after=None, starts_through=None):
+    """Return whether this CI workflow owns updates for the hackathon."""
+    start_dt = datetime.fromisoformat(hackathon["startTime"].replace("Z", "+00:00"))
+    if starts_after and start_dt <= starts_after:
+        return False
+    if starts_through and start_dt > starts_through:
+        return False
+    return True
+
+
+def main():
+    config_path = os.environ.get(
+        "HACKATHONS_CONFIG_PATH", "/tmp/hackathons-config-parsed.json"
+    )
+
+    if not os.path.exists(config_path):
+        logger.error("Config file not found: %s", config_path)
+        sys.exit(1)
+
+    with open(config_path, "r", encoding="utf-8") as f:
+        config = json.load(f)
+
+    github_token = os.environ.get("GITHUB_TOKEN", "")
+    gitlab_token = os.environ.get("GITLAB_TOKEN", "")
+    starts_after = parse_optional_datetime(os.environ.get("UPDATE_HACKATHONS_STARTING_AFTER"))
+    starts_through = parse_optional_datetime(os.environ.get("UPDATE_HACKATHONS_STARTING_THROUGH"))
+
+    hackathons = config.get("hackathons", [])
+    if not hackathons:
+        logger.error("No hackathons found in config")
+        sys.exit(1)
+
+    # Create output directory
+    os.makedirs(public_path("hackathon-data"), exist_ok=True)
+    
+    # Cache for org repos to avoid fetching multiple times
+    org_repos_cache = {}
+
+    for hackathon in hackathons:
+        slug = hackathon.get("slug", "unknown")
+        name = hackathon.get("name", slug)
+        start_time = hackathon.get("startTime")
+        end_time = hackathon.get("endTime")
+        provider = hackathon.get("provider", "github").lower()
+        token = gitlab_token if provider == "gitlab" else github_token
+
+        if not is_owned_by_workflow(hackathon, starts_after, starts_through):
+            logger.info("Skipping hackathon outside this workflow's date range: %s", name)
+            continue
+
+        if not token:
+            logger.warning("No %s token set for %s; public API rate limits apply", provider.upper(), name)
+        
+        # Skip ended hackathons (optimization!)
+        if not is_hackathon_active(start_time, end_time):
+            logger.info("⏭️  Skipping ended hackathon: %s (ended on %s)", name, end_time)
+            # Verify the data file exists
+            output_path = public_path("hackathon-data", f"{slug}.json")
+            summary_path = public_path("hackathon-data", f"{slug}-summary.json")
+            if not os.path.exists(output_path):
+                logger.warning("⚠️  No data file found for ended hackathon %s, processing once", slug)
+            else:
+                # Generate missing summary file from existing data without re-fetching
+                if not os.path.exists(summary_path):
+                    try:
+                        with open(output_path, "r", encoding="utf-8") as f:
+                            existing = json.load(f)
+                        with open(summary_path, "w", encoding="utf-8") as f:
+                            json.dump(build_summary(existing), f, indent=2)
+                        logger.info("✅ Generated summary for ended hackathon '%s'", slug)
+                    except Exception as exc:
+                        logger.warning("Could not generate summary for %s: %s", slug, exc)
+                continue
+        
+        logger.info("🔄 Processing active hackathon: %s", name)
+        try:
+            data = process_hackathon(hackathon, token, org_repos_cache)
+            if data:
+                output_path = public_path("hackathon-data", f"{slug}.json")
+                with open(output_path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2)
+                logger.info("✅ Saved stats for '%s' to %s", slug, output_path)
+                # Write lightweight summary file for the index page
+                summary_path = public_path("hackathon-data", f"{slug}-summary.json")
+                with open(summary_path, "w", encoding="utf-8") as f:
+                    json.dump(build_summary(data), f, indent=2)
+                logger.info("✅ Saved summary for '%s' to %s", slug, summary_path)
+        except Exception as exc:
+            logger.error("❌ Failed to process hackathon %s: %s", slug, exc)
+            import traceback
+
+            traceback.print_exc()
+
+    # Update the top-level stats.json with basic summary info
+    primary = hackathons[0] if hackathons else {}
+    all_repos: set = set()
+    for h in hackathons:
+        provider = h.get("provider", "github").lower()
+        provider_config = h.get("gitlab", {}) if provider == "gitlab" else h.get("github", {})
+        repo_key = "projects" if provider == "gitlab" else "repositories"
+        for r in provider_config.get(repo_key, []):
+            all_repos.add(r)
+
+    stats_data = {
+        "lastUpdated": datetime.now(timezone.utc).isoformat(),
+        "repositories": len(all_repos),
+        "hackathonName": primary.get("name", ""),
+        "startTime": primary.get("startTime", ""),
+        "endTime": primary.get("endTime", ""),
+        "hackathons": [
+            {
+                "slug": h.get("slug", ""),
+                "name": h.get("name", ""),
+                "startTime": h.get("startTime", ""),
+                "endTime": h.get("endTime", ""),
+                "provider": h.get("provider", "github"),
+            }
+            for h in hackathons
+        ],
+    }
+    with open(public_path("stats.json"), "w", encoding="utf-8") as f:
+        json.dump(stats_data, f, indent=2)
+    logger.info("Updated stats.json")
+
+
+if __name__ == "__main__":
+    main()
