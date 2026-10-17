@@ -1,0 +1,1063 @@
+/**
+ * OWASP BLT – Leaders Page JavaScript
+ * Handles elections, nominations, voting via GitLab Issues (zero-backend).
+ * License: AGPLv3
+ */
+
+/* ── State ── */
+let leadersData = null;
+let currentUser = null; // { login, avatar_url, html_url, verified } from localStorage
+let activeTab = 'elections';
+
+/** In-memory cache for reaction sets — avoids re-fetching on repeated modal opens. */
+const reactorsCache = new Map();
+const GITLAB_PROJECT_PATH = BLT_CONFIG.PROJECT_PATH || 'owasp-blt/blt-pages';
+const GITLAB_PROJECT_API_PATH = encodeURIComponent(GITLAB_PROJECT_PATH);
+const GITLAB_GROUP_PATH = GITLAB_PROJECT_PATH.split('/')[0];
+const GITLAB_PROJECT_URL = BLT_CONFIG.PROJECT_URL || `https://gitlab.com/${GITLAB_PROJECT_PATH}`;
+const GITLAB_ISSUES_URL = `${GITLAB_PROJECT_URL}/-/issues`;
+const GITLAB_NEW_ISSUE_URL = `${GITLAB_ISSUES_URL}/new`;
+const GITLAB_API_BASE = `https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_API_PATH}`;
+
+/* ── Bootstrap ── */
+document.addEventListener('DOMContentLoaded', () => {
+  initDarkMode();
+  initMobileMenu();
+  initTabs();
+  restoreSession();   // must be before loadLeadersData so currentUser is set on first render
+  loadLeadersData();
+  document.getElementById('footer-year').textContent = new Date().getFullYear();
+});
+
+/* ── Dark Mode ── */
+function initDarkMode() {
+  const btn = document.getElementById('dark-toggle');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
+    localStorage.setItem('blt-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+  });
+}
+
+/* ── Mobile Menu ── */
+function initMobileMenu() {
+  const toggle = document.getElementById('mobile-menu-toggle');
+  const menu = document.getElementById('mobile-menu');
+  if (!toggle || !menu) return;
+  toggle.addEventListener('click', () => {
+    const isNowHidden = menu.classList.toggle('hidden');
+    toggle.setAttribute('aria-expanded', String(!isNowHidden));
+  });
+  menu.querySelectorAll('a').forEach(l => l.addEventListener('click', () => {
+    menu.classList.add('hidden');
+    toggle.setAttribute('aria-expanded', 'false');
+  }));
+}
+
+/* ── Tabs ── */
+function initTabs() {
+  document.querySelectorAll('[data-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeTab = btn.dataset.tab;
+      document.querySelectorAll('[data-tab]').forEach(b => {
+        const active = b.dataset.tab === activeTab;
+        b.classList.toggle('border-primary', active);
+        b.classList.toggle('text-primary', active);
+        b.classList.toggle('border-transparent', !active);
+        b.classList.toggle('text-gray-500', !active);
+        b.setAttribute('aria-selected', String(active));
+        b.setAttribute('tabindex', active ? '0' : '-1');
+      });
+      document.querySelectorAll('[data-panel]').forEach(p => {
+        p.classList.toggle('hidden', p.dataset.panel !== activeTab);
+      });
+    });
+  });
+}
+
+/* ── Load Data ── */
+async function loadLeadersData() {
+  try {
+    const res = await fetch('data/leaders.json');
+    if (!res.ok) throw new Error('fetch failed');
+    leadersData = await res.json();
+  } catch {
+    leadersData = { projects: [], elections: [], nominations: [], past_winners: [] };
+  }
+  reactorsCache.clear(); // clear stale vote cache on each data reload
+  await mergeOrgRepos();
+  renderAll();
+}
+
+/**
+ * Fetches ALL public repos from the OWASP-BLT org via GitLab API (paginated).
+ * Caches results in sessionStorage for 10 minutes to avoid rate-limit exhaustion.
+ * Filters out repos tagged with the "gsoc" topic.
+ */
+async function mergeOrgRepos() {
+  const CACHE_KEY = 'blt-org-repos-cache';
+  const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+  try {
+    const cached = sessionStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { ts, repos } = JSON.parse(cached);
+      if (Date.now() - ts < CACHE_TTL) {
+        applyFetchedRepos(repos);
+        return;
+      }
+    }
+
+    const allRepos = [];
+    const MAX_PAGES = 20;
+    for (let page = 1; page <= MAX_PAGES; page++) {
+      const res = await fetch(
+        `https://gitlab.com/api/v4/groups/${encodeURIComponent(GITLAB_GROUP_PATH)}/projects?per_page=100&page=${page}&order_by=updated_at&sort=desc&include_subgroups=true`,
+        { headers: { Accept: 'application/json' } }
+      );
+      if (!res.ok) {
+        if (res.status === 403 && res.headers.get('X-RateLimit-Remaining') === '0') {
+          showToast('GitLab API rate limit reached — showing cached projects only.');
+        }
+        break;
+      }
+      const repos = await res.json();
+      if (!Array.isArray(repos) || repos.length === 0) break;
+      allRepos.push(...repos);
+      if (repos.length < 100) break;
+    }
+
+    try {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+        ts: Date.now(),
+        // Only cache the fields applyFetchedRepos needs — avoids storing megabytes
+        repos: allRepos.map(r => ({
+          name: r.name,
+          description: r.description || '',
+          html_url: r.web_url,
+          archived: r.archived,
+          topics: r.topics || []
+        }))
+      }));
+    } catch { /* sessionStorage quota exceeded or unavailable — skip caching */ }
+    applyFetchedRepos(allRepos);
+  } catch {
+    // GitLab API unavailable — use only leaders.json projects
+  }
+}
+
+function applyFetchedRepos(allRepos) {
+  const existing = new Set((leadersData.projects || []).map(p => p.repo_url));
+  const accumulated = allRepos
+    .filter(r => !r.archived && !(r.topics || []).includes('gsoc'))
+    .map(r => ({
+      id: r.name.toLowerCase(),
+      name: r.name,
+      description: r.description || '',
+      repo_url: r.web_url,
+      maintainer: GITLAB_GROUP_PATH,
+      active: !r.archived,
+      gsoc: false,
+      _fromApi: true
+    }))
+    .filter(r => !existing.has(r.repo_url));
+  leadersData.projects = [...(leadersData.projects || []), ...accumulated];
+}
+
+/**
+ * Derives election status from timestamps at runtime.
+ * Only needs dates set — transitions happen automatically.
+ *
+ * Rules:
+ *   before nomination_start                    → draft
+ *   nomination_start → nomination_end          → nominations_open
+ *   nomination_end → voting_start              → admin_review
+ *   voting_start → voting_end                  → voting_open
+ *   after voting_end                           → closed
+ *   status === 'finalized' (sticky)            → finalized
+ */
+function deriveStatus(el) {
+  if (el.status === 'finalized') return 'finalized';
+  const now = Date.now();
+  const nomStart  = el.nomination_start ? new Date(el.nomination_start).getTime() : null;
+  const nomEnd    = el.nomination_end   ? new Date(el.nomination_end).getTime()   : null;
+  const voteStart = el.voting_start     ? new Date(el.voting_start).getTime()     : null;
+  const voteEnd   = el.voting_end       ? new Date(el.voting_end).getTime()       : null;
+
+  if (voteEnd   && now > voteEnd)    return 'closed';
+  if (voteStart && now >= voteStart) return 'voting_open';
+  // Between nomination_end and voting_start: admin review window
+  if (nomEnd && now > nomEnd && voteStart && now < voteStart) return 'admin_review';
+  if (nomStart  && now >= nomStart)  return 'nominations_open';
+  return 'draft';
+}
+
+function renderAll() {
+  // Auto-derive status for every election from its timestamps
+  (leadersData.elections || []).forEach(el => { el.status = deriveStatus(el); });
+  renderElections();
+  renderProjects();
+  renderPastWinners();
+}
+
+/* ── Session (GitLab login stored in localStorage) ── */
+function restoreSession() {
+  try {
+    const saved = localStorage.getItem('blt-gh-user');
+    if (saved) {
+      currentUser = JSON.parse(saved);
+      updateAuthUI();
+    }
+  } catch { currentUser = null; }
+}
+
+function updateAuthUI() {
+  const loginBtn = document.getElementById('gh-login-btn');
+  const userChip = document.getElementById('gh-user-chip');
+  const userAvatar = document.getElementById('gh-user-avatar');
+  const userLogin = document.getElementById('gh-user-login');
+  const logoutBtn = document.getElementById('gh-logout-btn');
+  if (!loginBtn || !userChip) return;
+  if (currentUser) {
+    loginBtn.classList.add('hidden');
+    userChip.classList.remove('hidden');
+    userChip.classList.add('flex');  // must be flex, not block
+    if (userAvatar) userAvatar.src = currentUser.avatar_url || `https://gitlab.com/${currentUser.login}.png`;
+    if (userLogin) {
+      userLogin.textContent = currentUser.login;
+      // Show unverified badge for prompt-entered usernames
+      const badge = userChip.querySelector('.unverified-badge');
+      if (!currentUser.verified && !badge) {
+        const b = document.createElement('span');
+        b.className = 'unverified-badge text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full px-1.5 py-0.5 ml-1';
+        b.title = 'Username entered manually — not verified via OAuth';
+        b.textContent = 'unverified';
+        userLogin.after(b);
+      } else if (currentUser.verified && badge) {
+        badge.remove();
+      }
+    }
+  } else {
+    loginBtn.classList.remove('hidden');
+    userChip.classList.add('hidden');
+    userChip.classList.remove('flex');
+  }
+  if (logoutBtn) {
+    logoutBtn.onclick = logout; // use onclick to avoid stacking listeners
+  }
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('blt-gh-user');
+  updateAuthUI();
+  renderAll();
+}
+
+/* ── GitLab OAuth (Device Flow redirect pattern) ── */
+// Since this is a static site, we use GitLab OAuth App redirect.
+// The user is sent to GitLab, then back to this page with ?gl_login=<login>&gl_avatar=<url>
+// In production, a lightweight serverless function (Vercel/Netlify) handles the token exchange.
+// For the static demo, we simulate login via a prompt (contributors enter their GitLab username).
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('gl_login')) {
+    currentUser = {
+      login: params.get('gl_login'),
+      avatar_url: params.get('gl_avatar') || `https://gitlab.com/${params.get('gl_login')}.png`,
+      html_url: `https://gitlab.com/${params.get('gl_login')}`,
+      verified: false  // URL-param flow is unverified until real OAuth is wired up
+    };
+    localStorage.setItem('blt-gh-user', JSON.stringify(currentUser));
+    window.history.replaceState({}, '', window.location.pathname);
+    updateAuthUI();
+    renderAll();
+  }
+
+  const loginBtn = document.getElementById('gh-login-btn');
+  const loginBtnMobile = document.getElementById('gh-login-btn-mobile');
+
+  function doLogin() {
+    // TODO: replace with real GitLab OAuth redirect when a serverless callback is available.
+    // For now, show an inline input rather than a blocking prompt().
+    const existing = document.getElementById('demo-login-input');
+    if (existing) { existing.focus(); return; }
+
+    const wrap = document.createElement('div');
+    wrap.id = 'demo-login-input';
+    wrap.className = 'fixed inset-x-0 bottom-0 z-[300] bg-white dark:bg-dark-surface border-t border-neutral-border dark:border-gray-700 p-4 flex items-center gap-3 shadow-lg';
+    wrap.innerHTML = `
+      <input id="demo-login-field" type="text" placeholder="GitLab username (demo — unverified)"
+        class="flex-1 rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      <button id="demo-login-confirm" class="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors">Sign in</button>
+      <button id="demo-login-cancel" class="rounded-xl border border-neutral-border dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Cancel</button>`;
+    document.body.appendChild(wrap);
+
+    const field = document.getElementById('demo-login-field');
+    field.focus();
+
+    document.getElementById('demo-login-cancel').addEventListener('click', () => wrap.remove());
+    document.getElementById('demo-login-confirm').addEventListener('click', () => {
+      const login = field.value.trim();
+      if (!login) return;
+      currentUser = {
+        login,
+        avatar_url: `https://gitlab.com/${login}.png`,
+        html_url: `https://gitlab.com/${login}`,
+        verified: false
+      };
+      localStorage.setItem('blt-gh-user', JSON.stringify(currentUser));
+      wrap.remove();
+      updateAuthUI();
+      renderAll();
+    });
+    field.addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('demo-login-confirm').click();
+      if (e.key === 'Escape') wrap.remove();
+    });
+  }
+
+  if (loginBtn) loginBtn.addEventListener('click', doLogin);
+  if (loginBtnMobile) loginBtnMobile.addEventListener('click', doLogin);
+});
+
+/* ── Elections Panel ── */
+function renderElections() {
+  const container = document.getElementById('elections-list');
+  if (!container || !leadersData) return;
+  const elections = leadersData.elections || [];
+
+  // "Start Nomination" button — visible to everyone, no admin required
+  const addBtn = document.getElementById('add-election-btn');
+  if (addBtn) {
+    addBtn.classList.remove('hidden');
+    addBtn.onclick = () => openDirectNominationForm(null);
+  }
+
+  if (!elections.length) {
+    container.innerHTML = emptyState('fa-circle-dot', 'No active elections right now. Check back soon.');
+    return;
+  }
+  container.innerHTML = elections.map(el => electionCard(el)).join('');
+  container.querySelectorAll('[data-open-election]').forEach(btn => {
+    btn.addEventListener('click', () => openElectionModal(btn.dataset.openElection));
+  });
+}
+
+function statusBadge(status) {
+  const map = {
+    draft:            ['bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300', 'Draft'],
+    nominations_open: ['bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400', 'Nominations Open'],
+    admin_review:     ['bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', 'Admin Review'],
+    voting_open:      ['bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', 'Voting Open'],
+    closed:           ['bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400', 'Closed'],
+    finalized:        ['bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'Finalized'],
+  };
+  const [cls, label] = map[status] || map.draft;
+  return `<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}">${label}</span>`;
+}
+
+function electionCard(el) {
+  const project = (leadersData.projects || []).find(p => p.id === el.project_id) || {};
+  const noms = (leadersData.nominations || []).filter(n => n.election_id === el.id && n.status === 'accepted');
+  const roles = (el.roles || []).join(' + ');
+  const nomEnd = el.nomination_end ? new Date(el.nomination_end).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+  const voteEnd = el.voting_end ? new Date(el.voting_end).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+  return `<article class="surface-card rounded-2xl p-6 flex flex-col gap-4">
+    <div class="flex items-start justify-between gap-3 flex-wrap">
+      <div>
+        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">${escHtml(project.name || el.project_id)}</p>
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">${escHtml(el.term)}</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Roles: <span class="font-medium text-gray-700 dark:text-gray-300">${escHtml(roles)}</span></p>
+      </div>
+      ${statusBadge(el.status)}
+    </div>
+    <div class="grid grid-cols-2 gap-3 text-sm">
+      <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-3 py-2">
+        <p class="text-xs text-gray-400 mb-0.5">Nominations close</p>
+        <p class="font-semibold text-gray-800 dark:text-gray-200">${nomEnd}</p>
+      </div>
+      <div class="rounded-xl bg-gray-50 dark:bg-gray-800 px-3 py-2">
+        <p class="text-xs text-gray-400 mb-0.5">Voting closes</p>
+        <p class="font-semibold text-gray-800 dark:text-gray-200">${voteEnd}</p>
+      </div>
+    </div>
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <p class="text-sm text-gray-500 dark:text-gray-400">${noms.length} nominee${noms.length !== 1 ? 's' : ''}</p>
+      <button data-open-election="${escHtml(el.id)}"
+        class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors">
+        View Election
+        <svg class="fa-icon" aria-hidden="true"><use href="#fa-arrow-right"></use></svg>
+      </button>
+    </div>
+  </article>`;
+}
+
+/* ── Election Modal ── */
+async function openElectionModal(electionId) {
+  const el = (leadersData.elections || []).find(e => e.id === electionId);
+  if (!el) return;
+  const project = (leadersData.projects || []).find(p => p.id === el.project_id) || {};
+  const modal = document.getElementById('election-modal');
+  const body = document.getElementById('election-modal-body');
+  if (!modal || !body) return;
+
+  // Show modal immediately with a loading state
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  body.innerHTML = `<div class="py-12 text-center text-gray-400">
+    <p class="text-sm">Loading nominees and vote counts…</p>
+  </div>`;
+
+  // Fetch live 👍 counts from GitLab reactions API for voting_open, closed, and finalized
+  const canVote = el.status === 'voting_open';
+  const showVotes = ['voting_open', 'closed', 'finalized'].includes(el.status);
+  if (showVotes) await loadVoteCounts(electionId);
+
+  const noms = (leadersData.nominations || []).filter(n => n.election_id === electionId && n.status === 'accepted');
+  const canNominate = el.status === 'nominations_open';
+  const roles = el.roles || [];
+
+  const nomineesByRole = roles.map(role => {
+    const roleNoms = noms.filter(n => n.role === role)
+      .sort((a, b) => (b.votes || 0) - (a.votes || 0)); // sort by votes desc
+    const maxVotes = roleNoms.reduce((m, n) => Math.max(m, n.votes || 0), 1);
+    return `<div class="mb-6">
+      <h4 class="text-base font-bold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
+        <svg class="fa-icon text-primary" aria-hidden="true"><use href="#fa-trophy"></use></svg>
+        ${escHtml(role)}
+      </h4>
+      ${roleNoms.length
+        ? roleNoms.map(n => nomineeCard(n, canVote, maxVotes, showVotes)).join('')
+        : `<p class="text-sm text-gray-400 italic">No nominees yet for this role.</p>`}
+    </div>`;
+  }).join('');
+
+  const nominateBtn = canNominate
+    ? `<button id="modal-nominate-btn" data-election="${escHtml(electionId)}"
+        class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors">
+        <svg class="fa-icon" aria-hidden="true"><use href="#fa-plus"></use></svg>
+        Nominate / Self-Nominate
+      </button>` : '';
+
+  body.innerHTML = `
+    <div class="flex items-start justify-between gap-3 mb-4 flex-wrap">
+      <div>
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">${escHtml(project.name || el.project_id)}</p>
+        <h3 class="text-xl font-extrabold text-gray-900 dark:text-white mt-0.5">${escHtml(el.term)}</h3>
+      </div>
+      ${statusBadge(el.status)}
+    </div>
+    ${el.eligibility_note ? `<p class="text-sm text-gray-500 dark:text-gray-400 mb-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-800">
+      <svg class="fa-icon mr-1 text-primary" aria-hidden="true"><use href="#fa-circle-info"></use></svg>
+      ${escHtml(el.eligibility_note)}</p>` : ''}
+    ${canVote ? `<p class="text-xs text-gray-400 mb-4 flex items-center gap-1.5">
+      <svg class="fa-icon text-primary" aria-hidden="true"><use href="#fa-circle-info"></use></svg>
+      Vote counts are live 👍 reactions on each nomination's GitLab Issue. Click "Vote on GitLab" to cast yours.
+    </p>` : ''}
+    <div id="modal-nominees">${nomineesByRole}</div>
+    <div class="mt-4 flex gap-3 flex-wrap">${nominateBtn}</div>`;
+
+  document.getElementById('modal-nominate-btn')?.addEventListener('click', () => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    openNominationForm(electionId);
+  });
+
+  // Safe avatar fallback — avoids inline onerror XSS risk
+  body.querySelectorAll('img[data-fallback-login]').forEach(img => {
+    img.addEventListener('error', () => {
+      img.style.visibility = 'hidden';
+    }, { once: true });
+  });
+
+  // Event delegation for vote buttons (avoids inline onclick injection risk)
+  body.querySelectorAll('.vote-on-gh').forEach(btn => {
+    btn.addEventListener('click', () => {
+      openVoteIssue(
+        Number(btn.dataset.voteIssue),
+        btn.dataset.voteNominee,
+        btn.dataset.voteRole
+      );
+    });
+  });
+}
+
+function nomineeCard(nom, canVote, maxVotes, showVotes) {
+  const pct = Math.round(((nom.votes || 0) / Math.max(maxVotes, 1)) * 100);
+  const selfTag = nom.self_nominated
+    ? `<span class="ml-2 text-xs bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400 rounded-full px-2 py-0.5">self-nominated</span>`
+    : '';
+
+  // data attributes + event delegation — no inline JS, no injection risk
+  let voteBtn = '';
+  if (canVote && nom.issue_number) {
+    voteBtn = `<button
+      data-vote-issue="${nom.issue_number}"
+      data-vote-nominee="${escHtml(nom.nominee_login)}"
+      data-vote-role="${escHtml(nom.role)}"
+      class="vote-on-gh mt-3 inline-flex items-center gap-1.5 rounded-lg border border-primary px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white transition-colors">
+      👍 Vote on GitLab
+    </button>`;
+  }
+
+  // Only show vote count when counts were actually fetched; otherwise show dash
+  const voteDisplay = showVotes
+    ? `<p class="text-lg font-extrabold text-primary dark:text-red-400">${nom.votes ?? 0}</p><p class="text-xs text-gray-400">👍 votes</p>`
+    : `<p class="text-xs text-gray-400">—</p>`;
+
+  const skills = (nom.skills || []).map(s =>
+    `<span class="rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-300">${escHtml(s)}</span>`
+  ).join('');
+
+  const issueLink = nom.issue_number
+    ? `<a href="${GITLAB_ISSUES_URL}/${nom.issue_number}"
+         target="_blank" rel="noopener noreferrer"
+         class="text-xs text-gray-400 hover:text-primary transition-colors mt-1 inline-flex items-center gap-1">
+         <svg class="fa-icon" aria-hidden="true"><use href="#fa-gitlab"></use></svg>#${nom.issue_number}
+       </a>` : '';
+
+  return `<div class="surface-card rounded-xl p-4 mb-3">
+    <div class="flex items-center gap-3 mb-2">
+      <img src="${escHtml(nom.nominee_avatar || `https://gitlab.com/${nom.nominee_login}.png`)}"
+           alt="${escHtml(nom.nominee_login)}" class="w-9 h-9 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy"
+           data-fallback-login="${escHtml(nom.nominee_login)}" />
+      <div class="min-w-0 flex-1">
+        <a href="https://gitlab.com/${escHtml(nom.nominee_login)}" target="_blank" rel="noopener noreferrer"
+           class="font-bold text-gray-900 dark:text-white hover:text-primary transition-colors text-sm">
+          ${escHtml(nom.nominee_login)}
+        </a>${selfTag}
+        <p class="text-xs text-gray-400">${escHtml(nom.contributions || '')}</p>
+        ${issueLink}
+      </div>
+      <div class="ml-auto text-right flex-shrink-0">${voteDisplay}</div>
+    </div>
+    <p class="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-3">${escHtml(nom.statement || '')}</p>
+    <div class="flex flex-wrap gap-1 mb-2">${skills}</div>
+    <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 mb-1">
+      <div class="bg-primary h-1.5 rounded-full transition-all" style="width:${pct}%"></div>
+    </div>
+    ${voteBtn}
+  </div>`;
+}
+
+/* ── Nomination Form ── */
+function openNominationForm(electionId) {
+  const el = (leadersData.elections || []).find(e => e.id === electionId);
+  if (!el) return;
+  const project = (leadersData.projects || []).find(p => p.id === el.project_id) || {};
+  const formModal = document.getElementById('nomination-modal');
+  const formBody = document.getElementById('nomination-modal-body');
+  if (!formModal || !formBody) return;
+
+  if (!currentUser) {
+    showToast('Please sign in with GitLab before nominating.');
+    return;
+  }
+
+  const roleOptions = (el.roles || []).map(r => `<option value="${escHtml(r)}">${escHtml(r)}</option>`).join('');
+
+  formBody.innerHTML = `
+    <h3 class="text-xl font-extrabold text-gray-900 dark:text-white mb-1">Submit Nomination</h3>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">${escHtml(project.name || el.project_id)} — ${escHtml(el.term)}</p>
+    <form id="nomination-form" class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="nom-role">Role</label>
+        <select id="nom-role" class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+          ${roleOptions}
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="nom-nominee">Nominee GitLab Username</label>
+        <input id="nom-nominee" type="text" value="${escHtml(currentUser.login)}"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="gitlab-username" />
+        <p class="text-xs text-gray-400 mt-1">Leave as your username to self-nominate.</p>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="nom-statement">Statement / Manifesto</label>
+        <textarea id="nom-statement" rows="4"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          placeholder="Why should the community elect this person? What will they contribute as Lead/Co-Lead?"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="nom-skills">Skills (comma-separated)</label>
+        <input id="nom-skills" type="text"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="JavaScript, Security, Documentation" />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="nom-contributions">Prior Contributions</label>
+        <input id="nom-contributions" type="text"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="e.g. 10 merged PRs, 5 issues resolved" />
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit"
+          class="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors">
+          Submit Nomination
+        </button>
+        <button type="button" id="nom-cancel"
+          class="rounded-xl border border-neutral-border dark:border-gray-600 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+          Cancel
+        </button>
+      </div>
+    </form>`;
+
+  formModal.classList.remove('hidden');
+  formModal.classList.add('flex');
+
+  document.getElementById('nom-cancel').addEventListener('click', () => {
+    formModal.classList.add('hidden');
+    formModal.classList.remove('flex');
+  });
+
+  document.getElementById('nomination-form').addEventListener('submit', e => {
+    e.preventDefault();
+    submitNomination(electionId, el, project);
+  });
+}
+
+/* ── Submit Nomination (via GitLab Issue) ── */
+function submitNomination(electionId, el, project) {
+  const role = document.getElementById('nom-role').value.trim();
+  const nominee = document.getElementById('nom-nominee').value.trim();
+  const statement = document.getElementById('nom-statement').value.trim();
+  const skills = document.getElementById('nom-skills').value.trim();
+  const contributions = document.getElementById('nom-contributions').value.trim();
+
+  if (!nominee || !statement) {
+    showToast('Please fill in the nominee username and statement.');
+    return;
+  }
+
+  const selfNom = nominee.toLowerCase() === currentUser.login.toLowerCase();
+  const title = `[NOMINATION] ${el.term} — ${role}: ${nominee}`;
+  const body = [
+    `## BLT Leadership Nomination`,
+    ``,
+    `**Election:** ${el.term} (${electionId})`,
+    `**Project:** ${project.name || el.project_id}`,
+    `**Role:** ${role}`,
+    `**Nominee:** @${nominee}`,
+    `**Nominator:** @${currentUser.login}${currentUser.verified !== true ? ' _(claimed username — unverified)_' : ''}`,
+    `**Self-Nomination:** ${selfNom ? 'Yes' : 'No'}`,
+    ``,
+    `### Statement`,
+    statement,
+    ``,
+    `### Skills`,
+    skills || '_Not provided_',
+    ``,
+    `### Prior Contributions`,
+    contributions || '_Not provided_',
+    ``,
+    `---`,
+    `_Submitted via BLT Leaders page_`
+  ].join('\n');
+
+  const issueUrl = `${GITLAB_NEW_ISSUE_URL}?`
+    + `issue[title]=${encodeURIComponent(title)}&issue[description]=${encodeURIComponent(body)}&label_name[]=nomination&label_name[]=leadership`;
+
+  window.open(issueUrl, '_blank', 'noopener,noreferrer');
+
+  document.getElementById('nomination-modal').classList.add('hidden');
+  document.getElementById('nomination-modal').classList.remove('flex');
+
+  showToast('Nomination opened as a GitLab Issue. Submit it to complete your nomination.');
+}
+
+/* ── Voting via GitLab Reactions ── */
+// Each nomination has an issue_number. Votes = 👍 reactions on that issue.
+// To vote: user clicks "Vote on GitLab" → taken to the issue to react with 👍.
+// Vote counts are fetched live from the GitLab reactions API.
+
+/**
+ * Fetch the set of GitLab user node_ids who 👍'd an issue (paginated).
+ * Null-safe: skips reactions where r.user is null (deleted accounts).
+ */
+async function fetchThumbsUpReactors(issueNumber) {
+  if (reactorsCache.has(issueNumber)) return reactorsCache.get(issueNumber);
+
+  const reactors = new Set();
+  const MAX_PAGES = 10;
+  try {
+    for (let page = 1; page <= MAX_PAGES; page++) {
+      const res = await fetch(
+        `${GITLAB_API_BASE}/issues/${issueNumber}/award_emoji?per_page=100&page=${page}`,
+        { headers: { Accept: 'application/json' } }
+      );
+      if (!res.ok) break;
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) break;
+      data
+        .filter(r => r.name === 'thumbsup')
+        .forEach(r => { if (r.user?.id) reactors.add(r.user.id); });
+      if (data.length < 100) break;
+    }
+  } catch { /* network error — return what we have */ }
+
+  reactorsCache.set(issueNumber, reactors);
+  return reactors;
+}
+
+/**
+ * Fetch vote counts for all nominations in an election.
+ * Deduplicates per (election_id, role): a user's 👍 on multiple nominations
+ * for the same role only counts once — for the nomination they reacted to first
+ * (lowest issue number wins tie). Each nomination's .votes reflects unique voters.
+ */
+async function loadVoteCounts(electionId) {
+  const noms = (leadersData.nominations || []).filter(
+    n => n.election_id === electionId && n.status === 'accepted' && n.issue_number
+  );
+
+  // Fetch all reactor sets in parallel
+  const reactorSets = await Promise.all(
+    noms.map(n => fetchThumbsUpReactors(n.issue_number))
+  );
+
+  // Group by role and deduplicate: each voter counted once per role
+  const roles = [...new Set(noms.map(n => n.role))];
+  roles.forEach(role => {
+    const roleNoms = noms
+      .map((n, i) => ({ nom: n, reactors: reactorSets[i] }))
+      .filter(x => x.nom.role === role)
+      .sort((a, b) => a.nom.issue_number - b.nom.issue_number); // lower issue = earlier nomination
+
+    const seenVoters = new Set();
+    roleNoms.forEach(({ nom, reactors }) => {
+      let uniqueVotes = 0;
+      reactors.forEach(userId => {
+        if (!seenVoters.has(userId)) {
+          seenVoters.add(userId);
+          uniqueVotes++;
+        }
+      });
+      nom.votes = uniqueVotes; // intentional: updates leadersData in-place for UI rendering
+    });
+  });
+}
+
+/**
+ * "Vote" button just takes the user to the GitLab issue to 👍 it.
+ * No backend needed — GitLab enforces one reaction per account.
+ */
+function openVoteIssue(issueNumber, nomineeLogin, role) {
+  if (!currentUser) {
+    showToast('Sign in with GitLab first, then 👍 the nomination issue to vote.');
+    return;
+  }
+  const url = `${GITLAB_ISSUES_URL}/${issueNumber}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+  showToast(`👍 the issue on GitLab to cast your vote for @${nomineeLogin} as ${role}.`);
+}
+
+/* ── Direct Nomination (any project, no admin required) ── */
+function openDirectNominationForm(preselectedProjectId) {
+  const formModal = document.getElementById('nomination-modal');
+  const formBody = document.getElementById('nomination-modal-body');
+  if (!formModal || !formBody) return;
+
+  const projects = leadersData.projects || [];
+  const projectOptions = projects
+    .map(p => `<option value="${escHtml(p.id)}"${p.id === preselectedProjectId ? ' selected' : ''}>${escHtml(p.name)}</option>`)
+    .join('');
+
+  const nomineeDefault = currentUser ? escHtml(currentUser.login) : '';
+  const anonNote = currentUser ? '' : `
+    <p class="text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg px-3 py-2 mb-2">
+      <strong>Note:</strong> You are not signed in. Your GitLab identity won't be recorded as the nominator — sign in with GitLab before submitting if you want to be credited.
+    </p>`;
+
+  formBody.innerHTML = `
+    <h3 class="text-xl font-extrabold text-gray-900 dark:text-white mb-1">Start a Nomination</h3>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Nominate yourself or another contributor for any project leadership role. A GitLab Issue will be created — votes are 👍 reactions on that issue.</p>
+    <form id="direct-nomination-form" class="space-y-4">
+      ${anonNote}
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-project">Project / Repo</label>
+        <select id="dn-project" class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+          <option value="">— select a project —</option>
+          ${projectOptions}
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-role">Role</label>
+        <select id="dn-role" class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+          <option value="Lead">Lead</option>
+          <option value="Co-Lead">Co-Lead</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-nominee">Nominee GitLab Username</label>
+        <input id="dn-nominee" type="text" value="${nomineeDefault}"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="gitlab-username" />
+        <p class="text-xs text-gray-400 mt-1">Leave as your username to self-nominate.</p>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-statement">Statement / Manifesto</label>
+        <textarea id="dn-statement" rows="4"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          placeholder="Why should the community elect this person? What will they contribute as Lead/Co-Lead?"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-skills">Skills (comma-separated)</label>
+        <input id="dn-skills" type="text"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="JavaScript, Security, Documentation" />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-contributions">Prior Contributions</label>
+        <input id="dn-contributions" type="text"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="e.g. 10 merged PRs, 5 issues resolved" />
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit"
+          class="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors">
+          Submit Nomination via GitLab Issue
+        </button>
+        <button type="button" id="dn-cancel"
+          class="rounded-xl border border-neutral-border dark:border-gray-600 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+          Cancel
+        </button>
+      </div>
+    </form>`;
+
+  formModal.classList.remove('hidden');
+  formModal.classList.add('flex');
+
+  document.getElementById('dn-cancel').addEventListener('click', () => {
+    formModal.classList.add('hidden');
+    formModal.classList.remove('flex');
+  });
+
+  document.getElementById('direct-nomination-form').addEventListener('submit', e => {
+    e.preventDefault();
+    submitDirectNomination();
+  });
+}
+
+function submitDirectNomination() {
+  const projectSel = document.getElementById('dn-project').value;
+  const role = document.getElementById('dn-role').value.trim();
+  const nominee = document.getElementById('dn-nominee').value.trim();
+  const statement = document.getElementById('dn-statement').value.trim();
+  const skills = document.getElementById('dn-skills').value.trim();
+  const contributions = document.getElementById('dn-contributions').value.trim();
+
+  if (!projectSel) { showToast('Please select a project.'); return; }
+  if (!nominee || !statement) { showToast('Please fill in the nominee username and statement.'); return; }
+
+  const project = (leadersData.projects || []).find(p => p.id === projectSel) || { name: projectSel };
+  const selfNom = currentUser && nominee.toLowerCase() === currentUser.login.toLowerCase();
+  // Use null (not empty string) so it is filtered without removing intentional blank-line separators
+  const nominatorLine = currentUser
+    ? `**Nominator:** @${currentUser.login}${currentUser.verified !== true ? ' _(claimed username — unverified)_' : ''}`
+    : null;
+
+  const title = `[NOMINATION] ${project.name} — ${role}: ${nominee}`;
+  const body = [
+    `## BLT Leadership Nomination`,
+    ``,
+    `**Project:** ${project.name}`,
+    `**Role:** ${role}`,
+    `**Nominee:** @${nominee}`,
+    nominatorLine,  // null when not signed in — filtered below; blank lines use '' and are kept
+    `**Self-Nomination:** ${selfNom ? 'Yes' : 'No'}`,
+    ``,
+    `### Statement`,
+    statement,
+    ``,
+    `### Skills`,
+    skills || '_Not provided_',
+    ``,
+    `### Prior Contributions`,
+    contributions || '_Not provided_',
+    ``,
+    `---`,
+    `_Submitted via BLT Leaders page. Vote by reacting with 👍 on this issue._`
+  ].filter(line => line !== null).join('\n');
+
+  const issueUrl = `${GITLAB_NEW_ISSUE_URL}?`
+    + `issue[title]=${encodeURIComponent(title)}&issue[description]=${encodeURIComponent(body)}&label_name[]=nomination&label_name[]=leadership`;
+
+  window.open(issueUrl, '_blank', 'noopener,noreferrer');
+  document.getElementById('nomination-modal').classList.add('hidden');
+  document.getElementById('nomination-modal').classList.remove('flex');
+  showToast('Nomination opened as a GitLab Issue. Submit it to complete your nomination — votes are 👍 reactions.');
+}
+
+/* ── Projects Panel ── */
+function renderProjects() {
+  const container = document.getElementById('projects-list');
+  const countEl = document.getElementById('projects-count');
+  if (!container || !leadersData) return;
+  const projects = leadersData.projects || [];
+
+  if (countEl) countEl.textContent = `${projects.length} repo${projects.length !== 1 ? 's' : ''} (GSoC excluded)`;
+
+  if (!projects.length) {
+    container.innerHTML = emptyState('fa-code-branch', 'No projects listed yet.');
+    return;
+  }
+  container.innerHTML = projects.map(p => {
+    const elections = (leadersData.elections || []).filter(e => e.project_id === p.id);
+    const activeEl = elections.find(e => ['nominations_open', 'admin_review', 'voting_open'].includes(e.status));
+    const winners = getProjectCurrentLeaders(p.id);
+    const gsocTag = p.gsoc ? `<span class="ml-2 text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full px-2 py-0.5">GSoC</span>` : '';
+    const leadersHtml = winners.length
+      ? winners.map(w => `<span class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300">
+          <img src="${escHtml(w.avatar || `https://gitlab.com/${w.login}.png`)}" class="w-5 h-5 rounded-full" loading="lazy"
+               data-fallback-login="${escHtml(w.login)}" />
+          ${escHtml(w.login)} <span class="text-gray-400">(${escHtml(w.role)})</span>
+        </span>`).join('')
+      : `<span class="text-xs text-gray-400 italic">No leaders elected yet</span>`;
+    return `<article class="surface-card rounded-2xl p-5 flex flex-col gap-3">
+      <div class="flex items-start justify-between gap-2 flex-wrap">
+        <div>
+          <h3 class="font-bold text-gray-900 dark:text-white text-base">${escHtml(p.name)}${gsocTag}</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">${escHtml(p.description || '')}</p>
+        </div>
+        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${p.active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}">${p.active ? 'Active' : 'Inactive'}</span>
+      </div>
+      <div class="flex flex-wrap gap-2">${leadersHtml}</div>
+      <div class="flex items-center justify-between gap-3 flex-wrap pt-1 border-t border-neutral-border dark:border-gray-700">
+        <a href="${escHtml(p.repo_url || '#')}" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-primary transition-colors">
+          <svg class="fa-icon" aria-hidden="true"><use href="#fa-gitlab"></use></svg>View Repo
+        </a>
+        <div class="flex items-center gap-2 flex-wrap">
+          ${activeEl ? `<button data-open-election="${escHtml(activeEl.id)}"
+            class="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
+            ${statusBadge(activeEl.status)}
+          </button>` : ''}
+          <button data-nominate-project="${escHtml(p.id)}"
+            class="inline-flex items-center gap-1.5 rounded-lg border border-primary px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary hover:text-white transition-colors">
+            <svg class="fa-icon" aria-hidden="true"><use href="#fa-plus"></use></svg>Nominate
+          </button>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+
+  container.querySelectorAll('[data-open-election]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelector('[data-tab="elections"]').click();
+      openElectionModal(btn.dataset.openElection);
+    });
+  });
+
+  container.querySelectorAll('[data-nominate-project]').forEach(btn => {
+    btn.addEventListener('click', () => openDirectNominationForm(btn.dataset.nominateProject));
+  });
+
+  // Safe avatar fallback for project leader chips
+  container.querySelectorAll('img[data-fallback-login]').forEach(img => {
+    img.addEventListener('error', () => {
+      img.style.visibility = 'hidden';
+    }, { once: true });
+  });
+}
+
+function getProjectCurrentLeaders(projectId) {
+  const past = leadersData.past_winners || [];
+  const projectWins = past.filter(pw => pw.project_id === projectId);
+  if (!projectWins.length) return [];
+  const latest = [...projectWins].sort((a, b) => new Date(b.finalized_at) - new Date(a.finalized_at))[0];
+  return latest.winners || [];
+}
+
+/* ── Past Winners Panel ── */
+function renderPastWinners() {
+  const container = document.getElementById('winners-list');
+  if (!container || !leadersData) return;
+  const past = leadersData.past_winners || [];
+  if (!past.length) {
+    container.innerHTML = emptyState('fa-trophy', 'No finalized elections yet.');
+    return;
+  }
+  const sorted = [...past].sort((a, b) => new Date(b.finalized_at) - new Date(a.finalized_at));
+  container.innerHTML = sorted.map(pw => {
+    const project = (leadersData.projects || []).find(p => p.id === pw.project_id) || {};
+    const date = new Date(pw.finalized_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    const winnersHtml = (pw.winners || []).map(w => `
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800">
+        <img src="${escHtml(w.avatar || `https://gitlab.com/${w.login}.png`)}"
+             alt="${escHtml(w.login)}" class="w-10 h-10 rounded-full border-2 border-primary" loading="lazy"
+             data-fallback-login="${escHtml(w.login)}" />
+        <div class="min-w-0">
+          <a href="https://gitlab.com/${escHtml(w.login)}" target="_blank" rel="noopener noreferrer"
+             class="font-bold text-gray-900 dark:text-white hover:text-primary transition-colors text-sm">
+            ${escHtml(w.login)}
+          </a>
+          <p class="text-xs text-gray-400">${escHtml(w.role)} · ${w.votes || 0} votes</p>
+        </div>
+        <svg class="fa-icon text-yellow-500 ml-auto flex-shrink-0" aria-hidden="true"><use href="#fa-trophy"></use></svg>
+      </div>`).join('');
+    return `<article class="surface-card rounded-2xl p-5">
+      <div class="flex items-start justify-between gap-2 mb-3 flex-wrap">
+        <div>
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">${escHtml(project.name || pw.project_id)}</p>
+          <h3 class="font-bold text-gray-900 dark:text-white">${escHtml(pw.term)}</h3>
+        </div>
+        <span class="text-xs text-gray-400">${date}</span>
+      </div>
+      <div class="grid gap-2 sm:grid-cols-2">${winnersHtml}</div>
+    </article>`;
+  }).join('');
+
+  // Safe avatar fallback for past winners
+  container.querySelectorAll('img[data-fallback-login]').forEach(img => {
+    img.addEventListener('error', () => {
+      img.style.visibility = 'hidden';
+    }, { once: true });
+  });
+}
+
+/* ── Modal close handlers ── */
+document.addEventListener('DOMContentLoaded', () => {
+  ['election-modal', 'nomination-modal'].forEach(id => {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.addEventListener('click', e => {
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    });
+  });
+  document.getElementById('election-modal-close')?.addEventListener('click', () => {
+    document.getElementById('election-modal').classList.add('hidden');
+    document.getElementById('election-modal').classList.remove('flex');
+  });
+  document.getElementById('nomination-modal-close')?.addEventListener('click', () => {
+    document.getElementById('nomination-modal').classList.add('hidden');
+    document.getElementById('nomination-modal').classList.remove('flex');
+  });
+});
+
+/* ── Utilities ── */
+function escHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function emptyState(icon, msg) {
+  // Strip any leading 'fa-' so callers can pass either 'trophy' or 'fa-trophy'
+  const id = String(icon || '').replace(/^fa-/, '');
+  return `<div class="col-span-full text-center py-16 text-gray-400 dark:text-gray-500">
+    <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3 mx-auto" aria-hidden="true"><use href="#fa-${id}"></use></svg>
+    <p class="text-sm">${escHtml(msg)}</p>
+  </div>`;
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-semibold px-5 py-3 rounded-xl shadow-lg transition-opacity duration-300';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 4000);
+}
