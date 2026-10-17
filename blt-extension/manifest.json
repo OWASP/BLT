@@ -1,0 +1,68 @@
+{
+  "manifest_version": 3,
+  "name": "OWASP BLT-Extension",
+  "short_name": "BLT-Extension",
+  "version": "1.5",
+  "default_locale": "en",
+  "author": "OWASP BLT",
+  "description": "OWASP BLT lets you get points, track jobs, and manage applications. This extension can read and change site information to capture screenshots, scan for trademarks, and track job applications on LinkedIn and Wellfound.",
+
+  "icons": {
+    "19": "img/icon19.png",
+    "38": "img/icon38.png",
+    "128": "img/icon128.png"
+  },
+
+  "action": {
+    "default_icon": {
+      "19": "img/icon19.png",
+      "38": "img/icon38.png"
+    },
+    "default_title": "OWASP BLT-Extension",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting", "alarms", "notifications"],
+
+  "host_permissions": ["<all_urls>"],
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.linkedin.com/jobs/*"],
+      "js": ["linkedin-monitor.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://*.wellfound.com/jobs*"],
+      "js": ["wellfound-monitor.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["trademark-scanner.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://github.com/*/pull/*"],
+      "js": ["github-pr-button.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["jobtracking.html", "jobtracking.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+
+  "homepage_url": "https://www.owasp.org/BLT/"
+}

@@ -1,0 +1,20 @@
+{
+  "name": "owasp-blt-extension",
+  "version": "1.5.0",
+  "description": "OWASP BLT lets you get points, track jobs, and manage applications.",
+  "author": "OWASP BLT",
+  "license": "MIT",
+  "homepage": "https://www.owasp.org/BLT/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OWASP-BLT/BLT-Extension.git"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:coverage": "jest --coverage"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}

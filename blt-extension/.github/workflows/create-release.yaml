@@ -1,0 +1,54 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-release:
+    name: Build and Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get tag name
+        id: tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Package extension
+        run: |
+          # Create a temporary directory for the extension files
+          mkdir -p /tmp/blt-extension
+          
+          # Copy only the necessary files for the extension
+          cp manifest.json /tmp/blt-extension/
+          cp *.js /tmp/blt-extension/ 2>/dev/null || true
+          cp *.html /tmp/blt-extension/ 2>/dev/null || true
+          cp *.css /tmp/blt-extension/ 2>/dev/null || true
+          cp LICENSE /tmp/blt-extension/ 2>/dev/null || true
+          cp -r img /tmp/blt-extension/ 2>/dev/null || true
+          cp -r libs /tmp/blt-extension/ 2>/dev/null || true
+          cp -r _locales /tmp/blt-extension/ 2>/dev/null || true
+          cp -r toolbar_res /tmp/blt-extension/ 2>/dev/null || true
+          
+          # Create the zip file
+          cd /tmp/blt-extension
+          zip -r /tmp/blt-extension-${{ steps.tag.outputs.TAG_NAME }}.zip .
+          
+          # Move the zip file to the workspace
+          mv /tmp/blt-extension-${{ steps.tag.outputs.TAG_NAME }}.zip $GITHUB_WORKSPACE/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: blt-extension-${{ steps.tag.outputs.TAG_NAME }}.zip
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

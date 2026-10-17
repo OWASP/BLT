@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html data-theme="light">
+<head>
+    <title>Job Application Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root[data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --accent-color: #0d6efd;
+            --hover-color: #0b5ed7;
+            --danger-color: #dc3545;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --info-color: #0dcaf0;
+            --modal-bg: #ffffff;
+            --input-bg: #ffffff;
+            --input-text: #1a1a1a;
+            --input-border: #dee2e6;
+            --table-header-bg: #f8f9fa;
+            --table-header-text: #1a1a1a;
+        }
+
+        :root[data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #ced4da;
+            --border-color: #404040;
+            --accent-color: #0d6efd;
+            --hover-color: #0b5ed7;
+            --danger-color: #dc3545;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --info-color: #0dcaf0;
+            --modal-bg: #2d2d2d;
+            --input-bg: #1a1a1a;
+            --input-text: #ffffff;
+            --input-border: #404040;
+            --table-header-bg: #2d2d2d;
+            --table-header-text: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-primary);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .theme-toggle {
+            padding: 8px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-secondary);
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--hover-color);
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 0.9em;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background: #bb2d3b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: var(--table-header-bg);
+            color: var(--table-header-text);
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .status-pending { background: #ffd700; }
+        .status-accepted { background: #90EE90; }
+        .status-rejected { background: #ffcccb; }
+        .status-interview { background: #87CEEB; }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: var(--modal-bg);
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .close {
+            color: var(--text-secondary);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--input-border);
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border-radius: 4px;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        /* Add row number column styles */
+        .row-number {
+            width: 50px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        /* Add pagination styles */
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 10px 0;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .page-size-select {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--input-text);
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Add multi-select styles */
+        .row-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .selected-row {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+
+        .selected-row:hover {
+            background-color: rgba(13, 110, 253, 0.2);
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title">
+                <h1>Job Applications</h1>
+                <button class="theme-toggle" id="themeToggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="bulk-actions">
+                <button id="deleteSelected" class="btn btn-danger" style="display: none;">Delete Selected</button>
+                <button id="exportSelected" class="btn" style="display: none;">Export Selected</button>
+            </div>
+            <div>
+                <button id="exportBtn" class="btn">Export All</button>
+                <button id="addNewBtn" class="btn">Add New</button>
+            </div>
+        </div>
+
+        <table id="applicationsTable">
+            <thead>
+                <tr>
+                    <th class="row-number">#</th>
+                    <th><input type="checkbox" id="selectAll" class="row-checkbox"></th>
+                    <th>Company</th>
+                    <th>Position</th>
+                    <th>Applied Date</th>
+                    <th>Platform</th>
+                    <th>Job URL</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="applicationsBody">
+                <!-- Data will be populated here -->
+            </tbody>
+        </table>
+        <div class="pagination-controls">
+            <div class="items-per-page">
+                <label>Items per page:</label>
+                <select id="pageSize" class="page-size-select">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="80">80</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+            <div class="pagination-buttons">
+                <button id="prevPage" class="btn">Previous</button>
+                <span id="pageInfo">Page 1 of 1</span>
+                <button id="nextPage" class="btn">Next</button>
+            </div>
+        </div>
+    </div>
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Application</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addApplicationForm">
+                    <div class="form-group">
+                        <label for="company">Company Name*</label>
+                        <input type="text" id="company" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="position">Position*</label>
+                        <input type="text" id="position" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="jobUrl">Job Posting URL</label>
+                        <input type="url" id="jobUrl">
+                    </div>
+                    <div class="form-group">
+                        <label for="platform">Platform*</label>
+                        <select id="platform" required>
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Indeed">Indeed</option>
+                            <option value="Wellfound">Wellfound</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status*</label>
+                        <select id="status" required>
+                            <option value="Pending">Pending</option>
+                            <option value="Applied">Applied</option>
+                            <option value="Interview">Interview Scheduled</option>
+                            <option value="Accepted">Accepted</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="appliedDate">Application Date*</label>
+                        <input type="date" id="appliedDate" required>
+                    </div>
+                    <button type="submit" class="btn">Save Application</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="jobtracking.js"></script>
+</body>
+</html> 

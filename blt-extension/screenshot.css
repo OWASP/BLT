@@ -1,0 +1,69 @@
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    position: fixed;
+}
+
+#content {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#announce, #announce button {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-size: 1em;
+}
+    
+#announce {    
+    position: fixed;
+    z-index: 9999;
+    top: 10px;
+    width: 700px;
+    margin: 0;
+    padding: 10px;
+    background-color: rgba(0,0,0,0.9);
+    //border-radius: 5px;
+    display: none;
+    color: white;
+    border: solid white 2px;
+}
+
+#announce  a{
+    color: white;
+}
+
+#announce  a:hover{
+    color: white;
+}
+
+#announce  a:visited{
+    color: white;
+}
+
+#announce_close_cross {
+    width: 16px;
+    height: 16px;
+    float: right;
+    cursor: pointer;
+}
+
+#announce_message {
+    margin: 0 0 20px 0;
+}
+
+#announce_do_not_show_container {
+    float: left;
+}
+
+#announce_hide {
+    float: right;
+    cursor: pointer;
+    margin-top: -3px;
+}
+
+.colpick {
+    z-index: 1000;
+}
