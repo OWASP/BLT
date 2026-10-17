@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login — BLT Timer</title>
+    <meta name="description" content="Sign in or create a BLT Timer account." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="min-h-screen bg-slate-50 font-sans text-slate-950 antialiased selection:bg-red-100 selection:text-red-700">
+    <main class="mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-5 py-12 lg:grid-cols-[1fr_420px] lg:px-8">
+      <section>
+        <a href="/" class="inline-flex items-center gap-3" aria-label="BLT Timer home">
+          <span class="flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-white text-lg shadow-sm">⏱</span>
+          <span class="text-sm font-semibold tracking-tight text-slate-950">BLT Timer</span>
+        </a>
+        <p class="section-kicker mt-12">Custom local auth</p>
+        <h1 class="mt-4 text-5xl font-bold leading-tight tracking-[-0.045em] text-slate-950 md:text-6xl">Welcome back.</h1>
+        <p class="mt-5 max-w-xl text-lg leading-8 text-slate-600">Sign in to save work logs, review daily totals, and keep your BLT contribution history in one place.</p>
+        <div class="mt-8 grid max-w-xl gap-3 sm:grid-cols-3">
+          <div class="card p-4"><p class="text-xs text-slate-500">Auth</p><p class="mt-2 font-semibold">Local</p></div>
+          <div class="card p-4"><p class="text-xs text-slate-500">Provider OAuth</p><p class="mt-2 font-semibold">None</p></div>
+          <div class="card p-4"><p class="text-xs text-slate-500">Storage</p><p class="mt-2 font-semibold">D1</p></div>
+        </div>
+      </section>
+
+      <section class="card p-6 shadow-sm">
+        <div class="grid grid-cols-2 rounded-lg border border-slate-200 bg-slate-50 p-1 text-sm font-medium">
+          <button id="login-tab" class="rounded-md bg-white px-3 py-2 text-slate-950 shadow-sm" type="button" data-auth-tab="login">Login</button>
+          <button id="register-tab" class="rounded-md px-3 py-2 text-slate-500" type="button" data-auth-tab="register">Register</button>
+        </div>
+
+        <form id="login-form" class="mt-6 space-y-4">
+          <div>
+            <label class="field-label" for="login-identifier">Email or username</label>
+            <input id="login-identifier" class="field-input mt-1" type="text" autocomplete="username" required />
+          </div>
+          <div>
+            <label class="field-label" for="login-password">Password</label>
+            <input id="login-password" class="field-input mt-1" type="password" autocomplete="current-password" required />
+          </div>
+          <button class="btn-primary w-full py-3" type="submit">Sign in</button>
+        </form>
+
+        <form id="register-form" class="mt-6 hidden space-y-4">
+          <div>
+            <label class="field-label" for="register-username">Username</label>
+            <input id="register-username" class="field-input mt-1" type="text" autocomplete="username" required />
+          </div>
+          <div>
+            <label class="field-label" for="register-email">Email</label>
+            <input id="register-email" class="field-input mt-1" type="email" autocomplete="email" required />
+          </div>
+          <div>
+            <label class="field-label" for="register-password">Password</label>
+            <input id="register-password" class="field-input mt-1" type="password" autocomplete="new-password" minlength="8" required />
+          </div>
+          <button class="btn-primary w-full py-3" type="submit">Create account</button>
+        </form>
+
+        <p id="auth-message" class="mt-4 hidden rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600"></p>
+        <p class="mt-5 text-center text-sm text-slate-500">Only manually saved work logs are stored.</p>
+      </section>
+    </main>
+    <script type="module" src="/auth.js"></script>
+  </body>
+</html>
