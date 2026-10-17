@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>HackerHouse · BLT Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,200&display=swap" rel="stylesheet">
+<script src="assets/js/theme.js"></script>
+<link rel="stylesheet" href="assets/css/blt-design.css">
+<link rel="stylesheet" href="assets/css/hackerhouse.css">
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      },
+    },
+  },
+};
+</script>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   Terminal / Command Center Landing Page
+   ═══════════════════════════════════════════════════════════ */
+
+/* --- Scanline overlay --- */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+}
+
+/* --- Typewriter cursor --- */
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--blt-primary);
+  vertical-align: text-bottom;
+  animation: blink-cursor 0.8s step-end infinite;
+}
+
+.cursor.block {
+  width: 0.6em;
+  background: var(--blt-primary);
+  animation: blink-cursor 0.8s step-end infinite;
+}
+
+/* --- Chrome / terminal header bar --- */
+.cmd-window {
+  background: var(--blt-surface);
+  border: 1px solid var(--blt-border-strong);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.25);
+}
+
+.cmd-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: var(--blt-surface-raised);
+  border-bottom: 1px solid var(--blt-border);
+}
+
+.cmd-window-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.cmd-window-dot.red { background: #ef4444; }
+.cmd-window-dot.yellow { background: #f59e0b; }
+.cmd-window-dot.green { background: #22c55e; }
+
+.cmd-window-title {
+  flex: 1;
+  text-align: center;
+  font-family: var(--blt-font-mono);
+  font-size: 0.65rem;
+  color: var(--blt-text-subtle);
+  letter-spacing: 0.05em;
+}
+
+.cmd-window-body {
+  padding: 1.25rem;
+  font-family: var(--blt-font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: var(--blt-text-muted);
+}
+
+/* --- Prompts --- */
+.cmd-prompt {
+  color: var(--blt-primary);
+  font-weight: 600;
+  user-select: none;
+}
+
+.cmd-prompt.green { color: #22c55e; }
+.cmd-prompt.blue { color: #0ea5e9; }
+.cmd-prompt.amber { color: #f59e0b; }
+
+.cmd-keyword { color: var(--blt-primary); font-weight: 600; }
+.cmd-string { color: #22c55e; }
+.cmd-comment { color: var(--blt-text-subtle); font-style: italic; }
+.cmd-var { color: #0ea5e9; }
+
+/* --- Section headers --- */
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--blt-font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--blt-text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.section-label::before {
+  content: '~';
+  color: var(--blt-primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--blt-border);
+  max-width: 3rem;
+}
+
+/* --- Hero --- */
+.terminal-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 3rem 1.5rem 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.terminal-hero::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--blt-primary) 10%, transparent) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.terminal-hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 56rem;
+  width: 100%;
+}
+
+.terminal-motd {
+  font-family: var(--blt-font-mono);
+  font-size: 0.7rem;
+  color: var(--blt-text-subtle);
+  margin-bottom: 1.5rem;
+  animation: hh-fade-in 0.4s ease-out;
+  line-height: 1.6;
+}
+
+.terminal-motd .green { color: #22c55e; }
+.terminal-motd .amber { color: #f59e0b; }
+
+.terminal-title {
+  font-family: var(--blt-font-mono);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--blt-text);
+  margin-bottom: 1.25rem;
+  line-height: 1.3;
+  animation: hh-fade-in 0.5s ease-out 0.1s both;
+}
+
+.terminal-title .red { color: var(--blt-primary); }
+.terminal-title .dim { color: var(--blt-text-subtle); }
+
+.terminal-subtitle {
+  font-family: var(--blt-font-mono);
+  font-size: 0.8rem;
+  color: var(--blt-text-muted);
+  max-width: 40rem;
+  margin: 0 auto 2rem;
+  line-height: 1.7;
+  animation: hh-fade-in 0.5s ease-out 0.2s both;
+}
+
+.terminal-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: hh-fade-in 0.5s ease-out 0.3s both;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  border-radius: 0.375rem;
+  font-family: var(--blt-font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--blt-primary);
+  text-decoration: none;
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+
+.btn-primary:hover {
+  background: var(--blt-primary-hover);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--blt-primary) 30%, transparent);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  border-radius: 0.375rem;
+  font-family: var(--blt-font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--blt-text-muted);
+  background: transparent;
+  border: 1px solid var(--blt-border);
+  text-decoration: none;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+
+.btn-secondary:hover {
+  border-color: color-mix(in srgb, var(--blt-primary) 36%, var(--blt-border));
+  color: var(--blt-primary);
+  background: var(--blt-surface-muted);
+}
+
+/* --- Feature Terminal Cards --- */
+.features-section {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.ft-card {
+  background: var(--blt-surface-muted);
+  border: 1px solid var(--blt-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.ft-card:hover {
+  border-color: var(--blt-border-strong);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--blt-primary) 10%, transparent);
+}
+
+.ft-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: var(--blt-surface-raised);
+  border-bottom: 1px solid var(--blt-border);
+}
+
+.ft-card-filename {
+  font-family: var(--blt-font-mono);
+  font-size: 0.65rem;
+  color: var(--blt-text-subtle);
+}
+
+.ft-card-filename .ext { color: var(--blt-primary); }
+
+.ft-card-dots {
+  display: flex;
+  gap: 3px;
+}
+
+.ft-card-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  display: block;
+}
+
+.ft-card-dots .d1 { background: var(--blt-text-subtle); }
+.ft-card-dots .d2 { background: var(--blt-text-subtle); }
+.ft-card-dots .d3 { background: var(--blt-text-subtle); }
+
+.ft-card-body {
+  padding: 0.75rem;
+  font-family: var(--blt-font-mono);
+  font-size: 0.7rem;
+  line-height: 1.6;
+  color: var(--blt-text-muted);
+}
+
+.ft-card-icon {
+  font-size: 1rem;
+  margin-right: 0.375rem;
+}
+
+/* --- Live Stats ticker --- */
+.stats-ticker {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.stat-terminal {
+  background: var(--blt-surface-muted);
+  border: 1px solid var(--blt-border);
+  border-radius: 0.375rem;
+  padding: 0.875rem 1rem;
+  text-align: center;
+  transition: border-color 200ms ease;
+}
+
+.stat-terminal:hover {
+  border-color: var(--blt-border-strong);
+}
+
+.stat-value {
+  font-family: var(--blt-font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--blt-primary);
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-family: var(--blt-font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--blt-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* --- Pipeline terminal --- */
+.pipeline-section {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.pipeline-terminal {
+  background: var(--blt-code-bg);
+  border: 1px solid var(--blt-border-strong);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.pipeline-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--blt-surface-raised);
+  border-bottom: 1px solid var(--blt-border-strong);
+}
+
+.pipeline-bar-dot { width: 8px; height: 8px; border-radius: 999px; }
+.pipeline-bar-dot.r { background: #ef4444; }
+.pipeline-bar-dot.y { background: #f59e0b; }
+.pipeline-bar-dot.g { background: #22c55e; }
+
+.pipeline-bar-title {
+  flex: 1;
+  text-align: center;
+  font-family: var(--blt-font-mono);
+  font-size: 0.625rem;
+  color: var(--blt-text-subtle);
+  letter-spacing: 0.05em;
+}
+
+.pipeline-body {
+  padding: 1.25rem 1.5rem;
+  font-family: var(--blt-font-mono);
+  font-size: 0.725rem;
+  line-height: 1.8;
+  color: #a0b4c8;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.pipeline-body .ts   { color: var(--blt-text-subtle); }
+.pipeline-body .src  { color: #94a3b8; }
+.pipeline-body .proc { color: var(--blt-primary); }
+.pipeline-body .stor { color: #0ea5e9; }
+.pipeline-body .out  { color: #22c55e; }
+.pipeline-body .arrow{ color: #64748b; }
+.pipeline-body .tag  { color: #f59e0b; }
+
+/* --- Footer CTA terminal --- */
+.cta-section {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+}
+
+.cta-terminal {
+  background: var(--blt-surface);
+  border: 1px solid var(--blt-border-strong);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.cta-body {
+  padding: 2rem;
+  text-align: center;
+  font-family: var(--blt-font-mono);
+}
+
+.cta-body .prompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--blt-text);
+}
+
+.cta-body .prompt .arrow {
+  color: var(--blt-primary);
+  font-weight: 700;
+}
+
+.cta-body .question {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--blt-text);
+  margin-bottom: 0.5rem;
+}
+
+.cta-body .hint {
+  font-size: 0.75rem;
+  color: var(--blt-text-subtle);
+  margin-bottom: 1.5rem;
+}
+
+.cta-options {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* --- Mobile --- */
+@media (max-width: 768px) {
+  .features-grid { grid-template-columns: 1fr; }
+  .pipeline-body { font-size: 0.625rem; padding: 1rem; }
+}
+</style>
+</head>
+<body class="min-h-screen font-sans antialiased bg-[var(--blt-background)] text-[var(--blt-text)]">
+
+<!-- ═══ HEADER ═══ -->
+<header class="hh-header flex items-center justify-between px-4 lg:px-6 h-14 border-b border-[var(--blt-border)] bg-[var(--blt-surface)]/80 backdrop-blur-md sticky top-0 z-40">
+  <div class="flex items-center gap-3">
+    <div class="w-8 h-8 rounded-md bg-[var(--blt-primary)] flex items-center justify-center text-white font-extrabold text-sm">B</div>
+    <div>
+      <span class="text-sm font-semibold tracking-tight text-[var(--blt-text)]">BLT HackerHouse</span>
+      <p class="text-[10px] font-mono text-[var(--blt-text-subtle)] tracking-wider hidden sm:block">COMMAND CENTER v0.4</p>
+    </div>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="index.html" class="btn-primary text-xs">
+      <span class="material-symbols-outlined text-sm">terminal</span>
+      ./launch.sh
+    </a>
+    <a href="https://gitlab.com/owasp-blt/blt-hackerhouse" target="_blank" rel="noopener" class="hh-icon-btn" aria-label="GitLab repository" title="GitLab repository">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M23.6 9.9l-2.6-8c-.1-.3-.4-.5-.8-.5-.3 0-.6.1-.7.4l-2.2 6.8H6.7L4.5 1.8c-.1-.3-.4-.4-.7-.4-.3 0-.6.2-.8.5l-2.6 8c-.1.2-.1.5.1.7l11.5 8.4 11.5-8.4c.2-.2.2-.5.1-.7z"/></svg>
+    </a>
+    <button class="btn-secondary text-xs px-2" data-theme-toggle>
+      <span class="material-symbols-outlined text-sm theme-icon-light">dark_mode</span>
+      <span class="material-symbols-outlined text-sm theme-icon-dark" style="display:none">light_mode</span>
+    </button>
+  </div>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<section class="terminal-hero">
+  <div class="terminal-hero-content">
+    <div class="terminal-motd">
+      <span class="green">●</span> system booted <span class="amber">0.4s</span> &nbsp;|&nbsp;
+      <span class="green">●</span> workers: <span class="amber">3</span> &nbsp;|&nbsp;
+      <span class="green">●</span> ws_clients: <span class="amber">12</span> &nbsp;|&nbsp;
+      <span class="green">●</span> d1: <span class="amber">connected</span>
+    </div>
+
+    <h1 class="terminal-title">
+      <span class="dim">blt-hackerhouse ~ $</span> cargo run <span class="red">--release</span>
+    </h1>
+
+    <p class="terminal-subtitle">
+      <span class="cmd-comment"># Real-time contributor visualization for OWASP BLT.</span><br>
+      <span class="cmd-comment"># Ingests GitLab + BLT events. Resolves identities. Broadcasts live.</span><br>
+      <span class="cmd-comment"># All on Cloudflare Workers. Zero cold starts. Pure Python.</span>
+    </p>
+
+    <div class="terminal-actions">
+      <a href="index.html" class="btn-primary">
+        <span class="material-symbols-outlined text-sm">play_arrow</span>
+        ./launch.sh
+      </a>
+      <a href="status_health.html" class="btn-secondary">
+        <span class="material-symbols-outlined text-sm">monitor_heart</span>
+        cat /var/log/health
+      </a>
+      <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener" class="btn-secondary">
+        <span class="material-symbols-outlined text-sm">open_in_new</span>
+        man owasp-blt
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FEATURES ═══ -->
+<section class="features-section">
+  <div class="section-label">ls ~/features/</div>
+
+  <div class="features-grid">
+
+    <!-- Digital Twin -->
+    <div class="ft-card">
+      <div class="ft-card-header">
+        <span class="ft-card-filename"><span class="ext">src/</span>digital_twin<span class="ext">.rs</span></span>
+        <span class="ft-card-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></span>
+      </div>
+      <div class="ft-card-body">
+        <span class="cmd-prompt blue">fn</span> <span class="cmd-keyword">render</span>() {<br>
+        &nbsp;&nbsp;<span class="cmd-comment">// 3-floor building visualization</span><br>
+        &nbsp;&nbsp;<span class="cmd-comment">// Contributors = avatars in active rooms</span><br>
+        &nbsp;&nbsp;<span class="cmd-comment">// Real-time movement between floors</span><br>
+        &nbsp;&nbsp;<span class="cmd-var">floors</span>.draw(<span class="cmd-string">"digital_twin"</span>);<br>
+        }
+      </div>
+    </div>
+
+    <!-- WebSocket -->
+    <div class="ft-card">
+      <div class="ft-card-header">
+        <span class="ft-card-filename"><span class="ext">src/</span>broadcast<span class="ext">.py</span></span>
+        <span class="ft-card-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></span>
+      </div>
+      <div class="ft-card-body">
+        <span class="cmd-prompt green">async</span> <span class="cmd-keyword">def</span> <span class="cmd-var">broadcast</span>(msg):<br>
+        &nbsp;&nbsp;<span class="cmd-comment"># Durable Objects WebSocket hub</span><br>
+        &nbsp;&nbsp;<span class="cmd-comment"># Snapshot on connect — never miss data</span><br>
+        &nbsp;&nbsp;<span class="cmd-keyword">await</span> hub.send_all(msg)<br>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="ft-card">
+      <div class="ft-card-header">
+        <span class="ft-card-filename"><span class="ext">src/</span>leaderboard<span class="ext">.rs</span></span>
+        <span class="ft-card-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></span>
+      </div>
+      <div class="ft-card-body">
+        <span class="cmd-prompt blue">fn</span> <span class="cmd-keyword">rank</span>(scores: &[Score]) {<br>
+        &nbsp;&nbsp;<span class="cmd-comment">// Real-time per-platform scoring</span><br>
+        &nbsp;&nbsp;<span class="cmd-comment">// Filter by period: all-time | 30d | 7d</span><br>
+        &nbsp;&nbsp;<span class="cmd-var">scores</span>.sort_by(|a, b| b.pts.cmp(&a.pts));<br>
+        }
+      </div>
+    </div>
+
+    <!-- Identity -->
+    <div class="ft-card">
+      <div class="ft-card-header">
+        <span class="ft-card-filename"><span class="ext">src/</span>identity/<span class="ext">pipeline.py</span></span>
+        <span class="ft-card-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></span>
+      </div>
+      <div class="ft-card-body">
+        <span class="cmd-prompt green">def</span> <span class="cmd-keyword">resolve</span>(user_a, user_b):<br>
+        &nbsp;&nbsp;<span class="cmd-comment"># Stage 1: exact match</span><br>
+        &nbsp;&nbsp;<span class="cmd-comment"># Stage 2: Levenshtein fuzzy</span><br>
+        &nbsp;&nbsp;<span class="cmd-comment"># Stage 3: Jaccard similarity</span><br>
+        &nbsp;&nbsp;<span class="cmd-comment"># Stage 4: manual review flag</span><br>
+      </div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="ft-card">
+      <div class="ft-card-header">
+        <span class="ft-card-filename"><span class="ext">src/</span>feed<span class="ext">.py</span></span>
+        <span class="ft-card-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></span>
+      </div>
+      <div class="ft-card-body">
+        <span class="cmd-prompt amber">SELECT</span> * <span class="cmd-keyword">FROM</span> events<br>
+        &nbsp;&nbsp;<span class="cmd-comment">-- Paginated chronological feed</span><br>
+        &nbsp;&nbsp;<span class="cmd-comment">-- GitLab + BLT events unified</span><br>
+        &nbsp;&nbsp;<span class="cmd-keyword">ORDER BY</span> timestamp <span class="cmd-keyword">DESC</span>;<br>
+      </div>
+    </div>
+
+    <!-- Health -->
+    <div class="ft-card">
+      <div class="ft-card-header">
+        <span class="ft-card-filename"><span class="ext">src/</span>health<span class="ext">.check.sh</span></span>
+        <span class="ft-card-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></span>
+      </div>
+      <div class="ft-card-body">
+        <span class="cmd-prompt">$</span> ./health-check --all<br>
+        &nbsp;&nbsp;<span class="cmd-string">✓</span> webhook &nbsp;&nbsp;&nbsp;<span class="cmd-comment"># operational</span><br>
+        &nbsp;&nbsp;<span class="cmd-string">✓</span> gap_detect &nbsp;<span class="cmd-comment"># operational</span><br>
+        &nbsp;&nbsp;<span class="cmd-string">✓</span> database &nbsp;&nbsp;<span class="cmd-comment"># operational (3ms)</span><br>
+        &nbsp;&nbsp;<span class="cmd-string">✓</span> websocket &nbsp;<span class="cmd-comment"># 12 clients connected</span><br>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══ STATS ═══ -->
+<section class="stats-ticker">
+  <div class="section-label">cat /proc/stat</div>
+
+  <div class="stats-grid">
+    <div class="stat-terminal">
+      <div class="stat-value">3</div>
+      <div class="stat-label">Floors</div>
+    </div>
+    <div class="stat-terminal">
+      <div class="stat-value">15</div>
+      <div class="stat-label">Active Rooms</div>
+    </div>
+    <div class="stat-terminal">
+      <div class="stat-value">7</div>
+      <div class="stat-label">API Endpoints</div>
+    </div>
+    <div class="stat-terminal">
+      <div class="stat-value">4</div>
+      <div class="stat-label">Resolution Stages</div>
+    </div>
+    <div class="stat-terminal">
+      <div class="stat-value">117+</div>
+      <div class="stat-label">Unit Tests</div>
+    </div>
+    <div class="stat-terminal">
+      <div class="stat-value">0.4s</div>
+      <div class="stat-label">Cold Start</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PIPELINE ═══ -->
+<section class="pipeline-section">
+  <div class="section-label">journalctl -fu hackerhouse</div>
+
+  <div class="pipeline-terminal">
+    <div class="pipeline-bar">
+      <span class="pipeline-bar-dot r"></span>
+      <span class="pipeline-bar-dot y"></span>
+      <span class="pipeline-bar-dot g"></span>
+      <span class="pipeline-bar-title">pipeline.log</span>
+    </div>
+    <div class="pipeline-body">
+<span class="ts">[12:34:01]</span> <span class="tag">INFO</span>  <span class="src">webhook/gitlab</span>        received push event <span class="tag">#4812</span>
+<span class="ts">[12:34:01]</span> <span class="tag">INFO</span>  <span class="proc">normalize</span>             event → unified model
+<span class="ts">[12:34:01]</span> <span class="tag">INFO</span>  <span class="proc">dedup</span>                 idempotency key: <span class="tag">ok</span>
+<span class="ts">[12:34:02]</span> <span class="tag">INFO</span>  <span class="proc">identity/resolve</span>      stage=exact <span class="tag">linked</span> alice ↔ gitlab:42
+<span class="ts">[12:34:02]</span> <span class="tag">INFO</span>  <span class="stor">d1/insert</span>             events <span class="tag">+1</span>, avatar_state updated
+<span class="ts">[12:34:02]</span> <span class="tag">INFO</span>  <span class="out">broadcast/ws</span>          → 12 clients · <span class="tag">floor_2/room_7</span>
+<span class="ts">[12:34:02]</span> <span class="tag">INFO</span>  <span class="out">leaderboard</span>           score delta <span class="tag">+5</span> for alice
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="cta-section">
+  <div class="cta-terminal">
+    <div class="pipeline-bar">
+      <span class="pipeline-bar-dot r"></span>
+      <span class="pipeline-bar-dot y"></span>
+      <span class="pipeline-bar-dot g"></span>
+      <span class="pipeline-bar-title">session</span>
+    </div>
+    <div class="cta-body">
+      <p class="prompt">
+        <span class="arrow">➜</span> blt-hackerhouse
+      </p>
+      <p class="question">Ready to deploy?</p>
+      <p class="hint">$ ./launch.sh --env production --watch</p>
+      <div class="cta-options">
+        <a href="index.html" class="btn-primary">
+          <span class="material-symbols-outlined text-sm">play_arrow</span>
+          ./launch.sh
+        </a>
+        <a href="https://github.com/OWASP-BLT/BLT-Hacker_House" target="_blank" rel="noopener" class="btn-secondary">
+          <span class="material-symbols-outlined text-sm">code</span>
+          git clone
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="hh-footer">
+  <span><span class="hh-footer-dot"></span> SYS_ONLINE</span>
+  <span>BLT HackerHouse v0.4 · Built for OWASP BLT</span>
+  <span>MIT License</span>
+</footer>
+
+<!-- ═══ MOBILE NAV ═══ -->
+<nav class="hh-bottom-nav" aria-label="Mobile navigation">
+  <div class="hh-bottom-nav-inner">
+    <a class="hh-bottom-nav-link active" href="landing.html" aria-current="page">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">terminal</span>
+      About
+    </a>
+    <a class="hh-bottom-nav-link" href="index.html">
+      <span class="material-symbols-outlined">home</span>
+      Home
+    </a>
+    <a class="hh-bottom-nav-link" href="activity_feed.html">
+      <span class="material-symbols-outlined">rss_feed</span>
+      Feed
+    </a>
+    <a class="hh-bottom-nav-link" href="leaderboard.html">
+      <span class="material-symbols-outlined">leaderboard</span>
+      Board
+    </a>
+  </div>
+</nav>
+
+</body>
+</html>

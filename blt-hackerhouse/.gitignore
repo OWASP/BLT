@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+load_test_results/
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CommandCode (internal tooling)
+.commandcode/
+*.db-wal
+*.db-shm
+
+# Node
+**/node_modules/
+
+# Cloudflare Workers
+**/.wrangler/
+
+# Python runtime
+backend/python_modules/
+python_modules/
+
+# Virtual environments
+**/.venv-workers/
+
+# Logs
+*.log
+
+# Spikes (if not part of the MR)
+backend/spikes/
+spike-1-fastapi/
+.wrangler/
