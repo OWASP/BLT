@@ -1,0 +1,29 @@
+{
+    "name": "auto-assign-issue",
+    "version": "1.0.2",
+    "private": true,
+    "description": "GitHub action that auto-assigns issues to users",
+    "main": "src/index.js",
+    "keywords": [
+        "github",
+        "action",
+        "issue",
+        "assign"
+    ],
+    "dependencies": {
+        "@actions/core": "^1.9.1",
+        "@actions/github": "^4.0.0"
+    },
+    "scripts": {
+        "build": "ncc build src/index.js -o dist",
+        "test": "mocha src/mock-test.js",
+        "postinstall": "rm -rf node_modules/auto-assign-issue"
+    },
+    "devDependencies": {
+        "@vercel/ncc": "^0.38.4",
+        "assert": "^2.1.0",
+        "axios": "^1.8.3",
+        "mocha": "^10.7.3",
+        "nock": "^13.5.5"
+    }
+}

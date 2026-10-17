@@ -1,0 +1,16 @@
+name: Approve dependabot
+
+# Trigger the workflow on pull request
+on: pull_request_target
+
+jobs:
+  autoapprove:
+    name: Approve dependabot
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]' || github.actor == 'dependabot'
+    steps:
+      - name: Auto approve
+        uses: cognitedata/auto-approve-dependabot-action@v3.0.1
+        if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]' || github.actor == 'dependabot'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
