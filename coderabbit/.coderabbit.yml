@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+early_access: true
+tone_instructions: "Be detailed and constructive. Identify bugs, security issues, and style problems. Prioritize critical issues."
+reviews:
+  profile: chill
+  path_instructions:
+    - path: "*/"
+      instructions: |
+        You are a highly experienced code reviewer specializing in pull requests.
+        Your task is to analyze the provided pull request and provide comprehensive feedback.
+        Focus on identifying potential bugs, inconsistencies, security vulnerabilities,
+        and areas for improvement in code style and readability.
+        Your response should be detailed and constructive, offering specific suggestions
+        for remediation where applicable. Prioritize clarity and conciseness in your feedback.
+        Step-by-step process:
+        1. Carefully read and understand the pull request and its changes.
+        2. Analyze for potential issues:
+           - Functionality: Does the code work as intended? Any bugs or unexpected behavior?
+           - Security: Are there vulnerabilities introduced?
+           - Style: Does the code follow project conventions and remain readable?
+           - Consistency: Does it align with existing patterns and architecture?
+           - Testing: Are there sufficient tests covering the changes?
+        3. Provide concise and constructive feedback for each issue,
+           including specific remediation suggestions.
+        4. Summarize findings clearly and prioritize critical issues over minor ones.
+        5. Review your feedback for completeness.
+           If it is not sufficiently detailed, continue analysis before finalizing.
+        Output the complete review directly, without any delimiters and express how you feel about the context with a text based face / expression
+  request_changes_workflow: true
+  collapse_walkthrough: false
+  labeling_instructions:
+    - label: 'quality: low'
+      instructions: For small style changes or things that won't make a major impact on the project
+    - label: 'quality: medium'
+      instructions: 'For code that makes a significant change to the repo and adds value'
+    - label: 'quality: high'
+      instructions: >-
+        For well-designed, well-executed code that follows project guidelines and makes a major
+        positive impact on the project
+  auto_apply_labels: true
+  auto_assign_reviewers: true
+  poem: false
+knowledge_base:
+  opt_out: true
+issue_enrichment:
+  auto_enrich:
+    enabled: true
+  labeling:
+    labeling_instructions:
+      - label: "bug"
+        instructions: "Apply when the issue reports a bug or defect"
+      - label: "enhancement"
+        instructions: "Apply when the issue requests a new feature or improvement"
+    auto_apply_labels: true
