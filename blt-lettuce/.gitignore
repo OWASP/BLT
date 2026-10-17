@@ -7,3 +7,4 @@ __pycache__
 .venv
 .env*
 .wrangler/cache/wrangler-account.json
+.wrangler/

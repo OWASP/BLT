@@ -123,7 +123,7 @@ The bot uses a conversational flowchart to help users find OWASP projects:
 
 ## 📊 Live Stats
 
-View real-time statistics at our **[Stats Page](https://owasp-blt.github.io/BLT-Lettuce/)**:
+View real-time statistics at our **[Stats Page](https://lettuce.owaspblt.org/)**:
 
 - 👋 Members welcomed
 - ⚡ Commands executed
