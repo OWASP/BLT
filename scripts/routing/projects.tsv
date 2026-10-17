@@ -1,5 +1,5 @@
 # folder	display name (used in URLs)	aliases (old or alternate names; all matching is case-insensitive)
-# Retired names with no folder: BLT-Claw, BLT-team, BLT-sandbox, BLT-Website, OWASP-BLT-Lyte -> /BLT
+# A folder of - lists retired names; they redirect to /BLT
 blt-action	BLT-Action	
 blt-api	BLT-API	OWASP-BLT-API,BLT-API-on-Cloudflare
 blt-autopatch	BLT-Autopatch	
@@ -58,3 +58,4 @@ blt-zero	BLT-Zero
 coderabbit	coderabbit	
 dot_github	dot_github	.github
 my-gsoc-tool	MY-GSOC-TOOL	
+-	-	BLT-Claw,BLT-team,BLT-sandbox,BLT-Website,OWASP-BLT-Lyte

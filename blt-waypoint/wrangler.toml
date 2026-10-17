@@ -1,3 +1,6 @@
 name = "blt-waypoint"
 compatibility_date = "2026-06-05"
 pages_build_output_dir = "./public"
+
+[assets]
+directory = "./public"

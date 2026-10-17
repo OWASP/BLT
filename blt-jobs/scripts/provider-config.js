@@ -1,5 +1,5 @@
-const DEFAULT_PROVIDER_ID = "gitlab";
-const DEFAULT_PROVIDER_NAME = "GitLab";
+const DEFAULT_PROVIDER_ID = "forge";
+const DEFAULT_PROVIDER_NAME = "Source";
 const DEFAULT_REPOSITORY_URL = "https://git.owaspblt.org/BLT/BLT-Jobs";
 const DEFAULT_SOURCE_REF = "main";
 
@@ -14,8 +14,21 @@ function encodePath(relativePath) {
     .join("/");
 }
 
+function inferProviderId(repositoryUrl) {
+  let host = "";
+  try {
+    host = new URL(repositoryUrl).hostname.toLowerCase();
+  } catch {
+    return "forge";
+  }
+  if (host === "gitlab.com" || host.startsWith("gitlab.")) return "gitlab";
+  if (host === "github.com") return "github";
+  return "forge";
+}
+
 function providerName(providerId) {
   if (providerId === "github") return "GitHub";
+  if (providerId === "gitlab") return "GitLab";
   if (providerId === "gitea") return "Gitea";
   if (providerId === "forgejo") return "Forgejo";
   if (providerId === "generic-git") return "Generic Git";
@@ -33,18 +46,18 @@ function providerIconClass(providerId) {
 }
 
 function createProviderConfig(options = {}) {
-  const id = options.providerId || process.env.BLT_PROVIDER_ID || DEFAULT_PROVIDER_ID;
-  const name = options.providerName || process.env.BLT_PROVIDER_NAME || providerName(id);
-  const iconClass = options.iconClass || process.env.BLT_PROVIDER_ICON_CLASS || providerIconClass(id);
   const repositoryUrl = trimTrailingSlash(
     options.repositoryUrl || process.env.BLT_REPOSITORY_URL || DEFAULT_REPOSITORY_URL
   );
+  const id = options.providerId || process.env.BLT_PROVIDER_ID || inferProviderId(repositoryUrl);
+  const name = options.providerName || process.env.BLT_PROVIDER_NAME || providerName(id);
+  const iconClass = options.iconClass || process.env.BLT_PROVIDER_ICON_CLASS || providerIconClass(id);
   const sourceRef = options.sourceRef || process.env.BLT_SOURCE_REF || DEFAULT_SOURCE_REF;
 
   function sourceFileUrl(relativePath) {
     const encoded = encodePath(relativePath);
     if (!repositoryUrl || !encoded) return "";
-    if (id === "github") return `${repositoryUrl}/blob/${sourceRef}/${encoded}`;
+    if (id === "github" || id === "forge") return `${repositoryUrl}/blob/${sourceRef}/${encoded}`;
     if (id === "gitlab") return `${repositoryUrl}/-/blob/${sourceRef}/${encoded}`;
     return `${repositoryUrl}`;
   }
@@ -56,6 +69,7 @@ function createProviderConfig(options = {}) {
       return `${repositoryUrl}/-/issues/new${query}`;
     }
     if (id === "github") return `${repositoryUrl}/issues/new`;
+    if (id === "forge") return `${repositoryUrl}/issues`;
     return repositoryUrl;
   }
 

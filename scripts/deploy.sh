@@ -49,8 +49,8 @@ deploy_one() {
         if [[ $DRY_RUN -eq 1 ]]; then $WRANGLER deploy $args --dry-run --outdir "$(mktemp -d)"
         else $WRANGLER deploy $args --keep-vars; fi ;;
       pywrangler)
-        if [[ $DRY_RUN -eq 1 ]]; then uv run pywrangler deploy --dry-run --outdir "$(mktemp -d)"
-        else uv run pywrangler deploy --keep-vars; fi ;;
+        if [[ $DRY_RUN -eq 1 ]]; then uv run --with workers-py pywrangler deploy --dry-run --outdir "$(mktemp -d)"
+        else uv run --with workers-py pywrangler deploy --keep-vars; fi ;;
       script)
         if [[ $DRY_RUN -eq 1 ]]; then echo "    would run: $args"
         else bash -c "$args"; fi ;;

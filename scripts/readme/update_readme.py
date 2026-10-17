@@ -80,7 +80,8 @@ def display_names():
     for line in open(ROUTES, encoding="utf-8"):
         if line.strip() and not line.startswith("#"):
             folder, display = line.rstrip("\n").split("\t")[:2]
-            names[folder] = display
+            if folder != "-":
+                names[folder] = display
     return names
 
 
