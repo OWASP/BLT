@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OWASP SDLC Integration Diagram</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="charts.css" />
+  <script src="mermaid.min.js"></script>
+  <style>
+    .mermaid-page {
+      padding: 20px;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    .mermaid-container {
+      background: var(--bg);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 30px;
+      overflow-x: auto;
+    }
+
+    .mermaid-container h3 {
+      margin: 0 0 20px 0;
+      color: var(--primary);
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    #mermaid-chart {
+      display: flex;
+      justify-content: center;
+      min-height: 600px;
+      overflow: auto;
+    }
+
+    #mermaid-chart svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 20px;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+
+    .phase-requirements { background: #34568b; }
+    .phase-design { background: #34568b; }
+    .phase-implementation { background: #34568b; }
+    .phase-verification { background: #34568b; }
+    .phase-operation { background: #34568b; }
+    .phase-policy { background: #34568b; }
+    .phase-metrics { background: #34568b; }
+    .phase-training { background: #34568b; }
+    .phase-culture { background: #34568b; }
+    .category-center { background: #1e3a5f; }
+    .category-project { background: #8c9aac; border-radius: 50%; }
+
+    .loading-message {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-light);
+      font-style: italic;
+    }
+
+    .error-message {
+      text-align: center;
+      padding: 40px;
+      color: var(--error);
+      background: #fef2f2;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    body.dark .error-message {
+      background: #450a0a;
+    }
+
+    /* Mermaid theme overrides */
+    .mermaid .node rect,
+    .mermaid .node circle,
+    .mermaid .node ellipse,
+    .mermaid .node polygon {
+      stroke-width: 2px;
+    }
+
+    /* Make clickable project nodes show pointer cursor */
+    .mermaid .node.clickable {
+      cursor: pointer;
+    }
+
+    .mermaid .node.clickable:hover rect,
+    .mermaid .node.clickable:hover circle,
+    .mermaid .node.clickable:hover ellipse,
+    .mermaid .node.clickable:hover polygon {
+      stroke-width: 3px;
+      filter: brightness(1.1);
+    }
+
+    /* Make diagram zoomable */
+    .zoom-controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .zoom-btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .zoom-btn:hover {
+      background: var(--bg-secondary);
+      border-color: var(--primary);
+    }
+
+    /* Mobile view button */
+    .mobile-view-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background: #10b981;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+
+    .mobile-view-btn:hover {
+      background: #059669;
+      transform: translateY(-1px);
+    }
+
+    #diagram-wrapper {
+      transform-origin: center center;
+      transition: transform 0.3s ease;
+    }
+
+    .project-count {
+      margin-left: auto;
+      font-size: 14px;
+      color: var(--text-light);
+      background: var(--bg-secondary);
+      padding: 8px 16px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="toolbar">
+    <a href="mermaid-diagram-mobile.html" class="mobile-view-btn" title="Open mobile-optimized view">📱 Mobile View</a>
+    <button id="toggle-theme" title="Toggle dark mode">🌓 Theme</button>
+    <button id="download-diagram" title="Download SVG">📥 Download</button>
+    <button id="refresh-diagram" title="Refresh diagram">🔄 Refresh</button>
+  </div>
+
+  <div class="mermaid-page">
+    <div class="page-header">
+      <h1>🔄 OWASP SDLC Integration Diagram</h1>
+      <p class="subtitle">Software Development Lifecycle with OWASP projects mapped to each phase</p>
+    </div>
+
+    <div class="navigation">
+      <a href="index.html" class="nav-button">← Back to Table View</a>
+      <a href="charts.html" class="nav-button">📊 Analytics</a>
+      <a href="diagram.html" class="nav-button">🗺️ Project Diagram</a>
+      <a href="mermaid-diagram-mobile.html" class="nav-button" style="background: #10b981;">📱 Mobile View</a>
+      <span class="project-count">Loading projects...</span>
+    </div>
+
+    <div class="mobile-notice" id="mobile-notice" style="display: none; background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 16px; margin-bottom: 20px; text-align: center;">
+      <p style="margin: 0; color: #065f46;">
+        📱 <strong>On a mobile device?</strong> Try our 
+        <a href="mermaid-diagram-mobile.html" style="color: #059669; font-weight: 600;">optimized mobile view</a> 
+        for easier navigation with pinch-to-zoom and drag-to-pan.
+      </p>
+    </div>
+
+    <div class="mermaid-container">
+      <h3>OWASP Projects in the Software Development Lifecycle</h3>
+      <div class="zoom-controls">
+        <button class="zoom-btn" id="zoom-out">➖ Zoom Out</button>
+        <button class="zoom-btn" id="zoom-reset">Reset</button>
+        <button class="zoom-btn" id="zoom-in">➕ Zoom In</button>
+      </div>
+      <div id="mermaid-chart">
+        <div class="loading-message">Loading SDLC diagram...</div>
+      </div>
+    </div>
+
+    <div class="mermaid-container">
+      <h3>Legend</h3>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color category-center"></div>
+          <span>OpenCRE.org (Central Hub)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color phase-requirements"></div>
+          <span>SDLC Phases</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color category-project"></div>
+          <span>OWASP Projects</span>
+        </div>
+      </div>
+      <div class="legend" style="margin-top: 12px;">
+        <div class="legend-item">
+          <span><strong>Docs</strong> - Documentation Projects</span>
+        </div>
+        <div class="legend-item">
+          <span><strong>Tools</strong> - Security Tools</span>
+        </div>
+        <div class="legend-item">
+          <span><strong>Guides</strong> - Security Guides</span>
+        </div>
+        <div class="legend-item">
+          <span><strong>Dependencies</strong> - Dependency Management</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p style="text-align: center;">
+      Data source: <code>data/metadata.json</code> · 
+      Generated from OWASP repository metadata ·
+      Last updated: <span id="last-updated">Loading...</span>
+    </p>
+  </footer>
+
+  <script src="mermaid-diagram.js"></script>
+  <script>
+    // Show mobile notice on mobile devices
+    (function() {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        (window.innerWidth <= 768);
+      const mobileNotice = document.getElementById('mobile-notice');
+      if (isMobile && mobileNotice) {
+        mobileNotice.style.display = 'block';
+      }
+    })();
+  </script>
+</body>
+
+</html>
