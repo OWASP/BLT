@@ -1,0 +1,44 @@
+[project]
+name = "blt-mcp"
+version = "0.1.0"
+description = "MCP server for OWASP BLT"
+authors = [
+    { name = "OWASP BLT" }
+]
+requires-python = "==3.12.*"
+dependencies = [
+    "mcp",
+    "httpx",
+    "pydantic",
+    "click",
+    "python-dotenv"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "mcp-vcr==0.2.1"
+]
+
+[tool.setuptools]
+packages = ["blt_mcp"]
+
+[project.scripts]
+blt-mcp = "blt_mcp.cli:cli"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "mcp-vcr==0.2.1",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[tool.ruff]
+# Ignore minor style/warning rules that are pre-existing in this codebase
+lint.ignore = []

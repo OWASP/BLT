@@ -1,0 +1,185 @@
+"""
+Testing Utilities and Asynchronous Stream Readers for MCP Tests.
+
+This module provides common test helpers to read and parse stdout messages from the spawned MCP server subprocesses
+without locking up the main thread execution.
+
+Key Classes:
+- `MCPResponseReader`: Encapsulates a background worker thread that polls stdout lines from a subprocess.
+  - Automatically filters notifications (have no JSON-RPC `id` field) and logs them into an internal list.
+  - Feeds actual response payloads (containing `id`) into a thread-safe FIFO `queue.Queue`.
+  - Implements thread-safe matching lookup `read_response(expected_id, timeout)` to retrieve responses for a specific ID,
+    re-queuing mismatching payloads.
+
+Key Functions:
+- `read_jsonrpc_response(process, expected_id, timeout=35.0)`: Wrapper that manages the global registry
+  of thread readers to reuse active stream scanners across tests.
+"""
+
+import contextlib
+import json
+import logging
+import os
+import queue
+import subprocess
+import sys
+import threading
+import time
+from typing import Any
+
+logger = logging.getLogger(__name__)
+
+
+class MCPResponseReader:
+    """
+    Manages a single background reader thread for a process stdout.
+    Separates responses (have id) from notifications (no id).
+    Create once per process, reuse across multiple read calls.
+    """
+
+    def __init__(self, process):
+        self._responses: queue.Queue = queue.Queue()
+        self._notifications: list[dict] = []
+        self._lock = threading.Lock()
+        self._stopped = False
+        self._process = process
+        self._reader_error: Exception | None = None
+
+        self._thread = threading.Thread(
+            target=self._read_loop, args=(process.stdout,), daemon=True
+        )
+        self._thread.start()
+
+    def _read_loop(self, pipe):
+        try:
+            while not self._stopped:
+                line = pipe.readline()
+                if not line:
+                    break
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    msg = json.loads(line)
+                except json.JSONDecodeError:
+                    logger.warning("Malformed JSON line received: %r", line)
+                    continue
+
+                if "id" in msg:
+                    self._responses.put(msg)
+                else:
+                    with self._lock:
+                        self._notifications.append(msg)
+        except Exception as e:
+            self._reader_error = e
+            logger.exception("Reader loop failed")
+
+    def read_response(self, expected_id: Any, timeout: float = 35.0) -> dict:
+        """
+        Block until a response with expected_id arrives or timeout expires.
+        Responses with other IDs are re-queued so other callers can get them.
+        """
+        deadline = time.monotonic() + timeout
+        pending = []
+
+        try:
+            while time.monotonic() < deadline:
+                if self._reader_error is not None:
+                    raise RuntimeError(
+                        "Stdout reader thread failed"
+                    ) from self._reader_error
+                if (
+                    self._process.poll() is not None
+                    and self._responses.empty()
+                    and not self._thread.is_alive()
+                ):
+                    raise RuntimeError(
+                        f"Process exited with code {self._process.returncode}"
+                    )
+
+                remaining = deadline - time.monotonic()
+                try:
+                    response = self._responses.get(timeout=max(min(remaining, 0.1), 0))
+                except queue.Empty:
+                    continue
+
+                if response.get("id") == expected_id:
+                    return response
+                else:
+                    # Not ours — put aside and re-queue after
+                    pending.append(response)
+        finally:
+            for r in pending:
+                self._responses.put(r)
+
+        raise TimeoutError(
+            f"Timed out after {timeout}s waiting for "
+            f"JSON-RPC response with id={expected_id!r}"
+        )
+
+    def get_notifications(self) -> list[dict]:
+        """Returns a copy of all notifications received so far."""
+        with self._lock:
+            return list(self._notifications)
+
+    def stop(self):
+        self._stopped = True
+
+
+# Helper to maintain compatibility with existing tests
+_readers = {}
+
+
+def read_jsonrpc_response(process, expected_id, timeout=35.0):
+    if process not in _readers:
+        _readers[process] = MCPResponseReader(process)
+    return _readers[process].read_response(expected_id, timeout)
+
+
+@contextlib.contextmanager
+def mcp_server_process(cmd=None, env=None):
+    """
+    Context manager to run the MCP server subprocess, capture its stderr,
+    and print stderr to sys.stderr on exception/failure.
+    """
+    if cmd is None:
+        cmd = [sys.executable, "-m", "blt_mcp.server"]
+    if env is None:
+        env = os.environ.copy()
+
+    process = subprocess.Popen(
+        cmd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=env,
+    )
+
+    stderr_lines = []
+
+    def drain_stderr():
+        try:
+            for line in process.stderr:
+                stderr_lines.append(line)
+        except Exception:
+            pass
+
+    t = threading.Thread(target=drain_stderr, daemon=True)
+    t.start()
+
+    try:
+        yield process
+    except Exception:
+        t.join(timeout=0.2)
+        err_output = "".join(stderr_lines)
+        if err_output:
+            print(err_output, file=sys.stderr)
+        raise
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()

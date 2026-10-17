@@ -1,0 +1,190 @@
+stages:
+  - test
+  - snapshot-verify
+  - build
+  - deploy
+  - release
+
+# Global workflow rules to prevent duplicate pipelines (e.g., branch and merge request pipelines running concurrently)
+workflow:
+  auto_cancel:
+    on_job_failure: all
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+
+variables:
+  FF_USE_GIT_PROACTIVE_AUTH: "false"
+
+# ==========================================
+# 1. Test Stage (Python & Rust Tests)
+# ==========================================
+
+python-tests:
+  stage: test
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim@sha256:e5b65587bce7de595f299855d7385fe7fca39b8a74baa261ba1b7147afa78e58
+  variables:
+    UV_CACHE_DIR: ".uv-cache"
+  cache:
+    key:
+      files:
+        - uv.lock
+    paths:
+      - $UV_CACHE_DIR
+  script:
+    - uv sync --locked --all-extras
+    - uv run --locked pytest tests/
+
+rust-tests-linux:
+  stage: test
+  image: rust:latest@sha256:b1b3c9c0d921d7fa0a6d1f9ec7e4eab87f8c8ec97644c3d791450f131dec813f
+  variables:
+    CARGO_HOME: $CI_PROJECT_DIR/.cargo
+  cache:
+    key: rust-linux-cache
+    paths:
+      - .cargo/bin/
+      - .cargo/registry/index/
+      - .cargo/registry/cache/
+      - .cargo/git/db/
+      - blt-cli/target/
+  script:
+    - cd blt-cli
+    - cargo check --locked --verbose
+    - cargo test --locked --verbose
+
+# ==========================================
+# 2. Snapshot Verification Stage (Golden VCR)
+# ==========================================
+
+golden-snapshot-verify:
+  stage: snapshot-verify
+  needs:
+    - python-tests
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim@sha256:e5b65587bce7de595f299855d7385fe7fca39b8a74baa261ba1b7147afa78e58
+  variables:
+    UV_CACHE_DIR: ".uv-cache"
+    BLT_VERIFY_SNAPSHOTS: "true"
+    BLT_API_KEY: "f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051"
+  cache:
+    key:
+      files:
+        - uv.lock
+    paths:
+      - $UV_CACHE_DIR
+  script:
+    - uv sync --locked --all-extras
+    - uv run --locked pytest tests/
+
+# ==========================================
+# 3. Build Stage (Multi-platform Binaries)
+# ==========================================
+
+build-rust-linux-windows:
+  stage: build
+  needs:
+    - python-tests
+    - rust-tests-linux
+    - golden-snapshot-verify
+  image: rust:latest@sha256:b1b3c9c0d921d7fa0a6d1f9ec7e4eab87f8c8ec97644c3d791450f131dec813f
+  variables:
+    CARGO_HOME: $CI_PROJECT_DIR/.cargo
+  cache:
+    key: rust-linux-windows-cache
+    paths:
+      - .cargo/bin/
+      - .cargo/registry/index/
+      - .cargo/registry/cache/
+      - .cargo/git/db/
+      - blt-cli/target/
+  before_script:
+    - apt-get update && apt-get install -y gcc-aarch64-linux-gnu mingw-w64
+    - rustup target add x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu x86_64-pc-windows-gnu
+  script:
+    - cd blt-cli
+    # Build Linux x86_64
+    - cargo build --locked --release --target x86_64-unknown-linux-gnu
+    # Build Linux aarch64
+    - export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+    - cargo build --locked --release --target aarch64-unknown-linux-gnu
+    # Build Windows x86_64
+    - cargo build --locked --release --target x86_64-pc-windows-gnu
+    # Organize outputs
+    - mkdir -p ../bin
+    - cp target/x86_64-unknown-linux-gnu/release/blt-cli ../bin/blt-cli-linux-x86_64
+    - cp target/aarch64-unknown-linux-gnu/release/blt-cli ../bin/blt-cli-linux-aarch64
+    - cp target/x86_64-pc-windows-gnu/release/blt-cli.exe ../bin/blt-cli-windows-x86_64.exe
+  artifacts:
+    name: "blt-cli-linux-windows-$CI_COMMIT_REF_NAME"
+    paths:
+      - bin/
+    expire_in: 7 days
+
+# ==========================================
+# 4. Deploy Stage (Upload Artifacts/Packages)
+# ==========================================
+
+upload-release-assets:
+  stage: deploy
+  image:
+    name: curlimages/curl:latest@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
+    entrypoint: [""]
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - |
+      for FILE in bin/*; do
+        FILENAME=$(basename "$FILE")
+        echo "Uploading $FILENAME to generic package registry..."
+        curl --fail-with-body --show-error \
+             --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+             --upload-file "$FILE" \
+             "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/${FILENAME}"
+      done
+
+upload-nightly-assets:
+  stage: deploy
+  image:
+    name: curlimages/curl:latest@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
+    entrypoint: [""]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  script:
+    - |
+      for FILE in bin/*; do
+        FILENAME=$(basename "$FILE")
+        echo "Uploading nightly $FILENAME to generic package registry..."
+        curl --fail-with-body --show-error \
+             --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+             --upload-file "$FILE" \
+             "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/nightly/${FILENAME}"
+      done
+
+# ==========================================
+# 5. Release Stage (Official Version Release)
+# ==========================================
+
+create-gitlab-release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/cli:v1.44.0@sha256:ba70d5dcd20c64f466b2324630451b77e0593144d72b6fd2b201ae84dc8ea68e
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - echo "Creating release for tag $CI_COMMIT_TAG"
+  release:
+    name: 'Release $CI_COMMIT_TAG'
+    description: 'Automated release of version $CI_COMMIT_TAG'
+    tag_name: '$CI_COMMIT_TAG'
+    ref: '$CI_COMMIT_SHA'
+    assets:
+      links:
+        - name: 'blt-cli-linux-x86_64'
+          url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/blt-cli-linux-x86_64'
+        - name: 'blt-cli-linux-aarch64'
+          url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/blt-cli-linux-aarch64'
+        - name: 'blt-cli-windows-x86_64.exe'
+          url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/blt-cli/${CI_COMMIT_TAG}/blt-cli-windows-x86_64.exe'

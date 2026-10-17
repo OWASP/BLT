@@ -1,0 +1,5 @@
+name = "blt-mcp"
+compatibility_date = "2026-06-11"
+
+[assets]
+directory = "public"

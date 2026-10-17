@@ -1,0 +1,627 @@
+"""
+Main OWASP BLT Model Context Protocol (MCP) Server Implementation.
+
+This module sets up the primary FastMCP server instance and registers various resource and tool endpoints.
+It enables LLMs (Large Language Models) to interact with the OWASP BLT vulnerability database.
+
+Key Offerings:
+- **V1 Resources**:
+  - `blt://repos`: Retrieves the list of tracked repositories.
+  - `blt://issues`: Retrieves the global list of reported bugs/vulnerabilities.
+  - `blt://stats`: Retrieves global statistics.
+  - `blt://repos/{repo_id}/issues`: Retrieves issues in a specific repository.
+  - `blt://issues/{issue_id}`: Retrieves details for a specific bug ID.
+  - `blt://good-first-issues`: Fetches good-first-issues from GitLab APIs.
+- **V1 Tools**:
+  - `submit_issue`: Submits a new bug report to the OWASP BLT platform (requires confirmation).
+  - `add_comment`: Adds a discussion comment to an existing bug (requires confirmation).
+  - `summarize_issue_context`: Generates a formatted text summary of an issue's context.
+  - `triage_vulnerability`: Integrates with Cloudflare Workers AI (Llama 3) to analyze, categorize, and prioritize issues.
+  - `draft_vision_issue`: Uses Cloudflare Vision AI (LLaVA) to draft bug reports from local screenshot image files.
+
+Design Details:
+- Integrates modular V2 resource routes (`blt_mcp.v2_resources`), V2 write operations (`blt_mcp.v2_tools`), and Prompts (`blt_mcp.prompts`).
+- Wraps `sys.stdin` with `StdinWrapper` and `InterceptingStdinBuffer` to intercept and validate JSON-RPC parameters
+  before letting the FastMCP server parse the requests.
+
+Entry Point:
+- `main()`: Resolves stdin wrappers and launches the core `mcp.run()` event loop.
+"""
+
+import asyncio
+import hmac
+import json
+import mimetypes
+import os
+import re
+import sys
+import tempfile
+from pathlib import Path
+from urllib.parse import quote
+
+import anyio
+import httpx
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+# Import v2 modular resources, tools and prompts to register them on the mcp instance
+import blt_mcp.prompts  # noqa: F401
+from blt_mcp import server_base, v2_resources, v2_tools  # noqa: F401
+from blt_mcp.server_base import _fetch, logger, mcp
+from blt_mcp.tools import generate_ai_metadata, summarize_issue_context_impl
+from blt_mcp.validation import InterceptingStdinBuffer, StdinWrapper
+
+# --- Image validation constants and helper ---
+
+ALLOWED_IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
+MAX_IMAGE_BYTES = 10 * 1024 * 1024
+
+
+def _validate_image_path(image_path: str) -> Path:
+    """Resolve image_path and confirm it is an allowed image under the approved root, cache, or temp directory."""
+    approved_root = (
+        Path(os.getenv("BLT_APPROVED_ROOT") or os.getcwd()).expanduser().resolve()
+    )
+    blt_cache_root = (Path.home() / ".blt-mcp").resolve()
+    temp_root = Path(tempfile.gettempdir()).resolve()
+
+    try:
+        resolved_path = Path(image_path).expanduser().resolve()
+    except Exception as e:
+        raise ValueError(f"Invalid image path: {image_path}") from e
+
+    allowed_roots = (approved_root, blt_cache_root, temp_root)
+    is_allowed = False
+    for root in allowed_roots:
+        try:
+            resolved_path.relative_to(root)
+            is_allowed = True
+            break
+        except ValueError:
+            continue
+
+    if not is_allowed:
+        raise ValueError(
+            "Access denied: Path is outside the approved root directory."
+        )
+
+    if not resolved_path.is_file():
+        raise ValueError(
+            f"Image file not found at {image_path} (resolved as: {resolved_path})"
+        )
+    if resolved_path.suffix.lower() not in ALLOWED_IMAGE_EXTS:
+        raise ValueError("Invalid image type. Allowed: png, jpg, jpeg, gif, webp")
+    if resolved_path.stat().st_size > MAX_IMAGE_BYTES:
+        raise ValueError("Image file exceeds maximum size of 10MB")
+
+    return resolved_path
+
+
+# --- Original V1 Resources ---
+
+
+@mcp.resource("blt://repos")
+async def list_repos() -> str:
+    """Get the list of tracked repositories on BLT."""
+    logger.info("Fetching repositories list")
+    return await _fetch("/repos", context="repos")
+
+
+@mcp.resource("blt://issues")
+async def list_issues() -> str:
+    """Get the list of all BLT issues."""
+    logger.info("Fetching issues list from BLT API")
+    return await _fetch("/bugs", context="issues")
+
+
+@mcp.resource("blt://stats")
+async def get_stats() -> str:
+    """Get global statistics for OWASP BLT (e.g., total issues, active repos)."""
+    logger.info("Fetching global stats")
+    return await _fetch("/stats", context="stats")
+
+
+@mcp.resource("blt://repos/{repo_id}/issues")
+async def list_repo_issues(repo_id: str) -> str:
+    """Get the list of issues for a specific repository."""
+    logger.info(f"Fetching issues for repository: {repo_id}")
+    return await _fetch(
+        f"/bugs?repo_id={repo_id}", context=f"issues for repo {repo_id}"
+    )
+
+
+@mcp.resource("blt://issues/{issue_id}")
+async def get_issue(issue_id: str) -> str:
+    """Get details for a specific BLT issue."""
+    return await _fetch(f"/bugs/{issue_id}", context=f"issue {issue_id}")
+
+
+@mcp.resource("blt://good-first-issues")
+async def list_good_first_issues() -> str:
+    """Get the list of cross-project 'good first issues' from GitLab."""
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                "https://gitlab.com/api/v4/groups/133215711/issues?labels=good first issue&state=opened&sort=desc&order_by=created_at",
+                headers={"User-Agent": "BLT-MCP"},
+            )
+            resp.raise_for_status()
+            issues = resp.json()
+            # Map them into a standard format
+            results = []
+            for issue in issues:
+                results.append(
+                    {
+                        "id": issue.get("id"),
+                        "title": issue.get("title"),
+                        "repository": issue.get("references", {}).get(
+                            "full", "unknown"
+                        ),
+                        "web_url": issue.get("web_url"),
+                        "description": issue.get("description", "")[:200] + "...",
+                        "bacon_estimate": 100,  # Add bacon estimate
+                    }
+                )
+            return json.dumps({"success": True, "data": results})
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"Failed to fetch good first issues: {e}")
+        return json.dumps({"success": False, "error": str(e)})
+
+
+# --- Original V1 Tools & Prompts ---
+
+
+@mcp.tool()
+async def submit_issue(
+    url: str,
+    title: str,
+    description: str,
+    severity: str | None = None,
+    bug_type: str | None = None,
+    steps_to_reproduce: str | None = None,
+    labels: list[str] | None = None,
+    assignee: str | None = None,
+    confirmed: bool = False,
+) -> str:
+    """
+    Submit a new issue to OWASP BLT.
+
+    Args:
+        url: The vulnerable URL being reported.
+        title: Title of the bug/vulnerability.
+        description: A detailed description of the bug or vulnerability.
+        severity: Severity level of the issue (e.g., 'low', 'medium', 'high', 'critical').
+        bug_type: The type of bug (e.g., 'XSS', 'SQLi').
+        steps_to_reproduce: Step-by-step instructions to reproduce the issue.
+        labels: Optional list of labels to apply to the issue (e.g., ['bug', 'security']).
+        assignee: Optional username of the assignee for the issue.
+        confirmed: Set to true to confirm execution of this write operation.
+    """
+    if not confirmed:
+        logger.warning("Write operation 'submit_issue' blocked: confirmation required.")
+        raise ValueError(
+            "Write operation requires confirmation. Please set 'confirmed': true to proceed."
+        )
+
+    logger.info("Write operation 'submit_issue' confirmed. Proceeding to execution.")
+    ai_metadata = generate_ai_metadata("submit_issue")
+
+    logger.info(f"Submitting issue for url: {url}")
+
+    full_description = f"Title: {title}\n\n{description}"
+    payload = {
+        "url": url,
+        "title": title,
+        "description": full_description,
+    }
+    if severity:
+        payload["severity"] = severity.lower()
+    if bug_type:
+        payload["bug_type"] = bug_type
+    if steps_to_reproduce:
+        payload["steps_to_reproduce"] = steps_to_reproduce
+    if labels:
+        payload["labels"] = labels
+    if assignee:
+        payload["assignee"] = assignee
+
+    headers = {
+        "X-AI-Generated": "true",
+        "X-AI-Source": "BLT-MCP",
+        "X-AI-Timestamp": ai_metadata["timestamp"],
+    }
+
+    try:
+        response = await server_base.http_client.post(
+            "/bugs", json=payload, headers=headers
+        )
+        response.raise_for_status()
+        try:
+            issue_id = response.json().get("id", "Unknown")
+        except json.JSONDecodeError:
+            issue_id = response.text or "Unknown"
+
+        return f"Successfully submitted issue for {url} (ID: {issue_id})"
+    except httpx.HTTPStatusError as e:
+        error_msg = f"API Error {e.response.status_code}: {e.response.text}"
+        logger.error(error_msg)
+        raise RuntimeError(f"Error executing tool submit_issue: {error_msg}") from e
+    except Exception as e:
+        if isinstance(e, RuntimeError):
+            raise
+        logger.error(f"Failed to submit issue: {e}")
+        raise RuntimeError(f"Failed to submit issue: {e}") from e
+
+
+@mcp.tool()
+async def add_comment(issue_id: str, comment_text: str, confirmed: bool = False) -> str:
+    """
+    Add a comment to an existing BLT issue.
+
+    Args:
+        issue_id: The ID of the issue to comment on.
+        comment_text: The text of the comment.
+        confirmed: Set to true to confirm execution of this write operation.
+    """
+    if not confirmed:
+        logger.warning("Write operation 'add_comment' blocked: confirmation required.")
+        raise ValueError(
+            "Write operation requires confirmation. Please set 'confirmed': true to proceed."
+        )
+
+    logger.info("Write operation 'add_comment' confirmed. Proceeding to execution.")
+    ai_metadata = generate_ai_metadata("add_comment")
+
+    logger.info(f"Adding comment to issue: {issue_id}")
+    payload = {"content": comment_text, "metadata": ai_metadata}
+
+    headers = {
+        "X-AI-Generated": "true",
+        "X-AI-Source": "BLT-MCP",
+        "X-AI-Timestamp": ai_metadata["timestamp"],
+    }
+
+    try:
+        response = await server_base.http_client.post(
+            f"/bugs/{issue_id}/comments", json=payload, headers=headers
+        )
+        response.raise_for_status()
+        return f"Successfully added comment to issue {issue_id}"
+    except Exception as e:
+        logger.error(f"Failed to add comment: {e}")
+        raise RuntimeError(f"Failed to add comment: {e}") from e
+
+
+@mcp.tool()
+async def summarize_issue_context(issue_id: str) -> str:
+    """
+    Generate a structured summary of an issue's context (title, description, comments, status).
+
+    Args:
+        issue_id: The ID of the issue to summarize.
+    """
+    return await summarize_issue_context_impl(issue_id, _fetch)
+
+
+@mcp.tool()
+async def triage_vulnerability(prompt: str) -> str:
+    """
+    Analyze a vulnerability description using Cloudflare Workers AI (Llama 3).
+
+    Args:
+        prompt: The full prompt string containing the issue details to analyze.
+    """
+    account_id = os.getenv("CF_ACCOUNT_ID")
+    api_token = os.getenv("CF_API_TOKEN")
+
+    if not account_id or not api_token:
+        raise ValueError(
+            "Missing Cloudflare credentials.\n\n"
+            "Please add `CF_ACCOUNT_ID` and `CF_API_TOKEN` to your `BLT-MCP/.env` file "
+            "to enable AI Triage using Cloudflare Workers AI."
+        )
+
+    system_msg = (
+        "You are an expert security analyst assisting with OWASP BLT triage.\n"
+        "1. Identify the vulnerability class (e.g. Injection, XSS, BAC).\n"
+        "2. Assess the severity (Critical, High, Medium, Low).\n"
+        "3. Recommend immediate mitigation steps.\n\n"
+        "Please format your response clearly, starting with a Severity Suggestion, "
+        "followed by your detailed Recommendation."
+    )
+
+    model = os.getenv("CF_MODEL") or "@cf/meta/llama-3.1-8b-instruct-fast"
+    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
+    headers = {
+        "Authorization": f"Bearer {api_token}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "messages": [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": prompt},
+        ],
+        "max_tokens": 1024,
+    }
+
+    logger.info("Sending prompt to Cloudflare Workers AI")
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url, headers=headers, json=payload, timeout=30.0
+            )
+            if response.status_code != 200:
+                logger.error(f"Cloudflare AI Error: {response.text}")
+                raise RuntimeError(
+                    f"Cloudflare API returned status {response.status_code}"
+                )
+
+            result = response.json()
+            if result.get("success"):
+                response_text = result["result"]["response"]
+                trimmed = response_text.strip()
+                if not any(
+                    trimmed.endswith(ext) for ext in (".", "!", "?", "```", "**", "*")
+                ):
+                    raise RuntimeError(
+                        "Cloudflare AI response was truncated (incomplete output)."
+                    )
+                return response_text
+            else:
+                raise RuntimeError(
+                    f"Cloudflare AI returned an error: {result.get('errors')}"
+                )
+    except Exception as e:
+        if isinstance(e, (ValueError, RuntimeError)):
+            raise
+        logger.error(f"Exception calling CF AI: {e!s}")
+        raise RuntimeError(f"Failed to call Cloudflare AI: {e!s}") from e
+
+
+@mcp.tool()
+async def draft_vision_issue(
+    image_path: str,
+    context: str | None = None,
+) -> str:
+    """Analyze a screenshot and draft a vulnerability issue report.
+
+    Args:
+        image_path: Absolute path to the screenshot image on the local system.
+        context: Optional user-provided context or hints about the screenshot.
+    """
+    resolved_path = _validate_image_path(image_path)
+
+    account_id = os.getenv("CF_ACCOUNT_ID")
+    api_token = os.getenv("CF_API_TOKEN")
+
+    if not account_id or not api_token:
+        raise ValueError(
+            "Missing Cloudflare credentials (CF_ACCOUNT_ID and CF_API_TOKEN in .env)."
+        )
+
+    logger.info(
+        "Drafting issue from image %s; context_supplied=%s",
+        os.path.basename(str(resolved_path)),
+        bool(context and context.strip()),
+    )
+
+    try:
+        image_bytes = await anyio.to_thread.run_sync(resolved_path.read_bytes)
+    except Exception as e:
+        raise RuntimeError(f"Failed to read image file: {e!s}") from e
+
+    image_array = list(image_bytes)
+
+    prompt = (
+        "Analyze this screenshot of a web application. Identify any bugs, errors, or security vulnerabilities "
+        "shown. Provide a structured response with two sections:\n\n"
+        "TITLE: (A brief, clear title for the issue)\n\n"
+        "DESCRIPTION: (A detailed explanation of what is wrong and how to reproduce it if apparent)."
+    )
+    if context and context.strip():
+        prompt += f"\n\nAdditional user context about this image:\n{context}"
+
+    model = (
+        os.getenv("CF_VISION_MODEL")
+        or "@cf/meta/llama-3.2-11b-vision-instruct"
+    )
+    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
+    headers = {
+        "Authorization": f"Bearer {api_token}",
+        "Content-Type": "application/json",
+    }
+    payload = {"prompt": prompt, "image": image_array}
+
+    analysis_text = ""
+    try:
+        logger.info("Calling Cloudflare Vision AI...")
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url, headers=headers, json=payload, timeout=60.0
+            )
+            if response.status_code != 200:
+                logger.error(f"Cloudflare AI Error: {response.text}")
+                raise RuntimeError(
+                    f"Cloudflare API returned status {response.status_code}"
+                )
+
+            result = response.json()
+            if result.get("success"):
+                analysis_text = (
+                    result["result"]["description"]
+                    if "description" in result["result"]
+                    else result.get("result", {}).get(
+                        "response", str(result.get("result"))
+                    )
+                )
+            else:
+                raise RuntimeError(
+                    f"Cloudflare AI returned an error: {result.get('errors')}"
+                )
+    except Exception as e:
+        if isinstance(e, (ValueError, RuntimeError)):
+            raise
+        logger.error(f"Exception calling CF Vision AI: {e!s}")
+        raise RuntimeError(f"Failed to call Cloudflare Vision AI: {e!s}") from e
+
+    return analysis_text
+
+
+@mcp.tool()
+async def upload_screenshot(
+    image_path: str,
+    gitlab_project_id: str,
+) -> str:
+    """Upload a screenshot/image to a GitLab project and return the markdown link.
+
+    Args:
+        image_path: Absolute path to the screenshot image on the local system.
+        gitlab_project_id: GitLab project ID to upload the image to.
+    """
+    resolved_path = _validate_image_path(image_path)
+
+    gl_token = os.getenv("GITLAB_API_TOKEN")
+    if not gl_token:
+        raise ValueError("Missing GitLab API Token (GITLAB_API_TOKEN in .env).")
+
+    # GitLab accepts a numeric ID or a URL-encoded "namespace/project" path.
+    if not re.fullmatch(
+        r"[0-9]+|[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)+", gitlab_project_id
+    ):
+        raise ValueError("Invalid GitLab project ID.")
+    project_ref = quote(gitlab_project_id, safe="")
+    gl_url = f"https://gitlab.com/api/v4/projects/{project_ref}/uploads"
+
+    try:
+        image_bytes = await anyio.to_thread.run_sync(resolved_path.read_bytes)
+    except Exception as e:
+        raise RuntimeError(f"Failed to read image file: {e!s}") from e
+    gl_headers = {"PRIVATE-TOKEN": gl_token}
+
+    try:
+        logger.info("Uploading image to GitLab...")
+        filename = os.path.basename(str(resolved_path))
+        content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+        files = {"file": (filename, image_bytes, content_type)}
+        async with httpx.AsyncClient() as client:
+            res = await client.post(
+                gl_url, headers=gl_headers, files=files, timeout=30.0
+            )
+            if res.status_code == 201:
+                upload_data = res.json()
+                markdown = upload_data.get("markdown")
+                if not markdown:
+                    logger.error("GitLab upload response missing 'markdown' field.")
+                    raise RuntimeError(
+                        "GitLab upload succeeded but returned no markdown link."
+                    )
+                return markdown
+            else:
+                logger.error(f"GitLab upload failed: {res.text}")
+                raise RuntimeError(
+                    f"GitLab upload failed with status {res.status_code}"
+                )
+    except Exception as e:
+        if isinstance(e, (ValueError, RuntimeError)):
+            raise
+        logger.error(f"GitLab upload exception: {e!s}")
+        raise RuntimeError(f"Failed to upload image to GitLab: {e!s}") from e
+
+
+def main(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8080) -> None:
+    """Entry point for the BLT-MCP server."""
+    if sys.platform == "win32":
+        try:
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        except Exception as e:  # noqa: BLE001
+            logger.debug(f"Could not set WindowsSelectorEventLoopPolicy: {e}")
+
+    try:
+        logger.info(
+            f"Starting BLT-MCP server (transport={transport}, bind={host}:{port})..."
+        )
+        mcp.settings.host = host
+        mcp.settings.port = port
+
+        # Security check: remote transport must have BLT_MCP_TOKEN configured
+        if transport != "stdio" and not os.getenv("BLT_MCP_TOKEN"):
+            msg = (
+                "\n"
+                "========================================================================\n"
+                "⚠️  SECURITY WARNING: Remote transport is enabled, but BLT_MCP_TOKEN    \n"
+                "   environment variable is not set. The server will run WITHOUT        \n"
+                "   authentication! Secure your server by setting BLT_MCP_TOKEN.         \n"
+                "========================================================================\n"
+            )
+            print(msg, file=sys.stderr)
+            logger.warning(msg.strip())
+
+        # Monkeypatch the Starlette apps to inject token-based auth middleware if configured
+        _apply_token_auth_middleware()
+
+        if transport == "stdio":
+            sys.stdin = StdinWrapper(
+                sys.stdin, InterceptingStdinBuffer(sys.stdin.buffer)
+            )
+        mcp.run(transport=transport)
+    except (KeyboardInterrupt, RuntimeError) as e:
+        if isinstance(e, RuntimeError) and "Event loop is closed" not in str(e):
+            raise
+        logger.info("Server stopped.")
+        return
+
+
+def _apply_token_auth_middleware() -> None:
+    class MCPTokenAuthMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request, call_next):
+            if request.method == "OPTIONS":
+                return await call_next(request)
+
+            expected_token = os.getenv("BLT_MCP_TOKEN")
+            if not expected_token:
+                return await call_next(request)
+
+            auth_header = request.headers.get("Authorization")
+            token = (
+                auth_header[7:]
+                if auth_header and auth_header.startswith("Bearer ")
+                else None
+            )
+
+            # Fallback to query parameter token (required for browser EventSource SSE handshakes)
+            if not token:
+                token = request.query_params.get("token")
+
+            if not token or not hmac.compare_digest(token, expected_token):
+                return JSONResponse(
+                    {"error": "Unauthorized: Invalid or missing BLT_MCP_TOKEN"},
+                    status_code=401,
+                )
+
+            return await call_next(request)
+
+    # Wrap sse_app and streamable_http_app methods
+    orig_sse_app = mcp.sse_app
+
+    def wrapped_sse_app(mount_path=None):
+        app = orig_sse_app(mount_path)
+        app.add_middleware(MCPTokenAuthMiddleware)
+        return app
+
+    mcp.sse_app = wrapped_sse_app
+
+    orig_http_app = mcp.streamable_http_app
+
+    def wrapped_http_app():
+        app = orig_http_app()
+        app.add_middleware(MCPTokenAuthMiddleware)
+        return app
+
+    mcp.streamable_http_app = wrapped_http_app
+
+
+if __name__ == "__main__":
+    main()
