@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 Not Found | BLT-Lettuce</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://js.sentry-cdn.com/73ec24fc4cd44cec10017d622968ee3a.min.js" crossorigin="anonymous"></script>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+  </head>
+  <body class="bg-gray-50 font-sans text-gray-900">
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center">
+            <a href="/" class="flex items-center">
+              <img class="w-10 h-10 mr-2" src="/docs/static/logo.png" alt="BLT-Lettuce Logo" />
+              <h1 class="text-xl font-bold text-gray-900">BLT-Lettuce</h1>
+            </a>
+          </div>
+          <div class="flex items-center gap-4">
+            <a href="https://github.com/OWASP-BLT/BLT-Lettuce" target="_blank" class="text-gray-500 hover:text-gray-900 text-sm">
+              <i class="fab fa-github text-xl mr-1"></i>GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section class="bg-white rounded-lg shadow p-12 mb-8 text-center">
+        <div class="text-8xl font-extrabold text-red-600 mb-4">404</div>
+        <h2 class="text-3xl font-bold text-gray-900 mb-3">Page Not Found</h2>
+        <p class="text-lg text-gray-600 mb-8 max-w-xl mx-auto">The page you're looking for doesn't exist or has been moved.</p>
+        <div class="flex justify-center gap-4 flex-wrap">
+          <a href="/" class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold text-sm shadow-sm">
+            <i class="fas fa-home"></i> Go Home
+          </a>
+          <a href="/status" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-semibold text-sm">
+            <i class="fas fa-heartbeat"></i> Check Status
+          </a>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-lg shadow p-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Available Endpoints</h3>
+        <div class="space-y-2 text-sm font-mono">
+          <div class="flex items-center gap-3 p-2 rounded bg-gray-50 border border-gray-100">
+            <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-semibold">GET</span>
+            <code class="text-gray-800">/</code>
+            <span class="text-gray-400 font-sans">Homepage</span>
+          </div>
+          <div class="flex items-center gap-3 p-2 rounded bg-gray-50 border border-gray-100">
+            <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-semibold">GET</span>
+            <code class="text-gray-800">/status</code>
+            <span class="text-gray-400 font-sans">Configuration status</span>
+          </div>
+          <div class="flex items-center gap-3 p-2 rounded bg-gray-50 border border-gray-100">
+            <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-semibold">GET</span>
+            <code class="text-gray-800">/health</code>
+            <span class="text-gray-400 font-sans">Health check</span>
+          </div>
+          <div class="flex items-center gap-3 p-2 rounded bg-gray-50 border border-gray-100">
+            <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-semibold">POST</span>
+            <code class="text-gray-800">/webhook</code>
+            <span class="text-gray-400 font-sans">Slack event webhook</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 mt-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex justify-center space-x-6 text-sm text-gray-500">
+          <a href="/" class="hover:text-red-600 transition-colors">Home</a>
+          <a href="https://github.com/OWASP-BLT/BLT-Lettuce" class="hover:text-red-600 transition-colors">GitHub</a>
+          <a href="/privacy" class="hover:text-red-600 transition-colors">Privacy</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

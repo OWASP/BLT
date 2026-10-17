@@ -1,0 +1,830 @@
+<!-- This file has been removed as part of the patch. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - BLT-Lettuce</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://js.sentry-cdn.com/73ec24fc4cd44cec10017d622968ee3a.min.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/png" href="/favicon.png" />
+</head>
+<body class="bg-gray-50 font-sans text-gray-900 min-h-screen">
+
+<nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-14">
+      <div class="flex items-center gap-3">
+        <a href="/dashboard" class="inline-flex items-center gap-3 text-gray-800 hover:text-red-700 transition-colors">
+          <img src="/docs/static/logo.png"
+               alt="Logo" class="w-7 h-7"/>
+          <span class="font-bold">BLT-Lettuce</span>
+        </a>
+        <span class="text-gray-300">|</span>
+        <a href="/dashboard" class="text-sm text-gray-500 hover:text-red-700 transition-colors">Dashboard</a>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          {{ USER_AVATAR }}
+          <div class="leading-tight">
+            <div class="text-sm text-gray-700 font-medium">{{ USER_NAME }}</div>
+            <div class="text-[10px] text-gray-400 font-mono">{{ USER_SLACK_ID }}</div>
+          </div>
+        </div>
+        <a href="/" class="text-sm text-gray-500 hover:text-gray-800">Home</a>
+        <a href="/logout"
+           class="text-sm px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600
+                  hover:bg-gray-50 transition-colors">Logout</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="grid gap-6 lg:grid-cols-[280px,1fr]">
+    <aside class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 h-fit lg:sticky lg:top-20">
+      <h2 class="text-base font-bold text-gray-800">Workspaces</h2>
+      <p class="text-xs text-gray-400 mt-1">{{ WS_SUMMARY }}</p>
+      <div class="mt-4 space-y-2">
+        {{ WS_TABS }}
+      </div>
+      <div class="mt-4 space-y-2">
+        <a href="/workspace/add"
+           class="inline-flex w-full justify-center items-center gap-2 px-3 py-2 bg-red-600 text-white
+                  rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm">
+          <i class="fas fa-plus"></i> Add via OAuth
+        </a>
+        <button onclick="openManualAddModal()"
+           class="inline-flex w-full justify-center items-center gap-2 px-3 py-2 bg-white text-gray-700 border border-gray-200
+                  rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+          <i class="fas fa-key"></i> Add Manually
+        </button>
+      </div>
+      {{ DELETE_WORKSPACE_BTN }}
+    </aside>
+
+    <section class="space-y-6">
+      {{ DASHBOARD_TABS }}
+      {{ WORKSPACE_SECTION }}
+    </section>
+  </div>
+</main>
+
+<script>
+const WS_ID = {{ WS_ID_JSON }};
+
+function showStatus(id, type, message) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  
+  el.className = 'mb-4 p-3 rounded-lg flex items-center gap-2';
+  if (type === 'success') {
+    el.className += ' bg-green-50 text-green-800 border border-green-200';
+    el.innerHTML = '<i class="fas fa-check-circle"></i><span>' + message + '</span>';
+  } else {
+    el.className += ' bg-red-50 text-red-800 border border-red-200';
+    el.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>' + message + '</span>';
+  }
+  el.classList.remove('hidden');
+  
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    el.classList.add('hidden');
+  }, 5000);
+}
+
+function parseUtcTimestamp(rawValue) {
+  if (!rawValue) return null;
+  const raw = String(rawValue).trim();
+  if (!raw || raw === '-' || raw === '—') return null;
+
+  let normalized = raw.replace(' ', 'T');
+  const hasSeconds = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalized);
+  if (hasSeconds) normalized += ':00';
+
+  const hasTimezone = /(Z|[+-]\d{2}:\d{2})$/i.test(normalized);
+  if (!hasTimezone) normalized += 'Z';
+
+  const parsedMs = Date.parse(normalized);
+  return Number.isNaN(parsedMs) ? null : parsedMs;
+}
+
+function timeAgo(timestampMs) {
+  if (timestampMs === null || timestampMs === undefined) return '—';
+  const diff = Math.max(0, Math.floor((Date.now() - timestampMs) / 1000));
+  if (diff < 60) return diff + ' seconds ago';
+  if (diff < 3600) return Math.floor(diff / 60) + ' minutes ago';
+  if (diff < 86400) {
+    const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60);
+    return h + ' hour' + (h > 1 ? 's' : '') + (m ? ', ' + m + ' min' : '') + ' ago';
+  }
+  return Math.floor(diff / 86400) + ' days ago';
+}
+
+const lastEl = document.getElementById('last-activity-ago');
+if (lastEl) {
+  const raw = lastEl.textContent.trim();
+  const parsedTs = parseUtcTimestamp(raw);
+  if (parsedTs !== null) {
+    lastEl.textContent = timeAgo(parsedTs);
+  } else {
+    lastEl.textContent = '—';
+  }
+}
+
+// Convert all timestamps with .timeago class to relative time
+document.querySelectorAll('.timeago').forEach(el => {
+  const raw = el.textContent.trim();
+  const parsedTs = parseUtcTimestamp(raw);
+  if (parsedTs !== null) {
+    el.textContent = timeAgo(parsedTs);
+  } else {
+    el.textContent = '—';
+  }
+});
+
+// Update relative times every minute
+setInterval(() => {
+  document.querySelectorAll('.timeago').forEach(el => {
+    const td = el.closest('td');
+    if (td && td.dataset.timestamp) {
+      const parsedTs = parseUtcTimestamp(td.dataset.timestamp);
+      if (parsedTs !== null) {
+        el.textContent = timeAgo(parsedTs);
+      }
+    }
+  });
+}, 60000);
+
+const chartCanvas = document.getElementById('activityChart');
+if (chartCanvas && WS_ID) {
+  const labels = {{ CHART_LABELS }};
+  const joins = {{ CHART_JOINS }};
+  const cmds = {{ CHART_COMMANDS }};
+  new Chart(chartCanvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Team Joins',
+          data: joins,
+          backgroundColor: 'rgba(220, 38, 38, 0.85)',
+          borderRadius: 2,
+        },
+        {
+          label: 'Commands',
+          data: cmds,
+          backgroundColor: 'rgba(252, 165, 165, 0.7)',
+          borderRadius: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { boxWidth: 30, font: { size: 12 } } },
+      },
+      scales: {
+        x: { ticks: { maxRotation: 45, font: { size: 10 } }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { font: { size: 11 } } },
+      },
+    },
+  });
+}
+
+async function scanChannels(wsId) {
+  const btn = document.getElementById('scan-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i>Scanning...';
+  }
+  try {
+    const r = await fetch(`/api/ws/${wsId}/scan`, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      showStatus('scan-status', 'success', `Scan complete! ${d.channels_scanned} channels found.`);
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      showStatus('scan-status', 'error', 'Scan failed: ' + (d.error || 'unknown error'));
+    }
+  } catch (e) {
+    showStatus('scan-status', 'error', 'Request failed: ' + e.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Scan Channels';
+    }
+  }
+}
+
+async function sendTestMessage(wsId) {
+  const btn = document.getElementById('test-msg-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i>Sending...';
+  }
+  try {
+    const r = await fetch(`/api/ws/${wsId}/test-message`, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      showStatus('test-msg-status', 'success', 'Test message sent! Check your Slack DMs.');
+    } else {
+      showStatus('test-msg-status', 'error', 'Failed to send: ' + (d.error || 'unknown error'));
+    }
+  } catch (e) {
+    showStatus('test-msg-status', 'error', 'Request failed: ' + e.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send Test Message';
+    }
+  }
+}
+
+async function importHistory(wsId) {
+  const fileInput = document.getElementById('import-history-file');
+  if (!fileInput) {
+    showStatus('import-status', 'error', 'CSV input is unavailable on this page.');
+    return;
+  }
+  fileInput.value = '';
+  fileInput.click();
+}
+
+async function handleImportHistoryFile(event, wsId) {
+  const fileInput = event.target;
+  const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+  if (!file) return;
+
+  const isCsv = file.name.toLowerCase().endsWith('.csv') || file.type === 'text/csv';
+  if (!isCsv) {
+    showStatus('import-status', 'error', 'Please upload a .csv file.');
+    fileInput.value = '';
+    return;
+  }
+
+  const btn = document.getElementById('import-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i>Importing...';
+  }
+
+  try {
+    const csvText = await file.text();
+    const r = await fetch(`/api/ws/${wsId}/import-history`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ csv_text: csvText, filename: file.name }),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      const skipped = d.rows_skipped || 0;
+      showStatus('import-status', 'success', `Import complete! ${d.events_imported || 0} events added.${skipped ? ` ${skipped} row(s) skipped.` : ''}`);
+      setTimeout(() => location.reload(), 2000);
+    } else {
+      showStatus('import-status', 'error', 'Import failed: ' + (d.error || 'unknown error'));
+    }
+  } catch (e) {
+    showStatus('import-status', 'error', 'Request failed: ' + e.message);
+  } finally {
+    if (fileInput) fileInput.value = '';
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-file-csv mr-2"></i>Upload CSV';
+    }
+  }
+}
+
+async function addRepo(e) {
+  e.preventDefault();
+  const url = document.getElementById('repo-url').value.trim();
+  if (!url || !WS_ID) return;
+  try {
+    const r = await fetch(`/api/ws/${WS_ID}/repos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ repo_url: url }),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      if (d.mode === 'org') {
+        alert(`Imported organization ${d.organization}: ${d.imported || 0} repo(s) added, ${d.failed || 0} failed.`);
+      }
+      location.reload();
+    } else {
+      alert('Failed: ' + (d.error || 'unknown'));
+    }
+  } catch (e) {
+    alert('Request failed');
+  }
+}
+
+async function createJoinMessage(wsId) {
+  const nameEl = document.getElementById('join-message-name');
+  const textEl = document.getElementById('join-message-text');
+  if (!nameEl || !textEl) return;
+
+  const name = nameEl.value.trim();
+  const messageText = textEl.value.trim();
+  if (!name || !messageText) {
+    showStatus('join-messages-status', 'error', 'Name and message text are required.');
+    return;
+  }
+
+  try {
+    const r = await fetch(`/api/ws/${wsId}/join-messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, message_text: messageText }),
+    });
+    const d = await r.json();
+    if (!d.ok) {
+      showStatus('join-messages-status', 'error', 'Failed: ' + (d.error || 'unknown'));
+      return;
+    }
+    showStatus('join-messages-status', 'success', 'Join message saved.');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    showStatus('join-messages-status', 'error', 'Request failed: ' + e.message);
+  }
+}
+
+async function deleteJoinMessage(wsId, messageId) {
+  if (!confirm('Delete this join message?')) return;
+  try {
+    const r = await fetch(`/api/ws/${wsId}/join-messages/${messageId}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (!d.ok) {
+      showStatus('join-messages-status', 'error', 'Failed: ' + (d.error || 'unknown'));
+      return;
+    }
+    showStatus('join-messages-status', 'success', 'Join message deleted.');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    showStatus('join-messages-status', 'error', 'Request failed: ' + e.message);
+  }
+}
+
+async function testJoinMessage(wsId, messageId) {
+  try {
+    const r = await fetch(`/api/ws/${wsId}/join-messages/${messageId}/test`, { method: 'POST' });
+    const d = await r.json();
+    if (!d.ok) {
+      showStatus('join-messages-status', 'error', 'Failed: ' + (d.error || 'unknown'));
+      return;
+    }
+    showStatus('join-messages-status', 'success', 'Test join message sent to your DM.');
+  } catch (e) {
+    showStatus('join-messages-status', 'error', 'Request failed: ' + e.message);
+  }
+}
+
+async function saveChannelJoinConfig(wsId, channelId) {
+  const templateEl = document.getElementById(`join-template-${channelId}`);
+  const deliveryEl = document.getElementById(`join-delivery-${channelId}`);
+  if (!templateEl || !deliveryEl) return;
+
+  const joinMessageId = templateEl.value ? Number(templateEl.value) : null;
+  const joinDeliveryMode = deliveryEl.value || 'dm';
+
+  try {
+    const r = await fetch(`/api/ws/${wsId}/channels/join-config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        channel_id: channelId,
+        join_message_id: joinMessageId,
+        join_delivery_mode: joinDeliveryMode,
+      }),
+    });
+    const d = await r.json();
+    if (!d.ok) {
+      showStatus('channel-config-status', 'error', 'Failed: ' + (d.error || 'unknown'));
+      return;
+    }
+    showStatus('channel-config-status', 'success', 'Channel join message settings saved.');
+  } catch (e) {
+    showStatus('channel-config-status', 'error', 'Request failed: ' + e.message);
+  }
+}
+
+async function deleteRepo(repoId, wsId) {
+  if (!confirm('Remove this repository?')) return;
+  try {
+    const r = await fetch(`/api/ws/${wsId}/repos/${repoId}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (d.ok) {
+      location.reload();
+    } else {
+      alert('Failed: ' + (d.error || 'unknown'));
+    }
+  } catch (e) {
+    alert('Request failed');
+  }
+}
+
+async function purgeRecentActivities(wsId) {
+  if (!confirm('Purge all recent activities for this workspace? This cannot be undone.')) return;
+
+  const btn = document.getElementById('purge-events-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Purging...';
+  }
+
+  try {
+    const r = await fetch(`/api/ws/${wsId}/events/purge`, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      showStatus('purge-status', 'success', `Purged ${d.deleted || 0} activity record(s).`);
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      showStatus('purge-status', 'error', 'Purge failed: ' + (d.error || 'unknown error'));
+    }
+  } catch (e) {
+    showStatus('purge-status', 'error', 'Request failed: ' + e.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-trash"></i> Purge Activities';
+    }
+  }
+}
+
+async function testInactivityAlert(wsId) {
+  const btn = document.getElementById('test-inactivity-alert-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending...';
+  }
+
+  try {
+    const r = await fetch(`/api/ws/${wsId}/inactivity-alert/test`, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      showStatus('inactivity-alert-status', 'success', d.message || 'Test inactivity alert sent.');
+    } else {
+      showStatus('inactivity-alert-status', 'error', 'Failed: ' + (d.error || 'unknown error'));
+    }
+  } catch (e) {
+    showStatus('inactivity-alert-status', 'error', 'Request failed: ' + e.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-triangle-exclamation"></i> Test Inactivity Alert';
+    }
+  }
+}
+
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function analyzePastedManifest(wsId) {
+  const textarea = document.getElementById('manifest-input');
+  if (!textarea) return;
+
+  const manifestYaml = textarea.value || '';
+  if (!manifestYaml.trim()) {
+    showStatus('manifest-status', 'error', 'Please paste manifest YAML before analyzing.');
+    return;
+  }
+
+  const btn = document.getElementById('manifest-analyze-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analyzing...';
+  }
+
+  try {
+    const r = await fetch(`/api/ws/${wsId}/manifest-check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ manifest_yaml: manifestYaml }),
+    });
+    const d = await r.json();
+    if (!d.ok || !d.result) {
+      showStatus('manifest-status', 'error', 'Analysis failed: ' + ((d && d.error) || 'unknown error'));
+      return;
+    }
+
+    const result = d.result;
+    const summaryBox = document.getElementById('manifest-summary-box');
+    const summaryLabel = document.getElementById('manifest-summary-label');
+    const summaryText = document.getElementById('manifest-summary-text');
+    const manifestPath = document.getElementById('manifest-path');
+    const checksBody = document.getElementById('manifest-checks-body');
+
+    if (summaryBox) {
+      summaryBox.className = 'rounded-lg border p-3 mb-4 ' + (result.ok
+        ? 'text-green-700 bg-green-50 border-green-200'
+        : 'text-red-700 bg-red-50 border-red-200');
+    }
+    if (summaryLabel) summaryLabel.textContent = result.ok ? 'Manifest is valid' : 'Manifest has required fixes';
+    if (summaryText) summaryText.textContent = result.summary || 'No summary';
+    if (manifestPath) manifestPath.textContent = result.manifest_path || 'pasted manifest';
+
+    if (checksBody) {
+      const checks = Array.isArray(result.checks) ? result.checks : [];
+      checksBody.innerHTML = checks.length
+        ? checks.map((check, idx) => {
+            const ok = !!check.ok;
+            const badgeClass = ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+            const label = ok ? 'PASS' : 'FAIL';
+            return '<tr class="border-b border-gray-100 hover:bg-gray-50">'
+              + `<td class="py-3 px-4 text-sm text-gray-400 font-mono">${idx + 1}</td>`
+              + `<td class="py-3 px-4 text-sm font-medium text-gray-800">${escapeHtml(check.name || '')}</td>`
+              + `<td class="py-3 px-4 text-sm"><span class="inline-flex px-2 py-1 rounded-md text-xs font-semibold ${badgeClass}">${label}</span></td>`
+              + `<td class="py-3 px-4 text-sm text-gray-600">${escapeHtml(check.detail || '')}</td>`
+              + '</tr>';
+          }).join('')
+        : '<tr><td colspan="4" class="py-6 text-center text-sm text-gray-400">No manifest checks available.</td></tr>';
+    }
+
+    showStatus('manifest-status', 'success', 'Manifest analysis complete.');
+  } catch (e) {
+    showStatus('manifest-status', 'error', 'Request failed: ' + e.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Analyze Pasted Manifest';
+    }
+  }
+}
+
+async function saveWorkspaceManifest(wsId) {
+  const textarea = document.getElementById('manifest-input');
+  if (!textarea) return;
+
+  const manifestYaml = textarea.value || '';
+  const btn = document.getElementById('manifest-save-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
+  }
+
+  try {
+    const r = await fetch(`/api/ws/${wsId}/manifest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ manifest_yaml: manifestYaml }),
+    });
+    const d = await r.json();
+    if (!d.ok) {
+      showStatus('manifest-status', 'error', 'Save failed: ' + ((d && d.error) || 'unknown error'));
+      return;
+    }
+
+    showStatus('manifest-status', 'success', 'Manifest saved for this app.');
+    if (d.result) {
+      const result = d.result;
+      const summaryBox = document.getElementById('manifest-summary-box');
+      const summaryLabel = document.getElementById('manifest-summary-label');
+      const summaryText = document.getElementById('manifest-summary-text');
+      const manifestPath = document.getElementById('manifest-path');
+      const checksBody = document.getElementById('manifest-checks-body');
+
+      if (summaryBox) {
+        summaryBox.className = 'rounded-lg border p-3 mb-4 ' + (result.ok
+          ? 'text-green-700 bg-green-50 border-green-200'
+          : 'text-red-700 bg-red-50 border-red-200');
+      }
+      if (summaryLabel) summaryLabel.textContent = result.ok ? 'Manifest is valid' : 'Manifest has required fixes';
+      if (summaryText) summaryText.textContent = result.summary || 'No summary';
+      if (manifestPath) manifestPath.textContent = result.manifest_path || 'saved workspace manifest';
+
+      if (checksBody) {
+        const checks = Array.isArray(result.checks) ? result.checks : [];
+        checksBody.innerHTML = checks.length
+          ? checks.map((check, idx) => {
+              const ok = !!check.ok;
+              const badgeClass = ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+              const label = ok ? 'PASS' : 'FAIL';
+              return '<tr class="border-b border-gray-100 hover:bg-gray-50">'
+                + `<td class="py-3 px-4 text-sm text-gray-400 font-mono">${idx + 1}</td>`
+                + `<td class="py-3 px-4 text-sm font-medium text-gray-800">${escapeHtml(check.name || '')}</td>`
+                + `<td class="py-3 px-4 text-sm"><span class="inline-flex px-2 py-1 rounded-md text-xs font-semibold ${badgeClass}">${label}</span></td>`
+                + `<td class="py-3 px-4 text-sm text-gray-600">${escapeHtml(check.detail || '')}</td>`
+                + '</tr>';
+            }).join('')
+          : '<tr><td colspan="4" class="py-6 text-center text-sm text-gray-400">No manifest checks available.</td></tr>';
+      }
+    }
+  } catch (e) {
+    showStatus('manifest-status', 'error', 'Request failed: ' + e.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save For This App';
+    }
+  }
+}
+
+async function loadManifestFile(event) {
+  const fileInput = event.target;
+  const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const textarea = document.getElementById('manifest-input');
+    if (textarea) {
+      textarea.value = text;
+      showStatus('manifest-status', 'success', `Loaded ${file.name}. You can now analyze or save it.`);
+    }
+  } catch (e) {
+    showStatus('manifest-status', 'error', 'Failed to read file: ' + e.message);
+  } finally {
+    if (fileInput) fileInput.value = '';
+  }
+}
+
+async function deleteWorkspace(wsId) {
+  if (!wsId) return;
+  const ok = confirm('Delete this workspace and all related data (channels, repos, events)? This cannot be undone.');
+  if (!ok) return;
+
+  try {
+    const r = await fetch(`/api/ws/${wsId}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (!d.ok) {
+      alert('Failed: ' + (d.error || 'unknown'));
+      return;
+    }
+    window.location.href = '/dashboard';
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  }
+}
+
+// Manual workspace addition
+function openManualAddModal() {
+  document.getElementById('manualAddModal').classList.remove('hidden');
+  document.getElementById('manualAddForm').reset();
+  document.getElementById('manualAddStatus').classList.add('hidden');
+}
+
+function closeManualAddModal() {
+  document.getElementById('manualAddModal').classList.add('hidden');
+}
+
+async function submitManualAdd(event) {
+  event.preventDefault();
+  
+  const statusEl = document.getElementById('manualAddStatus');
+  const submitBtn = document.getElementById('manualAddSubmitBtn');
+  const token = document.getElementById('botToken').value.trim();
+  const teamName = document.getElementById('teamName').value.trim();
+  
+  if (!token) {
+    statusEl.className = 'mb-4 p-3 rounded-lg flex items-center gap-2 bg-red-50 text-red-800 border border-red-200';
+    statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Bot token is required</span>';
+    statusEl.classList.remove('hidden');
+    return;
+  }
+  
+  // Show loading state
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validating...';
+  statusEl.classList.add('hidden');
+  
+  try {
+    const response = await fetch('/api/workspace/manual-add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, team_name: teamName })
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      statusEl.className = 'mb-4 p-3 rounded-lg flex items-center gap-2 bg-green-50 text-green-800 border border-green-200';
+      statusEl.innerHTML = '<i class="fas fa-check-circle"></i><span>Workspace added successfully! Redirecting...</span>';
+      statusEl.classList.remove('hidden');
+      
+      // Redirect to dashboard after a short delay
+      setTimeout(() => {
+        window.location.href = '/dashboard?ws=' + data.workspace.id;
+      }, 1500);
+    } else {
+      statusEl.className = 'mb-4 p-3 rounded-lg flex items-center gap-2 bg-red-50 text-red-800 border border-red-200';
+      statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>' + (data.error || 'Failed to add workspace') + '</span>';
+      statusEl.classList.remove('hidden');
+      
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add Workspace';
+    }
+  } catch (error) {
+    statusEl.className = 'mb-4 p-3 rounded-lg flex items-center gap-2 bg-red-50 text-red-800 border border-red-200';
+    statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Network error: ' + error.message + '</span>';
+    statusEl.classList.remove('hidden');
+    
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add Workspace';
+  }
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+  const modal = document.getElementById('manualAddModal');
+  if (event.target === modal) {
+    closeManualAddModal();
+  }
+});
+</script>
+
+<!-- Manual Add Workspace Modal -->
+<div id="manualAddModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between p-6 border-b border-gray-100">
+      <h2 class="text-xl font-bold text-gray-900">Add Workspace Manually</h2>
+      <button onclick="closeManualAddModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    
+    <form id="manualAddForm" onsubmit="submitManualAdd(event)" class="p-6 space-y-4">
+      <div id="manualAddStatus" class="hidden"></div>
+      
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+        <div class="flex items-start gap-2">
+          <i class="fas fa-info-circle mt-0.5"></i>
+          <div>
+            <p class="font-medium mb-1">Before you begin:</p>
+            <ol class="list-decimal ml-4 space-y-1 text-xs">
+              <li>Go to <a href="https://api.slack.com/apps" target="_blank" class="underline hover:text-blue-900">api.slack.com/apps</a></li>
+              <li>Select your app or create a new one</li>
+              <li>Install it to your workspace if not already installed</li>
+              <li>Copy the <strong>Bot User OAuth Token</strong> (starts with <code class="bg-blue-100 px-1 rounded">xoxb-</code>)</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <label for="botToken" class="block text-sm font-medium text-gray-700 mb-2">
+          Bot Token <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="botToken"
+          name="token"
+          placeholder="xoxb-..."
+          required
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono text-sm"
+        />
+        <p class="mt-1 text-xs text-gray-500">Your Bot User OAuth Token from Slack</p>
+      </div>
+      
+      <div>
+        <label for="teamName" class="block text-sm font-medium text-gray-700 mb-2">
+          Workspace Name <span class="text-gray-400">(optional)</span>
+        </label>
+        <input
+          type="text"
+          id="teamName"
+          name="team_name"
+          placeholder="My Workspace"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+        />
+        <p class="mt-1 text-xs text-gray-500">Leave blank to auto-detect from Slack</p>
+      </div>
+      
+      <div class="flex items-center gap-3 pt-4">
+        <button
+          type="submit"
+          id="manualAddSubmitBtn"
+          class="flex-1 inline-flex justify-center items-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+        >
+          <i class="fas fa-plus"></i> Add Workspace
+        </button>
+        <button
+          type="button"
+          onclick="closeManualAddModal()"
+          class="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+    
+    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
+      <div class="flex items-start gap-2 text-xs text-gray-600">
+        <i class="fas fa-shield-alt mt-0.5"></i>
+        <p><strong>Security:</strong> Your bot token is stored securely in the database and never exposed in logs or to other users.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+name = "blt-lettuce"
+main = "src/worker.py"
+compatibility_date = "2026-03-01"
+compatibility_flags = ["python_workers"]
+
+[build]
+command = "python scripts/migrate.py"
+
+[assets]
+directory = "."
+binding = "ASSETS"
+include = ["data/**", "src/data/**", "docs/static/**"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "blt-lettuce"
+database_id = "b68ec3d9-6766-4496-b926-c8a24f29f2dd"
+migrations_dir = "./migrations"
+
+[vars]
+VERSION = "2.0.0"
+
+[triggers]
+crons = ["* * * * *"]
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+destinations = [ "sentry-logs" ]
+
+[observability.traces]
+enabled = true
+persist = true
+head_sampling_rate = 1
+destinations = [ "sentry-traces" ]
+
