@@ -93,7 +93,7 @@ Encrypted Local Database
 **Build Verification Process**:
 ```bash
 # Clone repository at specific tag
-git clone --depth 1 --branch v1.0.0 https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish
+git clone --depth 1 --branch v1.0.0 https://git.owaspblt.org/BLT/BLT-Vanish
 
 # Build with fixed environment
 docker run --rm -v $(pwd):/app flutter-builder:stable build apk
@@ -504,8 +504,8 @@ Users don't have to trust us—they can verify our claims through:
 
 ## Contact
 
-- **Security Issues**: [Create private security advisory](https://git.owaspblt.org/BLT/BLT/security/advisories/new)
-- **General Security Questions**: [GitHub Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
+- **Security Issues**: [Create private security advisory](https://git.owaspblt.org/BLT/security/advisories/new)
+- **General Security Questions**: [GitHub Discussions](https://git.owaspblt.org/BLT/discussions)
 - **Documentation**: [docs/security/](./docs/security/)
 
 ---

@@ -45,14 +45,14 @@ jobs:
 
           ### What's New
 
-          See [CHANGELOG.md](https://git.owaspblt.org/BLT/BLT/blob/main/blt-vanish/CHANGELOG.md) for details.
+          See [CHANGELOG.md](https://git.owaspblt.org/BLT/BLT-Vanish/blob/main/CHANGELOG.md) for details.
 
           ### Privacy Notice
 
           BLT-Vanish stores all your personal data encrypted on your device only.
           No data is ever transmitted to external servers.
 
-          For more information, see our [Security Whitepaper](https://git.owaspblt.org/BLT/BLT/blob/main/blt-vanish/SECURITY.md).
+          For more information, see our [Security Whitepaper](https://git.owaspblt.org/BLT/BLT-Vanish/blob/main/SECURITY.md).
   build-android:
     name: Build Android Release
     runs-on: ubuntu-latest

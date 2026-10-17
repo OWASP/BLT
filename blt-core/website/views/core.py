@@ -2244,7 +2244,7 @@ def management_commands(request):
                     # Generate GitHub URL
                     # Assuming the repo is OWASP-BLT/BLT
                     relative_path = os.path.relpath(command_path, settings.BASE_DIR)
-                    github_url = f"https://git.owaspblt.org/BLT/BLT/tree/main/blt-core{relative_path}"
+                    github_url = f"https://git.owaspblt.org/BLT/BLT-Core{relative_path}"
                     command_info["github_url"] = github_url
             except Exception as e:
                 logging.error(f"Error getting file info for command {name}: {e}")

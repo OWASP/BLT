@@ -1,7 +1,7 @@
 # BLT-CVE: Decentralized, Federated Vulnerability Registry
 
 **Live Site:** [https://cve.owaspblt.org/](https://cve.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-cve](https://git.owaspblt.org/BLT/BLT/tree/main/blt-cve)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-CVE](https://git.owaspblt.org/BLT/BLT-CVE)
 
 <p align="center"><img src="logo.png" alt="blt-cve logo" width="160" height="160"></p>
 

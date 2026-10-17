@@ -1,7 +1,7 @@
 # BLT-Hackerhouse
 
 **Live Site:** [https://hackerhouse.owaspblt.org/](https://hackerhouse.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-hackerhouse](https://git.owaspblt.org/BLT/BLT/tree/main/blt-hackerhouse)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-HackerHouse](https://git.owaspblt.org/BLT/BLT-HackerHouse)
 
 Real-time contributor visualization platform for OWASP BLT — now running on **Cloudflare Workers**.
 

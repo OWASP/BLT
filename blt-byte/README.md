@@ -1,7 +1,7 @@
 # BLT Byte
 
 **Live Site:** [https://byte.owaspblt.org/](https://byte.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-byte](https://git.owaspblt.org/BLT/BLT/tree/main/blt-byte)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Byte](https://git.owaspblt.org/BLT/BLT-Byte)
 
 <p align="center"><img src="logo.png" alt="blt-byte logo" width="160" height="160"></p>
 

@@ -1,6 +1,6 @@
 # BLT-Vanish Flutter App
 
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish-flutter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish-flutter)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Vanish-Flutter](https://git.owaspblt.org/BLT/BLT-Vanish-Flutter)
 
 <p align="center"><img src="logo.png" alt="blt-vanish-flutter logo" width="160" height="160"></p>
 
@@ -104,7 +104,7 @@ See [`.github/workflows/flutter-tests.yml`](.github/workflows/flutter-tests.yml)
 
 ## Contributing
 
-See [CONTRIBUTING.md](https://git.owaspblt.org/BLT/BLT/blob/main/blt-vanish/CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](https://git.owaspblt.org/BLT/BLT-Vanish/blob/main/CONTRIBUTING.md) for guidelines.
 
 ## License
 

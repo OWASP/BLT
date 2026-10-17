@@ -1,7 +1,7 @@
 # OWASP Projects Dashboard
 
 **Live Site:** [https://projects.owaspblt.org/](https://projects.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-projects](https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-projects)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-OWASP-Projects](https://git.owaspblt.org/BLT/BLT-OWASP-Projects)
 
 A static dashboard for tracking OWASP project repositories, repository status, and open issues.
 

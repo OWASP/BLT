@@ -1,7 +1,7 @@
 # BLT-Next: Modern Static Frontend Architecture
 
 **Live Site:** [https://next.owaspblt.org/](https://next.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-next](https://git.owaspblt.org/BLT/BLT/tree/main/blt-next)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Next](https://git.owaspblt.org/BLT/BLT-Next)
 
 <p align="center"><img src="logo.png" alt="blt-next logo" width="160" height="160"></p>
 
@@ -55,9 +55,9 @@ BLT-Next/
 
 1.  **Clone the repository**
     ```bash
-    git clone https://git.owaspblt.org/BLT/BLT.git
+    git clone https://git.owaspblt.org/BLT.git
     # or
-    git clone https://git.owaspblt.org/BLT/BLT.git
+    git clone https://git.owaspblt.org/BLT.git
     cd BLT-Next
     ```
 
@@ -169,9 +169,9 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
 ## 📧 Contact
 
 - **Project**: [OWASP BLT](https://owasp.org/www-project-bug-logging-tool/)
-- **GitHub**: [OWASP-BLT](https://git.owaspblt.org/BLT/BLT)
-- **GitLab**: [owasp-blt/BLT-Next](https://git.owaspblt.org/BLT/BLT/tree/main/blt-next)
-- **Issues**: [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
+- **GitHub**: [OWASP-BLT](https://git.owaspblt.org/BLT)
+- **GitLab**: [owasp-blt/BLT-Next](https://git.owaspblt.org/BLT/BLT-Next)
+- **Issues**: [GitHub Issues](https://git.owaspblt.org/BLT/issues)
 
 ---
 

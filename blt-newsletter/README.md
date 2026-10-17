@@ -1,7 +1,7 @@
 # BLT Newsletter
 
 **Live Site:** [https://newsletter.owaspblt.org/](https://newsletter.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-newsletter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-newsletter)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Newsletter](https://git.owaspblt.org/BLT/BLT-Newsletter)
 
 <p align="center"><img src="logo.png" alt="blt-newsletter logo" width="160" height="160"></p>
 
@@ -170,6 +170,6 @@ This project is licensed under the AGPL-3.0 License. See `LICENSE` for details.
 
 ## Related projects
 
-- OWASP BLT: https://git.owaspblt.org/BLT/BLT/tree/main/blt-core
-- BLT Design: https://git.owaspblt.org/BLT/BLT/tree/main/blt-design
-- BLT Newsletter canonical project: https://git.owaspblt.org/BLT/BLT/tree/main/blt-newsletter
+- OWASP BLT: https://git.owaspblt.org/BLT/BLT-Core
+- BLT Design: https://git.owaspblt.org/BLT/BLT-Design
+- BLT Newsletter canonical project: https://git.owaspblt.org/BLT/BLT-Newsletter

@@ -1,7 +1,7 @@
 # OWASP-Wich: OWASP Project Compliance Checker
 
 **Live Site:** [https://wich.owaspblt.org/](https://wich.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-wich](https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-wich)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-OWASP-Wich](https://git.owaspblt.org/BLT/BLT-OWASP-Wich)
 
 <p align="center"><img src="logo.png" alt="blt-owasp-wich logo" width="160" height="160"></p>
 
@@ -78,7 +78,7 @@ For automation and integration into CI/CD pipelines, you can also use the Python
 
 1. Clone the repository:
 ```bash
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd OWASP-Wich
 ```
 
@@ -294,13 +294,13 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## Support
 
-- 🐛 [Report Issues](https://git.owaspblt.org/BLT/BLT/issues)
-- 💬 [Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
+- 🐛 [Report Issues](https://git.owaspblt.org/BLT/issues)
+- 💬 [Discussions](https://git.owaspblt.org/BLT/discussions)
 - 📧 Contact: [OWASP BLT Team](https://blt.owasp.org)
 
 ## Related Projects
 
-- [OWASP BLT](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core) - Bug Logging Tool
+- [OWASP BLT](https://git.owaspblt.org/BLT/BLT-Core) - Bug Logging Tool
 - [OWASP Projects](https://owasp.org/projects/) - All OWASP Projects
 
 ---

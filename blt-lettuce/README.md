@@ -20,20 +20,20 @@ This convention makes it easy to distinguish between ephemeral and persistent me
 # 🥬 BLT-Lettuce
 
 **Live Site:** [https://lettuce.owaspblt.org/](https://lettuce.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-lettuce](https://git.owaspblt.org/BLT/BLT/tree/main/blt-lettuce)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Lettuce](https://git.owaspblt.org/BLT/BLT-Lettuce)
 
 **An intelligent Slack bot for the OWASP community**
 
 [![License](https://img.shields.io/github/license/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=blue)](LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=yellow)](https://git.owaspblt.org/BLT/BLT/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=green)](https://git.owaspblt.org/BLT/BLT/network/members)
-[![GitHub Issues](https://img.shields.io/github/issues/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=red)](https://git.owaspblt.org/BLT/BLT/issues)
-[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=purple)](https://git.owaspblt.org/BLT/BLT/pulls)
+[![GitHub Stars](https://img.shields.io/github/stars/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=yellow)](https://git.owaspblt.org/BLT/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=green)](https://git.owaspblt.org/BLT/network/members)
+[![GitHub Issues](https://img.shields.io/github/issues/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=red)](https://git.owaspblt.org/BLT/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=purple)](https://git.owaspblt.org/BLT/pulls)
 
-[![Contributors](https://img.shields.io/github/contributors/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=orange)](https://git.owaspblt.org/BLT/BLT/graphs/contributors)
-[![Last Commit](https://img.shields.io/github/last-commit/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=cyan)](https://git.owaspblt.org/BLT/BLT/commits/main/blt-lettuce)
-[![Commit Activity](https://img.shields.io/github/commit-activity/m/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=pink)](https://git.owaspblt.org/BLT/BLT/pulse)
-[![Repo Size](https://img.shields.io/github/repo-size/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=gray)](https://git.owaspblt.org/BLT/BLT/tree/main/blt-lettuce)
+[![Contributors](https://img.shields.io/github/contributors/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=orange)](https://git.owaspblt.org/BLT/graphs/contributors)
+[![Last Commit](https://img.shields.io/github/last-commit/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=cyan)](https://git.owaspblt.org/BLT/BLT-Lettuce/commits/main)
+[![Commit Activity](https://img.shields.io/github/commit-activity/m/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=pink)](https://git.owaspblt.org/BLT/pulse)
+[![Repo Size](https://img.shields.io/github/repo-size/OWASP-BLT/BLT-Lettuce?style=for-the-badge&color=gray)](https://git.owaspblt.org/BLT/BLT-Lettuce)
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare_Workers-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
@@ -43,7 +43,7 @@ This convention makes it easy to distinguish between ephemeral and persistent me
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg?style=flat-square)](https://github.com/astral-sh/ruff)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square)](https://conventionalcommits.org)
 
-[💬 **Join OWASP Slack**](https://owasp.org/slack/invite) · [🐛 **Report Bug**](https://git.owaspblt.org/BLT/BLT/issues/new?template=bug_report.md) · [✨ **Request Feature**](https://git.owaspblt.org/BLT/BLT/issues/new?template=feature_request.md)
+[💬 **Join OWASP Slack**](https://owasp.org/slack/invite) · [🐛 **Report Bug**](https://git.owaspblt.org/BLT/issues/new?template=bug_report.md) · [✨ **Request Feature**](https://git.owaspblt.org/BLT/issues/new?template=feature_request.md)
 
 </div>
 
@@ -53,7 +53,7 @@ This convention makes it easy to distinguish between ephemeral and persistent me
 
 BLT-Lettuce is an intelligent Slack bot designed for the OWASP Slack workspace. It welcomes new members, helps them discover projects, and connects the global security community.
 
-> **Note:** This Slack bot functionality has been incorporated into the main [BLT repository](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core) and is being transferred back to this repo for better organization.
+> **Note:** This Slack bot functionality has been incorporated into the main [BLT repository](https://git.owaspblt.org/BLT/BLT-Core) and is being transferred back to this repo for better organization.
 
 ### 🎯 Core Features
 
@@ -228,7 +228,7 @@ Stats are workspace-specific and use optimistic locking to handle concurrent upd
 
 1. **Clone the repository**
    ```bash
-   git clone https://git.owaspblt.org/BLT/BLT.git
+   git clone https://git.owaspblt.org/BLT.git
    cd BLT-Lettuce
    ```
 
@@ -588,7 +588,7 @@ This project is licensed under the **AGPL-3.0 License** - see the [LICENSE](LICE
 ## 🙏 Acknowledgments
 
 - [OWASP Foundation](https://owasp.org/) for supporting open-source security
-- All our amazing [contributors](https://git.owaspblt.org/BLT/BLT/graphs/contributors)
+- All our amazing [contributors](https://git.owaspblt.org/BLT/graphs/contributors)
 - The OWASP Slack community for feedback and ideas
 
 ---
@@ -598,6 +598,6 @@ This project is licensed under the **AGPL-3.0 License** - see the [LICENSE](LICE
 **Made with 💚 by the [OWASP BLT Team](https://owasp.org/www-project-bug-logging-tool/)**
 
 [![Join OWASP Slack](https://img.shields.io/badge/Join-OWASP_Slack-4A154B?style=for-the-badge&logo=slack)](https://owasp.org/slack/invite)
-[![Star this repo](https://img.shields.io/badge/Star_this_Repo-⭐-yellow?style=for-the-badge)](https://git.owaspblt.org/BLT/BLT/tree/main/blt-lettuce)
+[![Star this repo](https://img.shields.io/badge/Star_this_Repo-⭐-yellow?style=for-the-badge)](https://git.owaspblt.org/BLT/BLT-Lettuce)
 
 </div>

@@ -48,7 +48,7 @@ node test-sorting-security.js
 
 ## Pull request workflow
 
-1. **Fork** [OWASP-BLT/BLT-Leaf](https://git.owaspblt.org/BLT/BLT/tree/main/blt-leaf) and **clone your fork**.
+1. **Fork** [OWASP-BLT/BLT-Leaf](https://git.owaspblt.org/BLT/BLT-Leaf) and **clone your fork**.
 2. Create a branch, e.g. `docs/...`, `fix/...`, or `feat/...`.
 3. Keep commits focused; update docs when behavior or setup changes.
 4. Open a PR against **`main`**. CI runs `npm run lint`, `npm run format:check`, `npm test`, and `npm audit --audit-level=high` (see [.github/workflows/ci.yml](.github/workflows/ci.yml)).
@@ -56,7 +56,7 @@ node test-sorting-security.js
 ## Getting help
 
 - **OWASP Slack:** `#project-blt`
-- **Issues:** [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
+- **Issues:** [GitHub Issues](https://git.owaspblt.org/BLT/issues)
 
 ## License
 

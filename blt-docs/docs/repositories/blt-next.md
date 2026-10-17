@@ -4,7 +4,7 @@ BLT-Next is the user-facing frontend application for the OWASP BLT platform.
 
 ## Current repository status
 
-The current repository is [owasp-blt/blt-next](https://git.owaspblt.org/BLT/BLT/tree/main/blt-next).
+The current repository is [owasp-blt/blt-next](https://git.owaspblt.org/BLT/BLT-Next).
 
 ## Purpose
 

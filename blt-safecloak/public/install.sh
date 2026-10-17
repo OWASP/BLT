@@ -10,7 +10,7 @@
 # unless SAFECLOAK_APP_DIR is set.
 set -euo pipefail
 
-REPO_URL="https://git.owaspblt.org/BLT/BLT/tree/main/blt-safecloak"
+REPO_URL="https://git.owaspblt.org/BLT/BLT-SafeCloak"
 ARTIFACT_BASE="$REPO_URL/-/jobs/artifacts/main/raw"
 OS_NAME="$(uname -s)"
 ARCH_NAME="$(uname -m)"

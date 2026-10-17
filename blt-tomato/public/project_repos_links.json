@@ -121,8 +121,8 @@
   },
   {
     "project_name": "BLT",
-    "repo_url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core",
-    "funding_url": "https://git.owaspblt.org/BLT/BLT/raw/main/blt-core/.github/FUNDING.yml",
+    "repo_url": "https://git.owaspblt.org/BLT/BLT-Core",
+    "funding_url": "https://git.owaspblt.org/BLT/BLT-Core/raw/main/.github/FUNDING.yml",
     "funding_details": "https://owasp.org/donate?reponame=www-project-bug-logging-tool&title=OWASP+Bug+logging+tool"
   },
   {

@@ -1,7 +1,7 @@
 # 🎙️ AI-Powered GitHub Sportscaster
 
 **Live Site:** [https://gitcaster.owaspblt.org/](https://gitcaster.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-gitcaster](https://git.owaspblt.org/BLT/BLT/tree/main/blt-gitcaster)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Gitcaster](https://git.owaspblt.org/BLT/BLT-Gitcaster)
 
 <p align="center"><img src="logo.png" alt="blt-gitcaster logo" width="160" height="160"></p>
 
@@ -144,7 +144,7 @@ Simply open the page and watch! The sportscaster will:
 To run locally:
 ```bash
 # Clone the repository
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd Github_Sportscaster
 
 # Serve the public folder (any HTTP server works)

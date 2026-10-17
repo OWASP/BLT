@@ -10,7 +10,7 @@ This project follows the [OWASP Code of Conduct](https://owasp.org/www-policy/op
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://git.owaspblt.org/BLT/BLT/issues)
+1. Check if the bug has already been reported in [Issues](https://git.owaspblt.org/BLT/issues)
 2. If not, create a new issue with:
    - Clear title and description
    - Steps to reproduce

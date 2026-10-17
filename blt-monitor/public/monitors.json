@@ -338,14 +338,14 @@
   {
     "id": "repo_blt_monitor",
     "name": "BLT Monitor Repo",
-    "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-monitor",
+    "url": "https://git.owaspblt.org/BLT/BLT-Monitor",
     "keyword": "blt-monitor",
     "enabled": true
   },
   {
     "id": "repo_blt_zero",
     "name": "BLT Zero Repo",
-    "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-zero",
+    "url": "https://git.owaspblt.org/BLT/BLT-Zero",
     "keyword": "blt-zero",
     "enabled": true
   }

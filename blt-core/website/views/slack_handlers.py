@@ -114,7 +114,7 @@ GSOC_PROJECTS = [
         "title": "BLT (Bug Logging Tool)",
         "tech": "Python, Django, Flutter, Blockchain",
         "mentor": "Donnie, Yash Pandey",
-        "repo": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core",
+        "repo": "https://git.owaspblt.org/BLT/BLT-Core",
     },
     {
         "title": "OWASP Juice Shop",

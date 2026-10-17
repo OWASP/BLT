@@ -699,7 +699,7 @@ mod tests {
                     "organization_id": 1,
                     "project_id": 2,
                     "name": "BLT",
-                    "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core",
+                    "url": "https://git.owaspblt.org/BLT/BLT-Core",
                     "created": "2026-07-01",
                     "modified": "2026-07-02"
                 }
@@ -712,7 +712,7 @@ mod tests {
         assert_eq!(repos[0].organization_id, Some(1));
         assert_eq!(repos[0].project_id, Some(2));
         assert_eq!(repos[0].name, "BLT");
-        assert_eq!(repos[0].url, "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core");
+        assert_eq!(repos[0].url, "https://git.owaspblt.org/BLT/BLT-Core");
         assert_eq!(repos[0].created.as_deref(), Some("2026-07-01"));
         assert_eq!(repos[0].modified.as_deref(), Some("2026-07-02"));
     }

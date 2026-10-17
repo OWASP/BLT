@@ -13,7 +13,7 @@ REQUEST_DELAY = float(os.environ.get("SLACK_SCRAPER_DELAY", "2"))
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (compatible; BLT-Panini-SlackScraper/1.0; "
-        "+https://git.owaspblt.org/BLT/BLT/tree/main/blt-panini)"
+        "+https://git.owaspblt.org/BLT/BLT-Panini)"
     )
 }
 

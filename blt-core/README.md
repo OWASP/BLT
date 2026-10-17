@@ -1,7 +1,7 @@
 <h1 align="center"> 🐛 OWASP BLT </h1>
 
 **Live Site:** [https://owaspblt.org/](https://owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-core](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Core](https://git.owaspblt.org/BLT/BLT-Core)
 
 <h3 align="center">Bug Logging Tool - Gamified Crowd-Sourced QA Testing & Vulnerability Disclosure</h3>
 
@@ -11,9 +11,9 @@
 
 <p align="center">
   <a href="https://legacy.owaspblt.org">🌐 Website</a> •
-  <a href="https://git.owaspblt.org/BLT/BLT/blob/main/blt-core/CONTRIBUTING.md">📖 Contributing Guide</a> •
+  <a href="https://git.owaspblt.org/BLT/BLT-Core/blob/main/CONTRIBUTING.md">📖 Contributing Guide</a> •
   <a href="https://owasp.org/slack/invite">💬 Join Slack</a> •
-  <a href="https://git.owaspblt.org/BLT/BLT/issues">🐛 Report Bug</a>
+  <a href="https://git.owaspblt.org/BLT/issues">🐛 Report Bug</a>
 </p>
 
 ---
@@ -21,37 +21,37 @@
 ## 📊 Project Stats
 
 <p align="center">
-  <a href="https://git.owaspblt.org/BLT/BLT/blob/main/blt-core/LICENSE.md">
+  <a href="https://git.owaspblt.org/BLT/BLT-Core/blob/main/LICENSE.md">
     <img src="https://img.shields.io/badge/license-AGPL--3.0-blue" alt="License">
   </a>
-  <a href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-core">
+  <a href="https://git.owaspblt.org/BLT/BLT-Core">
     <img src="https://img.shields.io/github/stars/OWASP-BLT/BLT?style=social" alt="GitHub stars">
   </a>
 </p>
 
 <p align="center">
-  <a href="https://git.owaspblt.org/BLT/BLT/graphs/contributors">
+  <a href="https://git.owaspblt.org/BLT/graphs/contributors">
     <img src="https://img.shields.io/github/contributors/OWASP-BLT/BLT?color=%23e74c3c" alt="Contributors">
   </a>
-  <a href="https://git.owaspblt.org/BLT/BLT/commits/main/blt-core">
+  <a href="https://git.owaspblt.org/BLT/BLT-Core/commits/main">
     <img src="https://img.shields.io/github/last-commit/OWASP-BLT/BLT?color=%23e74c3c" alt="Last Commit">
   </a>
-  <a href="https://git.owaspblt.org/BLT/BLT/issues">
+  <a href="https://git.owaspblt.org/BLT/issues">
     <img src="https://img.shields.io/github/issues/OWASP-BLT/BLT?color=%23e74c3c" alt="Open Issues">
   </a>
-  <a href="https://git.owaspblt.org/BLT/BLT/pulls">
+  <a href="https://git.owaspblt.org/BLT/pulls">
     <img src="https://img.shields.io/github/issues-pr/OWASP-BLT/BLT?color=%23e74c3c" alt="Pull Requests">
   </a>
 </p>
 
 <p align="center">
-  <a href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-core">
+  <a href="https://git.owaspblt.org/BLT/BLT-Core">
     <img src="https://img.shields.io/github/languages/top/OWASP-BLT/BLT?color=%23e74c3c" alt="Top Language">
   </a>
-  <a href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-core">
+  <a href="https://git.owaspblt.org/BLT/BLT-Core">
     <img src="https://img.shields.io/github/repo-size/OWASP-BLT/BLT?color=%23e74c3c" alt="Repo Size">
   </a>
-  <a href="https://git.owaspblt.org/BLT/BLT/fork">
+  <a href="https://git.owaspblt.org/BLT/fork">
     <img src="https://img.shields.io/github/forks/OWASP-BLT/BLT?style=social" alt="Forks">
   </a>
   <img src="https://legacy.owaspblt.org/repos/blt/badge/" alt="Views">
@@ -97,7 +97,7 @@ Built by the community for the community, BLT makes it easy for security researc
 ```bash
 # Clone the repository
 
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd BLT
 
 # Configure environment
@@ -167,7 +167,7 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-For detailed setup instructions, see our [Contributing Guide](https://git.owaspblt.org/BLT/BLT/blob/main/blt-core/CONTRIBUTING.md).
+For detailed setup instructions, see our [Contributing Guide](https://git.owaspblt.org/BLT/BLT-Core/blob/main/CONTRIBUTING.md).
 
 ---
 
@@ -197,8 +197,8 @@ Docker/virtualization issues on Windows? Use Poetry + SQLite in GitHub Codespace
 
 We welcome contributions from everyone! Whether you're fixing bugs, adding features, improving documentation, or spreading the word, your help is appreciated.
 
-- 📚 Read our [Contributing Guide](https://git.owaspblt.org/BLT/BLT/blob/main/blt-core/CONTRIBUTING.md)
-- 🐛 Check out [open issues](https://git.owaspblt.org/BLT/BLT/issues)
+- 📚 Read our [Contributing Guide](https://git.owaspblt.org/BLT/BLT-Core/blob/main/CONTRIBUTING.md)
+- 🐛 Check out [open issues](https://git.owaspblt.org/BLT/issues)
 - 💡 Look for issues tagged with `good first issue` if you're new
 - 🎨 Follow our coding standards (Black, isort, ruff)
 - ✅ Run `pre-commit` before submitting changes

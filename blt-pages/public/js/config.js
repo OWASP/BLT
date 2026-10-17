@@ -14,7 +14,7 @@ const BLT_CONFIG = {
 
   /* ── GitLab project ── */
   PROJECT_PATH: "owasp-blt/blt-pages",
-  PROJECT_URL: "https://git.owaspblt.org/BLT/BLT/tree/main/blt-pages",
+  PROJECT_URL: "https://git.owaspblt.org/BLT/BLT-Pages",
   ISSUE_TEMPLATE: "Bug",
 
   /* ── External services ── */

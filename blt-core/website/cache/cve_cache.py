@@ -194,7 +194,7 @@ def fetch_cve_score_from_api(cve_id):
             url = f"https://services.nvd.nist.gov/rest/json/cves/2.0?cveId={encoded_cve_id}"
 
             # NVD-recommended headers
-            headers = {"User-Agent": "BLT-CVE-Checker/1.0 (https://git.owaspblt.org/BLT/BLT/tree/main/blt-core; contact@owasp.org)"}
+            headers = {"User-Agent": "BLT-CVE-Checker/1.0 (https://git.owaspblt.org/BLT/BLT-Core; contact@owasp.org)"}
 
             # Add API key if configured (case-sensitive header per NVD spec)
             api_key = getattr(settings, "NVD_API_KEY", None)

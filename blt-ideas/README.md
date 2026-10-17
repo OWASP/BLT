@@ -1,9 +1,9 @@
 # BLT Ideas
 
 **Live Site:** [https://ideas.owaspblt.org/](https://ideas.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-ideas](https://git.owaspblt.org/BLT/BLT/tree/main/blt-ideas)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Ideas](https://git.owaspblt.org/BLT/BLT-Ideas)
 
-BLT Ideas is a collection of brainstorming proposals for potential future development of [OWASP BLT](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core). Each idea is scoped to a standalone 350-hour development slot and represents community-driven direction — not official project commitments.
+BLT Ideas is a collection of brainstorming proposals for potential future development of [OWASP BLT](https://git.owaspblt.org/BLT/BLT-Core). Each idea is scoped to a standalone 350-hour development slot and represents community-driven direction — not official project commitments.
 
 For the full list of ideas, descriptions, differentiation guide, and hours analysis, visit the deployed Cloudflare Worker.
 

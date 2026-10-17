@@ -1139,7 +1139,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
     <div class="container">
         <h1>OWASP Bumper 🚀💪</h1>
         <div class="subtitle">This application aims to help encourage repositories to stay active by giving them a bump of a new issue with one click! 🔔✨</div>
-        <div class="subtitle">Comprehensive listing of all {org} GitHub repositories | <a href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-bumper" target="_blank" style="color: #E10101;">View on GitHub</a></div>
+        <div class="subtitle">Comprehensive listing of all {org} GitHub repositories | <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Bumper" target="_blank" style="color: #E10101;">View on GitHub</a></div>
         
         <div class="creation-chart-section">
             <div class="creation-chart-title">📊 New Repositories Created Over Time<span id="creationYearFilterLabel" style="display:none"> — <span id="creationYearFilterValue"></span> <button class="year-filter-clear-btn" onclick="setCreationYearFilter(null)">✕ Clear</button></span></div>
@@ -1337,7 +1337,7 @@ We noticed that this repository hasn't seen much activity recently. We wanted to
 Thank you for contributing to the OWASP community!
 
 ---
-*This issue was created via the [OWASP Bumper](https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-bumper) tool to help keep track of repository activity.*`
+*This issue was created via the [OWASP Bumper](https://git.owaspblt.org/BLT/BLT-OWASP-Bumper) tool to help keep track of repository activity.*`
             );
             return `${{repo.html_url}}/issues/new?title=${{title}}&body=${{body}}`;
         }}

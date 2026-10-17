@@ -38,7 +38,7 @@ GET_CLIENT_HTML = r'''<!DOCTYPE html>
       (Chrome) or a macOS window. Triage stays on this site.
     </p>
     <p>Needs <a href="https://flutter.dev/docs/get-started/install">Flutter</a> on PATH.</p>
-    <pre>git clone https://git.owaspblt.org/BLT/BLT.git
+    <pre>git clone https://git.owaspblt.org/BLT.git
 cd blt-netguardian/client
 flutter pub get
 
@@ -53,9 +53,9 @@ flutter run -d macos</pre>
       BLT / NetGuardian and issues HMAC + payload + triage keys to researchers.
       The client alone is not enough without those org keys.
       Docs:
-      <a href="https://git.owaspblt.org/BLT/BLT/blob/main/blt-netguardian/README.md">README</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-NetGuardian/blob/main/README.md">README</a>
       ·
-      <a href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian/docs/spec">docs/spec</a>.
+      <a href="https://git.owaspblt.org/BLT/BLT-NetGuardian/tree/main/docs/spec">docs/spec</a>.
     </p>
     <p>
       In the app, set API base URL to
@@ -71,9 +71,9 @@ flutter run -d macos</pre>
     </p>
     <p>
       Source:
-      <a href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian/client">client/</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-NetGuardian/tree/main/client">client/</a>
       ·
-      <a href="https://git.owaspblt.org/BLT/BLT/archive/main/blt-netguardian-main.zip">zip of repo</a>
+      <a href="https://git.owaspblt.org/BLT/archive/main/blt-netguardian-main.zip">zip of repo</a>
     </p>
     <p>
       Headless alternative (not the GUI):

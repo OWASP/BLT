@@ -1,7 +1,7 @@
 # OWASP BLT
 
 **Live Site:** [https://flutter.owaspblt.org/](https://flutter.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-flutter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-flutter)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Flutter](https://git.owaspblt.org/BLT/BLT-Flutter)
 
 `Report Bugs, Secure the Web and Win Points!`
 

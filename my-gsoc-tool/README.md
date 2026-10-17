@@ -1,7 +1,7 @@
 # GSoC Student Dashboard 🎓
 
 **Live Site:** [https://gsoc-tool.owaspblt.org/](https://gsoc-tool.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/my-gsoc-tool](https://git.owaspblt.org/BLT/BLT/tree/main/my-gsoc-tool)
+**Source Code:** [https://git.owaspblt.org/BLT/MY-GSOC-TOOL](https://git.owaspblt.org/BLT/MY-GSOC-TOOL)
 
 <p align="center"><img src="logo.png" alt="my-gsoc-tool logo" width="160" height="160"></p>
 

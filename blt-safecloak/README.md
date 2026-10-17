@@ -1,11 +1,11 @@
 # BLT-SafeCloak
 
 **Live Site:** [https://safecloak.owaspblt.org/](https://safecloak.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-safecloak](https://git.owaspblt.org/BLT/BLT/tree/main/blt-safecloak)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-SafeCloak](https://git.owaspblt.org/BLT/BLT-SafeCloak)
 
 <p align="center"><img src="logo.png" alt="blt-safecloak logo" width="160" height="160"></p>
 
-[![Video Chat E2E Tests](https://git.owaspblt.org/BLT/BLT/actions/workflows/test.yml/badge.svg)](https://git.owaspblt.org/BLT/BLT/actions/workflows/test.yml)
+[![Video Chat E2E Tests](https://git.owaspblt.org/BLT/actions/workflows/test.yml/badge.svg)](https://git.owaspblt.org/BLT/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node >= 18](https://img.shields.io/badge/node-%3E%3D18-339933?logo=node.js&logoColor=white)](package.json)
 [![Python >= 3.11](https://img.shields.io/badge/python-%3E%3D3.11-3776AB?logo=python&logoColor=white)](pyproject.toml)

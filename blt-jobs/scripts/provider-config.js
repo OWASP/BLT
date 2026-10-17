@@ -1,6 +1,6 @@
 const DEFAULT_PROVIDER_ID = "gitlab";
 const DEFAULT_PROVIDER_NAME = "GitLab";
-const DEFAULT_REPOSITORY_URL = "https://git.owaspblt.org/BLT/BLT/tree/main/blt-jobs";
+const DEFAULT_REPOSITORY_URL = "https://git.owaspblt.org/BLT/BLT-Jobs";
 const DEFAULT_SOURCE_REF = "main";
 
 function trimTrailingSlash(value) {

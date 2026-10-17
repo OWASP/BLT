@@ -1,7 +1,7 @@
 # OWASP BLT — Bug Reporting Platform
 
 **Live Site:** [https://pages.owaspblt.org/](https://pages.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-pages](https://git.owaspblt.org/BLT/BLT/tree/main/blt-pages)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Pages](https://git.owaspblt.org/BLT/BLT-Pages)
 
 <p align="center"><img src="logo.png" alt="blt-pages logo" width="160" height="160"></p>
 

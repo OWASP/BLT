@@ -12,7 +12,7 @@ function base(
     project: {
       id: 42,
       path_with_namespace: "owasp-blt/blt-preflight",
-      web_url: "https://git.owaspblt.org/BLT/BLT/tree/main/blt-preflight",
+      web_url: "https://git.owaspblt.org/BLT/BLT-Preflight",
     },
     labels: [],
     ...over,

@@ -93,7 +93,7 @@ If a maintainer's key is compromised:
 
 To report a security issue **with the registry itself** (not a vulnerability submission):
 
-- Open a private security advisory at: https://git.owaspblt.org/BLT/BLT/security/advisories/new
+- Open a private security advisory at: https://git.owaspblt.org/BLT/security/advisories/new
 - Or email the OWASP BLT maintainers directly.
 
 Do **not** open public GitHub Issues for security issues affecting the registry's own integrity.

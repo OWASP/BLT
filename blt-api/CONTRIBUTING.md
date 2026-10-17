@@ -30,7 +30,7 @@ This opens a browser for authentication. Required for remote database operations
 ### 3. Clone and Install
 
 ```bash
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd BLT/blt-api
 
 # Install Python dependencies

@@ -198,9 +198,9 @@ class FrontendProductionUITests(unittest.TestCase):
         self.assertIn("footer-panel", html)
         self.assertIn('aria-label="Footer navigation"', html)
         self.assertIn("timer.owaspblt.org", html)
-        self.assertIn('href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-web"', html)
+        self.assertIn('href="https://git.owaspblt.org/BLT/BLT-Timer-Web"', html)
         self.assertIn("Source Code", html)
-        self.assertIn('href="https://git.owaspblt.org/BLT/BLT"', html)
+        self.assertIn('href="https://git.owaspblt.org/BLT"', html)
         self.assertIn("BLT TIMER", html)
         self.assertIn("Start timer", html)
 

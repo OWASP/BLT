@@ -248,7 +248,7 @@ Workers → Broker Website → Health Status → App (when online)
 
 ### For Users
 
-1. Download from [Releases](https://git.owaspblt.org/BLT/BLT/releases)
+1. Download from [Releases](https://git.owaspblt.org/BLT/releases)
 2. Install on your device
 3. Create your profile (encrypted locally)
 4. Browse data brokers
@@ -261,7 +261,7 @@ See [Quick Start Guide](docs/quick-start.md) for details.
 
 ```bash
 # Clone repository
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd BLT/blt-vanish
 
 # Flutter app
@@ -312,8 +312,8 @@ All core features implemented, tested, and documented. Ready for:
 
 ## Support & Community
 
-- **Issues**: [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
-- **Discussions**: [GitHub Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
+- **Issues**: [GitHub Issues](https://git.owaspblt.org/BLT/issues)
+- **Discussions**: [GitHub Discussions](https://git.owaspblt.org/BLT/discussions)
 - **Security**: [Security Policy](SECURITY.md)
 - **Contributing**: [Contribution Guidelines](CONTRIBUTING.md)
 

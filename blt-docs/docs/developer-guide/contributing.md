@@ -6,20 +6,20 @@ OWASP BLT is documented across several repositories. Start in the repository tha
 
 | Repository | Current status | Use it for |
 | ---------- | -------------- | ---------- |
-| [BLT-docs](https://git.owaspblt.org/BLT/BLT/tree/main/blt-docs) | Current documentation repository | MkDocs pages, documentation navigation, writing standards, and contributor guidance. |
-| [BLT-Next](https://git.owaspblt.org/BLT/BLT/tree/main/blt-next) | Current frontend repository | User-facing product workflows, frontend layout, and Worker routes serving the BLT-Next application. |
-| [BLT-API](https://git.owaspblt.org/BLT/BLT/tree/main/blt-api) | Current API repository | API service work, platform integration code, API tests, and API-owned operational notes. |
-| [BLT-Jobs](https://git.owaspblt.org/BLT/BLT/tree/main/blt-jobs) | Current jobs/community repository | Jobs portal work, community portal content, and related automation workflows. |
-| [BLT-Sizzle](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle) | Current check-in repository | Organization check-in workflows, contributor activity tracking, and scheduled reminders. |
+| [BLT-docs](https://git.owaspblt.org/BLT/BLT-Docs) | Current documentation repository | MkDocs pages, documentation navigation, writing standards, and contributor guidance. |
+| [BLT-Next](https://git.owaspblt.org/BLT/BLT-Next) | Current frontend repository | User-facing product workflows, frontend layout, and Worker routes serving the BLT-Next application. |
+| [BLT-API](https://git.owaspblt.org/BLT/BLT-API) | Current API repository | API service work, platform integration code, API tests, and API-owned operational notes. |
+| [BLT-Jobs](https://git.owaspblt.org/BLT/BLT-Jobs) | Current jobs/community repository | Jobs portal work, community portal content, and related automation workflows. |
+| [BLT-Sizzle](https://git.owaspblt.org/BLT/BLT-Sizzle) | Current check-in repository | Organization check-in workflows, contributor activity tracking, and scheduled reminders. |
 | Other BLT support repositories | Migration status should be confirmed | Metadata, project catalog, discovery, and automation modules that may still have historical GitHub locations. |
 
 If a repository is migration-pending or unclear, confirm the current location with maintainers before opening new work.
 
 ## Work from an issue or work item
 
-Use GitLab issues or work items when the repository has a confirmed GitLab home. Link the issue or work item in the merge request so reviewers can understand the reason for the change.
+Track work as issues on [git.owaspblt.org/BLT](https://git.owaspblt.org/BLT/issues). Link the issue in the pull request so reviewers can understand the reason for the change.
 
-For migration-pending repositories, ask maintainers where new work should be tracked before starting. Avoid opening duplicate issues across historical GitHub repositories and current GitLab repositories.
+Older GitHub and GitLab repositories are read-only history or mirrors; don't open issues there.
 
 ## Keep changes reviewable
 
@@ -57,7 +57,7 @@ For code changes:
 - [ ] The change uses a professional, direct tone.
 - [ ] The change contains no emojis.
 - [ ] Internal links are relative and resolve in MkDocs.
-- [ ] External repository links use confirmed GitLab locations where migration is complete.
+- [ ] BLT project links use `https://git.owaspblt.org/BLT/<Project>`.
 - [ ] Migration-pending repositories are labeled as such.
 - [ ] Product and architecture claims are supported by current repository context.
 - [ ] `uvx --with-requirements requirements.txt mkdocs build --strict` passes.
@@ -65,4 +65,4 @@ For code changes:
 
 ## Communication
 
-Use project maintainers, GitLab discussions, issues, and work items to clarify scope before making broad changes. OWASP community channels, including OWASP Slack, can help contributors find the right maintainer or project area, but implementation decisions should be recorded in the repository that owns the work.
+Use project maintainers, discussions and issues on git.owaspblt.org to clarify scope before making broad changes. OWASP community channels, including OWASP Slack, can help contributors find the right maintainer or project area, but implementation decisions should be recorded in the repository that owns the work.

@@ -14,7 +14,7 @@ all:
     venv_dir: "{{ app_dir }}/venv"
     
     # Repository
-    repo_url: https://git.owaspblt.org/BLT/BLT.git
+    repo_url: https://git.owaspblt.org/BLT.git
     branch: main
     
     # Domain

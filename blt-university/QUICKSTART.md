@@ -35,7 +35,7 @@ Read the [Contributing Guide](CONTRIBUTING.md) to understand our requirements.
 
 ### 2. Submit Proposal
 
-1. Use the [course submission template](https://git.owaspblt.org/BLT/BLT/issues/new?template=course-submission.yml)
+1. Use the [course submission template](https://git.owaspblt.org/BLT/issues/new?template=course-submission.yml)
 2. Provide detailed course information
 3. Wait for curriculum team review
 
@@ -107,7 +107,7 @@ git push origin feature/your-course
 
 ```bash
 # Clone repository
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd blt-university
 
 # Install Ruby dependencies
@@ -228,8 +228,8 @@ resources:
 
 ## Getting Help
 
-- **Technical Issues**: [Open an issue](https://git.owaspblt.org/BLT/BLT/issues)
-- **Questions**: [Start a discussion](https://git.owaspblt.org/BLT/BLT/discussions)
+- **Technical Issues**: [Open an issue](https://git.owaspblt.org/BLT/issues)
+- **Questions**: [Start a discussion](https://git.owaspblt.org/BLT/discussions)
 - **Course Content**: Contact the instructor via their profile
 - **General**: Check the [README](README.md) and [Contributing Guide](CONTRIBUTING.md)
 
@@ -254,8 +254,8 @@ resources:
 ## Resources
 
 - **Website**: https://university.owaspblt.org/
-- **GitHub**: https://git.owaspblt.org/BLT/BLT/tree/main/blt-university
-- **GitLab**: https://git.owaspblt.org/BLT/BLT/tree/main/blt-university
+- **GitHub**: https://git.owaspblt.org/BLT/BLT-University
+- **GitLab**: https://git.owaspblt.org/BLT/BLT-University
 - **Jekyll Docs**: https://jekyllrb.com/docs/
 - **Markdown Guide**: https://www.markdownguide.org/
 
@@ -264,6 +264,6 @@ resources:
 Ready to get started? Choose your path:
 
 - **Students**: [Browse Courses](https://university.owaspblt.org/courses/) → [Enroll](https://university.owaspblt.org/enroll/)
-- **Instructors**: [Read Contributing Guide](CONTRIBUTING.md) → [Submit Course](https://git.owaspblt.org/BLT/BLT/issues/new?template=course-submission.yml)
+- **Instructors**: [Read Contributing Guide](CONTRIBUTING.md) → [Submit Course](https://git.owaspblt.org/BLT/issues/new?template=course-submission.yml)
 
 Welcome to BLT University! 🎓

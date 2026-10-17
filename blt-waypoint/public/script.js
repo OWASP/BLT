@@ -16,19 +16,19 @@ const DATA_SOURCES = {
   github: {
     label: 'GitHub',
     file: 'github_data.json',
-    orgUrl: 'https://git.owaspblt.org/BLT/BLT',
+    orgUrl: 'https://git.owaspblt.org/BLT',
   },
   gitlab: {
     label: 'GitLab',
     file: 'gitlab_data.json',
-    orgUrl: 'https://git.owaspblt.org/BLT/BLT',
+    orgUrl: 'https://git.owaspblt.org/BLT',
   },
 };
 const MIGRATION_TOTAL_REPOS = 55;
 const MIGRATION_MIGRATED_REPOS = 55;
 const MIGRATION_COMPLETION_POINTS = MIGRATION_TOTAL_REPOS * 100;
 
-// Project board URLs sourced from https://git.owaspblt.org/BLT/BLT/blob/main/dot_github/scripts/project_urls.json
+// Project board URLs sourced from https://git.owaspblt.org/BLT/dot_github/blob/main/scripts/project_urls.json
 const PROJECT_URLS = {
   'BLT':                          'https://github.com/orgs/OWASP-BLT/projects/2',
   'BLT-Flutter':                  'https://github.com/orgs/OWASP-BLT/projects/60',

@@ -1,7 +1,7 @@
 # 🚀 BLT Contributor Start Page
 
 **Live Site:** [https://start.owaspblt.org/](https://start.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-start](https://git.owaspblt.org/BLT/BLT/tree/main/blt-start)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Start](https://git.owaspblt.org/BLT/BLT-Start)
 
 <p align="center">
   <b>Modern Contributor Dashboard for OWASP BLT</b><br/>

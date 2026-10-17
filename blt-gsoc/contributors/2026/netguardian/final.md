@@ -189,8 +189,8 @@ That is a journey I am genuinely grateful for.
 ## Links
 
 - **GSoC 2026 work product page:** [index.html](index.html)
-- **Project repository:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian](https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian)
+- **Project repository:** [https://git.owaspblt.org/BLT/BLT-NetGuardian](https://git.owaspblt.org/BLT/BLT-NetGuardian)
 - **Final crawl synchronization MR:** [OWASP BLT-NetGuardian !34](https://gitlab.com/owasp-blt/blt-netguardian/-/merge_requests/34)
-- **Quickstart:** [`docs/spec/quickstart.md`](https://git.owaspblt.org/BLT/BLT/blob/main/blt-netguardian/docs/spec/quickstart.md)
-- **Permission outreach:** [`docs/spec/permission-outreach.md`](https://git.owaspblt.org/BLT/BLT/blob/main/blt-netguardian/docs/spec/permission-outreach.md)
+- **Quickstart:** [`docs/spec/quickstart.md`](https://git.owaspblt.org/BLT/BLT-NetGuardian/blob/main/docs/spec/quickstart.md)
+- **Permission outreach:** [`docs/spec/permission-outreach.md`](https://git.owaspblt.org/BLT/BLT-NetGuardian/blob/main/docs/spec/permission-outreach.md)
 

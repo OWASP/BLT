@@ -9,7 +9,7 @@ class BrokerService {
   static const String _workersBaseUrl = 'https://Vanish.workers.dev';
   
   // Fallback to local/GitHub data
-  static const String _fallbackUrl = 'https://git.owaspblt.org/BLT/BLT/raw/main/blt-vanish/data/brokers/brokers.json';
+  static const String _fallbackUrl = 'https://git.owaspblt.org/BLT/BLT-Vanish/raw/main/data/brokers/brokers.json';
   
   // Cache for offline support
   List<Broker>? _cachedBrokers;

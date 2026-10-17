@@ -62,7 +62,7 @@ Keep navigation labels short and stable. Prefer names that describe the page pur
 
 Check internal links whenever moving or renaming pages. Prefer relative links for documentation pages so local builds and deployed builds behave consistently.
 
-For external repository links, use confirmed GitLab links for migrated repositories. Treat other GitHub repository links as historical or migration-pending unless maintainers confirm they are current.
+For BLT project links, use `https://git.owaspblt.org/BLT/<Project>`. Treat older GitHub and GitLab repository links as historical.
 
 When a page describes API behavior, deployment behavior, or automation, confirm the current behavior in the owning repository before documenting it as final.
 

@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 MAIN = ROOT / "workers" / "main.py"
 WRANGLER = ROOT / "wrangler.toml"
-CONTRIBUTION_URL = "https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle"
+CONTRIBUTION_URL = "https://git.owaspblt.org/BLT/BLT-Sizzle"
 LEGACY_CONTRIBUTION_URL = "https://github.com/OWASP-BLT/BLT-Sizzle"
 
 

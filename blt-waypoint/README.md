@@ -1,7 +1,7 @@
 # OWASP BLT Organization Dashboard
 
 **Live Site:** [https://waypoint.owaspblt.org/](https://waypoint.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-waypoint](https://git.owaspblt.org/BLT/BLT/tree/main/blt-waypoint)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Waypoint](https://git.owaspblt.org/BLT/BLT-Waypoint)
 
 A live interactive dashboard for exploring OWASP-BLT GitHub and GitLab repositories, migration progress, and repository statistics.
 
@@ -84,7 +84,7 @@ All projects are developed transparently under OWASP governance with AGPL-3.0 li
 ### Clone & Run Locally
 
 ```bash
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd blt-waypoint
 
 # Start a local server
@@ -127,7 +127,7 @@ We welcome contributions! To contribute:
 
 - 🌐 **Website:** [owaspblt.org](https://owaspblt.org)
 - 💬 **Slack:** [Join OWASP Slack](https://owasp.org/slack/invite)
-- 📧 **Issues:** [GitLab Issues](https://git.owaspblt.org/BLT/BLT/issues)
+- 📧 **Issues:** [GitLab Issues](https://git.owaspblt.org/BLT/issues)
 
 ---
 

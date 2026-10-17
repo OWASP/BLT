@@ -1,7 +1,7 @@
 # BLT-Vanish
 
 **Live Site:** [https://vanish.owaspblt.org/](https://vanish.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish](https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Vanish](https://git.owaspblt.org/BLT/BLT-Vanish)
 
 <p align="center"><img src="logo.png" alt="blt-vanish logo" width="160" height="160"></p>
 
@@ -193,7 +193,7 @@ Perfect for quick use or trying out BLT-Vanish before installing the native app.
 
 ```bash
 # Clone the repository
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd BLT-Vanish-Web
 
 # Navigate to Flutter app
@@ -210,7 +210,7 @@ flutter run
 
 Download a pre-built, self-contained desktop app:
 
-1. Visit [Releases](https://git.owaspblt.org/BLT/BLT/releases)
+1. Visit [Releases](https://git.owaspblt.org/BLT/releases)
 2. Download the ZIP for your platform
 3. Extract and run - no installation needed
 4. Verify the signature (optional but recommended)
@@ -379,8 +379,8 @@ BLT-Vanish is different:
 ## 📞 Support
 
 - **Documentation**: Check our [docs/](./docs/) directory
-- **Issues**: [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
-- **Discussions**: [GitHub Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
+- **Issues**: [GitHub Issues](https://git.owaspblt.org/BLT/issues)
+- **Discussions**: [GitHub Discussions](https://git.owaspblt.org/BLT/discussions)
 
 ## 🏆 Acknowledgments
 

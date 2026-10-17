@@ -1,7 +1,7 @@
 # BLT-GitHub-App
 
 **Live Site:** [https://pool.owaspblt.org/](https://pool.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-pool](https://git.owaspblt.org/BLT/BLT/tree/main/blt-pool)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Pool](https://git.owaspblt.org/BLT/BLT-Pool)
 
 A GitHub App that integrates [OWASP BLT](https://owaspblt.org) services into GitHub repositories.
 
@@ -18,7 +18,7 @@ A GitHub App that integrates [OWASP BLT](https://owaspblt.org) services into Git
   - PR Reviews (+5; sampled from recent merged PRs)
 - **Auto-close excess PRs** — PRs are automatically closed if the author has 50+ open PRs in the repository.
 - **Rank improvement congratulations** — When a PR is merged and the author's rank improves on the 6-month leaderboard, they receive a congratulatory message.
-- **BLT bug reporting** — When an issue is labeled as `bug`, `vulnerability`, or `security`, it is automatically reported to the [BLT API](https://git.owaspblt.org/BLT/BLT/tree/main/blt-api).
+- **BLT bug reporting** — When an issue is labeled as `bug`, `vulnerability`, or `security`, it is automatically reported to the [BLT API](https://git.owaspblt.org/BLT/BLT-API).
 - **Welcome messages** — New issues and pull requests receive helpful onboarding messages with contribution tips.
 - **Merge congratulations** — Merged PRs receive an acknowledgement message celebrating the contributor's work.
 
@@ -176,9 +176,9 @@ install it on their own GitHub organization.
 
 ## Related Projects
 
-- [OWASP BLT](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core) — Main bug logging platform
-- [BLT-Action](https://git.owaspblt.org/BLT/BLT/tree/main/blt-action) — GitHub Action for issue assignment
-- [BLT-API](https://git.owaspblt.org/BLT/BLT/tree/main/blt-api) — REST API for BLT
+- [OWASP BLT](https://git.owaspblt.org/BLT/BLT-Core) — Main bug logging platform
+- [BLT-Action](https://git.owaspblt.org/BLT/BLT-Action) — GitHub Action for issue assignment
+- [BLT-API](https://git.owaspblt.org/BLT/BLT-API) — REST API for BLT
 
 ## License
 

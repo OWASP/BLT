@@ -1,11 +1,11 @@
 # 🍞 Panini - Banned Apps Visualization
 
 **Live Site:** [https://panini.owaspblt.org/](https://panini.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-panini](https://git.owaspblt.org/BLT/BLT/tree/main/blt-panini)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Panini](https://git.owaspblt.org/BLT/BLT-Panini)
 
 **Panini** is a static web application that visualizes apps banned by different countries around the world. It provides both a list view and an interactive map view to explore censorship data.
 
-This project was extracted from the [OWASP BLT](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core) project to serve as a standalone visualization.
+This project was extracted from the [OWASP BLT](https://git.owaspblt.org/BLT/BLT-Core) project to serve as a standalone visualization.
 
 ## ✨ Features
 

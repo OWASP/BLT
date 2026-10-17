@@ -27,9 +27,9 @@ Thank you for your interest in contributing to BLT-OSSH (Open-Source Sorting Hat
 
 ## Issues
 
-- Report bugs or suggest features via [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
+- Report bugs or suggest features via [GitHub Issues](https://git.owaspblt.org/BLT/issues)
 - Use the issue templates when available
 
 ## Questions?
 
-Reach out via the [OWASP BLT discussions](https://git.owaspblt.org/BLT/BLT/discussions) or open an issue.
+Reach out via the [OWASP BLT discussions](https://git.owaspblt.org/BLT/discussions) or open an issue.

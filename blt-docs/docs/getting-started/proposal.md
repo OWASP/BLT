@@ -21,7 +21,7 @@ This structure should make it easier to maintain documentation without implying 
 
 ## Repository migration awareness
 
-Confirmed GitLab repositories should be documented first. Current confirmed repositories include BLT-docs, BLT-Next, BLT-API, BLT-Jobs, and BLT-Sizzle. Other repositories may still appear on GitHub while migration details are reviewed.
+Active projects should be documented first. The best-documented projects today are BLT-Docs, BLT-Next, BLT-API, BLT-Jobs and BLT-Sizzle.
 
 When a repository is migration-pending or historical, documentation should say so plainly. Do not replace links, rename repositories, or describe migration status as complete unless it has been confirmed.
 
@@ -34,7 +34,7 @@ For documentation changes, start with the local setup guide, then use the projec
 ## Current priority areas
 
 - Keep the public documentation entry points concise and accurate.
-- Document confirmed GitLab repositories before migration-pending repositories.
+- Document active projects first.
 - Update user-guide pages against current workflows.
 - Expand BLT-API documentation only from confirmed implementation details.
 - Add repository-specific setup and maintenance notes where they are missing.

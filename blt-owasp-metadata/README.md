@@ -1,10 +1,10 @@
 # OWASP Metadata
 
 **Live Site:** [https://metadata.owaspblt.org/](https://metadata.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-metadata](https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-metadata)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-OWASP-Metadata](https://git.owaspblt.org/BLT/BLT-OWASP-Metadata)
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen?logo=github)](https://metadata.owaspblt.org/)
-[![Scraper Workflow](https://git.owaspblt.org/BLT/BLT/actions/workflows/scraper.yml/badge.svg)](https://git.owaspblt.org/BLT/BLT/actions/workflows/scraper.yml)
+[![Scraper Workflow](https://git.owaspblt.org/BLT/actions/workflows/scraper.yml/badge.svg)](https://git.owaspblt.org/BLT/actions/workflows/scraper.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow?logo=javascript&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
@@ -12,10 +12,10 @@
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
 [![Chart.js](https://img.shields.io/badge/Chart.js-FF6384?logo=chartdotjs&logoColor=white)](https://www.chartjs.org/)
 [![Mermaid](https://img.shields.io/badge/Mermaid-FF3670?logo=mermaid&logoColor=white)](https://mermaid.js.org/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://git.owaspblt.org/BLT/BLT/pulls)
-[![GitHub Issues](https://img.shields.io/github/issues/OWASP-BLT/OWASP-metadata)](https://git.owaspblt.org/BLT/BLT/issues)
-[![GitHub Stars](https://img.shields.io/github/stars/OWASP-BLT/OWASP-metadata?style=social)](https://git.owaspblt.org/BLT/BLT/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/OWASP-BLT/OWASP-metadata?style=social)](https://git.owaspblt.org/BLT/BLT/network/members)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://git.owaspblt.org/BLT/pulls)
+[![GitHub Issues](https://img.shields.io/github/issues/OWASP-BLT/OWASP-metadata)](https://git.owaspblt.org/BLT/issues)
+[![GitHub Stars](https://img.shields.io/github/stars/OWASP-BLT/OWASP-metadata?style=social)](https://git.owaspblt.org/BLT/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/OWASP-BLT/OWASP-metadata?style=social)](https://git.owaspblt.org/BLT/network/members)
 
 A unified metadata aggregation system for OWASP projects and chapters. This project aims to unify and standardize data across the OWASP repository ecosystem without requiring major changes to existing repositories, by leveraging the existing Jekyll front matter in `index.md` files.
 

@@ -262,7 +262,7 @@ rg -n -i 'T[O]DO|T[B]D' README.md mkdocs.yml docs
 
 Expected: No whitespace errors, no unintended OWASP BLT GitHub repository links, and no unresolved planning placeholders in user-facing documentation.
 
-Result: `git diff --check` clean. No `https://git.owaspblt.org/BLT/BLT` links and no `TODO`/`TBD` placeholders found.
+Result: `git diff --check` clean. No `https://git.owaspblt.org/BLT` links and no `TODO`/`TBD` placeholders found.
 
 - [x] **Step 5: Invoke the no-mistakes status view.**
 

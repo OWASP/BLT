@@ -183,7 +183,7 @@ Before opening a PR, you can test what advisory you'll receive:
 
 ```bash
 # Clone the repo
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd BLT/blt-preflight
 
 # Get advisory for your changes

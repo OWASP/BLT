@@ -97,7 +97,7 @@ function initAnonymousToggle() {
       btn.href = "https://next.owaspblt.org/pages/report-bug";
       btn.querySelector(".btn-label").textContent = "Report Bug Anonymously";
     } else {
-      btn.href = "https://git.owaspblt.org/BLT/BLT/issues/new?issuable_template=Bug";
+      btn.href = "https://git.owaspblt.org/BLT/issues/new?issuable_template=Bug";
       btn.querySelector(".btn-label").textContent = "Report a Bug";
     }
     bltCapture("anonymous_reporting_toggled", { enabled: checkbox.checked });
@@ -363,7 +363,7 @@ function renderLeaderboard(container, data, limit = 0, filter = "") {
   if (!data.leaderboard || data.leaderboard.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
       <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-trophy"></use></svg>
-      No reports yet. Be the first to <a href="https://git.owaspblt.org/BLT/BLT/issues/new?issuable_template=Bug" class="text-primary underline hover:no-underline">report a bug</a>!
+      No reports yet. Be the first to <a href="https://git.owaspblt.org/BLT/issues/new?issuable_template=Bug" class="text-primary underline hover:no-underline">report a bug</a>!
     </td></tr>`;
     return;
   }
@@ -630,7 +630,7 @@ function renderRecentBugs(bugs) {
   if (!bugs || bugs.length === 0) {
     grid.innerHTML = `<div class="col-span-3 text-center py-12 text-gray-400 dark:text-gray-500">
       <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-bug"></use></svg>
-      No bug reports yet. <a href="https://git.owaspblt.org/BLT/BLT/issues/new?issuable_template=Bug" class="text-primary hover:underline">Be the first to report!</a>
+      No bug reports yet. <a href="https://git.owaspblt.org/BLT/issues/new?issuable_template=Bug" class="text-primary hover:underline">Be the first to report!</a>
     </div>`;
     return;
   }

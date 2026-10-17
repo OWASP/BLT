@@ -180,6 +180,6 @@ To enable signature validation:
 ## Support
 
 If you encounter issues setting up webhooks:
-1. Check the [BLT GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
+1. Check the [BLT GitHub Issues](https://git.owaspblt.org/BLT/issues)
 2. Review server logs for detailed error messages
 3. Create a new issue with details about your problem

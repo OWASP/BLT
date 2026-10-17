@@ -1,7 +1,7 @@
 # BLT-GSOC
 
 **Live Site:** [https://gsoc.owaspblt.org/](https://gsoc.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-gsoc](https://git.owaspblt.org/BLT/BLT/tree/main/blt-gsoc)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-GSOC](https://git.owaspblt.org/BLT/BLT-GSOC)
 
 <p align="center"><img src="logo.png" alt="blt-gsoc logo" width="160" height="160"></p>
 
@@ -133,6 +133,6 @@ This project is part of the OWASP BLT project and inherits its license.
 
 ## 🔗 Related Links
 
-- **Main BLT Repository**: [OWASP-BLT/BLT](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core)
+- **Main BLT Repository**: [OWASP-BLT/BLT](https://git.owaspblt.org/BLT/BLT-Core)
 - **OWASP GSoC Info**: [owasp.org/www-community/initiatives/gsoc/](https://owasp.org/www-community/initiatives/gsoc/)
 - **Google Summer of Code**: [summerofcode.withgoogle.com](https://summerofcode.withgoogle.com/)

@@ -1,7 +1,7 @@
 # BLT-Leaf - PR Readiness Checker
 
 **Live Site:** [https://leaf.owaspblt.org/](https://leaf.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-leaf](https://git.owaspblt.org/BLT/BLT/tree/main/blt-leaf)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Leaf](https://git.owaspblt.org/BLT/BLT-Leaf)
 
 <p align="center"><img src="logo.png" alt="blt-leaf logo" width="160" height="160"></p>
 
@@ -13,7 +13,7 @@ A simple one-page application to track and monitor GitHub Pull Request readiness
 
 Deploy this application to Cloudflare Workers with one click:
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://git.owaspblt.org/BLT/BLT/tree/main/blt-leaf)
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://git.owaspblt.org/BLT/BLT-Leaf)
 
 The deploy button will automatically:
 - Create a new Cloudflare Workers project
@@ -98,7 +98,7 @@ BLT-Leaf/
 
 1. Clone the repository:
 ```bash
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd BLT-Leaf
 ```
 

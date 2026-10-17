@@ -100,7 +100,7 @@ if (!gsoc2027) {
   }
 }
 
-if (HACKATHONS_CONFIG.global.organizationUrl !== "https://git.owaspblt.org/BLT/BLT") {
+if (HACKATHONS_CONFIG.global.organizationUrl !== "https://git.owaspblt.org/BLT") {
   failures.push("global organizationUrl must point to the OWASP-BLT GitLab group");
 }
 
@@ -156,8 +156,8 @@ statColorChecks.forEach(({ name, source, selector }) => {
 });
 
 const forbiddenPublicProjectUrls = [
-  "https://git.owaspblt.org/BLT/BLT/tree/main/blt-hackathons",
-  "https://git.owaspblt.org/BLT/BLT/issues",
+  "https://git.owaspblt.org/BLT/BLT-Hackathons",
+  "https://git.owaspblt.org/BLT/issues",
 ];
 
 forbiddenPublicProjectUrls.forEach((url) => {

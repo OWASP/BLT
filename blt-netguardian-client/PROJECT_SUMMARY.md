@@ -254,7 +254,7 @@ Potential areas for expansion:
 
 ```bash
 # Clone repository
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 
 # Install dependencies
 cd BLT/blt-netguardian-client

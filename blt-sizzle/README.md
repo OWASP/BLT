@@ -1,7 +1,7 @@
 # BLT Sizzle
 
 **Live Site:** [https://sizzle.owaspblt.org/](https://sizzle.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Sizzle](https://git.owaspblt.org/BLT/BLT-Sizzle)
 
 <p align="center"><img src="logo.png" alt="blt-sizzle logo" width="160" height="160"></p>
 
@@ -251,7 +251,7 @@ git diff --check
 Repository:
 
 ```text
-https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle
+https://git.owaspblt.org/BLT/BLT-Sizzle
 ```
 
 ## License

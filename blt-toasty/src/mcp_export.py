@@ -111,7 +111,7 @@ async def get_triage_record(event_id: str, db: Any) -> dict:
 
     # Construct the JSON export contract (Version 1.0)
     issue_iid_str = str(issue_iid) if issue_iid else "unknown"
-    source_ref = f"https://git.owaspblt.org/BLT/BLT/issues/{issue_iid_str}"
+    source_ref = f"https://git.owaspblt.org/BLT/issues{issue_iid_str}"
 
     cwe_hints = []
     if rationale_row:

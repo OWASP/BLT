@@ -14,7 +14,7 @@ Follow these steps to get your hackathon dashboard up and running in minutes!
 
 **Option C: Clone Directly**
 ```bash
-git clone https://git.owaspblt.org/BLT/BLT.git my-hackathon
+git clone https://git.owaspblt.org/BLT.git my-hackathon
 cd my-hackathon/blt-hackathons
 ```
 
@@ -198,7 +198,7 @@ Once deployed, share your hackathon dashboard:
 ## Need Help?
 
 - 📖 Read the full [README](README.md)
-- 💬 Check [Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
-- 🐛 Report issues on [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
+- 💬 Check [Discussions](https://git.owaspblt.org/BLT/discussions)
+- 🐛 Report issues on [GitHub Issues](https://git.owaspblt.org/BLT/issues)
 
 Happy hacking! 🚀

@@ -166,7 +166,7 @@ git clone https://github.com/YOUR_USERNAME/BLT-Vanish.git
 cd BLT-Vanish-Web
 
 # Add upstream remote
-git remote add upstream https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish
+git remote add upstream https://git.owaspblt.org/BLT/BLT-Vanish
 ```
 
 ### 2. Create a Branch
@@ -457,9 +457,9 @@ Outstanding contributors may be featured in:
 
 ### Where to Ask Questions
 
-- **General Questions**: [GitHub Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
-- **Bug Reports**: [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
-- **Security Issues**: [Security Advisory](https://git.owaspblt.org/BLT/BLT/security/advisories)
+- **General Questions**: [GitHub Discussions](https://git.owaspblt.org/BLT/discussions)
+- **Bug Reports**: [GitHub Issues](https://git.owaspblt.org/BLT/issues)
+- **Security Issues**: [Security Advisory](https://git.owaspblt.org/BLT/security/advisories)
 - **Pull Requests**: Comment on the PR
 
 ### Code of Conduct
@@ -490,4 +490,4 @@ Every contribution, no matter how small, helps make the internet a more private 
 
 ---
 
-*Questions? Open a [Discussion](https://git.owaspblt.org/BLT/BLT/discussions) and we'll help you get started!*
+*Questions? Open a [Discussion](https://git.owaspblt.org/BLT/discussions) and we'll help you get started!*

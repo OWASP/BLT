@@ -1,7 +1,7 @@
 # BLT Jobs
 
 **Live Site:** [https://jobs.owaspblt.org/](https://jobs.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-jobs](https://git.owaspblt.org/BLT/BLT/tree/main/blt-jobs)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Jobs](https://git.owaspblt.org/BLT/BLT-Jobs)
 
 <p align="center"><img src="logo.png" alt="blt-jobs logo" width="160" height="160"></p>
 

@@ -1,38 +1,38 @@
 {
     "django": [
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core"
+      "https://git.owaspblt.org/BLT/BLT-Core"
     ],
     "python": [
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core",
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-flutter",
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-lettuce"
+      "https://git.owaspblt.org/BLT/BLT-Core",
+      "https://git.owaspblt.org/BLT/BLT-Flutter",
+      "https://git.owaspblt.org/BLT/BLT-Lettuce"
     ],
     "dart": [
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-flutter",
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-lettuce"
+      "https://git.owaspblt.org/BLT/BLT-Flutter",
+      "https://git.owaspblt.org/BLT/BLT-Lettuce"
     ],
     "flutter": [
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-flutter",
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-lettuce"
+      "https://git.owaspblt.org/BLT/BLT-Flutter",
+      "https://git.owaspblt.org/BLT/BLT-Lettuce"
     ],
     "blockchain": [
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards"
+      "https://git.owaspblt.org/BLT/BLT-Rewards"
     ],
     "cryptography": [
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards"
+      "https://git.owaspblt.org/BLT/BLT-Rewards"
     ],
     "javascript": [
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-action",
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-extension",
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core"
+      "https://git.owaspblt.org/BLT/BLT-Action",
+      "https://git.owaspblt.org/BLT/BLT-Extension",
+      "https://git.owaspblt.org/BLT/BLT-Core"
     ],
     "css": [
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-extension",
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core"
+      "https://git.owaspblt.org/BLT/BLT-Extension",
+      "https://git.owaspblt.org/BLT/BLT-Core"
     ],
     "html": [
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-extension",
-      "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core"
+      "https://git.owaspblt.org/BLT/BLT-Extension",
+      "https://git.owaspblt.org/BLT/BLT-Core"
     ]
   }
   

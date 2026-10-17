@@ -306,6 +306,6 @@ BLT-Action Cloudflare Site
 ## 🔗 Related Resources
 
 - **Live Site**: Cloudflare deployment URL
-- **Repository**: https://git.owaspblt.org/BLT/BLT/tree/main/blt-action
+- **Repository**: https://git.owaspblt.org/BLT/BLT-Action
 - **Design System**: https://design.owaspblt.org/
 - **OWASP BLT**: https://owaspblt.org

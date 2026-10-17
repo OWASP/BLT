@@ -1,7 +1,7 @@
 # BLT-Sammich Slack Bot
 
 **Live Site:** [https://sammich.owaspblt.org/](https://sammich.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-sammich](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sammich)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Sammich](https://git.owaspblt.org/BLT/BLT-Sammich)
 
 <p align="center"><img src="logo.png" alt="blt-sammich logo" width="160" height="160"></p>
 
@@ -9,7 +9,7 @@ Version: `0.1.0`
 
 **BLT-Sammich** is a feature-rich Slack bot built for the OWASP BLT (Bug Logging Tool) community. This bot helps teams interact with GitHub repositories, track contributors, manage projects, and discover OWASP resources directly from Slack.
 
-> **Note:** The core functionality of this bot has been merged into the [main BLT repository](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core). This repository serves as the standalone implementation and development base for the BLT Slack bot.
+> **Note:** The core functionality of this bot has been merged into the [main BLT repository](https://git.owaspblt.org/BLT/BLT-Core). This repository serves as the standalone implementation and development base for the BLT Slack bot.
 
 ## 📋 Table of Contents
 
@@ -168,7 +168,7 @@ BLT-Sammich is built with a modular plugin system:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd BLT-Sammich
 ```
 
@@ -367,7 +367,7 @@ This section explains how to run the BLT-Sammich Slack bot locally for developme
 
 **1. Clone the repository**
 ```bash
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd BLT-Sammich
 ```
 
@@ -539,17 +539,17 @@ This project is part of OWASP BLT and follows the same license terms. See [LICEN
 
 ## 🔗 Links
 
-- [Main BLT Repository](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core)
+- [Main BLT Repository](https://git.owaspblt.org/BLT/BLT-Core)
 - [OWASP BLT Website](https://owasp.org/www-project-bug-logging-tool/)
-- [Slack Bot Documentation](https://git.owaspblt.org/BLT/BLT/blob/main/blt-core/docs/bot-setup.md)
-- [Report Issues](https://git.owaspblt.org/BLT/BLT/issues)
+- [Slack Bot Documentation](https://git.owaspblt.org/BLT/BLT-Core/blob/main/docs/bot-setup.md)
+- [Report Issues](https://git.owaspblt.org/BLT/issues)
 
 ## 💬 Support
 
 Need help? 
-- 📖 Check the [Main BLT Documentation](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core)
-- 🐛 [Report a Bug](https://git.owaspblt.org/BLT/BLT/issues)
-- 💡 [Request a Feature](https://git.owaspblt.org/BLT/BLT/issues)
+- 📖 Check the [Main BLT Documentation](https://git.owaspblt.org/BLT/BLT-Core)
+- 🐛 [Report a Bug](https://git.owaspblt.org/BLT/issues)
+- 💡 [Request a Feature](https://git.owaspblt.org/BLT/issues)
 - 💬 Join the OWASP BLT Slack workspace
 
 ---

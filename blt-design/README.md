@@ -1,7 +1,7 @@
 # BLT-Design
 
 **Live Site:** [https://design.owaspblt.org/](https://design.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-design](https://git.owaspblt.org/BLT/BLT/tree/main/blt-design)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Design](https://git.owaspblt.org/BLT/BLT-Design)
 
 <p align="center"><img src="logo.png" alt="blt-design logo" width="160" height="160"></p>
 

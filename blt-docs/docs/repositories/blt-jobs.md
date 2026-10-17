@@ -4,7 +4,7 @@ BLT-Jobs is the jobs and community portal module for the OWASP BLT ecosystem.
 
 ## Current repository status
 
-The current repository is [owasp-blt/blt-jobs](https://git.owaspblt.org/BLT/BLT/tree/main/blt-jobs).
+The current repository is [owasp-blt/blt-jobs](https://git.owaspblt.org/BLT/BLT-Jobs).
 
 ## Purpose
 

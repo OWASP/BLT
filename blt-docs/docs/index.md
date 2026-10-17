@@ -49,7 +49,7 @@ BLT-docs is the documentation hub for the project. It covers user workflows, con
 The BLT ecosystem is moving toward a clearer, more modular platform structure. The documentation is being updated to reflect that direction:
 
 - Keep BLT-docs as the source of truth for contributor-facing documentation.
-- Document confirmed GitLab repositories first.
+- Document active projects first.
 - Separate user documentation from developer and maintainer documentation.
 - Keep API details grounded in the current BLT-API implementation.
 - Remove stale README content, broken badges, and outdated repository lists.

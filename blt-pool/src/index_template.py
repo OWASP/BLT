@@ -102,7 +102,7 @@ GITHUB_PAGE_HTML = """\
               <i class="fa-brands fa-github" aria-hidden="true"></i>
               Add to GitHub Organization
             </a>
-            <a href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-pool" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-md border border-[#E10101] px-5 py-3 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+            <a href="https://git.owaspblt.org/BLT/BLT-Pool" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-md border border-[#E10101] px-5 py-3 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
               <i class="fa-solid fa-code" aria-hidden="true"></i>
               View Source
             </a>
@@ -251,7 +251,7 @@ GITHUB_PAGE_HTML = """\
       <span aria-hidden="true">•</span>
       <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-red-600 hover:underline">owaspblt.org</a>
       <span aria-hidden="true">•</span>
-      <a href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-pool" target="_blank" rel="noopener" class="text-red-600 hover:underline">BLT-Pool Repo</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-Pool" target="_blank" rel="noopener" class="text-red-600 hover:underline">BLT-Pool Repo</a>
       <span aria-hidden="true">•</span>
       <span>© {{YEAR}} OWASP BLT</span>
     </div>

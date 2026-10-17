@@ -2,7 +2,7 @@ site_name: OWASP BLT Documentation
 site_url: https://docs.owaspblt.org/
 site_description: Official documentation for OWASP Bug Logging Tool (BLT)
 site_author: OWASP BLT Team
-repo_url: https://git.owaspblt.org/BLT/BLT/tree/main/blt-docs
+repo_url: https://git.owaspblt.org/BLT/BLT-Docs
 repo_name: owasp-blt/blt-docs
 edit_uri: ""
 
@@ -46,7 +46,7 @@ theme:
     - content.code.copy
     - content.code.annotate
   icon:
-    repo: fontawesome/brands/gitlab
+    repo: fontawesome/brands/git-alt
 
 extra_css:
   - assets/stylesheets/blt-theme.css
@@ -99,9 +99,9 @@ plugins:
 
 extra:
   social:
-    - icon: fontawesome/brands/gitlab
-      link: https://git.owaspblt.org/BLT/BLT/tree/main/blt-docs
-      name: BLT Docs on GitLab
+    - icon: fontawesome/brands/git-alt
+      link: https://git.owaspblt.org/BLT/BLT-Docs
+      name: BLT Docs source
     - icon: fontawesome/brands/slack
       link: https://owasp.org/slack/invite
       name: OWASP Slack

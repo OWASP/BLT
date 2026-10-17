@@ -1,6 +1,6 @@
 # Flutter Activity Tracker
 
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-flutter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-flutter)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Timer-Flutter](https://git.owaspblt.org/BLT/BLT-Timer-Flutter)
 
 <p align="center"><img src="logo.png" alt="blt-timer-flutter logo" width="160" height="160"></p>
 

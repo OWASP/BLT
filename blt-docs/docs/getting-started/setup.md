@@ -10,18 +10,11 @@ This guide is for running and verifying the BLT documentation site. It is not a 
 
 ## Clone the repository
 
-Use SSH if your GitLab account is configured for it:
+BLT Docs lives in the `blt-docs/` folder of the BLT repository:
 
 ```bash
-git clone git@gitlab.com:owasp-blt/blt-docs.git
-cd blt-docs
-```
-
-If SSH is not available, use HTTPS:
-
-```bash
-git clone https://git.owaspblt.org/BLT/BLT.git
-cd blt-docs
+git clone https://git.owaspblt.org/BLT.git
+cd BLT/blt-docs
 ```
 
 ## Build the site

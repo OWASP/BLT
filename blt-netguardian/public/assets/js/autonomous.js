@@ -349,7 +349,7 @@ function setupClientDownloadDelegation() {
 function downloadToClient(taskData) {
     const task = {
         source: 'BLT-NetGuardian',
-        client_repo: 'https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian-client',
+        client_repo: 'https://git.owaspblt.org/BLT/BLT-NetGuardian-Client',
         exported_at: new Date().toISOString(),
         task: {
             type: taskData.type || 'target',

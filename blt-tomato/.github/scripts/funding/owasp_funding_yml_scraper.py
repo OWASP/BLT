@@ -6,7 +6,7 @@ GITHUB_API_URL = "https://api.github.com"
 ORG_NAME = "OWASP"
 ADDITIONAL_PROJECTS = [
     {"name": "ASVS", "repo_url": "https://github.com/OWASP/ASVS"},
-    {"name": "BLT", "repo_url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core"},
+    {"name": "BLT", "repo_url": "https://git.owaspblt.org/BLT/BLT-Core"},
     {"name": "CycloneDX", "repo_url": "https://github.com/CycloneDX/cyclonedx-cli"},
     {
         "name": "Dependency-Track",
@@ -200,7 +200,7 @@ html_content += """
         </ul>
     </main>
     <footer>
-        <p><a href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-tomato">View this script</a></p>
+        <p><a href="https://git.owaspblt.org/BLT/BLT-Tomato">View this script</a></p>
     </footer>
 </body>
 </html>

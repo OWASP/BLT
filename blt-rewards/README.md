@@ -1,7 +1,7 @@
 # 🥓 BLT-Rewards (BACON)
 
 **Live Site:** [https://rewards.owaspblt.org/](https://rewards.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards](https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Rewards](https://git.owaspblt.org/BLT/BLT-Rewards)
 
 **Blockchain Assisted Contribution Network**
 
@@ -69,7 +69,7 @@ This project uses **Cloudflare Workers with Python runtime** for dynamic API end
 
 1. Clone the repository:
 ```bash
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd BLT-Rewards
 ```
 
@@ -145,10 +145,10 @@ Contributions are welcome! Please read our [**CONTRIBUTING.md**](CONTRIBUTING.md
 
 ## 🔗 Links
 
-- [OWASP BLT Project](https://git.owaspblt.org/BLT/BLT)
-- [BLT Main Repository](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core)
+- [OWASP BLT Project](https://git.owaspblt.org/BLT)
+- [BLT Main Repository](https://git.owaspblt.org/BLT/BLT-Core)
 - [Documentation Site](public/index.html)
-- [GitHub Repository](https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards)
+- [GitHub Repository](https://git.owaspblt.org/BLT/BLT-Rewards)
 
 ---
 

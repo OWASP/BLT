@@ -130,9 +130,9 @@ Use simple grid cards for short navigation groups. Keep card text concise.
 ## Link rules
 
 Use relative links for pages inside BLT-docs.
-Use the [BLT project map](../getting-started/projects.md) as the curated source for current GitLab repository and public-service links.
+Use the [BLT project map](../getting-started/projects.md) as the curated source for project and public-service links.
 
-Before changing an OWASP BLT repository link, verify its GitLab path through the GitLab group or the local repository's `upstream` remote.
+Before changing an OWASP BLT project link, check the project name in `scripts/routing/projects.tsv` in the BLT repository.
 Before adding a public `*.owaspblt.org` service URL, verify that it returns the intended product and identify its owning repository.
 Do not infer a service URL from a repository name.
 

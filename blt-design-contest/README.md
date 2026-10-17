@@ -1,7 +1,7 @@
 # BLT Design Contest
 
 **Live Site:** [https://contest.owaspblt.org/](https://contest.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-design-contest](https://git.owaspblt.org/BLT/BLT/tree/main/blt-design-contest)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Design-Contest](https://git.owaspblt.org/BLT/BLT-Design-Contest)
 
 Community design showcase for [OWASP BLT](https://owasp.org/www-project-blt/).
 

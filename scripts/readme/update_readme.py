@@ -24,7 +24,8 @@ ROOT = subprocess.run(
 ).stdout.strip()
 README = os.path.join(ROOT, "README.md")
 LOGINS = os.path.join(ROOT, "scripts", "readme", "contributor-logins.tsv")
-HOME = "https://git.owaspblt.org/BLT/BLT"
+ROUTES = os.path.join(ROOT, "scripts", "routing", "projects.tsv")
+HOME = "https://git.owaspblt.org/BLT"
 PROFILE_OVERRIDES = {"DonnieBLT": "https://git.owaspblt.org/@DonnieBLT"}
 NOREPLY = re.compile(r"^(?:\d+\+)?([A-Za-z0-9-]+(?:\[bot\])?)@users\.noreply\.github\.com$")
 BOTS = {"actions-user", "github-actions", "github-actions[bot]", "copilot", "copilot-swe-agent[bot]",
@@ -73,7 +74,18 @@ def describe(readme_text):
     return ""
 
 
+def display_names():
+    """Folder -> URL name (e.g. blt-leaf -> BLT-Leaf), from scripts/routing/projects.tsv."""
+    names = {}
+    for line in open(ROUTES, encoding="utf-8"):
+        if line.strip() and not line.startswith("#"):
+            folder, display = line.rstrip("\n").split("\t")[:2]
+            names[folder] = display
+    return names
+
+
 def projects_section():
+    names = display_names()
     rows = ["| Project | What it is | Live site |", "|---|---|---|"]
     for slug in sorted(os.listdir(ROOT)):
         path = os.path.join(ROOT, slug)
@@ -87,7 +99,7 @@ def projects_section():
         live = re.search(r"\*\*Live Site:\*\*\s*\[(https://[^\]]+)\]", text)
         live_cell = f"[{live.group(1).split('//')[1].rstrip('/')}]({live.group(1)})" if live else ""
         desc = (DESCRIPTIONS.get(slug) or describe(text)).replace("|", "\\|")
-        rows.append(f"| [{slug}]({HOME}/tree/main/{slug}) | {desc} | {live_cell} |")
+        rows.append(f"| [{names.get(slug, slug)}]({HOME}/{names.get(slug, slug)}) | {desc} | {live_cell} |")
     return "## 📦 Projects\n\n" + "\n".join(rows)
 
 

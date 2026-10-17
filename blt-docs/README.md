@@ -1,7 +1,7 @@
 # OWASP BLT Documentation
 
 **Live Site:** [https://docs.owaspblt.org/](https://docs.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-docs](https://git.owaspblt.org/BLT/BLT/tree/main/blt-docs)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Docs](https://git.owaspblt.org/BLT/BLT-Docs)
 
 <p align="center"><img src="logo.png" alt="blt-docs logo" width="160" height="160"></p>
 

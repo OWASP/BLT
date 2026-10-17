@@ -12,7 +12,7 @@ Welcome to your GSoC Dashboard! This guide will walk you through setting up your
 
 ### 1. Fork This Repository
 
-1. Click the **Fork** button at the top right of the [repository page](https://git.owaspblt.org/BLT/BLT/tree/main/my-gsoc-tool)
+1. Click the **Fork** button at the top right of the [repository page](https://git.owaspblt.org/BLT/MY-GSOC-TOOL)
 2. Wait for GitHub to create your fork
 3. You now have your own copy at `https://github.com/YOUR-USERNAME/MY-GSOC-TOOL`
 
@@ -51,7 +51,7 @@ Replace the placeholder values with your information:
     "description": "Improving the bug reporting and management system with new features including advanced search, real-time notifications, and an improved UI.",
     "organization": "OWASP Foundation",
     "timeline": "May 2024 - August 2024",
-    "repository": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core"
+    "repository": "https://git.owaspblt.org/BLT/BLT-Core"
   },
   "slack": {
     "workspaceUrl": "https://owasp.slack.com/join/shared_invite/zt-xyz",
@@ -302,7 +302,7 @@ Once your dashboard is live, share it:
 
 ## 📞 Need Help?
 
-- **Issues:** Open an issue in the [original repository](https://git.owaspblt.org/BLT/BLT/issues)
+- **Issues:** Open an issue in the [original repository](https://git.owaspblt.org/BLT/issues)
 - **Discussions:** Join the discussions tab for questions
 - **Documentation:** Check the main [README.md](README.md) for detailed documentation
 

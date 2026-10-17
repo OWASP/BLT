@@ -39,7 +39,7 @@ This project follows the OWASP Code of Conduct. Please be respectful and constru
 
 ### Reporting Bugs / Suggesting Enhancements
 
-1. Check if the issue already exists in [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
+1. Check if the issue already exists in [GitHub Issues](https://git.owaspblt.org/BLT/issues)
 2. If not, create a new issue with a clear title and description.
 
 ## Documentation

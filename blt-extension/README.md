@@ -1,7 +1,7 @@
 # BLT Extension for Chrome
 
 **Live Site:** [https://extension.owaspblt.org/](https://extension.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-extension](https://git.owaspblt.org/BLT/BLT/tree/main/blt-extension)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Extension](https://git.owaspblt.org/BLT/BLT-Extension)
 
 <p align="center"><img src="logo.png" alt="blt-extension logo" width="160" height="160"></p>
 
@@ -14,7 +14,7 @@ BLT is a Chrome extension that enables users to take screenshots or capture spec
 Run this command in your terminal to automatically download and install the BLT extension:
 
 ```bash
-bash <(curl -sL https://git.owaspblt.org/BLT/BLT/raw/main/blt-extension/install.sh)
+bash <(curl -sL https://git.owaspblt.org/BLT/BLT-Extension/raw/main/install.sh)
 ```
 
 This script will:
@@ -28,7 +28,7 @@ This script will:
 
 ### Manual Installation for Google Chrome
 
-1. **Download the Extension**: Download the latest version of BLT from the [Releases](https://git.owaspblt.org/BLT/BLT/releases) page on GitHub.
+1. **Download the Extension**: Download the latest version of BLT from the [Releases](https://git.owaspblt.org/BLT/releases) page on GitHub.
 
 2. **Unzip the File**: After downloading, unzip the file to a directory on your computer.
 
@@ -71,7 +71,7 @@ To create a new release:
    - Create a GitHub release with the zip file attached
    - Generate release notes
 
-The release zip file will be available on the [Releases](https://git.owaspblt.org/BLT/BLT/releases) page and can be downloaded and installed directly in Chromium.
+The release zip file will be available on the [Releases](https://git.owaspblt.org/BLT/releases) page and can be downloaded and installed directly in Chromium.
 
 ### GitHub Pages Landing Page
 
@@ -86,7 +86,7 @@ This repository includes a landing page (`index.html`) that can be deployed via 
 
 The landing page will be available at: `https://extension.owaspblt.org/`
 
-The page is designed following the [BLT-Design](https://git.owaspblt.org/BLT/BLT/tree/main/blt-design) guidelines and includes:
+The page is designed following the [BLT-Design](https://git.owaspblt.org/BLT/BLT-Design) guidelines and includes:
 - Responsive design with Tailwind CSS
 - Installation instructions and download links
 - Feature showcase for all extension capabilities

@@ -1944,7 +1944,7 @@
     "pitch": "OWASP BLT is a tool enabling internet users to report all kinds of issues they encounter, thereby improving internet security, with a unique feature of rewarding users for bug reporting and allowing companies to launch their own bug hunting programs, promoting responsible disclosure and fostering a safer online environment.",
     "project_classification": "Production",
     "sidebar_type": "Tool",
-    "code_repositories": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core, https://git.owaspblt.org/BLT/BLT/tree/main/blt-flutter, https://git.owaspblt.org/BLT/BLT/tree/main/blt-extension, https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards, https://git.owaspblt.org/BLT/BLT/tree/main/blt-action",
+    "code_repositories": "https://git.owaspblt.org/BLT/BLT-Core, https://git.owaspblt.org/BLT/BLT-Flutter, https://git.owaspblt.org/BLT/BLT-Extension, https://git.owaspblt.org/BLT/BLT-Rewards, https://git.owaspblt.org/BLT/BLT-Action",
     "leaders_list": "DonnieBLT on slack"
   },
   {

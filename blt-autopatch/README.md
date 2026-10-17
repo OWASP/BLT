@@ -1,6 +1,6 @@
 # BLT-Autopatch
 
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-autopatch](https://git.owaspblt.org/BLT/BLT/tree/main/blt-autopatch)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Autopatch](https://git.owaspblt.org/BLT/BLT-Autopatch)
 
 
 
@@ -17,14 +17,14 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ```
 cd existing_repo
-git remote add origin https://git.owaspblt.org/BLT/BLT.git
+git remote add origin https://git.owaspblt.org/BLT.git
 git branch -M main
 git push -uf origin main
 ```
 
 ## Integrate with your tools
 
-* [Set up project integrations](https://git.owaspblt.org/BLT/BLT/settings/integrations)
+* [Set up project integrations](https://git.owaspblt.org/BLT/settings/integrations)
 
 ## Collaborate with your team
 

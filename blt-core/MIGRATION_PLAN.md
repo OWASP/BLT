@@ -76,7 +76,7 @@ still in progress.
 ### ✅ Phase 1 — Already Separate / Stub-Ready (Do These First)
 
 #### 1. BLT Browser Extension → `blt-browser-extension`
-- **Repository**: [BLT-Extension](https://git.owaspblt.org/BLT/BLT/tree/main/blt-extension)
+- **Repository**: [BLT-Extension](https://git.owaspblt.org/BLT/BLT-Extension)
 - **Status**: ✅ Already separate codebase — no views, models, or templates exist in this repo.
 - **Files in BLT core**: None. Referenced only in docs.
 - **Action needed**: Ensure the extension calls BLT's public REST API (`/api/`) rather than any internal endpoints.
@@ -86,7 +86,7 @@ still in progress.
 ---
 
 #### 2. BLT GitHub Action → `blt-github-action`
-- **Repository**: [BLT-Action](https://git.owaspblt.org/BLT/BLT/tree/main/blt-action)
+- **Repository**: [BLT-Action](https://git.owaspblt.org/BLT/BLT-Action)
 - **Status**: ✅ Already a standalone tool — no views, models, or templates in this repo.
 - **Files in BLT core**: None. Referenced only in documentation and `.github/` workflows.
 - **Action needed**: Verify the action only calls BLT's public API; pin the API version it targets.
@@ -96,7 +96,7 @@ still in progress.
 ---
 
 #### 3. Video Call → External Service
-- **Repository**: [BLT-SafeCloak](https://git.owaspblt.org/BLT/BLT/tree/main/blt-safecloak) — secure video chat and voice protection with secure AI notes and consent protection
+- **Repository**: [BLT-SafeCloak](https://git.owaspblt.org/BLT/BLT-SafeCloak) — secure video chat and voice protection with secure AI notes and consent protection
 - **Status**: 🟡 Partially migrated — the dedicated view is gone, but the core route, template, JavaScript, and navigation remain.
 - **Files**:
   - `blt/urls.py` (`/video_call/` template route)
@@ -108,7 +108,7 @@ still in progress.
 ---
 
 #### 4. BLT MCP Interface → `blt-mcp`
-- **Repository**: [BLT-MCP](https://git.owaspblt.org/BLT/BLT/tree/main/blt-mcp) — An interface to the BLT ecosystem enabling AI agents and developers to log bugs, triage issues, query data, and manage workflows from IDEs or chat interfaces
+- **Repository**: [BLT-MCP](https://git.owaspblt.org/BLT/BLT-MCP) — An interface to the BLT ecosystem enabling AI agents and developers to log bugs, triage issues, query data, and manage workflows from IDEs or chat interfaces
 - **Status**: ✅ Already a standalone service — consumes BLT's public REST API only.
 - **Files in BLT core**: None.
 - **Action needed**: Ensure all BLT endpoints consumed by BLT-MCP are stable, versioned public API endpoints. Document them in `API_CONTRACTS.md`.
@@ -116,7 +116,7 @@ still in progress.
 ---
 
 #### 5. BLT Leaf — PR Readiness Checker → `blt-leaf`
-- **Repository**: [BLT-Leaf](https://git.owaspblt.org/BLT/BLT/tree/main/blt-leaf) — PR readiness checker
+- **Repository**: [BLT-Leaf](https://git.owaspblt.org/BLT/BLT-Leaf) — PR readiness checker
 - **Status**: ✅ Standalone GitHub Action/tool — the heavy logic lives in the external repo. BLT core retains only a thin integration layer.
 - **Files in BLT core**:
   - `website/views/core.py`: `view_pr_analysis()`, `submit_roadmap_pr()`
@@ -129,7 +129,7 @@ still in progress.
 ---
 
 #### 6. BLT Toasty — AI Code Review Bot → `blt-toasty`
-- **Repository**: [BLT-Toasty](https://git.owaspblt.org/BLT/BLT/tree/main/blt-toasty) — The BLT AI bot that checks your code, updates your priorities and looks at issues through a magnifying glass
+- **Repository**: [BLT-Toasty](https://git.owaspblt.org/BLT/BLT-Toasty) — The BLT AI bot that checks your code, updates your priorities and looks at issues through a magnifying glass
 - **Status**: ✅ Already a standalone bot — no models or views in the BLT monolith.
 - **Files in BLT core**: None.
 - **Action needed**: Ensure BLT-Toasty uses public API endpoints for any issue/priority updates it performs.
@@ -137,7 +137,7 @@ still in progress.
 ---
 
 #### 7. BLT Byte — AI Assistant & Orchestrator → `blt-byte`
-- **Repository**: [BLT-Byte](https://git.owaspblt.org/BLT/BLT/tree/main/blt-byte) — AI assistant, orchestrator and agent
+- **Repository**: [BLT-Byte](https://git.owaspblt.org/BLT/BLT-Byte) — AI assistant, orchestrator and agent
 - **Status**: ✅ Mostly standalone — BLT core has a `ChatBotLog` model that may be used for audit logging.
 - **Files in BLT core**:
   - `website/models.py`: `ChatBotLog` (~line 1340)
@@ -146,7 +146,7 @@ still in progress.
 ---
 
 #### 8. BLT Preflight — Security Intent Checker → `blt-preflight`
-- **Repository**: [BLT-Preflight](https://git.owaspblt.org/BLT/BLT/tree/main/blt-preflight) — Provide security intent and risk guidance before contributors submit code
+- **Repository**: [BLT-Preflight](https://git.owaspblt.org/BLT/BLT-Preflight) — Provide security intent and risk guidance before contributors submit code
 - **Status**: ✅ Already a standalone GitHub Action — no models or views in the BLT monolith.
 - **Files in BLT core**: None.
 - **Action needed**: None at present.
@@ -154,7 +154,7 @@ still in progress.
 ---
 
 #### 9. BLT Claw — Slack Helper Bot → `blt-claw`
-- **Repository**: [BLT-Claw](https://git.owaspblt.org/BLT/BLT) — Claw bot that links to our Slack as a helper
+- **Repository**: [BLT-Claw](https://git.owaspblt.org/BLT) — Claw bot that links to our Slack as a helper
 - **Status**: ✅ Already a standalone bot — no models or views in the BLT monolith beyond existing `SlackIntegration`.
 - **Files in BLT core**: `website/models.py` `SlackIntegration` (shared with BLT-Lettuce / BLT-Sammich).
 - **Action needed**: Consume the same Slack integration API endpoints being created for BLT-Lettuce (see item 4 in Phase 2).
@@ -162,7 +162,7 @@ still in progress.
 ---
 
 #### 10. BLT Next — Modern Frontend Redesign → `blt-next`
-- **Repository**: [BLT-Next](https://git.owaspblt.org/BLT/BLT/tree/main/blt-next) — a fresh, modern design by removing non-core components to create a clear, enjoyable user experience focused on core value
+- **Repository**: [BLT-Next](https://git.owaspblt.org/BLT/BLT-Next) — a fresh, modern design by removing non-core components to create a clear, enjoyable user experience focused on core value
 - **Status**: ✅ Already a separate frontend project — communicates with BLT via public API.
 - **Files in BLT core**: None — BLT-Next is a standalone Next.js (or similar) frontend.
 - **Action needed**: Ensure all data BLT-Next requires is available via versioned public API endpoints.
@@ -170,7 +170,7 @@ still in progress.
 ---
 
 #### 11. BLT Vanish — Privacy Data-Removal Toolkit → `blt-vanish`
-- **Repository**: [BLT-Vanish-Web](https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish) · [BLT-Vanish-Flutter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish-flutter) — open-source privacy toolkit for managing and deleting personal data online
+- **Repository**: [BLT-Vanish-Web](https://git.owaspblt.org/BLT/BLT-Vanish) · [BLT-Vanish-Flutter](https://git.owaspblt.org/BLT/BLT-Vanish-Flutter) — open-source privacy toolkit for managing and deleting personal data online
 - **Status**: ✅ Already separate products — no models or views in the BLT monolith.
 - **Files in BLT core**: None.
 - **Action needed**: None at present.
@@ -178,7 +178,7 @@ still in progress.
 ---
 
 #### 12. BLT Panini — App Security Ratings → `blt-panini`
-- **Repository**: [BLT-Panini](https://git.owaspblt.org/BLT/BLT/tree/main/blt-panini) — App Security Ratings
+- **Repository**: [BLT-Panini](https://git.owaspblt.org/BLT/BLT-Panini) — App Security Ratings
 - **Status**: ✅ Standalone; the former monolith `apps.html` placeholder has been removed.
 - **Files in BLT core**: None found in this audit.
 - **Action needed**: Verify the public Panini link and deployed service remain healthy.
@@ -186,7 +186,7 @@ still in progress.
 ---
 
 #### 13. BLT Zero — Zero-Trust Bug Reporting → `blt-zero`
-- **Repository**: [BLT-Zero](https://git.owaspblt.org/BLT/BLT/tree/main/blt-zero) — Zero Trust Bug Reporting without a trace
+- **Repository**: [BLT-Zero](https://git.owaspblt.org/BLT/BLT-Zero) — Zero Trust Bug Reporting without a trace
 - **Status**: ✅ New standalone product — anonymous/privacy-preserving bug reporting separate from the main issue workflow.
 - **Files in BLT core**: None.
 - **Action needed**: Ensure BLT-Zero uses a public BLT API endpoint (or webhook) to forward de-anonymised bug reports into the main BLT issue tracker when the reporter consents.
@@ -194,7 +194,7 @@ still in progress.
 ---
 
 #### 14. BLT Ketchup — Pen Testing Collaboration Workspace → `blt-ketchup`
-- **Repository**: [BLT-Ketchup](https://git.owaspblt.org/BLT/BLT/tree/main/blt-ketchup) — real-time collaboration environment for red-team engagements
+- **Repository**: [BLT-Ketchup](https://git.owaspblt.org/BLT/BLT-Ketchup) — real-time collaboration environment for red-team engagements
 - **Status**: ✅ New standalone product — no code in BLT monolith.
 - **Files in BLT core**: None.
 - **Action needed**: Optionally expose BLT's issue/bug API so pentest findings can be escalated directly into BLT issues.
@@ -202,7 +202,7 @@ still in progress.
 ---
 
 #### 15. BLT Dash — Cybersecurity Dashboard → `blt-dash`
-- **Repository**: [BLT-Dash](https://git.owaspblt.org/BLT/BLT/tree/main/blt-dash) — A company cybersecurity dashboard that integrates with everything and gives a heads-up display single page of everything you need to see
+- **Repository**: [BLT-Dash](https://git.owaspblt.org/BLT/BLT-Dash) — A company cybersecurity dashboard that integrates with everything and gives a heads-up display single page of everything you need to see
 - **Status**: ✅ New standalone product. The BLT monolith has its own `stats_dashboard` view, but BLT-Dash is envisioned as a broader multi-source dashboard.
 - **Files in BLT core**:
   - `website/views/core.py`: `stats_dashboard()`
@@ -214,7 +214,7 @@ still in progress.
 ---
 
 #### 16. BLT Pages — Pages-Based Issue Reporting → `blt-pages`
-- **Repository**: [BLT-Pages](https://git.owaspblt.org/BLT/BLT/tree/main/blt-pages) — Pages Based UI issue reporting platform
+- **Repository**: [BLT-Pages](https://git.owaspblt.org/BLT/BLT-Pages) — Pages Based UI issue reporting platform
 - **Status**: ✅ Already a standalone GitHub Pages product — lightweight issue reporting interface that calls BLT's public API.
 - **Files in BLT core**: None.
 - **Action needed**: Ensure BLT's public issue submission API (`POST /api/v1/issues/`) supports all fields required by BLT-Pages. Document in `API_CONTRACTS.md`.
@@ -222,7 +222,7 @@ still in progress.
 ---
 
 #### 17. BLT GSOC — Google Summer of Code Tools → `blt-gsoc`
-- **Repository**: [BLT-GSOC](https://git.owaspblt.org/BLT/BLT/tree/main/blt-gsoc) — GSoC-related tooling and documentation
+- **Repository**: [BLT-GSOC](https://git.owaspblt.org/BLT/BLT-GSOC) — GSoC-related tooling and documentation
 - **Status**: ✅ Mostly standalone — the external repo holds GSoC documentation and tooling; the BLT monolith retains a `gsoc_pr_report` view for tracking pull requests across GSOC project repos.
 - **Files in BLT core**:
   - `website/views/project.py`: `gsoc_pr_report()` (~line 2224), `refresh_gsoc_project()` (~line 2344)
@@ -236,7 +236,7 @@ still in progress.
 ---
 
 #### 18. BLT OWASP Bumper — OWASP Repo Dashboard → `blt-owasp-bumper`
-- **Repository**: [BLT-OWASP-Bumper](https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-bumper) — OWASP repo dashboard with smart insights & metrics
+- **Repository**: [BLT-OWASP-Bumper](https://git.owaspblt.org/BLT/BLT-OWASP-Bumper) — OWASP repo dashboard with smart insights & metrics
 - **Status**: ✅ Already a standalone tool — no models or views in the BLT monolith.
 - **Files in BLT core**: None.
 - **Action needed**: Ensure BLT's public Repo/Project API endpoints provide the metadata BLT-OWASP-Bumper needs.
@@ -244,7 +244,7 @@ still in progress.
 ---
 
 #### 19. BLT OWASP Projects — OWASP Projects Dashboard → `blt-owasp-projects`
-- **Repository**: [BLT-OWASP-Projects](https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-projects) — comprehensive dashboard for tracking and visualizing OWASP repositories and their statistics
+- **Repository**: [BLT-OWASP-Projects](https://git.owaspblt.org/BLT/BLT-OWASP-Projects) — comprehensive dashboard for tracking and visualizing OWASP repositories and their statistics
 - **Status**: ✅ Already a standalone tool — no models or views in the BLT monolith.
 - **Files in BLT core**: None.
 - **Action needed**: None at present.
@@ -252,7 +252,7 @@ still in progress.
 ---
 
 #### 20. BLT Newsletter → `blt-newsletter`
-- **Repository**: [BLT-Newsletter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-newsletter) — The BLT Newsletter
+- **Repository**: [BLT-Newsletter](https://git.owaspblt.org/BLT/BLT-Newsletter) — The BLT Newsletter
 - **Status**: ✅ Already a standalone newsletter service — no models or views in the BLT monolith.
 - **Files in BLT core**: None (digest emails are sent via the existing email templates in `website/templates/email/`).
 - **Action needed**: If BLT-Newsletter needs recent bug/issue data, expose a `GET /api/v1/newsletter-digest/` endpoint.
@@ -260,7 +260,7 @@ still in progress.
 ---
 
 #### 21. BLT GitHub Sportscaster — Activity Leaderboard → `blt-sportscaster`
-- **Repository**: [BLT-Github-Sportscaster](https://git.owaspblt.org/BLT/BLT/tree/main/blt-gitcaster) — real-time AI-powered leaderboard of GitHub repository activity
+- **Repository**: [BLT-Github-Sportscaster](https://git.owaspblt.org/BLT/BLT-Gitcaster) — real-time AI-powered leaderboard of GitHub repository activity
 - **Status**: ✅ Already a standalone tool — reads GitHub API directly; no BLT monolith dependencies.
 - **Files in BLT core**: None.
 - **Action needed**: None at present.
@@ -268,7 +268,7 @@ still in progress.
 ---
 
 #### 22. BLT Ideas — Community Ideas Board → `blt-ideas`
-- **Repository**: [BLT-Ideas](https://git.owaspblt.org/BLT/BLT/tree/main/blt-ideas) — BLT Ideas
+- **Repository**: [BLT-Ideas](https://git.owaspblt.org/BLT/BLT-Ideas) — BLT Ideas
 - **Status**: ✅ Already a standalone GitHub Issues-based ideas board — no models or views in the BLT monolith.
 - **Files in BLT core**: None.
 - **Action needed**: None at present.
@@ -276,7 +276,7 @@ still in progress.
 ---
 
 #### 23. BLT Design — Design System → `blt-design`
-- **Repository**: [BLT-Design](https://git.owaspblt.org/BLT/BLT/tree/main/blt-design) — Our design system, light and dark mode, logos, colors etc.
+- **Repository**: [BLT-Design](https://git.owaspblt.org/BLT/BLT-Design) — Our design system, light and dark mode, logos, colors etc.
 - **Status**: ✅ Already a standalone design repository — CSS, design tokens, and brand assets that the monolith consumes via Tailwind config.
 - **Files in BLT core**: Referenced via Tailwind CSS configuration and static files.
 - **Action needed**: None at present. Ensure the monolith's `tailwind.config.js` and brand color `#e74c3c` stay in sync with BLT-Design.
@@ -284,7 +284,7 @@ still in progress.
 ---
 
 #### 24. Slackbot & Slack Integration → `blt-slack-integration`
-- **Repository**: [BLT-Lettuce](https://git.owaspblt.org/BLT/BLT/tree/main/blt-lettuce) (intelligent Slack bot for the OWASP community) · [BLT-Sammich](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sammich) (Slack bot for BLT)
+- **Repository**: [BLT-Lettuce](https://git.owaspblt.org/BLT/BLT-Lettuce) (intelligent Slack bot for the OWASP community) · [BLT-Sammich](https://git.owaspblt.org/BLT/BLT-Sammich) (Slack bot for BLT)
 - **Status**: 🔵 Quick Migration — logic is mostly isolated in two view files; the main blocker is direct ORM access to core models.
 - **Files**:
   - `website/views/slackbot.py` — Bot initialisation, `/discover` command, DM helpers
@@ -304,7 +304,7 @@ still in progress.
 ---
 
 #### 25. Open Source Sorting Hat (OSSH) → `ossh-service`
-- **Repository**: [BLT-OSSH](https://git.owaspblt.org/BLT/BLT/tree/main/blt-ossh) — a magical hat that reads your GitHub profile and suggests blogs or projects you might like
+- **Repository**: [BLT-OSSH](https://git.owaspblt.org/BLT/BLT-OSSH) — a magical hat that reads your GitHub profile and suggests blogs or projects you might like
 - **Status**: 🔵 Quick Migration — almost entirely self-contained; only depends on `Repo` from core.
 - **Files**:
   - `website/views/ossh.py` (~530 lines) — Recommendation engine: tag-based, language-based repo/community/article recommender
@@ -328,7 +328,7 @@ still in progress.
 ---
 
 #### 26. Education Platform → `blt-academy`
-- **Repository**: [BLT-University](https://git.owaspblt.org/BLT/BLT/tree/main/blt-university) — security related courses and knowledge transfer
+- **Repository**: [BLT-University](https://git.owaspblt.org/BLT/BLT-University) — security related courses and knowledge transfer
 - **Status**: 🟡 Mostly Done — fully contained view file and template directory; depends on `UserProfile` for enrollment.
 - **Files**:
   - `website/views/education.py` (~580 lines)
@@ -375,7 +375,7 @@ still in progress.
 ---
 
 #### 28. IP Reporting / NetGuardian → `blt-netguardian`
-- **Repository**: [BLT-NetGuardian](https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian) · [BLT-NetGuardian-Client](https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian-client) — an agent that continually scans the web making it secure by reporting bugs
+- **Repository**: [BLT-NetGuardian](https://git.owaspblt.org/BLT/BLT-NetGuardian) · [BLT-NetGuardian-Client](https://git.owaspblt.org/BLT/BLT-NetGuardian-Client) — an agent that continually scans the web making it secure by reporting bugs
 - **Status**: 🔵 Quick Migration — isolated view + model; only depends on `UserProfile` for the reporter field.
 - **Files**:
   - `website/views/organization.py`: `ReportIpView` (~line 2022), `ReportedIpListView` (~line 2119)
@@ -394,7 +394,7 @@ still in progress.
 ---
 
 #### 29. Website Monitor → `blt-monitor`
-- **Repository**: [BLT-Monitor](https://git.owaspblt.org/BLT/BLT/tree/main/blt-monitor) — Monitors a website using GitHub Actions
+- **Repository**: [BLT-Monitor](https://git.owaspblt.org/BLT/BLT-Monitor) — Monitors a website using GitHub Actions
 - **Status**: 🔵 Quick Migration — self-contained model + view; minimal core dependencies.
 - **Files**:
   - `website/views/user.py`: `monitor_create_view()`, `deletions()` (~lines 1203–1244)
@@ -411,7 +411,7 @@ still in progress.
 ---
 
 #### 30. OWASP Compliance Checker → `blt-owasp-wich`
-- **Repository**: [BLT-OWASP-Wich](https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-wich) — OWASP Project compliance checker (can be used on other repos too)
+- **Repository**: [BLT-OWASP-Wich](https://git.owaspblt.org/BLT/BLT-OWASP-Wich) — OWASP Project compliance checker (can be used on other repos too)
 - **Status**: 🔵 Quick Migration — self-contained view; no custom models; only queries `Repo`.
 - **Files**:
   - `website/views/core.py`: `check_owasp_compliance()` (~line 2099)
@@ -427,7 +427,7 @@ still in progress.
 ---
 
 #### 31. BLT Tomato — OWASP Project Management Scripts → `blt-tomato`
-- **Repository**: [BLT-Tomato](https://git.owaspblt.org/BLT/BLT/tree/main/blt-tomato) — Scripts related to projects mainly for high-level OWASP project management
+- **Repository**: [BLT-Tomato](https://git.owaspblt.org/BLT/BLT-Tomato) — Scripts related to projects mainly for high-level OWASP project management
 - **Status**: 🔵 Quick Migration — thin view, no dedicated models.
 - **Files**:
   - `website/views/project.py`: `blt_tomato()` (~line 79)
@@ -437,7 +437,7 @@ still in progress.
   1. Replace the monolith view with a redirect to the standalone BLT-Tomato GitHub repository or its GitHub Pages site.
   2. Remove `blt_tomato.html` from the monolith once the redirect is live.
 - **Copilot prompt**:
-  > "Replace the `blt_tomato()` view in `website/views/project.py` with a simple `RedirectView` pointing to `https://git.owaspblt.org/BLT/BLT/tree/main/blt-tomato`. Update `blt/urls.py` to use `RedirectView.as_view(url=...)`. Remove the `blt_tomato.html` template from the monolith."
+  > "Replace the `blt_tomato()` view in `website/views/project.py` with a simple `RedirectView` pointing to `https://git.owaspblt.org/BLT/BLT-Tomato`. Update `blt/urls.py` to use `RedirectView.as_view(url=...)`. Remove the `blt_tomato.html` template from the monolith."
 
 ---
 
@@ -499,7 +499,7 @@ still in progress.
 ### 🔴 Phase 3 — Complex Migrations (High Risk, Multiple Sprints)
 
 #### 35. BACON Token System → `blt-bacon-service`
-- **Repository**: [BLT-Rewards](https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards) — BACON is a cutting-edge Bitcoin-based token system designed to incentivize engagement and contributions within the OWASP BLT ecosystem
+- **Repository**: [BLT-Rewards](https://git.owaspblt.org/BLT/BLT-Rewards) — BACON is a cutting-edge Bitcoin-based token system designed to incentivize engagement and contributions within the OWASP BLT ecosystem
 - **Status**: 🔴 Complex — blockchain infrastructure, wallet security, Slack integration, mentor-role checks.
 - **Files**:
   - `website/views/bitcoin.py` (~480 lines) — Token submission, batch send, transaction initiation, wallet balance
@@ -520,7 +520,7 @@ still in progress.
 ---
 
 #### 36. Staking System → `blt-staking` (or part of `blt-bacon-service`)
-- **Repository**: ⚠️ No dedicated repository yet — consider adding to [BLT-Rewards](https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards)
+- **Repository**: ⚠️ No dedicated repository yet — consider adding to [BLT-Rewards](https://git.owaspblt.org/BLT/BLT-Rewards)
 - **Status**: 🔴 Complex — tightly coupled with BACON earning model; DeFi logic with atomic transactions.
 - **Files**:
   - `website/views/staking_competitive.py` (~458 lines)
@@ -537,7 +537,7 @@ still in progress.
 ---
 
 #### 37. Hackathons → `blt-hackathons`
-- **Repository**: [BLT-Hackathons](https://git.owaspblt.org/BLT/BLT/tree/main/blt-hackathons) — a self-hosted GitHub project to let you conduct a hackathon on your project with charts, leaderboards, and prizes
+- **Repository**: [BLT-Hackathons](https://git.owaspblt.org/BLT/BLT-Hackathons) — a self-hosted GitHub project to let you conduct a hackathon on your project with charts, leaderboards, and prizes
 - **Status**: 🔴 Complex — depends on many core models including `Organization`, `Repo`, `GitHubIssue`, `Contributor`.
 - **Files**:
   - `website/views/hackathon.py` (~800 lines)
@@ -572,7 +572,7 @@ still in progress.
 ---
 
 #### 39. Jobs Board → `blt-jobs`
-- **Repository**: [BLT-Jobs](https://git.owaspblt.org/BLT/BLT/tree/main/blt-jobs) — a community-driven job board for the OWASP BLT ecosystem, deployed on GitHub Pages
+- **Repository**: [BLT-Jobs](https://git.owaspblt.org/BLT/BLT-Jobs) — a community-driven job board for the OWASP BLT ecosystem, deployed on GitHub Pages
 - **Status**: 🔴 Complex (medium effort) — Job views are embedded in `company.py`; need extraction before repo split.
 - **Files**:
   - `website/views/company.py` (Job-related functions near lines 2754–2945: `create_job`, `edit_job`, `delete_job`, `toggle_job_status`)
@@ -585,7 +585,7 @@ still in progress.
 ---
 
 #### 40. Trademark Search → `blt-trademark-service`
-- **Repository**: [BLT-Enforcement](https://git.owaspblt.org/BLT/BLT/tree/main/blt-enforcement) — IP/Trademarks defense tools related to cybersecurity and keeping organizations safe by enforcement
+- **Repository**: [BLT-Enforcement](https://git.owaspblt.org/BLT/BLT-Enforcement) — IP/Trademarks defense tools related to cybersecurity and keeping organizations safe by enforcement
 - **Status**: 🟡 Mostly Done — self-contained API + templates; depends on USPTO external calls.
 - **Files**:
   - `website/api/views.py`: `trademark_search_api` function
@@ -599,7 +599,7 @@ still in progress.
 ---
 
 #### 41. Security Incidents Dashboard → `blt-cve` / `blt-security-incidents`
-- **Repository**: [BLT-CVE](https://git.owaspblt.org/BLT/BLT/tree/main/blt-cve) — a decentralized CVE database that stays online and offers a backup to CVE
+- **Repository**: [BLT-CVE](https://git.owaspblt.org/BLT/BLT-CVE) — a decentralized CVE database that stays online and offers a backup to CVE
 - **Status**: 🔴 Complex — the monolith has a full security incident tracking module; BLT-CVE is evolving as a separate CVE database service.
 - **Files**:
   - `website/views/security.py` — `SecurityDashboardView`, CSV export, paginated incident list
@@ -620,7 +620,7 @@ still in progress.
 ---
 
 #### 42. Time Tracking / Sizzle → `blt-sizzle` / `blt-timer`
-- **Repository**: [BLT-Sizzle](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle) · [BLT-Timer-Web](https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-web) · [BLT-Timer-Flutter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-flutter)
+- **Repository**: [BLT-Sizzle](https://git.owaspblt.org/BLT/BLT-Sizzle) · [BLT-Timer-Web](https://git.owaspblt.org/BLT/BLT-Timer-Web) · [BLT-Timer-Flutter](https://git.owaspblt.org/BLT/BLT-Timer-Flutter)
 - **Status**: 🔴 Complex — time tracking is listed in "Keep in Core" but now has three separate repos spanning a Cloudflare Worker, a web app, and a Flutter app. The monolith retains significant Sizzle logic.
 - **Files**:
   - `website/views/organization.py`: `sizzle()`, `sizzle_daily_log()`, `sizzle_docs()`, `user_sizzle_report()`, `add_sizzle_checkIN()` (~lines 1424–2310)
@@ -637,7 +637,7 @@ still in progress.
 ---
 
 #### 43. REST API → `blt-api`
-- **Repository**: [BLT-API](https://git.owaspblt.org/BLT/BLT/tree/main/blt-api) — Full-featured REST API for OWASP BLT
+- **Repository**: [BLT-API](https://git.owaspblt.org/BLT/BLT-API) — Full-featured REST API for OWASP BLT
 - **Status**: 🔴 Complex — the API currently lives inside the monolith (`website/api/`). BLT-API represents the long-term goal of a standalone versioned API service.
 - **Files**:
   - `website/api/` — All DRF ViewSets, serializers, and API views
@@ -708,102 +708,102 @@ The following components should be extracted from the monolithic BLT application
 
 ### Client Applications (Different Tech Stack)
 - **BLT Flutter/Mobile App** → `blt-mobile`
-  - **Repository**: [BLT-Flutter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-flutter) — the official OWASP BLT App repository
+  - **Repository**: [BLT-Flutter](https://git.owaspblt.org/BLT/BLT-Flutter) — the official OWASP BLT App repository
   - **Why**: Different tech stack (Flutter/Dart), independent release cycle, mobile-specific concerns (app stores, permissions, offline functionality)
 - **BLT Extension/Chrome Extension** → `blt-browser-extension`
-  - **Repository**: [BLT-Extension](https://git.owaspblt.org/BLT/BLT/tree/main/blt-extension)
+  - **Repository**: [BLT-Extension](https://git.owaspblt.org/BLT/BLT-Extension)
   - **Why**: Browser extension architecture differs significantly from web apps; separate build process, different security model, extension store distribution
 - **iPhone App** → Could merge with `blt-mobile` or be standalone `blt-ios`
-  - **Repository**: ⚠️ No repository yet — consider merging with [BLT-Flutter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-flutter)
+  - **Repository**: ⚠️ No repository yet — consider merging with [BLT-Flutter](https://git.owaspblt.org/BLT/BLT-Flutter)
   - **Why**: Native iOS if not using Flutter; separate App Store deployment
 
 ### DevOps Tools & Integrations
 - **BLT Action** → `blt-github-action`
-  - **Repository**: [BLT-Action](https://git.owaspblt.org/BLT/BLT/tree/main/blt-action)
+  - **Repository**: [BLT-Action](https://git.owaspblt.org/BLT/BLT-Action)
   - **Why**: GitHub Actions have specific packaging/deployment requirements; independent versioning; used by external projects
 - **BLT Leaf** → `blt-leaf` (PR readiness checker)
-  - **Repository**: [BLT-Leaf](https://git.owaspblt.org/BLT/BLT/tree/main/blt-leaf)
+  - **Repository**: [BLT-Leaf](https://git.owaspblt.org/BLT/BLT-Leaf)
   - **Why**: GitHub Action/bot with its own release cycle; PR analysis logic shouldn't live in the app server
 - **BLT Toasty** → `blt-toasty` (AI code review bot)
-  - **Repository**: [BLT-Toasty](https://git.owaspblt.org/BLT/BLT/tree/main/blt-toasty)
+  - **Repository**: [BLT-Toasty](https://git.owaspblt.org/BLT/BLT-Toasty)
   - **Why**: Standalone AI bot; different runtime model from a web server
 - **BLT Preflight** → `blt-preflight` (security intent checker)
-  - **Repository**: [BLT-Preflight](https://git.owaspblt.org/BLT/BLT/tree/main/blt-preflight)
+  - **Repository**: [BLT-Preflight](https://git.owaspblt.org/BLT/BLT-Preflight)
   - **Why**: GitHub Action; runs in contributor CI pipelines, not in the BLT server
 - **BLT Pool** → `blt-pool` (GitHub App integration)
-  - **Repository**: [BLT-Pool](https://git.owaspblt.org/BLT/BLT/tree/main/blt-pool)
+  - **Repository**: [BLT-Pool](https://git.owaspblt.org/BLT/BLT-Pool)
   - **Why**: GitHub App has specific webhook/installation model; separate deployment; GitHub Marketplace distribution
 - **OWASP Compliance Checker** → `blt-owasp-wich`
-  - **Repository**: [BLT-OWASP-Wich](https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-wich)
+  - **Repository**: [BLT-OWASP-Wich](https://git.owaspblt.org/BLT/BLT-OWASP-Wich)
   - **Why**: Tool applicable to any OWASP project, not just BLT; should be independently deployable
 - **Website Monitor** → `blt-monitor`
-  - **Repository**: [BLT-Monitor](https://git.owaspblt.org/BLT/BLT/tree/main/blt-monitor)
+  - **Repository**: [BLT-Monitor](https://git.owaspblt.org/BLT/BLT-Monitor)
   - **Why**: GitHub Actions-based monitoring runs externally; polling loop and alerting logic don't belong in the app server
 - **Slackbot & Slack Integration** → `blt-slack-integration`
-  - **Repository**: [BLT-Lettuce](https://git.owaspblt.org/BLT/BLT/tree/main/blt-lettuce) · [BLT-Sammich](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sammich) · [BLT-Claw](https://git.owaspblt.org/BLT/BLT)
+  - **Repository**: [BLT-Lettuce](https://git.owaspblt.org/BLT/BLT-Lettuce) · [BLT-Sammich](https://git.owaspblt.org/BLT/BLT-Sammich) · [BLT-Claw](https://git.owaspblt.org/BLT)
   - **Why**: Separate deployment model (Slack App Store); can scale independently; OAuth flows; webhook handling
 
 ### Blockchain & Token Management
 - **BACON Token System** → `blt-bacon-service`
-  - **Repository**: [BLT-Rewards](https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards)
+  - **Repository**: [BLT-Rewards](https://git.owaspblt.org/BLT/BLT-Rewards)
   - **Why**: Blockchain interactions require specialized infrastructure; security isolation for wallet/transaction handling; different scaling requirements; potential regulatory concerns
 - **Staking System** → Part of `blt-bacon-service` or `blt-staking`
-  - **Repository**: ⚠️ No dedicated repository yet — consider adding to [BLT-Rewards](https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards)
+  - **Repository**: ⚠️ No dedicated repository yet — consider adding to [BLT-Rewards](https://git.owaspblt.org/BLT/BLT-Rewards)
   - **Why**: DeFi operations; smart contract interactions; needs separate security audit; high-value transaction handling
 
 ### Standalone Platforms
 - **Education Platform** → `blt-academy` or `blt-learn`
-  - **Repository**: [BLT-University](https://git.owaspblt.org/BLT/BLT/tree/main/blt-university)
+  - **Repository**: [BLT-University](https://git.owaspblt.org/BLT/BLT-University)
   - **Why**: Full Learning Management System (LMS) with courses, lectures, enrollment; could serve broader community; different user base (students vs bug hunters)
 - **Security Labs/Simulation** → `blt-security-labs`
   - **Repository**: ⚠️ No repository yet
   - **Why**: CTF-style challenges with vulnerable environments; requires isolated sandbox infrastructure; CPU/memory intensive; needs container orchestration
 - **Hackathons** → `blt-hackathons` or integrate with existing event platforms
-  - **Repository**: [BLT-Hackathons](https://git.owaspblt.org/BLT/BLT/tree/main/blt-hackathons)
+  - **Repository**: [BLT-Hackathons](https://git.owaspblt.org/BLT/BLT-Hackathons)
   - **Why**: Event management system with sponsors, prizes, registration; seasonal/sporadic usage; different access patterns
 - **Jobs Board** → `blt-jobs` or integrate with external job platforms
-  - **Repository**: [BLT-Jobs](https://git.owaspblt.org/BLT/BLT/tree/main/blt-jobs)
+  - **Repository**: [BLT-Jobs](https://git.owaspblt.org/BLT/BLT-Jobs)
   - **Why**: Job posting/application workflow; different user flows; could be monetized separately; integrations with job boards (LinkedIn, Indeed)
 - **Open Source Sorting Hat (OSSH)** → `ossh-recommender` or `ossh-service`
-  - **Repository**: [BLT-OSSH](https://git.owaspblt.org/BLT/BLT/tree/main/blt-ossh)
+  - **Repository**: [BLT-OSSH](https://git.owaspblt.org/BLT/BLT-OSSH)
   - **Why**: Recommendation engine with ML/algorithm complexity; can serve multiple platforms; separate data pipeline; GitHub API intensive
 - **App Security Ratings** → `blt-panini`
-  - **Repository**: [BLT-Panini](https://git.owaspblt.org/BLT/BLT/tree/main/blt-panini)
+  - **Repository**: [BLT-Panini](https://git.owaspblt.org/BLT/BLT-Panini)
   - **Why**: Security rating engine with its own data model and external integrations; different use case from bug reporting
 - **Adventures / Guided Learning Paths** → `blt-adventures`
   - **Repository**: ⚠️ No repository yet
   - **Why**: Self-contained gamification module; could serve multiple platforms as a standalone engagement service
 - **Pen Testing Collaboration** → `blt-ketchup`
-  - **Repository**: [BLT-Ketchup](https://git.owaspblt.org/BLT/BLT/tree/main/blt-ketchup)
+  - **Repository**: [BLT-Ketchup](https://git.owaspblt.org/BLT/BLT-Ketchup)
   - **Why**: Real-time collaboration platform with different latency and persistence requirements from the core bug tracker
 
 ### Security & CVE Services
 - **Security Incidents Dashboard** → `blt-cve` / `blt-security-incidents`
-  - **Repository**: [BLT-CVE](https://git.owaspblt.org/BLT/BLT/tree/main/blt-cve)
+  - **Repository**: [BLT-CVE](https://git.owaspblt.org/BLT/BLT-CVE)
   - **Why**: CVE/incident database is a public good beyond BLT; decentralized hosting requires independent deployment; different data retention and access requirements
 - **Zero-Trust Bug Reporting** → `blt-zero`
-  - **Repository**: [BLT-Zero](https://git.owaspblt.org/BLT/BLT/tree/main/blt-zero)
+  - **Repository**: [BLT-Zero](https://git.owaspblt.org/BLT/BLT-Zero)
   - **Why**: Privacy-preserving submission pipeline requires isolated infrastructure with no shared session state; different security model
 - **IP Reporting** → `blt-netguardian`
-  - **Repository**: [BLT-NetGuardian](https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian) · [BLT-NetGuardian-Client](https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian-client)
+  - **Repository**: [BLT-NetGuardian](https://git.owaspblt.org/BLT/BLT-NetGuardian) · [BLT-NetGuardian-Client](https://git.owaspblt.org/BLT/BLT-NetGuardian-Client)
   - **Why**: Network scanner client runs on user machines; separate deployment; different data flow from web-based reporting
 
 ### Privacy & Data-Removal Services
 - **Vanish — Personal Data Removal** → `blt-vanish`
-  - **Repository**: [BLT-Vanish-Web](https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish) · [BLT-Vanish-Flutter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish-flutter)
+  - **Repository**: [BLT-Vanish-Web](https://git.owaspblt.org/BLT/BLT-Vanish) · [BLT-Vanish-Flutter](https://git.owaspblt.org/BLT/BLT-Vanish-Flutter)
   - **Why**: Privacy toolkit serving a different user need; local+edge architecture incompatible with centralized Django server
 
 ### AI & Intelligent Agents
 - **AI Assistant / Orchestrator** → `blt-byte`
-  - **Repository**: [BLT-Byte](https://git.owaspblt.org/BLT/BLT/tree/main/blt-byte)
+  - **Repository**: [BLT-Byte](https://git.owaspblt.org/BLT/BLT-Byte)
   - **Why**: AI orchestration has different compute requirements; separate deployment; LLM API keys and model selection are independent concerns
 - **MCP Interface** → `blt-mcp`
-  - **Repository**: [BLT-MCP](https://git.owaspblt.org/BLT/BLT/tree/main/blt-mcp)
+  - **Repository**: [BLT-MCP](https://git.owaspblt.org/BLT/BLT-MCP)
   - **Why**: IDE/agent integration requires a stable, independently versioned protocol adapter
 
 ### Real-Time Communication Services
 - **Video Call** → External service integration (Jitsi, Daily.co, Zoom SDK)
-  - **Repository**: [BLT-SafeCloak](https://git.owaspblt.org/BLT/BLT/tree/main/blt-safecloak)
+  - **Repository**: [BLT-SafeCloak](https://git.owaspblt.org/BLT/BLT-SafeCloak)
   - **Why**: WebRTC infrastructure is complex and expensive; specialized scaling needs; better served by dedicated providers
 - **Direct Messaging/Chat** → `blt-messaging-service` or use external (Matrix, Rocket.Chat)
   - **Repository**: ⚠️ No repository yet
@@ -814,15 +814,15 @@ The following components should be extracted from the monolithic BLT application
 
 ### Time Tracking & Productivity
 - **Sizzle / Daily Check-ins / Time Tracking** → `blt-sizzle` / `blt-timer`
-  - **Repository**: [BLT-Sizzle](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle) · [BLT-Timer-Web](https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-web) · [BLT-Timer-Flutter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-flutter)
+  - **Repository**: [BLT-Sizzle](https://git.owaspblt.org/BLT/BLT-Sizzle) · [BLT-Timer-Web](https://git.owaspblt.org/BLT/BLT-Timer-Web) · [BLT-Timer-Flutter](https://git.owaspblt.org/BLT/BLT-Timer-Flutter)
   - **Why**: Cloudflare Worker deployment model differs from Django; Flutter client needs API-only access; check-in data pipeline can run independently
 - **Reminder Settings** → Part of Sizzle service or standalone notifications microservice
-  - **Repository**: ⚠️ No dedicated repository yet — consider adding to [BLT-Sizzle](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle)
+  - **Repository**: ⚠️ No dedicated repository yet — consider adding to [BLT-Sizzle](https://git.owaspblt.org/BLT/BLT-Sizzle)
   - **Why**: Notification scheduling and delivery belong outside the main request-response server
 
 ### Analytics & Reporting (Optional Separation)
-- **Stats Dashboard/Analytics** → Consider `blt-analytics-service` or [BLT-Dash](https://git.owaspblt.org/BLT/BLT/tree/main/blt-dash)
-  - **Repository**: [BLT-Dash](https://git.owaspblt.org/BLT/BLT/tree/main/blt-dash)
+- **Stats Dashboard/Analytics** → Consider `blt-analytics-service` or [BLT-Dash](https://git.owaspblt.org/BLT/BLT-Dash)
+  - **Repository**: [BLT-Dash](https://git.owaspblt.org/BLT/BLT-Dash)
   - **Why**: Heavy data aggregation; can use separate OLAP database; caching strategies; doesn't need production database access
 - **Contributor Stats & GitHub Analytics** → Part of analytics service
   - **Repository**: ⚠️ No repository yet
@@ -833,10 +833,10 @@ The following components should be extracted from the monolithic BLT application
 
 ### Utility Services
 - **Trademark Search** → External API integration or `blt-trademark-service`
-  - **Repository**: [BLT-Enforcement](https://git.owaspblt.org/BLT/BLT/tree/main/blt-enforcement)
+  - **Repository**: [BLT-Enforcement](https://git.owaspblt.org/BLT/BLT-Enforcement)
   - **Why**: Integrates with USPTO/trademark databases; rate-limited external APIs; caching strategy differs from core app
 - **REST API** → `blt-api`
-  - **Repository**: [BLT-API](https://git.owaspblt.org/BLT/BLT/tree/main/blt-api)
+  - **Repository**: [BLT-API](https://git.owaspblt.org/BLT/BLT-API)
   - **Why**: Standalone versioned API service enables independent evolution, API gateway patterns, and consumption by BLT-Next, BLT-MCP, and other clients without coupling to Django session auth
 
 ### Keep in Core BLT Application
@@ -850,7 +850,7 @@ The following remain in the core monolith as they are essential to the bug bount
 - Leaderboard/Scoreboard (Core gamification directly tied to issues)
 - Messaging/Notifications (Core communication — unless extracted to a microservice)
 
-> **Note:** Time Logs/Sizzle was previously listed as "Keep in Core" but now has three independent repos ([BLT-Sizzle](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle), [BLT-Timer-Web](https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-web), [BLT-Timer-Flutter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-flutter)). The monolith's Sizzle views and models should be migrated to those services once REST API endpoints are in place (see **item 42 — Time Tracking / Sizzle** in Phase 3 above).
+> **Note:** Time Logs/Sizzle was previously listed as "Keep in Core" but now has three independent repos ([BLT-Sizzle](https://git.owaspblt.org/BLT/BLT-Sizzle), [BLT-Timer-Web](https://git.owaspblt.org/BLT/BLT-Timer-Web), [BLT-Timer-Flutter](https://git.owaspblt.org/BLT/BLT-Timer-Flutter)). The monolith's Sizzle views and models should be migrated to those services once REST API endpoints are in place (see **item 42 — Time Tracking / Sizzle** in Phase 3 above).
 
 ---
 
@@ -976,53 +976,53 @@ Note: Duplicates from the request are consolidated into single entries.
 
 ### Phase 1: Quick Wins (Low Risk, High Value)
 **Priority: Immediate**
-1. **BLT Extension** - Already separate codebase in reality; just needs proper repo split → [BLT-Extension](https://git.owaspblt.org/BLT/BLT/tree/main/blt-extension)
-2. **BLT GitHub Action** - Standalone tool; no database dependencies → [BLT-Action](https://git.owaspblt.org/BLT/BLT/tree/main/blt-action)
-3. **BLT Tomato** - Redirect the monolith view to the external repo → [BLT-Tomato](https://git.owaspblt.org/BLT/BLT/tree/main/blt-tomato)
-4. **BLT Panini** - Remove coming-soon stub; redirect to external service → [BLT-Panini](https://git.owaspblt.org/BLT/BLT/tree/main/blt-panini)
-5. **BLT Dash** - Expose stats data via REST API; let BLT-Dash consume it → [BLT-Dash](https://git.owaspblt.org/BLT/BLT/tree/main/blt-dash)
-6. **OWASP Compliance Checker** - Extract view + redirect to BLT-OWASP-Wich → [BLT-OWASP-Wich](https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-wich)
+1. **BLT Extension** - Already separate codebase in reality; just needs proper repo split → [BLT-Extension](https://git.owaspblt.org/BLT/BLT-Extension)
+2. **BLT GitHub Action** - Standalone tool; no database dependencies → [BLT-Action](https://git.owaspblt.org/BLT/BLT-Action)
+3. **BLT Tomato** - Redirect the monolith view to the external repo → [BLT-Tomato](https://git.owaspblt.org/BLT/BLT-Tomato)
+4. **BLT Panini** - Remove coming-soon stub; redirect to external service → [BLT-Panini](https://git.owaspblt.org/BLT/BLT-Panini)
+5. **BLT Dash** - Expose stats data via REST API; let BLT-Dash consume it → [BLT-Dash](https://git.owaspblt.org/BLT/BLT-Dash)
+6. **OWASP Compliance Checker** - Extract view + redirect to BLT-OWASP-Wich → [BLT-OWASP-Wich](https://git.owaspblt.org/BLT/BLT-OWASP-Wich)
 
 **Benefits**: Reduces main repo complexity, allows dedicated teams, clearer ownership
 
 ### Phase 2: Platform Extractions (Medium Risk, High Value)
 **Priority: Next 3-6 months**
-1. **IP Reporting** - Add REST API; enable BLT-NetGuardian agent to submit reports → [BLT-NetGuardian](https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian)
-2. **Website Monitor** - Add REST API; let BLT-Monitor poll via API → [BLT-Monitor](https://git.owaspblt.org/BLT/BLT/tree/main/blt-monitor)
-3. **PR Analysis** - Expose `PRAnalysisReport` via API; let BLT-Leaf push results → [BLT-Leaf](https://git.owaspblt.org/BLT/BLT/tree/main/blt-leaf)
+1. **IP Reporting** - Add REST API; enable BLT-NetGuardian agent to submit reports → [BLT-NetGuardian](https://git.owaspblt.org/BLT/BLT-NetGuardian)
+2. **Website Monitor** - Add REST API; let BLT-Monitor poll via API → [BLT-Monitor](https://git.owaspblt.org/BLT/BLT-Monitor)
+3. **PR Analysis** - Expose `PRAnalysisReport` via API; let BLT-Leaf push results → [BLT-Leaf](https://git.owaspblt.org/BLT/BLT-Leaf)
 4. **Adventures** - Self-contained module; extractable in one sprint → ⚠️ No repository yet
 5. **Queue / Social Feed** - Self-contained; no core model dependencies → ⚠️ No repository yet
-6. **Reminder Settings** - Self-contained; integrate with BLT-Sizzle → [BLT-Sizzle](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle)
-7. **Slackbot** - Can operate via webhooks/API; minimal core dependencies → [BLT-Lettuce](https://git.owaspblt.org/BLT/BLT/tree/main/blt-lettuce) · [BLT-Sammich](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sammich) · [BLT-Claw](https://git.owaspblt.org/BLT/BLT)
+6. **Reminder Settings** - Self-contained; integrate with BLT-Sizzle → [BLT-Sizzle](https://git.owaspblt.org/BLT/BLT-Sizzle)
+7. **Slackbot** - Can operate via webhooks/API; minimal core dependencies → [BLT-Lettuce](https://git.owaspblt.org/BLT/BLT-Lettuce) · [BLT-Sammich](https://git.owaspblt.org/BLT/BLT-Sammich) · [BLT-Claw](https://git.owaspblt.org/BLT)
 
 **Benefits**: Reduces main repo complexity, allows dedicated teams, clearer ownership
 
 ### Phase 3: Platform Extractions (Medium Risk, High Value)
 **Priority: Next 6-12 months**
-1. **BLT Mobile App** - Communicates via API only; natural separation point → [BLT-Flutter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-flutter)
-2. **Education Platform** - Self-contained LMS with own data model → [BLT-University](https://git.owaspblt.org/BLT/BLT/tree/main/blt-university)
-3. **OSSH** - Recommendation engine; replace ORM calls with API calls → [BLT-OSSH](https://git.owaspblt.org/BLT/BLT/tree/main/blt-ossh)
+1. **BLT Mobile App** - Communicates via API only; natural separation point → [BLT-Flutter](https://git.owaspblt.org/BLT/BLT-Flutter)
+2. **Education Platform** - Self-contained LMS with own data model → [BLT-University](https://git.owaspblt.org/BLT/BLT-University)
+3. **OSSH** - Recommendation engine; replace ORM calls with API calls → [BLT-OSSH](https://git.owaspblt.org/BLT/BLT-OSSH)
 4. **Security Labs** - Requires isolated infrastructure anyway for security → ⚠️ No repository yet
-5. **Trademark Search** - Self-contained; no core model dependencies → [BLT-Enforcement](https://git.owaspblt.org/BLT/BLT/tree/main/blt-enforcement)
+5. **Trademark Search** - Self-contained; no core model dependencies → [BLT-Enforcement](https://git.owaspblt.org/BLT/BLT-Enforcement)
 
 **Benefits**: Each platform can evolve independently, different tech stacks possible
 
 ### Phase 4: Backend Service Decomposition (Higher Risk, Strategic Value)
 **Priority: 12-24 months**
-1. **Security Incidents / CVE** - Expose via API; enable BLT-CVE to pull/push incidents → [BLT-CVE](https://git.owaspblt.org/BLT/BLT/tree/main/blt-cve)
-2. **Time Tracking / Sizzle** - Add TimeLog REST API; migrate to BLT-Sizzle/BLT-Timer → [BLT-Sizzle](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle) · [BLT-Timer-Web](https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-web)
-3. **BACON Token Service** - Extract blockchain/wallet logic behind API → [BLT-Rewards](https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards)
+1. **Security Incidents / CVE** - Expose via API; enable BLT-CVE to pull/push incidents → [BLT-CVE](https://git.owaspblt.org/BLT/BLT-CVE)
+2. **Time Tracking / Sizzle** - Add TimeLog REST API; migrate to BLT-Sizzle/BLT-Timer → [BLT-Sizzle](https://git.owaspblt.org/BLT/BLT-Sizzle) · [BLT-Timer-Web](https://git.owaspblt.org/BLT/BLT-Timer-Web)
+3. **BACON Token Service** - Extract blockchain/wallet logic behind API → [BLT-Rewards](https://git.owaspblt.org/BLT/BLT-Rewards)
 4. **Messaging Service** - Real-time WebSocket service (or adopt external solution) → ⚠️ No repository yet
 
 **Benefits**: Microservices architecture, independent scaling, technology flexibility
 
 ### Phase 5: Evaluate & Optimize (Optional)
 **Priority: As needed**
-1. **Hackathons** - Consider if usage justifies dedicated platform or external integration → [BLT-Hackathons](https://git.owaspblt.org/BLT/BLT/tree/main/blt-hackathons)
-2. **Jobs Board** - Evaluate against competitors; might be better to integrate with LinkedIn/Indeed → [BLT-Jobs](https://git.owaspblt.org/BLT/BLT/tree/main/blt-jobs)
-3. **Staking** - Move to BLT-Rewards once BACON service is extracted → [BLT-Rewards](https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards)
-4. **REST API** - Extract to standalone BLT-API service once API surface is stable → [BLT-API](https://git.owaspblt.org/BLT/BLT/tree/main/blt-api)
-5. **Analytics/Stats** - If data warehouse needs emerge, extract to BLT-Dash or dedicated service → [BLT-Dash](https://git.owaspblt.org/BLT/BLT/tree/main/blt-dash)
+1. **Hackathons** - Consider if usage justifies dedicated platform or external integration → [BLT-Hackathons](https://git.owaspblt.org/BLT/BLT-Hackathons)
+2. **Jobs Board** - Evaluate against competitors; might be better to integrate with LinkedIn/Indeed → [BLT-Jobs](https://git.owaspblt.org/BLT/BLT-Jobs)
+3. **Staking** - Move to BLT-Rewards once BACON service is extracted → [BLT-Rewards](https://git.owaspblt.org/BLT/BLT-Rewards)
+4. **REST API** - Extract to standalone BLT-API service once API surface is stable → [BLT-API](https://git.owaspblt.org/BLT/BLT-API)
+5. **Analytics/Stats** - If data warehouse needs emerge, extract to BLT-Dash or dedicated service → [BLT-Dash](https://git.owaspblt.org/BLT/BLT-Dash)
 
 ### Migration Considerations
 

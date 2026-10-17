@@ -1,7 +1,7 @@
 # 🛡️ BLT-Preflight
 
 **Live Site:** [https://preflight.owaspblt.org/](https://preflight.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-preflight](https://git.owaspblt.org/BLT/BLT/tree/main/blt-preflight)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Preflight](https://git.owaspblt.org/BLT/BLT-Preflight)
 
 <p align="center"><img src="logo.png" alt="blt-preflight logo" width="160" height="160"></p>
 
@@ -73,7 +73,7 @@ Install the `pf` command once and run it before every commit:
 
 ```bash
 # Install
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd BLT-Preflight
 ./install.sh          # sets up the 'pf' command
 
@@ -107,7 +107,7 @@ You can optionally:
 Use the included installer to set up the `pf` command:
 
 ```bash
-git clone https://git.owaspblt.org/BLT/BLT.git
+git clone https://git.owaspblt.org/BLT.git
 cd BLT-Preflight
 ./install.sh
 ```

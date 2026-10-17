@@ -12,7 +12,7 @@ setup(
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="OWASP BLT",
-    url="https://git.owaspblt.org/BLT/BLT/tree/main/blt-preflight",
+    url="https://git.owaspblt.org/BLT/BLT-Preflight",
     license="Apache-2.0",
     packages=find_packages(where="src"),
     package_dir={"": "src"},

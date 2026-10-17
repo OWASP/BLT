@@ -10,7 +10,7 @@
   const provider = window.BLTProvider || {
     name: "GitLab",
     iconClass: "fa-brands fa-gitlab",
-    repositoryUrl: "https://git.owaspblt.org/BLT/BLT/tree/main/blt-jobs",
+    repositoryUrl: "https://git.owaspblt.org/BLT/BLT-Jobs",
   };
 
   // Determine which page is current to highlight the active link

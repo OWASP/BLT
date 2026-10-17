@@ -8,7 +8,7 @@ If you discover a security vulnerability in OWASP BLT, we appreciate your help i
 
 ### 1. GitHub Security Advisory
 
-You can report the vulnerability by creating a GitHub Security Advisory: [OWASP BLT Security Page](https://git.owaspblt.org/BLT/BLT/security/advisories/new)
+You can report the vulnerability by creating a GitHub Security Advisory: [OWASP BLT Security Page](https://git.owaspblt.org/BLT/security/advisories/new)
 
 Follow the prompts to submit a private security advisory.
 
@@ -42,7 +42,7 @@ Currently, we do not offer bounties for security vulnerability reports. To find 
 For general inquiries or non-security-related issues, you can contact the project leaders:
 
 - **Project Website**: [OWASP BLT](https://legacy.owaspblt.org)
-- **GitHub Issues**: [OWASP BLT Issues](https://git.owaspblt.org/BLT/BLT/issues)
+- **GitHub Issues**: [OWASP BLT Issues](https://git.owaspblt.org/BLT/issues)
 - **Slack**: Join the OWASP Slack workspace and find us in the `#project-blt` channel: [OWASP Slack](https://owasp.org/slack/invite)
 
 For security-related issues, please use the private disclosure methods described above.

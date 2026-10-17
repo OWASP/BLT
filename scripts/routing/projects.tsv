@@ -1,0 +1,60 @@
+# folder	display name (used in URLs)	aliases (old or alternate names; all matching is case-insensitive)
+# Retired names with no folder: BLT-Claw, BLT-team, BLT-sandbox, BLT-Website, OWASP-BLT-Lyte -> /BLT
+blt-action	BLT-Action	
+blt-api	BLT-API	OWASP-BLT-API,BLT-API-on-Cloudflare
+blt-autopatch	BLT-Autopatch	
+blt-byte	BLT-Byte	BLT--Byte
+blt-cli	BLT-CLI	
+blt-core	BLT-Core	BLT,BLT-on-Cloudflare
+blt-cve	BLT-CVE	
+blt-dash	BLT-Dash	
+blt-design	BLT-Design	
+blt-design-contest	BLT-Design-Contest	
+blt-docs	BLT-Docs	documentation
+blt-enforcement	BLT-Enforcement	
+blt-extension	BLT-Extension	
+blt-flutter	BLT-Flutter	
+blt-gitcaster	BLT-Gitcaster	Github_Sportscaster,BLT-Github-Sportscaster
+blt-gsoc	BLT-GSOC	
+blt-hackathons	BLT-Hackathons	BLT-Hackathon
+blt-hackerhouse	BLT-HackerHouse	BLT-Hacker_House
+blt-ideas	BLT-Ideas	
+blt-jobs	BLT-Jobs	
+blt-ketchup	BLT-Ketchup	
+blt-leaf	BLT-Leaf	
+blt-lettuce	BLT-Lettuce	BLT-Lettuce-on-Cloudflare
+blt-mayo	BLT-Mayo	
+blt-mcp	BLT-MCP	
+blt-monitor	BLT-Monitor	OWASP-BLT-Website-Monitor
+blt-netguardian	BLT-NetGuardian	
+blt-netguardian-client	BLT-NetGuardian-Client	
+blt-newsletter	BLT-Newsletter	
+blt-next	BLT-Next	
+blt-nexus	BLT-Nexus	
+blt-ossh	BLT-OSSH	
+blt-owasp-bumper	BLT-OWASP-Bumper	OWASP-Bumper
+blt-owasp-metadata	BLT-OWASP-Metadata	OWASP-metadata
+blt-owasp-projects	BLT-OWASP-Projects	
+blt-owasp-wich	BLT-OWASP-Wich	OWASP-Wich
+blt-pages	BLT-Pages	
+blt-panini	BLT-Panini	Panini
+blt-pool	BLT-Pool	BLT-GitHub-App
+blt-preflight	BLT-Preflight	
+blt-profiles	BLT-Profiles	
+blt-rewards	BLT-Rewards	BLT-Bacon
+blt-safecloak	BLT-SafeCloak	SafeCloak
+blt-sammich	BLT-Sammich	slack-machine
+blt-sizzle	BLT-Sizzle	Sizzle
+blt-start	BLT-Start	
+blt-timer-flutter	BLT-Timer-Flutter	
+blt-timer-web	BLT-Timer-Web	Fresh,BLT-Timer
+blt-toasty	BLT-Toasty	Toasty
+blt-tomato	BLT-Tomato	
+blt-university	BLT-University	
+blt-vanish	BLT-Vanish	BLT-Vanish-Web,SelfErase,BLT-Personal-Privacy-Protection
+blt-vanish-flutter	BLT-Vanish-Flutter	
+blt-waypoint	BLT-Waypoint	owasp-blt.github.io
+blt-zero	BLT-Zero	
+coderabbit	coderabbit	
+dot_github	dot_github	.github
+my-gsoc-tool	MY-GSOC-TOOL	

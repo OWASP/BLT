@@ -1,6 +1,6 @@
 # dot_github
 
-**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/dot_github](https://git.owaspblt.org/BLT/BLT/tree/main/dot_github)
+**Source Code:** [https://git.owaspblt.org/BLT/dot_github](https://git.owaspblt.org/BLT/dot_github)
 
 
 
@@ -17,14 +17,14 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ```
 cd existing_repo
-git remote add origin https://git.owaspblt.org/BLT/BLT.git
+git remote add origin https://git.owaspblt.org/BLT.git
 git branch -M main
 git push -uf origin main
 ```
 
 ## Integrate with your tools
 
-* [Set up project integrations](https://git.owaspblt.org/BLT/BLT/settings/integrations)
+* [Set up project integrations](https://git.owaspblt.org/BLT/settings/integrations)
 
 ## Collaborate with your team
 

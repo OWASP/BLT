@@ -21,11 +21,11 @@ BLT-docs owns the documentation map and cross-project architecture described on 
 
 ## High-level flow
 
-The diagram below shows how each repository's build output reaches users: GitLab repositories flow into project builds, which deploy to Cloudflare Workers behind their custom domains, which serve contributors and platform users. Static asset serving (BLT-docs, BLT-Jobs) is distinguished from dynamic Worker and D1 requests (BLT-Next, BLT-Sizzle, BLT-API).
+The diagram below shows how each repository's build output reaches users: project folders in the BLT repository flow into project builds, which deploy to Cloudflare Workers behind their custom domains, which serve contributors and platform users. Static asset serving (BLT-docs, BLT-Jobs) is distinguished from dynamic Worker and D1 requests (BLT-Next, BLT-Sizzle, BLT-API).
 
 ```mermaid
 flowchart LR
-    subgraph Repos["OWASP BLT GitLab repositories"]
+    subgraph Repos["BLT repository project folders"]
         DocsRepo["blt-docs"]
         JobsRepo["blt-jobs"]
         NextRepo["blt-next"]
