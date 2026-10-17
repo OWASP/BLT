@@ -1,0 +1,21 @@
+name = "blt-byte"
+main = "src/main.py"
+compatibility_date = "2024-12-30"
+remote = true
+compatibility_flags = ["python_workers"]
+
+[ai]
+binding = "AI"
+
+# Static assets configuration
+[assets]
+directory = "public"
+binding = "ASSETS"
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true
+
+[observability]
+enabled = true
