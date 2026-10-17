@@ -30,3 +30,4 @@ build/
 # Environment files
 .env
 .env.local
+.wrangler/

@@ -263,6 +263,7 @@ function orgMetaRepoLast(a, b) {
 const PROJECT_LOGOS = {
   '.github': 'project-logos/.github.svg',
   'blt': 'project-logos-v2/BLT-Core.svg',
+  'blt-autopatch': 'project-logos-v2/BLT-Autopatch.svg',
   'blt-action': 'canonical-logos/blt-action.png',
   'blt-api': 'canonical-logos/blt-api.png',
   'blt-bacon': 'canonical-logos/blt-bacon.png',
@@ -327,8 +328,7 @@ function projectLogoPath(r) {
 
 function projectLogoHTML(r, classes = 'h-9 w-9') {
   const path = projectLogoPath(r);
-  const scale = path.includes('/canonical-logos/') ? 'scale-[1.28]' : '';
-  return `<span class="${classes} shrink-0 rounded-lg overflow-hidden flex items-center justify-center"><img src="${escapeHtml(path)}" alt="${escapeHtml(repoDisplayName(r))} logo" class="h-full w-full object-contain ${scale}" loading="lazy" /></span>`;
+  return `<span class="${classes} shrink-0 rounded-full overflow-hidden flex items-center justify-center"><img src="${escapeHtml(path)}" alt="${escapeHtml(repoDisplayName(r))} logo" class="h-full w-full object-contain" loading="lazy" /></span>`;
 }
 
 function gitlabMigrationClasses(progress) {
