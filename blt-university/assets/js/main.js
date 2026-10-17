@@ -1,0 +1,489 @@
+document.addEventListener('DOMContentLoaded', function() {
+    // Shared with assets/js/labs/core.js and assets/js/dashboard.js. Each is a separate
+    // top-level script with no module system, so the key is repeated rather than imported.
+    const LAB_PROGRESS_STORAGE_KEY = 'blt-lab-progress';
+
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    const returnCourseLink = document.querySelector('[data-return-course]');
+    const coursesUrl = returnCourseLink?.getAttribute('href');
+    const courseSlug = new URLSearchParams(window.location.search).get('course');
+    if (returnCourseLink && coursesUrl && /^[a-z0-9-]+$/.test(courseSlug || '')) {
+        const normalizedCoursesUrl = coursesUrl.replace(/\/?$/, '/');
+        returnCourseLink.setAttribute('href', `${normalizedCoursesUrl}${courseSlug}/`);
+        returnCourseLink.classList.remove('hidden');
+        returnCourseLink.classList.add('inline-flex');
+    }
+
+    if (mobileToggle && mobileMenu) {
+        mobileToggle.addEventListener('click', () => {
+            const open = !mobileMenu.classList.contains('open');
+            mobileMenu.classList.toggle('open', open);
+            mobileToggle.classList.toggle('active', open);
+            mobileToggle.setAttribute('aria-expanded', String(open));
+        });
+
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('open');
+                mobileToggle.classList.remove('active');
+                mobileToggle.setAttribute('aria-expanded', 'false');
+            });
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                mobileMenu.classList.remove('open');
+                mobileToggle.classList.remove('active');
+                mobileToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    // Course Filtering
+    const categoryFilter = document.getElementById('category-filter');
+    const levelFilter = document.getElementById('level-filter');
+    const searchFilter = document.getElementById('search-filter');
+    const coursesGrid = document.getElementById('courses-grid');
+    const noResults = document.getElementById('no-results');
+    const clearCourseFilters = document.querySelector('[data-clear-course-filters]');
+
+    if (categoryFilter && levelFilter && searchFilter && coursesGrid) {
+
+        function filterCourses() {
+            const categoryValue = (categoryFilter.value || '').toLowerCase();
+            const levelValue = (levelFilter.value || '').toLowerCase();
+            const searchValue = (searchFilter.value || '').toLowerCase().trim();
+
+            const courses = coursesGrid.getElementsByClassName('course-card');
+            let visibleCount = 0;
+
+            Array.from(courses).forEach(course => {
+                const courseCategory = course.getAttribute('data-category') || '';
+                const courseLevel = course.getAttribute('data-level') || '';
+                const courseSearch = course.getAttribute('data-search') || '';
+
+                const categoryMatch = !categoryValue || courseCategory === categoryValue;
+                const levelMatch = !levelValue || courseLevel === levelValue;
+                const searchMatch = !searchValue || courseSearch.includes(searchValue);
+
+                if (categoryMatch && levelMatch && searchMatch) {
+                    course.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    course.classList.add('hidden');
+                }
+            });
+
+            if (noResults) {
+                if (visibleCount === 0) {
+                    noResults.classList.remove('hidden');
+                    coursesGrid.classList.add('hidden');
+                } else {
+                    noResults.classList.add('hidden');
+                    coursesGrid.classList.remove('hidden');
+                }
+            }
+        }
+
+        categoryFilter.addEventListener('change', filterCourses);
+        levelFilter.addEventListener('change', filterCourses);
+        searchFilter.addEventListener('input', filterCourses);
+        clearCourseFilters?.addEventListener('click', () => {
+            searchFilter.value = '';
+            categoryFilter.value = '';
+            levelFilter.value = '';
+            filterCourses();
+        });
+
+        filterCourses();
+    }
+
+    // Lab task navigation and MCQ feedback
+    document.querySelectorAll('[data-lab-root]').forEach(labRoot => {
+        const tasks = Array.from(labRoot.querySelectorAll('[data-lab-task]'));
+        const jumps = Array.from(labRoot.querySelectorAll('[data-lab-jump]'));
+        const prevButton = labRoot.querySelector('[data-lab-prev]');
+        const nextButton = labRoot.querySelector('[data-lab-next]');
+        const progressBar = labRoot.querySelector('[data-lab-progress]');
+        const percentLabel = labRoot.querySelector('[data-lab-percent]');
+        const nextLabLink = labRoot.querySelector('[data-next-lab]');
+        const labId = labRoot.getAttribute('data-lab-id');
+        let currentIndex = 0;
+        let highestUnlocked = 0;
+        const completedTasks = new Set();
+
+        if (!tasks.length) {
+            return;
+        }
+
+        function taskRequiresCompletion(index) {
+            return Boolean(tasks[index]?.querySelector('[data-mcq], [data-simulation-root]'));
+        }
+
+        function isTaskComplete(index) {
+            return completedTasks.has(index);
+        }
+
+        function completeTask(index) {
+            completedTasks.add(index);
+            // Clamp to the last task so finishing the final one does not push the
+            // unlock pointer past the end of the list.
+            highestUnlocked = Math.max(highestUnlocked, Math.min(index + 1, tasks.length - 1));
+        }
+
+        function isPlainObject(value) {
+            return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+        }
+
+        function getStoredProgress() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(LAB_PROGRESS_STORAGE_KEY) || '{}');
+                return isPlainObject(parsed) ? parsed : {};
+            } catch (_error) {
+                return {};
+            }
+        }
+
+        function persistProgress(progress) {
+            try {
+                localStorage.setItem(LAB_PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+            } catch (_error) {
+                // Storage full or disabled: a lost save must not break the page interaction.
+            }
+        }
+
+        function saveTaskProgress(index, value) {
+            if (!labId) {
+                return;
+            }
+
+            const progress = getStoredProgress();
+            const labProgress = isPlainObject(progress[labId]) ? progress[labId] : {};
+            labProgress[index] = {
+                ...(isPlainObject(labProgress[index]) ? labProgress[index] : {}),
+                ...value
+            };
+            progress[labId] = labProgress;
+            persistProgress(progress);
+        }
+
+        function recordTaskCompletion(index) {
+            window.BltLearningProgress?.recordTaskCompletion(labId, index);
+        }
+
+        function clearTaskProgressFrom(index) {
+            if (!labId) {
+                return;
+            }
+
+            const progress = getStoredProgress();
+            const labProgress = isPlainObject(progress[labId]) ? progress[labId] : {};
+            Object.keys(labProgress).forEach(taskIndex => {
+                if (Number(taskIndex) >= index) {
+                    delete labProgress[taskIndex];
+                }
+            });
+            progress[labId] = labProgress;
+            persistProgress(progress);
+        }
+
+        function restoreLabProgress() {
+            if (!labId) {
+                return;
+            }
+
+            const progress = getStoredProgress();
+            Object.entries(progress[labId] || {}).forEach(([taskIndex, taskProgress]) => {
+                const index = Number(taskIndex);
+                if (Number.isInteger(index) && index >= 0 && index < tasks.length && taskProgress?.completed) {
+                    completeTask(index);
+                }
+            });
+        }
+
+        function lockAfter(index) {
+            highestUnlocked = Math.min(highestUnlocked, index);
+            completedTasks.forEach(taskIndex => {
+                if (taskIndex >= index) {
+                    completedTasks.delete(taskIndex);
+                }
+            });
+        }
+
+        function updateProgress() {
+            const progress = Math.round((completedTasks.size / tasks.length) * 100);
+            if (progressBar) {
+                progressBar.style.width = progress + '%';
+            }
+            if (percentLabel) {
+                percentLabel.textContent = progress + '%';
+            }
+        }
+
+        function showTask(index) {
+            currentIndex = Math.max(0, Math.min(index, tasks.length - 1));
+
+            tasks.forEach((task, taskIndex) => {
+                task.classList.toggle('hidden', taskIndex !== currentIndex);
+            });
+
+            jumps.forEach((jump, jumpIndex) => {
+                const isCurrent = jumpIndex === currentIndex;
+                const isUnlocked = jumpIndex <= highestUnlocked;
+                const badge = jump.querySelector('[data-step-badge]');
+                const state = jump.querySelector('[data-step-state]');
+
+                jump.disabled = !isUnlocked;
+                jump.classList.toggle('opacity-50', !isUnlocked);
+                jump.classList.toggle('cursor-not-allowed', !isUnlocked);
+
+                if (badge) {
+                    badge.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ' +
+                        (isCurrent
+                            ? 'bg-bltRed text-white'
+                            : isUnlocked
+                                ? 'bg-red-50 dark:bg-red-900/30 text-bltRed'
+                                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400');
+                }
+
+                if (state) {
+                    state.textContent = isTaskComplete(jumpIndex) ? 'Complete' : isCurrent ? 'Current' : isUnlocked ? 'Available' : 'Locked';
+                    state.className = 'block text-xs ' + (isCurrent || isTaskComplete(jumpIndex) ? 'text-bltRed' : 'text-gray-400');
+                }
+            });
+
+            updateProgress();
+
+            const labComplete = completedTasks.size === tasks.length;
+            nextLabLink?.classList.toggle('hidden', !labComplete);
+            if (labComplete) {
+                window.BltRecommendations?.renderAll({ force: true });
+            }
+
+            if (prevButton) {
+                prevButton.disabled = currentIndex === 0;
+            }
+            if (nextButton) {
+                const needsCompletion = taskRequiresCompletion(currentIndex) && !isTaskComplete(currentIndex);
+                // Blocked either because this task is unfinished, or because the lab
+                // is complete: the final control stays visible as a completion state.
+                nextButton.disabled = needsCompletion || (currentIndex === tasks.length - 1 && isTaskComplete(currentIndex));
+                nextButton.title = needsCompletion ? 'Complete this task correctly to continue.' : '';
+                nextButton.innerHTML = currentIndex === tasks.length - 1
+                    ? (isTaskComplete(currentIndex)
+                        ? 'Completed <i class="ph-bold ph-check-circle"></i>'
+                        : 'Complete <i class="ph-bold ph-check"></i>')
+                    : 'Next <i class="ph-bold ph-arrow-right"></i>';
+            }
+
+            labRoot.dispatchEvent(new CustomEvent('lab:task-change', {
+                bubbles: true,
+                detail: { taskIndex: currentIndex }
+            }));
+        }
+
+        prevButton?.addEventListener('click', () => showTask(currentIndex - 1));
+        nextButton?.addEventListener('click', () => {
+            if (taskRequiresCompletion(currentIndex) && !isTaskComplete(currentIndex)) {
+                return;
+            }
+
+            if (!taskRequiresCompletion(currentIndex)) {
+                completeTask(currentIndex);
+                saveTaskProgress(currentIndex, { completed: true });
+                recordTaskCompletion(currentIndex);
+            }
+
+            if (currentIndex < tasks.length - 1) {
+                showTask(currentIndex + 1);
+            } else {
+                showTask(currentIndex);
+            }
+        });
+
+        jumps.forEach(jump => {
+            jump.addEventListener('click', () => {
+                const requestedIndex = Number(jump.getAttribute('data-task-index'));
+                if (requestedIndex <= highestUnlocked) {
+                    showTask(requestedIndex);
+                }
+            });
+        });
+
+        labRoot.addEventListener('lab:task-complete', event => {
+            const completedIndex = Number(event.detail?.taskIndex ?? currentIndex);
+            if (Number.isInteger(completedIndex) && completedIndex >= 0 && completedIndex < tasks.length) {
+                completeTask(completedIndex);
+                recordTaskCompletion(completedIndex);
+                showTask(currentIndex);
+            }
+        });
+
+        labRoot.querySelectorAll('[data-mcq]').forEach(mcq => {
+            const feedback = mcq.querySelector('[data-mcq-feedback]');
+            const options = Array.from(mcq.querySelectorAll('[data-mcq-option]'));
+
+            options.forEach(option => {
+                option.addEventListener('click', () => {
+                    const correctAnswer = option.getAttribute('data-correct-answer');
+                    const selectedAnswer = option.getAttribute('data-option-letter');
+                    const isCorrect = selectedAnswer === correctAnswer;
+
+                    options.forEach(item => {
+                        const itemAnswer = item.getAttribute('data-option-letter');
+                        const marker = item.querySelector('[data-option-marker]');
+
+                        item.classList.remove('border-bltRed', 'bg-red-50', 'dark:bg-red-900/10', 'border-green-500', 'bg-green-50', 'dark:bg-green-900/10');
+                        item.setAttribute('aria-pressed', item === option ? 'true' : 'false');
+
+                        if (itemAnswer === correctAnswer) {
+                            item.classList.add('border-green-500', 'bg-green-50', 'dark:bg-green-900/10');
+                            if (marker) {
+                                marker.textContent = '✓';
+                                marker.classList.add('text-green-600', 'font-bold');
+                            }
+                        } else if (item === option && !isCorrect) {
+                            item.classList.add('border-bltRed', 'bg-red-50', 'dark:bg-red-900/10');
+                            if (marker) {
+                                marker.textContent = '×';
+                                marker.classList.add('text-bltRed', 'font-bold');
+                            }
+                        } else if (marker) {
+                            marker.textContent = '';
+                            marker.classList.remove('text-green-600', 'text-bltRed', 'font-bold');
+                        }
+                    });
+
+                    if (isCorrect) {
+                        completeTask(currentIndex);
+                        saveTaskProgress(currentIndex, { completed: true });
+                        recordTaskCompletion(currentIndex);
+                    } else {
+                        // A wrong answer forfeits everything past this task, in memory
+                        // and in storage, so the learner cannot keep credit earned
+                        // beyond a step they have not actually passed.
+                        lockAfter(currentIndex);
+                        clearTaskProgressFrom(currentIndex);
+                    }
+
+                    if (feedback) {
+                        feedback.classList.remove('hidden', 'text-green-600', 'text-bltRed');
+                        feedback.classList.add(isCorrect ? 'text-green-600' : 'text-bltRed');
+                        feedback.textContent = isCorrect ? 'Correct. You can continue.' : 'Not quite. Choose the correct answer before moving on.';
+                    }
+
+                    showTask(currentIndex);
+                });
+            });
+        });
+
+        restoreLabProgress();
+        showTask(highestUnlocked);
+    });
+
+    // Lab catalog filtering
+    const labCategoryFilter = document.getElementById('lab-category-filter');
+    const labLevelFilter = document.getElementById('lab-level-filter');
+    const labSearchFilter = document.getElementById('lab-search-filter');
+    const labsGrid = document.getElementById('labs-grid');
+    const labNoResults = document.getElementById('lab-no-results');
+    const labResultsSummary = document.getElementById('lab-results-summary');
+
+    if (labCategoryFilter && labLevelFilter && labSearchFilter && labsGrid) {
+        const labCatalog = document.getElementById('lab-catalog');
+        const trackChoices = Array.from(document.querySelectorAll('[data-track-choice]'));
+        let selectedTrack = '';
+
+        function filterLabs() {
+            const categoryValue = (labCategoryFilter.value || '').toLowerCase();
+            const levelValue = (labLevelFilter.value || '').toLowerCase();
+            const searchValue = (labSearchFilter.value || '').toLowerCase().trim();
+            const labs = labsGrid.getElementsByClassName('lab-card');
+            let visibleCount = 0;
+
+            Array.from(labs).forEach(lab => {
+                const labCategory = lab.getAttribute('data-category') || '';
+                const labLevel = lab.getAttribute('data-level') || '';
+                const labTrack = lab.getAttribute('data-track') || '';
+                const labSearch = lab.getAttribute('data-search') || '';
+                const categoryMatch = !categoryValue || labCategory === categoryValue;
+                const levelMatch = !levelValue || labLevel === levelValue;
+                const trackMatch = !selectedTrack || labTrack === selectedTrack || labTrack === 'both';
+                const searchMatch = !searchValue || labSearch.includes(searchValue);
+
+                if (categoryMatch && levelMatch && trackMatch && searchMatch) {
+                    lab.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    lab.classList.add('hidden');
+                }
+            });
+
+            if (labNoResults) {
+                labNoResults.classList.toggle('hidden', visibleCount !== 0);
+                labsGrid.classList.toggle('hidden', visibleCount === 0);
+            }
+
+            if (labResultsSummary) {
+                const trackName = selectedTrack
+                    ? trackChoices.find(choice => choice.getAttribute('data-track-choice') === selectedTrack)?.getAttribute('data-track-label')
+                    : '';
+                const summaryPrefix = trackName ? `${trackName} · ` : '';
+                labResultsSummary.textContent = `${summaryPrefix}Showing ${visibleCount} ${visibleCount === 1 ? 'lab' : 'labs'}`;
+            }
+        }
+
+        labCategoryFilter.addEventListener('change', filterLabs);
+        labLevelFilter.addEventListener('change', filterLabs);
+        labSearchFilter.addEventListener('input', filterLabs);
+
+        trackChoices.forEach(choice => {
+            choice.addEventListener('click', () => {
+                const trackChoice = choice.getAttribute('data-track-choice') || '';
+                selectedTrack = selectedTrack === trackChoice ? '' : trackChoice;
+                trackChoices.forEach(track => {
+                    const isSelected = track.getAttribute('data-track-choice') === selectedTrack;
+                    track.setAttribute('aria-pressed', String(isSelected));
+                    track.classList.toggle('border-red-500', isSelected);
+                    track.classList.toggle('bg-red-50', isSelected);
+                    track.classList.toggle('shadow-[0_16px_40px_-30px_rgba(220,38,38,.45)]', isSelected);
+                });
+                filterLabs();
+                labCatalog?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
+        filterLabs();
+    }
+
+    // Parse URL parameters for enrollment
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseParam = urlParams.get('course');
+    const titleParam = urlParams.get('title');
+
+    if ((courseParam || titleParam) && window.location.pathname.includes('/enroll/')) {
+        const enrollButton = document.querySelector('[data-enrollment-button]');
+        if (enrollButton) {
+            const currentHref = enrollButton.getAttribute('href');
+            const separator = currentHref.includes('?') ? '&' : '?';
+            const courseTitle = titleParam || (courseParam ? courseParam.replace(/-/g, ' ') : '');
+            const prefilledTitle = `[ENROLLMENT] ${courseTitle} - `;
+            enrollButton.setAttribute('href', currentHref + separator + `title=${encodeURIComponent(prefilledTitle)}`);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        // Kept as a `function` expression: the body reads `this` as the clicked anchor.
+        anchor.addEventListener('click', function (event) {
+            event.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+});

@@ -1,0 +1,17 @@
+<svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="cloud-title cloud-description">
+  <title id="cloud-title">Cloud Security Essentials</title>
+  <desc id="cloud-description">A cloud protected by a shield and lock.</desc>
+  <defs>
+    <linearGradient id="cloud-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0891b2" />
+      <stop offset="100%" stop-color="#164e63" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="400" fill="url(#cloud-gradient)" />
+  <g transform="translate(400 185)" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-112 35h151c35 0 61-20 61-50 0-28-21-48-50-50-13-35-42-55-79-55-45 0-81 31-87 74-28 6-46 27-46 51 0 17 8 30 20 39 8 6 18 9 30 9z" stroke-width="8" opacity=".88" />
+    <path d="M50-31l45-21 45 21v37c0 38-20 64-45 76C70 70 50 44 50 6z" stroke-width="7" fill="#fff" fill-opacity=".14" />
+    <rect x="78" y="3" width="34" height="31" rx="4" stroke-width="6" fill="#fff" fill-opacity=".2" />
+    <path d="M84 3v-10c0-9 5-16 11-16s11 7 11 16V3" stroke-width="6" />
+  </g>
+</svg>

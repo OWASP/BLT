@@ -1,0 +1,145 @@
+stages:
+  - validate
+  - build
+  - test
+  - deploy
+
+variables:
+  JEKYLL_ENV: production
+  BUNDLE_PATH: vendor/bundle
+
+cache:
+  key:
+    files:
+      - Gemfile
+  paths:
+    - vendor/bundle
+
+validate-labs:
+  stage: validate
+  image: python:3.11-slim
+  cache: []
+  script:
+    - python -m pip install jsonschema==4.25.1 python-frontmatter==1.1.0
+    - python scripts/validate_labs.py
+  rules:
+    - changes:
+        - _labs/**/*
+        - schemas/lab.schema.json
+        - scripts/validate_labs.py
+        - docs/lab-authoring-guide.md
+        - docs/lab-template.md
+
+validate-vulnerability-intel:
+  stage: validate
+  image: python:3.11-slim
+  cache: []
+  script:
+    - python -m pip install "jsonschema[format-nongpl]==4.25.1"
+    - python -B scripts/vulnerability_intel/validate.py
+    - python -B -m unittest discover -s tests/vulnerability_intel -p 'test_*.py' -v
+  rules:
+    - changes:
+        - _labs/**/*
+        - _data/cwe_owasp_lab_mapping.json
+        - _data/vulnerability_intel.json
+        - schemas/vulnerability-intel.schema.json
+        - scripts/vulnerability_intel/update.py
+        - scripts/vulnerability_intel/validate.py
+        - tests/vulnerability_intel/test_pipeline.py
+
+build_site:
+  image: ruby:3.2
+  stage: build
+  script:
+    - bundle install
+    - bundle exec jekyll build -d public
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 week
+
+test_js:
+  image: node:20
+  stage: test
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npm audit --audit-level=high
+    - npm run test:js
+
+test_e2e:
+  image: mcr.microsoft.com/playwright:v1.62.0-noble
+  stage: test
+  needs:
+    - job: build_site
+      artifacts: true
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npm run test:e2e
+  artifacts:
+    when: on_failure
+    paths:
+      - playwright-report/
+      - test-results/
+    expire_in: 1 week
+
+pages:
+  image: alpine:3.20
+  stage: deploy
+  needs:
+    - job: build_site
+      artifacts: true
+  script:
+    - test -d public
+    - test -f public/index.html
+  pages:
+    publish: public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+commit_built_pages:
+  image: alpine:3.20
+  stage: deploy
+  needs:
+    - job: build_site
+      artifacts: true
+  before_script:
+    - apk add --no-cache git
+  script:
+    - mv public /tmp/built-public
+    - git config user.name "${GITLAB_USER_NAME:-GitLab CI}"
+    - git config user.email "${GITLAB_USER_EMAIL:-gitlab-ci@users.noreply.gitlab.com}"
+    - git rm -r --ignore-unmatch public
+    - mkdir public
+    - cp -R /tmp/built-public/. public/
+    - test -f public/index.html
+    - git add -f public
+    - |
+      if git diff --cached --quiet; then
+        echo "No generated page changes to commit."
+        exit 0
+      fi
+    - git commit -m "Build static pages [skip ci]"
+    - |
+      if [ -n "$CI_PUSH_TOKEN" ]; then
+        git push "https://oauth2:${CI_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" "HEAD:${CI_COMMIT_BRANCH}"
+      else
+        git push "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" "HEAD:${CI_COMMIT_BRANCH}"
+      fi
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

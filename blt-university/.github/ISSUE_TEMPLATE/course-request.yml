@@ -1,0 +1,114 @@
+name: Course/Topic Request
+description: Request a course or topic you'd like to learn at BLT University
+title: "[REQUEST] "
+labels: ["course-request", "student-feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Course/Topic Request
+        Thank you for helping us improve BLT University! Tell us what you'd like to learn.
+        
+  - type: input
+    id: course-topic
+    attributes:
+      label: Course or Topic Title
+      description: What course or topic would you like us to offer?
+      placeholder: e.g., "Machine Learning Security" or "Container Security with Docker"
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: Which category does this course/topic fit into?
+      options:
+        - Web Security
+        - Network Security
+        - Cryptography
+        - Penetration Testing
+        - Secure Coding
+        - Malware Analysis
+        - Cloud Security
+        - Mobile Security
+        - Incident Response
+        - Security Operations
+        - Other
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: level
+    attributes:
+      label: Desired Level
+      description: What level should this course be?
+      options:
+        - Beginner
+        - Intermediate
+        - Advanced
+        - Not Sure
+    validations:
+      required: true
+      
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe what you'd like to learn and why it's important
+      placeholder: I would like to learn about... This is important because...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: learning-objectives
+    attributes:
+      label: What would you like to learn?
+      description: List specific skills, concepts, or topics you'd like covered
+      placeholder: |
+        - How to...
+        - Understanding of...
+        - Practical skills in...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: How would you apply this knowledge? What problems would it help you solve?
+      placeholder: I want to use this knowledge to...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: existing-resources
+    attributes:
+      label: Existing Resources (Optional)
+      description: Are there any existing resources, courses, or materials on this topic that you've found helpful?
+      placeholder: |
+        - Link to resource 1
+        - Link to resource 2
+      
+  - type: dropdown
+    id: interest-level
+    attributes:
+      label: Your Interest Level
+      description: How interested are you in this topic?
+      options:
+        - Very interested - would enroll immediately
+        - Interested - would likely enroll
+        - Curious - might enroll
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: participation
+    attributes:
+      label: Participation
+      description: Would you be willing to help with this course?
+      options:
+        - label: I'd be interested in contributing content or resources
+        - label: I'd be interested in peer reviewing course materials
+        - label: I'd be willing to provide feedback during course development
+        - label: I just want to take the course when it's available

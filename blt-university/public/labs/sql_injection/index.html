@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>SQL Injection | BLT University</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="SQL Injection" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Learn SQL injection through interactive security exercises." />
+<meta name="twitter:description" property="og:description" content="Learn SQL injection through interactive security exercises." />
+<link rel="canonical" href="https://university.owaspblt.org/labs/sql_injection/" />
+<meta property="og:url" content="https://university.owaspblt.org/labs/sql_injection/" />
+<meta property="og:site_name" content="BLT University" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-08-29T17:29:08+00:00" />
+<meta property="article:modified_time" content="2026-08-29T17:29:08+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="SQL Injection" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-29T17:29:08+00:00","datePublished":"2026-08-29T17:29:08+00:00","description":"Learn SQL injection through interactive security exercises.","headline":"SQL Injection","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/labs/sql_injection/"},"url":"https://university.owaspblt.org/labs/sql_injection/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="icon" type="image/png" href="/assets/images/blt-university-logo.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        // Dark mode theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com/3.4.17?plugins=typography@0.5.16"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Geist', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+                    },
+                    colors: {
+                        bltRed: '#dc2626',
+                        bltRedLight: '#fee2e2',
+                        bltRedHover: '#b91c1c',
+                        bltDark: '#111827',
+                        bltCoral: '#ef4444',
+                        bltFooter: '#0e0d0c'
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(17,24,39,0.04)',
+                        float: '0 10px 24px -18px rgba(220,38,38,.8)'
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        .dot-field {
+            background-image: radial-gradient(rgba(17, 24, 39, 0.18) 1px, transparent 1px);
+            background-size: 18px 18px;
+            mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        }
+        .mobile-menu.open {
+            display: flex;
+        }
+        .mobile-toggle.active span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+        .mobile-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .mobile-toggle.active span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+        .feature-divider::before,
+        .feature-divider::after {
+            content: "";
+            height: 1px;
+            flex: 1;
+        }
+        .feature-divider::before {
+            background: linear-gradient(to right, transparent, #e5e7eb);
+        }
+        .feature-divider::after {
+            background: linear-gradient(to left, transparent, #e5e7eb);
+        }
+        .wave-dots i {
+            position: absolute;
+            width: 0.25rem;
+            height: 0.25rem;
+            border-radius: 999px;
+            background: #d1d5db;
+            animation: wave 2s infinite ease-in-out;
+        }
+        .wave-dots i:nth-child(1) { top: 0; left: 0; }
+        .wave-dots i:nth-child(2) { top: 0; left: 1rem; }
+        .wave-dots i:nth-child(3) { top: 0.25rem; left: 0.5rem; animation-delay: 0.35s; }
+        .wave-dots i:nth-child(4) { top: 0.5rem; left: 0; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(5) { top: 0.5rem; left: 1rem; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(6) { top: 0.75rem; left: 0.5rem; animation-delay: 0.85s; }
+        .section-kicker.with-bar::before {
+            content: "";
+            position: absolute;
+            top: 0.18rem;
+            left: -0.55rem;
+            width: 3px;
+            height: 1.25rem;
+            border-radius: 0 2px 2px 0;
+            background: #ef4444;
+        }
+        .footer-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image:
+              linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .footer-links p {
+            margin: 0 0 0.35rem;
+            color: #6b7280;
+            font-size: 0.625rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .footer-links a {
+            display: block;
+            color: #d1d5db;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            transition: color 180ms ease;
+        }
+        .footer-links a:hover {
+            color: white;
+        }
+        @keyframes wave {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-3px);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
+
+    <header
+  class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm"
+  id="site-header"
+>
+  <div
+    class="relative mx-auto flex max-w-[104rem] items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-6 xl:px-6"
+  >
+    <a
+      href="/"
+      class="inline-flex items-center gap-2.5"
+      aria-label="BLT University home"
+    >
+      <img
+        src="/assets/images/blt-university-logo.png"
+        alt="BLT University logo"
+        class="h-12 sm:h-14"
+      />
+      <div class="flex flex-col">
+        <span class="text-sm font-semibold uppercase tracking-wide">BLT UNIVERSITY</span>
+      </div>
+    </a>
+
+    <nav
+      class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-7 lg:flex"
+      aria-label="Primary navigation"
+    >
+      
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/courses/"
+        >Courses</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/labs/"
+        >Labs</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/progress/"
+        >Progress</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/dashboard/"
+        >Security Trends</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/instructors/"
+        >Instructors</a
+      >
+      
+    </nav>
+
+    <div class="hidden items-center gap-3 lg:flex">
+      
+      
+      
+      <a
+        class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+        href="/request/"
+        >Request course</a
+      >
+      
+      
+      
+      <a
+        class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+        href="/enroll/"
+        >Enroll now</a
+      >
+      
+      
+    </div>
+
+    <button
+      class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-lg:flex"
+      id="mobile-toggle"
+      type="button"
+      aria-label="Toggle menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+    </button>
+  </div>
+
+  <nav
+    class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white px-6 py-4"
+    id="mobile-menu"
+    aria-label="Mobile navigation"
+  >
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/courses/">Courses</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/progress/">Progress</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Security Trends</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+      href="/request/"
+      >Request course</a
+    >
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+      href="/enroll/"
+      >Enroll now</a
+    >
+    
+    
+  </nav>
+</header>
+
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
+<script id="lab-data" type="application/json">[{"name":"Introduction to SQL Injection","description":"Learn the basics of SQL injection vulnerabilities and how they occur.","type":"theory","order":1,"heading":"What is SQL Injection?","content":"SQL injection is a code injection technique that exploits a security vulnerability in an application's software. The vulnerability occurs when user input is not safely validated, escaped, typed, or parameterized before it becomes part of a SQL query.\n\n### How SQL Injection Works\n\nSQL injection attacks work by inserting malicious SQL code into application queries. When the application executes these modified queries, it can result in:\n\n- Unauthorized access to data\n- Data theft or modification\n- Authentication bypass\n- Complete system compromise\n\n### Example Vulnerable Code\n\n```java\nString query = \"SELECT * FROM users WHERE username = '\" + username + \"' AND password = '\" + password + \"'\";\n```\n","mcq":{"question":"What makes an application vulnerable to SQL injection?","options":["A) Improper input validation and sanitization","B) Using strong passwords","C) Having too many database tables","D) Using encrypted connections"],"answer":"A"}},{"name":"Identifying SQL Injection Points","description":"Learn how to identify potential SQL injection vulnerabilities in web applications.","type":"theory","order":2,"heading":"Finding SQL Injection Vulnerabilities","content":"SQL injection vulnerabilities can appear anywhere untrusted data is used to build database queries.\n\n### Common Injection Points\n\n- **Login forms:** Username and password fields\n- **Search boxes:** Query parameters\n- **URL parameters:** GET request parameters\n- **Form inputs:** POST request data\n- **Cookies:** Session data\n- **HTTP headers:** User-Agent, Referer, and similar values\n\n### Testing Techniques\n\nUse these payloads to test for SQL injection:\n\n- Single quote (`'`) to look for database errors\n- Double quote (`\"`) as an alternate string delimiter\n- SQL comments (`--` or `/*`) to comment out the rest of a query\n- Boolean conditions (`1=1`, `1=2`) to test logic manipulation\n","mcq":{"question":"Which of the following is NOT a common SQL injection testing payload?","options":["A) Single quote (')","B) Boolean condition (1=1)","C) HTML tags (<script>)","D) SQL comment (--)"],"answer":"C"}},{"name":"Basic SQL Injection - Login Bypass","description":"Practice bypassing login authentication using SQL injection.","type":"simulation","order":3,"simulation":{"engine":"sqli-login","type":"login_bypass","scenario":"vulnerable_login","target_url":"/vulnerable-login","vulnerable_code":"const username = request.body.username;\nconst password = request.body.password;\nconst query = \"SELECT * FROM users WHERE username = '\" + username + \"' AND password = '\" + password + \"'\";\ndb.query(query);\n","vulnerable_lines":[3],"explain":{"question":"Why can the login be bypassed?","options":[{"id":"direct_sql_input","label":"User input is concatenated directly into the SQL query."},{"id":"weak_password_hash","label":"The password hash is too short."},{"id":"missing_https","label":"The request is not using HTTPS."}],"answer":"direct_sql_input"},"expected_patterns":["parameterized_query","prepared_statement"],"attack_payloads":["' OR '1'='1"],"vulnerable_parameters":["username","password"],"success_payload":"admin' -- -","success_criteria":"Successfully logged in as admin without knowing the password.","fix_starter_code":"const username = request.body.username;\nconst password = request.body.password;\nconst query = \"SELECT * FROM users WHERE username = '\" + username + \"' AND password = '\" + password + \"'\";\ndb.query(query);\n","hints":["Try using SQL comments to bypass the password check.","The application uses single quotes around the username.","Remember that -- followed by whitespace comments out the rest of the SQL query.","In the fix, keep user values outside the SQL string and bind them as parameters."]}},{"name":"Union-Based SQL Injection","description":"Learn about Union-based SQL injection attacks to extract data.","type":"theory","order":4,"heading":"Union-Based SQL Injection","content":"Union-based SQL injection leverages the `UNION` SQL operator to combine the results of two or more `SELECT` statements into a single result.\n\n### Requirements for UNION Attacks\n\n- The same number of columns in both `SELECT` statements\n- Compatible data types in corresponding columns\n- Application output that displays query results\n\n### Finding Column Count\n\nUse `ORDER BY` to determine the number of columns:\n\n```sql\n' ORDER BY 1-- -\n' ORDER BY 2-- -\n' ORDER BY 3-- -\n```\n\n### Union Attack Example\n\n```sql\n' UNION SELECT username, password FROM users-- -\n```\n","mcq":{"question":"What is required for a successful UNION-based SQL injection?","options":["A) The application must be written in PHP","B) Same number of columns and compatible data types","C) The database must be MySQL","D) The user must have admin privileges"],"answer":"B"}},{"name":"Union Attack - Data Extraction","description":"Practice extracting sensitive data using Union-based SQL injection.","type":"simulation","order":5,"simulation":{"engine":"sqli-union","type":"union_injection","scenario":"data_extraction","target_url":"/vulnerable-search","vulnerable_code":"const search = request.query.search;\nconst query = \"SELECT id, name, price, description FROM products WHERE name LIKE '%\" + search + \"%'\";\ndb.query(query);\n","vulnerable_lines":[2],"explain":{"question":"Why can this UNION payload extract data?","options":[{"id":"union_appends_rows","label":"The search term changes the SELECT statement, so UNION can append compatible rows from another table."},{"id":"table_has_passwords","label":"The users table has a password column, which by itself causes injection."},{"id":"missing_pagination","label":"The product search is missing pagination."}],"answer":"union_appends_rows"},"expected_patterns":["parameterized_query","prepared_statement"],"attack_payloads":["' UNION SELECT id, username, password, email FROM users-- -"],"vulnerable_parameters":["search"],"table_structure":{"users":["id","username","password","email"],"products":["id","name","price","description"]},"success_payload":"' UNION SELECT id, username, password, email FROM users-- -","success_criteria":"Extract all usernames and passwords from users table.","fix_starter_code":"const search = request.query.search;\nconst query = \"SELECT id, name, price, description FROM products WHERE name LIKE '%\" + search + \"%'\";\ndb.query(query);\n","hints":["First determine the number of columns using ORDER BY.","Use UNION SELECT to combine with your malicious query.","The original query selects 4 columns from the products table."]}},{"name":"Boolean-Based Blind SQL Injection","description":"Learn about blind SQL injection when no data is returned directly.","type":"theory","order":6,"heading":"Boolean-Based Blind SQL Injection","content":"Blind SQL injection occurs when an application is vulnerable to SQL injection, but HTTP responses do not contain query results or database errors.\n\n### Characteristics\n\n- No direct database output in the response\n- Application behavior changes based on query truth\n- Requires inference techniques\n- Time-consuming but effective\n\n### Testing Technique\n\nUse conditional statements to infer information:\n\n```sql\n' AND 1=1-- -     -- Should return normal response\n' AND 1=2-- -     -- Should return different response\n```\n\n### Data Extraction Example\n\n```sql\n' AND (SELECT SUBSTRING(username,1,1) FROM users WHERE id=1)='a'-- -\n```\n","mcq":{"question":"In Boolean-based blind SQL injection, how do you extract data?","options":["A) By reading error messages","B) By analyzing response differences for true/false conditions","C) By viewing database tables directly","D) By measuring response timing only"],"answer":"B"}},{"name":"Blind SQL Injection - Character Extraction","description":"Practice extracting data character by character using blind techniques.","type":"simulation","order":7,"simulation":{"engine":"sqli-blind","type":"blind_injection","scenario":"character_extraction","target_url":"/vulnerable-profile","vulnerable_code":"const userId = request.query.user_id;\nconst query = \"SELECT * FROM profiles WHERE user_id = \" + userId;\nconst profile = db.query(query);\n","vulnerable_lines":[2],"explain":{"question":"How does Boolean-based blind SQL injection leak data?","options":[{"id":"response_difference","label":"Injected true or false conditions change the application response, revealing one bit of information at a time."},{"id":"password_visible","label":"The password is printed directly on the page."},{"id":"slow_network","label":"The network connection is slow enough to expose data."}],"answer":"response_difference"},"expected_patterns":["parameterized_query","prepared_statement"],"attack_payloads":["' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='admin')='p'-- -"],"vulnerable_parameters":["user_id"],"blind_type":"boolean","target_data":"admin_password","success_payload":"' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='admin')='p'-- -","success_criteria":"Extract the first 5 characters of the admin password.","expected_approach":"Boolean-based character-by-character extraction.","fix_starter_code":"const userId = request.query.user_id;\nconst query = \"SELECT * FROM profiles WHERE user_id = \" + userId;\nconst profile = db.query(query);\n","hints":["Use AND conditions to test character values.","Compare response content for true/false conditions.","Use SUBSTRING or SUBSTR to extract individual characters.","ASCII values can help with character comparison."]}},{"name":"Time-Based Blind SQL Injection","description":"Learn about time-based blind SQL injection techniques.","type":"theory","order":8,"heading":"Time-Based Blind SQL Injection","content":"Time-based blind SQL injection is used when Boolean-based techniques do not work. It relies on injecting SQL queries that cause the database to wait for a specified amount of time.\n\n### Common Time Functions\n\n- **MySQL:** `SLEEP(5)`\n- **PostgreSQL:** `pg_sleep(5)`\n- **SQL Server:** `WAITFOR DELAY '00:00:05'`\n- **Oracle:** `dbms_pipe.receive_message(('a'),5)`\n\n### Testing Example\n\n```sql\n' AND IF(1=1, SLEEP(5), 0)-- -\n' AND IF((SELECT COUNT(*) FROM users)>5, SLEEP(5), 0)-- -\n```\n\n### Data Extraction\n\n```sql\n' AND IF((SELECT SUBSTRING(password,1,1) FROM users WHERE username='admin')='p', SLEEP(5), 0)-- -\n```\n","mcq":{"question":"What is the main indicator of successful time-based SQL injection?","options":["A) Error messages in the response","B) Changed content in the response","C) Increased response time","D) HTTP status code changes"],"answer":"C"}},{"name":"Time-Based Attack Simulation","description":"Practice time-based blind SQL injection to extract sensitive information.","type":"simulation","order":9,"simulation":{"engine":"sqli-time","type":"time_based_injection","scenario":"password_extraction","target_url":"/vulnerable-news","vulnerable_code":"const articleId = request.query.article_id;\nconst query = \"SELECT * FROM articles WHERE id = \" + articleId;\nconst article = db.query(query);\n","vulnerable_lines":[2],"explain":{"question":"Why does a time-based SQL injection work here?","options":[{"id":"timing_channel","label":"The injected condition can call a database delay function, so response time reveals whether the condition is true."},{"id":"large_article","label":"Large articles take longer to download."},{"id":"missing_cache","label":"Browser caching is disabled."}],"answer":"timing_channel"},"expected_patterns":["parameterized_query","prepared_statement"],"attack_payloads":["' AND IF((SELECT LENGTH(password) FROM users WHERE username='admin')=8, SLEEP(5), 0)-- -"],"vulnerable_parameters":["article_id"],"database_type":"mysql","time_function":"SLEEP","target_data":"admin_password_length","success_payload":"' AND IF((SELECT LENGTH(password) FROM users WHERE username='admin')=8, SLEEP(5), 0)-- -","success_criteria":"Determine the length of the admin password using time delays.","fix_starter_code":"const articleId = request.query.article_id;\nconst query = \"SELECT * FROM articles WHERE id = \" + articleId;\nconst article = db.query(query);\n","hints":["Use SLEEP(5) to create time delays.","Test different password lengths using LENGTH() function.","Measure response times to detect successful conditions.","A 5-second delay indicates a true condition."]}},{"name":"Advanced SQL Injection Prevention","description":"Learn comprehensive strategies to prevent SQL injection attacks.","type":"theory","order":10,"heading":"SQL Injection Prevention","content":"Preventing SQL injection requires a multi-layered approach combining secure coding practices and proper application architecture.\n\n### Primary Defense: Prepared Statements\n\n```java\nString query = \"SELECT * FROM users WHERE username = ? AND password = ?\";\nPreparedStatement stmt = connection.prepareStatement(query);\nstmt.setString(1, username);\nstmt.setString(2, password);\n```\n\n### Additional Defenses\n\n- **Input validation:** Whitelist allowed characters\n- **Stored procedures:** When properly implemented\n- **Escaping:** As a secondary defense\n- **Least privilege:** Minimal database permissions\n- **WAF:** Web Application Firewall\n\n### Best Practices\n\n- Never trust user input\n- Use parameterized queries exclusively\n- Implement proper error handling\n- Run regular security testing\n- Keep software updated\n","mcq":{"question":"What is the most effective primary defense against SQL injection?","options":["A) Input validation and filtering","B) Using a Web Application Firewall","C) Prepared statements with parameterized queries","D) Encrypting database connections"],"answer":"C"}}]</script>
+
+
+<script id="adaptive-recommendation-data" type="application/json">{
+  "weights": {"A01": 1.00, "A02": 0.95, "A03": 0.90, "A04": 0.85, "A05": 0.80, "A06": 0.75, "A07": 0.70, "A08": 0.65, "A09": 0.60, "A10": 0.50},
+  "categories": [
+    
+    {"id": "A01", "name": "Broken Access Control", "count": 6156, "labs": [{"slug":"insecure_direct_object_reference","title":"Insecure Direct Object Reference","reason":"Practice object-level authorization checks."},{"slug":"cross_site_request_forgery","title":"Cross-Site Request Forgery","reason":"Understand authorization of state-changing requests."},{"slug":"open_redirect","title":"Open Redirect","reason":"Learn to constrain user-controlled navigation."}]},
+    
+    {"id": "A02", "name": "Cryptographic Failures", "count": 456, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Practice protecting secrets and sensitive information."}]},
+    
+    {"id": "A03", "name": "Injection", "count": 5745, "labs": [{"slug":"sql_injection","title":"SQL Injection","reason":"Learn parameterized queries and database input handling."},{"slug":"cross_site_scripting_xss","title":"Cross-Site Scripting","reason":"Practice safe output handling across browser contexts."},{"slug":"command_injection","title":"Command Injection","reason":"Learn to keep operating-system commands and input separate."}]},
+    
+    {"id": "A04", "name": "Insecure Design", "count": 1528, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Explore security controls for a high-risk application feature."},{"slug":"broken_authentication","title":"Broken Authentication","reason":"Review authentication design and abuse cases."}]},
+    
+    {"id": "A05", "name": "Security Misconfiguration", "count": 143, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Identify unsafe diagnostics and exposed configuration."},{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Practice hardening upload configuration and storage."}]},
+    
+    {"id": "A06", "name": "Vulnerable and Outdated Components", "count": 37, "labs": []},
+    
+    {"id": "A07", "name": "Identification and Authentication Failures", "count": 1832, "labs": [{"slug":"broken_authentication","title":"Broken Authentication","reason":"Practice credential, session, recovery, and token defenses."}]},
+    
+    {"id": "A08", "name": "Software and Data Integrity Failures", "count": 689, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Learn to validate provenance, type, and content before trust."}]},
+    
+    {"id": "A09", "name": "Security Logging and Monitoring Failures", "count": 75, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Learn what must never be exposed through logs and diagnostics."}]},
+    
+    {"id": "A10", "name": "Server-Side Request Forgery", "count": 569, "labs": [{"slug":"server_side_request_forgery","title":"Server-Side Request Forgery","reason":"Practice destination validation and internal-network protection."}]}
+    
+  ],
+  "labs": [
+    
+    {"id": "broken-authentication", "title": "Broken Authentication", "description": "Comprehensive coverage of authentication vulnerabilities including weak credentials, session management flaws, and JWT misconfigurations. Practice credential stuffing, session fixation, and token forgery attacks.", "url": "/labs/broken_authentication/", "taskCount": 12},
+    
+    {"id": "command-injection", "title": "Command Injection", "description": "Learn how unsafe system command construction leads to command injection and how to prevent it.", "url": "/labs/command_injection/", "taskCount": 8},
+    
+    {"id": "cross-site-request-forgery", "title": "Cross-Site Request Forgery", "description": "Learn CSRF attacks and defenses through focused security exercises.", "url": "/labs/cross_site_request_forgery/", "taskCount": 7},
+    
+    {"id": "cross-site-scripting-xss", "title": "Cross-Site Scripting (XSS)", "description": "Find out how untrusted input can run as code in a browser, and how to stop it.", "url": "/labs/cross_site_scripting_xss/", "taskCount": 8},
+    
+    {"id": "file-upload-vulnerabilities", "title": "File Upload Vulnerabilities", "description": "Explore critical file upload security flaws that allow attackers to upload malicious files and execute code on servers. Learn to bypass extension filters, MIME type validation, and path traversal restrictions.", "url": "/labs/file_upload_vulnerabilities/", "taskCount": 7},
+    
+    {"id": "insecure-direct-object-reference", "title": "Insecure Direct Object Reference", "description": "Learn how missing object-level authorization exposes other users' data.", "url": "/labs/insecure_direct_object_reference/", "taskCount": 5},
+    
+    {"id": "open-redirect", "title": "Open Redirect", "description": "Understand how open redirect vulnerabilities enable phishing attacks and security bypasses. Learn to exploit redirect parameters without validation to redirect users to malicious sites.", "url": "/labs/open_redirect/", "taskCount": 7},
+    
+    {"id": "passwords-and-mfa", "title": "Passwords and Multi-Factor Authentication", "description": "Learn how unique passwords, password managers, and MFA reduce the impact of account attacks.", "url": "/labs/passwords-and-mfa/", "taskCount": 6},
+    
+    {"id": "phishing-awareness", "title": "Phishing Awareness", "description": "Practice identifying suspicious messages and choosing a safe response before a scam captures your information.", "url": "/labs/phishing-awareness/", "taskCount": 6},
+    
+    {"id": "safe-browsing-and-downloads", "title": "Safe Browsing and Downloads", "description": "Practice safer decisions around websites, browser permissions, downloads, updates, and public networks.", "url": "/labs/safe-browsing-and-downloads/", "taskCount": 6},
+    
+    {"id": "sensitive-data-exposure", "title": "Sensitive Data Exposure", "description": "Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code.", "url": "/labs/sensitive_data_exposure/", "taskCount": 9},
+    
+    {"id": "server-side-request-forgery", "title": "Server-Side Request Forgery (SSRF)", "description": "Advanced SSRF techniques to make servers request internal resources and cloud metadata services. Learn to bypass filters using encoding tricks and redirect chains.", "url": "/labs/server_side_request_forgery/", "taskCount": 7},
+    
+    {"id": "sql-injection", "title": "SQL Injection", "description": "Learn SQL injection through interactive security exercises.", "url": "/labs/sql_injection/", "taskCount": 10}
+    
+  ]
+}</script>
+
+
+
+
+
+
+    
+        
+        
+        
+    
+        
+        
+        
+    
+        
+        
+        
+
+
+
+
+
+
+
+<article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
+    <section class="bg-bltDark text-white pt-32 md:pt-36 pb-16 md:pb-20 relative overflow-hidden border-b border-white/5">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.12),transparent_34%)]"></div>
+
+        <div class="mx-auto max-w-[104rem] px-5 sm:px-6 lg:px-8 xl:px-10 relative z-10">
+            <div class="grid lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-8 xl:gap-10 2xl:gap-12 items-center">
+                <div>
+                    <a data-return-course href="/courses/" class="mb-5 hidden w-fit items-center gap-2 text-sm font-semibold text-gray-300 transition hover:text-white">
+                        <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
+                        <span>Return to course</span>
+                    </a>
+                    <div class="flex flex-wrap items-center gap-3 mb-5">
+                        <span class="px-2.5 py-1 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">Web Security</span>
+                        <span class="px-2.5 py-1 bg-white/10 border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">beginner</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/10 border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">
+                            <i class="ph-bold ph-clock text-sm text-bltRed"></i>
+                            60 mins
+                        </span>
+                    </div>
+
+                    <h1 class="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4 leading-tight max-w-4xl">SQL Injection</h1>
+                    <p class="text-sm md:text-base text-gray-400 leading-relaxed max-w-2xl">Learn SQL injection through interactive security exercises.</p>
+
+                    <div class="mt-7 grid gap-4 text-xs md:text-sm text-gray-300 sm:grid-cols-3 max-w-3xl">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-flask text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Hands-on Labs</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-globe-hemisphere-west text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Real-world Scenarios</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-lightning text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Immediate Feedback</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden lg:block">
+                    <div class="h-[190px] rounded-2xl border border-white/10 bg-white/5 p-3 shadow-2xl">
+                        <div class="h-full rounded-2xl border border-white/10 bg-gray-950/70 overflow-hidden">
+                            <div class="flex h-7 items-center gap-1.5 border-b border-white/10 bg-white/5 px-3">
+                                <span class="h-2 w-2 rounded-full bg-red-400"></span>
+                                <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                                <span class="h-2 w-2 rounded-full bg-green-400"></span>
+                            </div>
+                            
+                            <div class="p-4 space-y-3">
+                                <div class="h-2 rounded-full bg-gray-700 w-3/4"></div>
+                                <div class="h-2 rounded-full bg-gray-700 w-1/2"></div>
+                                <div class="rounded-xl border border-red-500/50 bg-red-950/30 p-3 font-mono text-[11px] text-red-200">
+                                    ' OR '1'='1' --
+                                </div>
+                                <div class="h-2 rounded-full bg-gray-700 w-5/6"></div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main data-lab-root data-lab-id="sql-injection" class="mx-auto max-w-[104rem] px-5 sm:px-6 lg:px-8 xl:px-10 w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-8 xl:gap-10 2xl:gap-12 -mt-8 relative z-20 pb-24">
+        <div class="min-w-0">
+            <div class="bg-white dark:bg-gray-900 p-5 md:p-8 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
+                
+                <section data-lab-task data-task-index="0" class="">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            1
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Introduction to SQL Injection</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn the basics of SQL injection vulnerabilities and how they occur.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            What is SQL Injection?
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>SQL injection is a code injection technique that exploits a security vulnerability in an application’s software. The vulnerability occurs when user input is not safely validated, escaped, typed, or parameterized before it becomes part of a SQL query.</p>
+
+<h3 id="how-sql-injection-works">How SQL Injection Works</h3>
+
+<p>SQL injection attacks work by inserting malicious SQL code into application queries. When the application executes these modified queries, it can result in:</p>
+
+<ul>
+  <li>Unauthorized access to data</li>
+  <li>Data theft or modification</li>
+  <li>Authentication bypass</li>
+  <li>Complete system compromise</li>
+</ul>
+
+<h3 id="example-vulnerable-code">Example Vulnerable Code</h3>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">String</span> <span class="n">query</span> <span class="o">=</span> <span class="s">"SELECT * FROM users WHERE username = '"</span> <span class="o">+</span> <span class="n">username</span> <span class="o">+</span> <span class="s">"' AND password = '"</span> <span class="o">+</span> <span class="n">password</span> <span class="o">+</span> <span class="s">"'"</span><span class="o">;</span>
+</code></pre></div></div>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">What makes an application vulnerable to SQL injection?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="A" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Improper input validation and sanitization</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="A" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Using strong passwords</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="A" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Having too many database tables</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="A" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Using encrypted connections</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="1" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            2
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Identifying SQL Injection Points</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn how to identify potential SQL injection vulnerabilities in web applications.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            Finding SQL Injection Vulnerabilities
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>SQL injection vulnerabilities can appear anywhere untrusted data is used to build database queries.</p>
+
+<h3 id="common-injection-points">Common Injection Points</h3>
+
+<ul>
+  <li><strong>Login forms:</strong> Username and password fields</li>
+  <li><strong>Search boxes:</strong> Query parameters</li>
+  <li><strong>URL parameters:</strong> GET request parameters</li>
+  <li><strong>Form inputs:</strong> POST request data</li>
+  <li><strong>Cookies:</strong> Session data</li>
+  <li><strong>HTTP headers:</strong> User-Agent, Referer, and similar values</li>
+</ul>
+
+<h3 id="testing-techniques">Testing Techniques</h3>
+
+<p>Use these payloads to test for SQL injection:</p>
+
+<ul>
+  <li>Single quote (<code class="language-plaintext highlighter-rouge">'</code>) to look for database errors</li>
+  <li>Double quote (<code class="language-plaintext highlighter-rouge">"</code>) as an alternate string delimiter</li>
+  <li>SQL comments (<code class="language-plaintext highlighter-rouge">--</code> or <code class="language-plaintext highlighter-rouge">/*</code>) to comment out the rest of a query</li>
+  <li>Boolean conditions (<code class="language-plaintext highlighter-rouge">1=1</code>, <code class="language-plaintext highlighter-rouge">1=2</code>) to test logic manipulation</li>
+</ul>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">Which of the following is NOT a common SQL injection testing payload?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Single quote (&#39;)</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Boolean condition (1=1)</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) HTML tags (&lt;script&gt;)</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) SQL comment (--)</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="2" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            3
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Basic SQL Injection - Login Bypass</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Practice bypassing login authentication using SQL injection.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Practice bypassing login authentication using SQL injection.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="2" data-simulation-engine="sqli-login"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/vulnerable-login</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Vulnerable login</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="3" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            4
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Union-Based SQL Injection</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn about Union-based SQL injection attacks to extract data.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            Union-Based SQL Injection
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>Union-based SQL injection leverages the <code class="language-plaintext highlighter-rouge">UNION</code> SQL operator to combine the results of two or more <code class="language-plaintext highlighter-rouge">SELECT</code> statements into a single result.</p>
+
+<h3 id="requirements-for-union-attacks">Requirements for UNION Attacks</h3>
+
+<ul>
+  <li>The same number of columns in both <code class="language-plaintext highlighter-rouge">SELECT</code> statements</li>
+  <li>Compatible data types in corresponding columns</li>
+  <li>Application output that displays query results</li>
+</ul>
+
+<h3 id="finding-column-count">Finding Column Count</h3>
+
+<p>Use <code class="language-plaintext highlighter-rouge">ORDER BY</code> to determine the number of columns:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">' ORDER BY 1-- -
+'</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="mi">2</span><span class="c1">-- -</span>
+<span class="s1">' ORDER BY 3-- -
+</span></code></pre></div></div>
+
+<h3 id="union-attack-example">Union Attack Example</h3>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">' UNION SELECT username, password FROM users-- -
+</span></code></pre></div></div>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">What is required for a successful UNION-based SQL injection?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) The application must be written in PHP</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Same number of columns and compatible data types</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) The database must be MySQL</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) The user must have admin privileges</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="4" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            5
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Union Attack - Data Extraction</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Practice extracting sensitive data using Union-based SQL injection.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Practice extracting sensitive data using Union-based SQL injection.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="4" data-simulation-engine="sqli-union"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/vulnerable-search</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Data extraction</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="5" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            6
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Boolean-Based Blind SQL Injection</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn about blind SQL injection when no data is returned directly.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            Boolean-Based Blind SQL Injection
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>Blind SQL injection occurs when an application is vulnerable to SQL injection, but HTTP responses do not contain query results or database errors.</p>
+
+<h3 id="characteristics">Characteristics</h3>
+
+<ul>
+  <li>No direct database output in the response</li>
+  <li>Application behavior changes based on query truth</li>
+  <li>Requires inference techniques</li>
+  <li>Time-consuming but effective</li>
+</ul>
+
+<h3 id="testing-technique">Testing Technique</h3>
+
+<p>Use conditional statements to infer information:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">' AND 1=1-- -     -- Should return normal response
+'</span> <span class="k">AND</span> <span class="mi">1</span><span class="o">=</span><span class="mi">2</span><span class="c1">-- -     -- Should return different response</span>
+</code></pre></div></div>
+
+<h3 id="data-extraction-example">Data Extraction Example</h3>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">' AND (SELECT SUBSTRING(username,1,1) FROM users WHERE id=1)='</span><span class="n">a</span><span class="s1">'-- -
+</span></code></pre></div></div>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">In Boolean-based blind SQL injection, how do you extract data?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) By reading error messages</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) By analyzing response differences for true/false conditions</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) By viewing database tables directly</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) By measuring response timing only</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="6" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            7
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Blind SQL Injection - Character Extraction</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Practice extracting data character by character using blind techniques.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Practice extracting data character by character using blind techniques.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="6" data-simulation-engine="sqli-blind"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/vulnerable-profile</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Character extraction</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="7" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            8
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Time-Based Blind SQL Injection</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn about time-based blind SQL injection techniques.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            Time-Based Blind SQL Injection
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>Time-based blind SQL injection is used when Boolean-based techniques do not work. It relies on injecting SQL queries that cause the database to wait for a specified amount of time.</p>
+
+<h3 id="common-time-functions">Common Time Functions</h3>
+
+<ul>
+  <li><strong>MySQL:</strong> <code class="language-plaintext highlighter-rouge">SLEEP(5)</code></li>
+  <li><strong>PostgreSQL:</strong> <code class="language-plaintext highlighter-rouge">pg_sleep(5)</code></li>
+  <li><strong>SQL Server:</strong> <code class="language-plaintext highlighter-rouge">WAITFOR DELAY '00:00:05'</code></li>
+  <li><strong>Oracle:</strong> <code class="language-plaintext highlighter-rouge">dbms_pipe.receive_message(('a'),5)</code></li>
+</ul>
+
+<h3 id="testing-example">Testing Example</h3>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">' AND IF(1=1, SLEEP(5), 0)-- -
+'</span> <span class="k">AND</span> <span class="n">IF</span><span class="p">((</span><span class="k">SELECT</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">users</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">5</span><span class="p">,</span> <span class="n">SLEEP</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span><span class="c1">-- -</span>
+</code></pre></div></div>
+
+<h3 id="data-extraction">Data Extraction</h3>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">' AND IF((SELECT SUBSTRING(password,1,1) FROM users WHERE username='</span><span class="k">admin</span><span class="s1">')='</span><span class="n">p</span><span class="s1">', SLEEP(5), 0)-- -
+</span></code></pre></div></div>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">What is the main indicator of successful time-based SQL injection?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Error messages in the response</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Changed content in the response</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Increased response time</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) HTTP status code changes</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="8" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            9
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Time-Based Attack Simulation</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Practice time-based blind SQL injection to extract sensitive information.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Practice time-based blind SQL injection to extract sensitive information.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="8" data-simulation-engine="sqli-time"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/vulnerable-news</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Password extraction</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="9" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            10
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Advanced SQL Injection Prevention</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn comprehensive strategies to prevent SQL injection attacks.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            SQL Injection Prevention
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>Preventing SQL injection requires a multi-layered approach combining secure coding practices and proper application architecture.</p>
+
+<h3 id="primary-defense-prepared-statements">Primary Defense: Prepared Statements</h3>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">String</span> <span class="n">query</span> <span class="o">=</span> <span class="s">"SELECT * FROM users WHERE username = ? AND password = ?"</span><span class="o">;</span>
+<span class="nc">PreparedStatement</span> <span class="n">stmt</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="na">prepareStatement</span><span class="o">(</span><span class="n">query</span><span class="o">);</span>
+<span class="n">stmt</span><span class="o">.</span><span class="na">setString</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="n">username</span><span class="o">);</span>
+<span class="n">stmt</span><span class="o">.</span><span class="na">setString</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="n">password</span><span class="o">);</span>
+</code></pre></div></div>
+
+<h3 id="additional-defenses">Additional Defenses</h3>
+
+<ul>
+  <li><strong>Input validation:</strong> Whitelist allowed characters</li>
+  <li><strong>Stored procedures:</strong> When properly implemented</li>
+  <li><strong>Escaping:</strong> As a secondary defense</li>
+  <li><strong>Least privilege:</strong> Minimal database permissions</li>
+  <li><strong>WAF:</strong> Web Application Firewall</li>
+</ul>
+
+<h3 id="best-practices">Best Practices</h3>
+
+<ul>
+  <li>Never trust user input</li>
+  <li>Use parameterized queries exclusively</li>
+  <li>Implement proper error handling</li>
+  <li>Run regular security testing</li>
+  <li>Keep software updated</li>
+</ul>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">What is the most effective primary defense against SQL injection?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Input validation and filtering</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Using a Web Application Firewall</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Prepared statements with parameterized queries</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Encrypting database connections</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+
+                <footer class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                    <button type="button" data-lab-prev class="inline-flex items-center justify-center gap-2 px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-500 dark:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                        <i class="ph-bold ph-arrow-left"></i>
+                        Previous
+                    </button>
+                    <div class="flex flex-wrap items-center justify-end gap-3">
+                        <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
+                            Next
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </button>
+                        
+                        <a data-next-lab href="/labs/cross_site_request_forgery/" class="hidden inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-500 transition hover:border-red-200 hover:bg-gray-50 hover:text-bltRed dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-red-900/40 dark:hover:bg-gray-800 dark:hover:text-red-300">
+                            <span><span class="text-bltRed">Continue track:</span> <strong class="font-bold text-gray-800 dark:text-gray-200">Cross-Site Request Forgery</strong></span>
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </a>
+                        
+                    </div>
+                </footer>
+                <section data-adaptive-recommendations data-render-on-completion="true" data-current-lab="sql-injection" data-limit="1" hidden class="mt-5" aria-label="Recommended next lab"></section>
+            </div>
+        </div>
+
+        <aside class="min-w-0 space-y-6">
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800">
+                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+                    <i class="ph-bold ph-chart-line-up text-bltRed"></i>
+                    Lab Progress
+                </h3>
+                <div class="mb-6">
+                    <div class="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                        <span>Completion</span>
+                        <span data-lab-percent>0%</span>
+                    </div>
+                    <div class="w-full h-2.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                        <div data-lab-progress class="h-full w-0 bg-bltRed rounded-full transition-all duration-300"></div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    
+                    <button type="button" data-lab-jump data-task-index="0" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">1</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Introduction to SQL Injection</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="1" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">2</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Identifying SQL Injection Points</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="2" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">3</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Basic SQL Injection - Login Bypass</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="3" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">4</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Union-Based SQL Injection</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="4" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">5</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Union Attack - Data Extraction</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="5" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">6</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Boolean-Based Blind SQL Injection</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="6" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">7</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Blind SQL Injection - Character Extraction</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="7" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">8</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Time-Based Blind SQL Injection</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="8" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">9</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Time-Based Attack Simulation</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="9" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">10</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Advanced SQL Injection Prevention</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                </div>
+            </div>
+
+            <div class="bg-gray-900 dark:bg-gray-800/80 p-6 rounded-[2rem] text-white relative overflow-hidden group border border-transparent dark:border-gray-700">
+                <div class="absolute -right-4 -bottom-4 opacity-10 pointer-events-none text-bltRed">
+                    <i class="ph-fill ph-shield-check text-8xl"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3 relative z-10">Practice Security</h3>
+                <p class="text-gray-400 text-sm leading-relaxed mb-5 relative z-10">
+                    These labs are educational simulations designed for ethical cybersecurity learning.
+                </p>
+                <div class="space-y-3 text-xs text-gray-300 relative z-10">
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>OWASP aligned content</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Interactive challenge tasks</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Beginner friendly guidance</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Instant feedback and hints</div>
+                </div>
+            </div>
+        </aside>
+    </main>
+</article>
+
+<script src="/assets/js/vendor/acorn.js?v=1788024548"></script>
+<script src="/assets/js/labs/ast.js?v=1788024548"></script>
+<script src="/assets/js/labs/core.js?v=1788024548"></script>
+<script src="/assets/js/labs/validators.js?v=1788024548"></script>
+<script src="/assets/js/labs/ui.js?v=1788024548"></script>
+<script src="/assets/js/labs/flow.js?v=1788024548"></script>
+<script src="/assets/js/labs/simulations.js?v=1788024548"></script>
+<script src="/assets/js/labs/main.js?v=1788024548"></script>
+
+
+    <div class="px-4">
+        <footer
+  class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-bltFooter py-10 pb-8 text-white max-md:rounded-t-[.8rem]"
+>
+  <h2
+    class="relative m-0 break-all px-2 text-center text-[clamp(2rem,5vw,4.5rem)] font-light leading-[1.02] tracking-[-.045em] text-white sm:break-normal"
+  >
+    university.owaspblt.org
+  </h2>
+  <div
+    class="relative mx-auto mt-3 h-[3px] w-16 rounded-full bg-red-600"
+    aria-hidden="true"
+  ></div>
+  <div
+    class="footer-links relative mx-auto mt-8 grid max-w-6xl grid-cols-1 gap-6 px-6 font-mono sm:grid-cols-2 md:grid-cols-4 md:gap-8"
+  >
+    <div>
+      <p>Docs</p>
+      <a href="/courses/">Courses</a>
+      <a href="/labs/">Labs</a>
+      <a href="/dashboard/">Security Trends</a>
+    </div>
+    <div>
+      <p>Learn</p>
+      <a href="/progress/">Progress</a>
+      <a href="/enroll/">Enroll</a>
+      <a href="/instructors/">Instructors</a>
+      <a href="/request/">Request Course</a>
+    </div>
+    <div>
+      <p>Project</p>
+      <a
+        href="https://gitlab.com/owasp-blt/blt-university"
+        target="_blank"
+        rel="noopener noreferrer"
+        >GitLab repo</a
+      >
+    </div>
+    <div>
+      <p>OWASP</p>
+      <a
+        href="https://owaspblt.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >OWASP BLT</a
+      >
+      <a
+        href="https://owasp.org/www-project-bug-logging-tool/"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Foundation page</a
+      >
+      <a
+        href="https://owasp.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >owasp.org</a
+      >
+    </div>
+  </div>
+</footer>
+
+    </div>
+
+    <script src="/assets/js/learning-state.js?v=1788024548"></script>
+    <script src="/assets/js/recommendations.js?v=1788024548"></script>
+    <script src="/assets/js/main.js?v=1788024548"></script>
+</body>
+</html>

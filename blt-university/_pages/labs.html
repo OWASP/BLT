@@ -1,0 +1,153 @@
+---
+layout: default
+title: Labs
+permalink: /labs/
+---
+
+<script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
+{% include adaptive-recommendation-data.html %}
+
+<section class="relative px-4 pb-16 pt-40 text-center">
+  <div class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-72 w-full opacity-60" aria-hidden="true"></div>
+  <div class="relative z-[2] mx-auto max-w-4xl">
+    <span class="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">Security Labs</span>
+    <h1 class="mt-5 text-[clamp(2.25rem,4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-.04em] text-gray-900">Practice real security concepts.</h1>
+    <p class="mx-auto mt-6 max-w-2xl text-base leading-7 text-gray-600">Focused, ethical simulations for learning vulnerability patterns by doing.</p>
+  </div>
+</section>
+
+<main class="mx-auto w-[min(72rem,calc(100%_-_2rem))] pb-24">
+  <section data-adaptive-recommendations data-limit="3" hidden aria-labelledby="recommended-labs-heading" class="mb-10 rounded-3xl border border-red-100 bg-gradient-to-br from-red-50 to-white p-6 shadow-[0_18px_50px_-40px_rgba(220,38,38,.75)]">
+    <div class="mb-5 flex items-start gap-3">
+      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white"><i class="ph-bold ph-sparkle text-xl"></i></span>
+      <div>
+        <h2 id="recommended-labs-heading" class="text-xl font-semibold tracking-tight text-gray-900">Recommended for you</h2>
+        <p class="mt-1 text-sm leading-6 text-gray-600">Ranked using your saved progress, current security-intelligence frequency, and OWASP priority.</p>
+      </div>
+    </div>
+    <div data-adaptive-recommendation-list class="grid gap-3 md:grid-cols-3"></div>
+  </section>
+
+  <section aria-labelledby="lab-results-heading" class="mb-5">
+    <div class="mb-3 flex flex-wrap items-end justify-between gap-2">
+      <div>
+        <h2 id="lab-results-heading" class="text-xl font-semibold tracking-tight text-gray-900">Explore security labs</h2>
+        <p id="lab-results-summary" class="mt-1 text-sm text-gray-500" aria-live="polite">Showing all labs</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="mb-8 rounded-2xl border border-gray-200 bg-white p-3 shadow-[0_18px_50px_-40px_rgba(15,23,42,.75)]">
+    <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-[1fr_11rem_11rem_11rem]" id="lab-catalog">
+      <div class="relative">
+        <i class="ph-bold ph-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-gray-400"></i>
+        <input id="lab-search-filter" aria-label="Search labs" type="text" class="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" placeholder="Search labs, topics, or categories...">
+      </div>
+      <select id="lab-category-filter" aria-label="Filter labs by category" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100">
+        <option value="">All Categories</option>
+        {% assign lab_categories = site.labs | map: "category" | uniq | compact %}
+        {% for category in lab_categories %}
+        <option value="{{ category | slugify }}">{{ category }}</option>
+        {% endfor %}
+      </select>
+      <select id="lab-level-filter" aria-label="Filter labs by level" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100">
+        <option value="">All Levels</option>
+        <option value="beginner">Beginner</option>
+        <option value="intermediate">Intermediate</option>
+        <option value="advanced">Advanced</option>
+      </select>
+    </div>
+  </div>
+
+  <section aria-labelledby="learning-tracks-heading" class="mb-8">
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 id="learning-tracks-heading" class="text-xl font-semibold tracking-tight text-gray-900">Choose your learning track</h2>
+        <p class="mt-1 text-sm leading-6 text-gray-600">Shared labs appear in either path.</p>
+      </div>
+    </div>
+    <div class="grid gap-3 md:grid-cols-2" role="group" aria-label="Learning tracks">
+      {% for track in site.data.learning_tracks %}
+      <button type="button" data-track-choice="{{ track.id }}" data-track-label="{{ track.title }}" aria-pressed="false" class="track-choice group flex min-h-24 items-center gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-left transition hover:border-red-200 hover:shadow-[0_16px_40px_-30px_rgba(15,23,42,.75)] focus:outline-none focus:ring-2 focus:ring-red-200">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600"><i class="ph-bold ph-{{ track.icon }} text-xl"></i></span>
+        <span class="min-w-0">
+          <span class="block text-base font-semibold text-gray-900 group-hover:text-red-600">{{ track.title }}</span>
+          <span class="mt-0.5 block text-xs font-medium text-gray-500">{{ track.audience }}</span>
+        </span>
+      </button>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" id="labs-grid">
+    {% for lab in site.labs %}
+    {% assign lab_track = lab.track | default: "both" %}
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="{{ lab.category | slugify }}" data-level="{{ lab.difficulty | downcase }}" data-track="{{ lab_track }}" data-search="{{ lab.title | downcase }} {{ lab.description | downcase }} {{ lab.category | downcase }} {{ lab_track }} {{ lab.tags | join: ' ' | downcase }}">
+      <a href="{{ lab.url | relative_url }}" class="block h-44 bg-gray-950 relative overflow-hidden">
+        {% assign lab_key = lab.title | downcase %}
+        {% assign lab_icon = nil %}
+        {% if lab_key contains "server-side request forgery" %}{% assign lab_icon = "cloud-arrow-down" %}
+        {% elsif lab_key contains "file upload" %}{% assign lab_icon = "upload-simple" %}
+        {% elsif lab_key contains "sensitive data" %}{% assign lab_icon = "key" %}
+        {% elsif lab_key contains "broken authentication" %}{% assign lab_icon = "lock-key" %}
+        {% elsif lab_key contains "open redirect" %}{% assign lab_icon = "arrow-bend-up-right" %}
+        {% elsif lab_key contains "command injection" %}{% assign lab_icon = "terminal-window" %}
+        {% elsif lab_key contains "object reference" %}{% assign lab_icon = "identification-card" %}
+        {% endif %}
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          {% if lab_key contains "object reference" %}
+          <div class="absolute left-8 top-14 w-48 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-xl">
+            <div class="mb-3 flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-red-600"></span><span class="h-2 w-28 rounded-full bg-white/25"></span></div>
+            <div class="rounded-lg border border-red-400/40 bg-red-500/20 px-3 py-2 font-mono text-[11px] text-red-100">/profiles/42</div>
+            <div class="mt-3 h-2 w-32 rounded-full bg-white/20"></div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-identification-card text-2xl"></i></div>
+          {% elsif lab_icon %}
+          <div class="absolute left-8 top-12 w-48 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-xl">
+            <div class="mb-3 h-2 w-28 rounded-full bg-white/25"></div>
+            <div class="h-2 w-40 rounded-full bg-white/10"></div>
+            <div class="mt-4 font-mono text-[10px] uppercase tracking-wider text-red-100">Safe mock scenario</div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-{{ lab_icon }} text-2xl"></i></div>
+          {% elsif lab_key contains "request forgery" %}
+          <div class="absolute left-8 top-14 w-44 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-xl">
+            <div class="mb-3 flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-red-600"></span><span class="h-2 w-24 rounded-full bg-white/25"></span></div>
+            <div class="space-y-2"><div class="h-2 rounded-full bg-white/20"></div><div class="h-2 w-3/4 rounded-full bg-white/20"></div><div class="h-7 rounded-lg border border-red-400/40 bg-red-500/30"></div></div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-arrows-clockwise text-2xl"></i></div>
+          {% elsif lab_key contains "scripting" %}
+          <div class="absolute left-8 top-14 w-48 overflow-hidden rounded-2xl border border-white/10 bg-white/10 shadow-xl">
+            <div class="flex h-8 items-center gap-2 border-b border-white/10 px-3"><span class="h-2 w-2 rounded-full bg-red-400"></span><span class="h-2 w-2 rounded-full bg-yellow-400"></span><span class="h-2 w-2 rounded-full bg-green-400"></span></div>
+            <div class="space-y-2 p-3 font-mono text-[10px] text-red-100"><div>&lt;script&gt;</div><div class="pl-3 text-white/70">alert('XSS')</div><div>&lt;/script&gt;</div></div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-code text-2xl"></i></div>
+          {% else %}
+          <div class="absolute left-8 top-14 h-2 w-32 rounded-full bg-white/20"></div>
+          <div class="absolute left-8 top-20 h-2 w-48 rounded-full bg-white/10"></div>
+          <div class="absolute left-8 top-28 rounded-xl border border-red-500/50 bg-red-950/40 px-4 py-3 font-mono text-xs text-red-100">' OR '1'='1'</div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-database text-2xl"></i></div>
+          {% endif %}
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">{{ lab.category | default: "Cybersecurity" }}</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">{{ lab.difficulty | default: "Beginner" }}</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="{{ lab.url | relative_url }}">{{ lab.title }}</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">{{ lab.description | truncate: 120 }}</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>{{ lab.tasks.size | default: 0 }} tasks</span>
+          <span>{{ lab.estimated_time | default: 30 }} mins</span>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  <div id="lab-no-results" class="hidden py-20 text-center">
+    <h3 class="text-lg font-semibold text-gray-900">No labs found</h3>
+    <p class="mt-2 text-sm text-gray-500">Try adjusting your search or filters.</p>
+  </div>
+</main>

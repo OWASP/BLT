@@ -1,0 +1,28 @@
+{
+  "name": "blt-university",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "npm run test:js",
+    "test:js": "jest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:local": "bundle exec jekyll build && PLAYWRIGHT_SITE_DIR=_site playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.0",
+    "acorn": "8.16.0",
+    "jest": "29.7.0",
+    "jest-environment-jsdom": "29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "testMatch": [
+      "<rootDir>/tests/**/*.test.js"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/public/",
+      "<rootDir>/_site/"
+    ]
+  }
+}

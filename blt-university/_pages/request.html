@@ -1,0 +1,61 @@
+---
+layout: default
+title: Request a Course
+permalink: /request/
+---
+
+<section class="relative px-4 pb-16 pt-40 text-center">
+  <div class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-72 w-full opacity-60" aria-hidden="true"></div>
+  <div class="relative z-[2] mx-auto max-w-4xl">
+    <span class="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">Request Course</span>
+    <h1 class="mt-5 text-[clamp(2.25rem,4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-.04em] text-gray-900">Tell us what to teach next.</h1>
+    <p class="mx-auto mt-6 max-w-2xl text-base leading-7 text-gray-600">Course requests help prioritize the curriculum around real learner and practitioner needs.</p>
+  </div>
+</section>
+
+<main class="mx-auto w-[min(64rem,calc(100%_-_2rem))] pb-24">
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <article class="rounded-2xl border border-gray-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-red-200">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600">01</div>
+      <h2 class="mt-6 text-lg font-semibold text-gray-900">Shape the curriculum</h2>
+      <p class="mt-3 text-sm leading-6 text-gray-600">Requests show instructors which topics learners need most, from fundamentals to advanced specialties.</p>
+    </article>
+    <article class="rounded-2xl border border-gray-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-red-200">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600">02</div>
+      <h2 class="mt-6 text-lg font-semibold text-gray-900">Find collaborators</h2>
+      <p class="mt-3 text-sm leading-6 text-gray-600">Other students and contributors can react, comment, and help refine the learning goal.</p>
+    </article>
+  </section>
+
+  <section class="mt-14 rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)] md:p-8">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 class="text-[clamp(2rem,4vw,3rem)] font-semibold leading-[1.05] tracking-[-.04em] text-gray-900">A good request is specific.</h2>
+      <p class="mt-4 text-sm leading-6 text-gray-600">Tell us the audience, the security topic, the practical outcome, and any example tools or scenarios learners should understand.</p>
+    </div>
+    <div class="mt-8 grid gap-4 md:grid-cols-3">
+      <div class="rounded-2xl bg-gray-50 p-5">
+        <p class="font-mono text-xs font-semibold uppercase tracking-[.16em] text-red-600">Topic</p>
+        <p class="mt-3 text-sm text-gray-600">What should the course cover?</p>
+      </div>
+      <div class="rounded-2xl bg-gray-50 p-5">
+        <p class="font-mono text-xs font-semibold uppercase tracking-[.16em] text-red-600">Outcome</p>
+        <p class="mt-3 text-sm text-gray-600">What should learners be able to do?</p>
+      </div>
+      <div class="rounded-2xl bg-gray-50 p-5">
+        <p class="font-mono text-xs font-semibold uppercase tracking-[.16em] text-red-600">Level</p>
+        <p class="mt-3 text-sm text-gray-600">Who is the course intended for?</p>
+      </div>
+    </div>
+    <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+      <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(220,38,38,.8)] transition hover:-translate-y-px">Submit on GitLab</a>
+      <a href="https://gitlab.com/owasp-blt/blt-university/-/issues" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50">View requests</a>
+    </div>
+  </section>
+
+  <section class="mt-14 rounded-3xl border border-white/5 bg-bltFooter p-8 text-center text-white md:p-12">
+    <span class="inline-flex items-center rounded-full border border-red-300/30 bg-red-500/10 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-300">For instructors</span>
+    <h2 class="mx-auto mt-5 max-w-2xl text-[clamp(1.75rem,3.5vw,3.1rem)] font-medium leading-[1.05] tracking-[-.045em]">See a request you can teach?</h2>
+    <p class="mx-auto mt-4 max-w-xl text-sm leading-6 text-gray-400">Turn community demand into a practical course proposal.</p>
+    <a href="{{ '/contributing/' | relative_url }}" class="mt-8 inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition hover:-translate-y-px">Create a course</a>
+  </section>
+</main>

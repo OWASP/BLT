@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>Cross-Site Scripting (XSS) | BLT University</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Cross-Site Scripting (XSS)" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Find out how untrusted input can run as code in a browser, and how to stop it." />
+<meta name="twitter:description" property="og:description" content="Find out how untrusted input can run as code in a browser, and how to stop it." />
+<link rel="canonical" href="https://university.owaspblt.org/labs/cross_site_scripting_xss/" />
+<meta property="og:url" content="https://university.owaspblt.org/labs/cross_site_scripting_xss/" />
+<meta property="og:site_name" content="BLT University" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-08-29T17:29:08+00:00" />
+<meta property="article:modified_time" content="2026-08-29T17:29:08+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Cross-Site Scripting (XSS)" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-29T17:29:08+00:00","datePublished":"2026-08-29T17:29:08+00:00","description":"Find out how untrusted input can run as code in a browser, and how to stop it.","headline":"Cross-Site Scripting (XSS)","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/labs/cross_site_scripting_xss/"},"url":"https://university.owaspblt.org/labs/cross_site_scripting_xss/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="icon" type="image/png" href="/assets/images/blt-university-logo.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        // Dark mode theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com/3.4.17?plugins=typography@0.5.16"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Geist', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+                    },
+                    colors: {
+                        bltRed: '#dc2626',
+                        bltRedLight: '#fee2e2',
+                        bltRedHover: '#b91c1c',
+                        bltDark: '#111827',
+                        bltCoral: '#ef4444',
+                        bltFooter: '#0e0d0c'
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(17,24,39,0.04)',
+                        float: '0 10px 24px -18px rgba(220,38,38,.8)'
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        .dot-field {
+            background-image: radial-gradient(rgba(17, 24, 39, 0.18) 1px, transparent 1px);
+            background-size: 18px 18px;
+            mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        }
+        .mobile-menu.open {
+            display: flex;
+        }
+        .mobile-toggle.active span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+        .mobile-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .mobile-toggle.active span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+        .feature-divider::before,
+        .feature-divider::after {
+            content: "";
+            height: 1px;
+            flex: 1;
+        }
+        .feature-divider::before {
+            background: linear-gradient(to right, transparent, #e5e7eb);
+        }
+        .feature-divider::after {
+            background: linear-gradient(to left, transparent, #e5e7eb);
+        }
+        .wave-dots i {
+            position: absolute;
+            width: 0.25rem;
+            height: 0.25rem;
+            border-radius: 999px;
+            background: #d1d5db;
+            animation: wave 2s infinite ease-in-out;
+        }
+        .wave-dots i:nth-child(1) { top: 0; left: 0; }
+        .wave-dots i:nth-child(2) { top: 0; left: 1rem; }
+        .wave-dots i:nth-child(3) { top: 0.25rem; left: 0.5rem; animation-delay: 0.35s; }
+        .wave-dots i:nth-child(4) { top: 0.5rem; left: 0; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(5) { top: 0.5rem; left: 1rem; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(6) { top: 0.75rem; left: 0.5rem; animation-delay: 0.85s; }
+        .section-kicker.with-bar::before {
+            content: "";
+            position: absolute;
+            top: 0.18rem;
+            left: -0.55rem;
+            width: 3px;
+            height: 1.25rem;
+            border-radius: 0 2px 2px 0;
+            background: #ef4444;
+        }
+        .footer-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image:
+              linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .footer-links p {
+            margin: 0 0 0.35rem;
+            color: #6b7280;
+            font-size: 0.625rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .footer-links a {
+            display: block;
+            color: #d1d5db;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            transition: color 180ms ease;
+        }
+        .footer-links a:hover {
+            color: white;
+        }
+        @keyframes wave {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-3px);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
+
+    <header
+  class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm"
+  id="site-header"
+>
+  <div
+    class="relative mx-auto flex max-w-[104rem] items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-6 xl:px-6"
+  >
+    <a
+      href="/"
+      class="inline-flex items-center gap-2.5"
+      aria-label="BLT University home"
+    >
+      <img
+        src="/assets/images/blt-university-logo.png"
+        alt="BLT University logo"
+        class="h-12 sm:h-14"
+      />
+      <div class="flex flex-col">
+        <span class="text-sm font-semibold uppercase tracking-wide">BLT UNIVERSITY</span>
+      </div>
+    </a>
+
+    <nav
+      class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-7 lg:flex"
+      aria-label="Primary navigation"
+    >
+      
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/courses/"
+        >Courses</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/labs/"
+        >Labs</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/progress/"
+        >Progress</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/dashboard/"
+        >Security Trends</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/instructors/"
+        >Instructors</a
+      >
+      
+    </nav>
+
+    <div class="hidden items-center gap-3 lg:flex">
+      
+      
+      
+      <a
+        class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+        href="/request/"
+        >Request course</a
+      >
+      
+      
+      
+      <a
+        class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+        href="/enroll/"
+        >Enroll now</a
+      >
+      
+      
+    </div>
+
+    <button
+      class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-lg:flex"
+      id="mobile-toggle"
+      type="button"
+      aria-label="Toggle menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+    </button>
+  </div>
+
+  <nav
+    class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white px-6 py-4"
+    id="mobile-menu"
+    aria-label="Mobile navigation"
+  >
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/courses/">Courses</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/progress/">Progress</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Security Trends</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+      href="/request/"
+      >Request course</a
+    >
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+      href="/enroll/"
+      >Enroll now</a
+    >
+    
+    
+  </nav>
+</header>
+
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
+<script id="lab-data" type="application/json">[{"name":"Introduction to Cross-Site Scripting","description":"Learn the basics of XSS vulnerabilities and how they occur in web applications.","type":"theory","order":1,"heading":"What is Cross-Site Scripting (XSS)?","content":"Cross-Site Scripting (XSS) is a security vulnerability that allows attackers to inject malicious scripts into web pages viewed by other users. When executed, these scripts can steal sensitive information, manipulate page content, or perform actions on behalf of the victim.\n\n### Types of XSS Attacks\n\n- **Reflected XSS:** Malicious script is reflected off a web server, such as in an error message.\n- **Stored XSS:** Malicious script is stored on the target server, such as in a database.\n- **DOM-based XSS:** The vulnerability exists in client-side code rather than server-side code.\n\n### Common XSS Payloads\n\n```html\n<script>alert('XSS')<\/script>\n<img src=x onerror=alert('XSS')>\n<svg onload=alert('XSS')>\n```\n\n### Impact of XSS\n\n- Session hijacking and cookie theft\n- Defacement of web pages\n- Redirecting users to malicious sites\n- Keylogging and credential theft\n","mcq":{"question":"Which type of XSS vulnerability stores malicious scripts on the server?","options":["A) Reflected XSS","B) Stored XSS","C) DOM-based XSS","D) Session XSS"],"answer":"B"}},{"name":"Identifying XSS Vulnerabilities","description":"Learn how to identify potential XSS vulnerabilities in web applications.","type":"theory","order":2,"heading":"How to Identify XSS Vulnerabilities","content":"XSS vulnerabilities typically occur when user input is not properly validated, sanitized, or encoded before being displayed on a web page.\n\n### Common Vulnerable Input Points\n\n- Search boxes and form fields\n- URL parameters\n- Comment sections\n- User profile fields\n- HTTP headers, such as User-Agent and Referer\n\n### Testing for XSS\n\n1. Insert test payloads in input fields.\n2. Check if the payload is reflected in the response.\n3. Verify if the script executes in the browser.\n4. Test different encoding and bypasses.\n\n### Example Vulnerable Code\n\n```php\n// Vulnerable PHP code\necho \"Hello \" . $_GET['name'];\n```\n\n```javascript\n// Vulnerable JavaScript\ndocument.getElementById('output').innerHTML = userInput;\n```\n","mcq":{"question":"Which of the following is the most common place to test for XSS vulnerabilities?","options":["A) Database connections","B) User input fields","C) Server configuration files","D) Network protocols"],"answer":"B"}},{"name":"Reflected XSS - Comment System","description":"Practice exploiting reflected XSS in a vulnerable comment system.","type":"simulation","order":3,"simulation":{"engine":"xss-reflected","type":"reflected_xss","scenario":"vulnerable_blog","target_url":"/xss-lab/blog","vulnerable_code":"const comment = request.query.comment;\nconst preview = document.getElementById('comment-preview');\npreview.innerHTML = comment;\n","vulnerable_lines":[3],"explain":{"question":"Why does this reflected XSS payload execute?","options":[{"id":"unsafe_html_sink","label":"The comment is inserted with innerHTML, so browser parses attacker-controlled HTML."},{"id":"missing_database","label":"The application does not store comments in a database."},{"id":"weak_password","label":"The user password is too weak."}],"answer":"unsafe_html_sink"},"expected_patterns":["safe_text_sink","output_encoding"],"attack_payloads":["<script>alert('XSS')<\/script>"],"vulnerable_parameters":["comment"],"success_payload":"<script>alert('XSS')<\/script>","success_criteria":"JavaScript alert should execute showing 'XSS'.","difficulty":"beginner","fix_starter_code":"const comment = request.query.comment;\nconst preview = document.getElementById('comment-preview');\npreview.innerHTML = comment;\n","hints":["Try injecting a simple script tag in the comment field.","The application does not sanitize user input.","Look for ways to execute JavaScript when the page loads.","Use textContent or encode HTML before displaying user-controlled comments."]}},{"name":"Stored XSS - User Profile","description":"Exploit stored XSS by injecting scripts into profile fields.","type":"simulation","order":4,"simulation":{"engine":"xss-stored","type":"stored_xss","scenario":"vulnerable_profile","target_url":"/xss-lab/profile","vulnerable_code":"const bio = user.profile.bio;\nconst profileBio = document.getElementById('profile-bio');\nprofileBio.innerHTML = bio;\n","vulnerable_lines":[3],"explain":{"question":"Why is stored XSS more dangerous for other users?","options":[{"id":"persistent_payload","label":"The payload is saved and later rendered for every user who views the profile."},{"id":"only_local_browser","label":"The payload only affects the attacker's browser."},{"id":"database_index","label":"The database index executes JavaScript."}],"answer":"persistent_payload"},"expected_patterns":["safe_text_sink","output_encoding"],"attack_payloads":["<script>alert('Stored XSS')<\/script>"],"vulnerable_parameters":["bio"],"success_payload":"<script>alert('Stored XSS')<\/script>","success_criteria":"Script executes when profile is viewed.","difficulty":"intermediate","fix_starter_code":"const bio = user.profile.bio;\nconst profileBio = document.getElementById('profile-bio');\nprofileBio.innerHTML = bio;\n","hints":["Try updating your profile bio with a script.","The script should execute when anyone views your profile.","This is stored XSS, so it persists in the database."]}},{"name":"XSS Filter Bypass - Basic","description":"Learn to bypass basic XSS filters and input validation.","type":"simulation","order":5,"simulation":{"engine":"xss-filter-bypass","type":"filter_bypass","scenario":"filtered_input","target_url":"/xss-lab/filtered","vulnerable_code":"const search = request.query.search;\nconst filtered = search.replace('<script>', '').replace('javascript:', '').replace('onerror', '');\ndocument.getElementById('result').innerHTML = filtered;\n","vulnerable_lines":[3],"explain":{"question":"Why can this basic filter be bypassed?","options":[{"id":"blocklist_incomplete","label":"It blocks a few exact strings but still renders attacker-controlled HTML."},{"id":"no_database","label":"The page does not use a database."},{"id":"css_only","label":"XSS only works inside CSS files."}],"answer":"blocklist_incomplete"},"expected_patterns":["safe_text_sink","output_encoding"],"attack_payloads":["<svg onload=alert('Bypass')>"],"vulnerable_parameters":["search"],"blocked_patterns":["<script>","javascript:","onerror"],"success_payload":"<svg onload=alert('Bypass')>","success_criteria":"Successfully bypass the filter and execute JavaScript.","difficulty":"intermediate","fix_starter_code":"const search = request.query.search;\nconst filtered = search.replace('<script>', '').replace('javascript:', '').replace('onerror', '');\ndocument.getElementById('result').innerHTML = filtered;\n","hints":["Try using different case variations.","Some filters only block exact matches.","Unicode encoding might help bypass filters.","Look for alternative event handlers."]}},{"name":"DOM-based XSS","description":"Exploit DOM-based XSS vulnerabilities in client-side JavaScript.","type":"simulation","order":6,"simulation":{"engine":"xss-dom","type":"dom_xss","scenario":"client_side_vuln","target_url":"/xss-lab/dom","vulnerable_code":"const fragment = decodeURIComponent(location.hash.slice(1));\nconst output = document.getElementById('fragment-output');\noutput.innerHTML = fragment;\n","vulnerable_lines":[3],"explain":{"question":"Why is this DOM-based XSS?","options":[{"id":"client_side_sink","label":"Client-side JavaScript reads the URL fragment and writes it into an HTML sink."},{"id":"server_database","label":"The server stores the fragment in a database."},{"id":"weak_tls","label":"TLS is not configured."}],"answer":"client_side_sink"},"expected_patterns":["safe_text_sink","output_encoding"],"attack_payloads":["<img src=x onerror=alert('DOM XSS')>"],"vulnerable_parameters":["fragment"],"success_payload":"<img src=x onerror=alert('DOM XSS')>","success_criteria":"Execute JavaScript through DOM manipulation.","difficulty":"advanced","fix_starter_code":"const fragment = decodeURIComponent(location.hash.slice(1));\nconst output = document.getElementById('fragment-output');\noutput.innerHTML = fragment;\n","hints":["This vulnerability exists in client-side JavaScript.","Try manipulating the URL fragment after","The page dynamically updates content based on the fragment.","No server-side filtering is involved."]}},{"name":"XSS Cookie Theft","description":"Learn to steal cookies using XSS vulnerabilities.","type":"simulation","order":7,"simulation":{"engine":"xss-cookie-theft","type":"cookie_theft","scenario":"session_hijacking","target_url":"/xss-lab/cookies","vulnerable_code":"const message = request.query.message;\nconst banner = document.getElementById('message-banner');\nbanner.innerHTML = message;\n","vulnerable_lines":[3],"explain":{"question":"How can XSS lead to cookie theft?","options":[{"id":"script_reads_cookie","label":"Executed script can read cookies that are accessible to JavaScript and expose session data."},{"id":"cookies_are_sql","label":"Cookies are SQL queries."},{"id":"images_store_cookies","label":"Image files automatically store passwords."}],"answer":"script_reads_cookie"},"expected_patterns":["safe_text_sink","output_encoding"],"attack_payloads":["<script>alert(document.cookie)<\/script>"],"vulnerable_parameters":["message"],"success_payload":"<script>alert(document.cookie)<\/script>","success_criteria":"Display session cookie value.","difficulty":"intermediate","fix_starter_code":"const message = request.query.message;\nconst banner = document.getElementById('message-banner');\nbanner.innerHTML = message;\n","hints":["Use document.cookie to access session cookies.","Try displaying the cookie value in an alert.","In real attacks, cookies would be sent to an attacker's server.","This demonstrates the impact of XSS on session security."]}},{"name":"XSS Prevention Techniques","description":"Learn about effective methods to prevent XSS vulnerabilities.","type":"theory","order":8,"heading":"XSS Prevention Techniques","content":"Preventing XSS requires a multi-layered approach combining input validation, output encoding, and security headers.\n\n### Input Validation\n\n- Whitelist allowed characters and patterns\n- Reject or sanitize dangerous input\n- Validate on both client and server side\n\n### Output Encoding\n\n- HTML encode user data before display\n- JavaScript encode for JS contexts\n- URL encode for URL contexts\n- CSS encode for style contexts\n\n### Content Security Policy (CSP)\n\n```http\nContent-Security-Policy: default-src 'self'; script-src 'self'; object-src 'none'\n```\n\n### Secure Coding Practices\n\n- Use template engines with auto-escaping\n- Avoid `innerHTML` for dynamic content\n- Set the `HttpOnly` flag on session cookies\n- Implement proper error handling\n","mcq":{"question":"Which HTTP header helps prevent XSS attacks by controlling resource loading?","options":["A) X-Frame-Options","B) Content-Security-Policy","C) X-XSS-Protection","D) Strict-Transport-Security"],"answer":"B"}}]</script>
+
+
+<script id="adaptive-recommendation-data" type="application/json">{
+  "weights": {"A01": 1.00, "A02": 0.95, "A03": 0.90, "A04": 0.85, "A05": 0.80, "A06": 0.75, "A07": 0.70, "A08": 0.65, "A09": 0.60, "A10": 0.50},
+  "categories": [
+    
+    {"id": "A01", "name": "Broken Access Control", "count": 6156, "labs": [{"slug":"insecure_direct_object_reference","title":"Insecure Direct Object Reference","reason":"Practice object-level authorization checks."},{"slug":"cross_site_request_forgery","title":"Cross-Site Request Forgery","reason":"Understand authorization of state-changing requests."},{"slug":"open_redirect","title":"Open Redirect","reason":"Learn to constrain user-controlled navigation."}]},
+    
+    {"id": "A02", "name": "Cryptographic Failures", "count": 456, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Practice protecting secrets and sensitive information."}]},
+    
+    {"id": "A03", "name": "Injection", "count": 5745, "labs": [{"slug":"sql_injection","title":"SQL Injection","reason":"Learn parameterized queries and database input handling."},{"slug":"cross_site_scripting_xss","title":"Cross-Site Scripting","reason":"Practice safe output handling across browser contexts."},{"slug":"command_injection","title":"Command Injection","reason":"Learn to keep operating-system commands and input separate."}]},
+    
+    {"id": "A04", "name": "Insecure Design", "count": 1528, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Explore security controls for a high-risk application feature."},{"slug":"broken_authentication","title":"Broken Authentication","reason":"Review authentication design and abuse cases."}]},
+    
+    {"id": "A05", "name": "Security Misconfiguration", "count": 143, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Identify unsafe diagnostics and exposed configuration."},{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Practice hardening upload configuration and storage."}]},
+    
+    {"id": "A06", "name": "Vulnerable and Outdated Components", "count": 37, "labs": []},
+    
+    {"id": "A07", "name": "Identification and Authentication Failures", "count": 1832, "labs": [{"slug":"broken_authentication","title":"Broken Authentication","reason":"Practice credential, session, recovery, and token defenses."}]},
+    
+    {"id": "A08", "name": "Software and Data Integrity Failures", "count": 689, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Learn to validate provenance, type, and content before trust."}]},
+    
+    {"id": "A09", "name": "Security Logging and Monitoring Failures", "count": 75, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Learn what must never be exposed through logs and diagnostics."}]},
+    
+    {"id": "A10", "name": "Server-Side Request Forgery", "count": 569, "labs": [{"slug":"server_side_request_forgery","title":"Server-Side Request Forgery","reason":"Practice destination validation and internal-network protection."}]}
+    
+  ],
+  "labs": [
+    
+    {"id": "broken-authentication", "title": "Broken Authentication", "description": "Comprehensive coverage of authentication vulnerabilities including weak credentials, session management flaws, and JWT misconfigurations. Practice credential stuffing, session fixation, and token forgery attacks.", "url": "/labs/broken_authentication/", "taskCount": 12},
+    
+    {"id": "command-injection", "title": "Command Injection", "description": "Learn how unsafe system command construction leads to command injection and how to prevent it.", "url": "/labs/command_injection/", "taskCount": 8},
+    
+    {"id": "cross-site-request-forgery", "title": "Cross-Site Request Forgery", "description": "Learn CSRF attacks and defenses through focused security exercises.", "url": "/labs/cross_site_request_forgery/", "taskCount": 7},
+    
+    {"id": "cross-site-scripting-xss", "title": "Cross-Site Scripting (XSS)", "description": "Find out how untrusted input can run as code in a browser, and how to stop it.", "url": "/labs/cross_site_scripting_xss/", "taskCount": 8},
+    
+    {"id": "file-upload-vulnerabilities", "title": "File Upload Vulnerabilities", "description": "Explore critical file upload security flaws that allow attackers to upload malicious files and execute code on servers. Learn to bypass extension filters, MIME type validation, and path traversal restrictions.", "url": "/labs/file_upload_vulnerabilities/", "taskCount": 7},
+    
+    {"id": "insecure-direct-object-reference", "title": "Insecure Direct Object Reference", "description": "Learn how missing object-level authorization exposes other users' data.", "url": "/labs/insecure_direct_object_reference/", "taskCount": 5},
+    
+    {"id": "open-redirect", "title": "Open Redirect", "description": "Understand how open redirect vulnerabilities enable phishing attacks and security bypasses. Learn to exploit redirect parameters without validation to redirect users to malicious sites.", "url": "/labs/open_redirect/", "taskCount": 7},
+    
+    {"id": "passwords-and-mfa", "title": "Passwords and Multi-Factor Authentication", "description": "Learn how unique passwords, password managers, and MFA reduce the impact of account attacks.", "url": "/labs/passwords-and-mfa/", "taskCount": 6},
+    
+    {"id": "phishing-awareness", "title": "Phishing Awareness", "description": "Practice identifying suspicious messages and choosing a safe response before a scam captures your information.", "url": "/labs/phishing-awareness/", "taskCount": 6},
+    
+    {"id": "safe-browsing-and-downloads", "title": "Safe Browsing and Downloads", "description": "Practice safer decisions around websites, browser permissions, downloads, updates, and public networks.", "url": "/labs/safe-browsing-and-downloads/", "taskCount": 6},
+    
+    {"id": "sensitive-data-exposure", "title": "Sensitive Data Exposure", "description": "Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code.", "url": "/labs/sensitive_data_exposure/", "taskCount": 9},
+    
+    {"id": "server-side-request-forgery", "title": "Server-Side Request Forgery (SSRF)", "description": "Advanced SSRF techniques to make servers request internal resources and cloud metadata services. Learn to bypass filters using encoding tricks and redirect chains.", "url": "/labs/server_side_request_forgery/", "taskCount": 7},
+    
+    {"id": "sql-injection", "title": "SQL Injection", "description": "Learn SQL injection through interactive security exercises.", "url": "/labs/sql_injection/", "taskCount": 10}
+    
+  ]
+}</script>
+
+
+
+
+
+
+
+
+
+
+
+
+<article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
+    <section class="bg-bltDark text-white pt-32 md:pt-36 pb-16 md:pb-20 relative overflow-hidden border-b border-white/5">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.12),transparent_34%)]"></div>
+
+        <div class="mx-auto max-w-[104rem] px-5 sm:px-6 lg:px-8 xl:px-10 relative z-10">
+            <div class="grid lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-8 xl:gap-10 2xl:gap-12 items-center">
+                <div>
+                    <a data-return-course href="/courses/" class="mb-5 hidden w-fit items-center gap-2 text-sm font-semibold text-gray-300 transition hover:text-white">
+                        <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
+                        <span>Return to course</span>
+                    </a>
+                    <div class="flex flex-wrap items-center gap-3 mb-5">
+                        <span class="px-2.5 py-1 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">Web Security</span>
+                        <span class="px-2.5 py-1 bg-white/10 border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">beginner</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/10 border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">
+                            <i class="ph-bold ph-clock text-sm text-bltRed"></i>
+                            50 mins
+                        </span>
+                    </div>
+
+                    <h1 class="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4 leading-tight max-w-4xl">Cross-Site Scripting (XSS)</h1>
+                    <p class="text-sm md:text-base text-gray-400 leading-relaxed max-w-2xl">Find out how untrusted input can run as code in a browser, and how to stop it.</p>
+
+                    <div class="mt-7 grid gap-4 text-xs md:text-sm text-gray-300 sm:grid-cols-3 max-w-3xl">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-flask text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Hands-on Labs</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-globe-hemisphere-west text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Real-world Scenarios</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-lightning text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Immediate Feedback</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden lg:block">
+                    <div class="h-[190px] rounded-2xl border border-white/10 bg-white/5 p-3 shadow-2xl">
+                        <div class="h-full rounded-2xl border border-white/10 bg-gray-950/70 overflow-hidden">
+                            <div class="flex h-7 items-center gap-1.5 border-b border-white/10 bg-white/5 px-3">
+                                <span class="h-2 w-2 rounded-full bg-red-400"></span>
+                                <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                                <span class="h-2 w-2 rounded-full bg-green-400"></span>
+                            </div>
+                            
+                            <div class="p-4">
+                                <div class="mb-3 h-2 w-48 rounded-full bg-gray-700"></div>
+                                <div class="mb-3 h-2 w-32 rounded-full bg-gray-800"></div>
+                                <div class="rounded-xl border border-red-500/40 bg-red-950/25 p-3 font-mono text-[11px] leading-relaxed text-red-100">
+                                    <div>&lt;script&gt;</div>
+                                    <div class="pl-4 text-white/70">alert('XSS')</div>
+                                    <div>&lt;/script&gt;</div>
+                                </div>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <div class="h-2 flex-1 rounded-full bg-gray-700"></div>
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-bltRed/90 text-white">
+                                        <i class="ph-bold ph-code text-lg"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main data-lab-root data-lab-id="cross-site-scripting-xss" class="mx-auto max-w-[104rem] px-5 sm:px-6 lg:px-8 xl:px-10 w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-8 xl:gap-10 2xl:gap-12 -mt-8 relative z-20 pb-24">
+        <div class="min-w-0">
+            <div class="bg-white dark:bg-gray-900 p-5 md:p-8 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
+                
+                <section data-lab-task data-task-index="0" class="">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            1
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Introduction to Cross-Site Scripting</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn the basics of XSS vulnerabilities and how they occur in web applications.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            What is Cross-Site Scripting (XSS)?
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>Cross-Site Scripting (XSS) is a security vulnerability that allows attackers to inject malicious scripts into web pages viewed by other users. When executed, these scripts can steal sensitive information, manipulate page content, or perform actions on behalf of the victim.</p>
+
+<h3 id="types-of-xss-attacks">Types of XSS Attacks</h3>
+
+<ul>
+  <li><strong>Reflected XSS:</strong> Malicious script is reflected off a web server, such as in an error message.</li>
+  <li><strong>Stored XSS:</strong> Malicious script is stored on the target server, such as in a database.</li>
+  <li><strong>DOM-based XSS:</strong> The vulnerability exists in client-side code rather than server-side code.</li>
+</ul>
+
+<h3 id="common-xss-payloads">Common XSS Payloads</h3>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;script&gt;</span><span class="nf">alert</span><span class="p">(</span><span class="dl">'</span><span class="s1">XSS</span><span class="dl">'</span><span class="p">)</span><span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;img</span> <span class="na">src=</span><span class="s">x</span> <span class="na">onerror=</span><span class="s">alert('XSS')</span><span class="nt">&gt;</span>
+<span class="nt">&lt;svg</span> <span class="na">onload=</span><span class="s">alert('XSS')</span><span class="nt">&gt;</span>
+</code></pre></div></div>
+
+<h3 id="impact-of-xss">Impact of XSS</h3>
+
+<ul>
+  <li>Session hijacking and cookie theft</li>
+  <li>Defacement of web pages</li>
+  <li>Redirecting users to malicious sites</li>
+  <li>Keylogging and credential theft</li>
+</ul>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">Which type of XSS vulnerability stores malicious scripts on the server?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Reflected XSS</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Stored XSS</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) DOM-based XSS</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Session XSS</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="1" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            2
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Identifying XSS Vulnerabilities</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn how to identify potential XSS vulnerabilities in web applications.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            How to Identify XSS Vulnerabilities
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>XSS vulnerabilities typically occur when user input is not properly validated, sanitized, or encoded before being displayed on a web page.</p>
+
+<h3 id="common-vulnerable-input-points">Common Vulnerable Input Points</h3>
+
+<ul>
+  <li>Search boxes and form fields</li>
+  <li>URL parameters</li>
+  <li>Comment sections</li>
+  <li>User profile fields</li>
+  <li>HTTP headers, such as User-Agent and Referer</li>
+</ul>
+
+<h3 id="testing-for-xss">Testing for XSS</h3>
+
+<ol>
+  <li>Insert test payloads in input fields.</li>
+  <li>Check if the payload is reflected in the response.</li>
+  <li>Verify if the script executes in the browser.</li>
+  <li>Test different encoding and bypasses.</li>
+</ol>
+
+<h3 id="example-vulnerable-code">Example Vulnerable Code</h3>
+
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Vulnerable PHP code</span>
+<span class="k">echo</span> <span class="s2">"Hello "</span> <span class="mf">.</span> <span class="nv">$_GET</span><span class="p">[</span><span class="s1">'name'</span><span class="p">];</span>
+</code></pre></div></div>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Vulnerable JavaScript</span>
+<span class="nb">document</span><span class="p">.</span><span class="nf">getElementById</span><span class="p">(</span><span class="dl">'</span><span class="s1">output</span><span class="dl">'</span><span class="p">).</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="nx">userInput</span><span class="p">;</span>
+</code></pre></div></div>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">Which of the following is the most common place to test for XSS vulnerabilities?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Database connections</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) User input fields</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Server configuration files</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Network protocols</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="2" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            3
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Reflected XSS - Comment System</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Practice exploiting reflected XSS in a vulnerable comment system.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Practice exploiting reflected XSS in a vulnerable comment system.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="2" data-simulation-engine="xss-reflected"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/xss-lab/blog</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Vulnerable blog</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="3" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            4
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Stored XSS - User Profile</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Exploit stored XSS by injecting scripts into profile fields.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Exploit stored XSS by injecting scripts into profile fields.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="3" data-simulation-engine="xss-stored"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/xss-lab/profile</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Vulnerable profile</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="4" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            5
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">XSS Filter Bypass - Basic</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn to bypass basic XSS filters and input validation.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Learn to bypass basic XSS filters and input validation.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="4" data-simulation-engine="xss-filter-bypass"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/xss-lab/filtered</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Filtered input</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="5" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            6
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">DOM-based XSS</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Exploit DOM-based XSS vulnerabilities in client-side JavaScript.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Exploit DOM-based XSS vulnerabilities in client-side JavaScript.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="5" data-simulation-engine="xss-dom"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/xss-lab/dom</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Client side vuln</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="6" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            7
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">XSS Cookie Theft</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn to steal cookies using XSS vulnerabilities.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Learn to steal cookies using XSS vulnerabilities.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="6" data-simulation-engine="xss-cookie-theft"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/xss-lab/cookies</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Session hijacking</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="7" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            8
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">XSS Prevention Techniques</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn about effective methods to prevent XSS vulnerabilities.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            XSS Prevention Techniques
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>Preventing XSS requires a multi-layered approach combining input validation, output encoding, and security headers.</p>
+
+<h3 id="input-validation">Input Validation</h3>
+
+<ul>
+  <li>Whitelist allowed characters and patterns</li>
+  <li>Reject or sanitize dangerous input</li>
+  <li>Validate on both client and server side</li>
+</ul>
+
+<h3 id="output-encoding">Output Encoding</h3>
+
+<ul>
+  <li>HTML encode user data before display</li>
+  <li>JavaScript encode for JS contexts</li>
+  <li>URL encode for URL contexts</li>
+  <li>CSS encode for style contexts</li>
+</ul>
+
+<h3 id="content-security-policy-csp">Content Security Policy (CSP)</h3>
+
+<div class="language-http highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">Content-Security-Policy: default-src 'self'; script-src 'self'; object-src 'none'
+</span></code></pre></div></div>
+
+<h3 id="secure-coding-practices">Secure Coding Practices</h3>
+
+<ul>
+  <li>Use template engines with auto-escaping</li>
+  <li>Avoid <code class="language-plaintext highlighter-rouge">innerHTML</code> for dynamic content</li>
+  <li>Set the <code class="language-plaintext highlighter-rouge">HttpOnly</code> flag on session cookies</li>
+  <li>Implement proper error handling</li>
+</ul>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">Which HTTP header helps prevent XSS attacks by controlling resource loading?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) X-Frame-Options</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Content-Security-Policy</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) X-XSS-Protection</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Strict-Transport-Security</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+
+                <footer class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                    <button type="button" data-lab-prev class="inline-flex items-center justify-center gap-2 px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-500 dark:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                        <i class="ph-bold ph-arrow-left"></i>
+                        Previous
+                    </button>
+                    <div class="flex flex-wrap items-center justify-end gap-3">
+                        <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
+                            Next
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </button>
+                        
+                        <a data-next-lab href="/labs/insecure_direct_object_reference/" class="hidden inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-500 transition hover:border-red-200 hover:bg-gray-50 hover:text-bltRed dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-red-900/40 dark:hover:bg-gray-800 dark:hover:text-red-300">
+                            <span><span class="text-bltRed">Continue track:</span> <strong class="font-bold text-gray-800 dark:text-gray-200">Insecure Direct Object Reference</strong></span>
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </a>
+                        
+                    </div>
+                </footer>
+                <section data-adaptive-recommendations data-render-on-completion="true" data-current-lab="cross-site-scripting-xss" data-limit="1" hidden class="mt-5" aria-label="Recommended next lab"></section>
+            </div>
+        </div>
+
+        <aside class="min-w-0 space-y-6">
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800">
+                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+                    <i class="ph-bold ph-chart-line-up text-bltRed"></i>
+                    Lab Progress
+                </h3>
+                <div class="mb-6">
+                    <div class="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                        <span>Completion</span>
+                        <span data-lab-percent>0%</span>
+                    </div>
+                    <div class="w-full h-2.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                        <div data-lab-progress class="h-full w-0 bg-bltRed rounded-full transition-all duration-300"></div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    
+                    <button type="button" data-lab-jump data-task-index="0" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">1</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Introduction to Cross-Site Scripting</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="1" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">2</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Identifying XSS Vulnerabilities</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="2" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">3</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Reflected XSS - Comment System</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="3" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">4</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Stored XSS - User Profile</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="4" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">5</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">XSS Filter Bypass - Basic</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="5" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">6</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">DOM-based XSS</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="6" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">7</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">XSS Cookie Theft</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="7" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">8</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">XSS Prevention Techniques</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                </div>
+            </div>
+
+            <div class="bg-gray-900 dark:bg-gray-800/80 p-6 rounded-[2rem] text-white relative overflow-hidden group border border-transparent dark:border-gray-700">
+                <div class="absolute -right-4 -bottom-4 opacity-10 pointer-events-none text-bltRed">
+                    <i class="ph-fill ph-shield-check text-8xl"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3 relative z-10">Practice Security</h3>
+                <p class="text-gray-400 text-sm leading-relaxed mb-5 relative z-10">
+                    These labs are educational simulations designed for ethical cybersecurity learning.
+                </p>
+                <div class="space-y-3 text-xs text-gray-300 relative z-10">
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>OWASP aligned content</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Interactive challenge tasks</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Beginner friendly guidance</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Instant feedback and hints</div>
+                </div>
+            </div>
+        </aside>
+    </main>
+</article>
+
+<script src="/assets/js/vendor/acorn.js?v=1788024548"></script>
+<script src="/assets/js/labs/ast.js?v=1788024548"></script>
+<script src="/assets/js/labs/core.js?v=1788024548"></script>
+<script src="/assets/js/labs/validators.js?v=1788024548"></script>
+<script src="/assets/js/labs/ui.js?v=1788024548"></script>
+<script src="/assets/js/labs/flow.js?v=1788024548"></script>
+<script src="/assets/js/labs/simulations.js?v=1788024548"></script>
+<script src="/assets/js/labs/main.js?v=1788024548"></script>
+
+
+    <div class="px-4">
+        <footer
+  class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-bltFooter py-10 pb-8 text-white max-md:rounded-t-[.8rem]"
+>
+  <h2
+    class="relative m-0 break-all px-2 text-center text-[clamp(2rem,5vw,4.5rem)] font-light leading-[1.02] tracking-[-.045em] text-white sm:break-normal"
+  >
+    university.owaspblt.org
+  </h2>
+  <div
+    class="relative mx-auto mt-3 h-[3px] w-16 rounded-full bg-red-600"
+    aria-hidden="true"
+  ></div>
+  <div
+    class="footer-links relative mx-auto mt-8 grid max-w-6xl grid-cols-1 gap-6 px-6 font-mono sm:grid-cols-2 md:grid-cols-4 md:gap-8"
+  >
+    <div>
+      <p>Docs</p>
+      <a href="/courses/">Courses</a>
+      <a href="/labs/">Labs</a>
+      <a href="/dashboard/">Security Trends</a>
+    </div>
+    <div>
+      <p>Learn</p>
+      <a href="/progress/">Progress</a>
+      <a href="/enroll/">Enroll</a>
+      <a href="/instructors/">Instructors</a>
+      <a href="/request/">Request Course</a>
+    </div>
+    <div>
+      <p>Project</p>
+      <a
+        href="https://gitlab.com/owasp-blt/blt-university"
+        target="_blank"
+        rel="noopener noreferrer"
+        >GitLab repo</a
+      >
+    </div>
+    <div>
+      <p>OWASP</p>
+      <a
+        href="https://owaspblt.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >OWASP BLT</a
+      >
+      <a
+        href="https://owasp.org/www-project-bug-logging-tool/"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Foundation page</a
+      >
+      <a
+        href="https://owasp.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >owasp.org</a
+      >
+    </div>
+  </div>
+</footer>
+
+    </div>
+
+    <script src="/assets/js/learning-state.js?v=1788024548"></script>
+    <script src="/assets/js/recommendations.js?v=1788024548"></script>
+    <script src="/assets/js/main.js?v=1788024548"></script>
+</body>
+</html>

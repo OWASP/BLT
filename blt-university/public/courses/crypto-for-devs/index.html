@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>Cryptography for Developers | BLT University</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Cryptography for Developers" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Make safer engineering decisions about encoding, password storage, encryption, nonces, and signature verification." />
+<meta name="twitter:description" property="og:description" content="Make safer engineering decisions about encoding, password storage, encryption, nonces, and signature verification." />
+<link rel="canonical" href="https://university.owaspblt.org/courses/crypto-for-devs/" />
+<meta property="og:url" content="https://university.owaspblt.org/courses/crypto-for-devs/" />
+<meta property="og:site_name" content="BLT University" />
+<meta property="og:image" content="https://university.owaspblt.org/assets/images/courses/crypto-for-devs.svg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-08-29T17:29:08+00:00" />
+<meta property="article:modified_time" content="2026-08-29T17:29:08+00:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://university.owaspblt.org/assets/images/courses/crypto-for-devs.svg" />
+<meta name="twitter:title" content="Cryptography for Developers" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-08-29T17:29:08+00:00","datePublished":"2026-08-29T17:29:08+00:00","description":"Make safer engineering decisions about encoding, password storage, encryption, nonces, and signature verification.","headline":"Cryptography for Developers","image":"https://university.owaspblt.org/assets/images/courses/crypto-for-devs.svg","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/courses/crypto-for-devs/"},"url":"https://university.owaspblt.org/courses/crypto-for-devs/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="icon" type="image/png" href="/assets/images/blt-university-logo.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        // Dark mode theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com/3.4.17?plugins=typography@0.5.16"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Geist', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+                    },
+                    colors: {
+                        bltRed: '#dc2626',
+                        bltRedLight: '#fee2e2',
+                        bltRedHover: '#b91c1c',
+                        bltDark: '#111827',
+                        bltCoral: '#ef4444',
+                        bltFooter: '#0e0d0c'
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(17,24,39,0.04)',
+                        float: '0 10px 24px -18px rgba(220,38,38,.8)'
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        .dot-field {
+            background-image: radial-gradient(rgba(17, 24, 39, 0.18) 1px, transparent 1px);
+            background-size: 18px 18px;
+            mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        }
+        .mobile-menu.open {
+            display: flex;
+        }
+        .mobile-toggle.active span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+        .mobile-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .mobile-toggle.active span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+        .feature-divider::before,
+        .feature-divider::after {
+            content: "";
+            height: 1px;
+            flex: 1;
+        }
+        .feature-divider::before {
+            background: linear-gradient(to right, transparent, #e5e7eb);
+        }
+        .feature-divider::after {
+            background: linear-gradient(to left, transparent, #e5e7eb);
+        }
+        .wave-dots i {
+            position: absolute;
+            width: 0.25rem;
+            height: 0.25rem;
+            border-radius: 999px;
+            background: #d1d5db;
+            animation: wave 2s infinite ease-in-out;
+        }
+        .wave-dots i:nth-child(1) { top: 0; left: 0; }
+        .wave-dots i:nth-child(2) { top: 0; left: 1rem; }
+        .wave-dots i:nth-child(3) { top: 0.25rem; left: 0.5rem; animation-delay: 0.35s; }
+        .wave-dots i:nth-child(4) { top: 0.5rem; left: 0; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(5) { top: 0.5rem; left: 1rem; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(6) { top: 0.75rem; left: 0.5rem; animation-delay: 0.85s; }
+        .section-kicker.with-bar::before {
+            content: "";
+            position: absolute;
+            top: 0.18rem;
+            left: -0.55rem;
+            width: 3px;
+            height: 1.25rem;
+            border-radius: 0 2px 2px 0;
+            background: #ef4444;
+        }
+        .footer-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image:
+              linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .footer-links p {
+            margin: 0 0 0.35rem;
+            color: #6b7280;
+            font-size: 0.625rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .footer-links a {
+            display: block;
+            color: #d1d5db;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            transition: color 180ms ease;
+        }
+        .footer-links a:hover {
+            color: white;
+        }
+        @keyframes wave {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-3px);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
+
+    <header
+  class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm"
+  id="site-header"
+>
+  <div
+    class="relative mx-auto flex max-w-[104rem] items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-6 xl:px-6"
+  >
+    <a
+      href="/"
+      class="inline-flex items-center gap-2.5"
+      aria-label="BLT University home"
+    >
+      <img
+        src="/assets/images/blt-university-logo.png"
+        alt="BLT University logo"
+        class="h-12 sm:h-14"
+      />
+      <div class="flex flex-col">
+        <span class="text-sm font-semibold uppercase tracking-wide">BLT UNIVERSITY</span>
+      </div>
+    </a>
+
+    <nav
+      class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-7 lg:flex"
+      aria-label="Primary navigation"
+    >
+      
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/courses/"
+        >Courses</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/labs/"
+        >Labs</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/progress/"
+        >Progress</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/dashboard/"
+        >Security Trends</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/instructors/"
+        >Instructors</a
+      >
+      
+    </nav>
+
+    <div class="hidden items-center gap-3 lg:flex">
+      
+      
+      
+      <a
+        class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+        href="/request/"
+        >Request course</a
+      >
+      
+      
+      
+      <a
+        class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+        href="/enroll/"
+        >Enroll now</a
+      >
+      
+      
+    </div>
+
+    <button
+      class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-lg:flex"
+      id="mobile-toggle"
+      type="button"
+      aria-label="Toggle menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+    </button>
+  </div>
+
+  <nav
+    class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white px-6 py-4"
+    id="mobile-menu"
+    aria-label="Mobile navigation"
+  >
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/courses/">Courses</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/progress/">Progress</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Security Trends</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+      href="/request/"
+      >Request course</a
+    >
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+      href="/enroll/"
+      >Enroll now</a
+    >
+    
+    
+  </nav>
+</header>
+
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
+
+<article data-course-root data-course-id="crypto-for-devs" class="min-h-screen bg-[#fafafa] text-gray-900 transition-colors dark:bg-gray-950 dark:text-white">
+  <section class="relative overflow-hidden bg-bltDark pb-24 pt-36 text-white">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(220,38,38,0.16),transparent_36%)]" aria-hidden="true"></div>
+    <div class="relative z-10 mx-auto max-w-7xl px-5 sm:px-6">
+      <div class="mb-5 flex flex-wrap items-center gap-3">
+        <span class="rounded-md bg-bltRed px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">Cryptography</span>
+        <span class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">Advanced</span>
+        <span class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">About 2 hours</span>
+      </div>
+      <h1 class="max-w-4xl font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">Cryptography for Developers</h1>
+      <p class="mt-5 max-w-3xl text-sm leading-7 text-gray-300 sm:text-base">Make safer engineering decisions about encoding, password storage, encryption, nonces, and signature verification.</p>
+      <div class="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm text-gray-300">
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-book-open-text text-bltRed" aria-hidden="true"></i>Short lessons</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-list-numbers text-bltRed" aria-hidden="true"></i>5 lessons</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-flask text-bltRed" aria-hidden="true"></i>Hands-on practice</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-chart-line-up text-bltRed" aria-hidden="true"></i>Local progress</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="relative z-20 mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-5 pb-24 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+    <div class="min-w-0 -mt-10 space-y-6">
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8" aria-labelledby="course-introduction-heading">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Start here</p>
+        <h2 id="course-introduction-heading" class="mt-2 text-2xl font-bold">Course introduction</h2>
+        <div class="prose mt-4 max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-bltRed dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300">
+          <p>Most application cryptography failures are selection, storage, or verification mistakes rather than broken mathematics. This course focuses on those engineering decisions with short evidence reviews rather than mathematical puzzles.</p>
+
+<p>The examples are intentionally language-neutral. In production, use a maintained library and a documented high-level construction instead of implementing a primitive yourself.</p>
+
+        </div>
+        
+        <div class="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
+          <h3 class="text-base font-bold">By the end of this course, you can</h3>
+          <ul class="mt-3 grid gap-2 text-sm leading-6 text-gray-600 dark:text-gray-300 sm:grid-cols-2">
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Select a cryptographic primitive based on the property the feature needs.</span></li>
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Recognize unsafe nonce reuse, key rotation, and unverified-token patterns.</span></li>
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Put verification, validation, and authorization in the right order.</span></li>
+            
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>Choose failure behavior that does not expose a useful oracle.</span></li>
+            
+          </ul>
+        </div>
+        
+      </section>
+
+      <section aria-labelledby="learning-path-heading">
+        <div class="mb-5">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Learn, then practice</p>
+          <h2 id="learning-path-heading" class="mt-2 text-2xl font-bold">Course lessons</h2>
+          <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Work through these 5 lessons in order. Each lesson introduces one concept, then gives you a practical activity or lab to apply it.</p>
+        </div>
+
+        <div class="space-y-5">
+          
+          <article data-course-lesson data-lesson-id="name-the-property" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">1</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Name the property you need</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Encoding, hashing, encryption, and signing solve different problems even when their output looks similarly unreadable.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Encoding changes representation and is reversible without a secret. Hashing creates a fixed-size digest. Encryption protects confidentiality with a key. A signature lets someone verify origin and integrity.</p>
+
+<p>Start by naming the property. If the requirement is password verification, reversible encryption is the wrong primitive. Use a password-hashing function designed to be slow and salted.</p>
+
+              </div>
+
+              
+              <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between bg-gray-900 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                  <span>Unreadable is not encrypted</span>
+                  <span>Text</span>
+                </div>
+                <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>c2VjcmV0LXRva2Vu  →  secret-token
+</code></pre>
+                <p class="m-0 border-t border-gray-200 bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">Base64 is useful for transport. Anyone can decode it, so it provides no confidentiality.</p>
+              </div>
+              
+
+              
+
+              
+              
+              <section data-course-challenge data-challenge-id="identify-password-control" data-challenge-type="artifact" data-challenge-answer="password hashing" data-challenge-clue="" data-challenge-success="Correct. A salted password-hashing function supports verification without reversible storage." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-identify-password-control">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-identify-password-control" class="mt-1 text-base font-bold">Review the password record</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">This record must support password verification without allowing recovery of the original password. Enter the missing primitive.</p>
+                  </div>
+                </div>
+
+                
+                <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center justify-between bg-gray-900 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                    <span>Storage requirement</span>
+                    <span>Design note</span>
+                  </div>
+                  <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>Need: verify a submitted password
+Must not: recover the original password
+Per-record random salt: yes
+Primitive: ?
+</code></pre>
+                </div>
+                
+
+                
+                <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <label class="sr-only" for="challenge-answer-identify-password-control">Challenge answer</label>
+                  <input id="challenge-answer-identify-password-control" data-challenge-input type="text" autocomplete="off" class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" placeholder="Enter what you found">
+                  <button type="button" data-challenge-submit class="rounded-xl bg-bltRed px-4 py-2.5 text-sm font-bold text-white transition hover:bg-bltRedHover">Check answer</button>
+                </div>
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
+            </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="uniqueness-is-part-of-the-key" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">2</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Uniqueness is part of the design</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Modern encryption modes depend on nonces or initialization values that must follow precise reuse rules.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Developers tend to protect the key and treat the nonce as decoration. In several common modes, reusing a nonce with the same key can reveal relationships between messages or break authentication.</p>
+
+<p>Let a maintained cryptographic library generate the nonce. Store it beside the ciphertext, and design rotation so keys and encrypted records remain traceable.</p>
+
+              </div>
+
+              
+
+              
+
+              
+              
+              <section data-course-challenge data-challenge-id="find-reused-nonce" data-challenge-type="artifact" data-challenge-answer="evt-103" data-challenge-clue="" data-challenge-success="Event 103 repeats the key and nonce pair from event 101, so the operation must be rejected." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-find-reused-nonce">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-find-reused-nonce" class="mt-1 text-base font-bold">Find the unsafe event</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Compare the mock encryption log. Enter the event ID that reused a nonce with the same key.</p>
+                  </div>
+                </div>
+
+                
+                <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center justify-between bg-gray-900 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                    <span>Encryption log</span>
+                    <span>Log</span>
+                  </div>
+                  <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>evt-101  key=k7  nonce=8af2
+evt-102  key=k7  nonce=c410
+evt-103  key=k7  nonce=8af2
+</code></pre>
+                </div>
+                
+
+                
+                <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <label class="sr-only" for="challenge-answer-find-reused-nonce">Challenge answer</label>
+                  <input id="challenge-answer-find-reused-nonce" data-challenge-input type="text" autocomplete="off" class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" placeholder="Enter what you found">
+                  <button type="button" data-challenge-submit class="rounded-xl bg-bltRed px-4 py-2.5 text-sm font-bold text-white transition hover:bg-bltRedHover">Check answer</button>
+                </div>
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
+            </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="verify-before-use" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">3</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Verify before use</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Encrypted or signed data is safe only when verification happens before the application acts on its contents.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Authenticated encryption produces ciphertext and an authentication tag. If tag verification fails, treat the whole message as untrusted and return one consistent error.</p>
+
+<p>The same order matters for tokens and signed payloads. Pin the accepted algorithm and key source, verify the signature, validate expiry and audience, then use claims for authorization.</p>
+
+              </div>
+
+              
+              <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between bg-gray-900 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                  <span>Safe processing order</span>
+                  <span>Pseudocode</span>
+                </div>
+                <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>payload = verify_and_decrypt(message, expected_key)
+if payload is invalid: reject
+if payload.audience != this_service: reject
+process(payload)
+</code></pre>
+                <p class="m-0 border-t border-gray-200 bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">Parsing unverified claims for a security decision puts trust before proof.</p>
+              </div>
+              
+
+              
+              <div class="flex gap-3 rounded-2xl border border-red-100 bg-red-50/60 p-4 text-sm leading-6 text-gray-700 dark:border-red-900/30 dark:bg-red-900/10 dark:text-gray-300">
+                <i class="ph-bold ph-eye mt-0.5 shrink-0 text-lg text-bltRed" aria-hidden="true"></i>
+                <p class="m-0">Before moving on, find the exact line in your own application where verification finishes and business logic begins.</p>
+              </div>
+              
+
+              
+              
+              <section data-course-challenge data-challenge-id="verification-order" data-challenge-type="sequence" data-challenge-answer="verify|validate|authorize" data-challenge-clue="" data-challenge-success="Correct. The service proves integrity, validates context, and only then makes an authorization decision." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-verification-order">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-verification-order" class="mt-1 text-base font-bold">Rebuild the trust boundary</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Put the token-processing steps in the only order that avoids using untrusted claims.</p>
+                  </div>
+                </div>
+
+                
+                <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                  
+                  <button type="button" data-sequence-option="authorize" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                    <span class="mr-2 font-mono text-xs font-bold text-bltRed" data-sequence-position></span>Use the claims for authorization.
+                  </button>
+                  
+                  <button type="button" data-sequence-option="validate" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                    <span class="mr-2 font-mono text-xs font-bold text-bltRed" data-sequence-position></span>Validate expiry and audience.
+                  </button>
+                  
+                  <button type="button" data-sequence-option="verify" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                    <span class="mr-2 font-mono text-xs font-bold text-bltRed" data-sequence-position></span>Verify the signature with the expected key and algorithm.
+                  </button>
+                  
+                </div>
+                <div class="mt-3 flex items-center justify-between gap-3">
+                  <p data-sequence-summary class="text-xs text-gray-500 dark:text-gray-400">Select the steps in the order they should happen.</p>
+                  <button type="button" data-sequence-reset class="text-xs font-bold text-bltRed hover:underline">Reset order</button>
+                </div>
+                
+
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
+            </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="rotate-with-key-identities" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">4</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Rotate with key identities</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Rotation works when every ciphertext or signature can be connected to the key version that created it.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Give each key version a stable identifier and store that identifier beside the protected data. During rotation, write with the new key while retaining the old key only for the reads that still require it.</p>
+
+<p>Removing the old key before data is migrated creates an outage. Keeping it active for new writes means rotation never really finishes.</p>
+
+              </div>
+
+              
+
+              
+
+              
+              
+              <section data-course-challenge data-challenge-id="select-decryption-key" data-challenge-type="artifact" data-challenge-answer="key-v2" data-challenge-clue="" data-challenge-success="Correct. The record identifies key-v2, so the reader does not have to guess from the creation date." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-select-decryption-key">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-select-decryption-key" class="mt-1 text-base font-bold">Select the right key version</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">The record was created before rotation and carries its key identifier. Enter the key the service must use to decrypt it.</p>
+                  </div>
+                </div>
+
+                
+                <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center justify-between bg-gray-900 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                    <span>Encrypted record</span>
+                    <span>JSON</span>
+                  </div>
+                  <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>{
+  &quot;created&quot;: &quot;2026-06-04T10:16:00Z&quot;,
+  &quot;key_id&quot;: &quot;key-v2&quot;,
+  &quot;ciphertext&quot;: &quot;b7a91f...&quot;
+}
+</code></pre>
+                </div>
+                
+
+                
+                <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <label class="sr-only" for="challenge-answer-select-decryption-key">Challenge answer</label>
+                  <input id="challenge-answer-select-decryption-key" data-challenge-input type="text" autocomplete="off" class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" placeholder="Enter what you found">
+                  <button type="button" data-challenge-submit class="rounded-xl bg-bltRed px-4 py-2.5 text-sm font-bold text-white transition hover:bg-bltRedHover">Check answer</button>
+                </div>
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
+            </div>
+          </article>
+          
+          <article data-course-lesson data-lesson-id="do-not-build-an-oracle" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">5</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">Do not build an oracle</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Detailed cryptographic errors can reveal which part of a protected message was valid.</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                <p>Return one consistent failure to the caller when signature, padding, tag, or format validation fails. Keep the detailed reason in restricted internal logs.</p>
+
+<p>Also keep the rejection path reasonably consistent. An attacker should not be able to distinguish a valid signature from a valid account by comparing messages or timing.</p>
+
+              </div>
+
+              
+
+              
+
+              
+              
+              <section data-course-challenge data-challenge-id="uniform-failure" data-challenge-type="choice" data-challenge-answer="uniform" data-challenge-clue="" data-challenge-success="Correct. The caller receives one failure while operators retain the diagnostic detail internally." class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-uniform-failure">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-uniform-failure" class="mt-1 text-base font-bold">Choose the safe failure</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">A token fails verification. Which response gives the caller the least useful oracle?</p>
+                  </div>
+                </div>
+
+                
+                <div class="mt-4 grid gap-2">
+                  
+                  <button type="button" data-challenge-option="signature" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">Return Signature valid, but account does not exist.</button>
+                  
+                  <button type="button" data-challenge-option="algorithm" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">Return Unsupported algorithm HS256 for this account.</button>
+                  
+                  <button type="button" data-challenge-option="uniform" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">Return Invalid token and log the internal reason securely.</button>
+                  
+                </div>
+                
+
+                
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              
+
+              
+
+              
+            </div>
+          </article>
+          
+        </div>
+      </section>
+
+      
+      <section data-next-course class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900" aria-labelledby="next-course-heading">
+        <div class="grid gap-6 p-6 sm:p-8 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Continue learning</p>
+            
+            <h2 id="next-course-heading" class="mt-2 text-2xl font-bold">Choose your next path</h2>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-400">You have reached the end of this path. Pick another topic from the course catalog when you are ready.</p>
+            
+          </div>
+          
+          <a href="/courses/" class="inline-flex items-center justify-center gap-2 rounded-xl bg-bltRed px-5 py-3 text-sm font-bold text-white transition hover:bg-bltRedHover">Browse courses <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+          
+        </div>
+      </section>
+    </div>
+
+    <aside class="-mt-10 space-y-5 lg:sticky lg:top-28">
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900" aria-labelledby="course-progress-heading">
+        <div class="flex items-center justify-between gap-3">
+          <h2 id="course-progress-heading" class="text-lg font-bold">Course progress</h2>
+          <span data-course-progress-percent class="text-sm font-bold text-bltRed">0%</span>
+        </div>
+        <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+          <div data-course-progress-bar class="h-full w-0 rounded-full bg-bltRed transition-all duration-300"></div>
+        </div>
+        <p data-course-progress-count class="mt-3 text-sm text-gray-500 dark:text-gray-400">0 steps completed</p>
+        <div data-course-complete class="mt-5 hidden rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-900/40 dark:bg-green-900/15 dark:text-green-300">
+          <p class="font-bold">Course complete</p>
+        </div>
+        <a href="/progress/" class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-bltRed hover:underline">View all progress <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+      </section>
+
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900">
+        <h2 class="text-base font-bold">Before you begin</h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-400">General programming experience; no advanced mathematics required</p>
+        <div class="mt-5 flex items-center gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
+          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-bltRed dark:bg-red-900/20"><i class="ph-bold ph-user-circle" aria-hidden="true"></i></span>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Created by</p>
+            <p class="mt-0.5 text-sm font-bold">OWASP BLT Community</p>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
+</article>
+
+<script src="/assets/js/course-state.js?v=1788024548"></script>
+
+
+    <div class="px-4">
+        <footer
+  class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-bltFooter py-10 pb-8 text-white max-md:rounded-t-[.8rem]"
+>
+  <h2
+    class="relative m-0 break-all px-2 text-center text-[clamp(2rem,5vw,4.5rem)] font-light leading-[1.02] tracking-[-.045em] text-white sm:break-normal"
+  >
+    university.owaspblt.org
+  </h2>
+  <div
+    class="relative mx-auto mt-3 h-[3px] w-16 rounded-full bg-red-600"
+    aria-hidden="true"
+  ></div>
+  <div
+    class="footer-links relative mx-auto mt-8 grid max-w-6xl grid-cols-1 gap-6 px-6 font-mono sm:grid-cols-2 md:grid-cols-4 md:gap-8"
+  >
+    <div>
+      <p>Docs</p>
+      <a href="/courses/">Courses</a>
+      <a href="/labs/">Labs</a>
+      <a href="/dashboard/">Security Trends</a>
+    </div>
+    <div>
+      <p>Learn</p>
+      <a href="/progress/">Progress</a>
+      <a href="/enroll/">Enroll</a>
+      <a href="/instructors/">Instructors</a>
+      <a href="/request/">Request Course</a>
+    </div>
+    <div>
+      <p>Project</p>
+      <a
+        href="https://gitlab.com/owasp-blt/blt-university"
+        target="_blank"
+        rel="noopener noreferrer"
+        >GitLab repo</a
+      >
+    </div>
+    <div>
+      <p>OWASP</p>
+      <a
+        href="https://owaspblt.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >OWASP BLT</a
+      >
+      <a
+        href="https://owasp.org/www-project-bug-logging-tool/"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Foundation page</a
+      >
+      <a
+        href="https://owasp.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >owasp.org</a
+      >
+    </div>
+  </div>
+</footer>
+
+    </div>
+
+    <script src="/assets/js/learning-state.js?v=1788024548"></script>
+    <script src="/assets/js/recommendations.js?v=1788024548"></script>
+    <script src="/assets/js/main.js?v=1788024548"></script>
+</body>
+</html>

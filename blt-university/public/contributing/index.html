@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>Contributing Guide | BLT University</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Contributing Guide" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Open-source cybersecurity courses and browser labs maintained by the OWASP BLT community." />
+<meta name="twitter:description" property="og:description" content="Open-source cybersecurity courses and browser labs maintained by the OWASP BLT community." />
+<link rel="canonical" href="https://university.owaspblt.org/contributing/" />
+<meta property="og:url" content="https://university.owaspblt.org/contributing/" />
+<meta property="og:site_name" content="BLT University" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Contributing Guide" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Open-source cybersecurity courses and browser labs maintained by the OWASP BLT community.","headline":"Contributing Guide","url":"https://university.owaspblt.org/contributing/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="icon" type="image/png" href="/assets/images/blt-university-logo.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        // Dark mode theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com/3.4.17?plugins=typography@0.5.16"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Geist', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+                    },
+                    colors: {
+                        bltRed: '#dc2626',
+                        bltRedLight: '#fee2e2',
+                        bltRedHover: '#b91c1c',
+                        bltDark: '#111827',
+                        bltCoral: '#ef4444',
+                        bltFooter: '#0e0d0c'
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(17,24,39,0.04)',
+                        float: '0 10px 24px -18px rgba(220,38,38,.8)'
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        .dot-field {
+            background-image: radial-gradient(rgba(17, 24, 39, 0.18) 1px, transparent 1px);
+            background-size: 18px 18px;
+            mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        }
+        .mobile-menu.open {
+            display: flex;
+        }
+        .mobile-toggle.active span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+        .mobile-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .mobile-toggle.active span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+        .feature-divider::before,
+        .feature-divider::after {
+            content: "";
+            height: 1px;
+            flex: 1;
+        }
+        .feature-divider::before {
+            background: linear-gradient(to right, transparent, #e5e7eb);
+        }
+        .feature-divider::after {
+            background: linear-gradient(to left, transparent, #e5e7eb);
+        }
+        .wave-dots i {
+            position: absolute;
+            width: 0.25rem;
+            height: 0.25rem;
+            border-radius: 999px;
+            background: #d1d5db;
+            animation: wave 2s infinite ease-in-out;
+        }
+        .wave-dots i:nth-child(1) { top: 0; left: 0; }
+        .wave-dots i:nth-child(2) { top: 0; left: 1rem; }
+        .wave-dots i:nth-child(3) { top: 0.25rem; left: 0.5rem; animation-delay: 0.35s; }
+        .wave-dots i:nth-child(4) { top: 0.5rem; left: 0; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(5) { top: 0.5rem; left: 1rem; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(6) { top: 0.75rem; left: 0.5rem; animation-delay: 0.85s; }
+        .section-kicker.with-bar::before {
+            content: "";
+            position: absolute;
+            top: 0.18rem;
+            left: -0.55rem;
+            width: 3px;
+            height: 1.25rem;
+            border-radius: 0 2px 2px 0;
+            background: #ef4444;
+        }
+        .footer-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image:
+              linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .footer-links p {
+            margin: 0 0 0.35rem;
+            color: #6b7280;
+            font-size: 0.625rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .footer-links a {
+            display: block;
+            color: #d1d5db;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            transition: color 180ms ease;
+        }
+        .footer-links a:hover {
+            color: white;
+        }
+        @keyframes wave {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-3px);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
+
+    <header
+  class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm"
+  id="site-header"
+>
+  <div
+    class="relative mx-auto flex max-w-[104rem] items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-6 xl:px-6"
+  >
+    <a
+      href="/"
+      class="inline-flex items-center gap-2.5"
+      aria-label="BLT University home"
+    >
+      <img
+        src="/assets/images/blt-university-logo.png"
+        alt="BLT University logo"
+        class="h-12 sm:h-14"
+      />
+      <div class="flex flex-col">
+        <span class="text-sm font-semibold uppercase tracking-wide">BLT UNIVERSITY</span>
+      </div>
+    </a>
+
+    <nav
+      class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-7 lg:flex"
+      aria-label="Primary navigation"
+    >
+      
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/courses/"
+        >Courses</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/labs/"
+        >Labs</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/progress/"
+        >Progress</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/dashboard/"
+        >Security Trends</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/instructors/"
+        >Instructors</a
+      >
+      
+    </nav>
+
+    <div class="hidden items-center gap-3 lg:flex">
+      
+      
+      
+      <a
+        class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+        href="/request/"
+        >Request course</a
+      >
+      
+      
+      
+      <a
+        class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+        href="/enroll/"
+        >Enroll now</a
+      >
+      
+      
+    </div>
+
+    <button
+      class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-lg:flex"
+      id="mobile-toggle"
+      type="button"
+      aria-label="Toggle menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+    </button>
+  </div>
+
+  <nav
+    class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white px-6 py-4"
+    id="mobile-menu"
+    aria-label="Mobile navigation"
+  >
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/courses/">Courses</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/progress/">Progress</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Security Trends</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+      href="/request/"
+      >Request course</a
+    >
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+      href="/enroll/"
+      >Enroll now</a
+    >
+    
+    
+  </nav>
+</header>
+
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
+
+<section class="relative px-4 pb-16 pt-40 text-center">
+  <div class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-72 w-full opacity-60" aria-hidden="true"></div>
+  <div class="relative z-[2] mx-auto max-w-4xl">
+    <span class="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">Become an Instructor</span>
+    <h1 class="mt-5 text-[clamp(2.25rem,4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-.04em] text-gray-900">Teach practical security.</h1>
+    <p class="mx-auto mt-6 max-w-2xl text-base leading-7 text-gray-600">Share focused cybersecurity lessons, labs, and resources through the open BLT University workflow.</p>
+  </div>
+</section>
+
+<main class="mx-auto w-[min(72rem,calc(100%_-_2rem))] pb-24">
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <article class="rounded-2xl border border-gray-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-red-200">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-red-600">
+        <i class="ph-bold ph-globe-hemisphere-west text-xl"></i>
+      </div>
+      <h2 class="mt-6 text-lg font-semibold text-gray-900">Reach learners</h2>
+      <p class="mt-3 text-sm leading-6 text-gray-600">Publish courses for a global open-source community of students and practitioners.</p>
+    </article>
+    <article class="rounded-2xl border border-gray-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-red-200">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-red-600">
+        <i class="ph-bold ph-identification-badge text-xl"></i>
+      </div>
+      <h2 class="mt-6 text-lg font-semibold text-gray-900">Build reputation</h2>
+      <p class="mt-3 text-sm leading-6 text-gray-600">Turn your expertise into reusable lessons, examples, and public contribution history.</p>
+    </article>
+    <article class="rounded-2xl border border-gray-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-red-200">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-red-600">
+        <i class="ph-bold ph-users-three text-xl"></i>
+      </div>
+      <h2 class="mt-6 text-lg font-semibold text-gray-900">Collaborate openly</h2>
+      <p class="mt-3 text-sm leading-6 text-gray-600">Improve security education with feedback from maintainers, instructors, and learners.</p>
+    </article>
+  </section>
+
+  <section class="mt-14 grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_24rem]">
+    <div class="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)] md:p-8">
+      <div class="mb-8">
+        <p class="font-mono text-xs font-semibold uppercase tracking-[.16em] text-red-600">Course Workflow</p>
+        <h2 class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em] text-gray-900">Four steps to publish.</h2>
+      </div>
+
+      <div class="space-y-4">
+        <article class="rounded-2xl bg-gray-50 p-5">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-mono text-sm font-semibold text-white">01</span>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Fork the repository</h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">Start from the <a href="https://gitlab.com/owasp-blt/blt-university" target="_blank" rel="noopener noreferrer" class="font-semibold text-red-600 hover:underline">BLT University GitLab repository</a> and create a working branch.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="rounded-2xl bg-gray-50 p-5">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-mono text-sm font-semibold text-white">02</span>
+            <div class="min-w-0 flex-1">
+              <h3 class="text-lg font-semibold text-gray-900">Add your instructor profile</h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">Create a Markdown file in <code class="rounded-md bg-white px-1.5 py-0.5 text-red-600">_instructors</code> with your name, expertise, avatar, links, and bio.</p>
+              <pre class="mt-5 overflow-x-auto rounded-2xl bg-gray-950 p-5 font-mono text-xs leading-6 text-gray-300"><code>---
+layout: instructor
+title: Your Name
+expertise: Your Area of Expertise
+avatar: /assets/images/instructors/yourname.jpg
+linkedin: yourprofile
+---
+
+Your bio and teaching philosophy goes here...</code></pre>
+            </div>
+          </div>
+        </article>
+
+        <article class="rounded-2xl bg-gray-50 p-5">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-mono text-sm font-semibold text-white">03</span>
+            <div class="min-w-0 flex-1">
+              <h3 class="text-lg font-semibold text-gray-900">Create the course file</h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">Add a course in <code class="rounded-md bg-white px-1.5 py-0.5 text-red-600">_courses</code> with category, level, duration, description, resources, and syllabus sections.</p>
+              <pre class="mt-5 max-h-[34rem] overflow-auto rounded-2xl bg-gray-950 p-5 font-mono text-xs leading-6 text-gray-300"><code>---
+layout: course
+title: Your Course Title
+category: Course Category
+level: Beginner/Intermediate/Advanced
+duration: 4 weeks
+instructor: Your Name
+featured: false
+prerequisites: Any prerequisites
+description: Short course description
+
+resources:
+  - title: Introduction Video
+    url: https://youtube.com/watch?v=...
+    type: video
+  - title: Course Slides
+    url: /assets/courses/yourcourse/slides.pdf
+    type: pdf
+
+syllabus:
+  - title: Week 1 - Introduction
+    description: Course overview
+    topics:
+      - Topic 1
+      - Topic 2
+  - title: Week 2 - Deep Dive
+    description: Advanced concepts
+    topics:
+      - Topic 3
+      - Topic 4
+---
+
+# Course Content
+
+Your detailed course content goes here using Markdown...</code></pre>
+            </div>
+          </div>
+        </article>
+
+        <article class="rounded-2xl bg-red-50 p-5">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-600 font-mono text-sm font-semibold text-white">04</span>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Open a merge request</h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">Submit your course for review. Maintainers can help refine structure, clarity, and publishing readiness.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <aside class="space-y-4">
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
+        <p class="font-mono text-xs font-semibold uppercase tracking-[.16em] text-red-600">Guidelines</p>
+        <ul class="mt-5 space-y-4 text-sm leading-6 text-gray-600">
+          <li class="flex gap-3"><i class="ph-bold ph-check mt-1 text-red-600"></i><span>Keep content focused on cybersecurity practice.</span></li>
+          <li class="flex gap-3"><i class="ph-bold ph-check mt-1 text-red-600"></i><span>Define clear learning objectives and outcomes.</span></li>
+          <li class="flex gap-3"><i class="ph-bold ph-check mt-1 text-red-600"></i><span>Prefer hands-on labs, examples, and real scenarios.</span></li>
+          <li class="flex gap-3"><i class="ph-bold ph-check mt-1 text-red-600"></i><span>Use resources compatible with the project license.</span></li>
+        </ul>
+      </div>
+
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
+        <p class="font-mono text-xs font-semibold uppercase tracking-[.16em] text-red-600">Formats</p>
+        <div class="mt-5 grid grid-cols-2 gap-3 text-center">
+          <div class="rounded-xl bg-gray-50 p-4">
+            <i class="ph-bold ph-video-camera mx-auto block text-xl text-red-600"></i>
+            <p class="mt-2 text-xs font-semibold text-gray-900">Video</p>
+          </div>
+          <div class="rounded-xl bg-gray-50 p-4">
+            <i class="ph-bold ph-file-text mx-auto block text-xl text-red-600"></i>
+            <p class="mt-2 text-xs font-semibold text-gray-900">Docs</p>
+          </div>
+          <div class="rounded-xl bg-gray-50 p-4">
+            <i class="ph-bold ph-code mx-auto block text-xl text-red-600"></i>
+            <p class="mt-2 text-xs font-semibold text-gray-900">Code</p>
+          </div>
+          <div class="rounded-xl bg-gray-50 p-4">
+            <i class="ph-bold ph-flag-checkered mx-auto block text-xl text-red-600"></i>
+            <p class="mt-2 text-xs font-semibold text-gray-900">Projects</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="mt-14 rounded-3xl border border-white/5 bg-bltFooter p-8 text-center text-white md:p-12">
+    <span class="inline-flex items-center rounded-full border border-red-300/30 bg-red-500/10 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-300">Ready to contribute?</span>
+    <h2 class="mx-auto mt-5 max-w-2xl text-[clamp(1.75rem,3.5vw,3.1rem)] font-medium leading-[1.05] tracking-[-.045em]">Help build the next course.</h2>
+    <p class="mx-auto mt-4 max-w-xl text-sm leading-6 text-gray-400">Open a GitLab issue or start from the repository to propose new instructor-led material.</p>
+    <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+      <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition hover:-translate-y-px">Submit proposal</a>
+      <a href="https://gitlab.com/owasp-blt/blt-university" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-white transition hover:bg-white hover:text-gray-900">View repository</a>
+    </div>
+  </section>
+</main>
+
+
+    <div class="px-4">
+        <footer
+  class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-bltFooter py-10 pb-8 text-white max-md:rounded-t-[.8rem]"
+>
+  <h2
+    class="relative m-0 break-all px-2 text-center text-[clamp(2rem,5vw,4.5rem)] font-light leading-[1.02] tracking-[-.045em] text-white sm:break-normal"
+  >
+    university.owaspblt.org
+  </h2>
+  <div
+    class="relative mx-auto mt-3 h-[3px] w-16 rounded-full bg-red-600"
+    aria-hidden="true"
+  ></div>
+  <div
+    class="footer-links relative mx-auto mt-8 grid max-w-6xl grid-cols-1 gap-6 px-6 font-mono sm:grid-cols-2 md:grid-cols-4 md:gap-8"
+  >
+    <div>
+      <p>Docs</p>
+      <a href="/courses/">Courses</a>
+      <a href="/labs/">Labs</a>
+      <a href="/dashboard/">Security Trends</a>
+    </div>
+    <div>
+      <p>Learn</p>
+      <a href="/progress/">Progress</a>
+      <a href="/enroll/">Enroll</a>
+      <a href="/instructors/">Instructors</a>
+      <a href="/request/">Request Course</a>
+    </div>
+    <div>
+      <p>Project</p>
+      <a
+        href="https://gitlab.com/owasp-blt/blt-university"
+        target="_blank"
+        rel="noopener noreferrer"
+        >GitLab repo</a
+      >
+    </div>
+    <div>
+      <p>OWASP</p>
+      <a
+        href="https://owaspblt.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >OWASP BLT</a
+      >
+      <a
+        href="https://owasp.org/www-project-bug-logging-tool/"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Foundation page</a
+      >
+      <a
+        href="https://owasp.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >owasp.org</a
+      >
+    </div>
+  </div>
+</footer>
+
+    </div>
+
+    <script src="/assets/js/learning-state.js?v=1788024548"></script>
+    <script src="/assets/js/recommendations.js?v=1788024548"></script>
+    <script src="/assets/js/main.js?v=1788024548"></script>
+</body>
+</html>

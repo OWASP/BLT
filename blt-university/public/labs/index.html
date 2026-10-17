@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>Labs | BLT University</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Labs" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Open-source cybersecurity courses and browser labs maintained by the OWASP BLT community." />
+<meta name="twitter:description" property="og:description" content="Open-source cybersecurity courses and browser labs maintained by the OWASP BLT community." />
+<link rel="canonical" href="https://university.owaspblt.org/labs/" />
+<meta property="og:url" content="https://university.owaspblt.org/labs/" />
+<meta property="og:site_name" content="BLT University" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Labs" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Open-source cybersecurity courses and browser labs maintained by the OWASP BLT community.","headline":"Labs","url":"https://university.owaspblt.org/labs/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="icon" type="image/png" href="/assets/images/blt-university-logo.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        // Dark mode theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com/3.4.17?plugins=typography@0.5.16"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Geist', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+                    },
+                    colors: {
+                        bltRed: '#dc2626',
+                        bltRedLight: '#fee2e2',
+                        bltRedHover: '#b91c1c',
+                        bltDark: '#111827',
+                        bltCoral: '#ef4444',
+                        bltFooter: '#0e0d0c'
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(17,24,39,0.04)',
+                        float: '0 10px 24px -18px rgba(220,38,38,.8)'
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        .dot-field {
+            background-image: radial-gradient(rgba(17, 24, 39, 0.18) 1px, transparent 1px);
+            background-size: 18px 18px;
+            mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        }
+        .mobile-menu.open {
+            display: flex;
+        }
+        .mobile-toggle.active span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+        .mobile-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .mobile-toggle.active span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+        .feature-divider::before,
+        .feature-divider::after {
+            content: "";
+            height: 1px;
+            flex: 1;
+        }
+        .feature-divider::before {
+            background: linear-gradient(to right, transparent, #e5e7eb);
+        }
+        .feature-divider::after {
+            background: linear-gradient(to left, transparent, #e5e7eb);
+        }
+        .wave-dots i {
+            position: absolute;
+            width: 0.25rem;
+            height: 0.25rem;
+            border-radius: 999px;
+            background: #d1d5db;
+            animation: wave 2s infinite ease-in-out;
+        }
+        .wave-dots i:nth-child(1) { top: 0; left: 0; }
+        .wave-dots i:nth-child(2) { top: 0; left: 1rem; }
+        .wave-dots i:nth-child(3) { top: 0.25rem; left: 0.5rem; animation-delay: 0.35s; }
+        .wave-dots i:nth-child(4) { top: 0.5rem; left: 0; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(5) { top: 0.5rem; left: 1rem; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(6) { top: 0.75rem; left: 0.5rem; animation-delay: 0.85s; }
+        .section-kicker.with-bar::before {
+            content: "";
+            position: absolute;
+            top: 0.18rem;
+            left: -0.55rem;
+            width: 3px;
+            height: 1.25rem;
+            border-radius: 0 2px 2px 0;
+            background: #ef4444;
+        }
+        .footer-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image:
+              linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .footer-links p {
+            margin: 0 0 0.35rem;
+            color: #6b7280;
+            font-size: 0.625rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .footer-links a {
+            display: block;
+            color: #d1d5db;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            transition: color 180ms ease;
+        }
+        .footer-links a:hover {
+            color: white;
+        }
+        @keyframes wave {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-3px);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
+
+    <header
+  class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm"
+  id="site-header"
+>
+  <div
+    class="relative mx-auto flex max-w-[104rem] items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-6 xl:px-6"
+  >
+    <a
+      href="/"
+      class="inline-flex items-center gap-2.5"
+      aria-label="BLT University home"
+    >
+      <img
+        src="/assets/images/blt-university-logo.png"
+        alt="BLT University logo"
+        class="h-12 sm:h-14"
+      />
+      <div class="flex flex-col">
+        <span class="text-sm font-semibold uppercase tracking-wide">BLT UNIVERSITY</span>
+      </div>
+    </a>
+
+    <nav
+      class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-7 lg:flex"
+      aria-label="Primary navigation"
+    >
+      
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/courses/"
+        >Courses</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/labs/"
+        >Labs</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/progress/"
+        >Progress</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/dashboard/"
+        >Security Trends</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/instructors/"
+        >Instructors</a
+      >
+      
+    </nav>
+
+    <div class="hidden items-center gap-3 lg:flex">
+      
+      
+      
+      <a
+        class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+        href="/request/"
+        >Request course</a
+      >
+      
+      
+      
+      <a
+        class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+        href="/enroll/"
+        >Enroll now</a
+      >
+      
+      
+    </div>
+
+    <button
+      class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-lg:flex"
+      id="mobile-toggle"
+      type="button"
+      aria-label="Toggle menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+    </button>
+  </div>
+
+  <nav
+    class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white px-6 py-4"
+    id="mobile-menu"
+    aria-label="Mobile navigation"
+  >
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/courses/">Courses</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/progress/">Progress</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Security Trends</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+      href="/request/"
+      >Request course</a
+    >
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+      href="/enroll/"
+      >Enroll now</a
+    >
+    
+    
+  </nav>
+</header>
+
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
+
+
+<script id="adaptive-recommendation-data" type="application/json">{
+  "weights": {"A01": 1.00, "A02": 0.95, "A03": 0.90, "A04": 0.85, "A05": 0.80, "A06": 0.75, "A07": 0.70, "A08": 0.65, "A09": 0.60, "A10": 0.50},
+  "categories": [
+    
+    {"id": "A01", "name": "Broken Access Control", "count": 6156, "labs": [{"slug":"insecure_direct_object_reference","title":"Insecure Direct Object Reference","reason":"Practice object-level authorization checks."},{"slug":"cross_site_request_forgery","title":"Cross-Site Request Forgery","reason":"Understand authorization of state-changing requests."},{"slug":"open_redirect","title":"Open Redirect","reason":"Learn to constrain user-controlled navigation."}]},
+    
+    {"id": "A02", "name": "Cryptographic Failures", "count": 456, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Practice protecting secrets and sensitive information."}]},
+    
+    {"id": "A03", "name": "Injection", "count": 5745, "labs": [{"slug":"sql_injection","title":"SQL Injection","reason":"Learn parameterized queries and database input handling."},{"slug":"cross_site_scripting_xss","title":"Cross-Site Scripting","reason":"Practice safe output handling across browser contexts."},{"slug":"command_injection","title":"Command Injection","reason":"Learn to keep operating-system commands and input separate."}]},
+    
+    {"id": "A04", "name": "Insecure Design", "count": 1528, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Explore security controls for a high-risk application feature."},{"slug":"broken_authentication","title":"Broken Authentication","reason":"Review authentication design and abuse cases."}]},
+    
+    {"id": "A05", "name": "Security Misconfiguration", "count": 143, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Identify unsafe diagnostics and exposed configuration."},{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Practice hardening upload configuration and storage."}]},
+    
+    {"id": "A06", "name": "Vulnerable and Outdated Components", "count": 37, "labs": []},
+    
+    {"id": "A07", "name": "Identification and Authentication Failures", "count": 1832, "labs": [{"slug":"broken_authentication","title":"Broken Authentication","reason":"Practice credential, session, recovery, and token defenses."}]},
+    
+    {"id": "A08", "name": "Software and Data Integrity Failures", "count": 689, "labs": [{"slug":"file_upload_vulnerabilities","title":"File Upload Vulnerabilities","reason":"Learn to validate provenance, type, and content before trust."}]},
+    
+    {"id": "A09", "name": "Security Logging and Monitoring Failures", "count": 75, "labs": [{"slug":"sensitive_data_exposure","title":"Sensitive Data Exposure","reason":"Learn what must never be exposed through logs and diagnostics."}]},
+    
+    {"id": "A10", "name": "Server-Side Request Forgery", "count": 569, "labs": [{"slug":"server_side_request_forgery","title":"Server-Side Request Forgery","reason":"Practice destination validation and internal-network protection."}]}
+    
+  ],
+  "labs": [
+    
+    {"id": "broken-authentication", "title": "Broken Authentication", "description": "Comprehensive coverage of authentication vulnerabilities including weak credentials, session management flaws, and JWT misconfigurations. Practice credential stuffing, session fixation, and token forgery attacks.", "url": "/labs/broken_authentication/", "taskCount": 12},
+    
+    {"id": "command-injection", "title": "Command Injection", "description": "Learn how unsafe system command construction leads to command injection and how to prevent it.", "url": "/labs/command_injection/", "taskCount": 8},
+    
+    {"id": "cross-site-request-forgery", "title": "Cross-Site Request Forgery", "description": "Learn CSRF attacks and defenses through focused security exercises.", "url": "/labs/cross_site_request_forgery/", "taskCount": 7},
+    
+    {"id": "cross-site-scripting-xss", "title": "Cross-Site Scripting (XSS)", "description": "Find out how untrusted input can run as code in a browser, and how to stop it.", "url": "/labs/cross_site_scripting_xss/", "taskCount": 8},
+    
+    {"id": "file-upload-vulnerabilities", "title": "File Upload Vulnerabilities", "description": "Explore critical file upload security flaws that allow attackers to upload malicious files and execute code on servers. Learn to bypass extension filters, MIME type validation, and path traversal restrictions.", "url": "/labs/file_upload_vulnerabilities/", "taskCount": 7},
+    
+    {"id": "insecure-direct-object-reference", "title": "Insecure Direct Object Reference", "description": "Learn how missing object-level authorization exposes other users' data.", "url": "/labs/insecure_direct_object_reference/", "taskCount": 5},
+    
+    {"id": "open-redirect", "title": "Open Redirect", "description": "Understand how open redirect vulnerabilities enable phishing attacks and security bypasses. Learn to exploit redirect parameters without validation to redirect users to malicious sites.", "url": "/labs/open_redirect/", "taskCount": 7},
+    
+    {"id": "passwords-and-mfa", "title": "Passwords and Multi-Factor Authentication", "description": "Learn how unique passwords, password managers, and MFA reduce the impact of account attacks.", "url": "/labs/passwords-and-mfa/", "taskCount": 6},
+    
+    {"id": "phishing-awareness", "title": "Phishing Awareness", "description": "Practice identifying suspicious messages and choosing a safe response before a scam captures your information.", "url": "/labs/phishing-awareness/", "taskCount": 6},
+    
+    {"id": "safe-browsing-and-downloads", "title": "Safe Browsing and Downloads", "description": "Practice safer decisions around websites, browser permissions, downloads, updates, and public networks.", "url": "/labs/safe-browsing-and-downloads/", "taskCount": 6},
+    
+    {"id": "sensitive-data-exposure", "title": "Sensitive Data Exposure", "description": "Discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. Learn to identify leaked credentials, API keys, and personal data in error messages, backups, and client-side code.", "url": "/labs/sensitive_data_exposure/", "taskCount": 9},
+    
+    {"id": "server-side-request-forgery", "title": "Server-Side Request Forgery (SSRF)", "description": "Advanced SSRF techniques to make servers request internal resources and cloud metadata services. Learn to bypass filters using encoding tricks and redirect chains.", "url": "/labs/server_side_request_forgery/", "taskCount": 7},
+    
+    {"id": "sql-injection", "title": "SQL Injection", "description": "Learn SQL injection through interactive security exercises.", "url": "/labs/sql_injection/", "taskCount": 10}
+    
+  ]
+}</script>
+
+
+<section class="relative px-4 pb-16 pt-40 text-center">
+  <div class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-72 w-full opacity-60" aria-hidden="true"></div>
+  <div class="relative z-[2] mx-auto max-w-4xl">
+    <span class="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">Security Labs</span>
+    <h1 class="mt-5 text-[clamp(2.25rem,4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-.04em] text-gray-900">Practice real security concepts.</h1>
+    <p class="mx-auto mt-6 max-w-2xl text-base leading-7 text-gray-600">Focused, ethical simulations for learning vulnerability patterns by doing.</p>
+  </div>
+</section>
+
+<main class="mx-auto w-[min(72rem,calc(100%_-_2rem))] pb-24">
+  <section data-adaptive-recommendations data-limit="3" hidden aria-labelledby="recommended-labs-heading" class="mb-10 rounded-3xl border border-red-100 bg-gradient-to-br from-red-50 to-white p-6 shadow-[0_18px_50px_-40px_rgba(220,38,38,.75)]">
+    <div class="mb-5 flex items-start gap-3">
+      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white"><i class="ph-bold ph-sparkle text-xl"></i></span>
+      <div>
+        <h2 id="recommended-labs-heading" class="text-xl font-semibold tracking-tight text-gray-900">Recommended for you</h2>
+        <p class="mt-1 text-sm leading-6 text-gray-600">Ranked using your saved progress, current security-intelligence frequency, and OWASP priority.</p>
+      </div>
+    </div>
+    <div data-adaptive-recommendation-list class="grid gap-3 md:grid-cols-3"></div>
+  </section>
+
+  <section aria-labelledby="lab-results-heading" class="mb-5">
+    <div class="mb-3 flex flex-wrap items-end justify-between gap-2">
+      <div>
+        <h2 id="lab-results-heading" class="text-xl font-semibold tracking-tight text-gray-900">Explore security labs</h2>
+        <p id="lab-results-summary" class="mt-1 text-sm text-gray-500" aria-live="polite">Showing all labs</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="mb-8 rounded-2xl border border-gray-200 bg-white p-3 shadow-[0_18px_50px_-40px_rgba(15,23,42,.75)]">
+    <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-[1fr_11rem_11rem_11rem]" id="lab-catalog">
+      <div class="relative">
+        <i class="ph-bold ph-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-gray-400"></i>
+        <input id="lab-search-filter" aria-label="Search labs" type="text" class="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100" placeholder="Search labs, topics, or categories...">
+      </div>
+      <select id="lab-category-filter" aria-label="Filter labs by category" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100">
+        <option value="">All Categories</option>
+        
+        
+        <option value="authentication">Authentication</option>
+        
+        <option value="web-security">Web Security</option>
+        
+        <option value="cyber-hygiene">Cyber Hygiene</option>
+        
+        <option value="data-protection">Data Protection</option>
+        
+      </select>
+      <select id="lab-level-filter" aria-label="Filter labs by level" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100">
+        <option value="">All Levels</option>
+        <option value="beginner">Beginner</option>
+        <option value="intermediate">Intermediate</option>
+        <option value="advanced">Advanced</option>
+      </select>
+    </div>
+  </div>
+
+  <section aria-labelledby="learning-tracks-heading" class="mb-8">
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 id="learning-tracks-heading" class="text-xl font-semibold tracking-tight text-gray-900">Choose your learning track</h2>
+        <p class="mt-1 text-sm leading-6 text-gray-600">Shared labs appear in either path.</p>
+      </div>
+    </div>
+    <div class="grid gap-3 md:grid-cols-2" role="group" aria-label="Learning tracks">
+      
+      <button type="button" data-track-choice="professional" data-track-label="Professional Security" aria-pressed="false" class="track-choice group flex min-h-24 items-center gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-left transition hover:border-red-200 hover:shadow-[0_16px_40px_-30px_rgba(15,23,42,.75)] focus:outline-none focus:ring-2 focus:ring-red-200">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600"><i class="ph-bold ph-briefcase text-xl"></i></span>
+        <span class="min-w-0">
+          <span class="block text-base font-semibold text-gray-900 group-hover:text-red-600">Professional Security</span>
+          <span class="mt-0.5 block text-xs font-medium text-gray-500">Developers, contributors, and security teams</span>
+        </span>
+      </button>
+      
+      <button type="button" data-track-choice="hygiene" data-track-label="Cyber Hygiene" aria-pressed="false" class="track-choice group flex min-h-24 items-center gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-left transition hover:border-red-200 hover:shadow-[0_16px_40px_-30px_rgba(15,23,42,.75)] focus:outline-none focus:ring-2 focus:ring-red-200">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600"><i class="ph-bold ph-shield-check text-xl"></i></span>
+        <span class="min-w-0">
+          <span class="block text-base font-semibold text-gray-900 group-hover:text-red-600">Cyber Hygiene</span>
+          <span class="mt-0.5 block text-xs font-medium text-gray-500">Everyday technology users</span>
+        </span>
+      </button>
+      
+    </div>
+  </section>
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" id="labs-grid">
+    
+    
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="authentication" data-level="intermediate" data-track="professional" data-search="broken authentication comprehensive coverage of authentication vulnerabilities including weak credentials, session management flaws, and jwt misconfigurations. practice credential stuffing, session fixation, and token forgery attacks. authentication professional ">
+      <a href="/labs/broken_authentication/" class="block h-44 bg-gray-950 relative overflow-hidden">
+        
+        
+        
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          
+          <div class="absolute left-8 top-12 w-48 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-xl">
+            <div class="mb-3 h-2 w-28 rounded-full bg-white/25"></div>
+            <div class="h-2 w-40 rounded-full bg-white/10"></div>
+            <div class="mt-4 font-mono text-[10px] uppercase tracking-wider text-red-100">Safe mock scenario</div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-lock-key text-2xl"></i></div>
+          
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Authentication</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">intermediate</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/labs/broken_authentication/">Broken Authentication</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Comprehensive coverage of authentication vulnerabilities including weak credentials, session management flaws, and JW...</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>12 tasks</span>
+          <span>50 mins</span>
+        </div>
+      </div>
+    </article>
+    
+    
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="web-security" data-level="intermediate" data-track="professional" data-search="command injection learn how unsafe system command construction leads to command injection and how to prevent it. web security professional ">
+      <a href="/labs/command_injection/" class="block h-44 bg-gray-950 relative overflow-hidden">
+        
+        
+        
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          
+          <div class="absolute left-8 top-12 w-48 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-xl">
+            <div class="mb-3 h-2 w-28 rounded-full bg-white/25"></div>
+            <div class="h-2 w-40 rounded-full bg-white/10"></div>
+            <div class="mt-4 font-mono text-[10px] uppercase tracking-wider text-red-100">Safe mock scenario</div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-terminal-window text-2xl"></i></div>
+          
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Web Security</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">intermediate</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/labs/command_injection/">Command Injection</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Learn how unsafe system command construction leads to command injection and how to prevent it.</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>8 tasks</span>
+          <span>45 mins</span>
+        </div>
+      </div>
+    </article>
+    
+    
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="web-security" data-level="beginner" data-track="both" data-search="cross-site request forgery learn csrf attacks and defenses through focused security exercises. web security both ">
+      <a href="/labs/cross_site_request_forgery/" class="block h-44 bg-gray-950 relative overflow-hidden">
+        
+        
+        
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          
+          <div class="absolute left-8 top-14 w-44 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-xl">
+            <div class="mb-3 flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-red-600"></span><span class="h-2 w-24 rounded-full bg-white/25"></span></div>
+            <div class="space-y-2"><div class="h-2 rounded-full bg-white/20"></div><div class="h-2 w-3/4 rounded-full bg-white/20"></div><div class="h-7 rounded-lg border border-red-400/40 bg-red-500/30"></div></div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-arrows-clockwise text-2xl"></i></div>
+          
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Web Security</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">beginner</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/labs/cross_site_request_forgery/">Cross-Site Request Forgery</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Learn CSRF attacks and defenses through focused security exercises.</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>7 tasks</span>
+          <span>45 mins</span>
+        </div>
+      </div>
+    </article>
+    
+    
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="web-security" data-level="beginner" data-track="both" data-search="cross-site scripting (xss) find out how untrusted input can run as code in a browser, and how to stop it. web security both ">
+      <a href="/labs/cross_site_scripting_xss/" class="block h-44 bg-gray-950 relative overflow-hidden">
+        
+        
+        
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          
+          <div class="absolute left-8 top-14 w-48 overflow-hidden rounded-2xl border border-white/10 bg-white/10 shadow-xl">
+            <div class="flex h-8 items-center gap-2 border-b border-white/10 px-3"><span class="h-2 w-2 rounded-full bg-red-400"></span><span class="h-2 w-2 rounded-full bg-yellow-400"></span><span class="h-2 w-2 rounded-full bg-green-400"></span></div>
+            <div class="space-y-2 p-3 font-mono text-[10px] text-red-100"><div>&lt;script&gt;</div><div class="pl-3 text-white/70">alert('XSS')</div><div>&lt;/script&gt;</div></div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-code text-2xl"></i></div>
+          
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Web Security</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">beginner</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/labs/cross_site_scripting_xss/">Cross-Site Scripting (XSS)</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Find out how untrusted input can run as code in a browser, and how to stop it.</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>8 tasks</span>
+          <span>50 mins</span>
+        </div>
+      </div>
+    </article>
+    
+    
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="web-security" data-level="intermediate" data-track="professional" data-search="file upload vulnerabilities explore critical file upload security flaws that allow attackers to upload malicious files and execute code on servers. learn to bypass extension filters, mime type validation, and path traversal restrictions. web security professional ">
+      <a href="/labs/file_upload_vulnerabilities/" class="block h-44 bg-gray-950 relative overflow-hidden">
+        
+        
+        
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          
+          <div class="absolute left-8 top-12 w-48 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-xl">
+            <div class="mb-3 h-2 w-28 rounded-full bg-white/25"></div>
+            <div class="h-2 w-40 rounded-full bg-white/10"></div>
+            <div class="mt-4 font-mono text-[10px] uppercase tracking-wider text-red-100">Safe mock scenario</div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-upload-simple text-2xl"></i></div>
+          
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Web Security</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">intermediate</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/labs/file_upload_vulnerabilities/">File Upload Vulnerabilities</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Explore critical file upload security flaws that allow attackers to upload malicious files and execute code on server...</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>7 tasks</span>
+          <span>50 mins</span>
+        </div>
+      </div>
+    </article>
+    
+    
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="web-security" data-level="beginner" data-track="both" data-search="insecure direct object reference learn how missing object-level authorization exposes other users' data. web security both ">
+      <a href="/labs/insecure_direct_object_reference/" class="block h-44 bg-gray-950 relative overflow-hidden">
+        
+        
+        
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          
+          <div class="absolute left-8 top-14 w-48 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-xl">
+            <div class="mb-3 flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-red-600"></span><span class="h-2 w-28 rounded-full bg-white/25"></span></div>
+            <div class="rounded-lg border border-red-400/40 bg-red-500/20 px-3 py-2 font-mono text-[11px] text-red-100">/profiles/42</div>
+            <div class="mt-3 h-2 w-32 rounded-full bg-white/20"></div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-identification-card text-2xl"></i></div>
+          
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Web Security</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">beginner</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/labs/insecure_direct_object_reference/">Insecure Direct Object Reference</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Learn how missing object-level authorization exposes other users' data.</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>5 tasks</span>
+          <span>45 mins</span>
+        </div>
+      </div>
+    </article>
+    
+    
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="web-security" data-level="beginner" data-track="both" data-search="open redirect understand how open redirect vulnerabilities enable phishing attacks and security bypasses. learn to exploit redirect parameters without validation to redirect users to malicious sites. web security both ">
+      <a href="/labs/open_redirect/" class="block h-44 bg-gray-950 relative overflow-hidden">
+        
+        
+        
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          
+          <div class="absolute left-8 top-12 w-48 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-xl">
+            <div class="mb-3 h-2 w-28 rounded-full bg-white/25"></div>
+            <div class="h-2 w-40 rounded-full bg-white/10"></div>
+            <div class="mt-4 font-mono text-[10px] uppercase tracking-wider text-red-100">Safe mock scenario</div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-arrow-bend-up-right text-2xl"></i></div>
+          
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Web Security</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">beginner</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/labs/open_redirect/">Open Redirect</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Understand how open redirect vulnerabilities enable phishing attacks and security bypasses. Learn to exploit redirect...</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>7 tasks</span>
+          <span>25 mins</span>
+        </div>
+      </div>
+    </article>
+    
+    
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="cyber-hygiene" data-level="beginner" data-track="hygiene" data-search="passwords and multi-factor authentication learn how unique passwords, password managers, and mfa reduce the impact of account attacks. cyber hygiene hygiene passwords multi-factor authentication account security">
+      <a href="/labs/passwords-and-mfa/" class="block h-44 bg-gray-950 relative overflow-hidden">
+        
+        
+        
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          
+          <div class="absolute left-8 top-14 h-2 w-32 rounded-full bg-white/20"></div>
+          <div class="absolute left-8 top-20 h-2 w-48 rounded-full bg-white/10"></div>
+          <div class="absolute left-8 top-28 rounded-xl border border-red-500/50 bg-red-950/40 px-4 py-3 font-mono text-xs text-red-100">' OR '1'='1'</div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-database text-2xl"></i></div>
+          
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Cyber Hygiene</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">beginner</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/labs/passwords-and-mfa/">Passwords and Multi-Factor Authentication</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Learn how unique passwords, password managers, and MFA reduce the impact of account attacks.</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>6 tasks</span>
+          <span>45 mins</span>
+        </div>
+      </div>
+    </article>
+    
+    
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="cyber-hygiene" data-level="beginner" data-track="hygiene" data-search="phishing awareness practice identifying suspicious messages and choosing a safe response before a scam captures your information. cyber hygiene hygiene phishing social engineering safe browsing">
+      <a href="/labs/phishing-awareness/" class="block h-44 bg-gray-950 relative overflow-hidden">
+        
+        
+        
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          
+          <div class="absolute left-8 top-14 h-2 w-32 rounded-full bg-white/20"></div>
+          <div class="absolute left-8 top-20 h-2 w-48 rounded-full bg-white/10"></div>
+          <div class="absolute left-8 top-28 rounded-xl border border-red-500/50 bg-red-950/40 px-4 py-3 font-mono text-xs text-red-100">' OR '1'='1'</div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-database text-2xl"></i></div>
+          
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Cyber Hygiene</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">beginner</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/labs/phishing-awareness/">Phishing Awareness</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Practice identifying suspicious messages and choosing a safe response before a scam captures your information.</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>6 tasks</span>
+          <span>45 mins</span>
+        </div>
+      </div>
+    </article>
+    
+    
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="cyber-hygiene" data-level="beginner" data-track="hygiene" data-search="safe browsing and downloads practice safer decisions around websites, browser permissions, downloads, updates, and public networks. cyber hygiene hygiene safe browsing downloads device security">
+      <a href="/labs/safe-browsing-and-downloads/" class="block h-44 bg-gray-950 relative overflow-hidden">
+        
+        
+        
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          
+          <div class="absolute left-8 top-14 h-2 w-32 rounded-full bg-white/20"></div>
+          <div class="absolute left-8 top-20 h-2 w-48 rounded-full bg-white/10"></div>
+          <div class="absolute left-8 top-28 rounded-xl border border-red-500/50 bg-red-950/40 px-4 py-3 font-mono text-xs text-red-100">' OR '1'='1'</div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-database text-2xl"></i></div>
+          
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Cyber Hygiene</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">beginner</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/labs/safe-browsing-and-downloads/">Safe Browsing and Downloads</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Practice safer decisions around websites, browser permissions, downloads, updates, and public networks.</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>6 tasks</span>
+          <span>45 mins</span>
+        </div>
+      </div>
+    </article>
+    
+    
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="data-protection" data-level="intermediate" data-track="professional" data-search="sensitive data exposure discover how applications inadvertently expose sensitive information through misconfigurations and poor security practices. learn to identify leaked credentials, api keys, and personal data in error messages, backups, and client-side code. data protection professional ">
+      <a href="/labs/sensitive_data_exposure/" class="block h-44 bg-gray-950 relative overflow-hidden">
+        
+        
+        
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          
+          <div class="absolute left-8 top-12 w-48 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-xl">
+            <div class="mb-3 h-2 w-28 rounded-full bg-white/25"></div>
+            <div class="h-2 w-40 rounded-full bg-white/10"></div>
+            <div class="mt-4 font-mono text-[10px] uppercase tracking-wider text-red-100">Safe mock scenario</div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-key text-2xl"></i></div>
+          
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Data Protection</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">intermediate</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/labs/sensitive_data_exposure/">Sensitive Data Exposure</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Discover how applications inadvertently expose sensitive information through misconfigurations and poor security prac...</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>9 tasks</span>
+          <span>40 mins</span>
+        </div>
+      </div>
+    </article>
+    
+    
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="web-security" data-level="advanced" data-track="professional" data-search="server-side request forgery (ssrf) advanced ssrf techniques to make servers request internal resources and cloud metadata services. learn to bypass filters using encoding tricks and redirect chains. web security professional ">
+      <a href="/labs/server_side_request_forgery/" class="block h-44 bg-gray-950 relative overflow-hidden">
+        
+        
+        
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          
+          <div class="absolute left-8 top-12 w-48 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-xl">
+            <div class="mb-3 h-2 w-28 rounded-full bg-white/25"></div>
+            <div class="h-2 w-40 rounded-full bg-white/10"></div>
+            <div class="mt-4 font-mono text-[10px] uppercase tracking-wider text-red-100">Safe mock scenario</div>
+          </div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-cloud-arrow-down text-2xl"></i></div>
+          
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Web Security</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">advanced</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/labs/server_side_request_forgery/">Server-Side Request Forgery (SSRF)</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Advanced SSRF techniques to make servers request internal resources and cloud metadata services. Learn to bypass filt...</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>7 tasks</span>
+          <span>55 mins</span>
+        </div>
+      </div>
+    </article>
+    
+    
+    <article class="lab-card group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-red-200" data-category="web-security" data-level="beginner" data-track="both" data-search="sql injection learn sql injection through interactive security exercises. web security both ">
+      <a href="/labs/sql_injection/" class="block h-44 bg-gray-950 relative overflow-hidden">
+        
+        
+        
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+        <div class="absolute inset-0 opacity-80">
+          
+          <div class="absolute left-8 top-14 h-2 w-32 rounded-full bg-white/20"></div>
+          <div class="absolute left-8 top-20 h-2 w-48 rounded-full bg-white/10"></div>
+          <div class="absolute left-8 top-28 rounded-xl border border-red-500/50 bg-red-950/40 px-4 py-3 font-mono text-xs text-red-100">' OR '1'='1'</div>
+          <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white"><i class="ph-bold ph-database text-2xl"></i></div>
+          
+        </div>
+      </a>
+      <div class="p-5">
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Web Security</span>
+          <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold capitalize text-gray-600">beginner</span>
+        </div>
+        <h2 class="text-lg font-semibold leading-snug text-gray-900 group-hover:text-red-600"><a href="/labs/sql_injection/">SQL Injection</a></h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Learn SQL injection through interactive security exercises.</p>
+        <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <span>10 tasks</span>
+          <span>60 mins</span>
+        </div>
+      </div>
+    </article>
+    
+  </div>
+
+  <div id="lab-no-results" class="hidden py-20 text-center">
+    <h3 class="text-lg font-semibold text-gray-900">No labs found</h3>
+    <p class="mt-2 text-sm text-gray-500">Try adjusting your search or filters.</p>
+  </div>
+</main>
+
+
+    <div class="px-4">
+        <footer
+  class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-bltFooter py-10 pb-8 text-white max-md:rounded-t-[.8rem]"
+>
+  <h2
+    class="relative m-0 break-all px-2 text-center text-[clamp(2rem,5vw,4.5rem)] font-light leading-[1.02] tracking-[-.045em] text-white sm:break-normal"
+  >
+    university.owaspblt.org
+  </h2>
+  <div
+    class="relative mx-auto mt-3 h-[3px] w-16 rounded-full bg-red-600"
+    aria-hidden="true"
+  ></div>
+  <div
+    class="footer-links relative mx-auto mt-8 grid max-w-6xl grid-cols-1 gap-6 px-6 font-mono sm:grid-cols-2 md:grid-cols-4 md:gap-8"
+  >
+    <div>
+      <p>Docs</p>
+      <a href="/courses/">Courses</a>
+      <a href="/labs/">Labs</a>
+      <a href="/dashboard/">Security Trends</a>
+    </div>
+    <div>
+      <p>Learn</p>
+      <a href="/progress/">Progress</a>
+      <a href="/enroll/">Enroll</a>
+      <a href="/instructors/">Instructors</a>
+      <a href="/request/">Request Course</a>
+    </div>
+    <div>
+      <p>Project</p>
+      <a
+        href="https://gitlab.com/owasp-blt/blt-university"
+        target="_blank"
+        rel="noopener noreferrer"
+        >GitLab repo</a
+      >
+    </div>
+    <div>
+      <p>OWASP</p>
+      <a
+        href="https://owaspblt.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >OWASP BLT</a
+      >
+      <a
+        href="https://owasp.org/www-project-bug-logging-tool/"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Foundation page</a
+      >
+      <a
+        href="https://owasp.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >owasp.org</a
+      >
+    </div>
+  </div>
+</footer>
+
+    </div>
+
+    <script src="/assets/js/learning-state.js?v=1788024548"></script>
+    <script src="/assets/js/recommendations.js?v=1788024548"></script>
+    <script src="/assets/js/main.js?v=1788024548"></script>
+</body>
+</html>

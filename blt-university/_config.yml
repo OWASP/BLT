@@ -1,0 +1,151 @@
+# BLT University Configuration
+title: BLT University
+description: >-
+  Open-source cybersecurity courses and browser labs maintained by the OWASP BLT
+  community.
+
+baseurl: ""
+url: "https://university.owaspblt.org"
+display_domain: university.owaspblt.org
+
+# University Information
+university:
+  name: BLT University
+  tagline: "Open Source Cybersecurity Education"
+  email: contact@bltuniversity.org
+  established: 2026
+  
+# Build settings
+theme: minima
+markdown: kramdown
+permalink: pretty
+port: 4001
+include:
+  - _pages
+
+# Collections
+collections:
+  courses:
+    output: true
+    permalink: /courses/:path/
+
+  instructors:
+    output: true
+    permalink: /instructors/:path/
+
+  labs:
+    output: true
+    permalink: /labs/:path/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "courses"
+    values:
+      layout: "course"
+  - scope:
+      path: ""
+      type: "instructors"
+    values:
+      layout: "instructor"
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+
+# Exclude from processing
+exclude:
+  - .agents/
+  - .codex/
+  - .git/
+  - .github/
+  - .gitignore
+  - .gitlab-ci.yml
+  - CNAME
+  - CONTRIBUTING.md
+  - FIX_PROPOSAL.md
+  - Gemfile
+  - Gemfile.lock
+  - LICENSE
+  - docs/
+  - package-lock.json
+  - package.json
+  - playwright.config.js
+  - QUICKSTART.md
+  - node_modules
+  - public/
+  - README.md
+  - SETUP.md
+  - schemas/
+  - scripts/
+  - tests/
+  - tmp/
+  - wrangler.toml
+  - _config.yml
+  - assets/images/courses/README.md
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: Courses
+    url: /courses/
+  - title: Labs
+    url: /labs/
+  - title: Progress
+    url: /progress/
+  - title: Security Trends
+    url: /dashboard/
+  - title: Instructors
+    url: /instructors/
+  - title: Enroll
+    url: /enroll/
+  - title: Request a Course
+    url: /request/
+  - title: About
+    url: /about/
+
+header_navigation:
+  - title: Courses
+    url: /courses/
+  - title: Labs
+    url: /labs/
+  - title: Progress
+    url: /progress/
+  - title: Security Trends
+    url: /dashboard/
+  - title: Instructors
+    url: /instructors/
+
+header_actions:
+  - title: Request course
+    url: /request/
+    style: secondary
+  - title: Enroll now
+    url: /enroll/
+    style: primary
+
+# Course Categories
+categories:
+  - Web Security
+  - Network Security
+  - Cryptography
+  - Penetration Testing
+  - Secure Coding
+  - Malware Analysis
+  - Cloud Security
+  - Mobile Security
+  - Incident Response
+  - Security Operations

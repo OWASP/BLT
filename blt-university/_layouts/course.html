@@ -1,0 +1,242 @@
+---
+layout: default
+---
+
+<script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
+
+<article data-course-root data-course-id="{{ page.slug | default: page.title | slugify }}" class="min-h-screen bg-[#fafafa] text-gray-900 transition-colors dark:bg-gray-950 dark:text-white">
+  <section class="relative overflow-hidden bg-bltDark pb-24 pt-36 text-white">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(220,38,38,0.16),transparent_36%)]" aria-hidden="true"></div>
+    <div class="relative z-10 mx-auto max-w-7xl px-5 sm:px-6">
+      <div class="mb-5 flex flex-wrap items-center gap-3">
+        <span class="rounded-md bg-bltRed px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">{{ page.category }}</span>
+        <span class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">{{ page.level }}</span>
+        <span class="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">{{ page.duration }}</span>
+      </div>
+      <h1 class="max-w-4xl font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">{{ page.title }}</h1>
+      <p class="mt-5 max-w-3xl text-sm leading-7 text-gray-300 sm:text-base">{{ page.description }}</p>
+      <div class="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm text-gray-300">
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-book-open-text text-bltRed" aria-hidden="true"></i>Short lessons</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-list-numbers text-bltRed" aria-hidden="true"></i>{{ page.lessons.size }} lessons</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-flask text-bltRed" aria-hidden="true"></i>Hands-on practice</span>
+        <span class="inline-flex items-center gap-2"><i class="ph-bold ph-chart-line-up text-bltRed" aria-hidden="true"></i>Local progress</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="relative z-20 mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-5 pb-24 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+    <div class="min-w-0 -mt-10 space-y-6">
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8" aria-labelledby="course-introduction-heading">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Start here</p>
+        <h2 id="course-introduction-heading" class="mt-2 text-2xl font-bold">Course introduction</h2>
+        <div class="prose mt-4 max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-bltRed dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300">
+          {{ content }}
+        </div>
+        {% if page.outcomes %}
+        <div class="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
+          <h3 class="text-base font-bold">By the end of this course, you can</h3>
+          <ul class="mt-3 grid gap-2 text-sm leading-6 text-gray-600 dark:text-gray-300 sm:grid-cols-2">
+            {% for outcome in page.outcomes %}
+            <li class="flex gap-2"><i class="ph-bold ph-check text-bltRed" aria-hidden="true"></i><span>{{ outcome }}</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </section>
+
+      <section aria-labelledby="learning-path-heading">
+        <div class="mb-5">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Learn, then practice</p>
+          <h2 id="learning-path-heading" class="mt-2 text-2xl font-bold">Course lessons</h2>
+          <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">Work through these {{ page.lessons.size }} lessons in order. Each lesson introduces one concept, then gives you a practical activity or lab to apply it.</p>
+        </div>
+
+        <div class="space-y-5">
+          {% for lesson in page.lessons %}
+          <article data-course-lesson data-lesson-id="{{ lesson.id }}" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900">
+            <header class="flex items-start gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-sm font-bold text-bltRed dark:bg-red-900/20">{{ forloop.index }}</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="text-xl font-bold leading-tight">{{ lesson.title }}</h3>
+                  <span data-lesson-status class="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-gray-800 dark:text-gray-400">Not started</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">{{ lesson.intro }}</p>
+              </div>
+            </header>
+
+            <div class="space-y-6 p-5 sm:p-6">
+              <div class="prose max-w-none text-sm leading-7 prose-headings:text-gray-900 prose-p:text-gray-600 prose-strong:text-gray-900 dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-gray-300 dark:prose-strong:text-white">
+                {{ lesson.body | markdownify }}
+              </div>
+
+              {% if lesson.example %}
+              <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between bg-gray-900 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                  <span>{{ lesson.example.title }}</span>
+                  <span>{{ lesson.example.language | default: "Example" }}</span>
+                </div>
+                <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>{{ lesson.example.code | escape }}</code></pre>
+                {% if lesson.example.note %}<p class="m-0 border-t border-gray-200 bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ lesson.example.note }}</p>{% endif %}
+              </div>
+              {% endif %}
+
+              {% if lesson.observation %}
+              <div class="flex gap-3 rounded-2xl border border-red-100 bg-red-50/60 p-4 text-sm leading-6 text-gray-700 dark:border-red-900/30 dark:bg-red-900/10 dark:text-gray-300">
+                <i class="ph-bold ph-eye mt-0.5 shrink-0 text-lg text-bltRed" aria-hidden="true"></i>
+                <p class="m-0">{{ lesson.observation }}</p>
+              </div>
+              {% endif %}
+
+              {% if lesson.challenge %}
+              {% assign challenge = lesson.challenge %}
+              <section data-course-challenge data-challenge-id="{{ challenge.id }}" data-challenge-type="{{ challenge.type }}" data-challenge-answer="{{ challenge.answer | escape }}" data-challenge-clue="{{ challenge.clue | escape }}" data-challenge-success="{{ challenge.success | escape }}" class="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 dark:border-gray-700 dark:bg-gray-800/40" aria-labelledby="challenge-{{ challenge.id }}">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-white dark:text-gray-900"><i class="ph-bold ph-puzzle-piece" aria-hidden="true"></i></span>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Course challenge</p>
+                    <h4 id="challenge-{{ challenge.id }}" class="mt-1 text-base font-bold">{{ challenge.title }}</h4>
+                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">{{ challenge.prompt }}</p>
+                  </div>
+                </div>
+
+                {% if challenge.type == "console" %}
+                <button type="button" data-challenge-reveal class="mt-4 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-red-200 hover:text-bltRed dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                  <i class="ph-bold ph-terminal-window" aria-hidden="true"></i>Start investigation
+                </button>
+                {% elsif challenge.type == "inspect" %}
+                <div data-course-artifact data-evidence="{{ challenge.clue | escape }}" class="mt-4 rounded-xl border border-dashed border-gray-300 bg-white p-4 text-xs text-gray-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-400">This evidence panel looks empty. Inspect the element itself.</div>
+                {% elsif challenge.type == "choice" %}
+                <div class="mt-4 grid gap-2">
+                  {% for option in challenge.options %}
+                  <button type="button" data-challenge-option="{{ option.id }}" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">{{ option.label }}</button>
+                  {% endfor %}
+                </div>
+                {% elsif challenge.type == "sequence" %}
+                <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                  {% for option in challenge.options %}
+                  <button type="button" data-sequence-option="{{ option.id }}" class="rounded-xl border border-gray-200 bg-white p-3 text-left text-sm text-gray-700 transition hover:border-red-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                    <span class="mr-2 font-mono text-xs font-bold text-bltRed" data-sequence-position></span>{{ option.label }}
+                  </button>
+                  {% endfor %}
+                </div>
+                <div class="mt-3 flex items-center justify-between gap-3">
+                  <p data-sequence-summary class="text-xs text-gray-500 dark:text-gray-400">Select the steps in the order they should happen.</p>
+                  <button type="button" data-sequence-reset class="text-xs font-bold text-bltRed hover:underline">Reset order</button>
+                </div>
+                {% elsif challenge.type == "artifact" %}
+                <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center justify-between bg-gray-900 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                    <span>{{ challenge.artifact.title | default: "Evidence" }}</span>
+                    <span>{{ challenge.artifact.language | default: "Text" }}</span>
+                  </div>
+                  <pre class="m-0 overflow-x-auto bg-gray-950 p-4 text-xs leading-6 text-gray-100"><code>{{ challenge.artifact.code | escape }}</code></pre>
+                </div>
+                {% endif %}
+
+                {% unless challenge.type == "choice" or challenge.type == "sequence" %}
+                <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <label class="sr-only" for="challenge-answer-{{ challenge.id }}">Challenge answer</label>
+                  <input id="challenge-answer-{{ challenge.id }}" data-challenge-input type="text" autocomplete="off" class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white" placeholder="Enter what you found">
+                  <button type="button" data-challenge-submit class="rounded-xl bg-bltRed px-4 py-2.5 text-sm font-bold text-white transition hover:bg-bltRedHover">Check answer</button>
+                </div>
+                {% endunless %}
+                <p data-challenge-feedback class="mt-3 hidden text-sm font-semibold" role="status" aria-live="polite"></p>
+              </section>
+              {% endif %}
+
+              {% if lesson.labs %}
+              <section aria-labelledby="practice-{{ lesson.id }}">
+                <div class="mb-3 flex items-end gap-4">
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Put it into practice</p>
+                    <h4 id="practice-{{ lesson.id }}" class="mt-1 text-base font-bold">Practice labs</h4>
+                  </div>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  {% for lab_slug in lesson.labs %}
+                  {% assign course_lab = site.labs | where: "slug", lab_slug | first %}
+                  {% if course_lab %}
+                  <a data-course-lab data-lab-id="{{ course_lab.slug }}" data-task-count="{{ course_lab.tasks.size }}" href="{{ course_lab.url | relative_url }}?course={{ page.slug }}" class="group rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-red-900/40 dark:hover:bg-red-900/10">
+                    <span class="flex items-start justify-between gap-3">
+                      <span class="font-semibold text-gray-900 group-hover:text-bltRed dark:text-white">{{ course_lab.title }}</span>
+                      <i class="ph-bold ph-arrow-up-right shrink-0 text-bltRed" aria-hidden="true"></i>
+                    </span>
+                    <span class="mt-2 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>{{ course_lab.difficulty | capitalize }} · {{ course_lab.tasks.size }} tasks</span>
+                      <span data-course-lab-status>Not completed</span>
+                    </span>
+                  </a>
+                  {% endif %}
+                  {% endfor %}
+                </div>
+              </section>
+              {% endif %}
+
+              {% unless lesson.challenge %}
+              <div class="flex justify-end border-t border-gray-100 pt-5 dark:border-gray-800">
+                <button type="button" data-complete-lesson class="inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-bltRed transition hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-900/10">
+                  <i class="ph-bold ph-check-circle" aria-hidden="true"></i><span>Mark lesson complete</span>
+                </button>
+              </div>
+              {% endunless %}
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      {% assign next_course = site.courses | where: "slug", page.next_course | first %}
+      <section data-next-course class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-soft dark:border-gray-800 dark:bg-gray-900" aria-labelledby="next-course-heading">
+        <div class="grid gap-6 p-6 sm:p-8 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-bltRed">Continue learning</p>
+            {% if next_course %}
+            <h2 id="next-course-heading" class="mt-2 text-2xl font-bold">Up next: {{ next_course.title }}</h2>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-400">{{ next_course.description }}</p>
+            {% else %}
+            <h2 id="next-course-heading" class="mt-2 text-2xl font-bold">Choose your next path</h2>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-400">You have reached the end of this path. Pick another topic from the course catalog when you are ready.</p>
+            {% endif %}
+          </div>
+          {% if next_course %}
+          <a href="{{ next_course.url | relative_url }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-bltRed px-5 py-3 text-sm font-bold text-white transition hover:bg-bltRedHover">Continue course <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+          {% else %}
+          <a href="{{ '/courses/' | relative_url }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-bltRed px-5 py-3 text-sm font-bold text-white transition hover:bg-bltRedHover">Browse courses <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+
+    <aside class="-mt-10 space-y-5 lg:sticky lg:top-28">
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900" aria-labelledby="course-progress-heading">
+        <div class="flex items-center justify-between gap-3">
+          <h2 id="course-progress-heading" class="text-lg font-bold">Course progress</h2>
+          <span data-course-progress-percent class="text-sm font-bold text-bltRed">0%</span>
+        </div>
+        <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+          <div data-course-progress-bar class="h-full w-0 rounded-full bg-bltRed transition-all duration-300"></div>
+        </div>
+        <p data-course-progress-count class="mt-3 text-sm text-gray-500 dark:text-gray-400">0 steps completed</p>
+        <div data-course-complete class="mt-5 hidden rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-900/40 dark:bg-green-900/15 dark:text-green-300">
+          <p class="font-bold">Course complete</p>
+        </div>
+        <a href="{{ '/progress/' | relative_url }}" class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-bltRed hover:underline">View all progress <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></a>
+      </section>
+
+      <section class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900">
+        <h2 class="text-base font-bold">Before you begin</h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-400">{{ page.prerequisites | default: "No specialist setup is required." }}</p>
+        <div class="mt-5 flex items-center gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
+          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-bltRed dark:bg-red-900/20"><i class="ph-bold ph-user-circle" aria-hidden="true"></i></span>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Created by</p>
+            <p class="mt-0.5 text-sm font-bold">{{ page.instructor | default: "OWASP BLT Community" }}</p>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
+</article>
+
+<script src="{{ '/assets/js/course-state.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>

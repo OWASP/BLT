@@ -1,0 +1,9 @@
+- id: professional
+  title: Professional Security
+  icon: briefcase
+  audience: Developers, contributors, and security teams
+
+- id: hygiene
+  title: Cyber Hygiene
+  icon: shield-check
+  audience: Everyday technology users
