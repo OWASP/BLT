@@ -1,0 +1,5 @@
+name = "blt-start"
+compatibility_date = "2026-05-31"
+
+[assets]
+directory = "./public"
