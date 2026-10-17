@@ -49,7 +49,7 @@ cd BLT-Rewards
 Add the upstream remote so you can pull in future changes:
 
 ```bash
-git remote add upstream https://github.com/OWASP-BLT/BLT-Rewards.git
+git remote add upstream https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards
 ```
 
 ### 2. Install Node Dependencies
@@ -276,7 +276,7 @@ Before pushing your changes, verify that:
    git push origin feature/your-feature-name
    ```
 
-2. **Open a PR** on [github.com/OWASP-BLT/BLT-Rewards](https://github.com/OWASP-BLT/BLT-Rewards) from your fork's branch to `upstream/main`.
+2. **Open a PR** on [https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards](https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards) from your fork's branch to `upstream/main`.
 
 3. **Fill out the PR template** completely:
    - Clearly describe *what* changed and *why*.
@@ -298,7 +298,7 @@ Before pushing your changes, verify that:
 
 ## Reporting Issues
 
-Found a bug or have a feature request? [Open an issue](https://github.com/OWASP-BLT/BLT-Rewards/issues/new) and include:
+Found a bug or have a feature request? [Open an issue](https://git.owaspblt.org/BLT/BLT/issues/new) and include:
 
 - **For bugs:**
   - A clear description of the problem.
@@ -326,13 +326,13 @@ This project follows the spirit of the [OWASP Code of Conduct](https://owasp.org
 - **Be patient.** Maintainers are volunteers. Reviews may take time.
 - **Keep it professional.** Harassment, discrimination, or offensive language of any kind will not be tolerated.
 
-Violations can be reported to the OWASP BLT team via the [OWASP BLT repository](https://github.com/OWASP-BLT/BLT).
+Violations can be reported to the OWASP BLT team via the [OWASP BLT repository](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core).
 
 ---
 
 ## Need Help?
 
-- Browse the [existing issues](https://github.com/OWASP-BLT/BLT-Rewards/issues) — your question might already be answered.
+- Browse the [existing issues](https://git.owaspblt.org/BLT/BLT/issues) — your question might already be answered.
 - Check the [documentation pages](public/) for guides on Bitcoin integration, Solana integration, and the API reference.
 - Tag a maintainer in your issue or PR if you're stuck.
 

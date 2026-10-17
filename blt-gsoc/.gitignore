@@ -2,3 +2,6 @@ info.json
 __pycache__/
 .wrangler/
 public/
+
+# Built at deploy time by scripts/deploy.sh
+public/

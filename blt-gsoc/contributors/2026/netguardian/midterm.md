@@ -167,7 +167,7 @@ These are schedule choices, not unknowns — the midterm slice is the **trust + 
 ## Try it yourself
 
 ```bash
-git clone https://gitlab.com/owasp-blt/blt-netguardian.git
+git clone https://git.owaspblt.org/BLT/BLT.git
 cd blt-netguardian
 git checkout gsoc/evidence-encryption
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
@@ -193,7 +193,7 @@ Refresh the UI — a new `zap.ssrf` critical finding should appear, encrypted at
 
 ## Links
 
-- Repo: [gitlab.com/owasp-blt/blt-netguardian](https://gitlab.com/owasp-blt/blt-netguardian)
+- Repo: [https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian](https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian)
 - Midterm MR: [!12 — Evidence encryption + findings API hardening](https://gitlab.com/owasp-blt/blt-netguardian/-/merge_requests/12)
 - Production (future): [netguardian.owaspblt.org](https://netguardian.owaspblt.org)
 

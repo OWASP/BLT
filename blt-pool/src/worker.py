@@ -5078,7 +5078,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
       <span aria-hidden="true"> • </span>
       <a href="/github-app" class="text-red-600 hover:underline">GitHub App</a>
       <span aria-hidden="true"> • </span>
-      <a href="https://github.com/OWASP-BLT/BLT-Pool" target="_blank" rel="noopener" class="text-red-600 hover:underline">BLT-Pool Repo</a>
+      <a href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-pool" target="_blank" rel="noopener" class="text-red-600 hover:underline">BLT-Pool Repo</a>
       <p class="mt-2 text-xs text-gray-500">&copy; {year} OWASP Foundation. All rights reserved.</p>
     </div>
   </footer>

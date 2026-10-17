@@ -183,8 +183,8 @@ Before opening a PR, you can test what advisory you'll receive:
 
 ```bash
 # Clone the repo
-git clone https://github.com/OWASP-BLT/BLT-Preflight.git
-cd BLT-Preflight
+git clone https://git.owaspblt.org/BLT/BLT.git
+cd BLT/blt-preflight
 
 # Get advisory for your changes
 python3 src/blt_preflight.py advise \

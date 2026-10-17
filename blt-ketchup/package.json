@@ -10,15 +10,16 @@
     },
     "repository": {
       "type": "git",
-      "url": "git+https://github.com/OWASP-BLT/BLT-Ketchup.git"
+      "url": "git+https://git.owaspblt.org/BLT/BLT.git",
+      "directory": "blt-ketchup"
     },
     "keywords": ["pentest", "security", "owasp", "blt", "cvss"],
     "author": "OWASP BLT",
     "license": "MIT",
     "bugs": {
-      "url": "https://github.com/OWASP-BLT/BLT-Ketchup/issues"
+      "url": "https://git.owaspblt.org/BLT/BLT/issues"
     },
-    "homepage": "https://github.com/OWASP-BLT/BLT-Ketchup#readme",
+    "homepage": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-ketchup#readme",
     "devDependencies": {
       "@fortawesome/fontawesome-free": "^6.5.0",
       "tailwindcss": "^3.4.19"

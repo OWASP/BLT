@@ -906,7 +906,7 @@ def generate_html(ideas, overlap_matrix):
               </div>
               <div class="flex min-w-[180px] flex-1 flex-col justify-between rounded-xl border border-neutral-border bg-white p-5 shadow-sm lg:flex-none">
                 <p class="text-xs font-semibold uppercase tracking-widest text-gray-400">Repository</p>
-                <a href="https://github.com/OWASP-BLT/BLT-Ideas" target="_blank" rel="noopener noreferrer"
+                <a href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-ideas" target="_blank" rel="noopener noreferrer"
                    class="mt-3 flex items-center gap-2 font-bold text-primary transition-opacity hover:opacity-70">
                   <i class="fa-brands fa-github text-lg leading-none" aria-hidden="true"></i>
                   <span class="text-sm leading-none">OWASP-BLT/BLT-Ideas</span>

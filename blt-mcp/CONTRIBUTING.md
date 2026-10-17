@@ -1,6 +1,6 @@
 # Contributing to BLT-MCP
 
-Thank you for your interest in contributing to the BLT-MCP project. This repository contains the Python-based Model Context Protocol server. The Rust terminal client is maintained separately in [BLT-CLI](https://gitlab.com/owasp-blt/blt-cli).
+Thank you for your interest in contributing to the BLT-MCP project. This repository contains the Python-based Model Context Protocol server. The Rust terminal client is maintained separately in [BLT-CLI](https://git.owaspblt.org/BLT/BLT/tree/main/blt-cli).
 
 This guide will help you get started with your first contribution.
 
@@ -89,4 +89,4 @@ pytest
 
 Join the OWASP BLT community:
 - Website: [https://owasp.org/www-project-bug-logging-tool/](https://owasp.org/www-project-bug-logging-tool/)
-- GitHub: [https://github.com/OWASP-BLT](https://gitlab.com/owasp-blt)
+- GitHub: [https://git.owaspblt.org/BLT/BLT](https://git.owaspblt.org/BLT/BLT)

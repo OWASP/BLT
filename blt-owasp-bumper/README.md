@@ -1,5 +1,10 @@
 # 🚀 OWASP-Bumper
 
+**Live Site:** [https://bumper.owaspblt.org/](https://bumper.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-bumper](https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-bumper)
+
+<p align="center"><img src="logo.png" alt="blt-owasp-bumper logo" width="160" height="160"></p>
+
 <div align="center">
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/OWASP-BLT/OWASP-Bumper/generate-repo-list.yml?branch=main&style=for-the-badge&logo=github&label=Build)
@@ -16,7 +21,7 @@
 
 *Your one-stop solution for tracking, monitoring, and visualizing all OWASP GitHub repositories with beautiful sparklines and comprehensive metadata!*
 
-[🌐 View Live Demo](https://owasp-blt.github.io/OWASP-Bumper/) • [📖 Documentation](SETUP.md) • [🐛 Report Bug](https://github.com/OWASP-BLT/OWASP-Bumper/issues) • [✨ Request Feature](https://github.com/OWASP-BLT/OWASP-Bumper/issues)
+[🌐 View Live Demo](https://bumper.owaspblt.org/) • [📖 Documentation](SETUP.md) • [🐛 Report Bug](https://git.owaspblt.org/BLT/BLT/issues) • [✨ Request Feature](https://git.owaspblt.org/BLT/BLT/issues)
 
 </div>
 
@@ -205,7 +210,7 @@ The workflow is **already configured** and runs automatically! Just watch it wor
    - Select **"Generate OWASP Repository List"**
    - Click **"Run workflow"**
 
-3. 🌐 View the results at: [https://owasp-blt.github.io/OWASP-Bumper/](https://owasp-blt.github.io/OWASP-Bumper/)
+3. 🌐 View the results at: [https://bumper.owaspblt.org/](https://bumper.owaspblt.org/)
 
 ### 🔄 For Your Own Organization
 
@@ -228,7 +233,7 @@ Want to use this for your own GitHub organization? Easy!
 
 ```bash
 # Clone the repository
-git clone https://github.com/OWASP-BLT/OWASP-Bumper.git
+git clone https://git.owaspblt.org/BLT/BLT.git
 cd OWASP-Bumper
 
 # Run with default settings (OWASP organization)
@@ -445,12 +450,12 @@ This project is licensed under the **MIT License** - see the LICENSE file for de
 - 🌟 Built for the [OWASP](https://owasp.org) community
 - 💙 Powered by [GitHub Actions](https://github.com/features/actions)
 - 🎨 Inspired by GitHub's own repository insights
-- 🚀 Part of the [OWASP BLT](https://github.com/OWASP-BLT) ecosystem
+- 🚀 Part of the [OWASP BLT](https://git.owaspblt.org/BLT/BLT) ecosystem
 
 ## 📞 Support & Contact
 
-- 🐛 **Bug Reports**: [Open an issue](https://github.com/OWASP-BLT/OWASP-Bumper/issues)
-- 💬 **Questions**: [GitHub Discussions](https://github.com/OWASP-BLT/OWASP-Bumper/discussions)
+- 🐛 **Bug Reports**: [Open an issue](https://git.owaspblt.org/BLT/BLT/issues)
+- 💬 **Questions**: [GitHub Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
 - 📧 **Email**: Contact the OWASP BLT team
 - 🌐 **Website**: [OWASP BLT Project](https://owasp.org/www-project-bug-logging-tool/)
 
@@ -462,6 +467,6 @@ This project is licensed under the **MIT License** - see the LICENSE file for de
 
 ⭐ Star us on GitHub if you find this useful! ⭐
 
-[🏠 Homepage](https://github.com/OWASP-BLT/OWASP-Bumper) • [📖 Docs](SETUP.md) • [🐛 Issues](https://github.com/OWASP-BLT/OWASP-Bumper/issues) • [🤝 Contribute](https://github.com/OWASP-BLT/OWASP-Bumper/pulls)
+[🏠 Homepage](https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-bumper) • [📖 Docs](SETUP.md) • [🐛 Issues](https://git.owaspblt.org/BLT/BLT/issues) • [🤝 Contribute](https://git.owaspblt.org/BLT/BLT/pulls)
 
 </div>

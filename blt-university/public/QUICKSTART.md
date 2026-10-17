@@ -35,7 +35,7 @@ Read the [Contributing Guide](CONTRIBUTING.md) to understand our requirements.
 
 ### 2. Submit Proposal
 
-1. Use the [course submission template](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml)
+1. Use the [course submission template](https://git.owaspblt.org/BLT/BLT/issues/new?template=course-submission.yml)
 2. Provide detailed course information
 3. Wait for curriculum team review
 
@@ -107,8 +107,8 @@ git push origin main
 
 ```bash
 # Clone repository
-git clone https://github.com/OWASP-BLT/BLT-University.git
-cd BLT-University
+git clone https://git.owaspblt.org/BLT/BLT.git
+cd BLT/blt-university
 
 # Install Ruby dependencies
 bundle install
@@ -228,8 +228,8 @@ resources:
 
 ## Getting Help
 
-- **Technical Issues**: [Open an issue](https://github.com/OWASP-BLT/BLT-University/issues)
-- **Questions**: [Start a discussion](https://github.com/OWASP-BLT/BLT-University/discussions)
+- **Technical Issues**: [Open an issue](https://git.owaspblt.org/BLT/BLT/issues)
+- **Questions**: [Start a discussion](https://git.owaspblt.org/BLT/BLT/discussions)
 - **Course Content**: Contact the instructor via their profile
 - **General**: Check the [README](README.md) and [Contributing Guide](CONTRIBUTING.md)
 
@@ -253,9 +253,9 @@ resources:
 
 ## Resources
 
-- **Website**: https://owasp-blt.github.io/BLT-University/
-- **GitHub**: https://github.com/OWASP-BLT/BLT-University
-- **GitLab**: https://gitlab.com/owasp-blt/blt-university
+- **Website**: https://university.owaspblt.org/
+- **GitHub**: https://git.owaspblt.org/BLT/BLT/tree/main/blt-university
+- **GitLab**: https://git.owaspblt.org/BLT/BLT/tree/main/blt-university
 - **Jekyll Docs**: https://jekyllrb.com/docs/
 - **Markdown Guide**: https://www.markdownguide.org/
 
@@ -264,6 +264,6 @@ resources:
 Ready to get started? Choose your path:
 
 - **Students**: [Browse Courses](https://university.owaspblt.org/courses/) → [Enroll](https://university.owaspblt.org/enroll/)
-- **Instructors**: [Read Contributing Guide](CONTRIBUTING.md) → [Submit Course](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml)
+- **Instructors**: [Read Contributing Guide](CONTRIBUTING.md) → [Submit Course](https://git.owaspblt.org/BLT/BLT/issues/new?template=course-submission.yml)
 
 Welcome to BLT University! 🎓

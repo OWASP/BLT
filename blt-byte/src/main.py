@@ -49,7 +49,7 @@ You are Byte, the AI assistant for OWASP BLT (Bug Logging Tool), a gamified QA a
 Key Information:
 - Website: https://blt.owasp.org
 - OWASP Project Page: https://owasp.org/www-project-bug-logging-tool/
-- GitHub: https://github.com/OWASP-BLT/BLT
+- GitHub: https://git.owaspblt.org/BLT/BLT/tree/main/blt-core
 - Features: Bug reporting, gamification (points, leaderboards), SIZZLE tokens, Bacon currency.
 - Tech: Python/Django backend, Cloudflare Workers AI.
 - Slack: #project-blt at https://owasp.org/slack/invite
@@ -637,7 +637,7 @@ def _get_onboarding_guide(role: str) -> dict:
             "role": "contributor",
             "title": "Contributing to OWASP BLT",
             "steps": [
-                "Fork https://github.com/OWASP-BLT/BLT and clone locally.",
+                "Fork https://git.owaspblt.org/BLT/BLT/tree/main/blt-core and clone locally.",
                 "Copy .env.example to .env and configure required credentials.",
                 "Run `docker-compose up` to start the development environment.",
                 "Browse to http://localhost:8000 and verify the app runs.",
@@ -646,9 +646,9 @@ def _get_onboarding_guide(role: str) -> dict:
                 "Ensure all tests pass and your PR description is detailed.",
             ],
             "resources": {
-                "contributing_guide": "https://github.com/OWASP-BLT/BLT/blob/main/CONTRIBUTING.md",
+                "contributing_guide": "https://git.owaspblt.org/BLT/BLT/blob/main/blt-core/CONTRIBUTING.md",
                 "slack": "https://owasp.org/slack/invite",
-                "issues": "https://github.com/OWASP-BLT/BLT/issues?q=is%3Aopen+label%3A%22good+first+issue%22",
+                "issues": "https://git.owaspblt.org/BLT/BLT/issues?q=is%3Aopen+label%3A%22good+first+issue%22",
             },
         },
         "bug_hunter": {
@@ -681,7 +681,7 @@ def _get_onboarding_guide(role: str) -> dict:
             ],
             "resources": {
                 "platform": "https://blt.owasp.org",
-                "docs": "https://github.com/OWASP-BLT/BLT/wiki",
+                "docs": "https://git.owaspblt.org/BLT/BLT/wiki",
             },
         },
     }

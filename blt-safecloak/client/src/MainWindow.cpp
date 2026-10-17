@@ -44,7 +44,7 @@
 
 namespace {
 
-const QString kRepoUrl = QStringLiteral("https://gitlab.com/owasp-blt/blt-safecloak.git");
+const QString kRepoUrl = QStringLiteral("https://git.owaspblt.org/BLT/BLT.git");
 const QString kDisplayNameSetting = QStringLiteral("profile/displayName");
 const QString kAvatarSetting = QStringLiteral("profile/avatarPng");
 const QString kServerUrlSetting = QStringLiteral("server/url");

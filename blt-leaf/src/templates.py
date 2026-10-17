@@ -38,10 +38,8 @@ def get_404_html():
                 <i class="fas fa-home transition-transform group-hover:-translate-y-0.5"></i>
                 Back to Dashboard
             </a>
-            <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-8 py-3.5 text-lg font-semibold text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 active:scale-95">
-                <i class="fab fa-github"></i>
-                GitHub
-            </a>
+            <a href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-leaf" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-8 py-3.5 text-lg font-semibold text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 active:scale-95">
+                <i class="fab fa-github"></i>Source Code</a>
         </div>
     </main>
 

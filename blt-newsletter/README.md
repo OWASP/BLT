@@ -1,5 +1,10 @@
 # BLT Newsletter
 
+**Live Site:** [https://newsletter.owaspblt.org/](https://newsletter.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-newsletter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-newsletter)
+
+<p align="center"><img src="logo.png" alt="blt-newsletter logo" width="160" height="160"></p>
+
 BLT Newsletter is the OWASP BLT newsletter platform. It runs as a Python Cloudflare Worker with static assets, D1-backed subscriber/admin/campaign storage, a browser admin dashboard, and SendGrid delivery.
 
 ## What it does
@@ -165,6 +170,6 @@ This project is licensed under the AGPL-3.0 License. See `LICENSE` for details.
 
 ## Related projects
 
-- OWASP BLT: https://github.com/OWASP-BLT/BLT
-- BLT Design: https://github.com/OWASP-BLT/BLT-Design
-- BLT Newsletter canonical project: https://gitlab.com/owasp-blt/blt-newsletter
+- OWASP BLT: https://git.owaspblt.org/BLT/BLT/tree/main/blt-core
+- BLT Design: https://git.owaspblt.org/BLT/BLT/tree/main/blt-design
+- BLT Newsletter canonical project: https://git.owaspblt.org/BLT/BLT/tree/main/blt-newsletter

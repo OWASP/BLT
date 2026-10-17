@@ -33,7 +33,7 @@ e2e-tests:
 
 # Builds the Qt 6 desktop client and publishes the executable as an artifact.
 # The latest main-branch artifact is what public/install.sh downloads:
-# https://gitlab.com/owasp-blt/blt-safecloak/-/jobs/artifacts/main/raw/client/build/safecloak?job=build-client
+# https://git.owaspblt.org/BLT/BLT/jobs/artifacts/main/raw/client/build/safecloak?job=build-client
 #
 # Temporarily disabled alongside the macOS build job.
 # build-client:
@@ -61,7 +61,7 @@ e2e-tests:
 
 # Builds the Qt 6 desktop client on macOS and publishes an app-bundle zip.
 # The latest main-branch artifact is what public/install.sh downloads:
-# https://gitlab.com/owasp-blt/blt-safecloak/-/jobs/artifacts/main/raw/client/dist/safecloak-macos-arm64.zip?job=build-client-macos-arm64
+# https://git.owaspblt.org/BLT/BLT/jobs/artifacts/main/raw/client/dist/safecloak-macos-arm64.zip?job=build-client-macos-arm64
 #
 # Temporarily disabled. Re-enable once the macOS mesh-test FD exhaustion is
 # sorted out (macOS runners default the soft file-descriptor limit to 256,

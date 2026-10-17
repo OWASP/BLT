@@ -1,5 +1,8 @@
 # 🥪 BLT-Toasty: AI Triage & Responsible Disclosure Assistant
 
+**Live Site:** [https://toasty.owaspblt.org/](https://toasty.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-toasty](https://git.owaspblt.org/BLT/BLT/tree/main/blt-toasty)
+
 ## Executive Summary
 BLT-Toasty is an AI-powered triage and responsible disclosure assistant for the OWASP Bug Logging Tool (BLT). It aims to eliminate the three largest bottlenecks in the vulnerability disclosure pipeline: duplicate issue detection, PII/secret exposure, and manual summarization. By leveraging Cloudflare's edge infrastructure and a strict fail-closed security architecture, Toasty provides lightning-fast semantic deduplication, guaranteed PII redaction, and token-optimized AI summaries, ultimately reducing manual triage time by over 30%.
 
@@ -115,7 +118,7 @@ The project is executed in a rigorous 12-week timeline, divided into three major
 
 ## Current Status & Tracking
 Development is strictly tracked via GitLab Issues. Every week corresponds to a specific set of actionable issues mapped directly to our milestones.
-You can view our active progress on the [GitLab Issues page](https://gitlab.com/owasp-blt/blt-toasty/-/issues) or project board.
+You can view our active progress on the [GitLab Issues page](https://git.owaspblt.org/BLT/BLT/issues) or project board.
 
 ## Dashboard & Authentication
 
@@ -145,7 +148,7 @@ We enforce the OWASP BLT ecosystem quality standards:
 ### Quick Start (Local Dev)
 1. **Clone the repository:**
    ```bash
-   git clone https://gitlab.com/owasp-blt/blt-toasty.git
+   git clone https://git.owaspblt.org/BLT/BLT.git
    cd BLT-Toasty
    ```
 2. **Install dependencies:**

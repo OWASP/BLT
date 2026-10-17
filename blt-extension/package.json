@@ -7,7 +7,8 @@
   "homepage": "https://www.owasp.org/BLT/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OWASP-BLT/BLT-Extension.git"
+    "url": "git+https://git.owaspblt.org/BLT/BLT.git",
+    "directory": "blt-extension"
   },
   "scripts": {
     "test": "jest",

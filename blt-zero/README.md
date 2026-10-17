@@ -1,5 +1,10 @@
 # BLT-Zero (MVP Phase)
 
+**Live Site:** [https://zero.owaspblt.org/](https://zero.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-zero](https://git.owaspblt.org/BLT/BLT/tree/main/blt-zero)
+
+<p align="center"><img src="logo.png" alt="blt-zero logo" width="160" height="160"></p>
+
 **Zero-Trust Vulnerability Reporting — encrypted payload delivery.**
 
 BLT-Zero is a Cloudflare Workers site that lets security researchers submit sensitive vulnerability reports and screenshots **encrypted directly in the browser**. The Worker receives a pre-encrypted payload, forwards it directly to the organization’s security inbox, and stores only minimal metadata.
@@ -91,7 +96,7 @@ To decrypt the report, organizations must use a modern archive utility:
 
 1. Clone the repository:
 ```bash
-git clone [https://github.com/OWASP-BLT/BLT-Zero.git](https://github.com/OWASP-BLT/BLT-Zero.git)
+git clone [https://git.owaspblt.org/BLT/BLT.git](https://git.owaspblt.org/BLT/BLT.git)
 cd BLT-Zero
 ```
 
@@ -172,11 +177,11 @@ BLT-Zero is part of [OWASP BLT Project #79 — Zero Trust Vulnerability Reportin
 
 Contributions are welcome! Please:
 
-1. Check the [open issues](https://github.com/OWASP-BLT/BLT-Zero/issues) for tasks to work on.
+1. Check the [open issues](https://git.owaspblt.org/BLT/BLT/issues) for tasks to work on.
 2. Fork the repository and create a feature branch.
 3. Submit a pull request referencing the relevant issue.
 
-Please follow the [OWASP BLT contribution guidelines](https://github.com/OWASP-BLT/BLT/blob/master/CONTRIBUTING.md).
+Please follow the [OWASP BLT contribution guidelines](https://git.owaspblt.org/BLT/BLT/blob/main/blt-core/CONTRIBUTING.md).
 
 ---
 

@@ -1,5 +1,7 @@
 # BLT NetGuardian Client
 
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian-client](https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian-client)
+
 A Flutter client application for the BLT NetGuardian security platform. This client interfaces with Cloudflare Worker APIs to coordinate security scans, vulnerability detection, and monitoring across Web2, Web3, and smart contract ecosystems.
 
 ## Features
@@ -70,7 +72,7 @@ lib/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/OWASP-BLT/BLT-NetGuardian-Client.git
+git clone https://git.owaspblt.org/BLT/BLT.git
 cd BLT-NetGuardian-Client
 ```
 
@@ -208,7 +210,7 @@ This client is part of the OWASP BLT (Bug Logging Tool) project. If you discover
 ## Support
 
 For issues, questions, or contributions, please visit:
-- [GitHub Issues](https://github.com/OWASP-BLT/BLT-NetGuardian-Client/issues)
+- [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
 - [OWASP BLT Project](https://owasp.org/www-project-bug-logging-tool/)
 
 ## Acknowledgments

@@ -88,7 +88,7 @@ python scripts/detect_export.py --url https://example.com
 
 # Semgrep report for a repo
 semgrep --config auto --json --output sg.json
-python scripts/detect_export.py --semgrep-json sg.json --target github.com/owasp-blt/blt
+python scripts/detect_export.py --semgrep-json sg.json --target https://git.owaspblt.org/BLT/BLT/tree/main/blt-core
 
 # Remote target: demo keys are loopback-only, so credentials are required
 python scripts/detect_export.py --url https://example.com \

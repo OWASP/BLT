@@ -1,2 +1,5 @@
 # BLT-Ketchup
+
+**Live Site:** [https://ketchup.owaspblt.org/](https://ketchup.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-ketchup](https://git.owaspblt.org/BLT/BLT/tree/main/blt-ketchup)
 BLT Penetration Testing Collaboration Workspace A real-time collaboration environment for red-team engagements where multiple pentesters can share findings, tag team members, and escalate issues directly to BLT. Think "Google Docs for pentest reports" with built-in CVSS scoring and evidence management.

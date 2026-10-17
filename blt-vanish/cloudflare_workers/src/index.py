@@ -70,6 +70,6 @@ def handle_root_request():
                 "template": "/api/templates/:id",
                 "categories": "/api/categories",
             },
-            "documentation": "https://github.com/OWASP-BLT/BLT-Vanish-Web",
+            "documentation": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish",
         }
     )

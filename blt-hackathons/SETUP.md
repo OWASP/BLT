@@ -14,8 +14,8 @@ Follow these steps to get your hackathon dashboard up and running in minutes!
 
 **Option C: Clone Directly**
 ```bash
-git clone https://github.com/OWASP-BLT/BLT-Hackathons.git my-hackathon
-cd my-hackathon
+git clone https://git.owaspblt.org/BLT/BLT.git my-hackathon
+cd my-hackathon/blt-hackathons
 ```
 
 ## Step 2: Configure Your Hackathon
@@ -198,7 +198,7 @@ Once deployed, share your hackathon dashboard:
 ## Need Help?
 
 - 📖 Read the full [README](README.md)
-- 💬 Check [Discussions](https://github.com/OWASP-BLT/BLT-Hackathon/discussions)
-- 🐛 Report issues on [GitHub Issues](https://github.com/OWASP-BLT/BLT-Hackathon/issues)
+- 💬 Check [Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
+- 🐛 Report issues on [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
 
 Happy hacking! 🚀

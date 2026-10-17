@@ -13,7 +13,7 @@
     "description": "Developing a comprehensive security testing dashboard that integrates vulnerability scanning, penetration testing results, and automated security reports. The project aims to make security testing more accessible and actionable for developers.",
     "organization": "OWASP Foundation",
     "timeline": "May 27, 2024 - August 26, 2024",
-    "repository": "https://github.com/OWASP-BLT/BLT"
+    "repository": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core"
   },
   "slack": {
     "workspaceUrl": "https://owasp.slack.com/join/shared_invite/zt-example123",

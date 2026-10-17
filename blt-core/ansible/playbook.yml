@@ -58,12 +58,22 @@
     - name: Clone or update repository
       git:
         repo: "{{ repo_url }}"
-        dest: "{{ app_dir }}/current"
+        dest: "{{ app_dir }}/repo"
         version: "{{ branch }}"
         force: yes
         owner: "{{ app_user }}"
         group: "{{ app_user }}"
       register: git_result
+
+    # The BLT repo holds every project; the Django app lives in blt-core/
+    - name: Point current at the blt-core folder
+      file:
+        src: "{{ app_dir }}/repo/blt-core"
+        dest: "{{ app_dir }}/current"
+        state: link
+        force: yes
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
 
     - name: Ensure virtualenv
       command: python3 -m venv {{ venv_dir }}

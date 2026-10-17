@@ -6,7 +6,7 @@ const { execFileSync, spawnSync } = require("child_process");
 const root = path.join(__dirname, "..");
 const apiBase = process.env.CI_API_V4_URL || "https://gitlab.com/api/v4";
 const projectId = encodeURIComponent(process.env.CI_PROJECT_ID || "owasp-blt/blt-jobs");
-const projectUrl = process.env.CI_PROJECT_URL || "https://gitlab.com/owasp-blt/blt-jobs";
+const projectUrl = process.env.CI_PROJECT_URL || "https://git.owaspblt.org/BLT/BLT/tree/main/blt-jobs";
 
 async function api(endpoint, options = {}) {
   const token = process.env.GITLAB_TOKEN;

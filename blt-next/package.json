@@ -10,10 +10,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/OWASP-BLT/BLT-Next.git"
+    "url": "git+https://git.owaspblt.org/BLT/BLT.git",
+    "directory": "blt-next"
   },
   "gitlab": {
-    "url": "https://gitlab.com/owasp-blt/BLT-Next"
+    "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-next"
   },
   "keywords": [
     "owasp",
@@ -27,9 +28,9 @@
   "author": "OWASP BLT Team",
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/OWASP-BLT/BLT-Next/issues"
+    "url": "https://git.owaspblt.org/BLT/BLT/issues"
   },
-  "homepage": "https://github.com/OWASP-BLT/BLT-Next#readme",
+  "homepage": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-next#readme",
   "devDependencies": {
     "wrangler": "^4.67.0"
   },

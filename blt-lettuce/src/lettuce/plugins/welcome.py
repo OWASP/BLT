@@ -28,7 +28,7 @@ def handle_welcome_command(ack, body, client: WebClient) -> None:
         "text": (
             ":wave: *Welcome to BLT!* :wave:\n\n"
             "We're excited to have you here! Here are some things to get started:\n\n"
-            "• Check out our <https://github.com/OWASP-BLT|GitHub repository> for more info\n"
+            "• Check out our <https://git.owaspblt.org/BLT/BLT|GitHub repository> for more info\n"
             "• Read our contribution guidelines in #contribute\n"
             "• Feel free to ask questions in #general\n"
             "• Join our community and have fun reporting security bugs!\n\n"

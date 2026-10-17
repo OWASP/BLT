@@ -4599,7 +4599,7 @@ async def _handle_org_add_command(env, body_json):
     if not cmd_text:
         return {
             "response_type": "ephemeral",
-            "text": "Usage: `/lettuce-org-add <github-org-url-or-name>`\nExample: `/lettuce-org-add https://github.com/OWASP-BLT`",
+            "text": "Usage: `/lettuce-org-add <github-org-url-or-name>`\nExample: `/lettuce-org-add https://git.owaspblt.org/BLT/BLT`",
         }
 
     # Accept either a full GitHub URL or a plain org name

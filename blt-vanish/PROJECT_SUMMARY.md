@@ -248,7 +248,7 @@ Workers → Broker Website → Health Status → App (when online)
 
 ### For Users
 
-1. Download from [Releases](https://github.com/OWASP-BLT/BLT-Vanish-Web/releases)
+1. Download from [Releases](https://git.owaspblt.org/BLT/BLT/releases)
 2. Install on your device
 3. Create your profile (encrypted locally)
 4. Browse data brokers
@@ -261,8 +261,8 @@ See [Quick Start Guide](docs/quick-start.md) for details.
 
 ```bash
 # Clone repository
-git clone https://github.com/OWASP-BLT/BLT-Vanish-Web.git
-cd BLT-Vanish-Web
+git clone https://git.owaspblt.org/BLT/BLT.git
+cd BLT/blt-vanish
 
 # Flutter app
 cd flutter_app
@@ -312,8 +312,8 @@ All core features implemented, tested, and documented. Ready for:
 
 ## Support & Community
 
-- **Issues**: [GitHub Issues](https://github.com/OWASP-BLT/BLT-Vanish-Web/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/OWASP-BLT/BLT-Vanish-Web/discussions)
+- **Issues**: [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
+- **Discussions**: [GitHub Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
 - **Security**: [Security Policy](SECURITY.md)
 - **Contributing**: [Contribution Guidelines](CONTRIBUTING.md)
 

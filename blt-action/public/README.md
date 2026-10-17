@@ -92,7 +92,7 @@ python3 -m http.server 8080
 
 ## 📚 References
 
-- [BLT Design System](https://owasp-blt.github.io/BLT-Design/)
+- [BLT Design System](https://design.owaspblt.org/)
 - [Figma Design Files](https://www.figma.com/file/s0xuxeU6O2guoWEfA9OElZ/Design)
 - [OWASP BLT Project](https://owasp.org/www-project-bug-logging-tool/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)

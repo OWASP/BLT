@@ -9,7 +9,7 @@ Thank you for your interest in contributing to BLT University! This document pro
 Share your cybersecurity expertise by creating a course!
 
 **Steps:**
-1. Submit a [course proposal](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml)
+1. Submit a [course proposal](https://git.owaspblt.org/BLT/BLT/issues/new?template=course-submission.yml)
 2. Wait for approval and feedback from the curriculum team
 3. Create your instructor profile in `_instructors/`
 4. Develop your course content in `_courses/`
@@ -51,7 +51,7 @@ Found a problem? Let us know!
 - Accessibility issues
 - Website bugs
 
-Use our [issue tracker](https://github.com/OWASP-BLT/BLT-University/issues) with clear descriptions and steps to reproduce.
+Use our [issue tracker](https://git.owaspblt.org/BLT/BLT/issues) with clear descriptions and steps to reproduce.
 
 ### 4. Suggest Improvements
 
@@ -211,8 +211,8 @@ assets/
 
 ```bash
 # Clone repository
-git clone https://github.com/OWASP-BLT/BLT-University.git
-cd BLT-University
+git clone https://git.owaspblt.org/BLT/BLT.git
+cd BLT/blt-university
 
 # Install dependencies
 bundle install
@@ -390,9 +390,9 @@ As a BLT University instructor, you get:
 
 Need assistance?
 
-- **Questions**: [GitHub Discussions](https://github.com/OWASP-BLT/BLT-University/discussions)
-- **Bugs**: [Issue Tracker](https://github.com/OWASP-BLT/BLT-University/issues)
-- **GitLab Mirror**: [Issues](https://gitlab.com/owasp-blt/blt-university/-/issues)
+- **Questions**: [GitHub Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
+- **Bugs**: [Issue Tracker](https://git.owaspblt.org/BLT/BLT/issues)
+- **GitLab Mirror**: [Issues](https://git.owaspblt.org/BLT/BLT/issues)
 - **Chat**: Join our community chat
 - **Email**: contribute@bltuniversity.org
 

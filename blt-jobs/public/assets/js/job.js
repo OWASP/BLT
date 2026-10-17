@@ -134,7 +134,7 @@ function renderJob(job) {
   const issueBase =
     window.BLTProvider && window.BLTProvider.issueUrl
       ? window.BLTProvider.issueUrl()
-      : "https://gitlab.com/owasp-blt/blt-jobs/-/issues/new";
+      : "https://git.owaspblt.org/BLT/BLT/issues/new";
   const flagUrl = `${issueBase}?issue[title]=${flagIssueTitle}&issue[description]=${encodeURIComponent(flagDescription)}`;
 
   root.innerHTML = `

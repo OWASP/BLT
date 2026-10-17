@@ -118,7 +118,7 @@ const techStack = [
 
 /* ─── Quick start commands ────────────────────────────────────────────── */
 const quickStartCommands = `# Clone & install
-git clone https://gitlab.com/owasp-blt/blt-toasty.git
+git clone https://git.owaspblt.org/BLT/BLT.git
 cd BLT-Toasty
 npm install && uv sync && pre-commit install
 
@@ -240,7 +240,7 @@ export default function Home() {
                   <ArrowRight size={16} />
                 </Link>
                 <a
-                  href="https://gitlab.com/owasp-blt/blt-toasty"
+                  href="https://git.owaspblt.org/BLT/BLT/tree/main/blt-toasty"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-outline"
@@ -453,7 +453,7 @@ export default function Home() {
             <p className="mt-4 text-xs text-gray-500">
               Need help?{' '}
               <a
-                href="https://gitlab.com/owasp-blt/blt-toasty/-/issues"
+                href="https://git.owaspblt.org/BLT/BLT/issues"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-red-400 underline hover:text-red-300"

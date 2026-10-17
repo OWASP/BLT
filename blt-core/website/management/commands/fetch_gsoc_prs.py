@@ -130,8 +130,8 @@ class Command(BaseCommand):
         else:
             # Auto-discover BLT repos from database, or use GSOC25_PROJECTS as fallback
             blt_repos_from_db = Repo.objects.filter(
-                Q(repo_url__startswith="https://github.com/OWASP-BLT/")
-                | Q(repo_url__startswith="https://github.com/owasp-blt/")
+                Q(repo_url__startswith="https://git.owaspblt.org/BLT/BLT/")
+                | Q(repo_url__startswith="https://git.owaspblt.org/BLT/BLT/")
             )
 
             if blt_repos_from_db.exists():

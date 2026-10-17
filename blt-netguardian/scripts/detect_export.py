@@ -15,7 +15,7 @@ Examples::
     # Semgrep report for a repo, submitted to the local dev server
     semgrep --config auto --json --output sg.json
     python scripts/detect_export.py --semgrep-json sg.json \\
-        --target github.com/owasp-blt/blt --base-url http://localhost:8787
+        --target git.owaspblt.org/BLT/BLT --base-url http://localhost:8787
 
 Demo credentials are loopback-only; remote destinations must pass
 ``--secret-hex`` and ``--payload-key-b64`` explicitly.

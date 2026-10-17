@@ -1,7 +1,7 @@
 # BLT-Dash
 
 **Live Site:** [https://dash.owaspblt.org/](https://dash.owaspblt.org/)<br>
-**Source Code:** [https://gitlab.com/owasp-blt/blt-dash](https://gitlab.com/owasp-blt/blt-dash)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-dash](https://git.owaspblt.org/BLT/BLT/tree/main/blt-dash)
 
 A company cybersecurity dashboard that integrates with everything and gives a heads-up display single page of everything you need to see.
 
@@ -9,7 +9,7 @@ A company cybersecurity dashboard that integrates with everything and gives a he
 
 Deploy this application to Cloudflare Workers with one click:
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://gitlab.com/owasp-blt/blt-dash)
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://git.owaspblt.org/BLT/BLT/tree/main/blt-dash)
 
 ## Project Structure
 
@@ -53,7 +53,7 @@ BLT-Dash/
 1. Clone the repository:
 
 ```bash
-git clone https://gitlab.com/owasp-blt/blt-dash.git
+git clone https://git.owaspblt.org/BLT/BLT.git
 cd BLT-Dash
 ```
 

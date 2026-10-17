@@ -1,5 +1,10 @@
 # OWASP BLT — Bug Reporting Platform
 
+**Live Site:** [https://pages.owaspblt.org/](https://pages.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-pages](https://git.owaspblt.org/BLT/BLT/tree/main/blt-pages)
+
+<p align="center"><img src="logo.png" alt="blt-pages logo" width="160" height="160"></p>
+
 [![OWASP](https://img.shields.io/badge/OWASP-Project-blue?logo=owasp)](https://owasp.org/www-project-bug-logging-tool/)
 [![License: AGPLv3](https://img.shields.io/badge/License-AGPL_v3-red.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Cloudflare](https://img.shields.io/badge/Deployed-Cloudflare-F38020?logo=cloudflare)](https://pages.owaspblt.org/)

@@ -149,7 +149,7 @@ Submit Scan Target
 
 2. **GitHub Pages** (once deployed):
    ```
-   https://owasp-blt.github.io/BLT-NetGuardian/
+   https://netguardian.owaspblt.org/
    ```
 
 ## Key Differences from Old Screenshot:

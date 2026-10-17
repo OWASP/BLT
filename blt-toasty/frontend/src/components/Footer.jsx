@@ -22,12 +22,12 @@ const footerLinks = [
     links: [
       {
         label: 'GitLab repo',
-        href: 'https://gitlab.com/owasp-blt/blt-toasty',
+        href: 'https://git.owaspblt.org/BLT/BLT/tree/main/blt-toasty',
         external: true,
       },
       {
         label: 'GitHub mirror',
-        href: 'https://github.com/OWASP-BLT/BLT-Toasty',
+        href: 'https://git.owaspblt.org/BLT/BLT/tree/main/blt-toasty',
         external: true,
       },
     ],

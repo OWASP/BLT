@@ -70,16 +70,16 @@
                             {% if current_payment_status != 'all' %}
                                 that are
                                 {% if current_payment_status == 'paid' %}
-                                    <a href="https://github.com/OWASP-BLT/BLT/issues?q=is%3Aissue+state%3Aclosed+label%3A%245+label%3Apaid"
+                                    <a href="https://git.owaspblt.org/BLT/BLT/issues?q=is%3Aissue+state%3Aclosed+label%3A%245+label%3Apaid"
                                        target="_blank"
                                        class="text-blue-600 hover:text-gray-900 dark:hover:text-white hover:underline">paid</a>
                                 {% else %}
-                                    <a href="https://github.com/OWASP-BLT/BLT/issues?q=is%3Aissue+state%3Aclosed+label%3A%245+-label%3Apaid"
+                                    <a href="https://git.owaspblt.org/BLT/BLT/issues?q=is%3Aissue+state%3Aclosed+label%3A%245+-label%3Apaid"
                                        target="_blank"
                                        class="text-blue-600 hover:text-gray-900 dark:hover:text-white hover:underline">unpaid</a>
                                 {% endif %}
                             {% else %}
-                                <a href="https://github.com/OWASP-BLT/BLT/issues?q=is%3Aissue+state%3Aclosed+label%3A%245"
+                                <a href="https://git.owaspblt.org/BLT/BLT/issues?q=is%3Aissue+state%3Aclosed+label%3A%245"
                                    target="_blank"
                                    class="text-blue-600 hover:text-gray-900 dark:hover:text-white hover:underline">(view on GitHub)</a>
                             {% endif %}

@@ -20,7 +20,7 @@ cd blt-docs
 If SSH is not available, use HTTPS:
 
 ```bash
-git clone https://gitlab.com/owasp-blt/blt-docs.git
+git clone https://git.owaspblt.org/BLT/BLT.git
 cd blt-docs
 ```
 

@@ -136,8 +136,8 @@ If you discover a security vulnerability:
 ## Questions?
 
 - Join the [OWASP BLT Discord](https://discord.gg/owasp-blt)
-- Check the [OWASP BLT Documentation](https://owasp-blt.github.io/documentation/)
-- Open a [GitHub Discussion](https://github.com/OWASP-BLT/BLT-Newsletter/discussions)
+- Check the [OWASP BLT Documentation](https://docs.owaspblt.org/)
+- Open a [GitHub Discussion](https://git.owaspblt.org/BLT/BLT/discussions)
 
 ## License
 

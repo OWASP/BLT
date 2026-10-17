@@ -1,5 +1,10 @@
 # BLT-Hackathon 🏆
 
+**Live Site:** [https://hackathons.owaspblt.org/](https://hackathons.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-hackathons](https://git.owaspblt.org/BLT/BLT/tree/main/blt-hackathons)
+
+<p align="center"><img src="logo.png" alt="blt-hackathons logo" width="160" height="160"></p>
+
 A static hackathon platform for GitHub and GitLab projects with **charts**, **leaderboards**, and **prizes**.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -332,7 +337,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-Inspired by [OWASP BLT](https://github.com/OWASP-BLT/BLT) hackathon functionality.
+Inspired by [OWASP BLT](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core) hackathon functionality.
 
 ## 💡 Tips & Best Practices
 
@@ -362,8 +367,8 @@ A: Absolutely! The HTML and CSS are fully customizable.
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/OWASP-BLT/BLT-Hackathons/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/OWASP-BLT/BLT-Hackathons/discussions)
+- **Issues**: [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
+- **Discussions**: [GitHub Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
 
 ---
 

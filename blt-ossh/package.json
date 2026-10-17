@@ -10,8 +10,9 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/OWASP-BLT/BLT-OSSH.git"
-    },
+        "url": "git+https://git.owaspblt.org/BLT/BLT.git",
+        "directory": "blt-ossh"
+      },
     "keywords": [
         "open-source",
         "github",
@@ -23,9 +24,9 @@
     "author": "OWASP BLT Community",
     "license": "SEE LICENSE IN LICENSE",
     "bugs": {
-        "url": "https://github.com/OWASP-BLT/BLT-OSSH/issues"
+        "url": "https://git.owaspblt.org/BLT/BLT/issues"
     },
-    "homepage": "https://github.com/OWASP-BLT/BLT-OSSH#readme",
+    "homepage": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-ossh#readme",
     "engines": {
         "node": ">=18.0.0"
     }

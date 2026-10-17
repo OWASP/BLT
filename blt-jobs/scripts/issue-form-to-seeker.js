@@ -12,7 +12,7 @@ function parseFormBody(body) {
   const data = {};
   
   // First, extract **Label:** value pairs (these are within sections)
-  const boldRegex = /\*\*([^*]+):\*\*\s*([^\n]+)/g;
+  const boldRegex = /\*\*([^*\n]+):\*\*[ \t]*([^\n]*)/g;
   let m;
   while ((m = boldRegex.exec(body)) !== null) {
     const label = m[1].trim();

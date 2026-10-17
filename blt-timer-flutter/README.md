@@ -1,5 +1,9 @@
 # Flutter Activity Tracker
 
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-flutter](https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-flutter)
+
+<p align="center"><img src="logo.png" alt="blt-timer-flutter logo" width="160" height="160"></p>
+
 > A native Linux desktop application (part of the Fresh project) that provides real-time keyboard & mouse activity tracking, visual dashboards, daily summaries, and optional server integration — all with strict privacy guarantees.
 
 ## Table of Contents

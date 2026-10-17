@@ -1,5 +1,10 @@
 # BLT-Vanish
 
+**Live Site:** [https://vanish.owaspblt.org/](https://vanish.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish](https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish)
+
+<p align="center"><img src="logo.png" alt="blt-vanish logo" width="160" height="160"></p>
+
 **An open-source, hybrid local+edge privacy toolkit for managing and deleting personal data online.**
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
@@ -165,7 +170,7 @@ For detailed security information, see [SECURITY.md](./SECURITY.md).
 
 **Try BLT-Vanish directly in your browser** without installing anything:
 
-👉 **[Launch Web App](https://owasp-blt.github.io/BLT-Vanish-Web/)**
+👉 **[Launch Web App](https://vanish.owaspblt.org/)**
 
 The web app provides:
 - 📝 Privacy profile creation and management
@@ -188,7 +193,7 @@ Perfect for quick use or trying out BLT-Vanish before installing the native app.
 
 ```bash
 # Clone the repository
-git clone https://github.com/OWASP-BLT/BLT-Vanish-Web.git
+git clone https://git.owaspblt.org/BLT/BLT.git
 cd BLT-Vanish-Web
 
 # Navigate to Flutter app
@@ -205,7 +210,7 @@ flutter run
 
 Download a pre-built, self-contained desktop app:
 
-1. Visit [Releases](https://github.com/OWASP-BLT/BLT-Vanish-Web/releases)
+1. Visit [Releases](https://git.owaspblt.org/BLT/BLT/releases)
 2. Download the ZIP for your platform
 3. Extract and run - no installation needed
 4. Verify the signature (optional but recommended)
@@ -374,8 +379,8 @@ BLT-Vanish is different:
 ## 📞 Support
 
 - **Documentation**: Check our [docs/](./docs/) directory
-- **Issues**: [GitHub Issues](https://github.com/OWASP-BLT/BLT-Vanish-Web/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/OWASP-BLT/BLT-Vanish-Web/discussions)
+- **Issues**: [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
+- **Discussions**: [GitHub Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
 
 ## 🏆 Acknowledgments
 

@@ -13,7 +13,7 @@ API="${NG_API:-https://netguardian.owaspblt.org}"
 # Public demo HMAC + AES key (same as Worker NG_SENDER_SECRETS / NG_PAYLOAD_KEYS).
 INSTALL_SECRET_HEX="${NG_SECRET_HEX:-736563726574}"
 INSTALL_PAYLOAD_KEY_B64="${NG_PAYLOAD_KEY_B64:-bmV0Z3VhcmRpYW4tZGVtby1hZXNnY20ta2V5LTAwMzI=}"
-SRC_TARBALL="${NG_SRC_TARBALL:-https://gitlab.com/owasp-blt/blt-netguardian/-/archive/main/blt-netguardian-main.tar.gz}"
+SRC_TARBALL="${NG_SRC_TARBALL:-https://netguardian.owaspblt.org/blt-netguardian-main.tar.gz}"
 
 TARGET="${1:-}"
 

@@ -62,3 +62,6 @@ Thumbs.db
 tmp/
 temp/
 *.tmp
+
+# Built at deploy time by scripts/deploy (served to install.sh)
+public/blt-netguardian-main.tar.gz

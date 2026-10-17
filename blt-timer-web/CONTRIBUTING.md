@@ -10,7 +10,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/OWASP-BLT/Fresh/issues)
+1. Check if the bug has already been reported in [Issues](https://git.owaspblt.org/BLT/BLT/issues)
 2. If not, create a new issue with:
    - Clear title and description
    - Steps to reproduce
@@ -20,7 +20,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ### Suggesting Features
 
-1. Check [Discussions](https://github.com/OWASP-BLT/Fresh/discussions) for existing suggestions
+1. Check [Discussions](https://git.owaspblt.org/BLT/BLT/discussions) for existing suggestions
 2. Create a new discussion with:
    - Clear use case
    - Proposed solution
@@ -117,8 +117,8 @@ Fresh/
 
 ## Getting Help
 
-- [GitHub Discussions](https://github.com/OWASP-BLT/Fresh/discussions) for questions
-- [GitHub Issues](https://github.com/OWASP-BLT/Fresh/issues) for bugs
+- [GitHub Discussions](https://git.owaspblt.org/BLT/BLT/discussions) for questions
+- [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues) for bugs
 - Email: support@example.com
 
 ## License

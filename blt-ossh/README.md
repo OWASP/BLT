@@ -1,8 +1,13 @@
 # BLT-OSSH 🎩✨
 
+**Live Site:** [https://ossh.owaspblt.org/](https://ossh.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-ossh](https://git.owaspblt.org/BLT/BLT/tree/main/blt-ossh)
+
+<p align="center"><img src="logo.png" alt="blt-ossh logo" width="160" height="160"></p>
+
 **Open-Source Sorting Hat** — AI-powered GitHub profile analyzer that recommends perfect open-source projects for contributors.
 
-[![OWASP BLT](https://img.shields.io/badge/OWASP-BLT-blue)](https://github.com/OWASP-BLT/BLT) [![Cloudflare](https://img.shields.io/badge/Deploy-Cloudflare-orange)](https://developers.cloudflare.com/)
+[![OWASP BLT](https://img.shields.io/badge/OWASP-BLT-blue)](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core) [![Cloudflare](https://img.shields.io/badge/Deploy-Cloudflare-orange)](https://developers.cloudflare.com/)
 
 ## Table of Contents
 
@@ -61,7 +66,7 @@ Within the **BLT (Bug Logging Tool) ecosystem**, BLT-OSSH acts as a **discovery 
 | **Bufferbit** | Web & application development |
 | **Darkram** | Low-level & systems programming |
 
-It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focusing on contributor onboarding rather than bug reporting.
+It complements the main [BLT platform](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core) by focusing on contributor onboarding rather than bug reporting.
 
 ### Key Architectural Decisions
 
@@ -116,7 +121,7 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/OWASP-BLT/BLT-OSSH.git
+git clone https://git.owaspblt.org/BLT/BLT.git
 cd BLT-OSSH
 ```
 
@@ -302,10 +307,10 @@ Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
 Part of OWASP BLT; follows its licensing terms.
 
 ## Links
-- [OWASP BLT](https://github.com/OWASP-BLT/BLT)
+- [OWASP BLT](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core)
 - [BLT Website](https://blt.owasp.org/)
-- [Report Issues](https://github.com/OWASP-BLT/BLT-OSSH/issues)
-- [Create Your Profile](https://github.com/OWASP-BLT/BLT-OSSH/issues/new?template=user_profile.yml)
+- [Report Issues](https://git.owaspblt.org/BLT/BLT/issues)
+- [Create Your Profile](https://git.owaspblt.org/BLT/BLT/issues/new?template=user_profile.yml)
 - [Browse Community](community.html)
 
 ## Roadmap

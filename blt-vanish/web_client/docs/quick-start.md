@@ -16,7 +16,7 @@ BLT-Vanish is a privacy toolkit that helps you:
 
 ### Option 1: Download Pre-Built App (Easiest)
 
-1. Go to [Releases](https://github.com/OWASP-BLT/BLT-Vanish-Web/releases)
+1. Go to [Releases](https://git.owaspblt.org/BLT/BLT/releases)
 2. Download for your platform:
    - **Android**: `blt-vanish-android.apk`
    - **Windows**: `blt-vanish-windows-x64.zip`
@@ -28,8 +28,8 @@ BLT-Vanish is a privacy toolkit that helps you:
 
 ```bash
 # Clone the repository
-git clone https://github.com/OWASP-BLT/BLT-Vanish-Web.git
-cd BLT-Vanish-Web/flutter_app
+git clone https://git.owaspblt.org/BLT/BLT.git
+cd BLT/blt-vanish
 
 # Install dependencies
 flutter pub get
@@ -183,9 +183,9 @@ Yes! BLT-Vanish is completely free and open-source.
 
 ### Need Support?
 
-- 📖 [Documentation](https://github.com/OWASP-BLT/BLT-Vanish-Web/tree/main/docs)
-- 💬 [Discussions](https://github.com/OWASP-BLT/BLT-Vanish-Web/discussions)
-- 🐛 [Report a Bug](https://github.com/OWASP-BLT/BLT-Vanish-Web/issues)
+- 📖 [Documentation](https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish/docs)
+- 💬 [Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
+- 🐛 [Report a Bug](https://git.owaspblt.org/BLT/BLT/issues)
 
 ### Want to Contribute?
 

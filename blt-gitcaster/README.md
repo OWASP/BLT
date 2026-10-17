@@ -1,5 +1,10 @@
 # 🎙️ AI-Powered GitHub Sportscaster
 
+**Live Site:** [https://gitcaster.owaspblt.org/](https://gitcaster.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-gitcaster](https://git.owaspblt.org/BLT/BLT/tree/main/blt-gitcaster)
+
+<p align="center"><img src="logo.png" alt="blt-gitcaster logo" width="160" height="160"></p>
+
 A real-time, AI-powered leaderboard of GitHub repository activity with live play-by-play commentary! Watch as repositories compete for the top spots with an animated sportscaster announcing each event.
 
 ## 🎯 Features
@@ -139,7 +144,7 @@ Simply open the page and watch! The sportscaster will:
 To run locally:
 ```bash
 # Clone the repository
-git clone https://github.com/OWASP-BLT/Github_Sportscaster.git
+git clone https://git.owaspblt.org/BLT/BLT.git
 cd Github_Sportscaster
 
 # Serve the public folder (any HTTP server works)

@@ -163,7 +163,7 @@ if (location.protocol !== 'https:') {
 If you discover a security vulnerability, please report it to:
 - Email: security@owaspblt.org
 - GitHub Security Advisory (private)
-- GitLab confidential issue: https://gitlab.com/owasp-blt/BLT-Next
+- GitLab confidential issue: https://git.owaspblt.org/BLT/BLT/tree/main/blt-next
 
 **Do NOT** create public issues for security vulnerabilities.
 

@@ -4,7 +4,7 @@ BLT-Sizzle is the organization check-in and daily contributor activity applicati
 
 ## Current repository status
 
-The current repository is [owasp-blt/blt-sizzle](https://gitlab.com/owasp-blt/blt-sizzle).
+The current repository is [owasp-blt/blt-sizzle](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle).
 
 ## Purpose
 

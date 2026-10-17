@@ -285,5 +285,5 @@ Federation work should document how to sync forks, identify canonical records, a
 
 ## Related issues
 
-- Parent: [#2 GSoC 2026 BLT-Jobs Git-native job platform](https://gitlab.com/owasp-blt/blt-jobs/-/work_items/2)
-- This work item: [#3 Define BLT-Jobs Git-native architecture and provider contract](https://gitlab.com/owasp-blt/blt-jobs/-/work_items/3)
+- Parent: [#2 GSoC 2026 BLT-Jobs Git-native job platform](https://git.owaspblt.org/BLT/BLT/work_items/2)
+- This work item: [#3 Define BLT-Jobs Git-native architecture and provider contract](https://git.owaspblt.org/BLT/BLT/work_items/3)

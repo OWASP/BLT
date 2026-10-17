@@ -239,7 +239,7 @@ python3 -m http.server 8000
 ### Frontend (GitHub Pages)
 - Automatic deployment on push
 - No changes to deployment process
-- URL: `https://owasp-blt.github.io/BLT-NetGuardian/`
+- URL: `https://netguardian.owaspblt.org/`
 
 ### Backend (Cloudflare Workers)
 ```bash

@@ -4,7 +4,7 @@ BLT-API is the API service and platform integration layer for OWASP BLT.
 
 ## Current repository status
 
-The current repository is [owasp-blt/blt-api](https://gitlab.com/owasp-blt/blt-api).
+The current repository is [owasp-blt/blt-api](https://git.owaspblt.org/BLT/BLT/tree/main/blt-api).
 
 ## Purpose
 

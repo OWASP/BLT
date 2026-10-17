@@ -1,5 +1,10 @@
 # BLT Sizzle
 
+**Live Site:** [https://sizzle.owaspblt.org/](https://sizzle.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle](https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle)
+
+<p align="center"><img src="logo.png" alt="blt-sizzle logo" width="160" height="160"></p>
+
 BLT Sizzle is an async daily check-in app for organization-based teams. It helps contributors share progress, surface blockers, and give admins a quick view of daily activity without adding another meeting.
 
 The current app is built for the OWASP BLT / GSoC workflow, but the model is generic: users join organizations, admins approve access, and members submit check-ins for the organization they are working with.
@@ -246,7 +251,7 @@ git diff --check
 Repository:
 
 ```text
-https://gitlab.com/owasp-blt/blt-sizzle
+https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle
 ```
 
 ## License

@@ -1,7 +1,7 @@
 # Website Monitor
 
 **Live Site:** [https://monitor.owaspblt.org/](https://monitor.owaspblt.org/)<br>
-**Source Code:** [https://gitlab.com/owasp-blt/blt-monitor](https://gitlab.com/owasp-blt/blt-monitor)
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-monitor](https://git.owaspblt.org/BLT/BLT/tree/main/blt-monitor)
 
 A Cloudflare Python Worker website monitor. It checks website availability and
 content every twenty minutes, stores recent history in Workers KV, and provides a
@@ -28,7 +28,7 @@ visual dashboard with a compact list view and detailed monitor pages.
 
 ## Setup Instructions
 
-1. **Clone or fork the [GitLab repository](https://gitlab.com/owasp-blt/blt-monitor)**
+1. **Clone or fork the [GitLab repository](https://git.owaspblt.org/BLT/BLT/tree/main/blt-monitor)**
 
 2. **Configure Slack Webhook (Optional)**:
    - Go to your Slack workspace

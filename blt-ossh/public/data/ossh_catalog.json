@@ -11439,7 +11439,7 @@
     },
     {
       "name": "BLT OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core",
       "description": "OWASP BLT - Bug Logging Tools",
       "stars": 288,
       "forks": 394,
@@ -15764,7 +15764,7 @@
     },
     {
       "name": "BLT-Flutter OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-Flutter",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-flutter",
       "description": "The official OWASP BLT App repository/ Heist 'em bugs!",
       "stars": 26,
       "forks": 40,
@@ -19202,7 +19202,7 @@
     },
     {
       "name": "MY-GSOC-TOOL OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/MY-GSOC-TOOL",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/my-gsoc-tool",
       "description": "Allows students to keep track of their voyage through a dashboard of contributions, feedback and documentation",
       "stars": 7,
       "forks": 23,
@@ -19301,7 +19301,7 @@
     },
     {
       "name": "BLT-Bacon OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-Bacon",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-rewards",
       "description": "BACON is a cutting-edge Bitcoin-based token system designed to incentivize engagement and contributions within the OWASP BLT ecosystem. By integrating with Bitcoin Core and utilizing the Runes protocol, BACON introduces a transparent, secure, and gamified environment that rewards developers and contributors for their efforts.",
       "stars": 7,
       "forks": 12,
@@ -19421,7 +19421,7 @@
     },
     {
       "name": "BLT-Action OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-Action",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-action",
       "description": "A github action that lets contributors type /assign to be assigned issues and automatically removes it within 24 hours",
       "stars": 7,
       "forks": 21,
@@ -19629,7 +19629,7 @@
     },
     {
       "name": "BLT-Hackathon OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-Hackathon",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-hackathons",
       "description": "a self hosted github project to let you conduct a hackthon on your project with charts and leaderboards and prizes",
       "stars": 6,
       "forks": 6,
@@ -21195,7 +21195,7 @@
     },
     {
       "name": "Toasty OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/Toasty",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-toasty",
       "description": "The BLT AI bot that checks your code, updates your priorities and looks at issues through a magnifying glass",
       "stars": 4,
       "forks": 4,
@@ -22501,7 +22501,7 @@
     },
     {
       "name": "BLT-Extension OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-Extension",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-extension",
       "description": "The chrome extension to BLT that allows you to take screenshots of websites and report them",
       "stars": 3,
       "forks": 13,
@@ -22578,7 +22578,7 @@
     },
     {
       "name": "SelfErase OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/SelfErase",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish",
       "description": "An open-source, hybrid local+edge privacy toolkit for managing and deleting personal data online.",
       "stars": 3,
       "forks": 2,
@@ -23438,7 +23438,7 @@
     },
     {
       "name": "OWASP-Bumper OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/OWASP-Bumper",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-bumper",
       "description": "OWASP repo dashboard with smart insights & metrics",
       "stars": 3,
       "forks": 2,
@@ -24204,7 +24204,7 @@
     },
     {
       "name": "Panini OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/Panini",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-panini",
       "description": "App Security Ratings",
       "stars": 2,
       "forks": 2,
@@ -24222,7 +24222,7 @@
     },
     {
       "name": "BLT-Lettuce OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-Lettuce",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-lettuce",
       "description": "A slack bot",
       "stars": 2,
       "forks": 14,
@@ -24598,7 +24598,7 @@
     },
     {
       "name": "BLT-Tomato OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-Tomato",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-tomato",
       "description": "Scripts related to projects mainly for high level OWASP project management",
       "stars": 2,
       "forks": 0,
@@ -24639,7 +24639,7 @@
     },
     {
       "name": "OWASP-metadata OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/OWASP-metadata",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-metadata",
       "description": "-",
       "stars": 2,
       "forks": 3,
@@ -24654,7 +24654,7 @@
     },
     {
       "name": "Sizzle OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/Sizzle",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle",
       "description": "A simple, secure daily check-in application built as a Cloudflare Python Worker. Track your progress, plan your day, and share your mood with your team via Slack or email notifications.",
       "stars": 2,
       "forks": 7,
@@ -24797,7 +24797,7 @@
     },
     {
       "name": "Fresh OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/Fresh",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-web",
       "description": "Privacy-focused time tracking system for developers with GitHub integration and local LLM analysis",
       "stars": 2,
       "forks": 2,
@@ -24978,7 +24978,7 @@
     },
     {
       "name": "BLT-on-Cloudflare OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-on-Cloudflare",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-core",
       "description": "BLT on Cloudflare",
       "stars": 2,
       "forks": 8,
@@ -25742,7 +25742,7 @@
     },
     {
       "name": "OWASP-BLT-Website-Monitor OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-monitor",
       "description": "Monitors a website using Github Actions",
       "stars": 2,
       "forks": 8,
@@ -25781,7 +25781,7 @@
     },
     {
       "name": "OWASP-BLT-Lyte OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/OWASP-BLT-Lyte",
+      "url": "https://git.owaspblt.org/BLT/BLT",
       "description": "JavaScript front end for BLT",
       "stars": 2,
       "forks": 2,
@@ -26025,7 +26025,7 @@
     },
     {
       "name": "BLT-API-on-Cloudflare OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-API-on-Cloudflare",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-api",
       "description": "Cloudflare workers API that interfaces with the postgresql database",
       "stars": 2,
       "forks": 4,
@@ -26809,7 +26809,7 @@
     },
     {
       "name": "BLT-CVE OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-CVE",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-cve",
       "description": "A decentralized CVE database that stays online and offers a backup to CVE and a way to keep it online",
       "stars": 1,
       "forks": 1,
@@ -27485,7 +27485,7 @@
     },
     {
       "name": ".github OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/.github",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/dot_github",
       "description": "Info on the BLT Repos",
       "stars": 1,
       "forks": 0,
@@ -27522,7 +27522,7 @@
     },
     {
       "name": "documentation OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/documentation",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-docs",
       "description": "-",
       "stars": 1,
       "forks": 2,
@@ -27920,7 +27920,7 @@
     },
     {
       "name": "OWASP-Wich OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/OWASP-Wich",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-wich",
       "description": "OWASP Project compliance checker can be used on other repos too",
       "stars": 1,
       "forks": 0,
@@ -27942,7 +27942,7 @@
     },
     {
       "name": "BLT-Lettuce-on-Cloudflare OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-Lettuce-on-Cloudflare",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-lettuce",
       "description": "The BLT Lettuce (OWASP Helper) bot",
       "stars": 1,
       "forks": 1,
@@ -28412,7 +28412,7 @@
     },
     {
       "name": "Github_Sportscaster OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/Github_Sportscaster",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-gitcaster",
       "description": "-",
       "stars": 1,
       "forks": 2,
@@ -28717,7 +28717,7 @@
     },
     {
       "name": "www-project-bug-logging-tool OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/www-project-bug-logging-tool",
+      "url": "https://gitlab.com/owasp-blt/www-project-bug-logging-tool",
       "description": "OWASP BLT (Bug Logging Tool)",
       "stars": 1,
       "forks": 1,
@@ -29108,7 +29108,7 @@
     },
     {
       "name": "BLT-API OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-API",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-api",
       "description": "Full-featured REST API for OWASP BLT",
       "stars": 1,
       "forks": 5,
@@ -29163,7 +29163,7 @@
     },
     {
       "name": "BLT-Sammich OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-Sammich",
+      "url": "https://git.owaspblt.org/BLT/BLT/tree/main/blt-sammich",
       "description": "The Slack bot for BLT",
       "stars": 1,
       "forks": 6,
@@ -31601,7 +31601,7 @@
     },
     {
       "name": "BLT-sandbox OWASP BLT",
-      "url": "https://github.com/OWASP-BLT/BLT-sandbox",
+      "url": "https://git.owaspblt.org/BLT/BLT",
       "description": "for random experiments",
       "stars": 0,
       "forks": 0,

@@ -318,7 +318,7 @@ Good broker entries have:
 ## Getting Help
 
 Need help adding a broker?
-- Open a [Discussion](https://github.com/OWASP-BLT/BLT-Vanish-Web/discussions)
+- Open a [Discussion](https://git.owaspblt.org/BLT/BLT/discussions)
 - Ask in the Pull Request
 - Check existing brokers for examples
 

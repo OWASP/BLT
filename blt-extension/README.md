@@ -1,5 +1,10 @@
 # BLT Extension for Chrome
 
+**Live Site:** [https://extension.owaspblt.org/](https://extension.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-extension](https://git.owaspblt.org/BLT/BLT/tree/main/blt-extension)
+
+<p align="center"><img src="logo.png" alt="blt-extension logo" width="160" height="160"></p>
+
 BLT is a Chrome extension that enables users to take screenshots or capture specific sections of webpages and quickly add them to the BLT website. This tool is perfect for users who need to save, annotate, or share parts of a webpage easily.
 
 ## Installation Instructions
@@ -9,7 +14,7 @@ BLT is a Chrome extension that enables users to take screenshots or capture spec
 Run this command in your terminal to automatically download and install the BLT extension:
 
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/OWASP-BLT/BLT-Extension/main/install.sh)
+bash <(curl -sL https://git.owaspblt.org/BLT/BLT/raw/main/blt-extension/install.sh)
 ```
 
 This script will:
@@ -23,7 +28,7 @@ This script will:
 
 ### Manual Installation for Google Chrome
 
-1. **Download the Extension**: Download the latest version of BLT from the [Releases](https://github.com/OWASP-BLT/BLT-Extension/releases) page on GitHub.
+1. **Download the Extension**: Download the latest version of BLT from the [Releases](https://git.owaspblt.org/BLT/BLT/releases) page on GitHub.
 
 2. **Unzip the File**: After downloading, unzip the file to a directory on your computer.
 
@@ -66,7 +71,7 @@ To create a new release:
    - Create a GitHub release with the zip file attached
    - Generate release notes
 
-The release zip file will be available on the [Releases](https://github.com/OWASP-BLT/BLT-Extension/releases) page and can be downloaded and installed directly in Chromium.
+The release zip file will be available on the [Releases](https://git.owaspblt.org/BLT/BLT/releases) page and can be downloaded and installed directly in Chromium.
 
 ### GitHub Pages Landing Page
 
@@ -79,9 +84,9 @@ This repository includes a landing page (`index.html`) that can be deployed via 
    - Source: Select **GitHub Actions**
 3. The workflow will automatically deploy on push to `main` branch
 
-The landing page will be available at: `https://owasp-blt.github.io/BLT-Extension/`
+The landing page will be available at: `https://extension.owaspblt.org/`
 
-The page is designed following the [BLT-Design](https://github.com/OWASP-BLT/BLT-Design) guidelines and includes:
+The page is designed following the [BLT-Design](https://git.owaspblt.org/BLT/BLT/tree/main/blt-design) guidelines and includes:
 - Responsive design with Tailwind CSS
 - Installation instructions and download links
 - Feature showcase for all extension capabilities

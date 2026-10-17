@@ -1,5 +1,8 @@
 # BLT-Hackerhouse
 
+**Live Site:** [https://hackerhouse.owaspblt.org/](https://hackerhouse.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-hackerhouse](https://git.owaspblt.org/BLT/BLT/tree/main/blt-hackerhouse)
+
 Real-time contributor visualization platform for OWASP BLT — now running on **Cloudflare Workers**.
 
 HackerHouse is a realtime operational dashboard that ingests events from **GitLab** and **BLT**, normalizes them into a unified internal model, resolves contributor identity across platforms, and broadcasts live contributor movement to connected clients via WebSocket.
@@ -20,9 +23,9 @@ GitLab Webhooks / Cron Pollers
         └──► Cloudflare Queue → Pipeline Consumer → D1 + Broadcast
 ```
 
-**Runtime**: Cloudflare Workers (Python + Pyodide)  
+**Runtime**: Cloudflare Workers (Python + Pyodide)<br>
 **API**: FastAPI via `asgi.fetch()` adapter  
-**Database**: Cloudflare D1 (SQLite-compatible)  
+**Database**: Cloudflare D1 (SQLite-compatible)<br>
 **Real-time**: WebSocket via Durable Objects  
 **Identity**: 4-stage resolution pipeline (exact → Levenshtein → Jaccard → unlinked), pure Python fuzzy matching
 

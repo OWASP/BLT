@@ -1,5 +1,10 @@
 # BLT-Next: Modern Static Frontend Architecture
 
+**Live Site:** [https://next.owaspblt.org/](https://next.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-next](https://git.owaspblt.org/BLT/BLT/tree/main/blt-next)
+
+<p align="center"><img src="logo.png" alt="blt-next logo" width="160" height="160"></p>
+
 > **A fresh, modern design by removing non-core components to create a clear, enjoyable user experience focused on core value**
 
 ## 🚀 Overview (Edited by Vandana)
@@ -50,9 +55,9 @@ BLT-Next/
 
 1.  **Clone the repository**
     ```bash
-    git clone https://github.com/OWASP-BLT/BLT-Next.git
+    git clone https://git.owaspblt.org/BLT/BLT.git
     # or
-    git clone https://gitlab.com/owasp-blt/BLT-Next.git
+    git clone https://git.owaspblt.org/BLT/BLT.git
     cd BLT-Next
     ```
 
@@ -164,9 +169,9 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
 ## 📧 Contact
 
 - **Project**: [OWASP BLT](https://owasp.org/www-project-bug-logging-tool/)
-- **GitHub**: [OWASP-BLT](https://github.com/OWASP-BLT)
-- **GitLab**: [owasp-blt/BLT-Next](https://gitlab.com/owasp-blt/BLT-Next)
-- **Issues**: [GitHub Issues](https://github.com/OWASP-BLT/BLT-Next/issues)
+- **GitHub**: [OWASP-BLT](https://git.owaspblt.org/BLT/BLT)
+- **GitLab**: [owasp-blt/BLT-Next](https://git.owaspblt.org/BLT/BLT/tree/main/blt-next)
+- **Issues**: [GitHub Issues](https://git.owaspblt.org/BLT/BLT/issues)
 
 ---
 

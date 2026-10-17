@@ -130,4 +130,4 @@ example/
 - The Cloudflare Worker API is in a separate repository
 - Future versions will add offline support and push notifications
 
-[1.0.0]: https://github.com/OWASP-BLT/BLT-NetGuardian-Client/releases/tag/v1.0.0
+[1.0.0]: https://git.owaspblt.org/BLT/BLT/releases/tag/v1.0.0

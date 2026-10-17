@@ -1,10 +1,15 @@
 # OWASP-Wich: OWASP Project Compliance Checker
 
+**Live Site:** [https://wich.owaspblt.org/](https://wich.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-wich](https://git.owaspblt.org/BLT/BLT/tree/main/blt-owasp-wich)
+
+<p align="center"><img src="logo.png" alt="blt-owasp-wich logo" width="160" height="160"></p>
+
 A comprehensive tool to check GitHub repositories and projects against OWASP standards and best practices. This tool evaluates 100 compliance points across 10 key categories to ensure your project meets quality, security, and governance standards.
 
 ## 🌐 Live Web Application
 
-**Try it now:** [https://owasp-blt.github.io/OWASP-Wich/](https://owasp-blt.github.io/OWASP-Wich/)
+**Try it now:** [https://wich.owaspblt.org/](https://wich.owaspblt.org/)
 
 The web-based compliance checker runs entirely in your browser using JavaScript. Simply paste a GitHub repository URL and get instant compliance results!
 
@@ -40,7 +45,7 @@ The tool checks 100 points across these categories:
 
 ### Web Application (Recommended)
 
-Visit **[https://owasp-blt.github.io/OWASP-Wich/](https://owasp-blt.github.io/OWASP-Wich/)** and:
+Visit **[https://wich.owaspblt.org/](https://wich.owaspblt.org/)** and:
 
 1. Enter a GitHub repository URL (e.g., `https://github.com/OWASP/owasp-mastg`)
 2. (Optional) Provide a GitHub personal access token for higher API rate limits
@@ -73,7 +78,7 @@ For automation and integration into CI/CD pipelines, you can also use the Python
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/OWASP-BLT/OWASP-Wich.git
+git clone https://git.owaspblt.org/BLT/BLT.git
 cd OWASP-Wich
 ```
 
@@ -289,13 +294,13 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## Support
 
-- 🐛 [Report Issues](https://github.com/OWASP-BLT/OWASP-Wich/issues)
-- 💬 [Discussions](https://github.com/OWASP-BLT/OWASP-Wich/discussions)
+- 🐛 [Report Issues](https://git.owaspblt.org/BLT/BLT/issues)
+- 💬 [Discussions](https://git.owaspblt.org/BLT/BLT/discussions)
 - 📧 Contact: [OWASP BLT Team](https://blt.owasp.org)
 
 ## Related Projects
 
-- [OWASP BLT](https://github.com/OWASP-BLT/BLT) - Bug Logging Tool
+- [OWASP BLT](https://git.owaspblt.org/BLT/BLT/tree/main/blt-core) - Bug Logging Tool
 - [OWASP Projects](https://owasp.org/projects/) - All OWASP Projects
 
 ---

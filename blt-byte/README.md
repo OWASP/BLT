@@ -1,5 +1,10 @@
 # BLT Byte
 
+**Live Site:** [https://byte.owaspblt.org/](https://byte.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-byte](https://git.owaspblt.org/BLT/BLT/tree/main/blt-byte)
+
+<p align="center"><img src="logo.png" alt="blt-byte logo" width="160" height="160"></p>
+
 AI-powered assistant for bug bounty hunting and security research on the BLT (Bug Logging Tool) platform.
 
 ## Overview

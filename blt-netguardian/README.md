@@ -1,5 +1,10 @@
 # BLT-NetGuardian
 
+**Live Site:** [https://netguardian.owaspblt.org/](https://netguardian.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian](https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian)
+
+<p align="center"><img src="logo.png" alt="blt-netguardian logo" width="160" height="160"></p>
+
 Signed findings ingest + **distributed domain crawl** + org triage + BLT convert, on Cloudflare Workers (D1).
 
 ```
@@ -191,13 +196,13 @@ GET /api/jobs/status?job_id=job123
 
 ### Quick Start - One-Click Deploy
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/OWASP-BLT/BLT-NetGuardian)
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://git.owaspblt.org/BLT/BLT/tree/main/blt-netguardian)
 
 **Quick Deploy**: Click the button above to instantly deploy the backend to your Cloudflare account!
 
 BLT-NetGuardian is split into two parts:
 
-1. **Frontend (GitHub Pages)** - Already live at `https://owasp-blt.github.io/BLT-NetGuardian/`
+1. **Frontend (GitHub Pages)** - Already live at `https://netguardian.owaspblt.org/`
 2. **Backend (Cloudflare Workers)** - Deploy with one click or manually (instructions below)
 
 ### Deploy the Backend (Cloudflare Workers)

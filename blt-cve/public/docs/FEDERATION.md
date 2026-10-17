@@ -17,7 +17,7 @@ Each registry publishes a `/federation.json` file at its root:
   "index_url": "https://cve.owaspblt.org/index.json",
   "feed_url": "https://cve.owaspblt.org/feed.json",
   "schema_url": "https://cve.owaspblt.org/schema/blt-cve-schema.json",
-  "contact": "https://github.com/OWASP-BLT/BLT-CVE/issues"
+  "contact": "https://git.owaspblt.org/BLT/BLT/issues"
 }
 ```
 
@@ -57,7 +57,7 @@ jobs:
           fetch-depth: 0
       - name: Pull upstream
         run: |
-          git remote add upstream https://gitlab.com/owasp-blt/blt-cve
+          git remote add upstream https://git.owaspblt.org/BLT/BLT/tree/main/blt-cve
           git fetch upstream
           git merge upstream/main --ff-only
           git push origin main

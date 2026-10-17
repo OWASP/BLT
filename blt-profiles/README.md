@@ -1,5 +1,8 @@
 # BLT Profiles
 
+**Live Site:** [https://profiles.owaspblt.org/](https://profiles.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-profiles](https://git.owaspblt.org/BLT/BLT/tree/main/blt-profiles)
+
 A Git-native community directory and professional identity platform for cybersecurity professionals, security researchers, bug hunters, mentors, students, and open-source contributors.
 
 BLT Profiles combines structured profile data, personal portfolios, research artifacts, community involvement, and optional identity verification into a portable profile stored in Git.
@@ -209,7 +212,7 @@ Additional categories may be introduced as the community evolves.
 1. Open the GitLab issue template:
 
    ```text
-   https://gitlab.com/owasp-blt/blt-profiles/-/issues/new?issuable_template=Add%20Profile
+   https://git.owaspblt.org/BLT/BLT/issues/new?issuable_template=Add%20Profile
    ```
 
 2. Fill out the profile fields without changing the section headings.

@@ -16,19 +16,19 @@ const DATA_SOURCES = {
   github: {
     label: 'GitHub',
     file: 'github_data.json',
-    orgUrl: 'https://github.com/OWASP-BLT',
+    orgUrl: 'https://git.owaspblt.org/BLT/BLT',
   },
   gitlab: {
     label: 'GitLab',
     file: 'gitlab_data.json',
-    orgUrl: 'https://gitlab.com/owasp-blt',
+    orgUrl: 'https://git.owaspblt.org/BLT/BLT',
   },
 };
 const MIGRATION_TOTAL_REPOS = 55;
 const MIGRATION_MIGRATED_REPOS = 55;
 const MIGRATION_COMPLETION_POINTS = MIGRATION_TOTAL_REPOS * 100;
 
-// Project board URLs sourced from https://gitlab.com/owasp-blt/dot_github/-/blob/main/scripts/project_urls.json
+// Project board URLs sourced from https://git.owaspblt.org/BLT/BLT/blob/main/dot_github/scripts/project_urls.json
 const PROJECT_URLS = {
   'BLT':                          'https://github.com/orgs/OWASP-BLT/projects/2',
   'BLT-Flutter':                  'https://github.com/orgs/OWASP-BLT/projects/60',
@@ -1575,7 +1575,7 @@ function renderTableView(repos, container) {
       <td class="px-3 py-2 whitespace-nowrap">
         <div class="flex gap-1.5">
           <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 bg-brand text-white rounded hover:bg-red-700 transition-colors" title="View on GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
-          ${gitlabUrl ? `<a href="${escapeHtml(gitlabUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-orange-500 text-orange-600 dark:text-orange-400 rounded hover:bg-orange-500 hover:text-white transition-colors" title="View on GitLab"><i class="fa-brands fa-gitlab" aria-hidden="true"></i></a>` : ''}
+          ${gitlabUrl ? `<a href="${escapeHtml(gitlabUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-orange-500 text-orange-600 dark:text-orange-400 rounded hover:bg-orange-500 hover:text-white transition-colors" title="View Source"><i class="fa-brands fa-gitlab" aria-hidden="true"></i></a>` : ''}
           ${live.url ? `<a href="${escapeHtml(live.url)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="${escapeHtml(live.label)}"><i class="${live.icon}" aria-hidden="true"></i></a>` : `<span role="button" aria-disabled="true" class="text-xs px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded cursor-not-allowed" title="No live site"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></span>`}
           ${projectUrl ? `<a href="${escapeHtml(projectUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Project Board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></a>` : `<span role="button" aria-disabled="true" class="text-xs px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded cursor-not-allowed" title="No project board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></span>`}
           <a href="${escapeHtml(r.html_url)}/issues/new" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="New Issue"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i></a>

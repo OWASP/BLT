@@ -42,8 +42,8 @@ Before you start contributing, you'll need to set up your development environmen
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/OWASP-BLT/BLT.git
-   cd BLT
+   git clone https://git.owaspblt.org/BLT/BLT.git
+   cd BLT/blt-core
    ```
 
 2. Configure environment variables:
@@ -247,7 +247,7 @@ This will give you a fully populated development environment with realistic rela
 
 ### Finding Issues to Work On
 
-- Check the [Issues](https://github.com/OWASP-BLT/BLT/issues) page for open issues
+- Check the [Issues](https://git.owaspblt.org/BLT/BLT/issues) page for open issues
 - Look for issues labeled with `good first issue` if you're new to the project
 - Comment on an issue to express your interest in working on it
 

@@ -254,10 +254,10 @@ Potential areas for expansion:
 
 ```bash
 # Clone repository
-git clone https://github.com/OWASP-BLT/BLT-NetGuardian-Client.git
+git clone https://git.owaspblt.org/BLT/BLT.git
 
 # Install dependencies
-cd BLT-NetGuardian-Client
+cd BLT/blt-netguardian-client
 flutter pub get
 
 # Run application

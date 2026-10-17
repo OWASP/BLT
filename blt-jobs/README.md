@@ -1,5 +1,10 @@
 # BLT Jobs
 
+**Live Site:** [https://jobs.owaspblt.org/](https://jobs.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-jobs](https://git.owaspblt.org/BLT/BLT/tree/main/blt-jobs)
+
+<p align="center"><img src="logo.png" alt="blt-jobs logo" width="160" height="160"></p>
+
 BLT Jobs is a Git-native job platform for the [OWASP BLT](https://owasp.org/www-project-bug-logging-tool/) ecosystem. Jobs and seeker profiles live as Markdown-backed open data in this repository, so the source of truth is public, reviewable, forkable, and auditable through Git history.
 
 **Live site:** [jobs.owaspblt.org](https://jobs.owaspblt.org)

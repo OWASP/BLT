@@ -93,6 +93,6 @@ The `PasswordRotationOrchestrator` currently relies on the user following a guid
 
 ## 4. Support & Resources
 
-- **Project Repository:** [OWASP-BLT/BLT-Vanish](https://gitlab.com/owasp-blt/blt-vanish)
+- **Project Repository:** [OWASP-BLT/BLT-Vanish](https://git.owaspblt.org/BLT/BLT/tree/main/blt-vanish)
 - **Core Architecture Specs:** Review the data contracts in `lib/models/security/` before proposing structural changes.
 - **Issue Tracker:** Check the repository for issues tagged with `good first issue` or `help wanted` to get started.

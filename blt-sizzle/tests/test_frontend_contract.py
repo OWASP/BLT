@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 MAIN = ROOT / "workers" / "main.py"
 WRANGLER = ROOT / "wrangler.toml"
-CONTRIBUTION_URL = "https://gitlab.com/owasp-blt/blt-sizzle"
+CONTRIBUTION_URL = "https://git.owaspblt.org/BLT/BLT/tree/main/blt-sizzle"
 LEGACY_CONTRIBUTION_URL = "https://github.com/OWASP-BLT/BLT-Sizzle"
 
 
@@ -43,7 +43,7 @@ class TestAppRefactorFrontendContracts(unittest.TestCase):
             "Check in",
             "Settings",
             "Leaderboard",
-            "GitLab repo",
+            "Source Code",
             "OWASP BLT group",
             "OWASP BLT",
             "Foundation page",
@@ -58,7 +58,7 @@ class TestAppRefactorFrontendContracts(unittest.TestCase):
         for page in ("src/index.html", "src/pages/app.html"):
             self.assertIn(CONTRIBUTION_URL, self.read(page), page)
         app_html = self.read("src/pages/app.html")
-        self.assertIn('title="View on GitLab"', app_html)
+        self.assertIn('title="View Source"', app_html)
         self.assertNotIn("View on GitHub", app_html)
 
     def test_login_page_uses_email_otp_endpoints_and_design_tokens(self):

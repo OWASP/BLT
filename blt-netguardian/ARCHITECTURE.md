@@ -10,7 +10,7 @@ BLT-NetGuardian implements a modern, scalable security scanning pipeline using a
 
 **Technology Stack**: Static HTML, CSS, JavaScript
 
-**Location**: `https://owasp-blt.github.io/BLT-NetGuardian/`
+**Location**: `https://netguardian.owaspblt.org/`
 
 **Files**:
 - `index.html` - Main scan submission interface

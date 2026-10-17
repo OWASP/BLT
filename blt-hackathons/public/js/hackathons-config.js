@@ -343,7 +343,7 @@ const HACKATHONS_CONFIG = {
         siteName: "BLT Hackathons",
         siteDescription: "Open source hackathon platform",
         organizationName: "OWASP BLT",
-        organizationUrl: "https://gitlab.com/owasp-blt"
+        organizationUrl: "https://git.owaspblt.org/BLT/BLT"
     }
 };
 

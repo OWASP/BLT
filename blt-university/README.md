@@ -1,11 +1,16 @@
 # BLT University
 
-[![Pipeline status](https://gitlab.com/owasp-blt/blt-university/badges/main/pipeline.svg)](https://gitlab.com/owasp-blt/blt-university/-/pipelines)
+**Live Site:** [https://university.owaspblt.org/](https://university.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-university](https://git.owaspblt.org/BLT/BLT/tree/main/blt-university)
+
+<p align="center"><img src="logo.png" alt="blt-university logo" width="160" height="160"></p>
+
+[![Pipeline status](https://git.owaspblt.org/BLT/BLT/badges/main/pipeline.svg)](https://git.owaspblt.org/BLT/BLT/pipelines)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 
 BLT University is the open-source cybersecurity learning platform maintained by the OWASP BLT community. It combines short, structured courses with browser-based security labs, local learning progress, and current vulnerability intelligence in a statically generated site.
 
-[Open BLT University](https://university.owaspblt.org/) · [Browse the source](https://gitlab.com/owasp-blt/blt-university) · [Read the contribution guide](CONTRIBUTING.md)
+[Open BLT University](https://university.owaspblt.org/) · [Browse the source](https://git.owaspblt.org/BLT/BLT/tree/main/blt-university) · [Read the contribution guide](CONTRIBUTING.md)
 
 ## What is included
 
@@ -33,9 +38,9 @@ All exercises run with static or simulated data. They do not target external sys
 ### For students
 
 1. **Browse Courses**: Visit [BLT University](https://university.owaspblt.org/) to explore our catalog.
-2. **Request a Course**: Don't see what you're looking for? [Request a course or topic](https://gitlab.com/owasp-blt/blt-university/-/issues/new) you'd like to learn.
+2. **Request a Course**: Don't see what you're looking for? [Request a course or topic](https://git.owaspblt.org/BLT/BLT/issues/new) you'd like to learn.
 3. **Create a GitLab Account**: If you don't have one, [sign up for GitLab](https://gitlab.com/users/sign_up).
-4. **Enroll**: Submit an [enrollment request](https://gitlab.com/owasp-blt/blt-university/-/issues/new).
+4. **Enroll**: Submit an [enrollment request](https://git.owaspblt.org/BLT/BLT/issues/new).
 5. **Start Learning**: Open a course and work through its lessons and practice labs.
 
 ### For instructors
@@ -43,7 +48,7 @@ All exercises run with static or simulated data. They do not target external sys
 Want to teach at BLT University?
 
 1. Read the [contributing guide](CONTRIBUTING.md).
-2. Use the [course submission issue](https://gitlab.com/owasp-blt/blt-university/-/issues/new).
+2. Use the [course submission issue](https://git.owaspblt.org/BLT/BLT/issues/new).
 3. Build the course with the existing content and layout conventions.
 4. Open a merge request for review.
 
@@ -91,7 +96,7 @@ The generated `public/` directory is a deployment artifact. Make source changes 
 ### Setup
 
 ```bash
-git clone https://gitlab.com/owasp-blt/blt-university.git
+git clone https://git.owaspblt.org/BLT/BLT.git
 cd blt-university
 
 bundle install
@@ -218,6 +223,6 @@ BLT University is licensed under the [GNU Affero General Public License v3.0](LI
 ## Project links
 
 - Website: [university.owaspblt.org](https://university.owaspblt.org/)
-- GitLab: [owasp-blt/blt-university](https://gitlab.com/owasp-blt/blt-university)
+- GitLab: [owasp-blt/blt-university](https://git.owaspblt.org/BLT/BLT/tree/main/blt-university)
 - OWASP BLT: [owaspblt.org](https://owaspblt.org/)
 - OWASP project page: [Bug Logging Tool](https://owasp.org/www-project-bug-logging-tool/)

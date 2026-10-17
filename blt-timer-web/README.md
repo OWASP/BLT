@@ -1,5 +1,10 @@
 # BLT Timer Web
 
+**Live Site:** [https://timer.owaspblt.org/](https://timer.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-web](https://git.owaspblt.org/BLT/BLT/tree/main/blt-timer-web)
+
+<p align="center"><img src="logo.png" alt="blt-timer-web logo" width="160" height="160"></p>
+
 BLT Timer Web is a focused web application for recording manual work logs.
 
 Start a timer, pause or resume it in the browser, save the completed work with useful context, and review or export your own history.

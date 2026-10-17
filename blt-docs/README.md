@@ -1,5 +1,10 @@
 # OWASP BLT Documentation
 
+**Live Site:** [https://docs.owaspblt.org/](https://docs.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT/tree/main/blt-docs](https://git.owaspblt.org/BLT/BLT/tree/main/blt-docs)
+
+<p align="center"><img src="logo.png" alt="blt-docs logo" width="160" height="160"></p>
+
 This repository contains the MkDocs Material source for OWASP Bug Logging Tool (BLT) documentation. It is the documentation hub for BLT user workflows, contributor guidance, repository routing, API notes, and platform maintenance references.
 
 ## Architecture

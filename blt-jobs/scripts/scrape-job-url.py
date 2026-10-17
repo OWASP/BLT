@@ -27,7 +27,7 @@ except ImportError:
 
 JOBS_DIR = Path(os.environ.get("BLT_JOBS_DIR", Path(__file__).resolve().parent.parent / "jobs"))
 HEADERS = {
-    "User-Agent": "OWASP-BLT-Jobs-Bot/1.0 (https://gitlab.com/owasp-blt/blt-jobs)"
+    "User-Agent": "OWASP-BLT-Jobs-Bot/1.0 (https://git.owaspblt.org/BLT/BLT/tree/main/blt-jobs)"
 }
 
 

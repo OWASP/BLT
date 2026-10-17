@@ -385,7 +385,7 @@ schema_view = get_schema_view(
         terms_of_service="https://owasp.org/www-policy/",
         contact=openapi.Contact(
             name="OWASP BLT",
-            url="https://github.com/OWASP-BLT/BLT",
+            url="https://git.owaspblt.org/BLT/BLT/tree/main/blt-core",
             email="blt-project-leader@owasp.org",
         ),
         license=openapi.License(name="AGPL-3.0 License"),
