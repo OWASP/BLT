@@ -1,0 +1,12 @@
+[project]
+name = "blt-newsletter"
+version = "0.1.0"
+description = "Cloudflare Python Worker for the BLT Newsletter site."
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "workers-py",
+  "workers-runtime-sdk",
+]
