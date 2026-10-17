@@ -1,0 +1,409 @@
+openapi: 3.1.0
+info:
+  title: NetGuardian Worker API
+  version: 0.3.0-events
+  description: Ingest, triage, convert-to-issue, and verified events outbox/webhook.
+
+paths:
+  /api/health:
+    get:
+      summary: NetGuardian liveness
+      responses:
+        "200":
+          description: OK
+
+  /api/ingest:
+    post:
+      summary: Ingest signed ztr-finding-1 envelope
+      parameters:
+        - name: X-BLT-Body-Digest
+          in: header
+          required: true
+          schema:
+            type: string
+            example: sha256=abc123...
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ZtrEnvelope"
+      responses:
+        "201":
+          description: Created
+        "200":
+          description: Duplicate nonce (idempotent)
+        "400":
+          description: Invalid envelope / digest / clock skew
+        "401":
+          description: Bad signature or unknown kid
+        "413":
+          description: Payload too large
+        "429":
+          description: Rate limited
+
+  /api/findings:
+    get:
+      summary: List findings (org-scoped)
+      security:
+        - bearerOrgToken: []
+      parameters:
+        - $ref: "#/components/parameters/FindingsStatus"
+        - $ref: "#/components/parameters/FindingsSeverity"
+        - $ref: "#/components/parameters/FindingsCveId"
+        - $ref: "#/components/parameters/FindingsCreatedFrom"
+        - $ref: "#/components/parameters/FindingsCreatedTo"
+        - $ref: "#/components/parameters/FindingsTriageQueue"
+        - $ref: "#/components/parameters/FindingsLimit"
+        - $ref: "#/components/parameters/FindingsOffset"
+        - $ref: "#/components/parameters/FindingsSort"
+        - $ref: "#/components/parameters/FindingsOrder"
+      responses:
+        "200":
+          description: Paginated findings for authenticated org
+        "400":
+          description: Invalid findings query (`invalid_query`)
+        "401":
+          description: Missing or invalid org API token
+
+  /api/findings/export.csv:
+    get:
+      summary: Export findings as CSV (org-scoped, redacted)
+      security:
+        - bearerOrgToken: []
+      parameters:
+        - $ref: "#/components/parameters/FindingsStatus"
+        - $ref: "#/components/parameters/FindingsSeverity"
+        - $ref: "#/components/parameters/FindingsCveId"
+        - $ref: "#/components/parameters/FindingsCreatedFrom"
+        - $ref: "#/components/parameters/FindingsCreatedTo"
+        - $ref: "#/components/parameters/FindingsTriageQueue"
+        - $ref: "#/components/parameters/FindingsLimit"
+        - $ref: "#/components/parameters/FindingsOffset"
+        - $ref: "#/components/parameters/FindingsSort"
+        - $ref: "#/components/parameters/FindingsOrder"
+      responses:
+        "200":
+          description: CSV attachment
+          content:
+            text/csv:
+              schema:
+                type: string
+        "400":
+          description: Invalid findings query (`invalid_query`)
+        "401":
+          description: Missing or invalid org API token
+        "503":
+          description: Findings storage not configured
+
+  /api/findings/export.pdf:
+    get:
+      summary: Export findings as PDF (org-scoped; no plaintext secrets)
+      security:
+        - bearerOrgToken: []
+      parameters:
+        - $ref: "#/components/parameters/FindingsStatus"
+        - $ref: "#/components/parameters/FindingsSeverity"
+        - $ref: "#/components/parameters/FindingsCveId"
+        - $ref: "#/components/parameters/FindingsCreatedFrom"
+        - $ref: "#/components/parameters/FindingsCreatedTo"
+        - $ref: "#/components/parameters/FindingsTriageQueue"
+        - $ref: "#/components/parameters/FindingsLimit"
+        - $ref: "#/components/parameters/FindingsOffset"
+        - $ref: "#/components/parameters/FindingsSort"
+        - $ref: "#/components/parameters/FindingsOrder"
+      responses:
+        "200":
+          description: PDF attachment (pure-Python, Workers-safe)
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid findings query (`invalid_query`)
+        "401":
+          description: Missing or invalid org API token
+        "503":
+          description: Findings storage not configured
+
+  /api/findings/{id}:
+    get:
+      summary: Finding detail with redacted payload snippet and access audit
+      security:
+        - bearerOrgToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Finding detail; view logged to access_logs
+        "401":
+          description: Missing or invalid org API token
+        "404":
+          description: Not found (or wrong org)
+
+  /api/findings/{id}/export.pdf:
+    get:
+      summary: Export one finding as PDF with redacted evidence snippet
+      security:
+        - bearerOrgToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PDF attachment; access logged as export_pdf
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Missing or invalid org API token
+        "404":
+          description: Not found
+        "503":
+          description: Findings storage not configured
+
+  /api/findings/{id}/convert-to-issue:
+    post:
+      summary: Convert finding to BLT issue via BLT-API POST /bugs
+      security:
+        - bearerOrgToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Issue created in BLT-API (or local stub when BLT_API_BASE_URL unset)
+        "200":
+          description: Issue already linked
+        "401":
+          description: Missing or invalid org API token
+        "404":
+          description: Not found
+        "502":
+          description: BLT-API error
+
+  /api/events:
+    get:
+      summary: List verified events (org-scoped outbox)
+      security:
+        - bearerOrgToken: []
+      parameters:
+        - name: event_type
+          in: query
+          schema:
+            type: string
+            enum: [finding.converted, finding.resolved]
+        - name: finding_id
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, delivered, skipped, failed]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        "200":
+          description: Paginated event list
+        "400":
+          description: Invalid query
+        "401":
+          description: Missing or invalid org API token (always required; no default-org fallback)
+        "503":
+          description: Events storage (D1) not configured
+
+  /api/events/{id}:
+    get:
+      summary: Verified event detail
+      security:
+        - bearerOrgToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event detail
+        "401":
+          description: Missing or invalid org API token (always required; no default-org fallback)
+        "404":
+          description: Not found
+        "503":
+          description: Events storage (D1) not configured
+
+components:
+  securitySchemes:
+    bearerOrgToken:
+      type: http
+      scheme: bearer
+      description: Org-scoped API token (NG_ORG_API_TOKENS)
+  parameters:
+    FindingsStatus:
+      name: status
+      in: query
+      schema:
+        type: string
+    FindingsSeverity:
+      name: severity
+      in: query
+      schema:
+        type: string
+    FindingsCveId:
+      name: cve_id
+      in: query
+      schema:
+        type: string
+    FindingsCreatedFrom:
+      name: created_from
+      in: query
+      description: Inclusive lower bound (unix seconds)
+      schema:
+        type: integer
+    FindingsCreatedTo:
+      name: created_to
+      in: query
+      description: Inclusive upper bound (unix seconds)
+      schema:
+        type: integer
+    FindingsTriageQueue:
+      name: triage_queue
+      in: query
+      description: When true, restrict to findings needing triage
+      schema:
+        type: boolean
+    FindingsLimit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 50
+        maximum: 100
+    FindingsOffset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        default: 0
+    FindingsSort:
+      name: sort
+      in: query
+      schema:
+        type: string
+        enum: [updated_at, created_at, severity, rule_id]
+        default: updated_at
+    FindingsOrder:
+      name: order
+      in: query
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+  schemas:
+    ZtrEnvelope:
+      allOf:
+        - type: object
+          required:
+            - version
+            - org_id
+            - sender_id
+            - kid
+            - alg
+            - issued_at
+            - nonce
+            - payload_digest
+            - signature
+          properties:
+            version:
+              type: string
+              const: ztr-finding-1
+            org_id:
+              type: string
+            sender_id:
+              type: string
+            kid:
+              type: string
+            alg:
+              type: string
+              enum: [hmac-sha256]
+            issued_at:
+              type: string
+              format: date-time
+              pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"
+            nonce:
+              type: string
+            payload_digest:
+              type: string
+              pattern: "^[a-f0-9]{64}$"
+            signature:
+              type: string
+              pattern: "^[a-f0-9]{64}$"
+        - oneOf:
+            - type: object
+              required: [plaintext_mode, payload_plaintext]
+              properties:
+                plaintext_mode:
+                  type: boolean
+                  const: true
+                payload_plaintext:
+                  type: object
+                  additionalProperties: true
+              not:
+                required: [payload_ciphertext]
+            - type: object
+              required: [payload_ciphertext]
+              properties:
+                payload_ciphertext:
+                  type: string
+                  contentEncoding: base64
+              not:
+                anyOf:
+                  - required: [payload_plaintext]
+                  - properties:
+                      plaintext_mode:
+                        const: true
+
+    IngestError:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          enum:
+            - invalid_envelope
+            - invalid_payload_mode
+            - digest_mismatch
+            - clock_skew
+            - bad_signature
+            - unknown_kid
+            - payload_too_large
+            - rate_limited
+        message:
+          type: string

@@ -1,0 +1,20 @@
+{
+  "envelope_unsigned": {
+    "version": "ztr-finding-1",
+    "org_id": "org-demo",
+    "sender_id": "scanner-1",
+    "kid": "k1",
+    "alg": "hmac-sha256",
+    "issued_at": "2026-05-28T12:00:00Z",
+    "nonce": "1748433600-abc",
+    "plaintext_mode": true,
+    "payload_plaintext": {
+      "rule_id": "semgrep.test",
+      "severity": "high",
+      "title": "Test finding",
+      "target": "https://example.com"
+    },
+    "payload_digest": "placeholder"
+  },
+  "secret_hex": "736563726574"
+}

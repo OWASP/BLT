@@ -1,0 +1,40 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+stages:
+  - test
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PUB_CACHE: "$CI_PROJECT_DIR/client/.pub-cache"
+
+pytest:
+  stage: test
+  image: python:3.11-slim
+  cache:
+    key: pip-py311
+    paths:
+      - .cache/pip
+  before_script:
+    - python3 -m pip install --upgrade pip
+    - python3 -m pip install -r requirements.txt
+  script:
+    - python3 -m compileall src tests
+    - python3 -m pytest -q
+
+flutter:
+  stage: test
+  image: ghcr.io/cirruslabs/flutter:stable
+  cache:
+    key: flutter-pub
+    paths:
+      - client/.pub-cache
+  before_script:
+    - cd client
+    - flutter pub get
+  script:
+    - flutter analyze --no-fatal-infos
+    - flutter test

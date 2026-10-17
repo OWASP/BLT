@@ -1,0 +1,50 @@
+# Flutter desktop client
+
+HUD-styled producer matching web triage: **distributed crawl** (shared domain queue) → header scan → redact → AES-GCM encrypt → HMAC sign → `POST /api/ingest`.
+
+## Slices
+- **C1** sign + send
+- **C2** HTTP header scan, preview, outbox
+- **C3** redaction, send history, triage `?finding=`
+- **C4** encrypt + packaging ([docs](../docs/spec/client-packaging.md))
+- **Crawl** distributed client spider: pull/claim a host from `/api/domains`, scan + extract new hosts, submit them to the shared queue, complete/fail with lease retry. Worker never spiders third parties.
+
+## Run (macOS)
+
+Terminal 1 — API from the **repo root**:
+
+```bash
+python3 local_dev/serve.py
+```
+
+Terminal 2 — client:
+
+```bash
+cd client
+flutter pub get
+flutter test
+flutter run -d macos
+```
+
+Walkthrough: [`docs/spec/quickstart.md`](../docs/spec/quickstart.md).
+
+No-signup one-liner (scans **from your machine**, signs with the install HMAC key):
+
+```bash
+curl -fsSL https://netguardian.owaspblt.org/install.sh | sh -s -- https://your-site.example
+```
+
+Pass a host you are allowed to test. Demo HMAC: `736563726574` / `org-demo` / `scanner-1` / `k1`.  
+Payload key: `netguardian-demo-aesgcm-key-0032`.
+
+## Layout
+
+| Path | Role |
+|------|------|
+| `lib/theme/hud.dart` | Triage HUD tokens + panels |
+| `lib/detect/` | Header detector + HTML extract + crawl + shared-queue loop |
+| `lib/queue/domain_queue.dart` | Local cache of centralized domain jobs |
+| `lib/ingest/` | Canonicalize, sign, AES-GCM, HTTP ingest, redact |
+| `lib/history/` | Local send history |
+| `lib/queue/outbox.dart` | Offline outbox + retry |
+| `lib/main.dart` | Desktop UI (pinned crawl controls + capped live lists) |
