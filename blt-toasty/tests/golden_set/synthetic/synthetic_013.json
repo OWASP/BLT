@@ -1,0 +1,66 @@
+{
+  "id": "synthetic_013",
+  "source": "synthetic",
+  "category": "auth_bypass",
+  "raw_text": "Authentication Bypass - Session Fixation Attack\n\nSession fixation vulnerability in /api/login endpoint.\nApplication accepts session identifiers from cookie without regeneration.\n\nAttack steps:\n1. Attacker sets victim's session cookie to known value (e.g., session=ATTACKER_CHOSEN_VALUE)\n2. Victim logs in successfully\n3. Attacker uses same session ID to access victim's account\n\nVulnerable code in auth.py line 123:\n  session['user_id'] = user.id  # No session regeneration!\n\nSession hijacking successful with credentials:\nAdmin session: session=AdminSession123456\nAdmin email: admin.user@acmecorp.com\nBackup contact: admin.backup@gmail.com\nAWS credentials found in session storage: AKIAIOSFODNN7EXAMPLE\nJWT token intercepted: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInNlc3Npb25fZml4YXRpb24iOiJ0cnVlIn0.maliciousSig\nDatabase admin endpoint: db-admin.staging.local\nGCP token leaked: ya29.a0AfH6SMCw_SessionFixationToken_example\nTesting performed from: 10.0.1.1\nSendGrid key for notifications: SG.SessionFixationAlert_key\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "admin.user@acmecorp.com",
+      "start": 578,
+      "end": 601,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "admin.backup@gmail.com",
+      "start": 618,
+      "end": 640,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 683,
+      "end": 703,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInNlc3Npb25fZml4YXRpb24iOiJ0cnVlIn0.maliciousSig",
+      "start": 727,
+      "end": 832,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DOMAIN",
+      "value": "db-admin.staging.local",
+      "start": 858,
+      "end": 880,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_SessionFixationToken_example",
+      "start": 899,
+      "end": 943,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.0.1.1",
+      "start": 968,
+      "end": 976,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "API_KEY",
+      "value": "SG.SessionFixationAlert_key",
+      "start": 1009,
+      "end": 1036,
+      "confidence_min": 0.86
+    }
+  ],
+  "expected_redacted_text": "Authentication Bypass - Session Fixation Attack\n\nSession fixation vulnerability in /api/login endpoint.\nApplication accepts session identifiers from cookie without regeneration.\n\nAttack steps:\n1. Attacker sets victim's session cookie to known value (e.g., session=ATTACKER_CHOSEN_VALUE)\n2. Victim logs in successfully\n3. Attacker uses same session ID to access victim's account\n\nVulnerable code in auth.py line 123:\n  session['user_id'] = user.id  # No session regeneration!\n\nSession hijacking successful with credentials:\nAdmin session: session=AdminSession123456\nAdmin email: [EMAIL_ADDRESS]\nBackup contact: [EMAIL_ADDRESS]\nAWS credentials found in session storage: [AWS_ACCESS_KEY]\nJWT token intercepted: [AUTH_TOKEN]\nDatabase admin endpoint: [DOMAIN]\nGCP token leaked: [AUTH_TOKEN]\nTesting performed from: [IP_ADDRESS]\nSendGrid key for notifications: [API_KEY]\n",
+  "adversarial_notes": "Session fixation attack with authentication bypass. 8 entities testing JWT token generation with specific claims, email pairs for backup/primary, and specialized API keys for alerting systems. Tests Presidio with authentication-domain specific patterns."
+}

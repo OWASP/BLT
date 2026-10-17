@@ -1,0 +1,66 @@
+{
+  "id": "synthetic_007",
+  "source": "synthetic",
+  "category": "idor",
+  "raw_text": "Insecure Direct Object Reference (IDOR) - User Profile Enumeration\n\nIDOR vulnerability in /api/v2/profile/{user_id} endpoint.\nUser profiles can be accessed by manipulating numeric user ID parameter.\nNo authorization checks performed to verify access rights.\n\nAttack vector: Sequential ID enumeration from 1-1000 reveals all user records.\n\nExposed data includes:\n- User emails: john.doe@acmecorp.com, jane.smith@gmail.com\n- Internal contact: admin@internal.staging.local\n- AWS key discovered in user profile: AKIAIOSFODNN7EXAMPLE\n- JWT tokens from session cookies: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFkbWluIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U\n- Internal database host: prod-db.internal\n- Testing from IP: 10.50.60.70\n- GCP service token: ya29.a0AfH6SMCx_example_serviceaccount\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "john.doe@acmecorp.com",
+      "start": 377,
+      "end": 398,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "jane.smith@gmail.com",
+      "start": 400,
+      "end": 420,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "admin@internal.staging.local",
+      "start": 441,
+      "end": 469,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 508,
+      "end": 528,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFkbWluIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U",
+      "start": 564,
+      "end": 692,
+      "confidence_min": 0.89
+    },
+    {
+      "type": "DOMAIN",
+      "value": "prod-db.internal",
+      "start": 719,
+      "end": 735,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.50.60.70",
+      "start": 755,
+      "end": 766,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCx_example_serviceaccount",
+      "start": 788,
+      "end": 826,
+      "confidence_min": 0.88
+    }
+  ],
+  "expected_redacted_text": "Insecure Direct Object Reference (IDOR) - User Profile Enumeration\n\nIDOR vulnerability in /api/v2/profile/{user_id} endpoint.\nUser profiles can be accessed by manipulating numeric user ID parameter.\nNo authorization checks performed to verify access rights.\n\nAttack vector: Sequential ID enumeration from 1-1000 reveals all user records.\n\nExposed data includes:\n- User emails: [EMAIL_ADDRESS], [EMAIL_ADDRESS]\n- Internal contact: [EMAIL_ADDRESS]\n- AWS key discovered in user profile: [AWS_ACCESS_KEY]\n- JWT tokens from session cookies: [AUTH_TOKEN]\n- Internal database host: [DOMAIN]\n- Testing from IP: [IP_ADDRESS]\n- GCP service token: [AUTH_TOKEN]\n",
+  "adversarial_notes": "IDOR with high-density PII exposure. 8 entities including multiple email addresses (corporate, Gmail, internal). Tests Presidio's handling of multiple email variants and consecutive authentication tokens. Also tests GCP service account token pattern recognition."
+}

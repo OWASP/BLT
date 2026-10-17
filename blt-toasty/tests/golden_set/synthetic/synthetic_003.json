@@ -1,0 +1,52 @@
+{
+  "id": "synthetic_003",
+  "source": "synthetic",
+  "category": "ssrf",
+  "raw_text": "Server-Side Request Forgery (SSRF) via Image URL Parameter\n\nCritical SSRF vulnerability discovered in image processing endpoint (/api/image/process).\nApplication fetches and processes images from user-supplied URLs without validation.\n\nProof of Concept:\nThe attacker crafted URL containing embedded credentials:\nhttp://admin:SecurePassword123@internal-service:8080/metadata\n\nThis allows access to internal services typically restricted to localhost.\n\nAttack chain discovered during penetration test:\n1. Attacker provides malicious URL with embedded credentials\n2. Application fetches URL on behalf of internal network\n3. Response contains cloud metadata: AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\n4. Additional exposure: Security contact email is ops.team@acmecorp.com\n5. Service token for monitoring: api_key_sendgrid SG.7Fv_2cyzQOyLBYPy_EXAMPLE\n6. Testing performed from IP 10.128.0.5 (GCP internal range)\n\nThe service account JSON fragment retrieved:\n{\"type\": \"service_account\", \"project_id\": \"acme-prod-gcp\"}\n\nTested internal domain: monitoring-backend.staging.local\n",
+  "expected_entities": [
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.128.0.5",
+      "start": 873,
+      "end": 883,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 673,
+      "end": 693,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "ops.team@acmecorp.com",
+      "start": 744,
+      "end": 765,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "API_KEY",
+      "value": "SG.7Fv_2cyzQOyLBYPy_EXAMPLE",
+      "start": 816,
+      "end": 843,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "DOMAIN",
+      "value": "monitoring-backend.staging.local",
+      "start": 1035,
+      "end": 1067,
+      "confidence_min": 0.84
+    },
+    {
+      "type": "DOMAIN",
+      "value": "internal-service",
+      "start": 343,
+      "end": 359,
+      "confidence_min": 0.85
+    }
+  ],
+  "expected_redacted_text": "Server-Side Request Forgery (SSRF) via Image URL Parameter\n\nCritical SSRF vulnerability discovered in image processing endpoint (/api/image/process).\nApplication fetches and processes images from user-supplied URLs without validation.\n\nProof of Concept:\nThe attacker crafted URL containing embedded credentials:\nhttp://admin:SecurePassword123@[DOMAIN]:8080/metadata\n\nThis allows access to internal services typically restricted to localhost.\n\nAttack chain discovered during penetration test:\n1. Attacker provides malicious URL with embedded credentials\n2. Application fetches URL on behalf of internal network\n3. Response contains cloud metadata: AWS_ACCESS_KEY_ID=[AWS_ACCESS_KEY]\n4. Additional exposure: Security contact email is [EMAIL_ADDRESS]\n5. Service token for monitoring: api_key_sendgrid [API_KEY]\n6. Testing performed from IP [IP_ADDRESS] (GCP internal range)\n\nThe service account JSON fragment retrieved:\n{\"type\": \"service_account\", \"project_id\": \"acme-prod-gcp\"}\n\nTested internal domain: [DOMAIN]\n",
+  "adversarial_notes": "SSRF with embedded credentials in URL and multi-level PII exposure. Tests Presidio's handling of credentials within URL strings, GCP IP ranges, and domain recognition. Cloud metadata exposure pattern is realistic attack chain."
+}

@@ -1,0 +1,1203 @@
+"""
+Cloudflare Worker for Toasty - AI Code Reviewer Backend
+
+This worker handles API requests for the Toasty AI code review service.
+It provides endpoints for code analysis, health checks, webhook ingestion,
+and status monitoring.
+"""
+
+import json
+import urllib.parse
+import traceback
+from js import Response, Headers, console, Object, Request as JSRequest
+
+try:
+    from pyodide.ffi import to_js
+except ImportError:
+    to_js = lambda x, **kw: x  # noqa: E731
+from rationale_builder import audit_completeness_check
+from webhook_handler import handle_webhook
+from mcp_export import handle_mcp_export
+from auth import verify_agent_jwt
+from errors import JWTExpiredError, JWTInvalidError
+from durable_objects import ConversationDO, RateLimiterDO
+
+__all__ = ["ConversationDO", "RateLimiterDO"]
+
+# Maximum request body size in bytes (1MB)
+MAX_BODY_SIZE = 1024 * 1024
+
+
+def parse_path(url):
+    """
+    Extract clean path from URL, handling query params and fragments.
+
+    Args:
+        url: The full URL string
+
+    Returns:
+        str: The path component of the URL
+    """
+    parsed = urllib.parse.urlparse(url)
+    path = parsed.path
+    if not path or path == "":
+        path = "/"
+    elif not path.startswith("/"):
+        path = "/" + path
+    if len(path) > 1 and path.endswith("/"):
+        path = path[:-1]
+    return path
+
+
+async def on_fetch(request, env):
+    """
+    Main entry point for Cloudflare Worker requests.
+
+    Args:
+        request: The incoming HTTP request
+        env: Environment variables and bindings
+
+    Returns:
+        Response: HTTP response object
+    """
+    url = request.url
+    method = request.method
+
+    # Parse the URL to get the path
+    try:
+        path = parse_path(url)
+    except Exception as e:
+        return create_error_response(f"Error parsing URL: {str(e)}", 500)
+
+    # Handle CORS preflight requests
+    if method == "OPTIONS":
+        return handle_options(request, env)
+
+    # Route requests based on path and method
+    if path == "/" or path == "":
+        if method in ("GET", "HEAD"):
+            return handle_root(request)
+        else:
+            return create_method_not_allowed_response(path, ["GET", "HEAD"])
+    elif path == "/health":
+        if method in ("GET", "HEAD"):
+            return handle_health(request)
+        else:
+            return create_method_not_allowed_response(path, ["GET", "HEAD"])
+    elif path == "/api/review":
+        if method == "POST":
+            return await handle_review(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["POST"])
+    elif path == "/webhook/gitlab":
+        if method == "POST":
+            return await handle_gitlab_webhook(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["POST"])
+    elif path == "/api/status":
+        if method in ("GET", "HEAD"):
+            return handle_status(request)
+        else:
+            return create_method_not_allowed_response(path, ["GET", "HEAD"])
+
+    elif path == "/api/metrics":
+        if method == "GET":
+            return await handle_api_metrics(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path == "/api/activity":
+        if method == "GET":
+            return await handle_api_activity(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path == "/api/quarantine":
+        if method == "GET":
+            return await handle_api_quarantine(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path == "/api/duplicates":
+        if method == "GET":
+            return await handle_api_duplicates(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path == "/api/redactions":
+        if method == "GET":
+            return await handle_api_redactions(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path == "/admin/shadow-report":
+        if method == "GET":
+            claims, err_resp = await _authenticate_request(request, env)
+            if err_resp:
+                return err_resp
+            return await handle_shadow_report(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path.startswith("/mcp/triage/"):
+        if method == "GET":
+            raw_triage_id = path[len("/mcp/triage/") :]
+            triage_id = urllib.parse.unquote(raw_triage_id)
+            if not triage_id:
+                return create_error_response("Missing triage_id in path", 400)
+            if "/" in triage_id:
+                return create_error_response("Invalid triage_id: must not contain path separators", 400)
+            return await handle_mcp_export(request, env, triage_id)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path.startswith("/triage/") and path.endswith("/rationale"):
+        if method == "GET":
+            # Extract and decode event_id from /triage/{event_id}/rationale
+            raw_event_id = path[len("/triage/") : -len("/rationale")]
+            event_id = urllib.parse.unquote(raw_event_id)
+            if not event_id:
+                return create_error_response("Missing event_id in path", 400)
+            if "/" in event_id:
+                return create_error_response("Invalid event_id: must not contain path separators", 400)
+            return await handle_rationale(request, env, event_id)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path == "/admin/dashboard":
+        if method == "GET":
+            claims, err_resp = await _authenticate_request(request, env)
+            if err_resp:
+                return err_resp
+            if claims.get("role") != "admin":
+                return create_error_response("Unauthorized: Administrator permission required", 401)
+            return await handle_dashboard(request, env)
+        else:
+            return create_method_not_allowed_response(path, ["GET"])
+    elif path.startswith("/conversations/"):
+        return await _route_conversation(path, method, request, env)
+
+    # 404 for anything else
+    return create_error_response("Not found", 404)
+
+
+def handle_options(request, env=None):
+    """
+    Handle CORS preflight OPTIONS requests.
+
+    Args:
+        request: The incoming HTTP request
+        env: The environment (optional)
+
+    Returns:
+        Response: 204 No Content with CORS headers
+    """
+    headers = Headers.new()
+    headers.set("Access-Control-Allow-Origin", "*")
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, DELETE")
+    headers.set("Access-Control-Allow-Headers", "*")
+    headers.set("Access-Control-Max-Age", "86400")
+
+    return Response.new(None, status=204, headers=headers)
+
+
+def handle_root(request):
+    """
+    Handle root endpoint requests.
+
+    Args:
+        request: The incoming HTTP request
+
+    Returns:
+        Response: Welcome message
+    """
+    response_data = {
+        "service": "Toasty AI Code Reviewer",
+        "version": "1.0.0",
+        "description": "Backend API for OWASP BLT's AI-powered code review service",
+        "endpoints": {
+            "/": "Service information",
+            "/health": "Health check endpoint",
+            "/api/review": "POST - Submit code for review",
+            "/webhook/gitlab": "POST - GitLab webhook receiver",
+            "/api/status": "GET - Check service status",
+            "/triage/{event_id}/rationale": "GET - Retrieve structured rationale for a triage event",
+            "/mcp/triage/{triage_id}": "GET - JWT-authenticated canonical MCP triage export",
+            "/admin/shadow-report": "GET - Shadow mode accuracy report (internal)",
+            "/conversations/{triage_id}/reply": "POST - Append a turn to a triage conversation",
+            "/conversations/{triage_id}/history": "GET - Retrieve conversation history",
+            "/conversations/{triage_id}": "DELETE - Close and archive a conversation",
+        },
+    }
+
+    return create_json_response(response_data, 200)
+
+
+def handle_health(request):
+    """
+    Handle health check endpoint.
+
+    Args:
+        request: The incoming HTTP request
+
+    Returns:
+        Response: Health status
+    """
+    health_data = {
+        "status": "healthy",
+        "service": "toasty-backend",
+        "timestamp": None,  # Would use datetime in production
+    }
+
+    return create_json_response(health_data, 200)
+
+
+async def handle_review(request, env):
+    """
+    Handle code review requests.
+
+    Args:
+        request: The incoming HTTP request
+        env: Environment variables and bindings
+
+    Returns:
+        Response: Code review results
+    """
+    try:
+        # Check Content-Length header if present
+        content_length_header = request.headers.get("Content-Length")
+        if content_length_header:
+            try:
+                content_length = int(content_length_header)
+                if content_length > MAX_BODY_SIZE:
+                    return create_error_response(f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes", 413)
+            except ValueError:
+                pass  # Invalid Content-Length, will be caught during reading
+
+        # Parse request body with size limit
+        body = await request.text()
+
+        if len(body) > MAX_BODY_SIZE:
+            return create_error_response(f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes", 413)
+
+        if not body:
+            return create_error_response("Request body is required", 400)
+
+        try:
+            data = json.loads(body)
+        except json.JSONDecodeError:
+            return create_error_response("Invalid JSON in request body", 400)
+
+        if not isinstance(data, dict):
+            return create_error_response("Request body must be a JSON object", 400)
+
+        # Validate required fields
+        if "code" not in data:
+            return create_error_response("Missing required field: 'code'", 400)
+
+        code = data.get("code")
+
+        # Validate that code is a non-empty string
+        if not isinstance(code, str):
+            return create_error_response("Field 'code' must be a string", 400)
+
+        if not code or not code.strip():
+            return create_error_response("Field 'code' cannot be empty", 400)
+
+        language = data.get("language", "unknown")
+        _context = data.get("context", "")
+
+        # Placeholder for actual AI review logic
+        # In production, this would call AI services, perform static analysis, etc.
+        review_result = {
+            "status": "success",
+            "analysis": {
+                "language": language,
+                "lines_of_code": len(code.split("\n")),
+                "issues": [],
+                "suggestions": [
+                    {
+                        "type": "info",
+                        "message": "Code review placeholder - integration with AI services pending",
+                        "line": 0,
+                    }
+                ],
+                "summary": "Review completed successfully",
+            },
+            "metadata": {"processed_at": None, "worker_version": "1.0.0"},  # Would use datetime in production
+        }
+
+        return create_json_response(review_result, 200)
+
+    except Exception as e:
+        return create_error_response(f"Error processing review request: {str(e)}", 500)
+
+
+async def handle_gitlab_webhook(request, env):
+    """
+    Handle GitLab webhook requests.
+
+    Delegates to the webhook ingress handler in src.webhook_handler.
+
+    Args:
+        request: The incoming HTTP request
+        env: Environment variables and bindings
+
+    Returns:
+        Response: Webhook processing result
+    """
+    content_length_header = request.headers.get("content-length")
+    if content_length_header:
+        try:
+            content_length = int(content_length_header)
+            if content_length > MAX_BODY_SIZE:
+                return create_error_response(f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes", 413)
+        except ValueError:
+            pass  # Invalid Content-Length, let it proceed or fail down the line
+
+    return await handle_webhook(request, env)
+
+
+async def _authenticate_request(request, env):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None, create_error_response("Missing or malformed Authorization header", 401)
+
+    token = auth_header[len("Bearer ") :].strip()
+    try:
+        claims = await verify_agent_jwt(token, env)
+        return claims, None
+    except JWTExpiredError as e:
+        return None, create_error_response(f"Token expired: {e}", 401)
+    except JWTInvalidError as e:
+        return None, create_error_response(f"Unauthorized: {e}", 401)
+
+
+async def handle_rationale(request, env, event_id):
+    """
+    Handle GET /triage/{event_id}/rationale requests.
+
+    Returns the full structured rationale for a triage decision,
+    including CWE evidence snippets, duplicate detection reasoning,
+    and the per-component confidence trace.
+
+    If any required audit record is absent from D1 the endpoint returns
+    HTTP 424 Failed Dependency (blocking MCP export) with a ``missing_fields``
+    list so operators can identify which pipeline stage did not complete.
+
+    Args:
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment bindings.
+        event_id: The triage event ID parsed from the URL path.
+
+    Returns:
+        Response: 200 with rationale JSON, 404 if not found, or 424 if
+            audit data is missing.
+    """
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+
+    try:
+        db = env.DB
+
+        # ── Audit completeness gate ───────────────────────────────────────────
+        is_complete, missing_fields = await audit_completeness_check(event_id, db)
+        if not is_complete:
+            return create_json_response(
+                {
+                    "error": "Audit data incomplete — MCP export blocked",
+                    "missing_fields": missing_fields,
+                    "event_id": event_id,
+                },
+                424,
+            )
+
+        # ── Fetch stored rationale from D1 ────────────────────────────────────
+        row = (
+            await db.prepare(
+                "SELECT cwe_rationale, duplicate_rationale, confidence_trace "
+                "FROM triage_rationale WHERE triage_event_id = ? LIMIT 1"
+            )
+            .bind(event_id)
+            .first()
+        )
+
+        if not row or row is None or str(row) in ("null", "undefined"):
+            return create_error_response(f"Rationale not found for event {event_id}", 404)
+
+        def get_val(key, idx):
+            if isinstance(row, dict):
+                return row.get(key)
+            if hasattr(row, key):
+                return getattr(row, key)
+            if hasattr(row, "__getitem__"):
+                try:
+                    return row[key]
+                except BaseException:
+                    try:
+                        return row[idx]
+                    except BaseException:
+                        return None
+            return None
+
+        cwe_val = get_val("cwe_rationale", 0)
+        conf_val = get_val("confidence_trace", 2)
+
+        missing_fields = []
+        if cwe_val is None:
+            missing_fields.append("cwe_rationale")
+        if conf_val is None:
+            missing_fields.append("confidence_trace")
+
+        if missing_fields:
+            return create_json_response(
+                {"error": "Failed Dependency", "missing_fields": missing_fields, "status": 424},
+                424,
+            )
+
+        try:
+            cwe_rationale_raw = json.loads(cwe_val)
+        except Exception:
+            cwe_rationale_raw = None
+
+        try:
+            confidence_trace_raw = json.loads(conf_val)
+        except Exception:
+            confidence_trace_raw = None
+
+        dup_val = get_val("duplicate_rationale", 1)
+        try:
+            dup_rationale_raw = json.loads(dup_val) if dup_val else None
+        except Exception:
+            dup_rationale_raw = None
+
+        return create_json_response(
+            {
+                "event_id": event_id,
+                "status": "complete",
+                "cwe_rationale": cwe_rationale_raw,
+                "duplicate_rationale": dup_rationale_raw,
+                "confidence_trace": confidence_trace_raw,
+            },
+            200,
+        )
+
+    except BaseException as exc:
+        import traceback
+
+        console.error(f"handle_rationale error for {event_id}: {exc}\n{traceback.format_exc()}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_dashboard(request, env):
+    """Handle GET /admin/dashboard."""
+    from dashboard import aggregate_dashboard
+
+    try:
+        summary = await aggregate_dashboard(env.DB)
+        return create_json_response(summary, 200)
+    except Exception as e:
+        console.error(f"Error generating dashboard: {e}")
+        return create_error_response("Internal server error", 500)
+
+
+def handle_status(request):
+    """
+    Handle status check endpoint.
+
+    Args:
+        request: The incoming HTTP request
+
+    Returns:
+        Response: Service status information
+    """
+    status_data = {
+        "service": "toasty-backend",
+        "status": "operational",
+        "version": "1.0.0",
+        "features": {"code_review": "available", "health_check": "available", "status_monitoring": "available"},
+        "uptime": "available",
+    }
+
+    return create_json_response(status_data, 200)
+
+
+async def handle_api_metrics(request, env):
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+    try:
+        db = getattr(env, "DB", None) or (env.get("DB") if isinstance(env, dict) else None)
+        if not db:
+            raise ValueError("DB binding not found in environment")
+
+        # Get total webhooks
+        total_events_res = await db.prepare("SELECT COUNT(*) as count FROM triage_events").first()
+        if total_events_res:
+            total_events_py = total_events_res.to_py() if hasattr(total_events_res, "to_py") else total_events_res
+            total_events = (
+                total_events_py.get("count", 0)
+                if isinstance(total_events_py, dict)
+                else getattr(total_events_py, "count", 0)
+            )
+        else:
+            total_events = 0
+
+        # Active quarantine
+        quarantine_res = await db.prepare(
+            "SELECT COUNT(*) as count FROM triage_events WHERE status IN ('failed', 'quarantined')"
+        ).first()
+        if quarantine_res:
+            quarantine_py = quarantine_res.to_py() if hasattr(quarantine_res, "to_py") else quarantine_res
+            quarantine_count = (
+                quarantine_py.get("count", 0) if isinstance(quarantine_py, dict) else getattr(quarantine_py, "count", 0)
+            )
+        else:
+            quarantine_count = 0
+
+        # Mocking some metrics that we don't track accurately yet
+        metrics = [
+            {
+                "id": "metrics-1",
+                "label": "Total Webhooks Processed",
+                "value": str(total_events),
+                "change": "0%",
+                "changeType": "up",
+                "icon": "Activity",
+                "accentColor": "text-blue-500",
+            },
+            {
+                "id": "metrics-2",
+                "label": "PII Catch Rate",
+                "value": "99.0%",
+                "change": "0%",
+                "changeType": "up",
+                "icon": "ShieldCheck",
+                "accentColor": "text-green-500",
+            },
+            {
+                "id": "metrics-3",
+                "label": "Avg Triage Latency",
+                "value": "1.5s",
+                "change": "0%",
+                "changeType": "down",
+                "icon": "Timer",
+                "accentColor": "text-green-500",
+            },
+            {
+                "id": "metrics-4",
+                "label": "Active Quarantine",
+                "value": str(quarantine_count),
+                "change": "0",
+                "changeType": "up",
+                "icon": "AlertTriangle",
+                "accentColor": "text-red-500",
+            },
+        ]
+        return create_json_response(metrics, 200)
+    except Exception as e:
+        console.error(f"Error in handle_api_metrics: {e}\n{traceback.format_exc()}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_api_activity(request, env):
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+    try:
+        db = getattr(env, "DB", None) or (env.get("DB") if isinstance(env, dict) else None)
+        if not db:
+            raise ValueError("DB binding not found in environment")
+
+        rows = await db.prepare(
+            "SELECT id, delivery_id, status, created_at, gitlab_event FROM triage_events ORDER BY created_at DESC LIMIT 15"
+        ).all()
+        activity = []
+        for js_row in rows.results:
+            row = js_row.to_py() if hasattr(js_row, "to_py") else js_row
+
+            row_status = row.get("status", "pending")
+            row_id = str(row.get("id") or "")
+            row_delivery_id = str(row.get("delivery_id") or "")
+            row_created_at = str(row.get("created_at") or "")
+
+            event_type = "webhook_received"
+            if row_status == "redaction_passed":
+                event_type = "redaction_check"
+            elif row_status == "summarized":
+                event_type = "summarization"
+            elif row_status == "embedded":
+                event_type = "embedding"
+
+            delivery_str = f"Delivery: {row_delivery_id[:8]}" if row_delivery_id else "Webhook Ingress"
+
+            activity.append(
+                {
+                    "id": row_id,
+                    "eventId": row_id[:8] if row_id else "",
+                    "type": event_type,
+                    "status": row_status,
+                    "source": "GitLab Event",
+                    "timestamp": row_created_at + "Z" if not row_created_at.endswith("Z") else row_created_at,
+                    "target": delivery_str,
+                    "latencyMs": 0,
+                }
+            )
+        return create_json_response(activity, 200)
+    except Exception as e:
+        console.error(f"Error in handle_api_activity: {e}\n{traceback.format_exc()}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_api_quarantine(request, env):
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+    try:
+        db = env.DB
+        rows = await db.prepare(
+            "SELECT t.id, t.created_at, t.gitlab_event, a.action, a.reason FROM triage_events t LEFT JOIN triage_audit_log a ON t.id = a.event_id WHERE t.status IN ('failed', 'quarantined') ORDER BY t.created_at DESC LIMIT 50"
+        ).all()
+        quarantine = []
+        for i, js_row in enumerate(rows.results):
+            row = js_row.to_py() if hasattr(js_row, "to_py") else js_row
+            quarantine.append(
+                {
+                    "id": f"q-{i}",
+                    "eventId": row["id"][:8],
+                    "errorType": "StateTransitionError" if "State" in (row.get("reason") or "") else "RedactionFailed",
+                    "severity": "high",
+                    "message": row.get("reason") or "Unknown error",
+                    "source": "GitLab Webhook",
+                    "timestamp": row["created_at"] + "Z" if not row["created_at"].endswith("Z") else row["created_at"],
+                    "retryCount": 0,
+                    "maxRetries": 3,
+                }
+            )
+        return create_json_response(quarantine, 200)
+    except Exception as e:
+        console.error(f"Error in handle_api_quarantine: {e}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_api_duplicates(request, env):
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+    try:
+        db = env.DB
+        rows = await db.prepare(
+            "SELECT id, triage_event_id, candidate_event_id, similarity_score, detection_method, created_at FROM duplicate_candidates ORDER BY created_at DESC LIMIT 20"
+        ).all()
+        duplicates = []
+        for i, js_row in enumerate(rows.results):
+            row = js_row.to_py() if hasattr(js_row, "to_py") else js_row
+            duplicates.append(
+                {
+                    "id": f"dup-{i}",
+                    "sourceIssue": {
+                        "id": row["triage_event_id"][:8],
+                        "title": f"Event {row['triage_event_id'][:8]}",
+                        "url": "#",
+                    },
+                    "targetIssue": {
+                        "id": row["candidate_event_id"][:8],
+                        "title": f"Candidate {row['candidate_event_id'][:8]}",
+                        "url": "#",
+                    },
+                    "confidence": row["similarity_score"],
+                    "vectorSimilarity": row["similarity_score"],
+                    "status": "matched" if row["detection_method"] == "retrieval_only" else "reviewing",
+                    "detectedAt": row["created_at"] + "Z" if not row["created_at"].endswith("Z") else row["created_at"],
+                    "entityOverlap": ["vector_match"],
+                }
+            )
+        return create_json_response(duplicates, 200)
+    except Exception as e:
+        console.error(f"Error in handle_api_duplicates: {e}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_api_redactions(request, env):
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+    try:
+        db = env.DB
+        rows = await db.prepare(
+            "SELECT r.id, r.triage_event_id, r.entity_type, r.detector, "
+            "r.confidence, r.byte_start, r.byte_end, r.created_at "
+            "FROM redaction_audit r "
+            "ORDER BY r.created_at DESC LIMIT 50"
+        ).all()
+        redactions = []
+        for i, js_row in enumerate(rows.results):
+            row = js_row.to_py() if hasattr(js_row, "to_py") else js_row
+            redactions.append(
+                {
+                    "id": f"red-{i}",
+                    "eventId": row["triage_event_id"][:8],
+                    "entityType": row["entity_type"],
+                    "originalByteLength": row["byte_end"] - row["byte_start"],
+                    "redactionMethod": row["detector"],
+                    "timestamp": row["created_at"] + "Z" if not row["created_at"].endswith("Z") else row["created_at"],
+                    "sourceFile": "issue_body.md",
+                    "confidence": row["confidence"],
+                }
+            )
+        return create_json_response(redactions, 200)
+    except Exception as e:
+        console.error(f"Error in handle_api_redactions: {e}")
+        return create_error_response("Internal server error", 500)
+
+
+def get_env_value(env, key, default=None):
+    """
+    Read a value from the worker environment.
+
+    Args:
+        env: Environment object or mapping
+        key: Environment variable name
+        default: Fallback value if the key is missing
+
+    Returns:
+        Any: The resolved environment value
+    """
+    if hasattr(env, "get"):
+        return env.get(key, default)
+
+    return getattr(env, key, default)
+
+
+def constant_time_equals(left, right):
+    """
+    Compare two strings without early exit.
+
+    Args:
+        left: First string
+        right: Second string
+
+    Returns:
+        bool: True when both values match exactly
+    """
+    if not isinstance(left, str) or not isinstance(right, str):
+        return False
+
+    if len(left) != len(right):
+        return False
+
+    result = 0
+    for index in range(len(left)):
+        result |= ord(left[index]) ^ ord(right[index])
+
+    return result == 0
+
+
+def extract_gitlab_action(payload):
+    """
+    Extract the GitLab action from a webhook payload.
+
+    Args:
+        payload: Parsed JSON body from GitLab
+
+    Returns:
+        str: The best-effort action value
+    """
+    object_attributes = payload.get("object_attributes", {}) if isinstance(payload, dict) else {}
+
+    if isinstance(object_attributes, dict):
+        action = object_attributes.get("action")
+        if action:
+            return str(action)
+
+    if isinstance(payload, dict):
+        action = payload.get("action")
+        if action:
+            return str(action)
+
+    return "unknown"
+
+
+def extract_gitlab_object_type(payload):
+    """
+    Extract the GitLab object type from a webhook payload.
+
+    Args:
+        payload: Parsed JSON body from GitLab
+
+    Returns:
+        str: The best-effort object type value
+    """
+    if not isinstance(payload, dict):
+        return "unknown"
+
+    object_kind = payload.get("object_kind")
+    if object_kind:
+        return str(object_kind)
+
+    object_attributes = payload.get("object_attributes", {})
+    if isinstance(object_attributes, dict):
+        target_type = object_attributes.get("target_type")
+        if target_type:
+            return str(target_type)
+
+    return "unknown"
+
+
+def create_json_response(data, status_code=200):
+    """
+    Create a JSON response with proper headers.
+
+    Args:
+        data: Dictionary to serialize as JSON
+        status_code: HTTP status code
+
+    Returns:
+        Response: JSON response object
+    """
+    headers = Headers.new()
+    headers.set("Content-Type", "application/json")
+    headers.set("Access-Control-Allow-Origin", "*")
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, DELETE")
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+    return Response.new(json.dumps(data), status=status_code, headers=headers)
+
+
+def create_text_response(message, status_code=200):
+    """
+    Create a plain-text response.
+
+    Args:
+        message: Text body to return
+        status_code: HTTP status code
+
+    Returns:
+        Response: Text response object
+    """
+    headers = Headers.new()
+    headers.set("Content-Type", "text/plain; charset=utf-8")
+    headers.set("Access-Control-Allow-Origin", "*")
+
+    return Response.new(message, status=status_code, headers=headers)
+
+
+def create_error_response(message, status_code=500):
+    """
+    Create an error response.
+
+    Args:
+        message: Error message
+        status_code: HTTP status code
+
+    Returns:
+        Response: Error response object
+    """
+    error_data = {"error": message, "status": status_code}
+
+    return create_json_response(error_data, status_code)
+
+
+def create_method_not_allowed_response(path, allowed_methods):
+    """
+    Create a 405 Method Not Allowed response.
+
+    Args:
+        path: The request path
+        allowed_methods: List of allowed HTTP methods
+
+    Returns:
+        Response: HTTP 405 response with Allow header
+    """
+    message = f"Method Not Allowed for {path}. Allowed methods: {', '.join(allowed_methods)}"
+
+    headers = Headers.new()
+    headers.set("Content-Type", "application/json")
+    headers.set("Access-Control-Allow-Origin", "*")
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, DELETE")
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+    headers.set("Allow", ", ".join(allowed_methods))
+
+    error_data = {"error": "Method Not Allowed", "message": message, "status": 405}
+
+    return Response.new(json.dumps(error_data), status=405, headers=headers)
+
+
+# ---------------------------------------------------------------------------
+# Conversation routes
+# ---------------------------------------------------------------------------
+
+
+def _extract_triage_id(path: str, prefix: str, suffix: str = "") -> str | None:
+    """Extract and validate triage_id from a conversation URL path.
+
+    Args:
+        path: The full URL path.
+        prefix: The path prefix before the triage_id.
+        suffix: The path suffix after the triage_id (optional).
+
+    Returns:
+        The decoded triage_id, or ``None`` if invalid.
+    """
+    raw = path[len(prefix) :]
+    if suffix:
+        raw = raw[: -len(suffix)]
+    decoded = urllib.parse.unquote(raw)
+    if not decoded or "/" in decoded:
+        return None
+    return decoded
+
+
+async def _route_conversation(path, method, request, env):
+    """Route /conversations/* requests to the appropriate handler.
+
+    Args:
+        path: The cleaned URL path.
+        method: The HTTP method.
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment.
+
+    Returns:
+        Response: The handler's HTTP response.
+    """
+    claims, err_resp = await _authenticate_request(request, env)
+    if err_resp:
+        return err_resp
+
+    if path.endswith("/reply"):
+        if method != "POST":
+            return create_method_not_allowed_response(path, ["POST"])
+        triage_id = _extract_triage_id(path, "/conversations/", "/reply")
+        if not triage_id:
+            return create_error_response("Invalid or missing triage_id", 400)
+        return await handle_conversation_reply(request, env, triage_id)
+    elif path.endswith("/history"):
+        if method != "GET":
+            return create_method_not_allowed_response(path, ["GET"])
+        triage_id = _extract_triage_id(path, "/conversations/", "/history")
+        if not triage_id:
+            return create_error_response("Invalid or missing triage_id", 400)
+        return await handle_conversation_history(request, env, triage_id)
+    else:
+        # DELETE /conversations/{triage_id}
+        if method != "DELETE":
+            return create_method_not_allowed_response(path, ["DELETE"])
+        triage_id = _extract_triage_id(path, "/conversations/")
+        if not triage_id:
+            return create_error_response("Invalid or missing triage_id", 400)
+        return await handle_conversation_close(request, env, triage_id)
+
+
+async def _get_do_stub(env, triage_id):
+    """Get the Durable Object stub for a conversation.
+
+    Args:
+        env: The Cloudflare Worker environment with CONVERSATION_DO binding.
+        triage_id: The triage event ID to use as the DO name.
+
+    Returns:
+        The Durable Object stub.
+
+    Raises:
+        AttributeError: If CONVERSATION_DO binding is not configured.
+    """
+    do_namespace = env.CONVERSATION_DO
+    do_id = do_namespace.idFromName(triage_id)
+    return do_namespace.get(do_id)
+
+
+async def handle_conversation_reply(request, env, triage_id):
+    """Handle POST /conversations/{triage_id}/reply.
+
+    Forwards the request body (with triage_id injected) to the
+    ConversationDO for turn appending.
+
+    Args:
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment.
+        triage_id: The triage event ID.
+
+    Returns:
+        Response: The DO's response (turn_count, conversation_id).
+    """
+    try:
+        content_length_header = request.headers.get("content-length")
+        if content_length_header:
+            try:
+                content_length = int(content_length_header)
+                if content_length > MAX_BODY_SIZE:
+                    return create_error_response(f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes", 413)
+            except ValueError:
+                pass
+
+        body_text = await request.text()
+        if len(body_text) > MAX_BODY_SIZE:
+            return create_error_response(f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes", 413)
+
+        if not body_text:
+            return create_error_response("Request body is required", 400)
+
+        try:
+            body = json.loads(body_text)
+        except json.JSONDecodeError:
+            return create_error_response("Invalid JSON in request body", 400)
+
+        if not isinstance(body, dict):
+            return create_error_response("Request body must be a JSON object", 400)
+
+        # Inject triage_id into the body for the DO
+        body["triage_id"] = triage_id
+
+        stub = await _get_do_stub(env, triage_id)
+        # Forward as a proper Request to the DO
+        h = Headers.new()
+        h.set("Content-Type", "application/json")
+        init = Object.new()
+        init.method = "POST"
+        init.headers = h
+        init.body = json.dumps(body)
+        do_request = JSRequest.new("https://do-internal/reply", init)
+        do_response = await stub.fetch(do_request)
+        return create_json_response(json.loads(await do_response.text()), do_response.status)
+
+    except Exception as exc:
+        console.error(f"handle_conversation_reply error for {triage_id}: {exc}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_conversation_history(request, env, triage_id):
+    """Handle GET /conversations/{triage_id}/history.
+
+    Forwards the request to the ConversationDO to retrieve turn history.
+
+    Args:
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment.
+        triage_id: The triage event ID.
+
+    Returns:
+        Response: The DO's response (turns, turn_count, status).
+    """
+    try:
+        stub = await _get_do_stub(env, triage_id)
+        # Forward the original request URL so the DO can read ?full=true
+        do_url = "https://do-internal/history"
+        # Preserve query params from the original request
+        parsed_url = urllib.parse.urlparse(request.url)
+        if parsed_url.query:
+            do_url = f"{do_url}?{parsed_url.query}"
+
+        init = Object.new()
+        init.method = "GET"
+        do_request = JSRequest.new(do_url, init)
+        do_response = await stub.fetch(do_request)
+        return create_json_response(json.loads(await do_response.text()), do_response.status)
+
+    except Exception as exc:
+        console.error(f"handle_conversation_history error for {triage_id}: {exc}")
+        return create_error_response("Internal server error", 500)
+
+
+async def handle_conversation_close(request, env, triage_id):
+    """Handle DELETE /conversations/{triage_id}.
+
+    Forwards the request to the ConversationDO to close and archive
+    the conversation.
+
+    Args:
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment.
+        triage_id: The triage event ID.
+
+    Returns:
+        Response: The DO's response (archived, turns_archived).
+    """
+    try:
+        stub = await _get_do_stub(env, triage_id)
+        init = Object.new()
+        init.method = "DELETE"
+        do_request = JSRequest.new("https://do-internal/archive", init)
+        do_response = await stub.fetch(do_request)
+        return create_json_response(json.loads(await do_response.text()), do_response.status)
+
+    except Exception as exc:
+        console.error(f"handle_conversation_close error for {triage_id}: {exc}")
+        return create_error_response("Internal server error", 500)
+
+
+# ---------------------------------------------------------------------------
+# Shadow mode
+# ---------------------------------------------------------------------------
+
+
+async def handle_shadow_report(request, env):
+    """Handle GET /admin/shadow-report.
+
+    Returns a JSON summary of shadow mode prediction accuracy
+    for the last 7 days.  Internal endpoint, no JWT required.
+
+    Args:
+        request: The incoming HTTP request.
+        env: The Cloudflare Worker environment.
+
+    Returns:
+        Response: 200 with JSON accuracy summary.
+    """
+    try:
+        from shadow_pipeline import generate_weekly_summary
+
+        summary = await generate_weekly_summary(env.DB)
+        return create_json_response(summary, 200)
+    except Exception as exc:
+        console.error(f"handle_shadow_report error: {exc}")
+        return create_error_response("Internal server error", 500)
+
+
+# ---------------------------------------------------------------------------
+# Cron Trigger handler
+# ---------------------------------------------------------------------------
+
+
+async def on_scheduled(event, env, ctx):
+    """Cloudflare Workers Cron Trigger handler.
+
+    When ``SHADOW_MODE=true``, fetches recently closed GitLab issues,
+    runs each through the full Toasty triage pipeline silently (no
+    GitLab mutations), and stores prediction/accuracy results in D1.
+
+    Also generates and posts a weekly summary on Sundays.
+
+    Args:
+        event: The scheduled event object (contains ``cron`` and ``scheduledTime``).
+        env: The Cloudflare Worker environment.
+        ctx: The execution context (for ``ctx.waitUntil``).
+    """
+    shadow_mode = getattr(env, "SHADOW_MODE", "false")
+    if shadow_mode != "true":
+        return
+
+    from shadow_pipeline import (
+        fetch_recent_closed_issues,
+        run_shadow_triage,
+        compare_and_store,
+        generate_weekly_summary,
+        post_slack_summary,
+    )
+
+    db = env.DB
+
+    # ── Hourly: fetch and triage closed issues ────────────────────────────
+    try:
+        issues = await fetch_recent_closed_issues(env, since_hours=1)
+        for issue in issues:
+            try:
+                shadow_result = await run_shadow_triage(issue, env, db)
+                await compare_and_store(db, issue, shadow_result)
+            except Exception as exc:
+                console.error(f"Shadow triage failed for issue #{issue.get('iid', '?')}: {exc}")
+    except Exception as exc:
+        console.error(f"Shadow fetch failed: {exc}")
+
+    # ── Weekly: generate and post summary (Sunday midnight UTC) ───────────
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc)
+    if now.weekday() == 6 and now.hour == 0:  # Sunday 00:xx UTC
+        try:
+            summary = await generate_weekly_summary(db)
+            await post_slack_summary(env, summary)
+        except Exception as exc:
+            console.error(f"Shadow weekly summary failed: {exc}")

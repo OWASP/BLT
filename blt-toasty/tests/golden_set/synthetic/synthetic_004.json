@@ -1,0 +1,45 @@
+{
+  "id": "synthetic_004",
+  "source": "synthetic",
+  "category": "xss",
+  "raw_text": "DOM-based XSS Vulnerability in Search Results Page\n\nReflected XSS vulnerability discovered in /search endpoint that reflects user input into DOM.\nApplication does NOT properly sanitize search parameter before rendering.\n\nVulnerable code in search.js line 145:\n  const query = new URLSearchParams(window.location.search);\n  document.getElementById('results').innerHTML = 'Searching for: ' + query.get('q');\n\nAttack payload: ?q=<img src=x onerror=\"alert(document.domain)\">\n\nSecurity audit context captured during testing:\n- Analyst JWT: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0ZXIiLCJyb2xlIjoiYWRtaW4ifQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\n- Test database credentials: postgresql://testuser:TestPass456@db-staging.internal:5432/test_db\n- Email used for notifications: audit.report@gmail.com\n- API endpoint tested: 192.168.100.50\n- Internal mail server: mail.staging.local\n",
+  "expected_entities": [
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0ZXIiLCJyb2xlIjoiYWRtaW4ifQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+      "start": 535,
+      "end": 658,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DB_CONNECTION",
+      "value": "postgresql://testuser:TestPass456@db-staging.internal:5432/test_db",
+      "start": 688,
+      "end": 754,
+      "confidence_min": 0.89
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "audit.report@gmail.com",
+      "start": 787,
+      "end": 809,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "192.168.100.50",
+      "start": 833,
+      "end": 847,
+      "confidence_min": 0.9
+    },
+    {
+      "type": "DOMAIN",
+      "value": "mail.staging.local",
+      "start": 872,
+      "end": 890,
+      "confidence_min": 0.85
+    }
+  ],
+  "expected_redacted_text": "DOM-based XSS Vulnerability in Search Results Page\n\nReflected XSS vulnerability discovered in /search endpoint that reflects user input into DOM.\nApplication does NOT properly sanitize search parameter before rendering.\n\nVulnerable code in search.js line 145:\n  const query = new URLSearchParams(window.location.search);\n  document.getElementById('results').innerHTML = 'Searching for: ' + query.get('q');\n\nAttack payload: ?q=<img src=x onerror=\"alert(document.domain)\">\n\nSecurity audit context captured during testing:\n- Analyst JWT: [AUTH_TOKEN]\n- Test database credentials: [DB_CONNECTION]\n- Email used for notifications: [EMAIL_ADDRESS]\n- API endpoint tested: [IP_ADDRESS]\n- Internal mail server: [DOMAIN]\n",
+  "adversarial_notes": "DOM-based XSS with reflected payload. Tests Presidio recognition of JWT tokens with RS256 signature, database connection strings with credentials, email addresses, and internal IP ranges. High complexity entity types."
+}
