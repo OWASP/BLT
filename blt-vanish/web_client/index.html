@@ -1,0 +1,1144 @@
+<!doctype html>
+<!-- BLT-Vanish web landing page -->
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="BLT Vanish helps you remove personal data from brokers, scrub persistent tracking trails, and keep your privacy workflow entirely local to your device." />
+    <meta property="og:title" content="BLT Vanish" />
+    <meta property="og:description" content="Local-first. No server. Your data never leaves your device." />
+    <meta property="og:type" content="website" />
+    <title>BLT Vanish - OWASP Privacy Data Removal Tool</title>
+    <link rel="icon" type="image/png" href="./assets/blt-vanish-favicon.png" />
+    
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        blt: {
+                            red: "#dc2626",
+                            coral: "#ef4444",
+                            ink: "#111827",
+                        },
+                    },
+                    fontFamily: {
+                        sans: [
+                            "Geist",
+                            "Inter",
+                            "ui-sans-serif",
+                            "system-ui",
+                            "-apple-system",
+                            "BlinkMacSystemFont",
+                            "Segoe UI",
+                            "sans-serif",
+                        ],
+                        mono: [
+                            "ui-monospace",
+                            "SFMono-Regular",
+                            "Menlo",
+                            "Monaco",
+                            "Consolas",
+                            "monospace",
+                        ],
+                    },
+                },
+            },
+        };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons (used in app/setup/docs sections) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        .mobile-menu.open {
+            display: flex;
+        }
+
+        .mobile-toggle.active span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+
+        .mobile-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-toggle.active span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+
+        .dot-field {
+            background-image: radial-gradient(rgba(17, 24, 39, 0.18) 1px, transparent 1px);
+            background-size: 18px 18px;
+            mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        }
+
+        .feature-divider::before,
+        .feature-divider::after {
+            content: "";
+            height: 1px;
+            flex: 1;
+        }
+
+        .feature-divider::before {
+            background: linear-gradient(to right, transparent, #e5e7eb);
+        }
+
+        .feature-divider::after {
+            background: linear-gradient(to left, transparent, #e5e7eb);
+        }
+
+        .wave-dots i {
+            position: absolute;
+            width: 0.25rem;
+            height: 0.25rem;
+            border-radius: 999px;
+            background: #d1d5db;
+            animation: wave 2s infinite ease-in-out;
+        }
+
+        .wave-dots i:nth-child(1) {
+            top: 0;
+            left: 0;
+        }
+
+        .wave-dots i:nth-child(2) {
+            top: 0;
+            left: 1rem;
+        }
+
+        .wave-dots i:nth-child(3) {
+            top: 0.25rem;
+            left: 0.5rem;
+            animation-delay: 0.35s;
+        }
+
+        .wave-dots i:nth-child(4) {
+            top: 0.5rem;
+            left: 0;
+            animation-delay: 0.55s;
+        }
+
+        .wave-dots i:nth-child(5) {
+            top: 0.5rem;
+            left: 1rem;
+            animation-delay: 0.55s;
+        }
+
+        .wave-dots i:nth-child(6) {
+            top: 0.75rem;
+            left: 0.5rem;
+            animation-delay: 0.85s;
+        }
+
+        .section-kicker.with-bar::before {
+            content: "";
+            position: absolute;
+            top: 0.18rem;
+            left: -0.55rem;
+            width: 3px;
+            height: 1.25rem;
+            border-radius: 0 2px 2px 0;
+            background: #ef4444;
+        }
+
+        .footer-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image: linear-gradient(rgba(255, 255, 255, 1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .footer-links p {
+            margin: 0 0 0.35rem;
+            color: #6b7280;
+            font-size: 0.625rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .footer-links a {
+            display: block;
+            color: #d1d5db;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            transition: color 180ms ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        @keyframes wave {
+
+            0%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: translateY(-3px);
+                opacity: 1;
+            }
+        }
+
+        /* Broker modal overlay */
+        #brokerModal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            inset: 0;
+            background-color: rgba(0, 0, 0, .55);
+            backdrop-filter: blur(4px);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: #fff;
+            margin: 5% auto;
+            padding: 1.75rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 680px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+        }
+
+        .close {
+            color: #9ca3af;
+            float: right;
+            font-size: 1.75rem;
+            line-height: 1;
+            font-weight: 700;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        .close:hover {
+            color: #111827;
+        }
+
+        /* Broker list items */
+        .broker-item {
+            background: #f9fafb;
+            padding: 1.125rem 1.25rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all .2s ease;
+            border: 2px solid #e5e7eb;
+            margin-bottom: .75rem;
+        }
+
+        .broker-item:hover {
+            border-color: #dc2626;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, .12);
+            transform: translateX(4px);
+        }
+
+        .broker-item h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: .2rem;
+            color: #111827;
+        }
+
+        .broker-item p {
+            color: #6b7280;
+            font-size: .875rem;
+        }
+
+        .broker-tags {
+            display: flex;
+            gap: .4rem;
+            margin-top: .5rem;
+            flex-wrap: wrap;
+        }
+
+        .broker-tag {
+            background: #dc2626;
+            color: #fff;
+            padding: .15rem .6rem;
+            border-radius: 9999px;
+            font-size: .72rem;
+            font-weight: 500;
+        }
+
+        /* Broker detail modal content */
+        #brokerDetails h3 {
+            font-size: 1.375rem;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: .75rem;
+        }
+
+        .detail-section {
+            margin: 1rem 0;
+        }
+
+        .detail-section h4 {
+            font-weight: 600;
+            margin-bottom: .4rem;
+            color: #111827;
+        }
+
+        .detail-section ol,
+        .detail-section ul {
+            margin-left: 1.5rem;
+        }
+
+        .detail-section li {
+            margin-bottom: .35rem;
+            color: #374151;
+            font-size: .9rem;
+        }
+
+        .detail-section a {
+            color: #dc2626;
+            text-decoration: none;
+        }
+
+        .detail-section a:hover {
+            text-decoration: underline;
+        }
+
+        /* Buttons inside modal */
+        .btn {
+            display: inline-block;
+            padding: .55rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: .9rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all .2s ease;
+            border: 2px solid transparent;
+        }
+
+        .btn-primary {
+            background-color: #dc2626;
+            color: #fff;
+            border-color: #dc2626;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #b91c1c;
+            border-color: #b91c1c;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+
+        .btn-outline:hover {
+            background-color: #dc2626;
+            color: #fff;
+        }
+
+        /* Alert messages */
+        .alert {
+            padding: .8rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: .875rem;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #dc2626;
+        }
+
+        .alert-info {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid #f59e0b;
+        }
+
+        /* Misc helpers */
+        .info-text {
+            color: #6b7280;
+            font-size: .875rem;
+        }
+    </style>
+</head>
+
+<body
+    class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700">
+
+    <!-- ═══════════════════════════════════════════
+         HEADER / NAV 
+    ════════════════════════════════════════════ -->
+    <header class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
+        id="site-header">
+        <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-md:px-4">
+            <a href="#" class="inline-flex items-center gap-2.5" aria-label="BLT Vanish home">
+                <img src="./assets/blt-vanish-logo.png" alt="BLT Vanish logo" class="h-10 sm:h-10">
+                <div class="flex flex-col">
+                    <span class="text-sm font-semibold tracking-tight">BLT Vanish</span>
+                    <span class="text-[0.65rem] text-gray-400 leading-none mt-0.5">Privacy Tool</span>
+                </div>
+            </a>
+
+            <nav class="hidden items-center gap-7 md:flex" aria-label="Primary navigation">
+                <a class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+                    href="#how-it-works">How it works</a>
+                <a class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+                    href="#app">App</a>
+                <a class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+                    href="#setup">Setup</a>
+                <a class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+                    href="#docs">Docs</a>
+                <a class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+                    href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer">Source</a>
+            </nav>
+
+            <div class="hidden items-center gap-3 md:flex">
+                <a class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+                    href="#app">Launch app</a>
+                <a class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+                    href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer">Try
+                    Vanish</a>
+            </div>
+
+            <button
+                class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-md:flex"
+                id="mobile-toggle" type="button" aria-label="Toggle menu" aria-expanded="false"
+                aria-controls="mobile-menu">
+                <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+                <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+                <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+            </button>
+        </div>
+
+        <nav class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur-md"
+            id="mobile-menu" aria-label="Mobile navigation">
+            <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="#how-it-works">How it works</a>
+            <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="#app">App</a>
+            <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="#setup">Setup</a>
+            <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="#docs">Docs</a>
+            <a class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer">Source</a>
+            <a class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+                href="#app">Launch app</a>
+            <a class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+                href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer">Try
+                Vanish</a>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- ═══════════════════════════════════════════
+           HERO
+      ════════════════════════════════════════════ -->
+        <section
+            class="relative flex min-h-[43rem] items-start justify-center px-4 pb-14 pt-52 max-md:min-h-[38rem] max-md:pt-36"
+            aria-label="Hero">
+            <div class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-[36rem] w-full opacity-70 md:w-[min(94rem,180vw)]"
+                aria-hidden="true"></div>
+            <div class="relative z-[2] flex w-full min-w-0 flex-col items-center text-center">
+                <a class="inline-flex max-w-[min(40rem,calc(100vw_-_2rem))] items-center gap-3 rounded-full bg-white/40 py-[.15rem] pl-[.15rem] pr-3 text-sm font-medium text-gray-900 shadow-[0_10px_30px_-16px_rgba(220,38,38,.45),0_0_0_1px_rgba(0,0,0,.1)] backdrop-blur-[1px] max-md:w-full max-md:justify-center max-md:text-[.72rem]"
+                    href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer"
+                    aria-label="Open BLT Vanish Documentation">
+                    <span
+                        class="flex-none rounded-full border border-gray-200 bg-gray-50 px-2 md:px-[.65rem] py-1 text-xs text-gray-600">Open
+                        source</span>
+                    <span class="truncate">Local-first. No server. Your data never leaves your device.</span>
+                </a>
+                <h1
+                    class="mt-7 max-w-full text-[clamp(3.4rem,10vw,7rem)] font-bold leading-[0.98] tracking-[-0.055em] text-gray-900">
+                    Make your<br />data <span class="text-red-600 uppercase">vanish</span>.
+                </h1>
+                <p
+                    class="mt-6 w-full max-w-[42rem] text-[clamp(1rem,1.55vw,1.22rem)] leading-[1.6] text-gray-700 text-balance max-md:px-2">
+                    BLT Vanish removes your personal data from brokers, scrubs persistent tracking trails, and keeps the
+                    entire opt-out workflow encrypted and local to your browser.
+                </p>
+                <div class="mt-7 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4">
+                    <a class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-base font-medium text-white shadow-[0_0_0_2px_rgba(0,0,0,.04),0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px max-md:w-full"
+                        href="#app">Launch app</a>
+                    <a class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-base font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50 max-md:w-full"
+                        href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer">View
+                        source</a>
+                </div>
+            </div>
+        </section>
+
+        <div class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%_-_2rem))] items-center gap-3 text-gray-500"
+            aria-hidden="true">
+            <span class="wave-dots relative h-4 w-5 flex-none"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        </div>
+
+        <section id="how-it-works" class="w-full px-4 pb-24 pt-10 max-md:pb-20" aria-labelledby="how-it-works-heading">
+            <div class="mx-auto w-[min(64rem,calc(100%_-_1rem))]">
+                <div class="mx-auto mb-10 max-w-[42rem] text-center">
+                    <span
+                        class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">How
+                        it works</span>
+                    <h2 id="how-it-works-heading"
+                        class="mt-4 text-[clamp(2.25rem,4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance">
+                        Three steps to erase your footprint
+                    </h2>
+                    <p class="mx-auto mt-4 max-w-[40rem] text-base leading-[1.6] text-gray-600">
+                        Vanish keeps everything on-device. No accounts, no servers, no tracking of the tracker.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
+                    <article class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]">
+                        <div
+                            class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600">
+                            01</div>
+                        <h3 class="mt-6 text-lg font-semibold">Build your profile</h3>
+                        <p class="mt-3 text-sm leading-6 text-gray-600">Enter your name, email, and identifiers once.
+                            Vanish encrypts the profile with AES-256 and keeps it entirely in your browser — nothing is
+                            sent to a server.</p>
+                    </article>
+                    <article class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]">
+                        <div
+                            class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600">
+                            02</div>
+                        <h3 class="mt-6 text-lg font-semibold">Queue broker removals</h3>
+                        <p class="mt-3 text-sm leading-6 text-gray-600">Select from the pre-built broker list —
+                            Whitepages, Spokeo, Intelius, and more. Vanish generates the correct opt-out request for
+                            each and tracks the expected response date.</p>
+                    </article>
+                    <article class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]">
+                        <div
+                            class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600">
+                            03</div>
+                        <h3 class="mt-6 text-lg font-semibold">Monitor new mentions</h3>
+                        <p class="mt-3 text-sm leading-6 text-gray-600">The built-in monitor checks for fresh references
+                            to your identifiers across data brokers and surfaces them in the dashboard so you can act
+                            before they spread further.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════
+           VANISH CONSOLE MOCKUP
+      ════════════════════════════════════════════ -->
+        <section class="w-full px-4 pb-24 pt-6 max-md:pb-20" aria-labelledby="vanish-console-heading">
+            <div class="mx-auto grid w-[min(72rem,calc(100%_-_1rem))] items-center gap-10 lg:grid-cols-[0.88fr_1.12fr]">
+                <div>
+                    <h2 id="vanish-console-heading"
+                        class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500">
+                        Vanish console</h2>
+                    <p
+                        class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance">
+                        Before and after, right in the browser.</p>
+                    <p class="mt-4 max-w-[36rem] text-base leading-[1.65] text-gray-600">
+                        The <a class="font-medium text-red-600 hover:underline" href="#app">/vanish</a> action shows a
+                        live diff of your personal payload — raw identifiers in, scrubbed output out — without ever
+                        leaving your local session.
+                    </p>
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <a class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2.5 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+                            href="#app">Open Vanish</a>
+                        <a class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+                            href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank"
+                            rel="noopener noreferrer">View source</a>
+                    </div>
+                </div>
+                <a href="#app"
+                    class="group block min-w-0 rounded-3xl border border-gray-200 bg-white p-4 shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)]"
+                    aria-label="Open Vanish console">
+                    <div
+                        class="min-w-0 rounded-2xl border border-gray-100 bg-gray-50 p-4 font-mono text-xs text-gray-600">
+                        <div class="mb-4 flex items-center justify-between">
+                            <span class="font-sans text-sm font-semibold text-gray-900">Vanish Console</span>
+                            <span
+                                class="rounded-full bg-emerald-50 px-2 py-1 text-[.65rem] font-semibold text-emerald-700">local</span>
+                        </div>
+                        <div class="grid gap-2">
+                            <div class="rounded-xl bg-white p-3 shadow-sm"><span class="text-red-600">POST</span>
+                                /vanish<span class="float-right text-emerald-700">on-device</span></div>
+                            <div class="rounded-xl bg-white p-3 shadow-sm"><span class="text-red-600">GET</span>
+                                /broker-status<span class="float-right text-gray-400">encrypted</span></div>
+                            <div class="rounded-xl bg-white p-3 shadow-sm"><span class="text-red-600">GET</span>
+                                /monitor/mentions<span class="float-right text-gray-400">encrypted</span></div>
+                        </div>
+                        <pre
+                            class="mt-4 overflow-x-auto rounded-xl bg-[#111827] p-4 text-left text-[.68rem] leading-5 text-gray-200"><code>{
+  "vanished": true,
+  "brokers_queued": 12,
+  "identifiers_scrubbed": 7,
+  "status": "local-only"
+}</code></pre>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <div class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%_-_2rem))] items-center gap-3 text-gray-500"
+            aria-hidden="true">
+            <span class="wave-dots relative h-4 w-5 flex-none"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+           APP SECTION  (Privacy Profile Manager)
+      ════════════════════════════════════════════ -->
+        <section id="app" class="w-full px-4 pb-24 pt-10 max-md:pb-20" aria-labelledby="app-heading">
+            <div class="mx-auto w-[min(64rem,calc(100%_-_1rem))]">
+                <div class="mx-auto mb-10 max-w-[42rem] text-center">
+                    <span
+                        class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">Web
+                        App</span>
+                    <h2 id="app-heading"
+                        class="mt-4 text-[clamp(2.25rem,4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance">
+                        Privacy Profile Manager
+                    </h2>
+                    <p class="mx-auto mt-4 max-w-[40rem] text-base leading-[1.6] text-gray-600">
+                        Upload and manage your encrypted privacy profile entirely in your browser. Your data never
+                        leaves your device.
+                    </p>
+                </div>
+
+                <!-- Alert injection target -->
+                <div id="app-alerts" class="mx-auto max-w-3xl"></div>
+
+                <div class="mx-auto max-w-3xl space-y-4">
+
+                    <!-- Profile card -->
+                    <div class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]">
+                        <h3 class="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900">
+                            <i class="fa-solid fa-folder-open text-red-600" aria-hidden="true"></i>
+                            Your Privacy Profile
+                        </h3>
+                        <div id="profileStatus"
+                            class="mb-4 rounded-r-md border-l-4 border-red-500 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                            <p>No profile loaded. Create a new profile or upload an existing one.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-3 mb-4">
+                            <label for="fileUpload"
+                                class="inline-flex cursor-pointer items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50">
+                                <i class="fa-solid fa-upload" aria-hidden="true"></i>
+                                Upload Profile
+                                <input type="file" id="fileUpload" accept=".json,.enc" class="hidden">
+                            </label>
+                            <button id="createProfile" type="button"
+                                class="inline-flex items-center gap-2 rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white transition duration-200 hover:-translate-y-px">
+                                <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+                                Create New Profile
+                            </button>
+                            <button id="downloadProfile" type="button" disabled
+                                class="inline-flex cursor-not-allowed items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-400 opacity-50">
+                                <i class="fa-solid fa-download" aria-hidden="true"></i>
+                                Download Profile
+                            </button>
+                        </div>
+                        <!-- Encrypt / password section (hidden until download clicked) -->
+                        <div id="passwordSection" class="hidden border-t border-gray-100 pt-5">
+                            <h4 class="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-800">
+                                <i class="fa-solid fa-lock text-red-600" aria-hidden="true"></i>
+                                Secure Your Profile
+                            </h4>
+                            <div class="relative mb-3">
+                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <i class="fa-solid fa-key text-sm text-gray-400" aria-hidden="true"></i>
+                                </div>
+                                <input type="password" id="password"
+                                    placeholder="Enter encryption password (min 8 chars)"
+                                    class="w-full rounded-md border border-gray-300 py-2 pl-9 pr-4 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                            </div>
+                            <button id="encryptProfile" type="button"
+                                class="inline-flex items-center gap-2 rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white transition duration-200 hover:-translate-y-px">
+                                <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                                Encrypt &amp; Download
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Profile form (hidden until profile created/loaded) -->
+                    <div id="profileInfo"
+                        class="hidden rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]">
+                        <h3 class="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900">
+                            <i class="fa-solid fa-user-circle text-red-600" aria-hidden="true"></i>
+                            Your Information
+                        </h3>
+                        <form id="profileForm" novalidate>
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700" for="firstName">First
+                                        Name</label>
+                                    <input type="text" id="firstName"
+                                        class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700" for="lastName">Last
+                                        Name</label>
+                                    <input type="text" id="lastName"
+                                        class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700"
+                                        for="email">Email</label>
+                                    <input type="email" id="email"
+                                        class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700"
+                                        for="phone">Phone</label>
+                                    <input type="tel" id="phone"
+                                        class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="mb-1 block text-sm font-medium text-gray-700"
+                                        for="address">Address</label>
+                                    <input type="text" id="address"
+                                        class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700" for="city">City</label>
+                                    <input type="text" id="city"
+                                        class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700"
+                                        for="state">State</label>
+                                    <input type="text" id="state"
+                                        class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700" for="age">Age</label>
+                                    <input type="number" id="age" min="18" max="120"
+                                        class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                                </div>
+                            </div>
+                            <button type="submit"
+                                class="mt-5 inline-flex items-center gap-2 rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-2 text-sm font-medium text-white transition duration-200 hover:-translate-y-px">
+                                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                                Save Profile
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Brokers section (hidden until profile loaded) -->
+                    <div id="brokersSection"
+                        class="hidden rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]">
+                        <h3 class="mb-1 flex items-center gap-2 text-base font-semibold text-gray-900">
+                            <i class="fa-solid fa-bullseye text-red-600" aria-hidden="true"></i>
+                            Data Brokers
+                        </h3>
+                        <p class="info-text mb-4">These brokers may have your information. Click any entry to see
+                            opt-out instructions.</p>
+                        <div id="brokersList"></div>
+                    </div>
+
+                </div><!-- /max-w-3xl -->
+            </div>
+        </section>
+
+        <!-- Broker details modal -->
+        <div id="brokerModal" role="dialog" aria-modal="true" aria-label="Broker details">
+            <div class="modal-content">
+                <button class="close" aria-label="Close">&times;</button>
+                <div id="brokerDetails"></div>
+            </div>
+        </div>
+
+        <div class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%_-_2rem))] items-center gap-3 text-gray-500"
+            aria-hidden="true">
+            <span class="wave-dots relative h-4 w-5 flex-none"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+           MODULES GRID
+      ════════════════════════════════════════════ -->
+        <section id="modules" class="w-full px-4 pb-24 pt-10 max-md:pb-20" aria-labelledby="modules-heading">
+            <div class="mx-auto w-[min(72rem,calc(100%_-_1rem))]">
+                <div class="max-w-[38rem]">
+                    <h2 id="modules-heading"
+                        class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500">
+                        Vanish modules</h2>
+                    <p
+                        class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance">
+                        Start with the module your privacy workflow needs.</p>
+                    <p class="mt-4 max-w-[42rem] text-base leading-[1.6] text-gray-600">Each module runs locally. Cards
+                        link to the docs so you can read the implementation before you run anything.</p>
+                </div>
+                <div class="mt-8 grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
+                    <a class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+                        href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer">
+                        <span class="font-mono text-sm text-red-600">/ephemeral-logs</span>
+                        <p class="mt-2 text-sm text-gray-600">Create and expire time-bound activity logs that auto-purge
+                            after a configurable TTL.</p>
+                    </a>
+                    <a class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+                        href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer">
+                        <span class="font-mono text-sm text-red-600">/auto-scrub</span>
+                        <p class="mt-2 text-sm text-gray-600">Strip PII from stored records on a schedule — names,
+                            emails, phone numbers, and addresses.</p>
+                    </a>
+                    <a class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+                        href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer">
+                        <span class="font-mono text-sm text-red-600">/broker-queue</span>
+                        <p class="mt-2 text-sm text-gray-600">Manage pending opt-out requests, check response deadlines,
+                            and mark removals confirmed.</p>
+                    </a>
+                    <a class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+                        href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer">
+                        <span class="font-mono text-sm text-red-600">/privacy-settings</span>
+                        <p class="mt-2 text-sm text-gray-600">Configure encryption keys, scrub schedules, and identifier
+                            sensitivity levels.</p>
+                    </a>
+                    <a class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+                        href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer">
+                        <span class="font-mono text-sm text-red-600">/monitor</span>
+                        <p class="mt-2 text-sm text-gray-600">Watch for new mentions of your identifiers across data
+                            brokers and flag them for action.</p>
+                    </a>
+                    <a class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+                        href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer">
+                        <span class="font-mono text-sm text-red-600">/profile-export</span>
+                        <p class="mt-2 text-sm text-gray-600">Download your encrypted local profile as a portable file
+                            for backup or device transfer.</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <div class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%_-_2rem))] items-center gap-3 text-gray-500"
+            aria-hidden="true">
+            <span class="wave-dots relative h-4 w-5 flex-none"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+           SETUP SECTION
+      ════════════════════════════════════════════ -->
+        <section id="setup" class="w-full px-4 pb-24 pt-10 max-md:pb-20" aria-labelledby="setup-heading">
+            <div class="mx-auto w-[min(72rem,calc(100%_-_1rem))]">
+                <div class="max-w-[38rem]">
+                    <h2 id="setup-heading"
+                        class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-0.01em] text-red-500">
+                        Setup</h2>
+                    <p
+                        class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-0.04em] text-balance">
+                        Three ways to run Vanish.</p>
+                    <p class="mt-4 max-w-[42rem] text-base leading-[1.6] text-gray-600">Pick the option that fits your
+                        workflow. All three keep your data on your device.</p>
+                </div>
+
+                <div class="mt-8 grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
+
+                    <!-- Option 1: Web app -->
+                    <article class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,0.1)]">
+                        <div class="mb-4 flex items-center gap-3">
+                            <div
+                                class="flex h-10 w-10 flex-none items-center justify-center rounded-lg border border-gray-200 bg-red-50">
+                                <i class="fa-solid fa-globe text-red-600" aria-hidden="true"></i>
+                            </div>
+                            <div>
+                                <p class="font-mono text-[0.65rem] uppercase tracking-widest text-red-500">Option 1</p>
+                                <h3 class="text-base font-semibold text-gray-900">Web app</h3>
+                            </div>
+                        </div>
+                        <p class="mb-3 text-sm leading-6 text-gray-600">Use the browser version directly for a
+                            local-first workflow.</p>
+                        <ol class="list-inside list-decimal space-y-1.5 text-sm text-gray-600">
+                            <li>Scroll up to the <a href="#app" class="font-medium text-red-600 hover:underline">App
+                                    section</a></li>
+                            <li>Create a new privacy profile</li>
+                            <li>Enter your information and keep it on your device</li>
+                            <li>Review data brokers and opt-out instructions</li>
+                            <li>Download your encrypted profile for safekeeping</li>
+                        </ol>
+                        <p class="mt-4 flex items-center gap-1.5 text-xs text-gray-400">
+                            <i class="fa-solid fa-circle-info text-red-500" aria-hidden="true"></i>
+                            Your data never leaves your browser.
+                        </p>
+                    </article>
+
+                    <!-- Option 2: Native app -->
+                    <article class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,0.1)]">
+                        <div class="mb-4 flex items-center gap-3">
+                            <div
+                                class="flex h-10 w-10 flex-none items-center justify-center rounded-lg border border-gray-200 bg-red-50">
+                                <i class="fa-solid fa-mobile-screen-button text-red-600" aria-hidden="true"></i>
+                            </div>
+                            <div>
+                                <p class="font-mono text-[0.65rem] uppercase tracking-widest text-red-500">Option 2</p>
+                                <h3 class="text-base font-semibold text-gray-900">Native app</h3>
+                            </div>
+                        </div>
+                        <p class="mb-3 text-sm leading-6 text-gray-600">Install the full Flutter application from
+                            releases.</p>
+                        <ol class="list-inside list-decimal space-y-1.5 text-sm text-gray-600">
+                            <li>Visit the <a href="https://github.com/OWASP-BLT/BLT-Vanish-Web/releases" target="_blank"
+                                    rel="noopener noreferrer" class="font-medium text-red-600 hover:underline">GitHub
+                                    Releases</a> page</li>
+                            <li>Download the build for your platform:
+                                <ul class="ml-4 mt-1 space-y-0.5 list-none text-xs text-gray-500">
+                                    <li><code class="rounded bg-gray-100 px-1 py-0.5 font-mono">.exe</code> Windows</li>
+                                    <li><code class="rounded bg-gray-100 px-1 py-0.5 font-mono">.dmg</code> macOS</li>
+                                    <li><code class="rounded bg-gray-100 px-1 py-0.5 font-mono">.AppImage</code> Linux
+                                    </li>
+                                    <li><code class="rounded bg-gray-100 px-1 py-0.5 font-mono">.apk</code> Android</li>
+                                </ul>
+                            </li>
+                            <li>Install and run the application</li>
+                            <li>Follow the in-app setup wizard</li>
+                        </ol>
+                    </article>
+
+                    <!-- Option 3: Build from source -->
+                    <article class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,0.1)]">
+                        <div class="mb-4 flex items-center gap-3">
+                            <div
+                                class="flex h-10 w-10 flex-none items-center justify-center rounded-lg border border-gray-200 bg-red-50">
+                                <i class="fa-solid fa-code text-red-600" aria-hidden="true"></i>
+                            </div>
+                            <div>
+                                <p class="font-mono text-[0.65rem] uppercase tracking-widest text-red-500">Option 3</p>
+                                <h3 class="text-base font-semibold text-gray-900">Build from source</h3>
+                            </div>
+                        </div>
+                        <p class="mb-3 text-sm leading-6 text-gray-600">For developers who want to build locally.</p>
+                        <pre
+                            class="overflow-x-auto rounded-xl bg-[#111827] p-4 text-left text-[.68rem] leading-5 text-gray-200 font-mono"><code># Clone the repository
+git clone https://gitlab.com/owasp-blt/blt-vanish.git
+cd BLT-Vanish-Web
+
+# Install Flutter dependencies
+cd flutter_app
+flutter pub get
+
+# Run on your platform
+flutter run -d windows</code></pre>
+                        <p class="mt-3 text-sm text-gray-600">See <a
+                                href="https://gitlab.com/owasp-blt/blt-vanish/-/blob/main/CONTRIBUTING.md"
+                                target="_blank" rel="noopener noreferrer"
+                                class="font-medium text-red-600 hover:underline">CONTRIBUTING.md</a> for the full build
+                            guide.</p>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+        <div class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%_-_2rem))] items-center gap-3 text-gray-500"
+            aria-hidden="true">
+            <span class="wave-dots relative h-4 w-5 flex-none"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+           DOCS SECTION
+      ════════════════════════════════════════════ -->
+        <section id="docs" class="w-full px-4 pb-24 pt-10 max-md:pb-20" aria-labelledby="docs-heading">
+            <div class="mx-auto w-[min(72rem,calc(100%_-_1rem))]">
+                <div class="mx-auto mb-10 max-w-[42rem] text-center">
+                    <span
+                        class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">Documentation</span>
+                    <h2 id="docs-heading"
+                        class="mt-4 text-[clamp(2.25rem,4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance">
+                        Reference material and project guides
+                    </h2>
+                    <p class="mx-auto mt-4 max-w-[40rem] text-base leading-[1.6] text-gray-600">
+                        Everything from architecture deep-dives to contribution guidelines, kept in one place.
+                    </p>
+                </div>
+                <div class="grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
+
+                    <a class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+                        href="https://gitlab.com/owasp-blt/blt-vanish/-/blob/main/README.md" target="_blank"
+                        rel="noopener noreferrer">
+                        <div class="mb-2 flex items-center gap-3">
+                            <div
+                                class="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-gray-200 bg-red-50">
+                                <i class="fa-solid fa-book-open text-sm text-red-600" aria-hidden="true"></i>
+                            </div>
+                            <span class="font-semibold text-gray-900">Overview</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Learn about BLT Vanish architecture and design principles.</p>
+                    </a>
+
+                    <a class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+                        href="https://gitlab.com/owasp-blt/blt-vanish/-/blob/main/SECURITY.md" target="_blank"
+                        rel="noopener noreferrer">
+                        <div class="mb-2 flex items-center gap-3">
+                            <div
+                                class="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-gray-200 bg-red-50">
+                                <i class="fa-solid fa-shield-halved text-sm text-red-600" aria-hidden="true"></i>
+                            </div>
+                            <span class="font-semibold text-gray-900">Security</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Understand the security model and encryption implementation.
+                        </p>
+                    </a>
+
+                    <a class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+                        href="https://gitlab.com/owasp-blt/blt-vanish/-/blob/main/docs/architecture.md" target="_blank"
+                        rel="noopener noreferrer">
+                        <div class="mb-2 flex items-center gap-3">
+                            <div
+                                class="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-gray-200 bg-red-50">
+                                <i class="fa-solid fa-sitemap text-sm text-red-600" aria-hidden="true"></i>
+                            </div>
+                            <span class="font-semibold text-gray-900">Architecture</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Deep dive into the technical architecture and data flow.</p>
+                    </a>
+
+                    <a class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+                        href="https://gitlab.com/owasp-blt/blt-vanish/-/blob/main/docs/broker-guide.md" target="_blank"
+                        rel="noopener noreferrer">
+                        <div class="mb-2 flex items-center gap-3">
+                            <div
+                                class="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-gray-200 bg-red-50">
+                                <i class="fa-solid fa-database text-sm text-red-600" aria-hidden="true"></i>
+                            </div>
+                            <span class="font-semibold text-gray-900">Broker Guide</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Learn how to add new data brokers to the database.</p>
+                    </a>
+
+                    <a class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+                        href="https://gitlab.com/owasp-blt/blt-vanish/-/blob/main/CONTRIBUTING.md" target="_blank"
+                        rel="noopener noreferrer">
+                        <div class="mb-2 flex items-center gap-3">
+                            <div
+                                class="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-gray-200 bg-red-50">
+                                <i class="fa-solid fa-handshake text-sm text-red-600" aria-hidden="true"></i>
+                            </div>
+                            <span class="font-semibold text-gray-900">Contributing</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Guidelines for contributing to the project.</p>
+                    </a>
+
+                    <a class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+                        href="https://gitlab.com/owasp-blt/blt-vanish/-/blob/main/CHANGELOG.md" target="_blank"
+                        rel="noopener noreferrer">
+                        <div class="mb-2 flex items-center gap-3">
+                            <div
+                                class="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-gray-200 bg-red-50">
+                                <i class="fa-solid fa-clock-rotate-left text-sm text-red-600" aria-hidden="true"></i>
+                            </div>
+                            <span class="font-semibold text-gray-900">Changelog</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Version history and release notes.</p>
+                    </a>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════
+           CTA + FOOTER
+      ════════════════════════════════════════════ -->
+        <section class="ml-[calc(50%_-_50vw)] w-screen overflow-hidden px-4 pt-4" id="cta"
+            aria-labelledby="cta-heading">
+            <div class="relative mx-auto flex w-[min(42rem,100%)] min-w-0 flex-col items-center gap-3 text-center">
+                <span
+                    class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">OWASP
+                    BLT Project</span>
+                <h2 id="cta-heading"
+                    class="mt-1 max-w-full text-[clamp(1.5rem,7vw,4rem)] font-medium leading-[1.05] tracking-[-.045em] text-gray-900">
+                    Start using<br />BLT Vanish.
+                </h2>
+                <p class="m-0 w-full max-w-[31rem] text-sm leading-[1.6] text-gray-500">
+                    Open the app, build a profile, and queue your first broker removal — all without sending a byte to
+                    any server.
+                </p>
+                <div class="mb-2 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4">
+                    <a class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px max-md:w-full"
+                        href="#app">Launch app</a>
+                    <a class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50 max-md:w-full"
+                        href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer">View
+                        source</a>
+                </div>
+            </div>
+
+            <footer
+                class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-[#0e0d0c] py-6 pb-8 text-white max-md:rounded-t-[.8rem]">
+                <h2
+                    class="relative m-0 break-all px-2 text-center text-[clamp(2rem,10vw,8rem)] font-light leading-[0.9] text-white sm:break-normal sm:text-[clamp(3rem,10vw,8rem)]">
+                    vanish.owaspblt.org
+                </h2>
+                <div class="relative mx-auto mt-3 h-[3px] w-16 rounded-full bg-red-600" aria-hidden="true"></div>
+                <div
+                    class="footer-links relative mx-auto mt-8 grid max-w-6xl grid-cols-1 gap-6 px-6 font-mono sm:grid-cols-2 md:grid-cols-4 md:gap-8">
+                    <div>
+                        <p>App</p>
+                        <a href="#app">Web app</a>
+                        <a href="#setup">Getting started</a>
+                        <a href="#docs">Docs</a>
+                    </div>
+                    <div>
+                        <p>Modules</p>
+                        <a href="#modules">/auto-scrub</a>
+                        <a href="#modules">/broker-queue</a>
+                        <a href="#modules">/monitor</a>
+                    </div>
+                    <div>
+                        <p>Project</p>
+                        <a href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank"
+                            rel="noopener noreferrer">GitLab</a>
+                        <a href="https://github.com/OWASP-BLT/BLT-Vanish-Web" target="_blank"
+                            rel="noopener noreferrer">GitHub</a>
+                        <a href="https://owasp.org" target="_blank" rel="noopener noreferrer">owasp.org</a>
+
+                    </div>
+                    <div>
+                        <p>OWASP</p>
+                        <a href="https://pages.owaspblt.org/" target="_blank" rel="noopener noreferrer">OWASP BLT
+                            Pages</a>
+                        <a href="https://gitlab.com/owasp-blt/blt-pages" target="_blank" rel="noopener noreferrer">OWASP
+                            BLT pages repo</a>
+                        <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank"
+                            rel="noopener noreferrer">Foundation page</a>
+                    </div>
+                </div>
+            </footer>
+        </section>
+    </main>
+
+    <!-- ═══════════════════════════════════════════
+         SCRIPTS
+    ════════════════════════════════════════════ -->
+    <script>
+        // Mobile nav toggle
+        (function () {
+            var mobileToggle = document.getElementById('mobile-toggle');
+            var mobileMenu = document.getElementById('mobile-menu');
+            if (mobileToggle && mobileMenu) {
+                mobileToggle.addEventListener('click', function () {
+                    var open = !mobileMenu.classList.contains('open');
+                    mobileMenu.classList.toggle('open', open);
+                    mobileToggle.classList.toggle('active', open);
+                    mobileToggle.setAttribute('aria-expanded', String(open));
+                });
+                mobileMenu.querySelectorAll('a').forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        mobileMenu.classList.remove('open');
+                        mobileToggle.classList.remove('active');
+                        mobileToggle.setAttribute('aria-expanded', 'false');
+                    });
+                });
+            }
+        })();
+    </script>
+    <script src="app.js"></script>
+</body>
+
+</html>

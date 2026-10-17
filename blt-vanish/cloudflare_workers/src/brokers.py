@@ -1,0 +1,134 @@
+from responses import json_response
+
+
+BROKERS = [
+    {
+        "id": "whitepages",
+        "name": "Whitepages",
+        "description": "Online directory providing contact information and background data",
+        "website": "https://www.whitepages.com",
+        "optOutUrl": "https://www.whitepages.com/suppression-requests",
+        "category": "People Search",
+        "dataTypes": ["name", "address", "phone", "age", "relatives"],
+        "optOutMethod": {
+            "type": "online_form",
+            "instructions": "Fill out the opt-out form on their suppression page",
+            "steps": [
+                "Visit the opt-out page",
+                "Search for your listing",
+                'Click "Remove this listing"',
+                "Enter your email for confirmation",
+                "Verify via email link",
+            ],
+        },
+        "requiredFields": ["firstName", "lastName", "state"],
+        "estimatedResponseDays": 7,
+        "isActive": True,
+    },
+    {
+        "id": "spokeo",
+        "name": "Spokeo",
+        "description": "People search engine aggregating public records and social media",
+        "website": "https://www.spokeo.com",
+        "optOutUrl": "https://www.spokeo.com/optout",
+        "category": "People Search",
+        "dataTypes": ["name", "address", "phone", "email", "social_media", "photos"],
+        "optOutMethod": {
+            "type": "online_form",
+            "instructions": "Submit opt-out request through their form",
+            "steps": [
+                "Go to opt-out page",
+                "Search for your profile",
+                "Select listings to remove",
+                "Enter email address",
+                "Confirm via email",
+            ],
+        },
+        "requiredFields": ["firstName", "lastName", "state", "email"],
+        "estimatedResponseDays": 5,
+        "isActive": True,
+    },
+    {
+        "id": "beenverified",
+        "name": "BeenVerified",
+        "description": "Background check and people search service",
+        "website": "https://www.beenverified.com",
+        "optOutUrl": "https://www.beenverified.com/app/optout/search",
+        "category": "Background Check",
+        "dataTypes": ["name", "address", "phone", "criminal_records", "property_records"],
+        "optOutMethod": {
+            "type": "online_form",
+            "instructions": "Use their opt-out search tool",
+            "steps": [
+                "Visit opt-out page",
+                "Enter your information",
+                "Find your record",
+                "Request removal",
+                "Verify email",
+            ],
+        },
+        "requiredFields": ["firstName", "lastName", "city", "state", "email"],
+        "estimatedResponseDays": 14,
+        "isActive": True,
+    },
+    {
+        "id": "truthfinder",
+        "name": "TruthFinder",
+        "description": "Public records search and background check service",
+        "website": "https://www.truthfinder.com",
+        "optOutUrl": "https://www.truthfinder.com/opt-out/",
+        "category": "Background Check",
+        "dataTypes": ["name", "address", "phone", "criminal_records", "social_media"],
+        "optOutMethod": {
+            "type": "email",
+            "templateId": "truthfinder-optout",
+            "instructions": "Email their opt-out team with required information",
+            "steps": [
+                "Find your profile URL",
+                "Send email to opt-out address",
+                "Include profile URL and personal info",
+                "Wait for confirmation",
+            ],
+        },
+        "contactEmail": "optout@truthfinder.com",
+        "requiredFields": ["firstName", "lastName", "address", "email"],
+        "estimatedResponseDays": 30,
+        "isActive": True,
+    },
+    {
+        "id": "intelius",
+        "name": "Intelius",
+        "description": "People search and background check provider",
+        "website": "https://www.intelius.com",
+        "optOutUrl": "https://www.intelius.com/opt-out/",
+        "category": "People Search",
+        "dataTypes": ["name", "address", "phone", "relatives", "property_records"],
+        "optOutMethod": {
+            "type": "online_form",
+            "instructions": "Complete the opt-out form",
+            "steps": [
+                "Go to opt-out page",
+                "Search for your record",
+                "Verify your identity",
+                "Submit opt-out request",
+                "Receive confirmation",
+            ],
+        },
+        "requiredFields": ["firstName", "lastName", "age", "state", "email"],
+        "estimatedResponseDays": 10,
+        "isActive": True,
+    },
+]
+
+
+def handle_brokers_request(path):
+    broker_id = path.removeprefix("/api/brokers/")
+
+    if path == "/api/brokers" or not broker_id:
+        return json_response(BROKERS)
+
+    broker = next((broker for broker in BROKERS if broker["id"] == broker_id), None)
+    if broker is None:
+        return json_response({"error": "Broker not found"}, status=404)
+
+    return json_response(broker)

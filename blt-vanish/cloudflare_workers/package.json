@@ -1,0 +1,22 @@
+{
+  "name": "blt-vanish-workers",
+  "version": "1.0.0",
+  "description": "Python Cloudflare Worker for BLT-Vanish public data APIs",
+  "main": "src/index.py",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "check": "python3 -m compileall -q src"
+  },
+  "keywords": [
+    "privacy",
+    "cloudflare-workers",
+    "data-brokers"
+  ],
+  "author": "OWASP BLT Project",
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "wrangler": "^4.95.0"
+  },
+  "dependencies": {}
+}
