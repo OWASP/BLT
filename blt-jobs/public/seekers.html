@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Seekers - BLT Jobs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          },
+        },
+      };
+    </script>
+    <script>
+      (function () {
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark") document.documentElement.classList.add("dark");
+        else if (savedTheme === "light") document.documentElement.classList.remove("dark");
+        else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) document.documentElement.classList.add("dark");
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  </head>
+  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 dark:text-gray-100">
+    <div id="navbar-placeholder"></div>
+
+    <main class="mx-auto max-w-7xl px-4 pt-28 pb-12 sm:px-6 lg:px-8">
+      <header class="mb-8">
+        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl dark:text-gray-100">Job Seekers</h1>
+        <p class="mt-2 text-slate-600 dark:text-gray-400">Discover talented professionals in the OWASP BLT community</p>
+      </header>
+
+      <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="relative flex-1 max-w-md">
+          <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" aria-hidden="true"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search profiles..."
+            class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm shadow-sm transition focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
+          />
+        </div>
+        <a href="./add.html#seekers" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          Create Profile
+        </a>
+      </div>
+
+      <div id="seekersList" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
+
+      <div id="seekersEmpty" class="hidden col-span-full rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <i class="fa-solid fa-user text-4xl text-slate-300 dark:text-gray-600" aria-hidden="true"></i>
+        <h3 class="mt-4 text-lg font-semibold dark:text-gray-100">No profiles found</h3>
+        <p class="mt-2 text-slate-600 dark:text-gray-400">Try adjusting your search terms</p>
+      </div>
+    </main>
+
+    <footer class="mt-16 border-t border-slate-200 bg-white py-8 dark:border-gray-700 dark:bg-gray-900">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <p class="text-sm text-slate-600 dark:text-gray-400">
+            © 2026 OWASP BLT Jobs. Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" class="font-medium text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400">OWASP BLT Project</a>
+          </p>
+          <div class="flex gap-4">
+            <a href="https://gitlab.com/owasp-blt/blt-jobs" data-provider-repository target="_blank" class="text-slate-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500">
+              <i class="fa-brands fa-gitlab text-xl" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="assets/js/theme.js"></script>
+    <script src="assets/js/saved-jobs.js"></script>
+    <script src="assets/js/provider.js"></script>
+    <script src="assets/js/navbar.js"></script>
+    <script src="assets/js/sanitize.js"></script>
+    <script src="assets/js/seekers.js"></script>
+  </body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Details - BLT Jobs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        },
+      },
+    };
+  </script>
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "dark") document.documentElement.classList.add("dark");
+      else if (savedTheme === "light") document.documentElement.classList.remove("dark");
+      else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) document.documentElement.classList.add("dark");
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 dark:text-gray-100">
+    <div id="navbar-placeholder"></div>
+
+  <main class="flex-1">
+    <div id="jobRoot" class="min-h-screen mx-auto max-w-7xl px-4 pt-28 pb-12 sm:px-6 lg:px-8">
+        <!-- Initial loading state; replaced by job.js -->
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div class="text-center text-gray-600 dark:text-gray-300">
+            <svg
+              class="w-10 h-10 mx-auto mb-4 animate-spin text-gray-400"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg>
+            <p class="text-lg">Loading job details…</p>
+          </div>
+        </div>
+      </div>
+  </main>
+  <footer class="mt-16 border-t border-slate-200 bg-white py-8 dark:border-gray-700 dark:bg-gray-900">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <p class="text-sm text-slate-600 dark:text-gray-400">
+          © 2026 OWASP BLT Jobs. Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" class="font-medium text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400">OWASP BLT Project</a>
+        </p>
+        <div class="flex gap-4">
+          <a href="https://gitlab.com/owasp-blt/blt-jobs" data-provider-repository target="_blank" class="text-slate-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500">
+            <i class="fa-brands fa-gitlab text-xl" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/theme.js"></script>
+  <script src="assets/js/saved-jobs.js"></script>
+  <script src="assets/js/provider.js"></script>
+  <script src="assets/js/navbar.js"></script>
+  <script src="assets/js/analytics.js"></script>
+  <script src="assets/js/sanitize.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <script src="assets/js/job.js?v=2"></script>
+</body>
+</html>
