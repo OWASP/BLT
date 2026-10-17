@@ -1,0 +1,68 @@
+{
+    "username": "blt_demo",
+    "name": "BLT Demo User",
+    "role": "Security Researcher",
+    "role_section": "Contributors",
+    "avatar": "https://avatars.githubusercontent.com/u/36029484?v=4",
+    "github": "https://github.com/OWASP-BLT",
+    "linkedin": "https://linkedin.com/company/owasp",
+    "wallet": "0xDeF1234BLT5678AbCd0000000000000000000001",
+    "bio": "Bug hunter and open-source security contributor. Part of the OWASP BLT project.",
+    "followers": 320,
+    "following": 88,
+    "public_repos": 27,
+    "questions": {
+      "involvement": "I am a full-time security researcher focused on web application vulnerabilities. I contribute to OWASP BLT by discovering and reporting bugs across open-source projects, helping maintainers ship more secure software.",
+      "evolution": "Cybersecurity is shifting toward AI-assisted threat detection and automated patch management. I believe open-source collaboration — communities like OWASP — will be the cornerstone of keeping the internet safe as attack surfaces grow exponentially.",
+      "achievement": "Discovered a critical authentication bypass in a widely-used open-source CMS affecting over 50,000 installations. Coordinated responsible disclosure with the maintainer team and authored the CVE writeup, which was featured in multiple security publications."
+    },
+    "streak": {
+      "current": 12,
+      "longest": 47,
+      "days_visited": 183,
+      "last_visit": "2024-06-01T14:22:00Z",
+      "last_checkin": "2024-06-01T14:22:00Z"
+    },
+    "stats": {
+      "bugs_reported": 42,
+      "open_issues": 5,
+      "closed_issues": 37
+    },
+    "issue_stats": {
+      "general": 8,
+      "functional": 15,
+      "performance": 4,
+      "security": 12,
+      "typo": 1,
+      "design": 2
+    },
+    "bacon": {
+      "earned": 1350,
+      "pending": 3,
+      "completed": 39
+    },
+    "prs": {
+      "total": 18,
+      "merged": 14,
+      "open": 2,
+      "closed": 2
+    },
+    "pr_list": [
+      { "title": "Fix XSS vulnerability in comment parser", "state": "merged", "url": "https://github.com/OWASP-BLT/BLT/pull/1234", "repo": "OWASP-BLT/BLT" },
+      { "title": "Add CSRF protection to profile endpoint", "state": "merged", "url": "https://github.com/OWASP-BLT/BLT/pull/1198", "repo": "OWASP-BLT/BLT" },
+      { "title": "Improve rate limiting on login API", "state": "open", "url": "https://github.com/OWASP-BLT/BLT/pull/1312", "repo": "OWASP-BLT/BLT" },
+      { "title": "Update dependency audit workflow", "state": "merged", "url": "https://github.com/OWASP-BLT/BLT/pull/1289", "repo": "OWASP-BLT/BLT" }
+    ],
+    "badges": [
+      { "name": "Bug Hunter", "icon": "🐛" },
+      { "name": "BLT Contributor", "icon": "🛡️" },
+      { "name": "First Report", "icon": "🏅" },
+      { "name": "Streak 10", "icon": "🔥" }
+    ],
+    "tags": ["BLT Contributor", "Bug Hunter", "OWASP"],
+    "rank": "Elite Researcher",
+    "monthly_report": {
+      "top_finding": "Stored XSS in markdown renderer — CVE-2024-XXXXX"
+    },
+    "created_at": "2024-01-15T10:00:00Z"
+  }
