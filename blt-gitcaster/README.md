@@ -48,7 +48,7 @@ A real-time, AI-powered leaderboard of GitHub repository activity with live play
 
 ## 🚀 Live Demo
 
-Visit the live page at: https://owasp-blt.github.io/Github_Sportscaster/
+Visit the live page at: https://gitcaster.owaspblt.org/
 
 ## 📖 How It Works
 
