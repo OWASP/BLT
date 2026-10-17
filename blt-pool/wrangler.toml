@@ -1,0 +1,62 @@
+name = "blt-github-app"
+main = "src/worker.py"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["python_workers"]
+
+[[d1_databases]]
+binding = "LEADERBOARD_DB"
+database_name = "blt-leaderboard"
+database_id = "9ab4a669-1a95-4b98-bb01-284012a217dd"
+
+# ---------------------------------------------------------------------------
+# Static assets — serve files from public/ directory
+# ---------------------------------------------------------------------------
+[assets]
+directory = "./public"
+
+# ---------------------------------------------------------------------------
+# Non-secret variables — safe to commit
+# ---------------------------------------------------------------------------
+[vars]
+# BLT API base URL
+BLT_API_URL = "https://github-app.owaspblt.org"
+
+# GitHub organization — used for D1 leaderboard and mentor stats queries.
+GITHUB_ORG = "OWASP-BLT"
+
+# GitHub App slug — the URL-friendly name shown in GitHub App URLs.
+# Example: if your app lives at https://github.com/apps/my-blt-app
+# then set this to "my-blt-app".
+GITHUB_APP_SLUG = "blt-github-app"
+
+# ---------------------------------------------------------------------------
+# Secrets — set these with:  wrangler secret put <NAME>
+# ---------------------------------------------------------------------------
+# APP_ID               — GitHub App numeric ID
+# PRIVATE_KEY          — GitHub App private key (full PEM, PKCS#1 or PKCS#8)
+# WEBHOOK_SECRET       — GitHub App webhook secret
+# GITHUB_CLIENT_ID     — OAuth client ID     (optional)
+# GITHUB_CLIENT_SECRET — OAuth client secret (optional)
+# ADMIN_SECRET         — Bearer token for POST /admin/reset-leaderboard-month (optional)
+
+
+# ---------------------------------------------------------------------------
+# Scheduled triggers (cron jobs)
+# ---------------------------------------------------------------------------
+[triggers]
+crons = ["0 */2 * * *"]  # Run every 2 hours
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1

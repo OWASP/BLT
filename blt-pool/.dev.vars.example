@@ -1,0 +1,20 @@
+# Local development variables for the Python Cloudflare Worker.
+# Copy this file to .dev.vars and fill in your values.
+# These are used by `wrangler dev` and are never committed.
+#
+# For production, set secrets with:  wrangler secret put <NAME>
+
+# Required: GitHub App credentials
+APP_ID=
+PRIVATE_KEY=
+WEBHOOK_SECRET=
+
+# Optional: GitHub OAuth credentials
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+
+# Optional: Override the BLT API base URL
+BLT_API_URL=https://blt-api.owasp-blt.workers.dev
+
+# Optional: GitHub App slug (URL-friendly name shown in GitHub App URLs)
+GITHUB_APP_SLUG=blt-github-app
