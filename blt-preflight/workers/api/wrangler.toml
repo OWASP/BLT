@@ -1,0 +1,20 @@
+name = "blt-preflight-api"
+main = "src/index.ts"
+compatibility_date = "2025-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "blt-preflight"
+database_id = "REPLACE_WITH_D1_ID"
+
+[vars]
+ENVIRONMENT = "development"
+
+[env.production]
+name = "blt-preflight-api"
+vars = { ENVIRONMENT = "production" }
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "blt-preflight"
+database_id = "REPLACE_WITH_D1_ID"

@@ -1,0 +1,20 @@
+hook_mode: advisory
+minimum_severity: HIGH
+similarity_threshold: 0.6
+retention_days: 90
+
+heuristic_weights:
+  auth_file: 0.4
+  label_severity: 0.3
+  keyword: 0.25
+  secret_file: 0.45
+  docs_only: -0.3
+
+thresholds:
+  critical: 0.85
+  high: 0.7
+  medium: 0.4
+
+server:
+  url: http://127.0.0.1:8000
+  timeout_seconds: 4
