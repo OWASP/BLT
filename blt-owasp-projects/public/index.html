@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project Matrix</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+    <style>
+        th {
+            position: sticky;
+            top: 0;
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    <table id="projects" class="display">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Repo Name</th>
+                <th>URL</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th>Build</th>
+                <th>Code URL</th>
+                <th>Title</th>
+                <th>Level</th>
+                <th>Type</th>
+                <th>Region</th>
+                <th>Pitch</th>
+                <th>Meetup Group</th>
+                <th>Github Status</th>
+                <th>Last Commit</th>
+                <th>Date Released</th>
+                <th>Release Version</th>
+                <th>Committers</th>
+                <th>Stars</th>
+                <th>Top Language</th>
+                <th>License</th>
+                <th>Forks</th>
+                <th>PRs</th>
+                <th>Issues</th>
+            </tr>
+        </thead>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script>
+        function generateProjectData(projects) {
+            const projectsData = projects.map(project => {
+
+                return {
+                    "name": project.name,
+                    "repo_name": `<a href="${project.codeurl}" target="_blank">${project.repo_name}</a>`,
+                    "url": `<a href="${project.url}" target="_blank">${project.url}</a>`,
+                    "created": project.created,
+                    "updated": project.updated,
+                    "build": project.build,
+                    "codeurl": `<a href="${project.codeurl}" target="_blank">${project.codeurl}</a>`,
+                    "title": project.title,
+                    "level": project.level,
+                    "type": project.type,
+                    "region": project.region,
+                    "pitch": project.pitch,
+                    "meetup-group": project["meetup-group"],
+                    "github_status": project.github_status,
+ 		    "last_commit": project.last_commit,
+                    "date_released": project.date_released,
+                    "release_version": project.release_version,
+                    "committers": project.committers,
+                    "stars": project.stars,
+                    "top_language": project.top_language,
+                    "license": project.license,
+                    "forks": project.forks,
+                    "prs": project.prs,
+                    "issues": project.issues,
+                };
+            });
+            return projectsData;
+        }
+
+        async function loadRepoStatus() {
+            const response = await fetch('repo_status.json');
+            const projects = await response.json();
+            return projects;
+        }
+
+
+        (async function () {
+            const projects = await loadRepoStatus();
+            const projectsData = generateProjectData(projects);
+
+            $(document).ready(function () {
+                $('#projects').DataTable({
+                    "data": projectsData,
+                    "pageLength": 100,
+                    "columns": [
+                        { "data": "name" },
+                        { "data": "repo_name" },
+                        { "data": "url" },
+                        { "data": "created" },
+                        { "data": "updated" },
+                        { "data": "build" },
+                        { "data": "codeurl" },
+                        { "data": "title" },
+                        { "data": "level" },
+                        { "data": "type" },
+                        { "data": "region" },
+                        { "data": "pitch" },
+                        { "data": "meetup-group" },
+                        { "data": "github_status" },
+                        { "data": "last_commit" },
+                        { "data": "date_released" },
+                        { "data": "release_version" },
+                        { "data": "committers" },
+                        { "data": "stars" },
+                        { "data": "top_language" },
+                        { "data": "license" },
+                        { "data": "forks" },
+                        { "data": "prs" },
+                        { "data": "issues" },
+                    ],
+                    "order": [[0, "asc"]]
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
+                       

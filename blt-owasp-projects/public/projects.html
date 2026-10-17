@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project Matrix</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+        }
+        
+        th {
+            position: sticky;
+            top: 0;
+            background-color: #f1f1f1;
+        }
+        
+        .dataTables_wrapper .dataTables_length {
+            margin-bottom: 10px;
+        }
+        
+        /* Mobile responsive styles */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+            
+            table.dataTable {
+                font-size: 12px;
+            }
+            
+            table.dataTable thead th,
+            table.dataTable thead td {
+                padding: 8px 4px;
+                font-size: 11px;
+            }
+            
+            table.dataTable tbody td {
+                padding: 6px 4px;
+            }
+            
+            .dataTables_wrapper .dataTables_length,
+            .dataTables_wrapper .dataTables_filter,
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                font-size: 12px;
+            }
+            
+            .dataTables_wrapper .dataTables_filter input {
+                width: 100px;
+            }
+            
+            /* Stack pagination buttons vertically on very small screens */
+            @media screen and (max-width: 480px) {
+                .dataTables_wrapper .dataTables_paginate .paginate_button {
+                    padding: 4px 8px;
+                    margin: 2px;
+                }
+            }
+        }
+        
+        /* Better handling of long text in cells */
+        table.dataTable td {
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+        
+        /* Make links more touch-friendly on mobile */
+        @media screen and (max-width: 768px) {
+            a {
+                padding: 4px;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <table id="projects" class="display">
+        <thead>
+            <tr>
+                <th>Project Name</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th>Pushed</th>
+                <th>Stars</th>
+                <th>Forks</th>
+                <th>Issues</th>
+            </tr>
+        </thead>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script>
+        function getColor(minDate, maxDate, date) {
+            const range = maxDate - minDate;
+            const percentage = (date - minDate) / range;
+            const red = Math.round(percentage * 255);
+            const blue = Math.round((1 - percentage) * 255);
+            return `rgb(${red}, 0, ${blue})`;
+        }
+
+        function getTextBrightness(color) {
+            const r = parseInt(color.substr(1, 2), 16);
+            const g = parseInt(color.substr(3, 2), 16);
+            const b = parseInt(color.substr(5, 2), 16);
+            const brightness = Math.round(((r * 299) + (g * 587) + (b * 114)) / 1000);
+            return brightness > 128 ? 'black' : 'white';
+        }
+
+        function generateProjectData(projects) {
+            const minDate = Math.min(...projects.map(project => new Date(project.created_at).getTime()));
+            const maxDate = Math.max(...projects.map(project => new Date(project.updated_at).getTime()));
+
+            const projectsData = projects.map(project => {
+                const createdDate = new Date(project.created_at).getTime();
+                const updatedDate = new Date(project.updated_at).getTime();
+                const pushedDate = new Date(project.pushed_at).getTime();
+                const createdColor = getColor(minDate, maxDate, createdDate);
+                const updatedColor = getColor(minDate, maxDate, updatedDate);
+                const pushedColor = getColor(minDate, maxDate, pushedDate);
+
+                return {
+                    "project_name": `<a href="https://owasp.org/${project.name}" target="_blank">${project.name}</a>`,
+                    "created_at": {
+                        "display": new Date(project.created_at).toLocaleString(),
+                        "timestamp": createdDate
+                    },
+                    "updated_at": {
+                        "display": new Date(project.updated_at).toLocaleString(),
+                        "timestamp": updatedDate
+                    },
+                    "pushed_at": {
+                        "display": new Date(project.pushed_at).toLocaleString(),
+                        "timestamp": pushedDate
+                    },
+                    "stars": project.stargazers_count,
+                    "forks": project.forks_count,
+                    "issues": project.open_issues_count,
+                    "created_color": createdColor,
+                    "updated_color": updatedColor,
+                    "pushed_color": pushedColor,
+                };
+            });
+            return projectsData;
+        }
+
+        async function loadRepoStatus() {
+            const response = await fetch('www_project_repos.json');
+            const projects = await response.json();
+            return projects;
+        }
+
+        (async function () {
+            const projects = await loadRepoStatus();
+            const projectsData = generateProjectData(projects);
+
+            $(document).ready(function () {
+                $('#projects').DataTable({
+                    "data": projectsData,
+                    "pageLength": 300,
+                    "responsive": true,
+                    "columns": [
+                        { "data": "project_name" },
+                        {
+                            "data": "created_at",
+                            "render": function (data, type, row) {
+                                if (type === 'display') {
+                                    return `<span style="background-color:${row.created_color}; color:${getTextBrightness(row.created_color)}; padding: 2px 4px;">${data.display}</span>`;
+                                }
+                                return data.timestamp;
+                            }
+                        },
+                        {
+                            "data": "updated_at",
+                            "render": function (data, type, row) {
+                                if (type === 'display') {
+                                    return `<span style="background-color:${row.updated_color}; color:${getTextBrightness(row.updated_color)}; padding: 2px 4px;">${data.display}</span>`;
+                                }
+                                return data.timestamp;
+                            }
+                        },
+                        {
+                            "data": "pushed_at",
+                            "render": function (data, type, row) {
+                                if (type === 'display') {
+                                    return `<span style="background-color:${row.pushed_color}; color:${getTextBrightness(row.pushed_color)}; padding: 2px 4px;">${data.display}</span>`;
+                                }
+                                return data.timestamp;
+                            }
+                        },
+                        { "data": "stars" },
+                        { "data": "forks" },
+                        { "data": "issues" },
+                    ],
+                    "order": [[2, "desc"]]
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

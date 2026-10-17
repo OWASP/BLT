@@ -1,0 +1,63 @@
+stages:
+  - validate
+  - update
+
+default:
+  image: python:3.12
+  before_script:
+    - python -m pip install --upgrade pip
+    - python -m pip install -r requirements.txt
+
+validate_static:
+  stage: validate
+  script:
+    - test -f public/index.html
+    - test -f public/projects.html
+    - test -f public/issues.html
+    - python -m json.tool public/repo_status.json > /dev/null
+    - python -m json.tool public/www_project_repos.json > /dev/null
+    - python -m json.tool public/project_repos_links.json > /dev/null
+    - python -m json.tool public/issues.json > /dev/null
+    - python -m json.tool public/known_issue_ids.json > /dev/null
+    - python -m py_compile scripts/*.py
+
+refresh_data:
+  stage: update
+  resource_group: public-data-refresh
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+    - when: never
+  variables:
+    OUTPUT_DIR: public
+  script:
+    - python scripts/main.py
+    - python scripts/fetch_repo_status.py
+    - python scripts/fetch_issues.py
+    - python scripts/scrape_github_links.py
+    - git config user.email "${GITLAB_USER_EMAIL:-gitlab-ci@owaspblt.org}"
+    - git config user.name "${GITLAB_USER_NAME:-GitLab CI}"
+    - git add public/www_project_repos.json public/repo_status.json public/issues.json public/known_issue_ids.json public/project_repos_links.json
+    - |
+      if git diff --cached --quiet; then
+        echo "No data changes to commit"
+      else
+        git commit -m "Update OWASP project data"
+        if [ -n "${CI_PUSH_TOKEN:-}" ]; then
+          git remote set-url origin "https://oauth2:${CI_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+        else
+          git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+        fi
+        git push origin "HEAD:${CI_DEFAULT_BRANCH}"
+      fi
+
+sweep_repos:
+  stage: update
+  resource_group: public-data-refresh
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+    - when: never
+  script:
+    - python scripts/sweep.py
