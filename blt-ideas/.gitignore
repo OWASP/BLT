@@ -1,0 +1,7 @@
+# Generated Cloudflare Workers assets (built during deploy, not committed)
+dist/
+
+# Wrangler local state and local secrets
+.wrangler/
+.dev.vars*
+!.dev.vars.example

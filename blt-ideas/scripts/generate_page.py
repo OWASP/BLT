@@ -1,0 +1,1194 @@
+#!/usr/bin/env python3
+"""Generate a Cloudflare Workers site for BLT Ideas with overlap analysis,
+discussion links, repo links, and interested contributors."""
+
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
+
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
+REPO_OWNER = "OWASP-BLT"
+REPO_NAME = "BLT-Ideas"
+REPO_URL = f"https://github.com/{REPO_OWNER}/{REPO_NAME}"
+ORG = "OWASP-BLT"
+
+# Maximum number of contributors to display per idea row before truncating
+MAX_DISPLAY_CONTRIBUTORS = 10
+
+# Table column indices (0-based) — keep in sync with thead and row generation
+COL_IDEA = 0
+COL_TITLE = 1
+COL_ONELINER = 2
+COL_REPO = 3
+COL_DISCUSSION = 4
+COL_UPVOTES = 5
+COL_OVERLAPS = 6
+COL_CONTRIBUTORS = 7
+
+# Known BLT org repos for each idea (matched against OWASP-BLT GitHub org)
+IDEA_REPO_MAP = {
+    "A": "OWASP-BLT/BLT-CVE",          # CVE Detection & Validation Pipeline
+    "B": "OWASP-BLT/BLT-Rewards",       # Security Contribution Gamification & BACON
+    "C": "OWASP-BLT/BLT-University",    # Security Labs & Community Intelligence
+    "D": "OWASP-BLT/BLT",               # Knowledge Sharing & Community Impact
+    "E": "OWASP-BLT/BLT",               # Fallback for un-suffixed Idea E references
+    "E.1": "OWASP-BLT/BLT-Preflight",  # AI-Assisted Security Remediation Triage
+    "E.2": "OWASP-BLT/BLT-Leaf",       # PR Risk Intelligence & Readiness Dashboard
+    "F": "OWASP-BLT/BLT-Hackathons",   # Contributor Quality Leaderboards
+    "G": "OWASP-BLT/BLT-NetGuardian",  # Zero-Trust Encrypted Web Scanner
+    "H": "OWASP-BLT/BLT-Sizzle",       # Sizzle-First Contributor Growth
+    "I": "OWASP-BLT/BLT-docs",         # First-Time Contributor Experience
+    "J": "OWASP-BLT/BLT-CVE",          # Cybersecurity Intelligence Dashboard
+    "K": "OWASP-BLT/BLT-Next",         # BLT Migration to Next.js/Cloudflare
+    "L": "OWASP-BLT/BLT-Rewards",      # Automated Bounty & Reward Pipeline
+    "L2": "OWASP-BLT/BLT-Preflight",   # Pre-Contribution Security Intent & Guidance
+    "M": "OWASP-BLT/BLT-CVE",          # CVE Remediation Pipeline
+    "M-S": "OWASP-BLT/BLT",            # Security Knowledge Mining & Pattern Intelligence
+    "N": "OWASP-BLT/BLT",              # RAG AI Agent for Onboarding
+    "O": "OWASP-BLT/BLT-Extension",    # BLT Browser Extension
+    "P": "OWASP-BLT/BLT-API",          # API v2 — Django Ninja Migration
+    "Q": "OWASP-BLT/BLT-Toasty",       # Toasty AI Triage Assistant
+    "R": "OWASP-BLT/BLT-Flutter",      # BLT Flutter Mobile App
+    "RS": "OWASP-BLT/BLT",             # Report Signal Intelligence & Pre-Triage
+    "S": "OWASP-BLT/BLT-CVE",          # BLT-CVE Explorer
+    "T": "OWASP-BLT/BLT-NetGuardian",  # BLT Target Registry
+    "U": "OWASP-BLT/BLT-Preflight",    # Pre-Contribution Security Intent & Guidance
+    "V": "OWASP-BLT/BLT-API",          # Unified Event-Driven Gamification Engine
+    "W": "OWASP-BLT/BLT-Hackathons",   # BLT Security Campaigns
+    "X": "OWASP-BLT/BLT-OWASP-Bumper", # RepoTrust Score
+    "Y": "OWASP-BLT/BLT-SafeCloak",    # SecureCall: Privacy-First Video Note Taker
+    "Z": "OWASP-BLT/BLT-MCP",          # BLT Model Context Protocol Server
+}
+
+LARGE_PROJECT_GROUPS = [
+    {
+      "group": "CVE Detection Pipeline",
+      "description": "End-to-end vulnerability pipeline: scanning, CVE validation, and remediation lifecycle",
+      "ideas": ["A", "G", "M"],
+    },
+    {
+      "group": "Security Education Platform",
+      "description": "Hands-on security labs, contributor onboarding UX, AI guidance (RAG chatbot), and pre-PR advisory workflows",
+      "ideas": ["C", "D", "I", "N", "L2"],
+    },
+    {
+      "group": "Gamification & Contributor Growth",
+      "description": "BACON rewards, bounty pipeline, reputation scoring, contributor growth powered by an event engine",
+      "ideas": ["B", "L", "F", "V", "H"],
+    },
+    {
+      "group": "AI Review Intelligence",
+      "description": "AI-driven issue triage, PR security analysis, and mining of historical review patterns",
+      "ideas": ["E.1", "Q", "M-S"],
+    },
+    {
+      "group": "Platform Core Architecture",
+      "description": "BLT frontend migration, API v1",
+      "ideas": ["K", "P"],
+    },
+    {
+      "group": "MCP",
+      "description": "AI agent-first interface and CLI",
+      "ideas": ["Z"],
+    },
+]
+
+MEDIUM_PROJECTS = [
+    {
+      "idea": "J",
+      "description": "Aggregates CVEs and advisories into searchable dashboards and newsletters",
+    },
+    {
+      "idea": "O",
+      "description": "Cross-browser extension with AI explanations for vulnerabilities",
+    },
+    {
+      "idea": "R",
+      "description": "Mobile bug reporting, offline drafts, and contributor dashboards",
+    },
+    {
+      "idea": "T",
+      "description": "Directory of projects that welcome responsible disclosure",
+    },
+    {
+      "idea": "W",
+      "description": "Time-boxed security improvement campaigns with curated issues",
+    },
+    {
+      "idea": "X",
+      "description": "Explainable trust score for repositories using public signals",
+    },
+    {
+      "idea": "Y",
+      "description": "Ephemeral secure video call tool for disclosure discussions with zero persistence",
+    },
+]
+
+SMALL_PROJECTS = [
+    {
+      "idea": "RS",
+      "description": "Flags low-effort or duplicate vulnerability reports before review",
+    },
+    {
+      "idea": "S",
+      "description": "Community notes, watchlists, export tools, and audit logging",
+    },
+]
+
+
+def github_api_rest(endpoint):
+    """Call GitHub REST API."""
+    if not GITHUB_TOKEN:
+        return None
+    url = f"https://api.github.com{endpoint}"
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "BLT-Ideas-Page-Generator",
+    }
+    try:
+        req = Request(url, headers=headers)
+        with urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read())
+    except (URLError, HTTPError) as e:
+        print(f"  REST API error for {endpoint}: {e}", file=sys.stderr)
+        return None
+
+
+def github_graphql(query):
+    """Call GitHub GraphQL API."""
+    if not GITHUB_TOKEN:
+        return None
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Content-Type": "application/json",
+        "User-Agent": "BLT-Ideas-Page-Generator",
+    }
+    data = json.dumps({"query": query}).encode()
+    try:
+        req = Request("https://api.github.com/graphql", data=data, headers=headers)
+        with urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read())
+    except (URLError, HTTPError) as e:
+        print(f"  GraphQL API error: {e}", file=sys.stderr)
+        return None
+
+
+def get_file_contributors(filepath):
+    """Get unique contributors for a specific file via git log."""
+    try:
+        result = subprocess.run(
+            ["git", "log", "--format=%ae|||%an", "--follow", "--", filepath],
+            capture_output=True,
+            text=True,
+            cwd=Path(filepath).parent if Path(filepath).is_absolute() else ".",
+        )
+        contributors = {}
+        for line in result.stdout.strip().splitlines():
+            if "|||" in line:
+                email, name = line.split("|||", 1)
+                email = email.strip()
+                name = name.strip()
+                if email and name:
+                    contributors[email] = name
+        return list(contributors.values())
+    except Exception as e:
+        print(f"  git log error for {filepath}: {e}", file=sys.stderr)
+        return []
+
+
+def get_discussion_data(discussion_num):
+    """Fetch participants and upvote count from an OWASP-BLT org discussion via GraphQL.
+
+    Returns a tuple (participants: list[str], upvotes: int).
+    """
+    if not discussion_num or not GITHUB_TOKEN:
+        return [], 0
+
+    query = """
+    {
+      organization(login: "OWASP-BLT") {
+        discussion(number: %s) {
+          upvoteCount
+          author { login }
+          comments(first: 100) {
+            nodes {
+              author { login }
+            }
+          }
+        }
+      }
+    }
+    """ % discussion_num
+
+    data = github_graphql(query)
+    if not data or "data" not in data:
+        return [], 0
+
+    participants = set()
+    disc = (data.get("data") or {}).get("organization") or {}
+    disc = disc.get("discussion") or {}
+    upvotes = disc.get("upvoteCount") or 0
+    if disc.get("author"):
+        participants.add(disc["author"]["login"])
+    for comment in (disc.get("comments") or {}).get("nodes") or []:
+        if comment.get("author"):
+            participants.add(comment["author"]["login"])
+    return sorted(participants), upvotes
+
+
+def get_pr_participants():
+    """Fetch recent PR authors/commenters for this repo."""
+    prs = github_api_rest(
+        f"/repos/{REPO_OWNER}/{REPO_NAME}/pulls?state=all&per_page=100"
+    )
+    if not prs:
+        return {}
+    result = {}
+    for pr in prs:
+        number = pr.get("number")
+        login = (pr.get("user") or {}).get("login", "")
+        if login:
+            result.setdefault(number, set()).add(login)
+    return result
+
+
+def parse_idea_file(path):
+    """Parse a single Idea-*.md file and extract metadata."""
+    content = path.read_text(encoding="utf-8")
+    filename = path.stem  # e.g. "Idea-A"
+
+    # Idea ID from filename
+    idea_id = filename.replace("Idea-", "")  # e.g. "A", "B", "E.1", "RS"
+
+    # Extract title from first heading
+    title_match = re.search(r"^#+ (.+)", content, re.MULTILINE)
+    raw_title = title_match.group(1).strip() if title_match else filename
+
+    # Clean up title: remove leading "Idea X — " / "Idea X – " / "Idea X - " patterns.
+    # The character class intentionally covers em dash (—), en dash (–), and hyphen (-).
+    title = re.sub(
+        r"^Idea\s+[A-Z0-9.]+\s*[—–\-]+\s*", "", raw_title, flags=re.IGNORECASE
+    ).strip()
+    # If title still starts with "Idea X" pattern, keep it as-is for short filenames
+    if not title:
+        title = raw_title
+
+    # Extract one-liner
+    oneliner = ""
+    for pattern in [
+        r"\*\*One line:\*\*\s*(.+?)(?:\n|$)",
+        r"\*\*One line\*\*:\s*(.+?)(?:\n|$)",
+        r"One line[:\s]+(.+?)(?:\n|$)",
+    ]:
+        m = re.search(pattern, content)
+        if m:
+            oneliner = m.group(1).strip().strip("*")
+            break
+
+    # Extract discussion URL
+    disc_match = re.search(
+        r"https://github\.com/orgs/OWASP-BLT/discussions/(\d+)", content
+    )
+    discussion_url = disc_match.group(0) if disc_match else ""
+    discussion_num = disc_match.group(1) if disc_match else ""
+
+    # Extract BLT org repo from "Repository:" line, else use known map
+    repo_match = re.search(
+        r"\*?\*?Repository[:\s]+\*?\*?\s*(OWASP[-/]\S+)", content, re.IGNORECASE
+    )
+    if repo_match:
+        blt_repo = repo_match.group(1).rstrip(")")
+        # Normalise OWASP/ → OWASP-BLT/
+        blt_repo = re.sub(r"^OWASP/", "OWASP-BLT/", blt_repo)
+    else:
+        blt_repo = IDEA_REPO_MAP.get(idea_id, f"{REPO_OWNER}/BLT")
+
+    # Find related ideas — any mention of "Idea X" where X is a known idea ID format:
+    # single letter (A–Z), two-letter compound (RS), digit-suffixed (E.1, E.2, L2).
+    related = set()
+    for m in re.finditer(
+        r"\bIdea\s+([A-Z]{1,2}[0-9]*(?:\.[0-9]+)?(?:\s*\(Extended\))?)\b", content
+    ):
+        other = m.group(1).strip()
+        # Normalise "(Extended)" suffix
+        if "(Extended)" in other:
+            other = other.replace("(Extended)", "").strip() + " (Extended)"
+        if other != idea_id:
+            related.add(other)
+
+    return {
+        "id": idea_id,
+        "filename": path.name,
+        "raw_title": raw_title,
+        "title": title,
+        "one_liner": oneliner,
+        "discussion_url": discussion_url,
+        "discussion_num": discussion_num,
+        "blt_repo": blt_repo,
+        "related": sorted(related),
+        "git_contributors": [],
+        "discussion_participants": [],
+        "upvotes": 0,
+    }
+
+
+def sort_key(idea_id):
+    """Sort ideas: single letters first, then compound IDs."""
+    # Map E.1 → E, E.2 → E Extended, RS → after R, L2 → after L, M-S → after M
+    mapping = {
+        "E.1": ("E", 1),
+        "E.2": ("E", 2),
+        "L2": ("L", 2),
+        "M-S": ("M", 1),
+        "RS": ("RS", 0),
+    }
+    if idea_id in mapping:
+        letter, sub = mapping[idea_id]
+    elif len(idea_id) == 1:
+        letter, sub = idea_id, 0
+    else:
+        letter, sub = idea_id, 0
+    return (letter, sub)
+
+
+def build_overlap_matrix(ideas):
+    """Build a symmetric overlap/dependency matrix."""
+    idea_ids = [i["id"] for i in ideas]
+    # Matrix: overlap[i][j] = True if idea i references idea j or vice-versa
+    matrix = {a: {b: False for b in idea_ids} for a in idea_ids}
+
+    for idea in ideas:
+        for rel in idea["related"]:
+            # Normalise: map "E (Extended)" → E.2, plain letters to their IDs
+            target = rel
+            if target in idea_ids:
+                matrix[idea["id"]][target] = True
+                matrix[target][idea["id"]] = True
+            else:
+                # Try to find partial match
+                for other_id in idea_ids:
+                    if target.startswith(other_id) or other_id.startswith(target):
+                        matrix[idea["id"]][other_id] = True
+                        matrix[other_id][idea["id"]] = True
+
+    return matrix
+
+
+def html_escape(s):
+    return (
+        s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+    )
+
+
+def render_idea_group_links(idea_ids, ideas_by_id):
+    links = []
+    for idea_id in idea_ids:
+        idea = ideas_by_id.get(idea_id)
+        if not idea:
+            raise ValueError(f"Unknown curated idea ID: {idea_id}")
+        file_url = f"{REPO_URL}/blob/main/{idea['filename']}"
+        links.append(
+            f'<a href="{file_url}" target="_blank" class="badge" title="{html_escape(idea["title"])}">Idea&nbsp;{html_escape(idea_id)}</a>'
+        )
+    return " ".join(links)
+
+
+def render_grouped_projects_section(ideas):
+    ideas_by_id = {idea["id"]: idea for idea in ideas}
+
+    large_rows = "".join(
+        f"""              <tr>
+                <td class="px-4 py-3 align-top font-bold text-gray-900">{html_escape(group['group'])}</td>
+                <td class="px-4 py-3 align-top text-gray-600">{html_escape(group['description'])}</td>
+                <td class="px-4 py-3 align-top">{render_idea_group_links(group['ideas'], ideas_by_id)}</td>
+              </tr>"""
+        for group in LARGE_PROJECT_GROUPS
+    )
+
+    medium_rows = "".join(
+        f"""              <tr>
+                <td class="px-4 py-3 align-top">{render_idea_group_links([item['idea']], ideas_by_id)}</td>
+                <td class="px-4 py-3 align-top text-gray-600">{html_escape(item['description'])}</td>
+              </tr>"""
+        for item in MEDIUM_PROJECTS
+    )
+
+    small_rows = "".join(
+        f"""              <tr>
+                <td class="px-4 py-3 align-top">{render_idea_group_links([item['idea']], ideas_by_id)}</td>
+                <td class="px-4 py-3 align-top text-gray-600">{html_escape(item['description'])}</td>
+              </tr>"""
+        for item in SMALL_PROJECTS
+    )
+
+    return f"""
+        <section id="project-groups" class="rounded-2xl border border-neutral-border bg-white p-5 shadow-sm sm:p-6">
+          <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-[0.25em] text-gray-500">Updated Idea Packaging</p>
+              <h2 class="mt-2 text-xl font-extrabold text-gray-900">Large, Medium, and Small Projects</h2>
+            </div>
+          </div>
+
+          <article class="rounded-xl border border-red-100 bg-red-50/60 p-4">
+            <div class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-red-700">
+              <span>Large Projects</span>
+              <span class="rounded-full bg-white px-2 py-0.5 text-xs text-red-700">Consolidated</span>
+            </div>
+            <div class="table-wrap border-red-100">
+              <table class="min-w-full divide-y divide-red-100 text-sm">
+                <thead class="bg-white/80 text-xs uppercase tracking-wide text-red-800">
+                  <tr>
+                    <th class="px-4 py-3 text-left font-bold">Group</th>
+                    <th class="px-4 py-3 text-left font-bold">Description</th>
+                    <th class="px-4 py-3 text-left font-bold">Ideas</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-red-100 bg-white/70 text-gray-700">
+{large_rows}
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <div class="mt-5 grid gap-5 xl:grid-cols-2">
+            <article class="rounded-xl border border-amber-100 bg-amber-50/60 p-4">
+              <div class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-amber-800">
+                <span>Medium Projects</span>
+                <span class="rounded-full bg-white px-2 py-0.5 text-xs text-amber-800">Standalone</span>
+              </div>
+              <div class="table-wrap border-amber-100">
+                <table class="min-w-full divide-y divide-amber-100 text-sm">
+                  <thead class="bg-white/80 text-xs uppercase tracking-wide text-amber-900">
+                    <tr>
+                      <th class="px-4 py-3 text-left font-bold">Idea</th>
+                      <th class="px-4 py-3 text-left font-bold">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-amber-100 bg-white/70 text-gray-700">
+{medium_rows}
+                  </tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
+              <div class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-emerald-800">
+                <span>Small Projects</span>
+              </div>
+              <div class="table-wrap border-emerald-100">
+                <table class="min-w-full divide-y divide-emerald-100 text-sm">
+                  <thead class="bg-white/80 text-xs uppercase tracking-wide text-emerald-900">
+                    <tr>
+                      <th class="px-4 py-3 text-left font-bold">Idea</th>
+                      <th class="px-4 py-3 text-left font-bold">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-emerald-100 bg-white/70 text-gray-700">
+{small_rows}
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+        </section>
+"""
+
+
+def generate_html(ideas, overlap_matrix):
+    """Generate a complete HTML page with sortable table and overlap analysis."""
+    grouped_projects_html = render_grouped_projects_section(ideas)
+
+    # Prepare table rows
+    rows_html = []
+    for idea in ideas:
+        idea_id = idea["id"]
+        title = html_escape(idea["title"])
+        one_liner = html_escape(
+            idea["one_liner"][:120] + ("…" if len(idea["one_liner"]) > 120 else "")
+        )
+
+        # Idea file link (in this repo)
+        file_url = f"{REPO_URL}/blob/main/{idea['filename']}"
+        idea_link = f'<a href="{file_url}" title="{html_escape(idea["raw_title"])}" target="_blank">Idea&nbsp;{html_escape(idea_id)}</a>'
+
+        # BLT org repo link
+        blt_repo = idea["blt_repo"]
+        repo_url = f"https://github.com/{blt_repo}"
+        repo_link = f'<a href="{repo_url}" target="_blank">{html_escape(blt_repo.split("/")[-1])}</a>'
+
+        # Discussion link
+        if idea["discussion_url"]:
+            disc_link = f'<a href="{idea["discussion_url"]}" target="_blank">#{idea["discussion_num"]}</a>'
+        else:
+            disc_link = '<span class="muted">—</span>'
+
+        # Related ideas
+        related_links = []
+        for rel in idea["related"]:
+            # Find the idea with this ID to get its file URL
+            rel_idea = next((i for i in ideas if i["id"] == rel), None)
+            if rel_idea:
+                rel_file_url = f"{REPO_URL}/blob/main/{rel_idea['filename']}"
+                related_links.append(
+                    f'<a href="{rel_file_url}" target="_blank" class="badge">Idea&nbsp;{html_escape(rel)}</a>'
+                )
+            else:
+                related_links.append(
+                    f'<span class="badge">Idea&nbsp;{html_escape(rel)}</span>'
+                )
+        related_html = " ".join(related_links) if related_links else '<span class="muted">—</span>'
+
+        # Interested contributors (git + discussion)
+        all_contributors = sorted(
+            set(idea["git_contributors"] + idea["discussion_participants"])
+        )
+        if all_contributors:
+            contrib_html = ", ".join(
+                html_escape(c) for c in all_contributors[:MAX_DISPLAY_CONTRIBUTORS]
+            )
+            if len(all_contributors) > MAX_DISPLAY_CONTRIBUTORS:
+                contrib_html += f' <small>(+{len(all_contributors) - MAX_DISPLAY_CONTRIBUTORS} more)</small>'
+        else:
+            contrib_html = '<span class="muted">—</span>'
+
+        # Overlap count for sorting
+        overlap_count = sum(
+            1 for other_id, v in overlap_matrix.get(idea_id, {}).items() if v and other_id != idea_id
+        )
+
+        # Upvotes
+        upvotes = idea.get("upvotes", 0)
+        if upvotes:
+            upvotes_html = f'<span class="font-semibold text-green-600">👍 {upvotes}</span>'
+        elif idea["discussion_url"]:
+            upvotes_html = '<span class="muted">0</span>'
+        else:
+            upvotes_html = '<span class="muted">—</span>'
+
+        rows_html.append(
+            f"""      <tr>
+        <td data-label="Idea" data-sort="{html_escape(idea_id)}">{idea_link}</td>
+        <td data-label="Title" data-sort="{title}">{title}</td>
+        <td data-label="One-Liner" class="oneliner" data-sort="{html_escape(idea["one_liner"])}">{one_liner}</td>
+        <td data-label="BLT Repo" data-sort="{html_escape(blt_repo)}">{repo_link}</td>
+        <td data-label="Discussion" data-sort="{(idea.get('discussion_num') or '0').zfill(6)}">{disc_link}</td>
+        <td data-label="Upvotes" data-sort="{upvotes:06d}" class="text-center">{upvotes_html}</td>
+        <td data-label="Overlaps" data-sort="{overlap_count:03d}">{related_html}</td>
+        <td data-label="Contributors" data-sort="{len(all_contributors):03d}">{contrib_html}</td>
+      </tr>"""
+        )
+
+    # Overlap matrix HTML
+    all_ids = [i["id"] for i in ideas]
+    matrix_headers = "".join(
+        f'<th class="matrix-head" title="Idea {html_escape(i)}">{html_escape(i)}</th>'
+        for i in all_ids
+    )
+    matrix_rows = []
+    for row_idea in ideas:
+        rid = row_idea["id"]
+        file_url = f"{REPO_URL}/blob/main/{row_idea['filename']}"
+        cells = f'<td class="matrix-label"><a href="{file_url}" target="_blank">{html_escape(rid)}</a></td>'
+        for col_id in all_ids:
+            if col_id == rid:
+                cells += '<td class="matrix-self">·</td>'
+            elif overlap_matrix.get(rid, {}).get(col_id):
+                cells += f'<td class="matrix-yes" title="Idea {html_escape(rid)} ↔ Idea {html_escape(col_id)}">✓</td>'
+            else:
+                cells += '<td class="matrix-no"></td>'
+        matrix_rows.append(f"<tr>{cells}</tr>")
+
+    table_rows = "\n".join(rows_html)
+    matrix_rows_html = "\n".join(matrix_rows)
+    total_ideas = len(ideas)
+
+    html = f"""<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLT Ideas | OWASP BLT</title>
+  <meta name="description" content="BLT Ideas landing page with searchable idea catalog, overlap matrix, and contributor context for OWASP BLT." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {{
+      theme: {{
+        extend: {{
+          colors: {{
+            primary: '#E10101',
+            'primary-hover': '#b91c1c',
+            'neutral-border': '#E5E5E5',
+            'dark-base': '#111827',
+            'dark-surface': '#1F2937'
+          }},
+          fontFamily: {{
+            sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif']
+          }}
+        }}
+      }}
+    }};
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+  <style>
+    :root {{
+      --blt-primary: #E10101;
+      --blt-primary-hover: #b91c1c;
+      --blt-neutral-border: #E5E5E5;
+      --blt-dark-base: #111827;
+      --blt-dark-surface: #1F2937;
+    }}
+    body {{
+      background:
+        radial-gradient(circle at 5% 0%, rgba(225, 1, 1, 0.08), transparent 24%),
+        radial-gradient(circle at 95% 8%, rgba(225, 1, 1, 0.06), transparent 20%),
+        #ffffff;
+      color: #111827;
+    }}
+    a {{
+      color: #dc2626;
+    }}
+    a:hover {{
+      text-decoration: underline;
+    }}
+    .btn-link:hover {{
+      text-decoration: none;
+    }}
+    .input-core {{
+      border: 1px solid #9ca3af;
+      border-radius: 0.375rem;
+      padding: 0.5rem 1rem;
+      background: #ffffff;
+    }}
+    .input-core:focus {{
+      outline: none;
+      border-color: #dc2626;
+      box-shadow: 0 0 0 1px #dc2626;
+    }}
+    .table-wrap {{
+      border: 1px solid var(--blt-neutral-border);
+      border-radius: 0.75rem;
+      overflow-x: auto;
+      background: #ffffff;
+    }}
+    #ideas-table thead th {{
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }}
+    #ideas-table td {{
+      padding: 0.75rem;
+      vertical-align: top;
+    }}
+    #ideas-table thead th.sorted-asc::after {{
+      content: " ↑";
+      color: #E10101;
+    }}
+    #ideas-table thead th.sorted-desc::after {{
+      content: " ↓";
+      color: #E10101;
+    }}
+    #ideas-table tbody tr:hover {{
+      background: #fff7f7;
+    }}
+    td.oneliner {{
+      max-width: 300px;
+      color: #4b5563;
+      line-height: 1.45;
+    }}
+    .badge {{
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #fecaca;
+      background: #fff1f2;
+      color: #b91c1c;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      margin: 2px 3px 2px 0;
+      white-space: nowrap;
+    }}
+    .muted {{
+      color: #6b7280;
+    }}
+    .matrix-wrap {{
+      overflow-x: auto;
+      border: 1px solid var(--blt-neutral-border);
+      border-radius: 0.75rem;
+      background: #ffffff;
+    }}
+    .matrix-wrap table {{
+      width: auto;
+      border-collapse: collapse;
+    }}
+    .matrix-wrap th, .matrix-wrap td {{
+      border: 1px solid #f3f4f6;
+      text-align: center;
+      font-size: 11px;
+      padding: 0.3rem 0.35rem;
+    }}
+    .matrix-head {{
+      background: #f9fafb;
+      color: #374151;
+      font-weight: 700;
+      writing-mode: vertical-rl;
+      white-space: nowrap;
+    }}
+    .matrix-label {{
+      background: #f9fafb;
+      color: #374151;
+      font-weight: 700;
+      text-align: left;
+      padding: 0.35rem 0.5rem;
+      white-space: nowrap;
+    }}
+    .matrix-yes {{
+      background: #fee2e2;
+      color: #b91c1c;
+      font-weight: 700;
+    }}
+    .matrix-no {{
+      background: #ffffff;
+    }}
+    .matrix-self {{
+      background: #f9fafb;
+      color: #9ca3af;
+      font-weight: 700;
+    }}
+    /* ── Mobile card layout ─────────────────────────────────────────── */
+    @media (max-width: 767px) {{
+      .table-wrap {{ border: none; background: transparent; box-shadow: none; }}
+      #ideas-table thead {{ display: none; }}
+      #ideas-table tbody tr {{
+        display: block;
+        margin-bottom: 0.875rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 0.875rem 1rem;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      }}
+      #ideas-table tbody tr:hover {{ background: #fff7f7; }}
+      #ideas-table tbody td {{
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        padding: 0.3rem 0;
+        border: none;
+        font-size: 0.85rem;
+        vertical-align: top;
+      }}
+      #ideas-table tbody td::before {{
+        content: attr(data-label);
+        font-weight: 700;
+        color: #9ca3af;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        min-width: 6.5rem;
+        flex-shrink: 0;
+        padding-top: 0.1rem;
+      }}
+      #ideas-table tbody td.oneliner {{ max-width: none; }}
+    }}
+  </style>
+</head>
+<body class="font-sans antialiased">
+  <header class="border-b border-neutral-border bg-white/95 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
+      <a href="{REPO_URL}" target="_blank" class="btn-link flex items-center gap-3" aria-label="BLT Ideas repository">
+        <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
+          <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
+        </span>
+        <span class="block">
+          <span class="block text-base font-extrabold text-gray-900">BLT Ideas</span>
+          <span class="block text-xs font-medium text-gray-500">OWASP BLT Extension Planning Hub</span>
+        </span>
+      </a>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a
+          href="{REPO_URL}"
+          target="_blank"
+          class="btn-link inline-flex items-center gap-2 rounded-md border border-[var(--blt-primary)] px-4 py-2 text-sm font-semibold text-[var(--blt-primary)] transition hover:bg-[var(--blt-primary)] hover:text-white"
+        >
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          <span>Repository</span>
+        </a>
+        <a
+          href="#ideas-overview"
+          class="btn-link inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+        >
+          <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+          <span>Explore Ideas</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-8 lg:grid-cols-12">
+      <aside class="lg:col-span-3">
+        <div class="sticky top-6 space-y-4">
+          <nav class="rounded-xl border border-neutral-border bg-white p-4" aria-label="Page navigation">
+            <p class="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">Navigate</p>
+            <ul class="space-y-1 text-sm font-semibold">
+              <li><a href="#landing" class="btn-link block rounded-md bg-[#feeae9] px-3 py-2 text-[#E10101]">Overview</a></li>
+              <li><a href="#project-groups" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Project Groups</a></li>
+              <li><a href="#ideas-overview" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Feature Catalog</a></li>
+              <li><a href="#overlap-matrix" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Overlap Matrix</a></li>
+            </ul>
+          </nav>
+          <section class="rounded-xl border border-neutral-border bg-white p-4">
+            <p class="text-sm font-bold text-gray-900">How It Is Used</p>
+            <ul class="mt-3 space-y-3 text-sm text-gray-600">
+              <li class="flex gap-3">
+                <i class="fa-solid fa-magnifying-glass mt-1 text-primary" aria-hidden="true"></i>
+                <span>Discover scoped ideas quickly with searchable metadata.</span>
+              </li>
+              <li class="flex gap-3">
+                <i class="fa-solid fa-diagram-project mt-1 text-primary" aria-hidden="true"></i>
+                <span>Track dependencies using the overlap matrix before implementation.</span>
+              </li>
+              <li class="flex gap-3">
+                <i class="fa-solid fa-users mt-1 text-primary" aria-hidden="true"></i>
+                <span>Identify active contributors and discussion context for each idea.</span>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </aside>
+
+      <div class="space-y-8 lg:col-span-9">
+        <section id="landing" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-sm sm:p-8">
+          <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div class="max-w-2xl">
+              <p class="mb-3 inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-red-700">
+                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                BLT Official Ideas Board
+              </p>
+              <h1 class="text-3xl font-extrabold leading-tight text-gray-900 sm:text-4xl">
+                Plan Better OWASP BLT Extensions With Clear, Actionable Ideas
+              </h1>
+              <p class="mt-4 text-base leading-relaxed text-gray-600">
+                This landing page brings the updated project groupings, full proposal specs, dependencies, and contributor signals into one practical workspace. Teams can compare consolidated tracks, inspect standalone options, and see where collaboration already exists.
+              </p>
+              <div class="mt-5 flex flex-wrap gap-2 text-sm font-semibold text-gray-600">
+                <span class="rounded-full border border-neutral-border bg-gray-50 px-3 py-1">Large and standalone tracks</span>
+                <span class="rounded-full border border-neutral-border bg-gray-50 px-3 py-1">Usage guidance</span>
+                <span class="rounded-full border border-neutral-border bg-gray-50 px-3 py-1">Cross-idea dependencies</span>
+              </div>
+            </div>
+            <div class="flex w-full shrink-0 flex-col gap-3 sm:flex-row lg:w-auto lg:flex-col">
+              <div class="flex min-w-[180px] flex-1 flex-col justify-between rounded-xl border border-neutral-border bg-white p-5 shadow-sm lg:flex-none">
+                <p class="text-xs font-semibold uppercase tracking-widest text-gray-400">Total Ideas</p>
+                <p class="mt-3 text-4xl font-extrabold leading-none text-primary">{total_ideas}</p>
+                <p class="mt-1.5 text-xs text-gray-400">Active proposals</p>
+              </div>
+              <div class="flex min-w-[180px] flex-1 flex-col justify-between rounded-xl border border-neutral-border bg-white p-5 shadow-sm lg:flex-none">
+                <p class="text-xs font-semibold uppercase tracking-widest text-gray-400">Repository</p>
+                <a href="https://github.com/OWASP-BLT/BLT-Ideas" target="_blank" rel="noopener noreferrer"
+                   class="mt-3 flex items-center gap-2 font-bold text-primary transition-opacity hover:opacity-70">
+                  <i class="fa-brands fa-github text-lg leading-none" aria-hidden="true"></i>
+                  <span class="text-sm leading-none">OWASP-BLT/BLT-Ideas</span>
+                </a>
+                <p class="mt-1.5 text-xs text-gray-400">View on GitHub</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section aria-label="Feature highlights" class="grid gap-4 sm:grid-cols-3">
+          <article class="rounded-xl border border-neutral-border bg-white p-4 shadow-sm">
+            <div class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-primary">
+              <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+            </div>
+            <h2 class="text-base font-bold text-gray-900">Curated Project Tracks</h2>
+            <p class="mt-2 text-sm text-gray-600">Large projects are now consolidated, while medium and small options stay independently scannable.</p>
+          </article>
+          <article class="rounded-xl border border-neutral-border bg-white p-4 shadow-sm">
+            <div class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-primary">
+              <i class="fa-solid fa-link" aria-hidden="true"></i>
+            </div>
+            <h2 class="text-base font-bold text-gray-900">Why It Matters</h2>
+            <p class="mt-2 text-sm text-gray-600">Overlap mapping clarifies integration points early, reducing duplicated effort.</p>
+          </article>
+          <article class="rounded-xl border border-neutral-border bg-white p-4 shadow-sm">
+            <div class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-primary">
+              <i class="fa-solid fa-route" aria-hidden="true"></i>
+            </div>
+            <h2 class="text-base font-bold text-gray-900">How Teams Use It</h2>
+            <p class="mt-2 text-sm text-gray-600">Filter ideas by repo, inspect discussions, then prioritize roadmap items that fit your timeline.</p>
+          </article>
+        </section>
+
+        <section id="stats" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Idea statistics">
+          <article class="rounded-xl border border-neutral-border bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Ideas</p>
+            <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-total">{total_ideas}</p>
+          </article>
+          <article class="rounded-xl border border-neutral-border bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">With Discussion Post</p>
+            <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-with-discussion">0</p>
+          </article>
+          <article class="rounded-xl border border-neutral-border bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Discussion Upvotes</p>
+            <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-total-upvotes">0</p>
+          </article>
+          <article class="rounded-xl border border-neutral-border bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">With Overlaps</p>
+            <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-with-overlaps">0</p>
+          </article>
+          <article class="rounded-xl border border-neutral-border bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Unique Contributors</p>
+            <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-contributors">0</p>
+          </article>
+        </section>
+
+      {grouped_projects_html}
+
+        <section id="ideas-overview" class="rounded-2xl border border-neutral-border bg-white p-5 shadow-sm sm:p-6">
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 class="flex items-center gap-2 text-xl font-extrabold text-gray-900">
+              <i class="fa-solid fa-clipboard-list text-primary" aria-hidden="true"></i>
+              Ideas Overview
+            </h2>
+            <span class="text-sm font-medium text-gray-500">Sortable columns + repo filter</span>
+          </div>
+          <div class="toolbar mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <label for="search" class="sr-only">Search ideas</label>
+            <div class="relative w-full sm:max-w-sm">
+              <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-primary">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+              </span>
+              <input
+                type="text"
+                id="search"
+                placeholder="Search ideas, titles, contributors..."
+                class="input-core w-full border-gray-400 pl-11 text-sm text-gray-900 placeholder-gray-400"
+              />
+            </div>
+            <label for="filter-repo" class="text-sm font-semibold text-gray-700">Filter repo</label>
+            <select id="filter-repo" class="input-core border-gray-400 text-sm text-gray-900">
+              <option value="">All repos</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table id="ideas-table" class="min-w-full divide-y divide-gray-200 text-sm">
+              <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-600">
+                <tr>
+                  <th data-col="{COL_IDEA}" class="px-3 py-3 text-left font-bold">Idea</th>
+                  <th data-col="{COL_TITLE}" class="px-3 py-3 text-left font-bold">Title</th>
+                  <th data-col="{COL_ONELINER}" class="px-3 py-3 text-left font-bold">One-Liner</th>
+                  <th data-col="{COL_REPO}" class="px-3 py-3 text-left font-bold">BLT Repo</th>
+                  <th data-col="{COL_DISCUSSION}" class="px-3 py-3 text-left font-bold">Discussion</th>
+                  <th data-col="{COL_UPVOTES}" class="px-3 py-3 text-center font-bold">👍 Upvotes</th>
+                  <th data-col="{COL_OVERLAPS}" class="px-3 py-3 text-left font-bold">Overlapping Ideas</th>
+                  <th data-col="{COL_CONTRIBUTORS}" class="px-3 py-3 text-left font-bold">Interested Contributors</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 bg-white text-gray-700">
+{table_rows}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="overlap-matrix" class="rounded-2xl border border-neutral-border bg-white p-5 shadow-sm sm:p-6">
+          <h2 class="flex items-center gap-2 text-xl font-extrabold text-gray-900">
+            <i class="fa-solid fa-diagram-project text-primary" aria-hidden="true"></i>
+            Idea Overlap Matrix
+          </h2>
+          <p class="mt-2 text-sm text-gray-600">
+            <span class="font-semibold text-gray-800">✓</span> means two ideas reference each other as cross-cutting integration points.
+            Click an idea ID to open its full specification.
+          </p>
+          <div class="matrix-wrap mt-4">
+            <table>
+              <thead>
+                <tr>
+                  <th class="matrix-label"></th>
+                  {matrix_headers}
+                </tr>
+              </thead>
+              <tbody>
+{matrix_rows_html}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="mt-10 border-t border-neutral-border bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-7 text-center text-sm text-gray-500 sm:px-6 lg:px-8">
+      Generated during the Cloudflare Workers deployment with data from GitHub APIs
+      and repository commit history.
+    </div>
+  </footer>
+
+  <script>
+  (function() {{
+    // ── Sorting ────────────────────────────────────────────────────────────
+    const table = document.getElementById('ideas-table');
+    const tbody = table.querySelector('tbody');
+    let sortCol = 0, sortDir = 1;
+
+    function getVal(row, col) {{
+      const td = row.cells[col];
+      return (td.dataset.sort || td.textContent).trim().toLowerCase();
+    }}
+
+    function sortTable(col) {{
+      if (sortCol === col) sortDir = -sortDir;
+      else {{ sortCol = col; sortDir = 1; }}
+      const rows = Array.from(tbody.rows);
+      rows.sort((a, b) => getVal(a, col) < getVal(b, col) ? -sortDir : sortDir);
+      rows.forEach(r => tbody.appendChild(r));
+      table.tHead.querySelectorAll('th[data-col]').forEach((th, i) => {{
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        if (i === col) th.classList.add(sortDir === 1 ? 'sorted-asc' : 'sorted-desc');
+      }});
+    }}
+
+    document.querySelectorAll('thead th[data-col]').forEach(th => {{
+      th.addEventListener('click', () => sortTable(parseInt(th.dataset.col)));
+    }});
+    // Default: sort by upvotes (col {COL_UPVOTES}) descending
+    sortCol = {COL_UPVOTES}; sortDir = -1;
+    sortTable({COL_UPVOTES});
+
+    // ── Search / filter ──────────────────────────────────────────────────
+    const searchInput = document.getElementById('search');
+    const repoFilter = document.getElementById('filter-repo');
+
+    // Populate repo dropdown
+    const repos = [...new Set(
+      Array.from(tbody.rows).map(r => r.cells[{COL_REPO}].textContent.trim())
+    )].sort();
+    repos.forEach(r => {{
+      const opt = document.createElement('option');
+      opt.value = r; opt.textContent = r;
+      repoFilter.appendChild(opt);
+    }});
+
+    function applyFilter() {{
+      const q = searchInput.value.toLowerCase();
+      const repo = repoFilter.value.toLowerCase();
+      let visible = 0;
+      Array.from(tbody.rows).forEach(row => {{
+        const text = row.textContent.toLowerCase();
+        const rowRepo = row.cells[{COL_REPO}].textContent.trim().toLowerCase();
+        const show = (!q || text.includes(q)) && (!repo || rowRepo === repo);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+      }});
+    }}
+
+    searchInput.addEventListener('input', applyFilter);
+    repoFilter.addEventListener('change', applyFilter);
+
+    // ── Stats ────────────────────────────────────────────────────────────
+    const rows = Array.from(tbody.rows);
+    document.getElementById('stat-with-discussion').textContent =
+      rows.filter(r => r.cells[{COL_DISCUSSION}].textContent.trim() !== '—').length;
+
+    const totalUpvotes = rows.reduce((sum, r) => {{
+      const v = parseInt(r.cells[{COL_UPVOTES}].dataset.sort, 10);
+      return sum + (isNaN(v) ? 0 : v);
+    }}, 0);
+    document.getElementById('stat-total-upvotes').textContent = totalUpvotes;
+
+    document.getElementById('stat-with-overlaps').textContent =
+      rows.filter(r => r.cells[{COL_OVERLAPS}].textContent.trim() !== '—').length;
+
+    const allContribs = new Set();
+    rows.forEach(r => {{
+      r.cells[{COL_CONTRIBUTORS}].textContent.split(',').forEach(c => {{
+        const t = c.trim();
+        if (t && t !== '—') allContribs.add(t);
+      }});
+    }});
+    document.getElementById('stat-contributors').textContent = allContribs.size;
+  }})();
+  </script>
+</body>
+</html>
+"""
+    return html
+
+
+def main():
+    script_dir = Path(__file__).parent
+    repo_root = script_dir.parent
+    os.chdir(repo_root)
+
+    if not GITHUB_TOKEN:
+        print(
+            "Warning: GITHUB_TOKEN is not set. "
+            "Discussion participant data will be unavailable. "
+            "Set the GITHUB_TOKEN environment variable for full API access.",
+            file=sys.stderr,
+        )
+
+    print("Parsing idea files…")
+    idea_files = sorted(repo_root.glob("Idea-*.md"), key=lambda p: sort_key(p.stem.replace("Idea-", "")))
+    ideas = [parse_idea_file(p) for p in idea_files]
+    print(f"  Found {len(ideas)} idea files")
+
+    print("Fetching git contributors…")
+    for idea in ideas:
+        idea["git_contributors"] = get_file_contributors(idea["filename"])
+        if idea["git_contributors"]:
+            print(f"  {idea['filename']}: {idea['git_contributors']}")
+
+    print("Fetching discussion participants and upvotes…")
+    for idea in ideas:
+        if idea["discussion_num"]:
+            print(f"  Fetching discussion #{idea['discussion_num']} for Idea {idea['id']}…")
+            participants, upvotes = get_discussion_data(idea["discussion_num"])
+            idea["discussion_participants"] = participants
+            idea["upvotes"] = upvotes
+            if idea["discussion_participants"]:
+                print(f"    Participants: {idea['discussion_participants']}")
+            print(f"    Upvotes: {upvotes}")
+
+    print("Building overlap matrix…")
+    overlap_matrix = build_overlap_matrix(ideas)
+
+    print("Generating HTML…")
+    html = generate_html(ideas, overlap_matrix)
+
+    # Write output
+    out_dir = repo_root / "dist"
+    out_dir.mkdir(exist_ok=True)
+    out_file = out_dir / "index.html"
+    out_file.write_text(html, encoding="utf-8")
+    print(f"  Written to {out_file}")
+
+    print("Done.")
+
+
+if __name__ == "__main__":
+    main()
