@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Daily Check-in | BLT Sizzle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles/sizzle-dashboard.css" />
+</head>
+<body>
+  <div class="sizzle-shell">
+
+<aside class="sizzle-sidebar">
+  <a class="brand" href="/dashboard" aria-label="BLT Sizzle dashboard">
+    <img src="/assets/logo.png" alt="Sizzle logo" />
+    <span><strong>BLT Sizzle</strong><span>Daily check-ins</span></span>
+  </a>
+  <div>
+    <nav class="sidebar-nav" aria-label="Dashboard navigation">
+      <a class="sidebar-item" href="/dashboard"><span>Overview</span></a><a class="sidebar-item active" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item" href="/organizations"><span>Organizations</span></a><a class="sidebar-item" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item" href="/profile"><span>Profile</span></a><a class="sidebar-item" href="/settings"><span>Settings</span></a>
+    </nav>
+  </div>
+  <div class="sidebar-footer" aria-label="Dashboard utilities">
+    <a class="sidebar-footer-link" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a class="sidebar-footer-link" href="/login">Sign in</a>
+  </div>
+</aside>
+    <main class="main-panel">
+      <header class="page-header">
+        <div>
+          <h1>Daily Check-in</h1>
+          <p class="page-description">Submit your daily update for an approved organization. Your saved check-in can be edited until the day rolls over in your configured timezone.</p>
+        </div>
+        <div><a class="btn btn-secondary" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer" title="View on GitLab">View on GitLab</a></div>
+      </header>
+
+<a href="/app" class="text-primary font-bold" style="display:none">Daily Check-in</a>
+<section class="grid grid-2">
+  <article class="card card-pad">
+    <div class="page-header"><div><h2>Daily Check-in</h2><p class="page-description">Choose an approved organization and submit one update for today.</p></div></div>
+    <form id="checkinForm" class="grid">
+      <label class="form-field"><span>Organization</span><select id="orgSelector" name="orgSlug" class="select"></select></label>
+      <label class="form-field"><span>Yesterday / completed work</span><textarea id="previousWork" name="previousWork" class="textarea" placeholder="What did you complete?" required></textarea></label>
+      <label class="form-field"><span>Today plan</span><textarea id="todayPlan" name="todayPlan" class="textarea" placeholder="What will you work on today?" required></textarea></label>
+      <label class="form-field"><span>Blockers</span><textarea id="blockers" name="blockers" class="textarea" placeholder="Anything blocking progress?"></textarea></label>
+      <label class="form-field"><span>Mood</span><select id="mood" name="mood" class="select"><option>Focused</option><option>Blocked</option><option>Learning</option><option>Done</option></select></label>
+      <label class="form-field"><span>Goal completed?</span><select id="goalAccomplished" name="goalAccomplished" class="select"><option value="0">Not yet</option><option value="1">Yes</option></select></label>
+      <button id="submitCheckinButton" class="btn btn-primary" type="submit">Submit check-in</button>
+    </form>
+  </article>
+  <article class="card card-pad">
+    <h2>Today’s saved preview</h2><p class="page-description">Loaded from <code>/api/checkin/latest</code> for the selected approved organization.</p>
+    <div id="latestPreview" class="empty-state" style="margin-top:16px">Choose an approved organization to load today’s saved check-in.</div>
+  </article>
+</section>
+<script>
+  const approvedOrgs = [];
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+  }
+
+  async function loadApprovedOrgs() {
+    const response = await fetch('/api/orgs');
+    if (response.status === 401) { window.location.href = '/login'; return; }
+    const orgData = response.ok ? await response.json() : { orgs: [] };
+    approvedOrgs.splice(0, approvedOrgs.length, ...(orgData.orgs || []).filter((o) => o.status === 'approved' || o.membershipStatus === 'approved'));
+    const selector = document.getElementById('orgSelector');
+    if (approvedOrgs.length > 0) {
+      selector.dataset.ready = 'true';
+      selector.innerHTML = approvedOrgs.map((org) => `<option value="${escapeHtml(org.slug || org.name)}">${escapeHtml(org.name || org.slug)}</option>`).join('');
+      await loadLatestCheckin();
+    } else {
+      selector.innerHTML = '<option value="">No approved organizations</option>';
+      document.getElementById('latestPreview').innerHTML = 'No approved organizations yet. <a class="text-primary font-bold" href="/organizations">Request access from Organizations</a>.';
+      document.getElementById('submitCheckinButton').disabled = true;
+    }
+  }
+
+  async function loadLatestCheckin() {
+    const orgSlug = document.getElementById('orgSelector').value;
+    if (!orgSlug) return;
+    const response = await fetch(`/api/checkin/latest?orgSlug=${encodeURIComponent(orgSlug)}`);
+    if (response.status === 401) { window.location.href = '/login'; return; }
+    const data = response.ok ? await response.json() : {};
+    if (!data.checkinDate) {
+      document.getElementById('latestPreview').textContent = 'No saved check-in for this organization today.';
+      return;
+    }
+    document.getElementById('previousWork').value = data.previousWork || '';
+    document.getElementById('todayPlan').value = data.todayPlan || '';
+    document.getElementById('blockers').value = data.blockers || '';
+    document.getElementById('mood').value = data.mood || 'Focused';
+    document.getElementById('goalAccomplished').value = data.goalAccomplished ? '1' : '0';
+    document.getElementById('latestPreview').innerHTML = `<strong>${escapeHtml(data.organization)}</strong><p class="metric-hint">Saved for ${escapeHtml(data.checkinDate)}</p><p>${escapeHtml(data.todayPlan || 'No plan saved')}</p>`;
+  }
+
+  document.getElementById('orgSelector').addEventListener('change', loadLatestCheckin);
+  document.getElementById('checkinForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const payload = {
+      orgSlug: document.getElementById('orgSelector').value,
+      previousWork: document.getElementById('previousWork').value.trim(),
+      todayPlan: document.getElementById('todayPlan').value.trim(),
+      blockers: document.getElementById('blockers').value.trim(),
+      mood: document.getElementById('mood').value,
+      goalAccomplished: document.getElementById('goalAccomplished').value === '1'
+    };
+    const response = await fetch('/api/checkin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const data = await response.json().catch(() => ({}));
+    showToast(response.ok ? `Check-in ${data.action || 'saved'}.` : (data.error || 'Check-in could not be saved.'));
+    if (response.ok) await loadLatestCheckin();
+  });
+
+  loadApprovedOrgs().catch(() => showToast('Approved organizations could not be loaded.'));
+</script>
+
+    </main>
+  </div>
+  <div class="sheet-overlay" data-close-sheet></div>
+  <div class="toast-container"></div>
+  <script src="/scripts/sizzle-ui.js"></script>
+</body>
+</html>

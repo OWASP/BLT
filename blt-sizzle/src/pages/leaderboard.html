@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Team Insights | BLT Sizzle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles/sizzle-dashboard.css" />
+</head>
+<body>
+  <div class="sizzle-shell">
+
+<aside class="sizzle-sidebar">
+  <a class="brand" href="/dashboard" aria-label="BLT Sizzle dashboard">
+    <img src="/assets/logo.png" alt="Sizzle logo" />
+    <span><strong>BLT Sizzle</strong><span>Daily check-ins</span></span>
+  </a>
+  <div>
+    <nav class="sidebar-nav" aria-label="Dashboard navigation">
+      <a class="sidebar-item" href="/dashboard"><span>Overview</span></a><a class="sidebar-item" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item" href="/organizations"><span>Organizations</span></a><a class="sidebar-item active" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item" href="/profile"><span>Profile</span></a><a class="sidebar-item" href="/settings"><span>Settings</span></a>
+    </nav>
+  </div>
+  <div class="sidebar-footer" aria-label="Dashboard utilities">
+    <a class="sidebar-footer-link" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a class="sidebar-footer-link" href="/login">Sign in</a>
+  </div>
+</aside>
+    <main class="main-panel">
+      <header class="page-header">
+        <div>
+          <h1>Team Insights</h1>
+          <p class="page-description">Organization participation, streaks, and blocker-resolution trends for admins and members.</p>
+        </div>
+        <div><a class="btn btn-secondary" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer" title="View on GitLab">View on GitLab</a></div>
+      </header>
+
+<section class="grid grid-3">
+  <article class="card metric-card"><div class="metric-label">Streak leader</div><div class="metric-value">14</div><div class="metric-hint">days checked in</div></article>
+  <article class="card metric-card"><div class="metric-label">Participation</div><div class="metric-value">72%</div><div class="metric-hint">current organization</div></article>
+  <article class="card metric-card"><div class="metric-label">Resolved blockers</div><div class="metric-value">9</div><div class="metric-hint">this week</div></article>
+</section>
+<section class="card card-pad" style="margin-top:16px"><h2>Team insights</h2><p class="page-description">This replaces the old contribution leaderboard with organization participation and streak insights.</p><table class="table"><thead><tr><th>Member</th><th>Organization</th><th>Streak</th><th>Status</th></tr></thead><tbody><tr><td>Aisha</td><td>OWASP BLT</td><td>14</td><td><span class="status-badge status-approved">active</span></td></tr><tr><td>Marco</td><td>GSoC Contributors</td><td>9</td><td><span class="status-badge status-neutral">Member</span></td></tr></tbody></table></section>
+
+    </main>
+  </div>
+  <div class="sheet-overlay" data-close-sheet></div>
+  <div class="toast-container"></div>
+  <script src="/scripts/sizzle-ui.js"></script>
+</body>
+</html>

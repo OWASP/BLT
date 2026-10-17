@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Settings | BLT Sizzle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles/sizzle-dashboard.css" />
+</head>
+<body>
+  <div class="sizzle-shell">
+
+<aside class="sizzle-sidebar">
+  <a class="brand" href="/dashboard" aria-label="BLT Sizzle dashboard">
+    <img src="/assets/logo.png" alt="Sizzle logo" />
+    <span><strong>BLT Sizzle</strong><span>Daily check-ins</span></span>
+  </a>
+  <div>
+    <nav class="sidebar-nav" aria-label="Dashboard navigation">
+      <a class="sidebar-item" href="/dashboard"><span>Overview</span></a><a class="sidebar-item" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item" href="/organizations"><span>Organizations</span></a><a class="sidebar-item" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item" href="/profile"><span>Profile</span></a><a class="sidebar-item active" href="/settings"><span>Settings</span></a>
+    </nav>
+  </div>
+  <div class="sidebar-footer" aria-label="Dashboard utilities">
+    <a class="sidebar-footer-link" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a class="sidebar-footer-link" href="/login">Sign in</a>
+  </div>
+</aside>
+    <main class="main-panel">
+      <header class="page-header">
+        <div>
+          <h1>Settings</h1>
+          <p class="page-description">Configure reminders and notification preferences. Timezone is now a searchable IANA timezone dropdown sourced from the platform/API catalog.</p>
+        </div>
+        <div><a class="btn btn-secondary" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer" title="View on GitLab">View on GitLab</a></div>
+      </header>
+
+<section class="grid grid-2">
+  <article class="card card-pad">
+    <h2>Notification settings</h2>
+    <p class="page-description">Reminders use your selected timezone, not the browser timezone. Search/select the exact region where you work.</p>
+    <form id="settingsForm" class="grid" style="margin-top:16px">
+      <label class="form-field"><span>Timezone</span><select id="timezoneSelect" name="timezone" class="select"><option value="UTC">UTC</option></select></label>
+      <label class="form-field"><span>Reminder time</span><input id="notificationTime" name="notificationTime" class="input" type="time" value="09:00" /></label>
+      <label class="form-field"><span>Email reminders</span><select id="emailNotifications" name="emailNotifications" class="select"><option value="1">Enabled</option><option value="0">Disabled</option></select></label>
+      <label class="form-field"><span>Slack webhook URL</span><input id="slackWebhookUrl" name="slackWebhookUrl" class="input" placeholder="https://hooks.slack.com/services/..." /></label>
+      <button class="btn btn-primary" type="submit">Save Settings</button>
+    </form>
+  </article>
+  <article class="card card-pad"><h2>Timezone clarity</h2><p class="page-description">Choose an IANA timezone such as <strong>Asia/Kolkata</strong>, <strong>America/New_York</strong>, or <strong>Europe/London</strong>. The backend validates the selected value before saving.</p><span class="status-badge status-approved">Connected</span></article>
+</section>
+
+    </main>
+  </div>
+  <div class="sheet-overlay" data-close-sheet></div>
+  <div class="toast-container"></div>
+  <script src="/scripts/sizzle-ui.js"></script>
+  <script>
+    const fallbackTimezones = ['UTC', 'Asia/Kolkata', 'America/New_York', 'America/Los_Angeles', 'Europe/London', 'Europe/Berlin', 'Africa/Lagos', 'Asia/Tokyo', 'Australia/Sydney'];
+    const timezoneSelect = document.getElementById('timezoneSelect');
+
+    function renderTimezones(timezones, selected = 'UTC') {
+      const unique = Array.from(new Set(['UTC', ...timezones])).sort((a, b) => a.localeCompare(b));
+      timezoneSelect.innerHTML = unique.map((tz) => `<option value="${tz}">${tz}</option>`).join('');
+      timezoneSelect.value = unique.includes(selected) ? selected : 'UTC';
+    }
+
+    async function loadTimezoneOptions(selected = 'UTC') {
+      try {
+        const response = await fetch('/api/timezones');
+        if (response.ok) {
+          const data = await response.json();
+          renderTimezones(data.timezones || [], selected);
+          return;
+        }
+      } catch (error) {}
+      if (Intl.supportedValuesOf) {
+        renderTimezones(Intl.supportedValuesOf('timeZone'), selected);
+      } else {
+        renderTimezones(fallbackTimezones, selected);
+      }
+    }
+
+    async function loadSettings() {
+      try {
+        const response = await fetch('/api/settings');
+        if (response.status === 401) { window.location.href = '/login'; return; }
+        const data = response.ok ? await response.json() : {};
+        await loadTimezoneOptions(data.timezone || 'UTC');
+        document.getElementById('notificationTime').value = data.notificationTime || '09:00';
+        document.getElementById('emailNotifications').value = String(data.emailNotifications ?? 0);
+        document.getElementById('slackWebhookUrl').value = data.slackWebhookUrl || '';
+      } catch (error) {
+        await loadTimezoneOptions('UTC');
+        showToast('Settings could not be loaded. Showing safe defaults.');
+      }
+    }
+
+    document.getElementById('settingsForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const payload = {
+        timezone: timezoneSelect.value,
+        notificationTime: document.getElementById('notificationTime').value,
+        emailNotifications: document.getElementById('emailNotifications').value,
+        slackWebhookUrl: document.getElementById('slackWebhookUrl').value.trim()
+      };
+      const response = await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const data = await response.json().catch(() => ({}));
+      showToast(response.ok ? 'Settings saved.' : (data.error || 'Settings could not be saved.'));
+    });
+
+    loadSettings();
+  </script>
+</body>
+</html>
