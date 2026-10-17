@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="description" content="BLT Design Contest — open design showcases for BLT and the broader open source security community. Browse entries, vote for your favourites, and submit your own!" />
+  <title>BLT Design Contests</title>
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: '#E10101',
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Font Awesome 6 (CDN) -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Minimal custom overrides -->
+  <style>
+    :root { --brand: #E10101; }
+    *:focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen
+             flex flex-col font-sans antialiased">
+
+  <!-- ── Skip to content ── -->
+  <a href="#contests"
+     class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
+            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white
+            focus:rounded-md focus:font-medium">
+    Skip to content
+  </a>
+
+  <!-- ══════════════════════════════════════════
+       HEADER / NAV
+  ══════════════════════════════════════════ -->
+  <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700
+                 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
+
+        <!-- Logo / Brand -->
+        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-md
+                       bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
+          <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
+            Design Contests
+          </span>
+        </a>
+
+        <!-- Centre nav links -->
+        <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+          <a href="#contests"
+             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">
+            Contests
+          </a>
+          <a href="#how-it-works"
+             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">
+            How it works
+          </a>
+          <a href="https://gitlab.com/owasp-blt/blt-design-contest" target="_blank" rel="noopener"
+             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+                    inline-flex items-center gap-1">
+            <i class="fa-brands fa-gitlab" aria-hidden="true"></i> GitLab
+          </a>
+        </div>
+
+        <!-- CTA -->
+        <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/new?template=design-submission.yml"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+                  text-white text-sm font-semibold px-4 py-2 rounded-md
+                  transition-colors shrink-0">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          <span>Submit Design</span>
+        </a>
+
+        <!-- Dark-mode toggle -->
+        <button id="theme-toggle" type="button"
+                class="p-2 rounded-md text-gray-500 dark:text-gray-400
+                       hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                aria-label="Toggle dark mode">
+          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+          <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
+        </button>
+
+      </nav>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════
+       HERO
+  ══════════════════════════════════════════ -->
+  <section class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+      <span class="inline-block mb-4 bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+                   text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
+        Open to Everyone
+      </span>
+      <h1 class="text-4xl sm:text-5xl font-black text-gray-900 dark:text-gray-50 leading-tight mb-4">
+        BLT Design Contests
+      </h1>
+      <p class="max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-300 mb-8">
+        Anyone passionate about BLT, open source, and application security is welcome to participate.
+        Browse entries, share your appreciation with a 👍 on GitLab, and submit your own design.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       HOW IT WORKS
+  ══════════════════════════════════════════ -->
+  <section id="how-it-works" class="bg-gray-50 dark:bg-[#111827]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <h2 class="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-10">
+        How it works
+      </h2>
+      <ol class="grid sm:grid-cols-3 gap-8" role="list">
+        <li class="flex flex-col items-center text-center gap-3">
+          <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+                       flex items-center justify-center text-xl font-black">1</span>
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Submit your design</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Open a new GitLab issue using the contest's submission template — no prior experience needed.
+            Upload a preview image, add a short description, and link to your design.
+          </p>
+        </li>
+        <li class="flex flex-col items-center text-center gap-3">
+          <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+                       flex items-center justify-center text-xl font-black">2</span>
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Everyone votes</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Anyone — from seasoned security pros to open source newcomers — can leave a 👍 reaction
+            to show appreciation. The showcase reflects live reaction counts.
+          </p>
+        </li>
+        <li class="flex flex-col items-center text-center gap-3">
+          <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+                       flex items-center justify-center text-xl font-black">3</span>
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Showcase updates</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            GitLab Actions rebuilds this page whenever a submission is
+            opened or edited, keeping the showcase always up to date.
+          </p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       CONTESTS OVERVIEW
+  ══════════════════════════════════════════ -->
+  <section id="contests" class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Active Contests</h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Pick a contest to browse submissions and vote for your favourites.
+          </p>
+        </div>
+        <p class="text-xs text-gray-400 dark:text-gray-500 shrink-0">
+          Last updated 06 Apr 2026 06:44 UTC
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        
+        <a href="blt-tshirt.html"
+           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <div class="p-6 sm:p-7">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+                          flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-shirt text-2xl text-[#E10101]" aria-hidden="true"></i>
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">BLT T-Shirt Design Contest</h3>
+                <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Ended – Selecting Winner</span>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">Design a T-shirt or apparel for OWASP BLT.</p>
+            <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
+              <span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $25 prize</span>
+              <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ended March 1, 2026
+              </span>
+            </div>
+            <div class="flex items-center justify-between pt-4
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <div>
+                <p class="text-2xl font-black text-[#E10101]">34</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  submissions
+                </p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+                           group-hover:gap-2.5 transition-all duration-200">
+                View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </span>
+            </div>
+          </div>
+        </a>
+        <a href="blt-logo.html"
+           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <div class="p-6 sm:p-7">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+                          flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-brush text-2xl text-[#E10101]" aria-hidden="true"></i>
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">BLT Logo Contest</h3>
+                <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Active</span>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">Design a new logo for OWASP BLT and all its repositories.</p>
+            <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
+              <span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $25 prize</span>
+              <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends April 15, 2026
+              </span>
+            </div>
+            <div class="flex items-center justify-between pt-4
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <div>
+                <p class="text-2xl font-black text-[#E10101]">2</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  submissions
+                </p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+                           group-hover:gap-2.5 transition-all duration-200">
+                View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </span>
+            </div>
+          </div>
+        </a>
+        <a href="blt-homepage.html"
+           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <div class="p-6 sm:p-7">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+                          flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-house text-2xl text-[#E10101]" aria-hidden="true"></i>
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">BLT Homepage Design</h3>
+                <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Active</span>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">Design the new homepage for the OWASP BLT website.</p>
+            <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
+              <span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $25 prize</span>
+              <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends April 15, 2026
+              </span>
+            </div>
+            <div class="flex items-center justify-between pt-4
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <div>
+                <p class="text-2xl font-black text-[#E10101]">2</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  submissions
+                </p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+                           group-hover:gap-2.5 transition-all duration-200">
+                View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </span>
+            </div>
+          </div>
+        </a>
+        <a href="blt-video-meme.html"
+           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <div class="p-6 sm:p-7">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+                          flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-circle-play text-2xl text-[#E10101]" aria-hidden="true"></i>
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">BLT Video Meme</h3>
+                <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Active</span>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">Design a meme video for OWASP BLT.</p>
+            <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
+              <span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $10 prize</span>
+              <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends April 15, 2026
+              </span>
+            </div>
+            <div class="flex items-center justify-between pt-4
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <div>
+                <p class="text-2xl font-black text-[#E10101]">4</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  submissions
+                </p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+                           group-hover:gap-2.5 transition-all duration-200">
+                View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </span>
+            </div>
+          </div>
+        </a>
+        <a href="blt-welcome-video.html"
+           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <div class="p-6 sm:p-7">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+                          flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-photo-film text-2xl text-[#E10101]" aria-hidden="true"></i>
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">BLT Welcome Video</h3>
+                <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Active</span>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">Design a welcome video for beginners giving a walkthrough explanation of the OWASP BLT ecosystem.</p>
+            <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
+              <span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $20 prize</span>
+              <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends April 15, 2026
+              </span>
+            </div>
+            <div class="flex items-center justify-between pt-4
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <div>
+                <p class="text-2xl font-black text-[#E10101]">0</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  submissions
+                </p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+                           group-hover:gap-2.5 transition-all duration-200">
+                View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </span>
+            </div>
+          </div>
+        </a>
+        <a href="appsecil-tshirt.html"
+           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <div class="p-6 sm:p-7">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+                          flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-shirt text-2xl text-[#E10101]" aria-hidden="true"></i>
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">AppSecIL 2026 T-Shirt Design Contest</h3>
+                <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Active</span>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">Design a T-shirt for OWASP AppSec Israel — one of the region&#x27;s leading cybersecurity conferences, bringing together 1,000+ security professionals, developers, and open source contributors.</p>
+            <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
+              
+              <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends April 12, 2026
+              </span>
+            </div>
+            <div class="flex items-center justify-between pt-4
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <div>
+                <p class="text-2xl font-black text-[#E10101]">3</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  submissions
+                </p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+                           group-hover:gap-2.5 transition-all duration-200">
+                View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       RECENT SUBMISSIONS
+  ══════════════════════════════════════════ -->
+  <section id="recent-submissions" class="bg-gray-50 dark:bg-[#111827] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <div class="flex items-center justify-between gap-4 mb-8">
+        <div>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-8">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Submissions</h2>
+            <a href="show-all-entries.html"
+              class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+                      self-start sm:self-auto whitespace-nowrap
+                      hover:gap-2.5 transition-all duration-200">
+              View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Latest 3 entries sorted by submitted time.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/107" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="assets/entries/4f7302f2-8cdf-4ef2-acc2-9b8d8dde8eca.png" alt="concept 3 preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">AppSecIL 2026 T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-04-05T05:04:31Z">2026-04-05</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/107" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">concept 3</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="appsecil-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/107" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/106" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="assets/entries/ba44667a-2498-4973-9691-34d97afba40e.png" alt="concept 2 preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">AppSecIL 2026 T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-04-05T05:03:27Z">2026-04-05</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/106" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">concept 2</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="appsecil-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/106" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/105" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="assets/entries/54d06450-0945-46fe-8efb-8afe5a6665e8.png" alt="blue shirt preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">AppSecIL 2026 T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-04-05T04:47:18Z">2026-04-05</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/105" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">blue shirt</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="appsecil-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/105" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════ -->
+  <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8
+                flex flex-col sm:flex-row items-center justify-between gap-4 text-sm
+                text-gray-500 dark:text-gray-400">
+      <p>
+        &copy; 2026
+        <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
+           class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+        Content licensed under
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener"
+           class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+      </p>
+      <div class="flex items-center gap-4">
+        <a href="https://gitlab.com/owasp-blt/blt-design-contest" target="_blank" rel="noopener"
+           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+          <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Source
+        </a>
+        <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
+           class="hover:text-[#E10101] transition-colors">OWASP BLT</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════════
+       SCRIPTS
+  ══════════════════════════════════════════ -->
+  <script>
+    // Dark-mode toggle
+    const toggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    // Initialise from localStorage or system preference
+    if (localStorage.theme === 'dark' ||
+        (!('theme' in localStorage) &&
+         window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      html.classList.add('dark');
+    }
+
+    toggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+    });
+
+    // Format submission dates in user's local timezone; cap any future dates to today
+    (function () {
+      var now = new Date();
+      document.querySelectorAll('time.sub-date').forEach(function (el) {
+        var raw = el.getAttribute('datetime');
+        if (!raw) return;
+        var d = new Date(raw);
+        if (isNaN(d.getTime())) return;
+        if (d > now) d = now;
+        el.textContent = d.toLocaleDateString(undefined, {
+          year: 'numeric', month: 'short', day: 'numeric'
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

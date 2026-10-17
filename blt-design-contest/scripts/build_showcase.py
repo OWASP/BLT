@@ -1,0 +1,2305 @@
+#!/usr/bin/env python3
+"""
+build_showcase.py
+-----------------
+Fetches GitLab issues for each configured design contest and generates
+a static index.html design-showcase page styled with the BLT brand guide.
+
+Each contest is configured in CONTESTS below with its own label, title
+prefix, and issue template.  Issues labelled with WINNER_LABEL are
+highlighted at the top of their contest section.
+
+Environment variables
+  GITLAB_TOKEN   – optional; private-token for the GitLab API
+  GITLAB_PROJECT_PATH – set automatically from CI_PROJECT_PATH in GitLab CI
+
+Usage:
+  python scripts/build_showcase.py
+"""
+
+import html
+import json
+import os
+import re
+import sys
+import urllib.parse
+import urllib.request
+import urllib.error
+from datetime import datetime, timezone
+import heapq
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+PROJECT_PATH = os.environ.get(
+    "GITLAB_PROJECT_PATH",
+    os.environ.get("CI_PROJECT_PATH", "owasp-blt/blt-design-contest"),
+)
+PROJECT_URL = os.environ.get(
+    "CI_PROJECT_URL",
+    f"https://gitlab.com/{PROJECT_PATH}",
+)
+PROJECT_ID = urllib.parse.quote(
+    os.environ.get("GITLAB_PROJECT_ID", PROJECT_PATH),
+    safe="",
+)
+GITLAB_API_BASE = os.environ.get("GITLAB_API_BASE", "https://gitlab.com/api/v4")
+GITLAB_TOKEN = os.environ.get("GITLAB_TOKEN", os.environ.get("PRIVATE_TOKEN", ""))
+CI_JOB_TOKEN = os.environ.get("CI_JOB_TOKEN", "")
+
+# Label applied to the winning submission(s) in any contest
+WINNER_LABEL = "winner"
+
+# All active design contests.  Each entry drives one tab on the showcase page.
+CONTESTS = [
+    {
+        "id": "blt-tshirt",
+        "name": "BLT T-Shirt Design Contest",
+        "label": "design-submission",
+        "title_prefix": "[Design]",
+        "template": "design-submission.yml",
+        "description": "Design a T-shirt or apparel for OWASP BLT.",
+        "prize": "$25",
+        "deadline": "2026-03-01T00:00:00Z",
+        "deadline_display": "March 1, 2026",
+        "status": "selecting_winner",
+        "icon": "fa-solid fa-shirt",
+    },
+    {
+        "id": "blt-logo",
+        "name": "BLT Logo Contest",
+        "label": "logo-submission",
+        "title_prefix": "[Logo]",
+        "template": "logo-submission.yml",
+        "description": "Design a new logo for OWASP BLT and all its repositories.",
+        "prize": "$25",
+        "deadline": "2026-04-15T00:00:00Z",
+        "deadline_display": "April 15, 2026",
+        "icon": "fa-solid fa-brush",
+    },
+    {
+        "id": "blt-homepage",
+        "name": "BLT Homepage Design",
+        "label": "homepage-submission",
+        "title_prefix": "[Homepage]",
+        "template": "homepage-submission.yml",
+        "description": "Design the new homepage for the OWASP BLT website.",
+        "prize": "$25",
+        "deadline": "2026-04-15T00:00:00Z",
+        "deadline_display": "April 15, 2026",
+        "icon": "fa-solid fa-house",
+    },
+    {
+        "id": "blt-video-meme",
+        "name": "BLT Video Meme",
+        "label": "video-meme-submission",
+        "title_prefix": "[Video Meme]",
+        "template": "video-meme-submission.yml",
+        "description": "Design a meme video for OWASP BLT.",
+        "prize": "$10",
+        "deadline": "2026-04-15T00:00:00Z",
+        "deadline_display": "April 15, 2026",
+        "icon": "fa-solid fa-circle-play",
+    },
+    {
+        "id": "blt-welcome-video",
+        "name": "BLT Welcome Video",
+        "label": "welcome-video-submission",
+        "title_prefix": "[Welcome Video]",
+        "template": "welcome-video-submission.yml",
+        "description": "Design a welcome video for beginners giving a walkthrough explanation of the OWASP BLT ecosystem.",
+        "prize": "$20",
+        "deadline": "2026-04-15T00:00:00Z",
+        "deadline_display": "April 15, 2026",
+        "icon": "fa-solid fa-photo-film",
+    },
+    {
+        "id": "appsecil-tshirt",
+        "name": "AppSecIL 2026 T-Shirt Design Contest",
+        "label": "appsecil-tshirt-submission",
+        "title_prefix": "[AppSecIL]",
+        "template": "appsecil-tshirt-submission.yml",
+        "description": "Design a T-shirt for OWASP AppSec Israel — one of the region's leading cybersecurity conferences, bringing together 1,000+ security professionals, developers, and open source contributors.",
+        "long_description": (
+            "Israel's premier application security event is back! "
+            "OWASP AppSec Israel is one of the leading cybersecurity conferences in the region, "
+            "bringing together experts, professionals, and enthusiasts from around the world. "
+            "Join 1,000+ developers, DevOps engineers, architects, security specialists, product leaders, "
+            "and other industry professionals dedicated to advancing the future of application security. "
+            "Whether you build, secure, or manage software, this event is designed for you. "
+            "Hear from top speakers sharing the latest security insights. "
+            "Join hands-on sessions and network with leading industry experts. "
+            "A diverse audience awaits you: security and cyber defense professionals, developers, "
+            "software engineers, researchers, industry leaders, and executives."
+        ),
+        "prize": "",
+        "deadline": "2026-04-12T00:00:00Z",
+        "deadline_display": "April 12, 2026",
+        "icon": "fa-solid fa-shirt",
+        "google_form_url": "https://docs.google.com/forms/d/e/1FAIpQLSej8eFeNBeUhOyKmDffvv9y0QLIoWCgt6szrFVZjxDaY-8VOw/viewform",
+    },
+]
+
+# Backward-compatible aliases (used by helpers that pre-date multi-contest support)
+LABEL = CONTESTS[0]["label"]
+TITLE_PREFIX = CONTESTS[0]["title_prefix"]
+
+REACTION_LABELS = {
+    "+1": "👍",
+    "-1": "👎",
+    "laugh": "😄",
+    "hooray": "🎉",
+    "confused": "😕",
+    "heart": "❤️",
+    "rocket": "🚀",
+    "eyes": "👀",
+}
+
+MARKDOWN_IMAGE_RE = re.compile(r"!\[.*?\]\((https?://[^)]+)\)")
+HTML_IMAGE_RE = re.compile(r'<img\s[^>]*src="(https?://[^"]+)"', re.IGNORECASE)
+COMMENT_STRIP_IMAGE_RE = re.compile(r"!\[.*?\]\(.*?\)")
+COMMENT_STRIP_LINK_RE = re.compile(r"\[([^\]]+)\]\([^)]+\)")
+MAX_COMMENT_LENGTH = 120
+
+
+def gitlab_request(path: str) -> list | dict:
+  """Perform a paginated GET against the GitLab REST API."""
+  url = f"{GITLAB_API_BASE}{path}"
+  headers = {"Accept": "application/json"}
+  if GITLAB_TOKEN:
+    headers["PRIVATE-TOKEN"] = GITLAB_TOKEN
+  elif CI_JOB_TOKEN:
+    headers["JOB-TOKEN"] = CI_JOB_TOKEN
+
+  results = []
+  page = 1
+  while True:
+    paged_url = f"{url}{'&' if '?' in url else '?'}per_page=100&page={page}"
+    req = urllib.request.Request(paged_url, headers=headers)
+    try:
+      with urllib.request.urlopen(req) as resp:
+        data = json.loads(resp.read().decode())
+    except urllib.error.HTTPError as exc:
+      error_msg = (
+          f"GitLab API error {exc.code} for {paged_url}: {exc.reason}"
+      )
+      print(f"ERROR: {error_msg}", file=sys.stderr)
+      sys.exit(1)
+    if isinstance(data, list):
+      results.extend(data)
+      if len(data) < 100:
+        break
+      page += 1
+    else:
+      return data
+  return results
+
+
+def normalize_gitlab_issue(issue: dict) -> dict:
+    """Return a GitLab-shaped issue dict for the existing render helpers."""
+    author = issue.get("author") or {}
+    labels = [{"name": label} for label in issue.get("labels", [])]
+    return {
+        "number": issue.get("iid"),
+        "title": issue.get("title", ""),
+        "body": issue.get("description") or "",
+        "html_url": issue.get("web_url", "#"),
+        "created_at": issue.get("created_at", ""),
+        "comments": issue.get("user_notes_count", 0),
+        "labels": labels,
+        "user": {
+            "login": author.get("username", "unknown"),
+            "html_url": author.get("web_url", "#"),
+            "avatar_url": author.get("avatar_url", ""),
+        },
+        "reactions": {
+            "+1": issue.get("upvotes", 0),
+            "-1": issue.get("downvotes", 0),
+        },
+    }
+
+
+def fetch_issues(params: dict[str, str] | None = None) -> list[dict]:
+    query = {"state": "opened"}
+    if params:
+        query.update(params)
+    encoded = urllib.parse.urlencode(query)
+    issues = gitlab_request(f"/projects/{PROJECT_ID}/issues?{encoded}")
+    return [normalize_gitlab_issue(issue) for issue in issues]
+
+
+def issue_template_url(template: str | None = None) -> str:
+    if not template:
+        return f"{PROJECT_URL}/-/issues/new"
+    name = os.path.splitext(template)[0]
+    return f"{PROJECT_URL}/-/issues/new?issuable_template={urllib.parse.quote(name)}"
+
+
+
+
+def build_html(contests_data: list[dict], last_updated: str) -> str:
+  """Return the complete index.html (homepage) as a string.
+
+  ``contests_data`` is a list of dicts, each with keys:
+    - ``config``  – the CONTESTS entry dict
+    - ``cards``   – list of card HTML strings (winners first)
+    - ``total``   – submission count for that contest
+    - ``issues``  – raw issue payloads for that contest
+  """
+  total_all = sum(d["total"] for d in contests_data)
+
+  # Build contest summary cards for the homepage
+  contest_cards_html = ""
+  for d in contests_data:
+    c = d["config"]
+    cid = html.escape(c["id"])
+    cname = html.escape(c["name"])
+    cdesc = html.escape(c["description"])
+    cprize = html.escape(c["prize"])
+    cdeadline = html.escape(c["deadline_display"])
+    ctotal = d["total"]
+    icon = c["icon"]
+    page_url = f"{cid}.html"
+    cstatus = c.get("status", "active")
+    if cstatus == "selecting_winner":
+      status_badge = (
+        '<span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full'
+        ' bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">'
+        'Ended \u2013 Selecting Winner'
+        '</span>'
+      )
+      ends_text = f"Ended {cdeadline}"
+    else:
+      status_badge = (
+        '<span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full'
+        ' bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">'
+        'Active'
+        '</span>'
+      )
+      ends_text = f"Ends {cdeadline}"
+
+    contest_cards_html += f"""
+    <a href="{page_url}"
+       class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
+          border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+          hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+      <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+      <div class="p-6 sm:p-7">
+      <div class="flex items-start gap-4 mb-4">
+        <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+              flex items-center justify-center shrink-0">
+        <i class="{icon} text-2xl text-[#E10101]" aria-hidden="true"></i>
+        </div>
+        <div class="min-w-0">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">{cname}</h3>
+        {status_badge}
+        </div>
+      </div>
+      <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">{cdesc}</p>
+      <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
+        {'<span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> ' + cprize + ' prize</span>' if cprize else ''}
+        <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+        <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_text}
+        </span>
+      </div>
+      <div class="flex items-center justify-between pt-4
+            border-t border-[#E5E5E5] dark:border-gray-700">
+        <div>
+        <p class="text-2xl font-black text-[#E10101]">{ctotal}</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          submission{'' if ctotal == 1 else 's'}
+        </p>
+        </div>
+        <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+               group-hover:gap-2.5 transition-all duration-200">
+        View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </span>
+      </div>
+      </div>
+    </a>"""
+
+  # Build the latest submissions across contests by submitted time.
+  # Use a min-heap to keep only the top 3 most recent entries without sorting the full list.
+  heap = []  # min-heap of (submitted_dt, entry_dict) tuples
+  for d in contests_data:
+    c = d["config"]
+    cid = c["id"]
+    contest_name = html.escape(c["name"])
+    contest_url = html.escape(f"{cid}.html")
+    title_prefix = c.get("title_prefix", "")
+
+    for issue in d.get("issues", []):
+      created_at = issue.get("created_at", "")
+      if not created_at:
+        continue
+      try:
+        submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+      except ValueError:
+        continue
+
+      raw_title = (issue.get("title", "Untitled") or "Untitled").strip()
+      if title_prefix and raw_title.startswith(title_prefix):
+        raw_title = raw_title[len(title_prefix):].strip()
+
+      body = issue.get("body", "") or ""
+      fields = parse_issue_body(body)
+      preview_url = html.escape(extract_preview_url(fields, body))
+      issue_url = html.escape(issue.get("html_url", "#"))
+
+      entry = {
+        "contest_name": contest_name,
+        "contest_url": contest_url,
+        "title": html.escape(raw_title or "Untitled submission"),
+        "issue_url": issue_url,
+        "preview_url": preview_url,
+        "submitted_iso": html.escape(created_at),
+        "submitted_fallback": html.escape(created_at[:10]),
+        "submitted_dt": submitted_dt,
+      }
+
+      # Maintain a heap of the 3 most recent entries
+      if len(heap) < 3:
+        heapq.heappush(heap, (submitted_dt, entry))
+      elif submitted_dt > heap[0][0]:
+        heapq.heapreplace(heap, (submitted_dt, entry))
+
+  # Extract the 3 entries and sort them in descending order
+  latest_three = sorted(heap, reverse=True)
+  latest_three = [entry for _, entry in latest_three]
+
+
+def fetch_reactions(issue_number: int) -> dict:
+    """Return reaction totals for an issue as {emoji: count}."""
+    data = gitlab_request(
+        f"/projects/{PROJECT_ID}/issues/{issue_number}/award_emoji"
+    )
+    totals: dict[str, int] = {}
+    gitlab_reaction_names = {
+        "thumbsup": "+1",
+        "thumbs_up": "+1",
+        "+1": "+1",
+        "thumbsdown": "-1",
+        "thumbs_down": "-1",
+        "-1": "-1",
+        "smile": "laugh",
+        "tada": "hooray",
+        "heart": "heart",
+        "rocket": "rocket",
+        "eyes": "eyes",
+    }
+    for item in data:
+        content = gitlab_reaction_names.get(item.get("name", ""), item.get("name", ""))
+        if content in REACTION_LABELS:
+            totals[content] = totals.get(content, 0) + 1
+    return totals
+
+
+def fetch_last_comment(issue_number: int) -> dict | None:
+    """Return the last comment on an issue, or None if there are none."""
+    data = gitlab_request(
+        f"/projects/{PROJECT_ID}/issues/{issue_number}/notes?order_by=created_at&sort=asc"
+    )
+    if isinstance(data, list) and data:
+        note = data[-1]
+        author = note.get("author") or {}
+        return {
+            "body": note.get("body", ""),
+            "created_at": note.get("created_at", ""),
+            "user": {
+                "login": author.get("username", "unknown"),
+                "html_url": author.get("web_url", "#"),
+            },
+        }
+    return None
+
+
+def parse_issue_body(body: str) -> dict:
+    """
+    Extract structured fields from a GitLab issue-template body.
+    Templates render as markdown with ### headings above each answer.
+    """
+    fields: dict[str, str] = {}
+    if not body:
+        return fields
+
+    # GitLab issue templates render sections as:
+    #   ### Field Label\n\nanswer text
+    sections = re.split(r"\n###\s+", "\n" + body)
+    for section in sections:
+        lines = section.strip().splitlines()
+        if not lines:
+            continue
+        heading = lines[0].strip()
+        value = "\n".join(lines[1:]).strip()
+        # Normalise key
+        key = heading.lower().replace("/", " ").replace(" ", "_").strip("_")
+        fields[key] = value
+    return fields
+
+
+def extract_preview_url(fields: dict, body: str) -> str:
+    """Find the preview image URL from parsed fields or raw body."""
+    # Check known field keys (including legacy keys for backward compatibility)
+    for key in ("preview_image_url", "preview_url", "preview_image"):
+        val = fields.get(key, "").strip()
+        if val and val.startswith("http"):
+            return val
+        # Handle markdown image syntax: ![alt](url) or HTML <img src="url">
+        if val:
+            m = MARKDOWN_IMAGE_RE.search(val)
+            if m:
+                return m.group(1)
+            m = HTML_IMAGE_RE.search(val)
+            if m:
+                return m.group(1)
+
+    # Fallback: first markdown image in body  ![alt](url)
+    m = MARKDOWN_IMAGE_RE.search(body or "")
+    if m:
+        return m.group(1)
+
+    # Fallback: HTML <img src="url"> in body
+    m = HTML_IMAGE_RE.search(body or "")
+    if m:
+        return m.group(1)
+
+    # Fallback: first bare URL ending in image extension
+    m = re.search(r"(https?://\S+\.(?:png|jpg|jpeg|gif|webp|svg))", body or "",
+                  re.IGNORECASE)
+    if m:
+        return m.group(1)
+
+    return ""
+
+
+def extract_design_url(fields: dict) -> str:
+    for key in ("design_prototype_link", "design_url", "prototype_link"):
+        val = fields.get(key, "").strip()
+        if val and val.startswith("http"):
+            return val
+    return ""
+
+
+def extract_category(fields: dict) -> str:
+    return fields.get("design_category", fields.get("category", "Other")).strip()
+
+
+def extract_description(fields: dict) -> str:
+    desc = fields.get("description", "").strip()
+    # Strip matched markdown code fences (e.g. ```markdown ... ```)
+    desc = re.sub(r"^```[^\n]*\n(.*?)^```\s*$", r"\1", desc, flags=re.DOTALL | re.MULTILINE)
+    # Strip any remaining lone opening/closing fence markers (unmatched fences)
+    desc = re.sub(r"^```\w*\s*$", "", desc, flags=re.MULTILINE)
+    # Strip markdown checkbox noise
+    desc = re.sub(r"^[-*]\s+\[[ x]\].*$", "", desc, flags=re.MULTILINE)
+    desc = desc.strip()
+    if len(desc) > 200:
+        desc = desc[:197] + "…"
+    return html.escape(desc)
+
+
+def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
+               is_winner: bool = False, title_prefix: str = TITLE_PREFIX) -> str:
+    """Return the HTML card markup for a single submission."""
+    number = issue["number"]
+    title = html.escape(issue.get("title", "Untitled").replace(title_prefix + " ", "").strip())
+    issue_url = html.escape(issue.get("html_url", "#"))
+    created_at_iso = html.escape(issue.get("created_at", ""))
+    created = created_at_iso[:10]  # UTC date used as static fallback
+    user = issue.get("user", {})
+    author_login = html.escape(user.get("login", "unknown"))
+    author_url = html.escape(user.get("html_url", "#"))
+    author_avatar = html.escape(user.get("avatar_url", ""))
+
+    body = issue.get("body", "") or ""
+    fields = parse_issue_body(body)
+
+    designer_name = html.escape(author_login)
+    preview_url = html.escape(extract_preview_url(fields, body))
+    design_url = html.escape(extract_design_url(fields))
+    category = html.escape(extract_category(fields))
+    description = extract_description(fields)
+    comment_count = issue.get("comments", 0)
+
+    # Last comment snippet
+    comment_block = ""
+    if last_comment:
+        c_user = last_comment.get("user", {})
+        c_login = html.escape(c_user.get("login", "unknown"))
+        c_url = html.escape(c_user.get("html_url", "#"))
+        c_avatar = html.escape(c_user.get("avatar_url", ""))
+        c_body = (last_comment.get("body", "") or "").strip()
+        # Strip markdown images and links for the snippet
+        c_body = COMMENT_STRIP_IMAGE_RE.sub("", c_body)
+        c_body = COMMENT_STRIP_LINK_RE.sub(r"\1", c_body)
+        c_body = c_body.strip()
+        if len(c_body) > MAX_COMMENT_LENGTH:
+            c_body = c_body[:MAX_COMMENT_LENGTH - 3] + "…"
+        c_body_escaped = html.escape(c_body)
+        if c_body:
+            c_avatar_img = (
+                f'<img src="{c_avatar}" alt="{c_login}\'s avatar" class="w-5 h-5 rounded-full shrink-0" />'
+                if c_avatar else
+                '<i class="fa-solid fa-user-circle text-base shrink-0" aria-hidden="true"></i>'
+            )
+            count_label = f'{comment_count} comment{"s" if comment_count != 1 else ""} · ' if comment_count > 0 else ''
+            comment_block = (
+                f'<div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500">'
+                f'{c_avatar_img}'
+                f'<span>'
+                f'<a href="{issue_url}" target="_blank" rel="noopener" '
+                f'class="hover:text-[#E10101] transition-colors">{count_label}</a>'
+                f'<a href="{c_url}" target="_blank" rel="noopener" '
+                f'class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">'
+                f'{c_login}</a>: {c_body_escaped}</span>'
+                f'</div>'
+            )
+    if not comment_block:
+        comment_block = (
+            f'<a href="{issue_url}" target="_blank" rel="noopener" '
+            f'class="inline-flex items-center gap-1.5 text-xs '
+            f'text-gray-400 dark:text-gray-500 hover:text-[#E10101] '
+            f'dark:hover:text-[#E10101] transition-colors" '
+            f'aria-label="Be the first to comment on GitLab">'
+            f'<i class="fa-regular fa-comment" aria-hidden="true"></i>'
+            f'Be the first to comment!</a>'
+        )
+
+    # Reaction pills
+    thumbs_count = reactions.get("+1", 0)
+    total_reactions = sum(reactions.get(c, 0) for c in REACTION_LABELS)
+
+    if total_reactions > 0:
+        reaction_html = ""
+        for content, emoji in REACTION_LABELS.items():
+            count = reactions.get(content, 0)
+            if count == 0:
+                continue
+            if content == "+1":
+                reaction_html += (
+                    f'<button type="button" '
+                    f'class="inline-flex items-center gap-1 text-sm '
+                    f'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 '
+                    f'rounded-full px-2 py-0.5 hover:bg-red-100 dark:hover:bg-red-900/30 '
+                    f'hover:text-[#E10101] transition-colors cursor-pointer" '
+                    f'data-thumbs-btn '
+                    f'aria-label="Thumbs up this design on GitLab">'
+                    f'{emoji} <span>{count}</span></button>'
+                )
+            else:
+                reaction_html += (
+                    f'<span class="inline-flex items-center gap-1 text-sm '
+                    f'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 '
+                    f'rounded-full px-2 py-0.5">'
+                    f'{emoji} <span>{count}</span></span>'
+                )
+    else:
+        reaction_html = (
+            f'<a href="{issue_url}" target="_blank" rel="noopener" '
+            f'class="inline-flex items-center gap-1.5 text-xs '
+            f'text-gray-400 dark:text-gray-500 hover:text-[#E10101] '
+            f'dark:hover:text-[#E10101] transition-colors" '
+            f'aria-label="Be the first to react on GitLab">'
+            f'<i class="fa-regular fa-face-smile" aria-hidden="true"></i>'
+            f'Be the first to react!</a>'
+        )
+
+    # Preview image
+    if preview_url:
+        preview_block = (
+            f'<a href="{issue_url}" target="_blank" rel="noopener" '
+            f'   class="block overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700">'
+            f'  <img src="{preview_url}" alt="{title} preview" loading="lazy" '
+            f'       class="w-full h-full object-cover transition-transform duration-300 '
+            f'              group-hover:scale-105" />'
+            f'</a>'
+        )
+    else:
+        preview_block = (
+            f'<a href="{issue_url}" target="_blank" rel="noopener" '
+            f'   class="flex items-center justify-center aspect-square '
+            f'          bg-gray-100 dark:bg-gray-700 text-gray-400">'
+            f'  <i class="fa-solid fa-image text-4xl" aria-hidden="true"></i>'
+            f'</a>'
+        )
+
+    design_link = ""
+    if design_url:
+        design_link = (
+            f'<a href="{design_url}" target="_blank" rel="noopener" '
+            f'   class="text-[#E10101] hover:underline text-sm inline-flex items-center gap-1">'
+            f'  <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>'
+            f'  View Design</a>'
+        )
+
+    # Category badge colour
+    cat_colour = {
+        "UI / Website Redesign": "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200",
+        "Logo / Brand Identity": "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200",
+        "Banner / Marketing": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200",
+        "Icon Set": "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200",
+        "Mobile App": "bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200",
+        "T-Shirt / Apparel Design": "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-200",
+    }.get(category, "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200")
+
+    # Winner badge and extra styling
+    winner_badge = ""
+    winner_ring = ""
+    winner_attr = ""
+    if is_winner:
+        winner_badge = (
+            '<div class="absolute top-2 left-2 z-10 flex items-center gap-1.5 '
+            'bg-amber-400 text-amber-900 text-xs font-bold px-2.5 py-1 '
+            'rounded-full shadow-md pointer-events-none">'
+            '<i class="fa-solid fa-trophy" aria-hidden="true"></i> Winner</div>'
+        )
+        winner_ring = " ring-2 ring-amber-400 ring-offset-2 dark:ring-offset-[#111827]"
+        winner_attr = ' data-winner="true"'
+
+    return f"""
+    <article class="group relative bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                    border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                    flex flex-col hover:shadow-md transition-shadow{winner_ring}"
+             data-thumbs="{thumbs_count}"
+             data-total-reactions="{total_reactions}"
+             data-issue-url="{issue_url}"{winner_attr}
+             aria-label="Contest submission: {title}">
+      {winner_badge}
+      {preview_block}
+      <div class="p-5 flex flex-col gap-3 flex-1">
+        <!-- Category + issue number -->
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full {cat_colour}">{category}</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500">#{number} · <time class="sub-date" datetime="{created_at_iso}">{created}</time></span>
+        </div>
+
+        <!-- Title -->
+        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+          <a href="{issue_url}" target="_blank" rel="noopener"
+             class="hover:text-[#E10101] transition-colors">{title}</a>
+        </h2>
+
+        <!-- Description -->
+        <p class="text-sm text-gray-600 dark:text-gray-300 flex-1">{description or "No description provided."}</p>
+
+        <!-- Designer -->
+        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          {'<img src="' + author_avatar + '" alt="" class="w-6 h-6 rounded-full" aria-hidden="true" />' if author_avatar else '<i class="fa-solid fa-user-circle text-lg" aria-hidden="true"></i>'}
+          <a href="{author_url}" target="_blank" rel="noopener"
+             class="text-[#E10101] hover:underline font-medium">{designer_name}</a>
+        </div>
+        <!-- Last comment -->
+        {comment_block}
+        <!-- Footer: reactions + design link -->
+        <div class="flex items-center justify-between gap-2 flex-wrap pt-2
+                    border-t border-[#E5E5E5] dark:border-gray-700">
+          <div class="flex items-center gap-1 flex-wrap" aria-label="Reactions">
+            {reaction_html}
+          </div>
+          <div class="flex items-center gap-3">
+            {design_link}
+            <a href="{issue_url}" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-1 text-sm font-medium
+                      border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                      hover:bg-[#E10101] hover:text-white transition-colors"
+               aria-label="View issue #{number}">
+              <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Issue
+            </a>
+          </div>
+        </div>
+      </div>
+    </article>"""
+
+
+def build_contest_section(contest: dict, cards: list[str], total: int,
+                          winner_count: int = 0) -> str:
+    """Return the HTML panel for one contest tab (without wrapping <main>)."""
+    cid = html.escape(contest["id"])
+    name = html.escape(contest["name"])
+    description = html.escape(contest.get("long_description") or contest["description"])
+    prize = html.escape(contest["prize"])
+    deadline_display = html.escape(contest["deadline_display"])
+    submit_url = html.escape(issue_template_url(contest["template"]))
+    icon = contest["icon"]
+    cstatus = contest.get("status", "active")
+    ends_label = "Ended" if cstatus == "selecting_winner" else "Ends"
+    google_form_url = html.escape(contest.get("google_form_url", ""))
+
+    prize_html = (
+        f'<span class="inline-flex items-center gap-1 text-[#E10101]">'
+        f'<i class="fa-solid fa-trophy" aria-hidden="true"></i> {prize} prize</span>'
+        if prize else ""
+    )
+    google_form_html = (
+        f'<div class="mt-3 text-sm text-gray-500 dark:text-gray-400">'
+        f'Submit via BLT below, or use the '
+        f'<a href="{google_form_url}" target="_blank" rel="noopener"'
+        f' class="text-[#E10101] hover:underline font-medium">official Google Form</a>'
+        f" as an alternative.</div>"
+        if google_form_url else ""
+    )
+
+    if cards:
+        cards_html = "\n".join(cards)
+    else:
+        cards_html = (
+            '<div class="col-span-full text-center py-20 text-gray-500 dark:text-gray-400">'
+            f'<i class="{icon} text-5xl mb-4 block text-[#E10101]" aria-hidden="true"></i>'
+            '<p class="text-lg font-medium">No submissions yet — be the first!</p>'
+            '<p class="mt-2 text-sm">Click <strong>Add Entry</strong> to get started.</p>'
+            '</div>'
+        )
+
+    winner_banner = ""
+    if winner_count:
+        s = "s" if winner_count > 1 else ""
+        are = "are" if winner_count > 1 else "is"
+        winner_banner = f"""
+      <!-- Winner announcement banner -->
+      <div class="mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-600
+                  rounded-xl px-5 py-4 flex items-center gap-3">
+        <i class="fa-solid fa-trophy text-2xl text-amber-500" aria-hidden="true"></i>
+        <div>
+          <p class="font-semibold text-amber-800 dark:text-amber-300">Winner{s} Selected!</p>
+          <p class="text-sm text-amber-700 dark:text-amber-400">
+            {winner_count} winning design{s} {are} highlighted below.
+          </p>
+        </div>
+      </div>"""
+
+    return f"""
+    <div id="contest-{cid}" class="contest-panel" role="tabpanel" aria-labelledby="tab-{cid}">
+
+      <!-- Contest info bar -->
+      <div class="mb-6 p-5 bg-white dark:bg-[#1F2937] rounded-xl border border-[#E5E5E5] dark:border-gray-700">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <i class="{icon} text-[#E10101]" aria-hidden="true"></i>
+              {name}
+            </h2>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>
+            <div class="mt-2 flex items-center gap-4 text-sm font-medium flex-wrap">
+              {prize_html}
+              <span class="inline-flex items-center gap-1 text-[#E10101]">
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_label} {deadline_display}
+              </span>
+              <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-images" aria-hidden="true"></i>
+                {total} submission{'' if total == 1 else 's'}
+              </span>
+            </div>
+            {google_form_html}
+          </div>
+          <a href="{submit_url}"
+             target="_blank" rel="noopener"
+             class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+                    text-white text-sm font-semibold px-4 py-2 rounded-md
+                    transition-colors shrink-0">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            Add Entry
+          </a>
+        </div>
+      </div>
+      {winner_banner}
+      <!-- Sort controls -->
+      <div class="flex items-center gap-3 flex-wrap mb-6">
+        <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">Sort:</span>
+        <button id="sort-thumbs-{cid}" type="button"
+                class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
+                       text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
+                       text-sm font-semibold px-4 py-2 rounded-md transition-colors"
+                aria-pressed="false"
+                data-sort="thumbs" data-contest="{cid}">
+          <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+          By 👍
+        </button>
+        <button id="sort-reactions-{cid}" type="button"
+                class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
+                       text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
+                       text-sm font-semibold px-4 py-2 rounded-md transition-colors"
+                aria-pressed="false"
+                data-sort="reactions" data-contest="{cid}">
+          <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+          By all reactions
+        </button>
+      </div>
+
+      <!-- Cards grid -->
+      <div id="cards-grid-{cid}"
+           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {cards_html}
+      </div>
+
+    </div>"""
+
+
+
+def build_html(contests_data: list[dict], last_updated: str) -> str:
+    """Return the complete index.html (homepage) as a string.
+
+    ``contests_data`` is a list of dicts, each with keys:
+      - ``config``  – the CONTESTS entry dict
+      - ``cards``   – list of card HTML strings (winners first)
+      - ``total``   – submission count for that contest
+      - ``issues``  – raw issue payloads for that contest
+    """
+    total_all = sum(d["total"] for d in contests_data)
+
+    # Build contest summary cards for the homepage
+    contest_cards_html = ""
+    for d in contests_data:
+        c = d["config"]
+        cid = html.escape(c["id"])
+        cname = html.escape(c["name"])
+        cdesc = html.escape(c["description"])
+        cprize = html.escape(c["prize"])
+        cdeadline = html.escape(c["deadline_display"])
+        ctotal = d["total"]
+        icon = c["icon"]
+        page_url = f"{cid}.html"
+        cstatus = c.get("status", "active")
+        if cstatus == "selecting_winner":
+            status_badge = (
+                '<span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full'
+                ' bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">'
+                'Ended \u2013 Selecting Winner'
+                '</span>'
+            )
+            ends_text = f"Ended {cdeadline}"
+        else:
+            status_badge = (
+                '<span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full'
+                ' bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">'
+                'Active'
+                '</span>'
+            )
+            ends_text = f"Ends {cdeadline}"
+
+        contest_cards_html += f"""
+        <a href="{page_url}"
+           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <div class="p-6 sm:p-7">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+                          flex items-center justify-center shrink-0">
+                <i class="{icon} text-2xl text-[#E10101]" aria-hidden="true"></i>
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">{cname}</h3>
+                {status_badge}
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">{cdesc}</p>
+            <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
+              {'<span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> ' + cprize + ' prize</span>' if cprize else ''}
+              <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_text}
+              </span>
+            </div>
+            <div class="flex items-center justify-between pt-4
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <div>
+                <p class="text-2xl font-black text-[#E10101]">{ctotal}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  submission{'' if ctotal == 1 else 's'}
+                </p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+                           group-hover:gap-2.5 transition-all duration-200">
+                View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </span>
+            </div>
+          </div>
+        </a>"""
+
+    # Build the latest submissions across contests by submitted time.
+    recent_entries = []
+    for d in contests_data:
+        c = d["config"]
+        cid = c["id"]
+        contest_name = html.escape(c["name"])
+        contest_url = html.escape(f"{cid}.html")
+        title_prefix = c.get("title_prefix", "")
+
+        for issue in d.get("issues", []):
+            created_at = issue.get("created_at", "")
+            if not created_at:
+                continue
+            try:
+                submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            except ValueError:
+                continue
+
+            raw_title = (issue.get("title", "Untitled") or "Untitled").strip()
+            if title_prefix and raw_title.startswith(title_prefix):
+                raw_title = raw_title[len(title_prefix):].strip()
+
+            body = issue.get("body", "") or ""
+            fields = parse_issue_body(body)
+            preview_url = html.escape(extract_preview_url(fields, body))
+            issue_url = html.escape(issue.get("html_url", "#"))
+
+            recent_entries.append({
+                "contest_name": contest_name,
+                "contest_url": contest_url,
+                "title": html.escape(raw_title or "Untitled submission"),
+                "issue_url": issue_url,
+                "preview_url": preview_url,
+                "submitted_iso": html.escape(created_at),
+                "submitted_fallback": html.escape(created_at[:10]),
+                "submitted_dt": submitted_dt,
+            })
+
+    recent_entries.sort(key=lambda item: item["submitted_dt"], reverse=True)
+    latest_three = recent_entries[:3]
+
+    if latest_three:
+        recent_cards_html = ""
+        for item in latest_three:
+            if item["preview_url"]:
+                preview_block = (
+                    f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
+                    f'   class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">'
+                    f'  <img src="{item["preview_url"]}" alt="{item["title"]} preview" loading="lazy" '
+                    f'       class="w-full h-full object-cover transition-transform duration-300 '
+                    f'              group-hover:scale-105" />'
+                    f'</a>'
+                )
+            else:
+                # Build the latest submissions across contests by submitted time.
+                # Use a min-heap to keep only the top 3 most recent entries without sorting the full list.
+                heap = []  # min-heap of (submitted_dt, entry_dict) tuples
+                for d in contests_data:
+                  c = d["config"]
+                  cid = c["id"]
+                  contest_name = html.escape(c["name"])
+                  contest_url = html.escape(f"{cid}.html")
+                  title_prefix = c.get("title_prefix", "")
+
+                  for issue in d.get("issues", []):
+                    created_at = issue.get("created_at", "")
+                    if not created_at:
+                      continue
+                    try:
+                      submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                    except ValueError:
+                      continue
+
+                    raw_title = (issue.get("title", "Untitled") or "Untitled").strip()
+                    if title_prefix and raw_title.startswith(title_prefix):
+                      raw_title = raw_title[len(title_prefix):].strip()
+
+                    body = issue.get("body", "") or ""
+                    fields = parse_issue_body(body)
+                    preview_url = html.escape(extract_preview_url(fields, body))
+                    issue_url = html.escape(issue.get("html_url", "#"))
+
+                    entry = {
+                      "contest_name": contest_name,
+                      "contest_url": contest_url,
+                      "title": html.escape(raw_title or "Untitled submission"),
+                      "issue_url": issue_url,
+                      "preview_url": preview_url,
+                      "submitted_iso": html.escape(created_at),
+                      "submitted_fallback": html.escape(created_at[:10]),
+                      "submitted_dt": submitted_dt,
+                    }
+
+                    # Maintain a heap of the 3 most recent entries
+                    if len(heap) < 3:
+                      heapq.heappush(heap, (submitted_dt, entry))
+                    elif submitted_dt > heap[0][0]:
+                      heapq.heapreplace(heap, (submitted_dt, entry))
+
+                # Extract the 3 entries and sort them in descending order
+                latest_three = sorted(heap, reverse=True)
+                latest_three = [entry for _, entry in latest_three]
+
+            recent_cards_html += f"""
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          {preview_block}
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">{item["contest_name"]}</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="{item["submitted_iso"]}">{item["submitted_fallback"]}</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="{item["issue_url"]}" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">{item["title"]}</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="{item["contest_url"]}"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="{item["issue_url"]}" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>"""
+    else:
+        recent_cards_html = (
+            '<div class="md:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm '
+            'border border-[#E5E5E5] dark:border-gray-700 p-6 text-center '
+            'text-sm text-gray-500 dark:text-gray-400">'
+            'No recent submissions available.'
+            '</div>'
+        )
+
+    # For the hero submit URL, use the first contest
+    first_submit_url = html.escape(
+        issue_template_url(contests_data[0]["config"]["template"])
+        if contests_data else issue_template_url()
+    )
+
+    return f"""<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="description" content="BLT Design Contest — open design showcases for BLT and the broader open source security community. Browse entries, vote for your favourites, and submit your own!" />
+  <title>BLT Design Contests</title>
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {{
+      darkMode: 'class',
+      theme: {{
+        extend: {{
+          colors: {{
+            brand: '#E10101',
+          }},
+        }},
+      }},
+    }};
+  </script>
+
+  <!-- Font Awesome 6 (CDN) -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Minimal custom overrides -->
+  <style>
+    :root {{ --brand: #E10101; }}
+    *:focus-visible {{
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+    }}
+  </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen
+             flex flex-col font-sans antialiased">
+
+  <!-- ── Skip to content ── -->
+  <a href="#contests"
+     class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
+            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white
+            focus:rounded-md focus:font-medium">
+    Skip to content
+  </a>
+
+  <!-- ══════════════════════════════════════════
+       HEADER / NAV
+  ══════════════════════════════════════════ -->
+  <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700
+                 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
+
+        <!-- Logo / Brand -->
+        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-md
+                       bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
+          <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
+            Design Contests
+          </span>
+        </a>
+
+        <!-- Centre nav links -->
+        <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+          <a href="#contests"
+             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">
+            Contests
+          </a>
+          <a href="#how-it-works"
+             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">
+            How it works
+          </a>
+          <a href="{PROJECT_URL}" target="_blank" rel="noopener"
+             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+                    inline-flex items-center gap-1">
+            <i class="fa-brands fa-gitlab" aria-hidden="true"></i> GitLab
+          </a>
+        </div>
+
+        <!-- CTA -->
+        <a href="{first_submit_url}"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+                  text-white text-sm font-semibold px-4 py-2 rounded-md
+                  transition-colors shrink-0">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          <span>Submit Design</span>
+        </a>
+
+        <!-- Dark-mode toggle -->
+        <button id="theme-toggle" type="button"
+                class="p-2 rounded-md text-gray-500 dark:text-gray-400
+                       hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                aria-label="Toggle dark mode">
+          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+          <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
+        </button>
+
+      </nav>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════
+       HERO
+  ══════════════════════════════════════════ -->
+  <section class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+      <span class="inline-block mb-4 bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+                   text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
+        Open to Everyone
+      </span>
+      <h1 class="text-4xl sm:text-5xl font-black text-gray-900 dark:text-gray-50 leading-tight mb-4">
+        BLT Design Contests
+      </h1>
+      <p class="max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-300 mb-8">
+        Anyone passionate about BLT, open source, and application security is welcome to participate.
+        Browse entries, share your appreciation with a 👍 on GitLab, and submit your own design.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       HOW IT WORKS
+  ══════════════════════════════════════════ -->
+  <section id="how-it-works" class="bg-gray-50 dark:bg-[#111827]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <h2 class="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-10">
+        How it works
+      </h2>
+      <ol class="grid sm:grid-cols-3 gap-8" role="list">
+        <li class="flex flex-col items-center text-center gap-3">
+          <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+                       flex items-center justify-center text-xl font-black">1</span>
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Submit your design</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Open a new GitLab issue using the contest's submission template — no prior experience needed.
+            Upload a preview image, add a short description, and link to your design.
+          </p>
+        </li>
+        <li class="flex flex-col items-center text-center gap-3">
+          <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+                       flex items-center justify-center text-xl font-black">2</span>
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Everyone votes</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Anyone — from seasoned security pros to open source newcomers — can leave a 👍 reaction
+            to show appreciation. The showcase reflects live reaction counts.
+          </p>
+        </li>
+        <li class="flex flex-col items-center text-center gap-3">
+          <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+                       flex items-center justify-center text-xl font-black">3</span>
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Showcase updates</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            GitLab Actions rebuilds this page whenever a submission is
+            opened or edited, keeping the showcase always up to date.
+          </p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       CONTESTS OVERVIEW
+  ══════════════════════════════════════════ -->
+  <section id="contests" class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Active Contests</h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Pick a contest to browse submissions and vote for your favourites.
+          </p>
+        </div>
+        <p class="text-xs text-gray-400 dark:text-gray-500 shrink-0">
+          Last updated {last_updated}
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        {contest_cards_html}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       RECENT SUBMISSIONS
+  ══════════════════════════════════════════ -->
+  <section id="recent-submissions" class="bg-gray-50 dark:bg-[#111827] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <div class="flex items-center justify-between gap-4 mb-8">
+        <div>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-8">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Submissions</h2>
+            <a href="show-all-entries.html"
+              class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+                      self-start sm:self-auto whitespace-nowrap
+                      hover:gap-2.5 transition-all duration-200">
+              View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Latest 3 entries sorted by submitted time.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        {recent_cards_html}
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════ -->
+  <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8
+                flex flex-col sm:flex-row items-center justify-between gap-4 text-sm
+                text-gray-500 dark:text-gray-400">
+      <p>
+        &copy; {datetime.now(timezone.utc).year}
+        <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
+           class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+        Content licensed under
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener"
+           class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+      </p>
+      <div class="flex items-center gap-4">
+        <a href="{PROJECT_URL}" target="_blank" rel="noopener"
+           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+          <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Source
+        </a>
+        <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
+           class="hover:text-[#E10101] transition-colors">OWASP BLT</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════════
+       SCRIPTS
+  ══════════════════════════════════════════ -->
+  <script>
+    // Dark-mode toggle
+    const toggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    // Initialise from localStorage or system preference
+    if (localStorage.theme === 'dark' ||
+        (!('theme' in localStorage) &&
+         window.matchMedia('(prefers-color-scheme: dark)').matches)) {{
+      html.classList.add('dark');
+    }}
+
+    toggle.addEventListener('click', () => {{
+      html.classList.toggle('dark');
+      localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+    }});
+
+    // Format submission dates in user's local timezone; cap any future dates to today
+    (function () {{
+      var now = new Date();
+      document.querySelectorAll('time.sub-date').forEach(function (el) {{
+        var raw = el.getAttribute('datetime');
+        if (!raw) return;
+        var d = new Date(raw);
+        if (isNaN(d.getTime())) return;
+        if (d > now) d = now;
+        el.textContent = d.toLocaleDateString(undefined, {{
+          year: 'numeric', month: 'short', day: 'numeric'
+        }});
+      }});
+    }})();
+  </script>
+</body>
+</html>"""
+
+
+def build_show_all_entries_html(contests_data: list[dict], last_updated: str) -> str:
+    """Return a standalone page with all submissions in a simple card layout."""
+    entries = []
+
+    for d in contests_data:
+        c = d["config"]
+        cid = c["id"]
+        contest_name = html.escape(c["name"])
+        contest_page = html.escape(f"{cid}.html")
+        title_prefix = c.get("title_prefix", "")
+
+        for issue in d.get("issues", []):
+            created_at = issue.get("created_at", "")
+            if not created_at:
+                continue
+            try:
+                submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            except ValueError:
+                continue
+
+            raw_title = (issue.get("title", "Untitled submission") or "Untitled submission").strip()
+            if title_prefix and raw_title.startswith(title_prefix):
+                raw_title = raw_title[len(title_prefix):].strip()
+
+            body = issue.get("body", "") or ""
+            fields = parse_issue_body(body)
+            preview_url = html.escape(extract_preview_url(fields, body))
+            issue_url = html.escape(issue.get("html_url", "#"))
+
+            entries.append({
+                "contest_id": html.escape(cid),
+                "contest_name": contest_name,
+                "contest_page": contest_page,
+                "title": html.escape(raw_title or "Untitled submission"),
+                "issue_url": issue_url,
+                "preview_url": preview_url,
+                "submitted_iso": html.escape(created_at),
+                "submitted_fallback": html.escape(created_at[:10]),
+                "submitted_dt": submitted_dt,
+            })
+
+    entries.sort(key=lambda item: item["submitted_dt"], reverse=True)
+
+    if entries:
+        cards = []
+        for item in entries:
+            if item["preview_url"]:
+                preview_block = (
+                    f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
+                    f'   class="block overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700">'
+                    f'  <img src="{item["preview_url"]}" alt="{item["title"]} preview" loading="lazy" '
+                    f'       class="w-full h-full object-cover transition-transform duration-300 '
+                    f'              group-hover:scale-105" />'
+                    f'</a>'
+                )
+            else:
+                preview_block = (
+                    f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
+                    f'   class="flex items-center justify-center aspect-square '
+                    f'          bg-gray-100 dark:bg-gray-700 text-gray-400">'
+                    f'  <i class="fa-solid fa-image text-3xl" aria-hidden="true"></i>'
+                    f'</a>'
+                )
+
+            cards.append(f"""
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="{item["contest_id"]}">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          {preview_block}
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">{item["contest_name"]}</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="{item["submitted_iso"]}">{item["submitted_fallback"]}</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="{item["issue_url"]}" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">{item["title"]}</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="{item["contest_page"]}"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="{item["issue_url"]}" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>""")
+
+        cards_html = "\n".join(cards)
+    else:
+        cards_html = (
+            '<div class="sm:col-span-2 lg:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm '
+            'border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm '
+            'text-gray-500 dark:text-gray-400">No entries available right now.</div>'
+        )
+
+    filter_buttons = [
+        '<button type="button" data-filter="all" '
+        'class="filter-btn inline-flex items-center gap-2 border text-sm font-semibold px-4 py-2 rounded-md transition-colors" '
+        'aria-pressed="true">All Contests</button>'
+    ]
+    for c in CONTESTS:
+        filter_buttons.append(
+            f'<button type="button" data-filter="{html.escape(c["id"])}" '
+            f'class="filter-btn inline-flex items-center gap-2 border text-sm font-semibold px-4 py-2 rounded-md transition-colors" '
+            f'aria-pressed="false">{html.escape(c["name"])}</button>'
+        )
+    filter_buttons_html = "\n        ".join(filter_buttons)
+
+    first_submit_url = html.escape(
+        issue_template_url(contests_data[0]["config"]["template"])
+        if contests_data else issue_template_url()
+    )
+
+    return f"""<!DOCTYPE html>
+    <html lang="en" class="scroll-smooth">
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="description" content="All BLT Design Contest submissions in one place." />
+    <title>All Entries - BLT Design Contests</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {{
+      darkMode: 'class',
+      theme: {{
+      extend: {{
+      colors: {{
+      brand: '#E10101',
+      }},
+      }},
+      }},
+    }};
+    </script>
+
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+    :root {{ --brand: #E10101; }}
+    *:focus-visible {{
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+    }}
+    </style>
+    </head>
+
+    <body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen flex flex-col font-sans antialiased">
+    <a href="#all-entries"
+     class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white focus:rounded-md focus:font-medium">
+    Skip to content
+    </a>
+
+    <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
+      <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
+      <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">Design Contests</span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+      <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1.5">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+      </a>
+      <a href="show-all-entries.html"
+       class="text-[#E10101] font-semibold inline-flex items-center gap-1.5"
+       aria-current="page">
+      <i class="fa-solid fa-images" aria-hidden="true"></i> All Entries
+      </a>
+      <a href="{PROJECT_URL}" target="_blank" rel="noopener"
+       class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <i class="fa-brands fa-gitlab" aria-hidden="true"></i> GitLab
+      </a>
+      </div>
+
+      <a href="index.html#contests"
+       class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors shrink-0">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span>Choose Contest</span>
+      </a>
+
+      <button id="theme-toggle" type="button"
+      class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      aria-label="Toggle dark mode">
+      <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+      <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
+      </button>
+      </nav>
+    </div>
+    </header>
+
+    <section class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
+      <span class="inline-block mb-4 bg-[#feeae9] dark:bg-red-900/30 text-[#E10101] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
+      Unified Showcase
+      </span>
+      <h1 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-gray-50 leading-tight mb-3">
+      All Contest Entries
+      </h1>
+      <p class="max-w-2xl mx-auto text-base sm:text-lg text-gray-600 dark:text-gray-300">
+      Browse every current submission from all BLT design contests in one page.
+      </p>
+      <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">Last updated {last_updated}</p>
+    </div>
+    </section>
+
+    <main id="all-entries" class="flex-1 bg-gray-50 dark:bg-[#111827] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Entries</h2>
+      <p id="entries-status" class="mt-1 text-sm text-gray-500 dark:text-gray-400">Loading entries...</p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 mb-8" id="contest-filters" aria-label="Contest filters">
+      {filter_buttons_html}
+      </div>
+
+      <div id="all-entries-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-live="polite">
+      {cards_html}
+      <div id="no-filter-results" class="hidden sm:col-span-2 lg:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">No entries found for this filter.</div>
+      </div>
+    </div>
+    </main>
+
+    <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500 dark:text-gray-400">
+      <p>
+      &copy; {datetime.now(timezone.utc).year}
+      <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+      Content licensed under
+      <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+      </p>
+      <div class="flex items-center gap-4">
+      <a href="index.html" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+      </a>
+      <a href="{PROJECT_URL}" target="_blank" rel="noopener" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Source
+      </a>
+      </div>
+    </div>
+    </footer>
+
+    <script>
+    const toggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    if (localStorage.theme === 'dark' ||
+      (!('theme' in localStorage) &&
+       window.matchMedia('(prefers-color-scheme: dark)').matches)) {{
+      html.classList.add('dark');
+    }}
+
+    toggle.addEventListener('click', () => {{
+      html.classList.toggle('dark');
+      localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+    }});
+
+    const baseBtn = ['border-gray-300', 'dark:border-gray-600', 'text-gray-700', 'dark:text-gray-200'];
+    const activeBtn = ['border-[#E10101]', 'text-[#E10101]', 'bg-red-50', 'dark:bg-red-900/20', 'dark:text-red-300'];
+
+    let activeFilter = 'all';
+    const statusEl = document.getElementById('entries-status');
+    const allCards = Array.from(document.querySelectorAll('#all-entries-grid > article[data-contest]'));
+    const noFilterResults = document.getElementById('no-filter-results');
+
+    function setButtonState(button, active) {{
+      button.classList.remove(...baseBtn, ...activeBtn);
+      if (active) {{
+      button.classList.add(...activeBtn);
+      }} else {{
+      button.classList.add(...baseBtn);
+      }}
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }}
+
+    function updateFilterButtons() {{
+      document.querySelectorAll('.filter-btn').forEach((btn) => {{
+      setButtonState(btn, btn.dataset.filter === activeFilter);
+      }});
+    }}
+
+    function formatDates() {{
+      const now = new Date();
+      document.querySelectorAll('time.sub-date').forEach((el) => {{
+      const raw = el.getAttribute('datetime');
+      if (!raw) return;
+      let d = new Date(raw);
+      if (isNaN(d.getTime())) return;
+      if (d > now) d = now;
+      el.textContent = d.toLocaleDateString(undefined, {{
+      year: 'numeric', month: 'short', day: 'numeric'
+      }});
+      }});
+    }}
+
+    function applyFilter() {{
+      if (!allCards.length) {{
+      statusEl.textContent = 'No entries available right now.';
+      return;
+      }}
+
+      let visibleCount = 0;
+      allCards.forEach((card) => {{
+      const show = activeFilter === 'all' || card.dataset.contest === activeFilter;
+      card.classList.toggle('hidden', !show);
+      if (show) visibleCount += 1;
+      }});
+
+      if (noFilterResults) {{
+      noFilterResults.classList.toggle('hidden', visibleCount !== 0);
+      }}
+
+      statusEl.textContent = 'Showing ' + visibleCount + ' entr' + (visibleCount === 1 ? 'y' : 'ies') + ' from all contests.';
+      formatDates();
+    }}
+
+    document.querySelectorAll('.filter-btn').forEach((btn) => {{
+      btn.addEventListener('click', () => {{
+      activeFilter = btn.dataset.filter;
+      updateFilterButtons();
+      applyFilter();
+      }});
+    }});
+
+    updateFilterButtons();
+    applyFilter();
+    </script>
+    </body>
+    </html>"""
+
+
+def build_winner_showcase(winner_issues: list, title_prefix: str) -> str:
+    """Return a prominent winner-showcase hero section for a contest page.
+
+    Displayed at the top of the main content area when one or more winners
+    have been selected.  Each winner gets their design image, GitLab avatar,
+    username, and a link back to the winning submission.
+    """
+    if not winner_issues:
+        return ""
+
+    entry_blocks: list[str] = []
+    for i, issue in enumerate(winner_issues):
+        number = issue["number"]
+        raw_title = (
+            issue.get("title", "Untitled").replace(
+                title_prefix + " ", "", 1
+            ).strip() if title_prefix else issue.get("title", "Untitled")
+        )
+        title = html.escape(raw_title)
+        issue_url = html.escape(issue.get("html_url", "#"))
+        user = issue.get("user", {})
+        author_login = html.escape(user.get("login", "unknown"))
+        author_url = html.escape(user.get("html_url", "#"))
+        author_avatar = html.escape(user.get("avatar_url", ""))
+
+        body_text = issue.get("body", "") or ""
+        fields = parse_issue_body(body_text)
+        preview_url = html.escape(extract_preview_url(fields, body_text))
+
+        avatar_img = (
+            f'<img src="{author_avatar}" alt="{author_login}\'s avatar" '
+            f'class="w-12 h-12 rounded-full border-2 border-amber-400 shadow-sm" />'
+            if author_avatar
+            else (
+                '<span class="inline-flex items-center justify-center w-12 h-12 '
+                "rounded-full bg-amber-200 dark:bg-amber-800\">"
+                '<i class="fa-solid fa-user text-amber-700 dark:text-amber-300"'
+                ' aria-hidden="true"></i></span>'
+            )
+        )
+
+        preview_html = (
+            f'<a href="{issue_url}" target="_blank" rel="noopener"'
+            f'   class="block w-full md:w-1/2 lg:w-2/5 shrink-0 rounded-xl'
+            f"          overflow-hidden shadow-lg border-2 border-amber-300"
+            f'          dark:border-amber-600">'
+            f'  <img src="{preview_url}" alt="{title} - winning design"'
+            f'       class="w-full object-cover" style="max-height:20rem" />'
+            f"</a>"
+        ) if preview_url else ""
+
+        sep = (
+            '<hr class="border-amber-200 dark:border-amber-700" />'
+            if i > 0
+            else ""
+        )
+        entry_blocks.append(f"""
+        {sep}
+        <div class="flex flex-col md:flex-row gap-6 items-center">
+          <div class="flex-1 min-w-0 flex flex-col gap-4">
+            <div class="flex items-center gap-3">
+              {avatar_img}
+              <div class="min-w-0">
+                <a href="{author_url}" target="_blank" rel="noopener"
+                   class="text-lg font-bold text-amber-800 dark:text-amber-300 hover:underline">
+                  @{author_login}
+                </a>
+                <p class="text-xs text-amber-600 dark:text-amber-500">
+                  <i class="fa-solid fa-trophy" aria-hidden="true"></i> Contest Winner
+                </p>
+              </div>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              {title}
+            </h3>
+            <a href="{issue_url}" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-500
+                      text-amber-900 font-semibold text-sm px-4 py-2 rounded-md
+                      transition-colors w-fit">
+              <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
+              View Winning Submission #{number}
+            </a>
+          </div>
+          {preview_html}
+        </div>""")
+
+    count = len(winner_issues)
+    s = "s" if count > 1 else ""
+    have = "have" if count > 1 else "has"
+    entries_combined = "\n".join(entry_blocks)
+
+    return f"""
+    <!-- ══════════════════════════════════════════
+         WINNER SHOWCASE HERO
+    ══════════════════════════════════════════ -->
+    <section aria-label="Contest winner showcase"
+             class="mb-8 bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-50
+                    dark:from-amber-900/25 dark:via-yellow-900/15 dark:to-amber-900/25
+                    border border-amber-300 dark:border-amber-600
+                    rounded-2xl overflow-hidden shadow-sm">
+      <div class="px-6 py-4 border-b border-amber-200 dark:border-amber-700
+                  flex items-center gap-3">
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full
+                     bg-amber-400 text-amber-900 text-xl">
+          <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+        </span>
+        <div>
+          <h2 class="text-lg font-bold text-amber-800 dark:text-amber-300">
+            Winner{s} Announced!
+          </h2>
+          <p class="text-sm text-amber-600 dark:text-amber-500">
+            The following design{s} {have} been selected as the winner{s} of this contest.
+          </p>
+        </div>
+      </div>
+      <div class="p-6 flex flex-col gap-6">
+        {entries_combined}
+      </div>
+    </section>"""
+
+
+def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
+    """Return a complete standalone HTML page for a single contest."""
+    c = contest_data["config"]
+    cid = html.escape(c["id"])
+    cname = html.escape(c["name"])
+    icon = c["icon"]
+    submit_url = html.escape(issue_template_url(c["template"]))
+    deadline = c["deadline"]
+
+    # Build winner showcase from issues carrying the winner label
+    winner_issues = [
+        issue
+        for issue in contest_data.get("issues", [])
+        if WINNER_LABEL in [lb["name"] for lb in issue.get("labels", [])]
+    ]
+    winner_showcase = build_winner_showcase(winner_issues, c["title_prefix"])
+
+    # The contest content (info bar + winner banner + sort controls + cards grid)
+    contest_section = build_contest_section(
+        contest_data["config"],
+        contest_data["cards"],
+        contest_data["total"],
+        winner_count=contest_data.get("winner_count", 0),
+    )
+
+    return f"""<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="description" content="{cname} — open design showcase for BLT and the broader open source security community. Browse entries, vote for your favourites, and submit your own!" />
+  <title>{cname} — BLT Design Contests</title>
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {{
+      darkMode: 'class',
+      theme: {{
+        extend: {{
+          colors: {{
+            brand: '#E10101',
+          }},
+        }},
+      }},
+    }};
+  </script>
+
+  <!-- Font Awesome 6 (CDN) -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Minimal custom overrides -->
+  <style>
+    :root {{ --brand: #E10101; }}
+    *:focus-visible {{
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+    }}
+  </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen
+             flex flex-col font-sans antialiased">
+
+  <!-- ── Skip to content ── -->
+  <a href="#contest-{cid}"
+     class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
+            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white
+            focus:rounded-md focus:font-medium">
+    Skip to content
+  </a>
+
+  <!-- ══════════════════════════════════════════
+       HEADER / NAV
+  ══════════════════════════════════════════ -->
+  <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700
+                 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
+
+        <!-- Logo / Brand -->
+        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-md
+                       bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
+          <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
+            Design Contests
+          </span>
+        </a>
+
+        <!-- Centre nav links -->
+        <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+          <a href="index.html"
+             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+                    inline-flex items-center gap-1.5">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+          </a>
+          <span class="text-gray-300 dark:text-gray-600">|</span>
+          <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold">
+            <i class="{icon}" aria-hidden="true"></i> {cname}
+          </span>
+          <a href="{PROJECT_URL}" target="_blank" rel="noopener"
+             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+                    inline-flex items-center gap-1">
+            <i class="fa-brands fa-gitlab" aria-hidden="true"></i> GitLab
+          </a>
+        </div>
+
+        <!-- CTA -->
+        <a href="{submit_url}"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+                  text-white text-sm font-semibold px-4 py-2 rounded-md
+                  transition-colors shrink-0">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          <span>Submit Design</span>
+        </a>
+
+        <!-- Dark-mode toggle -->
+        <button id="theme-toggle" type="button"
+                class="p-2 rounded-md text-gray-500 dark:text-gray-400
+                       hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                aria-label="Toggle dark mode">
+          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+          <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
+        </button>
+
+      </nav>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════
+       CONTEST CONTENT
+  ══════════════════════════════════════════ -->
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+      <!-- Last updated note -->
+      <p class="text-xs text-gray-400 dark:text-gray-500 mb-4 text-right">
+        Last updated {last_updated}
+      </p>
+
+      {winner_showcase}
+      {contest_section}
+
+    </div>
+  </main>
+
+  <!-- ══════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════ -->
+  <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8
+                flex flex-col sm:flex-row items-center justify-between gap-4 text-sm
+                text-gray-500 dark:text-gray-400">
+      <p>
+        &copy; {datetime.now(timezone.utc).year}
+        <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
+           class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+        Content licensed under
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener"
+           class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+      </p>
+      <div class="flex items-center gap-4">
+        <a href="index.html"
+           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+        </a>
+        <a href="{PROJECT_URL}" target="_blank" rel="noopener"
+           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+          <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Source
+        </a>
+        <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
+           class="hover:text-[#E10101] transition-colors">OWASP BLT</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════════
+       SCRIPTS
+  ══════════════════════════════════════════ -->
+  <script>
+    // Dark-mode toggle
+    const toggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    // Initialise from localStorage or system preference
+    if (localStorage.theme === 'dark' ||
+        (!('theme' in localStorage) &&
+         window.matchMedia('(prefers-color-scheme: dark)').matches)) {{
+      html.classList.add('dark');
+    }}
+
+    toggle.addEventListener('click', () => {{
+      html.classList.toggle('dark');
+      localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+    }});
+
+    // Sort buttons — work independently per contest panel
+    const sortState = {{}};
+
+    function resetSortBtn(btn) {{
+      if (!btn) return;
+      btn.setAttribute('aria-pressed', 'false');
+      btn.classList.remove('border-[#E10101]', 'text-[#E10101]');
+      btn.classList.add('border-gray-300', 'dark:border-gray-600', 'text-gray-700', 'dark:text-gray-200');
+    }}
+
+    document.querySelectorAll('[data-sort][data-contest]').forEach(btn => {{
+      btn.addEventListener('click', () => {{
+        const cid = btn.dataset.contest;
+        const sortType = btn.dataset.sort;
+        const grid = document.getElementById(`cards-grid-${{cid}}`);
+        if (!grid) return;
+
+        if (!sortState[cid]) sortState[cid] = {{ thumbs: false, reactions: false, originalOrder: null }};
+        if (!sortState[cid].originalOrder) sortState[cid].originalOrder = Array.from(grid.children);
+
+        const otherType = sortType === 'thumbs' ? 'reactions' : 'thumbs';
+        const otherBtn = document.querySelector(`[data-sort="${{otherType}}"][data-contest="${{cid}}"]`);
+        const isActive = sortState[cid][sortType];
+
+        sortState[cid][sortType] = !isActive;
+        sortState[cid][otherType] = false;
+        resetSortBtn(otherBtn);
+
+        btn.setAttribute('aria-pressed', String(!isActive));
+        btn.classList.toggle('border-[#E10101]', !isActive);
+        btn.classList.toggle('text-[#E10101]', !isActive);
+        btn.classList.toggle('border-gray-300', isActive);
+        btn.classList.toggle('dark:border-gray-600', isActive);
+        btn.classList.toggle('text-gray-700', isActive);
+        btn.classList.toggle('dark:text-gray-200', isActive);
+
+        const dataKey = sortType === 'thumbs' ? 'thumbs' : 'totalReactions';
+        // Preserve winner pinning: keep winner cards at the top, only sort within non-winners.
+        const allCards = [...sortState[cid].originalOrder];
+        const winnerCards = allCards.filter(card => card.dataset.winner === 'true');
+        const nonWinnerCards = allCards.filter(card => card.dataset.winner !== 'true');
+        const sortedNonWinners = !isActive
+          ? [...nonWinnerCards].sort((a, b) =>
+              parseInt(b.dataset[dataKey] || '0', 10) - parseInt(a.dataset[dataKey] || '0', 10))
+          : nonWinnerCards;
+        const cards = [...winnerCards, ...sortedNonWinners];
+
+        cards.forEach(card => grid.appendChild(card));
+      }});
+    }});
+
+    // Thumbs-up click handler — opens the GitLab issue so the user can react there
+    // Uses event delegation so it works for both static and live-updated buttons
+    document.addEventListener('click', (e) => {{
+      const btn = e.target.closest('[data-thumbs-btn]');
+      if (!btn) return;
+      const issueUrl = btn.closest('article')?.dataset.issueUrl;
+      if (issueUrl) {{
+        window.open(issueUrl, '_blank', 'noopener,noreferrer');
+      }}
+    }});
+
+    // Live-update reaction counts from the GitLab API on page load
+    (async function () {{
+      const REACTION_LABELS = [
+        ['+1',      '\U0001F44D'],
+        ['-1',      '\U0001F44E'],
+        ['laugh',   '\U0001F604'],
+        ['hooray',  '\U0001F389'],
+        ['confused','\U0001F615'],
+        ['heart',   '\u2764\uFE0F'],
+        ['rocket',  '\U0001F680'],
+        ['eyes',    '\U0001F440'],
+      ];
+      const PILL = 'inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 '
+                 + 'text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5';
+      const THUMBS_PILL = PILL + ' hover:bg-red-100 dark:hover:bg-red-900/30 '
+                        + 'hover:text-[#E10101] transition-colors cursor-pointer';
+      const ETAG_KEY   = 'bltDesignIssuesEtag';
+      const CACHE_KEY  = 'bltDesignIssuesCache';
+      const BASE_URL   = '{GITLAB_API_BASE}/projects/{PROJECT_ID}/issues?state=opened&per_page=100';
+      const API_HEADERS = {{ 'Accept': 'application/json' }};
+
+      const cards = Array.from(document.querySelectorAll('article[data-issue-url]'));
+      if (!cards.length) return;
+
+      // Load cached data from localStorage
+      let cachedEtag = null;
+      let issues = null;
+      try {{
+        cachedEtag = localStorage.getItem(ETAG_KEY);
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (raw) issues = JSON.parse(raw);
+      }} catch (_) {{}}
+
+      // Fetch fresh data, using a conditional request when we have a cached ETag
+      try {{
+        const firstPageHeaders = cachedEtag
+          ? {{ ...API_HEADERS, 'If-None-Match': cachedEtag }}
+          : {{ ...API_HEADERS }};
+        const resp = await fetch(`${{BASE_URL}}&page=1`, {{ headers: firstPageHeaders }});
+
+        if (resp.status === 304) {{
+          // Not modified — reuse cached issues, no rate-limit hit
+        }} else if (resp.ok) {{
+          const allIssues = await resp.json();
+          const newEtag = resp.headers.get('ETag');
+          let page = 2;
+          while (true) {{
+            const next = await fetch(`${{BASE_URL}}&page=${{page}}`, {{ headers: API_HEADERS }});
+            if (!next.ok) break;
+            const batch = await next.json();
+            if (!Array.isArray(batch) || !batch.length) break;
+            allIssues.push(...batch);
+            if (batch.length < 100) break;
+            page++;
+          }}
+          issues = allIssues;
+          try {{
+            if (newEtag) localStorage.setItem(ETAG_KEY, newEtag);
+            localStorage.setItem(CACHE_KEY, JSON.stringify(issues));
+          }} catch (_) {{}}
+        }} else {{
+          console.error('Failed to fetch live reaction counts:', resp.status, resp.statusText);
+        }}
+      }} catch (err) {{
+        console.error('Failed to fetch live reaction counts:', err);
+      }}
+
+      if (!issues) return;
+
+      const byUrl = {{}};
+      for (const issue of issues) {{
+        byUrl[issue.web_url] = {{
+          '+1': parseInt(issue.upvotes, 10) || 0,
+          '-1': parseInt(issue.downvotes, 10) || 0,
+        }};
+      }}
+
+      for (const card of cards) {{
+        const reactions = byUrl[card.dataset.issueUrl];
+        if (!reactions) continue;
+
+        const thumbsCount = parseInt(reactions['+1'], 10) || 0;
+        card.dataset.thumbs = thumbsCount;
+        const totalReactions = REACTION_LABELS.reduce((sum, [c]) => sum + (parseInt(reactions[c], 10) || 0), 0);
+        card.dataset.totalReactions = totalReactions;
+
+        const container = card.querySelector('[aria-label="Reactions"]');
+        if (!container) continue;
+
+        let html = '';
+        let total = 0;
+        for (const [content, emoji] of REACTION_LABELS) {{
+          const count = parseInt(reactions[content], 10) || 0;
+          if (!count) continue;
+          total++;
+          if (content === '+1') {{
+            html += `<button type="button" class="${{THUMBS_PILL}}" data-thumbs-btn `
+                  + `aria-label="Thumbs up this design on GitLab">${{emoji}} <span>${{count}}</span></button>`;
+          }} else {{
+            html += `<span class="${{PILL}}">${{emoji}} <span>${{count}}</span></span>`;
+          }}
+        }}
+        if (!total) {{
+          html = `<a href="${{card.dataset.issueUrl}}" target="_blank" rel="noopener" `
+               + `class="inline-flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 `
+               + `hover:text-[#E10101] dark:hover:text-[#E10101] transition-colors" `
+               + `aria-label="Be the first to react on GitLab">`
+               + `<i class="fa-regular fa-face-smile" aria-hidden="true"></i>Be the first to react!</a>`;
+        }}
+        container.innerHTML = html;
+      }}
+    }})();
+
+    // Format submission dates in user's local timezone; cap any future dates to today
+    (function () {{
+      var now = new Date();
+      document.querySelectorAll('time.sub-date').forEach(function (el) {{
+        var raw = el.getAttribute('datetime');
+        if (!raw) return;
+        var d = new Date(raw);
+        if (isNaN(d.getTime())) return;
+        if (d > now) d = now;
+        el.textContent = d.toLocaleDateString(undefined, {{
+          year: 'numeric', month: 'short', day: 'numeric'
+        }});
+      }});
+    }})();
+  </script>
+</body>
+</html>"""
+
+
+def main() -> None:
+    last_updated = datetime.now(timezone.utc).strftime("%d %b %Y %H:%M UTC")
+    contests_data = []
+
+    # Fetch all open issues once to use for the title-prefix fallback across all contests
+    print(f"Fetching all open issues from {PROJECT_PATH}…")
+    all_issues = fetch_issues()
+    print(f"  Found {len(all_issues)} open issues total.")
+
+    for contest in CONTESTS:
+        label = contest["label"]
+        title_prefix = contest["title_prefix"]
+        print(f"\nFetching issues for contest '{contest['name']}' (label: {label})…")
+
+        issues = fetch_issues({"labels": label})
+        print(f"  Found {len(issues)} labelled submissions.")
+
+        # Also pick up issues with the correct title prefix that may be missing the label
+        seen = {i["number"] for i in issues}
+        for issue in all_issues:
+            if issue["number"] not in seen and issue.get("title", "").startswith(title_prefix):
+                issues.append(issue)
+                seen.add(issue["number"])
+                print(f"  Picked up unlabelled issue #{issue['number']}: {issue.get('title', '')[:60]}")
+
+        print(f"  Total submissions: {len(issues)}.")
+
+        winner_cards = []
+        non_winner_cards = []
+        for issue in issues:
+            number = issue["number"]
+            print(f"  Processing issue #{number}: {issue.get('title', '')[:60]}")
+            reactions = fetch_reactions(number)
+            last_comment = fetch_last_comment(number)
+            label_names = [lb["name"] for lb in issue.get("labels", [])]
+            is_winner = WINNER_LABEL in label_names
+            card_html = build_card(issue, reactions, last_comment,
+                                   is_winner=is_winner, title_prefix=title_prefix)
+            if is_winner:
+                winner_cards.append(card_html)
+            else:
+                non_winner_cards.append(card_html)
+
+        # Winners always appear first
+        cards = winner_cards + non_winner_cards
+        contests_data.append({
+            "config": contest,
+            "cards": cards,
+            "issues": issues,
+            "total": len(cards),
+            "winner_count": len(winner_cards),
+        })
+
+    root_dir = os.path.dirname(os.path.dirname(__file__))
+    output_dir = os.path.join(root_dir, "public")
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Write homepage (index.html) with contest summary cards
+    page_html = build_html(contests_data, last_updated)
+    out_path = os.path.join(output_dir, "index.html")
+    with open(out_path, "w", encoding="utf-8") as fh:
+        fh.write(page_html)
+    print(f"\nWritten → {out_path}")
+
+    # Write the all-entries aggregation page (show-all-entries.html)
+    show_all_html = build_show_all_entries_html(contests_data, last_updated)
+    show_all_out_path = os.path.join(output_dir, "show-all-entries.html")
+    with open(show_all_out_path, "w", encoding="utf-8") as fh:
+        fh.write(show_all_html)
+    print(f"Written → {show_all_out_path}")
+
+    # Write a standalone page for each contest (e.g. blt-tshirt.html)
+    for contest_data in contests_data:
+        cid = contest_data["config"]["id"]
+        contest_page_html = build_contest_page_html(contest_data, last_updated)
+        contest_out_path = os.path.join(output_dir, f"{cid}.html")
+        with open(contest_out_path, "w", encoding="utf-8") as fh:
+            fh.write(contest_page_html)
+        print(f"Written → {contest_out_path}")
+
+
+if __name__ == "__main__":
+    main()
