@@ -1,0 +1,27 @@
+# Example configuration: shell dangerous-execution analysis
+profile: standard
+
+# Paths may be absolute or relative to this YAML file.
+include_paths:
+  - tests/fixtures/shell
+
+exclude_patterns:
+  - .git
+  - __pycache__
+  - "*.pyc"
+  - node_modules
+  - .venv
+  - venv
+
+# Conservative safety defaults.
+follow_symlinks: false
+max_depth: 12
+max_file_size: 2000000
+
+# PR 1 enables only the shell-script analyzer.
+enabled_analyzers:
+  - shell
+
+masking:
+  enabled: true
+  max_snippet_length: 180
