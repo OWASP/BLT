@@ -1,0 +1,19 @@
+name = "blt-safecloak"
+main = "src/main.py"
+compatibility_date = "2026-06-12"
+compatibility_flags = ["python_workers", "disable_python_external_sdk"]
+
+[assets]
+directory = "./public"
+
+[durable_objects]
+bindings = [
+  { name = "CHAT_ROOMS", class_name = "ChatRoom" }
+]
+
+[[migrations]]
+tag = "v1-chat-rooms"
+new_sqlite_classes = ["ChatRoom"]
+
+[observability]
+enabled = true

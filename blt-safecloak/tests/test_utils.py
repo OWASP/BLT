@@ -1,0 +1,277 @@
+import sys
+import os
+import json
+import pytest
+import ast
+import asyncio
+from datetime import datetime
+from unittest.mock import MagicMock, patch, AsyncMock
+
+# --- THE CLOUDFLARE MOCK ---
+# This creates a "fake" Cloudflare workers module so local Python doesn't crash.
+mock_workers = MagicMock()
+
+
+class FakeResponse:
+
+    def __init__(self, body, status=200, headers=None):
+        self.body = body.encode('utf-8') if isinstance(body, str) else body
+        self.status_code = status
+        self.headers = headers or {}
+
+
+mock_workers.Response = FakeResponse
+mock_workers.WorkerEntrypoint = type('WorkerEntrypoint', (), {})
+sys.modules['workers'] = mock_workers
+# ---------------------------
+
+# Fix the path so it finds your 'src' folder
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Now the import will work perfectly!
+from src.libs.utils import html_response, json_response, cors_response, security_headers, resolve_allowed_origin
+
+EXPECTED_SECURITY_HEADERS = security_headers()
+CRITICAL_SECURITY_DIRECTIVES = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+}
+
+
+def test_html_response_no_origin():
+    """Test that html_response sets the correct headers and content when no origin provided."""
+    html_content = "<h1>Test Page</h1>"
+    response = html_response(html_content)
+
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "text/html; charset=utf-8"
+    # Requests without an Origin header get no CORS grant.
+    assert "Access-Control-Allow-Origin" not in response.headers
+    assert EXPECTED_SECURITY_HEADERS.items() <= response.headers.items()
+    for header_name, expected_value in EXPECTED_SECURITY_HEADERS.items():
+        assert response.headers[header_name] == expected_value
+    for header_name, expected_value in CRITICAL_SECURITY_DIRECTIVES.items():
+        assert response.headers[header_name] == expected_value
+    assert "<h1>Test Page</h1>" in response.body.decode('utf-8')
+
+
+def test_html_response_sets_cors_for_allowed_origin(monkeypatch):
+    """Test html_response sets CORS header only for allowlisted origins."""
+    monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://allowed.example')
+    html_content = "<h1>Test Page</h1>"
+    response = html_response(html_content, origin='https://allowed.example')
+
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "text/html; charset=utf-8"
+    assert "<h1>Test Page</h1>" in response.body.decode('utf-8')
+    assert response.headers["Access-Control-Allow-Origin"] == "https://allowed.example"
+    assert response.headers["Vary"] == "Origin"
+
+
+def test_html_response_omits_cors_for_unknown_origin(monkeypatch):
+    """Test html_response omits CORS header for non-allowlisted origins."""
+    monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://allowed.example')
+    response = html_response('<h1>Test Page</h1>', origin='https://unknown.example')
+
+    assert response.status_code == 200
+    assert "Access-Control-Allow-Origin" not in response.headers
+    assert response.headers["Vary"] == "Origin"
+
+
+def test_json_response_no_origin():
+    """Test that json_response sets the correct headers and content when no origin provided."""
+    data = {"status": "success"}
+    response = json_response(data)
+
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "application/json; charset=utf-8"
+    # Requests without an Origin header get no CORS grant.
+    assert "Access-Control-Allow-Origin" not in response.headers
+    assert EXPECTED_SECURITY_HEADERS.items() <= response.headers.items()
+    for header_name, expected_value in EXPECTED_SECURITY_HEADERS.items():
+        assert response.headers[header_name] == expected_value
+    for header_name, expected_value in CRITICAL_SECURITY_DIRECTIVES.items():
+        assert response.headers[header_name] == expected_value
+    assert json.loads(response.body) == data
+
+
+def test_json_response_sets_cors_for_allowed_origin(monkeypatch):
+    """Test json_response correctly formats JSON and emits CORS for allowlisted origins."""
+    monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://allowed.example')
+    data = {"status": "success"}
+    response = json_response(data, origin='https://allowed.example')
+
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "application/json; charset=utf-8"
+    assert json.loads(response.body) == data
+    assert response.headers["Access-Control-Allow-Origin"] == "https://allowed.example"
+    assert response.headers["Vary"] == "Origin"
+
+
+def test_cors_response_no_origin():
+    """Test that cors_response sets the correct CORS headers when no origin provided."""
+    response = cors_response()
+
+    assert response.status_code == 204
+    # Preflights without an Origin header get no CORS grant.
+    assert "Access-Control-Allow-Origin" not in response.headers
+    assert response.headers["Access-Control-Allow-Methods"] == "GET, POST, OPTIONS"
+    assert response.headers["Access-Control-Allow-Headers"] == "Content-Type"
+    assert response.headers["Access-Control-Max-Age"] == "86400"
+    assert EXPECTED_SECURITY_HEADERS.items() <= response.headers.items()
+    for header_name, expected_value in EXPECTED_SECURITY_HEADERS.items():
+        assert response.headers[header_name] == expected_value
+    for header_name, expected_value in CRITICAL_SECURITY_DIRECTIVES.items():
+        assert response.headers[header_name] == expected_value
+
+
+def test_cors_response_sets_allow_origin_for_allowed_origin(monkeypatch):
+    """Test cors_response injects allowlisted origin and CORS preflight headers."""
+    monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://allowed.example')
+    response = cors_response(origin='https://allowed.example')
+
+    assert response.status_code == 204
+    assert response.headers["Access-Control-Allow-Origin"] == "https://allowed.example"
+    assert response.headers["Access-Control-Allow-Methods"] == "GET, POST, OPTIONS"
+    assert response.headers["Access-Control-Allow-Headers"] == "Content-Type"
+    assert response.headers["Access-Control-Max-Age"] == "86400"
+    assert response.headers["Vary"] == "Origin"
+
+
+def test_cors_response_omits_allow_origin_for_unknown_origin(monkeypatch):
+    """Test cors_response does not allow unknown origins."""
+    monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://allowed.example')
+    response = cors_response(origin='https://unknown.example')
+
+    assert response.status_code == 204
+    assert "Access-Control-Allow-Origin" not in response.headers
+    assert response.headers["Vary"] == "Origin"
+
+
+def test_resolve_allowed_origin_normalizes_case_and_trailing_slash(monkeypatch):
+    """Allowlist checks should ignore host/scheme case and trailing slash differences."""
+    monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://Allowed.Example.com/')
+
+    assert resolve_allowed_origin('HTTPS://ALLOWED.EXAMPLE.COM') == 'https://allowed.example.com'
+
+
+def test_json_response_default_str_fallback():
+    """
+    Documents the API policy that unserializable objects 
+    (like datetime or sets) are safely cast to strings instead of failing.
+    """
+    # Create an object json.dumps() normally fails on
+    unserializable_data = {"timestamp": datetime(2026, 3, 22, 12, 0, 0), "unique_items": {1, 2, 3}}
+
+    response = json_response(unserializable_data)
+
+    assert response.status_code == 200
+    response_data = json.loads(response.body)
+    # fix for issue 1
+    assert response_data["timestamp"] == "2026-03-22 12:00:00"
+    actual_set = set(ast.literal_eval(response_data["unique_items"]))
+    assert actual_set == {1, 2, 3}
+
+
+# --- on_fetch error handling tests ---
+# main.py uses 'from libs.utils import ...' (Cloudflare Workers path),
+# so we register src/libs as 'libs' before importing main.
+import src.libs.utils as _utils_mod
+
+sys.modules['libs'] = type(sys)('libs')
+sys.modules['libs.utils'] = _utils_mod
+
+from src.main import Default
+
+
+def _make_request(method='GET', path='/'):
+    """Create a fake request object for testing."""
+    req = MagicMock()
+    req.method = method
+    req.url = f'http://localhost:8787{path}'
+    req.headers = {}
+    return req
+
+
+def _make_env(has_assets=False):
+    """Create a fake env object for testing."""
+    env = MagicMock(spec=[])
+    if has_assets:
+        env.ASSETS = AsyncMock()
+    return env
+
+
+def test_on_fetch_missing_page_returns_404():
+    """Verify that a missing page file returns a clean 404, not an unhandled exception."""
+    worker = Default()
+    req = _make_request('GET', '/consent')
+    env = _make_env()
+
+    with patch('src.main.Path') as mock_path:
+        mock_path.return_value = mock_path
+        mock_path.__truediv__ = MagicMock(return_value=mock_path)
+        instance = mock_path.return_value
+        instance.parent.__truediv__ = MagicMock(return_value=instance)
+        # Simulate read_text raising FileNotFoundError
+        instance.read_text.side_effect = FileNotFoundError('consent.html not found')
+
+        # Patch Path(__file__).parent / 'pages' / ... to raise
+        with patch.object(Default, 'on_fetch', wraps=worker.on_fetch):
+            response = asyncio.run(worker.on_fetch(req, env))
+
+    assert response.status_code == 404
+    assert b'Not Found' in response.body
+
+
+def test_on_fetch_unknown_path_returns_404_with_security_headers():
+    """Verify that a missing route returns a secure 404 response."""
+    worker = Default()
+    req = _make_request('GET', '/missing-route')
+    env = _make_env()
+
+    response = asyncio.run(worker.on_fetch(req, env))
+
+    assert response.status_code == 404
+    assert response.headers["Content-Type"] == "text/plain; charset=utf-8"
+    # No Origin header on the request, so no CORS grant on the response.
+    assert "Access-Control-Allow-Origin" not in response.headers
+    assert EXPECTED_SECURITY_HEADERS.items() <= response.headers.items()
+    for header_name, expected_value in EXPECTED_SECURITY_HEADERS.items():
+        assert response.headers[header_name] == expected_value
+    assert b'Not Found' in response.body
+
+
+def test_on_fetch_unexpected_error_returns_500():
+    """Verify that an unexpected exception returns a clean 500, not a stack trace."""
+    worker = Default()
+    req = _make_request('GET', '/notes')
+    env = _make_env()
+
+    with patch('src.main.Path') as mock_path:
+        mock_instance = MagicMock()
+        mock_path.return_value = mock_instance
+        mock_instance.parent.__truediv__ = MagicMock(return_value=mock_instance)
+        mock_instance.__truediv__ = MagicMock(return_value=mock_instance)
+        mock_instance.read_text.side_effect = RuntimeError('disk I/O error')
+
+        response = asyncio.run(worker.on_fetch(req, env))
+
+    assert response.status_code == 500
+    assert b'Internal Server Error' in response.body
+
+
+def test_on_fetch_cancelled_error_is_reraised():
+    """Verify that asyncio.CancelledError is not swallowed by the error handler."""
+    worker = Default()
+    req = _make_request('GET', '/notes')
+    env = _make_env()
+
+    with patch('src.main.Path') as mock_path:
+        mock_instance = MagicMock()
+        mock_path.return_value = mock_instance
+        mock_instance.parent.__truediv__ = MagicMock(return_value=mock_instance)
+        mock_instance.__truediv__ = MagicMock(return_value=mock_instance)
+        mock_instance.read_text.side_effect = asyncio.CancelledError()
+
+        with pytest.raises(asyncio.CancelledError):
+            asyncio.run(worker.on_fetch(req, env))

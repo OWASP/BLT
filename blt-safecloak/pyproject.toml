@@ -1,0 +1,39 @@
+[project]
+name = "blt-safecloak"
+version = "0.1.0"
+description = "Privacy-focused peer-to-peer communication platform"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+dependencies = [
+    # Add your production dependencies here
+]
+
+[project.optional-dependencies]
+dev = [
+    "yapf>=0.40.0",
+    "mypy>=1.8.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.yapf]
+based_on_style = "pep8"
+column_limit = 100
+indent_width = 4
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["js", "js.*", "workers", "workers.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

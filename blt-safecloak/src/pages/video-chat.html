@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Chat Lobby - BLT-SafeCloak</title>
+    <meta
+      name="description"
+      content="Create or join a secure video room before entering your BLT-SafeCloak call."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path fill='%23E10101' d='M32 4l22 8v17c0 14-9.7 26.3-22 30C19.7 55.3 10 43 10 29V12z'/><path fill='white' d='M32 16l12 4v9c0 7.9-5.2 14.9-12 17-6.8-2.1-12-9.1-12-17v-9z'/></svg>"
+    />
+
+    <script>
+      (function () {
+        try {
+          if (localStorage.getItem("blt-theme-preference") === "dark") {
+            document.documentElement.classList.add("dark");
+          }
+        } catch (error) {
+          console.warn("[ThemeBootstrap] Failed to read saved theme:", error);
+        }
+      })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#E10101",
+              "primary-hover": "#b91c1c",
+              "neutral-border": "#E5E5E5",
+            },
+            fontFamily: {
+              sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="css/main.css" />
+    <script defer src="js/theme.js"></script>
+  </head>
+
+  <body class="font-sans antialiased">
+    <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
+
+    <nav
+      class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur"
+      role="navigation"
+      aria-label="Main navigation"
+    >
+      <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <a class="flex items-center gap-3" href="/" aria-label="BLT-SafeCloak Home">
+          <img
+            src="img/logo.png"
+            alt="BLT-SafeCloak logo"
+            class="h-10 w-10 rounded-md object-contain"
+            onerror="
+              this.style.display = 'none';
+              this.nextElementSibling.style.display = 'flex';
+            "
+          />
+          <div>
+            <p class="text-sm font-extrabold leading-none sm:text-base">BLT-SafeCloak</p>
+            <p class="text-xs font-medium text-gray-500">OWASP BLT Extension</p>
+          </div>
+        </a>
+
+        <button
+          class="rounded-md border border-neutral-border p-2 text-gray-700 md:hidden"
+          id="navbar-toggle"
+          aria-label="Toggle menu"
+          aria-expanded="false"
+          type="button"
+        >
+          <i class="fa-solid fa-bars" aria-hidden="true"></i>
+        </button>
+
+        <ul
+          class="navbar-nav hidden absolute left-4 right-4 top-[4.2rem] flex-col gap-2 rounded-lg border border-neutral-border bg-white p-3 md:static md:flex md:flex-row md:items-center md:gap-1 md:border-0 md:bg-transparent md:p-0"
+          id="navbar-nav"
+          role="list"
+        >
+          <li>
+            <a
+              href="/"
+              class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
+              >Home</a
+            >
+          </li>
+          <li>
+            <a
+              href="/video-chat"
+              class="nav-link active block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
+              >Video Chat</a
+            >
+          </li>
+          <li>
+            <a
+              href="/notes"
+              class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
+              >Secure Notes</a
+            >
+          </li>
+          <li>
+            <a
+              href="/consent"
+              class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
+              >Consent</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://gitlab.com/owasp-blt/blt-safecloak"
+              target="_blank"
+              rel="noopener"
+              class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
+            >
+              <i class="fa-brands fa-github mr-2" aria-hidden="true"></i>GitHub
+            </a>
+          </li>
+          <li>
+            <button
+              class="nav-link block w-full rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
+              id="theme-toggle-btn"
+              aria-label="Switch to dark mode"
+              type="button"
+              title="Toggle theme"
+            >
+              <i class="fa-solid fa-moon" aria-hidden="true"></i>
+              <span class="ml-2">Theme</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="mx-auto w-full max-w-6xl px-4 pb-10 pt-8 sm:px-6 lg:px-8">
+      <header class="mb-6 text-center sm:mb-8">
+        <h1 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">
+          <i class="fa-solid fa-video mr-2 text-primary" aria-hidden="true"></i>
+          Secure Video Chat Lobby
+        </h1>
+        <p class="mx-auto mt-2 max-w-2xl text-sm text-gray-600 sm:text-base">
+          Preview your camera and microphone, then create a room or join with an existing ID.
+        </p>
+      </header>
+
+      <main class="grid gap-6 lg:grid-cols-[1fr_320px]" id="voice">
+        <section class="space-y-4" aria-label="Create or join a room">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fa-solid fa-user-check text-primary" aria-hidden="true"></i>
+                Preview &amp; Devices
+              </h2>
+            </div>
+            <div class="card-body">
+              <p class="text-sm text-gray-600">
+                Set camera and microphone state before entering the call. These settings apply only
+                to your next room entry.
+              </p>
+
+              <div id="preview-video-section">
+                <div class="video-wrapper mt-3 rounded-xl border border-neutral-border bg-gray-900">
+                  <video
+                    id="prejoin-video"
+                    autoplay
+                    muted
+                    playsinline
+                    aria-label="Local preview"
+                  ></video>
+                  <div
+                    id="prejoin-placeholder"
+                    class="absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-300"
+                  >
+                    Camera preview unavailable
+                  </div>
+                  <div class="video-label rounded-md bg-black/65 px-2 py-1 text-xs text-white">
+                    <span class="status-dot online" aria-hidden="true"></span>
+                    Local Preview
+                  </div>
+                </div>
+              </div>
+
+              <div
+                id="walkie-lobby-banner"
+                class="hidden mt-3 rounded-xl border-2 border-primary/30 bg-red-50 p-5 text-center"
+                aria-label="Walkie-talkie mode illustration"
+              >
+                <div
+                  class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10"
+                >
+                  <i class="fa-solid fa-bullhorn text-2xl text-primary" aria-hidden="true"></i>
+                </div>
+                <p class="text-sm font-bold text-gray-800">Walkie-Talkie Mode Active</p>
+                <p class="mt-1 text-xs leading-relaxed text-gray-500">
+                  Camera is disabled. In the room,
+                  <strong class="text-gray-700">hold the Talk button to speak</strong> and release
+                  to give the floor back. Only one person can talk at a time.
+                </p>
+              </div>
+
+              <div class="mt-3 flex items-center gap-2">
+                <button
+                  class="control-btn rounded-full border border-neutral-border bg-white text-gray-700"
+                  id="btn-preview-mic"
+                  type="button"
+                  aria-label="Toggle microphone before joining"
+                >
+                  <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+                </button>
+                <button
+                  class="control-btn rounded-full border border-neutral-border bg-white text-gray-700"
+                  id="btn-preview-cam"
+                  type="button"
+                  aria-label="Toggle camera before joining"
+                >
+                  <i class="fa-solid fa-video" aria-hidden="true"></i>
+                </button>
+                <p id="prejoin-status" class="text-xs text-gray-600">Initializing devices...</p>
+              </div>
+
+              <div
+                class="mt-3 flex items-center gap-3 rounded-lg border border-neutral-border bg-gray-50 px-3 py-2.5"
+              >
+                <label
+                  class="relative inline-flex cursor-pointer items-center"
+                  for="toggle-walkie-talkie"
+                  aria-label="Enable walkie-talkie audio-only mode from the start"
+                >
+                  <input
+                    type="checkbox"
+                    id="toggle-walkie-talkie"
+                    class="peer sr-only"
+                    aria-checked="false"
+                  />
+                  <div
+                    class="h-5 w-9 rounded-full border border-neutral-border bg-gray-200 transition peer-checked:border-primary peer-checked:bg-primary peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/40 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow after:transition-all peer-checked:after:translate-x-4"
+                  ></div>
+                </label>
+                <div>
+                  <p class="text-xs font-semibold text-gray-700">
+                    <i class="fa-solid fa-bullhorn mr-1 text-primary" aria-hidden="true"></i>
+                    Walkie-Talkie Mode
+                  </p>
+                  <p class="text-[11px] text-gray-500">
+                    Audio-only with push-to-talk. Ideal for large groups or low-bandwidth
+                    connections.
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <div class="mb-2 flex items-center justify-between gap-2">
+                  <label class="block text-sm font-semibold text-gray-700" for="display-name-input"
+                    >Display Name</label
+                  >
+                  <span
+                    id="saved-name-badge"
+                    class="hidden items-center gap-1.5 text-xs text-gray-500"
+                    aria-live="polite"
+                  >
+                    Saved as <strong id="saved-name-text" class="text-gray-700"></strong>
+                    &middot;
+                    <button
+                      id="btn-change-name"
+                      type="button"
+                      class="font-semibold text-primary underline hover:text-primary-hover focus:outline-none"
+                      aria-label="Change your saved display name"
+                    >
+                      Change
+                    </button>
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  id="display-name-input"
+                  class="w-full rounded-md border border-neutral-border px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
+                  placeholder="Enter your name to continue"
+                  autocomplete="name"
+                  maxlength="40"
+                  aria-label="Display name"
+                  required
+                />
+                <p class="mt-1 text-xs text-gray-500">
+                  Required before entering a room. Your name will be shown to participants.
+                </p>
+              </div>
+
+              <div
+                class="mt-4 rounded-xl border border-neutral-border bg-white p-3"
+                id="prejoin-voice-panel"
+                aria-label="Pre-join voice effects"
+                aria-live="polite"
+              >
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Voice Effects Preview
+                </p>
+                <div
+                  class="grid grid-cols-4 gap-1.5"
+                  role="group"
+                  aria-label="Pre-join voice effect options"
+                >
+                  <button
+                    class="voice-chip active"
+                    data-lobby-voice-mode="normal"
+                    type="button"
+                    aria-pressed="true"
+                    title="Clear all voice effects"
+                  >
+                    <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+                    <span>Normal</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="deep"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle deep voice"
+                  >
+                    <i class="fa-solid fa-down-long" aria-hidden="true"></i>
+                    <span>Deep</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="chipmunk"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle chipmunk voice"
+                  >
+                    <i class="fa-solid fa-up-long" aria-hidden="true"></i>
+                    <span>Chipmunk</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="robot"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle robot voice"
+                  >
+                    <i class="fa-solid fa-robot" aria-hidden="true"></i>
+                    <span>Robot</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="echo"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle echo effect"
+                  >
+                    <i class="fa-solid fa-wave-square" aria-hidden="true"></i>
+                    <span>Echo</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="voice1"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle telephone voice"
+                  >
+                    <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                    <span>Phone</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="voice2"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle alien voice"
+                  >
+                    <i class="fa-solid fa-user-astronaut" aria-hidden="true"></i>
+                    <span>Alien</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="voice3"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle monster voice"
+                  >
+                    <i class="fa-solid fa-skull" aria-hidden="true"></i>
+                    <span>Monster</span>
+                  </button>
+                </div>
+
+                <div id="prejoin-effect-sliders-container" aria-live="polite"></div>
+
+                <div
+                  class="mt-2 flex flex-wrap items-center gap-2 border-t border-neutral-border pt-2"
+                >
+                  <button
+                    class="voice-chip flex-none"
+                    id="btn-preview-monitor"
+                    type="button"
+                    title="Hear yourself with the selected voice effect"
+                    aria-pressed="false"
+                  >
+                    <i class="fa-solid fa-headphones" aria-hidden="true"></i>
+                    <span>Monitor</span>
+                  </button>
+
+                  <div class="flex min-w-0 flex-1 items-center gap-1" style="min-width: 7rem">
+                    <i
+                      class="fa-solid fa-volume-high flex-none text-[11px] text-gray-400"
+                      aria-hidden="true"
+                    ></i>
+                    <input
+                      type="range"
+                      class="voice-slider min-w-0 flex-1"
+                      id="slider-preview-monitor-volume"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value="50"
+                      aria-label="Preview monitor volume"
+                      style="background: linear-gradient(to right, #e10101 50%, #e5e7eb 50%)"
+                    />
+                    <span
+                      id="label-preview-monitor-volume"
+                      class="w-6 flex-none text-right text-[10px] font-semibold text-primary"
+                      >50%</span
+                    >
+                  </div>
+
+                  <div class="flex min-w-0 flex-1 items-center gap-1" style="min-width: 7rem">
+                    <i
+                      class="fa-solid fa-microphone flex-none text-[11px] text-gray-400"
+                      aria-hidden="true"
+                    ></i>
+                    <input
+                      type="range"
+                      class="voice-slider min-w-0 flex-1"
+                      id="slider-preview-mic-gain"
+                      min="0"
+                      max="200"
+                      step="1"
+                      value="100"
+                      aria-label="Preview microphone input level"
+                      style="background: linear-gradient(to right, #e10101 50%, #e5e7eb 50%)"
+                    />
+                    <span
+                      id="label-preview-mic-gain"
+                      class="w-8 flex-none text-right text-[10px] font-semibold text-primary"
+                      >100%</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" id="card-create-room">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fa-solid fa-circle-play text-primary" aria-hidden="true"></i>
+                Start A New Meeting
+              </h2>
+            </div>
+            <div class="card-body">
+              <p class="text-sm text-gray-600">
+                Create a room and enter the call page. Share your room ID or room link with others.
+              </p>
+              <button
+                class="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-md bg-red-600 px-4 py-2.5 sm:py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                id="btn-create-room"
+                aria-label="Create a new room"
+              >
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                Create Room
+              </button>
+            </div>
+          </div>
+
+          <div class="card" id="card-join-room">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fa-solid fa-right-to-bracket text-primary" aria-hidden="true"></i>
+                Join Existing Room
+              </h2>
+            </div>
+            <div class="card-body">
+              <label class="mb-2 block text-sm font-semibold text-gray-700" for="room-id-input"
+                >Room ID</label
+              >
+              <input
+                type="text"
+                id="room-id-input"
+                class="w-full rounded-md border border-neutral-border px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
+                placeholder="Enter 6-character room ID"
+                autocomplete="off"
+                inputmode="text"
+                pattern="[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}"
+                maxlength="6"
+                aria-label="Room ID"
+                required
+              />
+              <p class="mt-2 text-xs text-gray-500">Allowed: A-Z (except I,O) and digits 2-9.</p>
+              <button
+                class="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-md bg-white border border-gray-300 px-4 py-2.5 sm:py-3 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                id="btn-join-room"
+                aria-label="Join room by ID"
+              >
+                <i class="fa-solid fa-door-open" aria-hidden="true"></i>
+                Join Room
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <aside aria-label="Video chat security information" class="space-y-4">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fa-solid fa-shield-halved text-primary" aria-hidden="true"></i>
+                Security Snapshot
+              </h2>
+            </div>
+            <div class="card-body text-sm text-gray-600">
+              <ul class="space-y-1" role="list">
+                <li>
+                  <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>WebRTC
+                  peer-to-peer media
+                </li>
+                <li>
+                  <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>DTLS/SRTP
+                  transport encryption
+                </li>
+                <li>
+                  <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>Consent
+                  tracking with timestamps
+                </li>
+                <li>
+                  <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>No server
+                  recording
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="grid gap-2">
+            <a
+              href="/notes"
+              class="inline-flex items-center justify-center gap-2 rounded-md bg-white border border-gray-300 px-4 py-2.5 sm:py-3 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              aria-label="Open secure notes"
+            >
+              <i class="fa-solid fa-note-sticky" aria-hidden="true"></i>
+              Open Secure Notes
+            </a>
+            <a
+              href="/consent"
+              class="inline-flex items-center justify-center gap-2 rounded-md bg-white border border-gray-300 px-4 py-2.5 sm:py-3 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              aria-label="View consent log"
+            >
+              <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>
+              View Consent Log
+            </a>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-neutral-border bg-white py-8" role="contentinfo">
+      <div class="mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">
+        <p class="text-sm text-gray-600">
+          BLT-SafeCloak is an
+          <a
+            href="https://owasp.org/www-project-bug-logging-tool/"
+            target="_blank"
+            rel="noopener"
+            class="text-red-600 hover:underline"
+            >OWASP BLT</a
+          >
+          project. Open-source under the
+          <a
+            href="https://gitlab.com/owasp-blt/blt-safecloak/-/blob/main/LICENSE"
+            target="_blank"
+            rel="noopener"
+            class="text-red-600 hover:underline"
+            >AGPL-3.0 License</a
+          >.
+        </p>
+        <p class="mt-3 text-sm text-gray-500">
+          <a href="/" class="text-red-600 hover:underline">Home</a>
+          -
+          <a href="/video-chat" class="text-red-600 hover:underline">Video Chat</a>
+          -
+          <a href="/notes" class="text-red-600 hover:underline">Secure Notes</a>
+          -
+          <a href="/consent" class="text-red-600 hover:underline">Consent</a>
+          -
+          <a
+            href="https://gitlab.com/owasp-blt/blt-safecloak"
+            target="_blank"
+            rel="noopener"
+            class="text-red-600 hover:underline"
+            >GitHub</a
+          >
+        </p>
+      </div>
+    </footer>
+
+    <script src="js/ui.js"></script>
+    <script src="js/voice-changer.js"></script>
+    <script src="js/video-lobby.js"></script>
+  </body>
+</html>
