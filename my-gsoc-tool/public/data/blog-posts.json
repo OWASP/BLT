@@ -1,0 +1,34 @@
+[
+  {
+    "title": "Week 1: Project Setup & Initial Architecture",
+    "excerpt": "Set up repo structure, defined core architecture, finalized API contract, added basic CI pipeline, and documented setup steps for contributors.",
+    "url": "https://yourblog.dev/week-1",
+    "date": "2024-05-27",
+    "readTime": "5 min read",
+    "_id": 1
+  },
+  {
+    "title": "Week 2: Core Feature Implementation",
+    "excerpt": "Implemented authentication flow, added user session handling, built first draft of the data ingestion module, and wrote initial unit tests.",
+    "url": "https://yourblog.dev/week-2",
+    "date": "2024-06-03",
+    "readTime": "7 min read",
+    "_id": 2
+  },
+  {
+    "title": "Week 3: Plugin System & Integrations",
+    "excerpt": "Developed plugin loader, created example Django integration, optimized build process, and added support for configuration overrides.",
+    "url": "https://yourblog.dev/week-3",
+    "date": "2024-06-10",
+    "readTime": "6 min read",
+    "_id": 3
+  },
+  {
+    "title": "Week 4: UI Polishing & Documentation",
+    "excerpt": "Refined GitHub Pages interface, added onboarding steps, improved mobile design, wrote detailed docs for installation, and prepared upcoming milestone plan.",
+    "url": "https://yourblog.dev/week-4",
+    "date": "2024-06-17",
+    "readTime": "8 min read",
+    "_id": 4
+  }
+]
