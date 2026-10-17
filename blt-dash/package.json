@@ -1,0 +1,23 @@
+{
+  "name": "blt-dash",
+  "version": "1.0.0",
+  "description": "BLT-Dash - Company Cybersecurity Dashboard on Cloudflare Workers",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "lint": "echo 'Linting not configured yet' && exit 0"
+  },
+  "keywords": [
+    "cybersecurity",
+    "dashboard",
+    "cloudflare",
+    "workers",
+    "owasp",
+    "blt"
+  ],
+  "author": "OWASP BLT",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^4.64.0"
+  }
+}
