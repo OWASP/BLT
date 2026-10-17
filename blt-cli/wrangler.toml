@@ -1,0 +1,9 @@
+name = "blt-cli"
+compatibility_date = "2026-08-29"
+
+[assets]
+directory = "./public"
+
+[[routes]]
+pattern = "cli.owaspblt.org"
+custom_domain = true
