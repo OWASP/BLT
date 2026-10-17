@@ -4,7 +4,8 @@
 	"main": "backend/src/worker.py",
 	"compatibility_date": "2026-07-19",
 	"compatibility_flags": [
-		"python_workers"
+		"python_workers",
+		"disable_python_external_sdk"
 	],
 	"assets": {
 		"directory": "UI"
@@ -17,11 +18,17 @@
 			"persist": true
 		}
 	},
+	"routes": [
+		{
+			"pattern": "hackerhouse.owaspblt.org",
+			"custom_domain": true
+		}
+	],
 	"d1_databases": [
 		{
 			"binding": "HH_DB",
 			"database_name": "hackerhouse",
-			"database_id": "PLACEHOLDER",
+			"database_id": "d6789df0-779d-4ca6-902b-a4c45aaca7d9",
 			"migrations_dir": "backend/migrations"
 		}
 	],

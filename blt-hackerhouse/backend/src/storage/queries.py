@@ -170,7 +170,7 @@ class ContributorQueries:
         """).first()
         row = d1_row(result)
         total = int(row.get("total", 0))
-        linked = int(row.get("linked", 0))
+        linked = int(row.get("linked") or 0)
         unlinked = max(0, total - linked)
         return {"total": total, "linked": linked, "unlinked": unlinked}
 

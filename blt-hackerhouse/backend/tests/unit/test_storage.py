@@ -73,6 +73,15 @@ async def test_contributor_upsert_roundtrip(db):
 
 
 @pytest.mark.asyncio
+async def test_contributor_stats_handles_empty_database(db):
+    assert await ContributorQueries(db).stats() == {
+        "total": 0,
+        "linked": 0,
+        "unlinked": 0,
+    }
+
+
+@pytest.mark.asyncio
 async def test_avatar_state_upsert(db):
     from src.models.contributor import Contributor
     cid = uuid4()

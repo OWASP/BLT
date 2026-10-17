@@ -62,3 +62,4 @@ python_modules/
 # Spikes (if not part of the MR)
 backend/spikes/
 spike-1-fastapi/
+.wrangler/
