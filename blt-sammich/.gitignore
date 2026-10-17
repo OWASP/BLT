@@ -8,3 +8,4 @@ __pycache__
 *.code-workspace
 .wrangler/*
 node_modules/
+.wrangler/
