@@ -27,3 +27,4 @@ Thumbs.db
 *.tmp
 .cache/
 .hermes
+.wrangler/
