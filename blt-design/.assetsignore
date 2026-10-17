@@ -1,0 +1,10 @@
+.agents
+.codex
+.wrangler
+.git
+.gitignore
+.assetsignore
+CNAME
+LICENSE
+README.md
+wrangler.toml

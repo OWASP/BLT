@@ -1,0 +1,69 @@
+# BLT-Design
+
+**Live Site:** [https://design.owaspblt.org/](https://design.owaspblt.org/)<br>
+**Source Code:** [https://gitlab.com/owasp-blt/blt-design](https://gitlab.com/owasp-blt/blt-design)
+
+<p align="center"><img src="logo.png" alt="blt-design logo" width="160" height="160"></p>
+
+Static BLT design system for light/dark mode, logos, colors, typography, and copy-paste component patterns.
+
+## Cloudflare Pages
+
+This repository is configured as a static Cloudflare Pages site. The deployable
+site lives in the repository root, so no build step or generated output folder
+is needed.
+
+For a Git-connected Pages project, use:
+
+- Build command: leave blank
+- Build output directory: `.`
+- Root directory: leave blank
+
+To preview or deploy with Wrangler:
+
+```bash
+npx wrangler pages dev
+npx wrangler pages deploy
+```
+
+The custom domain is recorded in `CNAME` as `design.owaspblt.org`. Add the same
+domain in the Cloudflare Pages dashboard after creating the project.
+
+## Preview
+
+Serve the folder with any local static server, then open `index.html`. The guide is static HTML with Tailwind CDN, Font Awesome CDN, and local shared assets.
+
+```bash
+python3 -m http.server 8765
+```
+
+Open `http://127.0.0.1:8765/index.html`. Do not use `file://` directly, because the shared sidebar is loaded from a local HTML partial.
+
+## Theme
+
+- Shared CSS: `docs/assets/css/blt-design.css`
+- Shared theme script: `docs/assets/js/theme.js`
+- Dark mode uses the `dark` class on `<html>`.
+- Theme preference is stored in `localStorage` under `blt-theme`.
+
+## Component Coverage
+
+The guide now covers the core BLT library:
+
+- Shell: navbar, BLT sidebar, cards
+- Controls: buttons, inputs, search, links, tabs
+- Feedback: badges, alerts, modals, states
+- Data and assets: tables, icons, repository logos
+
+Every page should include the shared CSS and theme script, show a preview, and keep examples copy-paste friendly for BLT auth, cloud, reports, domains, contributors, and issue workflows.
+
+## Design Direction
+
+- Primary red: `#E10101`
+- Hover red: `#B91C1C`
+- Dark base: `#111827`
+- Dark surface: `#1F2937`
+- Dark borders: subdued slate, not white
+- UI font: Manrope with system fallbacks
+
+Keep new pages token-driven and copy-paste friendly.

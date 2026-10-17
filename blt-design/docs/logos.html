@@ -1,0 +1,423 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/docs/assets/img/favicon.png" type="image/png" />
+    <title>BLT Repository Logos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Manrope', 'system-ui', 'sans-serif'] },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="./assets/js/theme.js"></script>
+    <link rel="stylesheet" href="./assets/css/blt-design.css" />
+  </head>
+  <body class="min-h-screen font-sans text-slate-900 antialiased">
+    <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
+      <aside id="sidebar-root" data-include="./partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
+      <main class="blt-page-main px-4 py-8 sm:px-8 lg:px-10">
+        <header class="mb-6">
+          <div>
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-red-600/30 bg-[#feeae9] px-3 py-1 text-xs font-semibold text-red-600">
+              <i class="fa-solid fa-palette" aria-hidden="true"></i> Repository Logos
+            </span>
+            <h1 class="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">OWASP-BLT Repository Logos</h1>
+            <p class="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">
+              Unique red-themed logos for each repository in the OWASP-BLT organization.
+            </p>
+          </div>
+        </header>
+
+        <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm mb-6">
+          <h2 class="text-lg font-semibold mb-2">About These Logos</h2>
+          <p class="text-sm text-slate-600">
+            The current canonical project artwork comes from blt-logo.vercel.app. Every imported PNG is normalized to a 512×512 transparent canvas and displayed in the same 112×112 presentation size. Projects not yet included in that collection retain their existing scalable SVG mark.
+          </p>
+        </section>
+
+        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <!-- Main BLT -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT.svg" alt="BLT Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT</h3>
+            <p class="mt-1 text-xs text-slate-600">Bug Logging Tools</p>
+          </div>
+
+          <!-- BLT-Flutter -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-Flutter.svg" alt="BLT-Flutter Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Flutter</h3>
+            <p class="mt-1 text-xs text-slate-600">Mobile App</p>
+          </div>
+
+          <!-- BLT-Ideas -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-Ideas.svg" alt="BLT-Ideas Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Ideas</h3>
+            <p class="mt-1 text-xs text-slate-600">Ideas Repository</p>
+          </div>
+
+          <!-- BLT-Action -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-action.png" alt="BLT-Action Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Action</h3>
+            <p class="mt-1 text-xs text-slate-600">GitHub Action</p>
+          </div>
+
+          <!-- MY-GSOC-TOOL -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-gsoc-tool.png" alt="MY-GSOC-TOOL Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">MY-GSOC-TOOL</h3>
+            <p class="mt-1 text-xs text-slate-600">GSOC Tracker</p>
+          </div>
+
+          <!-- BLT-Hackathon -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-hackathon.png" alt="BLT-Hackathon Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Hackathon</h3>
+            <p class="mt-1 text-xs text-slate-600">Hackathon Platform</p>
+          </div>
+
+          <!-- BLT-Bacon -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-bacon.png" alt="BLT-Bacon Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Bacon</h3>
+            <p class="mt-1 text-xs text-slate-600">Bitcoin Token System</p>
+          </div>
+
+          <!-- BLT-Extension -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-extension.png" alt="BLT-Extension Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Extension</h3>
+            <p class="mt-1 text-xs text-slate-600">Browser Extension</p>
+          </div>
+
+          <!-- BLT-Toasty -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-Toasty.svg" alt="BLT-Toasty Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Toasty</h3>
+            <p class="mt-1 text-xs text-slate-600">AI Bot</p>
+          </div>
+
+          <!-- BLT-Leaf -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-leaf.png" alt="BLT-Leaf Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Leaf</h3>
+            <p class="mt-1 text-xs text-slate-600">PR Readiness Checker</p>
+          </div>
+
+          <!-- BLT-Personal-Privacy-Protection -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-Personal-Privacy-Protection.svg" alt="BLT-Personal-Privacy-Protection Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Personal-Privacy-Protection</h3>
+            <p class="mt-1 text-xs text-slate-600">Privacy Toolkit</p>
+          </div>
+
+          <!-- BLT-Fresh -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-Fresh.svg" alt="BLT-Fresh Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Fresh</h3>
+            <p class="mt-1 text-xs text-slate-600">Time Tracking</p>
+          </div>
+
+          <!-- BLT-on-Cloudflare -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-on-Cloudflare.svg" alt="BLT-on-Cloudflare Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-on-Cloudflare</h3>
+            <p class="mt-1 text-xs text-slate-600">Cloudflare Workers</p>
+          </div>
+
+          <!-- BLT-Tomato -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-tomato.png" alt="BLT-Tomato Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Tomato</h3>
+            <p class="mt-1 text-xs text-slate-600">Project Management</p>
+          </div>
+
+          <!-- BLT-Panini -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-Panini.svg" alt="BLT-Panini Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Panini</h3>
+            <p class="mt-1 text-xs text-slate-600">Banned Apps by Country</p>
+          </div>
+
+          <!-- BLT-OWASP-Bumper -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-bumper.png" alt="BLT-OWASP-Bumper Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-OWASP-Bumper</h3>
+            <p class="mt-1 text-xs text-slate-600">OWASP Integration</p>
+          </div>
+
+          <!-- BLT-OWASP-metadata -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-OWASP-metadata.svg" alt="BLT-OWASP-metadata Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-OWASP-metadata</h3>
+            <p class="mt-1 text-xs text-slate-600">Metadata Management</p>
+          </div>
+
+          <!-- BLT-Monitor -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-Monitor.svg" alt="BLT-Monitor Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Monitor</h3>
+            <p class="mt-1 text-xs text-slate-600">Website Monitoring</p>
+          </div>
+
+          <!-- BLT-docs -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-docs.png" alt="BLT-docs Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-docs</h3>
+            <p class="mt-1 text-xs text-slate-600">Documentation</p>
+          </div>
+
+          <!-- BLT-OWASP-Wich -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-wich.png" alt="BLT-OWASP-Wich Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-OWASP-Wich</h3>
+            <p class="mt-1 text-xs text-slate-600">Compliance Checker</p>
+          </div>
+
+          <!-- BLT-Sizzle -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/sizzle.png" alt="BLT-Sizzle Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Sizzle</h3>
+            <p class="mt-1 text-xs text-slate-600">Tool Demo</p>
+          </div>
+
+          <!-- BLT-CVE -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-cve.png" alt="BLT-CVE Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-CVE</h3>
+            <p class="mt-1 text-xs text-slate-600">Decentralized CVE Database</p>
+          </div>
+
+          <!-- BLT-Github-Sportscaster -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/github-sport-caster.png" alt="BLT-Github-Sportscaster Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Github-Sportscaster</h3>
+            <p class="mt-1 text-xs text-slate-600">GitHub Activity Bot</p>
+          </div>
+
+          <!-- BLT-Jobs -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-jobs.png" alt="BLT-Jobs Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Jobs</h3>
+            <p class="mt-1 text-xs text-slate-600">Job Board</p>
+          </div>
+
+          <!-- BLT-Blog -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-Blog.svg" alt="BLT-Blog Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Blog</h3>
+            <p class="mt-1 text-xs text-slate-600">Blog Platform</p>
+          </div>
+
+          <!-- BLT-Sammich -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-sammich.png" alt="BLT-Sammich Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Sammich</h3>
+            <p class="mt-1 text-xs text-slate-600">Slack Bot</p>
+          </div>
+
+          <!-- BLT-Lettuce -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-Lettuce.svg" alt="BLT-Lettuce Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Lettuce</h3>
+            <p class="mt-1 text-xs text-slate-600">Slack Bot</p>
+          </div>
+
+          <!-- BLT-NetGuardian -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-netguardian.png" alt="BLT-NetGuardian Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-NetGuardian</h3>
+            <p class="mt-1 text-xs text-slate-600">Web Security Scanner</p>
+          </div>
+
+          <!-- BLT-OWASP-Projects -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-OWASP-Projects.svg" alt="BLT-OWASP-Projects Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-OWASP-Projects</h3>
+            <p class="mt-1 text-xs text-slate-600">OWASP Projects</p>
+          </div>
+
+          <!-- BLT-team -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-team.png" alt="BLT-team Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-team</h3>
+            <p class="mt-1 text-xs text-slate-600">Team Information</p>
+          </div>
+
+          <!-- BLT-GSOC -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-gsoc.png" alt="BLT-GSOC Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-GSOC</h3>
+            <p class="mt-1 text-xs text-slate-600">GSOC Related</p>
+          </div>
+
+          <!-- BLT-Newsletter -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-newletter.png" alt="BLT-Newsletter Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Newsletter</h3>
+            <p class="mt-1 text-xs text-slate-600">Newsletter</p>
+          </div>
+
+          <!-- BLT-University -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-university.png" alt="BLT-University Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-University</h3>
+            <p class="mt-1 text-xs text-slate-600">Security Courses</p>
+          </div>
+
+          <!-- BLT-NetGuardian-Client -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-NetGuardian-Client.svg" alt="BLT-NetGuardian-Client Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-NetGuardian-Client</h3>
+            <p class="mt-1 text-xs text-slate-600">Client Application</p>
+          </div>
+
+          <!-- BLT-Design -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-design.png" alt="BLT-Design Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-Design</h3>
+            <p class="mt-1 text-xs text-slate-600">Design System</p>
+          </div>
+
+          <!-- BLT-sandbox -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/logos/BLT-sandbox.svg" alt="BLT-sandbox Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-sandbox</h3>
+            <p class="mt-1 text-xs text-slate-600">Experiments</p>
+          </div>
+
+          <!-- BLT-API -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow">
+            <div class="flex items-center justify-center h-32 mb-3">
+              <img src="./assets/img/canonical-logos/blt-api.png" alt="BLT-API Logo" class="h-28 w-28 object-contain" />
+            </div>
+            <h3 class="text-base font-semibold tracking-tight">BLT-API</h3>
+            <p class="mt-1 text-xs text-slate-600">API Service</p>
+          </div>
+
+          <!-- Additional canonical projects from BLT-Logo -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/canonical-logos/blt-bytes.png" alt="BLT-Bytes Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Bytes</h3><p class="mt-1 text-xs text-slate-600">Tech Insights</p></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/canonical-logos/blt-mcp.png" alt="BLT-MCP Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-MCP</h3><p class="mt-1 text-xs text-slate-600">MCP Integration</p></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/canonical-logos/blt-next.png" alt="BLT-Next Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Next</h3><p class="mt-1 text-xs text-slate-600">Next Generation</p></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/canonical-logos/blt-ossh.png" alt="BLT-OSSH Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-OSSH</h3><p class="mt-1 text-xs text-slate-600">Secure Shell</p></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/canonical-logos/blt-pages.png" alt="BLT-Pages Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Pages</h3><p class="mt-1 text-xs text-slate-600">Static Pages</p></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/canonical-logos/blt-preflight.png" alt="BLT-Preflight Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Preflight</h3><p class="mt-1 text-xs text-slate-600">Preflight Checks</p></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/canonical-logos/blt-safecloack.png" alt="BLT-SafeCloak Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-SafeCloak</h3><p class="mt-1 text-xs text-slate-600">Security Layer</p></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/canonical-logos/blt-timer.png" alt="BLT-Timer Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Timer</h3><p class="mt-1 text-xs text-slate-600">Time Tracking</p></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/canonical-logos/blt-vanish.png" alt="BLT-Vanish Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Vanish</h3><p class="mt-1 text-xs text-slate-600">Privacy Tool</p></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/canonical-logos/blt-zero.png" alt="BLT-Zero Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Zero</h3><p class="mt-1 text-xs text-slate-600">Zero Trust</p></div>
+          <!-- Project-specific marks for repositories that previously used the generic BLT fallback -->
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/project-logos-v2/BLT-Waypoint.svg" alt="BLT-Waypoint Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Waypoint</h3></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/project-logos-v2/BLT-Design-Contest.svg" alt="BLT-Design-Contest Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Design-Contest</h3></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/project-logos-v2/BLT-Nexus.svg" alt="BLT-Nexus Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Nexus</h3></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/project-logos-v2/BLT-Profiles.svg" alt="BLT-Profiles Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Profiles</h3></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/project-logos-v2/BLT-Start.svg" alt="BLT-Start Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Start</h3></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/project-logos-v2/BLT-Pool.svg" alt="BLT-Pool Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Pool</h3></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/project-logos-v2/BLT-Rewards.svg" alt="BLT-Rewards Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Rewards</h3></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/project-logos-v2/BLT-CLI.svg" alt="BLT-CLI Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-CLI</h3></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/project-logos-v2/CodeRabbit.svg" alt="CodeRabbit Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">CodeRabbit</h3></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/project-logos-v2/BLT-Ketchup.svg" alt="BLT-Ketchup Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Ketchup</h3></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/project-logos-v2/BLT-Dash.svg" alt="BLT-Dash Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Dash</h3></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/project-logos-v2/BLT-Enforcement.svg" alt="BLT-Enforcement Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT-Enforcement</h3></div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex items-center justify-center h-32 mb-3"><img src="./assets/img/project-logos-v2/BLT-Core.svg" alt="BLT Core Logo" class="h-28 w-28 object-contain" /></div><h3 class="text-base font-semibold tracking-tight">BLT Core</h3></div>
+        </section>
+
+        <section class="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 class="text-lg font-semibold mb-3">Usage Guidelines</h2>
+          <div class="space-y-2 text-sm text-slate-600">
+            <p><strong>Color Scheme:</strong> All logos use a consistent red gradient (#DC2626 to #991B1B) that aligns with OWASP-BLT brand identity.</p>
+            <p><strong>Canonical source:</strong> <a class="text-red-600 hover:underline" href="https://blt-logo.vercel.app/" target="_blank" rel="noopener noreferrer">blt-logo.vercel.app</a></p>
+            <p><strong>Format:</strong> Canonical PNG files use a uniform 512×512 transparent canvas; legacy project marks remain available as SVG.</p>
+            <p><strong>Location:</strong> Canonical logos are in <code class="bg-slate-100 px-1 py-0.5 rounded text-xs">docs/assets/img/canonical-logos/</code>.</p>
+            <p><strong>Attribution:</strong> Please maintain proper attribution to OWASP-BLT when using these logos.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="./assets/js/include.js" defer></script>
+  </body>
+</html>

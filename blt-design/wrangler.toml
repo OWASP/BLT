@@ -1,0 +1,5 @@
+name = "blt-design"
+compatibility_date = "2026-05-30"
+
+[assets]
+directory = "./"
