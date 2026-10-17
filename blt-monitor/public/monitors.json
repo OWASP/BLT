@@ -1,0 +1,352 @@
+[
+  {
+    "id": "api_owaspblt",
+    "name": "BLT API",
+    "url": "https://api.owaspblt.org",
+    "keyword": "blt",
+    "enabled": true
+  },
+  {
+    "id": "leaf_owaspblt",
+    "name": "BLT Leaf",
+    "url": "https://leaf.owaspblt.org",
+    "keyword": "leaf",
+    "enabled": true
+  },
+  {
+    "id": "jobs_owaspblt",
+    "name": "BLT Jobs",
+    "url": "https://jobs.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "sizzle_owaspblt",
+    "name": "BLT Sizzle",
+    "url": "https://sizzle.owaspblt.org",
+    "keyword": "Sizzle",
+    "enabled": true
+  },
+  {
+    "id": "lettuce_owaspblt",
+    "name": "BLT Lettuce",
+    "url": "https://lettuce.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "next_owaspblt",
+    "name": "BLT Next",
+    "url": "https://next.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "owasp_bumper",
+    "name": "BLT Bumper",
+    "url": "https://bumper.owaspblt.org",
+    "keyword": "OWASP",
+    "enabled": true
+  },
+  {
+    "id": "owasp_projects",
+    "name": "BLT OWASP Projects",
+    "url": "https://projects.owaspblt.org",
+    "keyword": "Name",
+    "enabled": true
+  },
+  {
+    "id": "docs_owaspblt",
+    "name": "BLT Docs",
+    "url": "https://docs.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "owasp_metadata",
+    "name": "BLT OWASP Metadata",
+    "url": "https://metadata.owaspblt.org",
+    "keyword": "OWASP",
+    "enabled": true
+  },
+  {
+    "id": "mcp_owaspblt",
+    "name": "BLT MCP",
+    "url": "https://mcp.owaspblt.org/",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "extension_owaspblt",
+    "name": "BLT Extension",
+    "url": "https://extension.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "rewards_owaspblt",
+    "name": "BLT Rewards",
+    "url": "https://rewards.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "ideas_owaspblt",
+    "name": "BLT Ideas",
+    "url": "https://ideas.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "action_owaspblt",
+    "name": "BLT Action",
+    "url": "https://action.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "panini_owaspblt",
+    "name": "BLT Panini",
+    "url": "https://panini.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "netguardian_owaspblt",
+    "name": "BLT NetGuardian",
+    "url": "https://netguardian.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "waypoint_owaspblt",
+    "name": "BLT Waypoint",
+    "url": "https://waypoint.owaspblt.org",
+    "keyword": "OWASP",
+    "enabled": true
+  },
+  {
+    "id": "hackathons_owaspblt",
+    "name": "BLT Hackathons",
+    "url": "https://hackathons.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "design_owaspblt",
+    "name": "BLT Design",
+    "url": "https://design.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "contest_owaspblt",
+    "name": "BLT Contest",
+    "url": "https://contest.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "gsoc_owaspblt",
+    "name": "BLT GSOC",
+    "url": "https://gsoc.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "mygsoc_owaspblt",
+    "name": "BLT MY GSOC Tool",
+    "url": "https://gsoc-tool.owaspblt.org",
+    "keyword": "GSoC",
+    "enabled": true
+  },
+  {
+    "id": "flutter_app_store",
+    "name": "BLT Flutter App",
+    "url": "https://apps.apple.com/us/app/owasp-blt/id6448071954",
+    "keyword": "OWASP",
+    "enabled": true
+  },
+  {
+    "id": "dash_owaspblt",
+    "name": "BLT Dash",
+    "url": "https://dash.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "enforcement_owaspblt",
+    "name": "BLT Enforcement",
+    "url": "https://enforcement.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "gitcaster_owaspblt",
+    "name": "BLT Gitcaster",
+    "url": "https://gitcaster.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "ketchup_owaspblt",
+    "name": "BLT Ketchup",
+    "url": "https://ketchup.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "nexus_owaspblt",
+    "name": "BLT Nexus",
+    "url": "https://nexus.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "profiles_owaspblt",
+    "name": "BLT Profiles",
+    "url": "https://profiles.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "tomato_owaspblt",
+    "name": "BLT Tomato",
+    "url": "https://tomato.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "vanish_owaspblt",
+    "name": "BLT Vanish",
+    "url": "https://vanish.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "byte_owaspblt",
+    "name": "BLT Byte",
+    "url": "https://byte.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "cve_owaspblt",
+    "name": "BLT CVE",
+    "url": "https://cve.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "flutter_owaspblt",
+    "name": "BLT Flutter",
+    "url": "https://flutter.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "newsletter_owaspblt",
+    "name": "BLT Newsletter",
+    "url": "https://newsletter.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "ossh_owaspblt",
+    "name": "BLT OSSH",
+    "url": "https://ossh.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "wich_owaspblt",
+    "name": "BLT Wich",
+    "url": "https://wich.owaspblt.org",
+    "keyword": "OWASP",
+    "enabled": true
+  },
+  {
+    "id": "pages_owaspblt",
+    "name": "BLT Pages",
+    "url": "https://pages.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "pool_owaspblt",
+    "name": "BLT Pool",
+    "url": "https://pool.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "preflight_owaspblt",
+    "name": "BLT Preflight",
+    "url": "https://preflight.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "safecloak_owaspblt",
+    "name": "BLT SafeCloak",
+    "url": "https://safecloak.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "sammich_owaspblt",
+    "name": "BLT Sammich",
+    "url": "https://sammich.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "start_owaspblt",
+    "name": "BLT Start",
+    "url": "https://start.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "timer_owaspblt",
+    "name": "BLT Timer",
+    "url": "https://timer.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "toasty_owaspblt",
+    "name": "BLT Toasty",
+    "url": "https://toasty.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "university_owaspblt",
+    "name": "BLT University",
+    "url": "https://university.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "zero_owaspblt",
+    "name": "BLT Zero",
+    "url": "https://zero.owaspblt.org",
+    "keyword": "BLT",
+    "enabled": true
+  },
+  {
+    "id": "repo_blt_monitor",
+    "name": "BLT Monitor Repo",
+    "url": "https://gitlab.com/owasp-blt/blt-monitor",
+    "keyword": "blt-monitor",
+    "enabled": true
+  },
+  {
+    "id": "repo_blt_zero",
+    "name": "BLT Zero Repo",
+    "url": "https://gitlab.com/owasp-blt/blt-zero",
+    "keyword": "blt-zero",
+    "enabled": true
+  }
+]
