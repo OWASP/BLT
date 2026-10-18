@@ -49,6 +49,7 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `blt-owasp-projects--sweep-repos.yml` | GitLab `sweep_repos` (manual) | dispatch only | `GH_API_TOKEN`, `SLACK_WEBHOOK_URL_SWEEP` |
 | `blt-pages--update-leaderboard.yml` | GitLab `update_leaderboard` | issue events on blt-pages or `[NOMINATION]` issues, `11 5 * * *` (safety net), push under `blt-pages/scripts/` or of the two pre-rendered pages or `public/data/leaders.json`; reads git.owaspblt.org and writes to KV (`blt-pages/scripts/refresh-kv.sh`), no commit | CF (with KV write) |
 | `blt-panini--update_slack_apps.yml` | GitHub | `0 0 * * 0`; seeds from KV with the committed entries over it, writes `slack_apps.json` to KV when changed (`blt-panini/scripts/refresh-kv.sh`), no commit | CF (with KV read/write) |
+| `blt-profiles--add-profile.yml` | GitLab issue webhook in the blt-profiles Worker | issues opened/edited/labeled that look like Add-profile submissions (labels `profile`/`add-profile`/`profile-submission`, a `[blt-profiles]` title, or the template headings); dispatch input `issue`. Commits `public/profiles/<user>.json` and `index.json`, deploys, comments and closes | CF |
 | `blt-tomato--scrape_funding.yml` | GitHub | `0 18 * * 5`, push under `blt-tomato/.github/scripts/` or `scripts/refresh-kv.sh`; writes `index.html` and `project_repos_links.json` to KV (`blt-tomato/scripts/refresh-kv.sh`), no commit | `GH_API_TOKEN`, CF (with KV write) |
 | `blt-university--course-submission.yml` | GitHub | issue opened with `course-submission` or `[COURSE]` title, or that label added | none |
 | `blt-university--enrollment.yml` | GitHub | issue opened with `enrollment` or `[ENROLLMENT]` title, or that label added | none |
@@ -176,6 +177,7 @@ For blt-hackathons, run the workflow by hand.
   - `blt-university/scripts/actions/welcome.mjs`
   - `blt-ossh/scripts/actions/update-profiles.mjs`
   - `blt-jobs/scripts/actions/process-submission.mjs`
+  - `blt-profiles/scripts/actions/add-profile.mjs`
 
   Validation, comments, labels, commits to main and closing the issue all work as before.
   The "eyes" reaction is gone because the job API has no reactions endpoint. Issue links point at

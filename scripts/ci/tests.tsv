@@ -28,6 +28,7 @@ blt-pages	python	python -m unittest discover -s tests -p 'test_*.py' && node --t
 blt-panini	node	python3 -m py_compile scripts/update_slack_apps.py && node --test 'test/*.test.mjs'
 blt-pool	python	pip install pytest && python -m compileall -q src/worker.py && python -m pytest test_worker.py -q
 blt-preflight	python	pip install -r requirements.txt -e . && python -m pytest -q
+blt-profiles	node	node --test 'test/*.test.mjs'
 blt-safecloak	python	npm_install && pip install -r requirements-dev.txt && python -m playwright install chromium --with-deps && python -m pytest tests/ -q
 blt-sammich	python	pip install pytest pytest-asyncio && python -m pytest tests/ -q
 blt-sizzle	python	pip install pytest && python -m pytest tests/ -q

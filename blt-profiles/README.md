@@ -1,7 +1,7 @@
 # BLT Profiles
 
 **Live Site:** [https://profiles.owaspblt.org/](https://profiles.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT-Profiles](https://git.owaspblt.org/BLT/BLT-Profiles)
+**Source Code:** [https://git.owaspblt.org/BLT/tree/main/blt-profiles](https://git.owaspblt.org/BLT/tree/main/blt-profiles)
 
 A Git-native community directory and professional identity platform for cybersecurity professionals, security researchers, bug hunters, mentors, students, and open-source contributors.
 
@@ -15,7 +15,7 @@ Unlike traditional social networks, BLT Profiles focuses on contributions, learn
 
 BLT Profiles aims to become an open, community-owned identity and portfolio platform for the cybersecurity ecosystem.
 
-Every member owns their profile through Git, can update it through merge requests, and can build a public portfolio that grows alongside their career.
+Every member owns their profile through Git, can update it through issues or pull requests, and can build a public portfolio that grows alongside their career.
 
 Profiles are designed to be:
 
@@ -42,7 +42,7 @@ Profile URLs:
 https://profiles.owaspblt.org/zerocool
 ```
 
-Cloudflare serves the static profile browser and a small Worker endpoint that receives GitLab issue webhooks.
+Cloudflare serves the static profile browser through a small Worker that maps `/<username>` to the profile page. New profiles arrive as issues on git.owaspblt.org and a workflow commits them.
 
 ---
 
@@ -177,7 +177,7 @@ BLT Profiles supports optional verification methods.
 
 Potential verification options include:
 
-* GitLab account verification
+* git.owaspblt.org account verification
 * Signed commits
 * SSH public keys
 * PGP keys
@@ -207,28 +207,30 @@ Additional categories may be introduced as the community evolves.
 
 # ➕ Creating a Profile
 
-## GitLab Issue Submission
+## Issue Submission
 
-1. Open the GitLab issue template:
+1. Copy the template [`issue-templates/add-profile.md`](https://git.owaspblt.org/BLT/blob/main/blt-profiles/issue-templates/add-profile.md).
+2. Open a new issue at https://git.owaspblt.org/BLT/issues/new (signed in), titled
+   `[blt-profiles] Add profile: <username>`, and paste the template as the description.
+3. Fill out the fields without changing the `## ...` headings, and tick the confirmation box (`- [x]`).
+   Leave `Username` empty to use your git.owaspblt.org account name.
+4. The workflow [`.forkmesh/blt-profiles--add-profile.yml`](https://git.owaspblt.org/BLT/blob/main/.forkmesh/blt-profiles--add-profile.yml)
+   runs `scripts/actions/add-profile.mjs`, which commits to `main`:
 
-   ```text
-   https://git.owaspblt.org/BLT/issues/new?issuable_template=Add%20Profile
-   ```
+   * `public/profiles/<username>.json`
+   * `public/profiles/index.json`
 
-2. Fill out the profile fields without changing the section headings.
-3. Submit the issue with the `profile-submission` label.
-4. GitLab sends the issue webhook to Cloudflare.
-5. The Worker creates a branch, commits:
-
-   * `profiles/<username>.json`
-   * `profiles/index.json`
-
-6. The Worker opens a GitLab merge request for review.
-7. After the merge request is merged, the profile is available at:
+   then deploys the site, comments with the profile link and closes the issue. If a field is invalid it
+   comments instead and runs again when you edit the issue.
+5. The profile is available at:
 
    ```text
    https://profiles.owaspblt.org/<username>
    ```
+
+An issue is treated as a profile submission when it has the label `profile`, `add-profile` or
+`profile-submission`, a title starting with `[blt-profiles]`, or the template headings. Only the account that
+created a profile can update it (open another issue the same way).
 
 ## Manual Submission
 
@@ -242,7 +244,7 @@ Additional categories may be introduced as the community evolves.
    * writeups
    * projects
    * verification files
-5. Submit a merge request.
+5. Open a pull request on git.owaspblt.org.
 
 ---
 
@@ -261,11 +263,16 @@ BLT-Profiles/
 ├── src/
 │   └── index.py
 │
+├── scripts/actions/
+│   └── add-profile.mjs        # run by .forkmesh/blt-profiles--add-profile.yml
+│
+├── test/
+│   └── add-profile.test.mjs   # node --test test/*.test.mjs
+│
 ├── wrangler.toml
 │
-└── .gitlab/
-    └── issue_templates/
-        └── Add Profile.md
+└── issue-templates/
+    └── add-profile.md
 ```
 
 ---
@@ -322,7 +329,7 @@ The platform intentionally avoids popularity-based metrics.
 * [ ] README rendering
 * [ ] Profile validation
 * [ ] Automated profile index generation
-* [ ] GitLab CI/CD deployment
+* [ ] Automated deployment (`.forkmesh` workflow)
 
 ## Phase 2 — Discovery
 
@@ -352,7 +359,7 @@ The platform intentionally avoids popularity-based metrics.
 ## Phase 5 — Community Growth
 
 * [ ] Guided profile creation
-* [ ] GitLab OAuth onboarding
+* [ ] git.owaspblt.org sign-in onboarding
 * [ ] Profile templates
 * [ ] Community badges
 * [ ] Mentor matching
@@ -409,7 +416,7 @@ Highlight:
 
 The ideal onboarding experience:
 
-1. Sign in with GitLab
+1. Sign in to git.owaspblt.org
 2. Generate a starter profile
 3. Upload an avatar
 4. Publish
@@ -420,9 +427,7 @@ The barrier to participation should remain low.
 
 # 🛠 Technology Stack
 
-* GitLab
-* GitLab issue templates
-* GitLab merge requests
+* git.owaspblt.org issues and `.forkmesh` workflows
 * Cloudflare Workers
 * Cloudflare Static Assets
 * Python
@@ -447,32 +452,12 @@ The Worker serves:
 * `/` from `index.html`
 * `/<username>` from `profile.html`
 * `/profiles/*.json` as static profile data
-* `/webhooks/gitlab/profile-submission` as the GitLab issue webhook endpoint
+* `/api/health`
 
-Set these Cloudflare Worker secrets:
+It needs no secrets or variables. The add-profile workflow deploys with the repository's
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` Actions secrets.
 
-```bash
-wrangler secret put GITLAB_ACCESS_TOKEN
-wrangler secret put GITLAB_WEBHOOK_TOKEN
-```
-
-Required Worker variables are defined in `wrangler.toml`:
-
-* `GITLAB_PROJECT_PATH=owasp-blt/blt-profiles`
-* `GITLAB_DEFAULT_BRANCH=main`
-* `PUBLIC_SITE_URL=https://profiles.owaspblt.org`
-
-If the GitLab project path changes, update `GITLAB_PROJECT_PATH` or set `GITLAB_PROJECT_ID`.
-
-## GitLab Webhook
-
-Create a GitLab project webhook with:
-
-* URL: `https://profiles.owaspblt.org/webhooks/gitlab/profile-submission`
-* Trigger: Issues events
-* Secret token: the same value stored in `GITLAB_WEBHOOK_TOKEN`
-
-The `GITLAB_ACCESS_TOKEN` must be able to create branches, commits, issue notes, and merge requests in this project.
+Run the workflow script's tests with `node --test test/*.test.mjs`.
 
 ---
 

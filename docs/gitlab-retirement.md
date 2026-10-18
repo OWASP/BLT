@@ -44,6 +44,11 @@ This page lists every GitLab dependency left in the monorepo (found with `git gr
 - **blt-toasty**: deleted `gitlab_client.py`, `gitlab_linker.py` and the shadow-mode pipeline that read closed issues
   of GitLab project 14998512 (`/admin/shadow-report`, `SHADOW_*` vars; `on_scheduled` is now a no-op).
   `/webhook/gitlab` stays as an integration for external GitLab projects. `.gitlab-ci.yml` is removed.
+- **blt-profiles**: the inbound GitLab issue webhook (branch, commit, MR, note) is replaced by
+  `.forkmesh/blt-profiles--add-profile.yml`, which commits the profile to main, deploys, comments and closes the
+  issue; only the account that created a profile can update it. The template is
+  `blt-profiles/issue-templates/add-profile.md`. The Worker endpoint and `GITLAB_ACCESS_TOKEN`, `GITLAB_WEBHOOK_TOKEN`
+  and `GITLAB_PROJECT_PATH` are gone (delete the Worker secrets and the gitlab.com project webhook).
 
 ## What git.owaspblt.org can serve
 
@@ -125,7 +130,6 @@ Kinds of dependency:
 Remove each one when its reader is switched. Then delete the Actions secret `GITLAB_TOKEN` and the Worker secrets:
 
 - `blt-gsoc`: `GITLAB_TOKEN`
-- `blt-profiles`: `GITLAB_ACCESS_TOKEN`, `GITLAB_WEBHOOK_TOKEN`
 - `blt-toasty`: `GITLAB_ACCESS_TOKEN` (`GITLAB_WEBHOOK_SECRET` stays for external GitLab webhooks)
 - `blt-hackerhouse`: `GITLAB_WEBHOOK_SECRET`, `GITLAB_API_TOKEN`
 
@@ -138,19 +142,14 @@ These `.gitlab-ci.yml` files are not run anywhere:
 - blt-hackerhouse
 - blt-netguardian
 - blt-pages
-- blt-safecloak (still read by a test)
 - blt-university
 
-Delete them once nothing reads them; `docs/workflows.md` records what each one did.
+Delete them once nothing reads them; `docs/workflows.md` records what each one did. (blt-mcp, blt-safecloak and
+blt-toasty: deleted.)
 
-These `.gitlab/issue_templates/` are still targeted by `?issuable_template=` links, which ForkMesh does not read:
-
-- blt-design-contest (7)
-- blt-jobs (4)
-- blt-pages (1)
-- blt-profiles (1)
-
-Port them to documented issue bodies, or to forge issue templates if ForkMesh adds them, then delete them.
+The `.gitlab/issue_templates/` folders are ported: blt-design-contest (7), blt-jobs (4), blt-pages (1) and
+blt-profiles (1) now keep documented issue bodies in `<folder>/issue-templates/`, and their pages link to
+`/BLT/issues/new` plus the template file, since ForkMesh has no templates and cannot prefill a new issue.
 
 ### Links and labels only (no data dependency)
 
