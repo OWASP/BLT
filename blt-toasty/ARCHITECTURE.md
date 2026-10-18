@@ -61,7 +61,7 @@ The primary entry point is `worker.py` handling `on_fetch` for HTTP requests and
 
 Shadow Mode provides a safe environment to validate ML models and pipeline logic in production without mutating production state. When `SHADOW_MODE=true`, the triage pipeline runs parallel predictions. The actual triage operations proceed as normal, while the shadow pipeline evaluates the data independently. Results of these shadow runs are stored in the `shadow_predictions` D1 table.
 
-An hourly `on_scheduled` cron job triggers the shadow mode validation. This mechanism compiles weekly summaries to track model performance, aiming for a target accuracy of >= 80% against ground truth data before deploying models to active production triage.
+An hourly `on_scheduled` cron job (dispatched by the blt-cron Worker via `POST /__scheduled`) triggers the shadow mode validation. This mechanism compiles weekly summaries to track model performance, aiming for a target accuracy of >= 80% against ground truth data before deploying models to active production triage.
 
 ## 5. Data Storage
 

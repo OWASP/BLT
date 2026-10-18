@@ -510,6 +510,6 @@ This GitHub App is NOT just handling GitHub Actions - it's a **webhook-driven au
 Every action is triggered by either:
 
 - A webhook from GitHub (real-time events)
-- A cron schedule (periodic cleanup)
+- A cron schedule (periodic cleanup), dispatched by the blt-cron Worker via `POST /__scheduled`
 
 The code is **event-driven** and **serverless** (runs on Cloudflare Workers).

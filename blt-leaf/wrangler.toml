@@ -22,9 +22,12 @@ ENVIRONMENT = "production"
 # wrangler secret put ENCRYPTION_KEY
 # Optional: wrangler secret put GITHUB_TOKEN (shared fallback token)
 
-# Cron Trigger: refresh all tracked PRs every hour
+# Cron: refresh all tracked PRs every hour ("0 * * * *"). The schedule now runs
+# from the blt-cron dispatcher Worker, which calls POST /__scheduled through a
+# service binding with the CRON_SECRET secret (wrangler secret put CRON_SECRET).
+# The empty list makes deploys remove the old trigger (free plan: 5 per account).
 [triggers]
-crons = ["0 * * * *"]
+crons = []
 
 # Configure assets (static files)
 [assets]

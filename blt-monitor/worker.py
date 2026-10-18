@@ -1,3 +1,4 @@
+import hmac
 import json
 import re
 from datetime import datetime, timezone
@@ -12,11 +13,28 @@ HISTORY_SHARDS = 4
 SHARD_INTERVAL_MS = 5 * 60 * 1000
 MONITOR_ID_PATTERN = re.compile(r"^[a-z0-9_-]+$")
 
+# Cron dispatch: the blt-cron Worker holds the account's cron trigger and calls
+# POST /__scheduled through a service binding, authenticated with CRON_SECRET.
+CRON_DISPATCH_PATH = "/__scheduled"
+
+
+class CronEvent:
+    """Stand-in for the ScheduledController the runtime would pass."""
+
+    type = "scheduled"
+
+    def __init__(self, cron, scheduled_time):
+        self.cron = cron
+        self.scheduledTime = scheduled_time
+
 
 class Default(WorkerEntrypoint):
     async def fetch(self, request):
         url = urlparse(request.url)
         path = url.path
+
+        if path == CRON_DISPATCH_PATH:
+            return await self.handle_cron_dispatch(request)
 
         if path == "/api/health":
             return Response.json(
@@ -69,6 +87,31 @@ class Default(WorkerEntrypoint):
             return Response.json({"error": "Not found"}, status=404)
 
         return await self.env.ASSETS.fetch(request)
+
+    async def handle_cron_dispatch(self, request):
+        if request.method != "POST":
+            return Response.json({"ok": False, "error": "Method not allowed"}, status=405)
+        expected = str(getattr(self.env, "CRON_SECRET", None) or "")
+        provided = str(request.headers.get("X-BLT-Cron-Secret") or "")
+        if not expected or not hmac.compare_digest(provided.encode(), expected.encode()):
+            return Response.json({"ok": False, "error": "Forbidden"}, status=403)
+        try:
+            body = json.loads(await request.text() or "{}")
+        except Exception:
+            body = {}
+        if not isinstance(body, dict):
+            body = {}
+        try:
+            scheduled_time = int(body.get("scheduledTime"))
+        except (TypeError, ValueError):
+            scheduled_time = int(datetime.now(timezone.utc).timestamp() * 1000)
+        event = CronEvent(str(body.get("cron") or ""), scheduled_time)
+        try:
+            await self.scheduled(event, self.env, getattr(self, "ctx", None))
+        except Exception as error:
+            print(f"Dispatched scheduled run failed: {error}")
+            return Response.json({"ok": False, "error": str(error)}, status=500)
+        return Response.json({"ok": True})
 
     async def scheduled(self, controller, env, ctx):
         shard = int(controller.scheduledTime // SHARD_INTERVAL_MS) % HISTORY_SHARDS

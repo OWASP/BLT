@@ -4962,5 +4962,71 @@ class TestHandleAddMentor(unittest.TestCase):
         self.assertEqual(data["github_username"], "janedoe")
 
 
+class TestCronDispatch(unittest.TestCase):
+    """POST /__scheduled — called by the blt-cron dispatcher Worker."""
+
+    def _request(self, method="POST", secret=None, body=None):
+        headers = _HeadersStub({"X-BLT-Cron-Secret": secret} if secret is not None else {})
+        return types.SimpleNamespace(
+            method=method,
+            url="https://cron.internal/__scheduled",
+            headers=headers,
+            text=AsyncMock(return_value=json.dumps(body if body is not None else {})),
+        )
+
+    def _fetch(self, req, env, handler=None):
+        handler = handler or AsyncMock()
+        quiet = types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)
+
+        async def _inner():
+            with patch.object(_worker, "on_scheduled", new=handler), \
+                    patch.object(_worker, "console", new=quiet):
+                return await _worker.on_fetch(req, env)
+
+        return _run(_inner()), handler
+
+    def test_missing_secret_header_returns_403(self):
+        resp, handler = self._fetch(self._request(), types.SimpleNamespace(CRON_SECRET="s3cret"))
+        self.assertEqual(resp.status, 403)
+        handler.assert_not_called()
+
+    def test_wrong_secret_returns_403(self):
+        resp, handler = self._fetch(self._request(secret="nope"), types.SimpleNamespace(CRON_SECRET="s3cret"))
+        self.assertEqual(resp.status, 403)
+        handler.assert_not_called()
+
+    def test_unset_cron_secret_refuses(self):
+        resp, handler = self._fetch(self._request(secret=""), types.SimpleNamespace())
+        self.assertEqual(resp.status, 403)
+        handler.assert_not_called()
+
+    def test_get_returns_405(self):
+        resp, handler = self._fetch(self._request(method="GET", secret="s3cret"), types.SimpleNamespace(CRON_SECRET="s3cret"))
+        self.assertEqual(resp.status, 405)
+        handler.assert_not_called()
+
+    def test_valid_request_runs_scheduled_handler(self):
+        env = types.SimpleNamespace(CRON_SECRET="s3cret")
+        req = self._request(secret="s3cret", body={"cron": "0 */2 * * *", "scheduledTime": 1760000000000})
+        resp, handler = self._fetch(req, env)
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(json.loads(resp.body), {"ok": True})
+        handler.assert_awaited_once()
+        event, called_env, _ctx = handler.await_args.args
+        self.assertIs(called_env, env)
+        self.assertEqual(event.cron, "0 */2 * * *")
+        self.assertEqual(event.scheduledTime, 1760000000000)
+        self.assertEqual(event.type, "scheduled")
+
+    def test_handler_exception_returns_500(self):
+        env = types.SimpleNamespace(CRON_SECRET="s3cret")
+        req = self._request(secret="s3cret", body={"cron": "0 */2 * * *", "scheduledTime": 1})
+        resp, _ = self._fetch(req, env, handler=AsyncMock(side_effect=RuntimeError("boom")))
+        self.assertEqual(resp.status, 500)
+        body = json.loads(resp.body)
+        self.assertFalse(body["ok"])
+        self.assertIn("boom", body["error"])
+
+
 if __name__ == "__main__":
     unittest.main()

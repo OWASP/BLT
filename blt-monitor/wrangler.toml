@@ -9,10 +9,13 @@ binding = "blt-monitor-history"
 [assets]
 directory = "./public"
 binding = "ASSETS"
-run_worker_first = [ "/api/*" ]
+run_worker_first = [ "/api/*", "/__scheduled" ]
 
+# Cron ("*/5 * * * *") now runs from the blt-cron dispatcher Worker, which calls
+# POST /__scheduled through a service binding with the CRON_SECRET secret.
+# The empty list makes deploys remove the old trigger (free plan: 5 per account).
 [triggers]
-crons = [ "*/5 * * * *" ]
+crons = []
 
 
 [observability]

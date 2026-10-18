@@ -20,8 +20,12 @@ migrations_dir = "./migrations"
 [vars]
 VERSION = "2.0.0"
 
+# Cron ("* * * * *", every minute) now runs from the blt-cron dispatcher Worker,
+# which calls POST /__scheduled through a service binding with the CRON_SECRET
+# secret (wrangler secret put CRON_SECRET). The empty list makes deploys remove
+# the old trigger (the free plan allows only 5 cron triggers per account).
 [triggers]
-crons = ["* * * * *"]
+crons = []
 
 [observability]
 enabled = true
