@@ -1,6 +1,9 @@
 const DEFAULT_PROVIDER_ID = "forge";
-const DEFAULT_PROVIDER_NAME = "Source";
-const DEFAULT_REPOSITORY_URL = "https://git.owaspblt.org/BLT/BLT-Jobs";
+const DEFAULT_PROVIDER_NAME = "git.owaspblt.org";
+// The BLT monorepo on git.owaspblt.org (single organization); this project is its blt-jobs folder.
+const DEFAULT_FORGE_URL = "https://git.owaspblt.org/BLT";
+const DEFAULT_FOLDER = "blt-jobs";
+const DEFAULT_REPOSITORY_URL = `${DEFAULT_FORGE_URL}/tree/main/${DEFAULT_FOLDER}`;
 const DEFAULT_SOURCE_REF = "main";
 
 function trimTrailingSlash(value) {
@@ -53,11 +56,15 @@ function createProviderConfig(options = {}) {
   const name = options.providerName || process.env.BLT_PROVIDER_NAME || providerName(id);
   const iconClass = options.iconClass || process.env.BLT_PROVIDER_ICON_CLASS || providerIconClass(id);
   const sourceRef = options.sourceRef || process.env.BLT_SOURCE_REF || DEFAULT_SOURCE_REF;
+  // A forge monorepo: files are <forgeUrl>/blob/<ref>/<folder>/<path>, issues <forgeUrl>/issues.
+  const forgeUrl = trimTrailingSlash(options.forgeUrl || process.env.BLT_FORGE_URL || DEFAULT_FORGE_URL);
+  const folder = options.folder ?? process.env.BLT_FOLDER ?? DEFAULT_FOLDER;
 
   function sourceFileUrl(relativePath) {
     const encoded = encodePath(relativePath);
     if (!repositoryUrl || !encoded) return "";
-    if (id === "github" || id === "forge") return `${repositoryUrl}/blob/${sourceRef}/${encoded}`;
+    if (id === "forge") return `${forgeUrl}/blob/${sourceRef}/${folder ? `${encodePath(folder)}/` : ""}${encoded}`;
+    if (id === "github") return `${repositoryUrl}/blob/${sourceRef}/${encoded}`;
     if (id === "gitlab") return `${repositoryUrl}/-/blob/${sourceRef}/${encoded}`;
     return `${repositoryUrl}`;
   }
@@ -69,7 +76,7 @@ function createProviderConfig(options = {}) {
       return `${repositoryUrl}/-/issues/new${query}`;
     }
     if (id === "github") return `${repositoryUrl}/issues/new`;
-    if (id === "forge") return `${repositoryUrl}/issues`;
+    if (id === "forge") return `${forgeUrl}/issues/new`;
     return repositoryUrl;
   }
 
@@ -100,6 +107,7 @@ function createProviderConfig(options = {}) {
 module.exports = {
   DEFAULT_PROVIDER_ID,
   DEFAULT_PROVIDER_NAME,
+  DEFAULT_FORGE_URL,
   DEFAULT_REPOSITORY_URL,
   DEFAULT_SOURCE_REF,
   createProviderConfig,

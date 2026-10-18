@@ -125,7 +125,7 @@ function renderJob(job) {
   );
   const sourceIssueUrl = safeUrl(job.source_issue_url || "");
   const reviewStatus = job.review_status || "";
-  const sourcePlatform = job.source_platform || (window.BLTProvider && window.BLTProvider.id) || "gitlab";
+  const sourcePlatform = job.source_platform || (window.BLTProvider && window.BLTProvider.id) || "forge";
   const sourceIconClass =
     (window.BLTProvider && window.BLTProvider.iconClass) || "fa-solid fa-code-branch";
 

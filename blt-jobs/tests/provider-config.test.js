@@ -35,3 +35,16 @@ test("GitLab issue URLs use supported issue template query parameter", () => {
     "https://gitlab.com/owasp-blt/blt-jobs/-/issues/new?issuable_template=job%20posting"
   );
 });
+
+test("the default provider is the git.owaspblt.org monorepo folder", () => {
+  const provider = createProviderConfig({});
+
+  assert.equal(provider.id, "forge");
+  assert.equal(provider.repositoryUrl, "https://git.owaspblt.org/BLT/tree/main/blt-jobs");
+  assert.equal(provider.issueUrl(), "https://git.owaspblt.org/BLT/issues/new");
+  assert.equal(
+    provider.sourceFileUrl("jobs/job with spaces.md"),
+    "https://git.owaspblt.org/BLT/blob/main/blt-jobs/jobs/job%20with%20spaces.md"
+  );
+  assert.equal(provider.iconClass, "fa-solid fa-code-branch");
+});

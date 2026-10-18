@@ -113,7 +113,7 @@ function main() {
     views_count: 0,
     added_by: addedBy || "",
     added_by_url: (process.env.ISSUE_USER_URL || "").trim(),
-    source_platform: "gitlab",
+    source_platform: "forge",
     source_issue_url: (process.env.ISSUE_URL || process.env.CI_JOB_URL || "").trim(),
     source_merge_request_url: "",
     source_commit_url: "",

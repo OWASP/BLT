@@ -27,25 +27,36 @@ function loadProvider(search = "") {
   return { links, provider: window.BLTProvider };
 }
 
-test("browser provider accepts only GitLab namespace/project repo overrides", () => {
-  assert.equal(
-    loadProvider("?repo=owasp-blt/blt-jobs").provider.repositoryUrl,
-    "https://gitlab.com/owasp-blt/blt-jobs"
-  );
+test("browser provider points every link at git.owaspblt.org, never gitlab.com", () => {
+  const { links, provider } = loadProvider("?repo=owasp-blt/blt-jobs");
 
+  assert.equal(provider.id, "forge");
+  assert.equal(provider.repositoryUrl, "https://git.owaspblt.org/BLT/tree/main/blt-jobs");
+  assert.equal(links[0].href, provider.repositoryUrl);
+  assert.equal(provider.issueUrl("job-posting"), "https://git.owaspblt.org/BLT/issues/new");
   assert.equal(
-    loadProvider("?repo=attacker.example/owasp-blt/blt-jobs").provider.repositoryUrl,
-    "https://gitlab.com/owasp-blt/blt-jobs"
+    provider.templateUrl("job-posting"),
+    "https://git.owaspblt.org/BLT/blob/main/blt-jobs/issue-templates/job-posting.md"
+  );
+  assert.equal(
+    provider.sourceFileUrl("jobs/job with spaces.md"),
+    "https://git.owaspblt.org/BLT/blob/main/blt-jobs/jobs/job%20with%20spaces.md"
   );
 });
 
-test("browser provider builds GitLab issue template and source URLs", () => {
-  const { links, provider } = loadProvider("?repo=owasp-blt/blt-jobs");
-
-  assert.equal(provider.issueUrl("job posting"), "https://gitlab.com/owasp-blt/blt-jobs/-/issues/new?issuable_template=job%20posting");
-  assert.equal(
-    provider.sourceFileUrl("jobs/job with spaces.md"),
-    "https://gitlab.com/owasp-blt/blt-jobs/-/blob/main/jobs/job%20with%20spaces.md"
-  );
-  assert.equal(links[0].href, provider.repositoryUrl);
+test("no page or script sends users to gitlab.com/owasp-blt", () => {
+  const publicDir = path.join(__dirname, "..", "public");
+  const offenders = [];
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name !== "vendor" && entry.name !== "data") walk(full);
+      } else if (/\.(html|js)$/.test(entry.name) && /gitlab\.com\/owasp-blt|BLT\/BLT-Jobs/i.test(fs.readFileSync(full, "utf8"))) {
+        offenders.push(path.relative(publicDir, full));
+      }
+    }
+  };
+  walk(publicDir);
+  assert.deepEqual(offenders, []);
 });

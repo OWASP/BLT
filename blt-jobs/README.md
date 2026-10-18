@@ -1,7 +1,7 @@
 # BLT Jobs
 
 **Live Site:** [https://jobs.owaspblt.org/](https://jobs.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT-Jobs](https://git.owaspblt.org/BLT/BLT-Jobs)
+**Source Code:** [https://git.owaspblt.org/BLT/tree/main/blt-jobs](https://git.owaspblt.org/BLT/tree/main/blt-jobs)
 
 <p align="center"><img src="logo.png" alt="blt-jobs logo" width="160" height="160"></p>
 
@@ -11,7 +11,7 @@ BLT Jobs is a Git-native job platform for the [OWASP BLT](https://owasp.org/www-
 
 ## Architecture
 
-See [docs/git-native-architecture.md](docs/git-native-architecture.md) for the Git-native product contract, current GitLab workflow, future provider abstraction points, public-data boundaries, maintainer review model, and issue/MR -> Markdown -> JSON -> static site flow.
+See [docs/git-native-architecture.md](docs/git-native-architecture.md) for the Git-native product contract, submission workflow, future provider abstraction points, public-data boundaries, maintainer review model, and issue/MR -> Markdown -> JSON -> static site flow.
 
 ## How It Works
 
@@ -19,19 +19,19 @@ See [docs/git-native-architecture.md](docs/git-native-architecture.md) for the G
 - Seeker profiles live in `seekers/*.md`.
 - `npm run build:jobs` turns the Markdown sources into `public/data/jobs.json` and `public/data/seekers.json`.
 - Cloudflare Workers serves the committed static site files directly and excludes repository internals with `.assetsignore`.
-- Contributors submit jobs and profiles through GitLab issue templates. A scheduled or manually started GitLab pipeline processes labeled issues, commits the Markdown file, and closes the issue.
+- Contributors submit jobs and profiles as issues on [git.owaspblt.org](https://git.owaspblt.org/BLT/issues), using the bodies in `issue-templates/`. The `.forkmesh/blt-jobs--process-submissions.yml` workflow processes each issue when it is opened, edited or labelled, commits the Markdown file, comments, and closes the issue.
 - Seeker profiles can link to GitHub, GitLab, LinkedIn, a portfolio, or any combination of those services.
 
 ## Contribute
 
-Use the [Contribute page](https://jobs.owaspblt.org/add.html) or open a GitLab issue with one of the templates in `.gitlab/issue_templates/`:
+Use the [Contribute page](https://jobs.owaspblt.org/add.html) or [open an issue](https://git.owaspblt.org/BLT/issues/new) and paste one of the templates in `issue-templates/` into its body (the forge has no issue templates, so the page links to them):
 
 - `job-posting-from-link`: paste a public job URL so maintainers can generate a reviewable Markdown draft.
 - `job-posting`: enter a job manually.
 - `job-seeker`: create a transparent public seeker profile.
-- `flag-job-posting`: report a listing that should be removed.
+- `flag-job-posting`: report a listing that should be removed (title starting with `[FLAG]`).
 
-GitLab labels each template through a quick action. The `process_submissions` CI job reads open issues through the GitLab API and recognizes both labels and template headings, so submissions also work for users who cannot apply labels.
+`scripts/actions/process-submission.mjs` recognizes the labels `job-posting`, `job-posting-from-link`, `job-seeker` and `flag-job-posting`, and also the template headings, so submissions work for users who cannot apply labels. The conversion itself is `createFromIssue()` in `scripts/submissions.js`.
 
 Accepted submissions become public Markdown in this repository. Do not submit private applicant notes, private phone numbers, identity documents, secrets, or contact routes that should not be public Git history.
 
@@ -62,20 +62,9 @@ npm run build:worker
 
 `npm run discover:candidates` writes candidate URLs for maintainer review only. It does not publish jobs and is not part of the canonical submission path.
 
-## GitLab CI Setup
+## Automation
 
-The pipeline is defined in `.gitlab-ci.yml`. Add these masked CI/CD variables in GitLab:
-
-| Variable | Purpose |
-| --- | --- |
-| `GITLAB_TOKEN` | Read, comment on, and close GitLab issues |
-| `GITLAB_PUSH_TOKEN` | Push generated Markdown and JSON commits to `main` |
-
-`GITLAB_TOKEN` and `GITLAB_PUSH_TOKEN` can be the same project access token with API and repository write access. As an alternative to `GITLAB_PUSH_TOKEN`, enable GitLab's **Allow Git push requests to the repository** setting for CI job tokens.
-
-Create a GitLab pipeline schedule for periodic submission processing and stale job expiry. The same maintenance jobs can also be started manually from the GitLab pipeline UI.
-
-If `GITLAB_TOKEN` is not configured or is not exposed to a pipeline, GitLab skips the `process_submissions` job. The `expire_jobs` maintenance job can still run on the schedule.
+The workflows are `.forkmesh/blt-jobs--process-submissions.yml` (issue events) and `.forkmesh/blt-jobs--expire-jobs.yml` (by hand only). See [docs/workflows.md](../docs/workflows.md); they need no GitLab secrets.
 
 Expired jobs do not need that job to disappear from the site: the Worker serves `/data/jobs.json` and drops every job whose `effective_expires_at` (`expires_at`, else the posted/created date + 60 days) has passed. `npm run expire:jobs` only deletes the expired Markdown files, as optional cleanup.
 
@@ -94,7 +83,7 @@ For Cloudflare Workers Builds, the default deploy command is enough:
 | Build command | Leave blank |
 | Deploy command | `npx wrangler@4 deploy` |
 
-For local deployment, use `npm run deploy:worker` to regenerate JSON first. GitLab CI does not deploy the Worker.
+For local deployment, use `npm run deploy:worker` to regenerate JSON first. `.forkmesh/deploy.yml` deploys the Worker on each push to `main`.
 
 Configure `jobs.owaspblt.org` as a Cloudflare custom domain for the `blt-jobs` Worker.
 
@@ -102,8 +91,7 @@ Configure `jobs.owaspblt.org` as a Cloudflare custom domain for the `blt-jobs` W
 
 ```text
 .
-├── .gitlab-ci.yml
-├── .gitlab/issue_templates/
+├── issue-templates/
 ├── .assetsignore
 ├── assets/
 ├── docs/

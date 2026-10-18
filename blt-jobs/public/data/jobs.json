@@ -1,13 +1,13 @@
 {
   "jobs": [],
   "count": 0,
-  "generated_at": "2026-10-17T23:51:58.373Z",
+  "generated_at": "2026-10-18T12:52:53.654Z",
   "source": {
     "provider": {
       "id": "forge",
-      "name": "Source",
+      "name": "git.owaspblt.org",
       "icon_class": "fa-solid fa-code-branch",
-      "repository_url": "https://git.owaspblt.org/BLT/BLT-Jobs",
+      "repository_url": "https://git.owaspblt.org/BLT/tree/main/blt-jobs",
       "source_ref": "main"
     }
   }

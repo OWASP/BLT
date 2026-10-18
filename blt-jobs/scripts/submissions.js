@@ -1,29 +1,13 @@
-#!/usr/bin/env node
+// Turns one job / job-seeker / flag issue into files under jobs/ or seekers/ (or removes a flagged
+// job). scripts/actions/process-submission.mjs calls createFromIssue() for each forge issue event,
+// then builds, commits, comments and closes the issue. The issue is GitLab-shaped
+// ({iid, title, description, labels, author: {username, web_url}, web_url}) for historical reasons.
 const fs = require("fs");
 const path = require("path");
 const { execFileSync, spawnSync } = require("child_process");
 
 const root = path.join(__dirname, "..");
-const apiBase = process.env.CI_API_V4_URL || "https://gitlab.com/api/v4";
-const projectId = encodeURIComponent(process.env.CI_PROJECT_ID || "owasp-blt/blt-jobs");
-const projectUrl = process.env.CI_PROJECT_URL || "https://git.owaspblt.org/BLT/BLT-Jobs";
-
-async function api(endpoint, options = {}) {
-  const token = process.env.GITLAB_TOKEN;
-  if (!token) throw new Error("GITLAB_TOKEN is required.");
-
-  const response = await fetch(`${apiBase}/projects/${projectId}${endpoint}`, {
-    ...options,
-    headers: {
-      "PRIVATE-TOKEN": token,
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-  });
-  if (!response.ok) throw new Error(`${options.method || "GET"} ${endpoint}: ${response.status}`);
-  if (response.status === 204) return null;
-  return response.json();
-}
+const projectUrl = "https://git.owaspblt.org/BLT";
 
 function run(command, args, options = {}) {
   return execFileSync(command, args, { cwd: root, encoding: "utf8", ...options }).trim();
@@ -34,7 +18,7 @@ function issueEnv(issue) {
     ...process.env,
     ISSUE_USER: issue.author?.username || "",
     ISSUE_USER_URL: issue.author?.web_url || "",
-    ISSUE_URL: issue.web_url || `${projectUrl}/-/issues/${issue.iid}`,
+    ISSUE_URL: issue.web_url || `${projectUrl}/issues/${issue.iid}`,
   };
 }
 
@@ -105,54 +89,6 @@ function createFromIssue(issue) {
   }
 
   return null;
-}
-
-async function addNote(issue, body) {
-  await api(`/issues/${issue.iid}/notes`, { method: "POST", body: JSON.stringify({ body }) });
-}
-
-async function closeIssue(issue) {
-  await api(`/issues/${issue.iid}`, { method: "PUT", body: JSON.stringify({ state_event: "close" }) });
-}
-
-async function main() {
-  const issues = await api("/issues?state=opened&per_page=100&order_by=created_at&sort=asc");
-  const processed = [];
-
-  for (const issue of issues) {
-    try {
-      const result = createFromIssue(issue);
-      if (result) processed.push({ issue, ...result });
-    } catch (error) {
-      console.error(`Issue #${issue.iid}: ${error.message}`);
-      await addNote(issue, `Could not process this submission: ${error.message}`);
-    }
-  }
-
-  if (!processed.length) {
-    console.log("No labeled GitLab submissions to process.");
-    return;
-  }
-
-  run("npm", ["run", "build:jobs"]);
-  run("git", ["add", "jobs", "seekers", "public/data/jobs.json", "public/data/seekers.json"]);
-  run("git", ["commit", "-m", `chore: process ${processed.length} GitLab submission(s)`]);
-  run("git", ["push", "origin", "HEAD:main"]);
-
-  for (const item of processed) {
-    const destination = item.kind === "seeker" ? "seekers.html" : "jobs.html";
-    await addNote(item.issue, `Processed and published: [view on the job board](https://jobs.owaspblt.org/${destination}).`);
-    await closeIssue(item.issue);
-  }
-
-  console.log(`Processed ${processed.length} GitLab submission(s).`);
-}
-
-if (require.main === module) {
-  main().catch((error) => {
-    console.error(error.message);
-    process.exit(1);
-  });
 }
 
 module.exports = {

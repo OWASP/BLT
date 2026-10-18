@@ -135,7 +135,7 @@ function main() {
     resume_url: links.resume || "",
     contact_method: inferContactMethod(links),
     public_contact_policy: inferPublicContactPolicy(links),
-    source_platform: "gitlab",
+    source_platform: "forge",
     source_issue_url: (process.env.ISSUE_URL || process.env.CI_JOB_URL || "").trim(),
     source_merge_request_url: "",
     source_commit_url: "",

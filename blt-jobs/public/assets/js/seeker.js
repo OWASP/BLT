@@ -178,7 +178,7 @@ function renderSeeker(seeker) {
   );
   const sourceIssueUrl = safeUrl(seeker.source_issue_url || "");
   const reviewStatus = seeker.review_status || "";
-  const sourcePlatform = seeker.source_platform || (window.BLTProvider && window.BLTProvider.id) || "gitlab";
+  const sourcePlatform = seeker.source_platform || (window.BLTProvider && window.BLTProvider.id) || "forge";
 
   const { availabilityStatus, skills, about, workExperience, projects, certifications, workSamples, lookingFor } = parseSeekerContent(seeker);
   const initials = getInitials(name);

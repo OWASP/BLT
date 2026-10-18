@@ -460,7 +460,7 @@ def scrape_url(url: str) -> tuple[dict, str]:
         "views_count":             0,
         "added_by":                os.environ.get("ISSUE_USER", "").strip(),
         "added_by_url":            os.environ.get("ISSUE_USER_URL", "").strip(),
-        "source_platform":         "gitlab",
+        "source_platform":         "forge",
         "source_issue_url":        os.environ.get("ISSUE_URL", os.environ.get("CI_JOB_URL", "")).strip(),
         "source_merge_request_url": "",
         "source_commit_url":       "",

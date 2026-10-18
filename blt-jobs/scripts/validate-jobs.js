@@ -9,6 +9,7 @@ const path = require("path");
 const JOBS_JSON = process.env.BLT_JOBS_JSON || path.join(__dirname, "..", "public", "data", "jobs.json");
 
 const VALID_SOURCE_PLATFORMS = new Set([
+  "forge",
   "gitlab",
   "github",
   "gitea",

@@ -6,7 +6,7 @@
     <title>BLT Jobs - Git-native Security Jobs</title>
     <meta
       name="description"
-      content="A Git-native job platform for the OWASP BLT ecosystem. Jobs and seeker profiles are Markdown-backed open data reviewed through GitLab."
+      content="A Git-native job platform for the OWASP BLT ecosystem. Jobs and seeker profiles are Markdown-backed open data reviewed through git.owaspblt.org issues."
     />
     <link rel="icon" href="./assets/images/blt-logo.png" type="image/png" />
 
@@ -17,7 +17,7 @@
     />
     <meta
       property="og:description"
-      content="A Git-native job platform for the OWASP BLT ecosystem. Jobs and seeker profiles are Markdown-backed open data reviewed through GitLab."
+      content="A Git-native job platform for the OWASP BLT ecosystem. Jobs and seeker profiles are Markdown-backed open data reviewed through git.owaspblt.org issues."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://jobs.owaspblt.org/" />
@@ -30,7 +30,7 @@
     />
     <meta
       name="twitter:description"
-      content="A Git-native job platform for the OWASP BLT ecosystem. Jobs and seeker profiles are Markdown-backed open data reviewed through GitLab."
+      content="A Git-native job platform for the OWASP BLT ecosystem. Jobs and seeker profiles are Markdown-backed open data reviewed through git.owaspblt.org issues."
     />
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -272,7 +272,7 @@
           >
           <a
             class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-            href="https://git.owaspblt.org/BLT/BLT-Jobs"
+            href="https://git.owaspblt.org/BLT/tree/main/blt-jobs"
             data-provider-repository
             target="_blank"
             rel="noopener noreferrer"
@@ -361,7 +361,7 @@
         >
         <a
           class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-          href="https://git.owaspblt.org/BLT/BLT-Jobs"
+          href="https://git.owaspblt.org/BLT/tree/main/blt-jobs"
           data-provider-repository
           target="_blank"
           rel="noopener noreferrer"
@@ -403,7 +403,7 @@
               >Open</span
             >
             <span class="truncate"
-              >Git-native job board backed by Markdown and GitLab review.</span
+              >Git-native job board backed by Markdown and forge review.</span
             >
           </a>
           <h1
@@ -489,7 +489,7 @@
               <p
                 class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-400"
               >
-                Open a GitLab issue, paste a public job URL, or propose a
+                Open an issue, paste a public job URL, or propose a
                 Markdown change. Every listing starts as a traceable submission.
               </p>
             </article>
@@ -645,7 +645,7 @@
               class="mt-4 max-w-[36rem] text-base leading-[1.65] text-gray-600 dark:text-gray-400"
             >
               Paste a public job link from an ATS or careers page. BLT Jobs
-              creates a GitLab issue draft that can become Markdown after human
+              creates an issue draft that can become Markdown after human
               review.
             </p>
             <div class="mt-8 flex flex-wrap items-center gap-4">
@@ -782,7 +782,7 @@
                 >
               </div>
               <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
-                Paste a job link and open a pre-filled GitLab issue. Nothing is
+                Paste a job link: the issue text is copied and a new issue opens. Nothing is
                 published until maintainers review the Markdown.
               </p>
               <form id="quick-add-form" class="flex gap-2" novalidate>
@@ -805,6 +805,13 @@
                 class="mt-2 hidden text-xs text-red-600 dark:text-red-400"
               >
                 Please enter a valid URL.
+              </p>
+              <p
+                id="quick-add-status"
+                class="mt-2 hidden text-xs text-emerald-700 dark:text-emerald-400"
+                role="status"
+              >
+                Issue text copied: paste it into the new issue, give it a title, and submit.
               </p>
               <div
                 class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900 dark:border-amber-900/60 dark:bg-amber-900/20 dark:text-amber-200"
@@ -1072,11 +1079,11 @@
             <div>
               <p>Project</p>
               <a
-                href="https://git.owaspblt.org/BLT/BLT-Jobs"
+                href="https://git.owaspblt.org/BLT/tree/main/blt-jobs"
                 data-provider-repository
                 target="_blank"
                 rel="noopener noreferrer"
-                >GitLab</a
+                >Source</a
               >
               <a
                 href="https://git.owaspblt.org/BLT/BLT-Core"
@@ -1119,13 +1126,7 @@
         var params = new URLSearchParams(window.location.search);
         var provider = window.BLTProvider || {
           issueUrl: function () {
-            var repoParam = params.get("repo");
-            var repo =
-              typeof repoParam === "string" &&
-              /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/.test(repoParam)
-                ? repoParam
-                : "owasp-blt/blt-jobs";
-            return "https://gitlab.com/" + repo + "/-/issues/new";
+            return "https://git.owaspblt.org/BLT/issues/new";
           },
         };
         var form = document.getElementById("quick-add-form");
@@ -1140,20 +1141,23 @@
               return;
             }
             if (error) error.classList.add("hidden");
+            // The forge's new-issue page cannot be pre-filled: copy the issue body, then open it.
             var description =
-              "### Job Posting URL\\n" +
+              "## Job Posting URL\n" +
               url +
-              "\\n\\n<!-- This URL is input for a reviewable Markdown draft. Maintainers publish only after review. -->" +
-              '\\n\\n/label ~"job-posting-from-link"';
-            window.open(
-              provider.issueUrl() +
-                "?issue[title]=" +
-                encodeURIComponent("Job Post from Link") +
-                "&issue[description]=" +
-                encodeURIComponent(description),
-              "_blank",
-              "noopener,noreferrer",
-            );
+              "\n\n<!-- This URL is input for a reviewable Markdown draft. Maintainers publish only after review. -->\n";
+            var open = function () {
+              window.open(provider.issueUrl(), "_blank", "noopener,noreferrer");
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(description).then(function () {
+                var status = document.getElementById("quick-add-status");
+                if (status) status.classList.remove("hidden");
+                open();
+              }, open);
+            } else {
+              open();
+            }
           });
           if (input) {
             input.addEventListener("input", function () {

@@ -1,14 +1,11 @@
+// Where the job board's source, issues and submissions live: the BLT monorepo on git.owaspblt.org
+// (single organization; this project is the blt-jobs folder). The old GitLab group is closed.
 (function () {
-  const defaultRepo = "owasp-blt/blt-jobs";
-  const params = new URLSearchParams(window.location.search);
-  const repoParam = params.get("repo");
-  const repo =
-    typeof repoParam === "string" && /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/.test(repoParam)
-      ? repoParam
-      : defaultRepo;
-  const repositoryUrl = "https://gitlab.com/" + repo;
+  const forgeUrl = "https://git.owaspblt.org/BLT";
+  const folder = "blt-jobs";
+  const repositoryUrl = forgeUrl + "/tree/main/" + folder;
   const sourceRef = "main";
-  const iconClass = "fa-brands fa-gitlab";
+  const iconClass = "fa-solid fa-code-branch";
 
   function encodePath(relativePath) {
     return String(relativePath || "")
@@ -17,22 +14,29 @@
       .join("/");
   }
 
-  function issueUrl(template) {
-    const query = template ? "?issuable_template=" + encodeURIComponent(template) : "";
-    return repositoryUrl + "/-/issues/new" + query;
+  // The forge has no issue templates: new issues start empty, and templateUrl() links to the
+  // Markdown template to copy into the issue body (scripts/actions/process-submission.mjs reads
+  // its headings).
+  function issueUrl() {
+    return forgeUrl + "/issues/new";
+  }
+
+  function templateUrl(template) {
+    return template ? sourceFileUrl("issue-templates/" + template + ".md") : "";
   }
 
   function sourceFileUrl(relativePath) {
-    return repositoryUrl + "/-/blob/" + sourceRef + "/" + encodePath(relativePath);
+    return forgeUrl + "/blob/" + sourceRef + "/" + folder + "/" + encodePath(relativePath);
   }
 
   window.BLTProvider = {
-    id: "gitlab",
-    name: "GitLab",
+    id: "forge",
+    name: "git.owaspblt.org",
     iconClass,
     repositoryUrl,
     sourceRef,
     issueUrl,
+    templateUrl,
     sourceFileUrl,
   };
 

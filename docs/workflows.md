@@ -171,10 +171,9 @@ For blt-hackathons, run the workflow by hand.
   that were closed or unlabelled. To import older profile issues, run the workflow by hand with
   their numbers.
 - **blt-jobs submissions**: the old job polled every open GitLab issue. Now each issue is processed
-  when it is opened, edited or labelled, through the existing `createFromIssue()` in
-  `process-gitlab-submissions.js`. GitLab-only scripts that remain:
-  - `process-gitlab-submissions.js`, for issues still on gitlab.com
-  - `blt-design-contest`, `blt-pages` and `blt-waypoint`, which read data from gitlab.com
+  when it is opened, edited or labelled, through `createFromIssue()` in `blt-jobs/scripts/submissions.js`
+  (the GitLab polling script is gone). The forge has no issue templates, so the job board links to
+  the bodies in `blt-jobs/issue-templates/`.
 - **README contributor wall** (`readme.yml`): the list used to show only commit authors with a
   known GitHub login. `scripts/readme/contributors.py` now lists every person with a commit in any
   project, as author or co-author, and leaves out bots. It merges each person's emails and names, and

@@ -186,7 +186,7 @@ function renderJobs(jobs) {
             ? window.BLTProvider.sourceFileUrl(`jobs/${job.id}.md`)
             : "")
       );
-      const sourcePlatform = esc(job.source_platform || (window.BLTProvider && window.BLTProvider.id) || "gitlab");
+      const sourcePlatform = esc(job.source_platform || (window.BLTProvider && window.BLTProvider.id) || "forge");
       const sourceIconClass =
         (window.BLTProvider && window.BLTProvider.iconClass) || "fa-solid fa-code-branch";
       const workMode = inferWorkMode(job);

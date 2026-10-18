@@ -13,6 +13,9 @@ This page lists every GitLab dependency left in the monorepo (found with `git gr
   [blt-hackathons/README.md](../blt-hackathons/README.md#statistics-updates).
 - **blt-cron** (`d039ea2504`): the GSoC 2026 progress job is turned off. That job was the GitLab-commit reader in
   blt-gsoc.
+- **blt-jobs**: every link points at git.owaspblt.org (`/BLT/tree/main/blt-jobs`, `/BLT/blob/main/blt-jobs/...`,
+  `/BLT/issues/new`); the issue templates moved to `blt-jobs/issue-templates/`, and the GitLab polling script is
+  gone (`createFromIssue()` is in `scripts/submissions.js`).
 
 ## What git.owaspblt.org can serve
 

@@ -143,30 +143,30 @@ npm run validate:jobs
 
 These commands must continue to pass after architecture, schema, or provider changes.
 
-## GitLab-first provider contract
+## Forge provider contract
 
-GitLab is the current provider for submission and review workflows.
+The BLT monorepo on git.owaspblt.org (folder `blt-jobs`) is the provider for submission and review workflows. The GitLab group that used to host it is closed.
 
-Current GitLab-backed flows:
+Current flows:
 
-1. A contributor opens an issue using an issue template in `.gitlab/issue_templates/`.
-2. GitLab labels or template headings identify the submission type.
+1. A contributor opens an issue on <https://git.owaspblt.org/BLT/issues/new> and pastes a template from `issue-templates/` into its body (the forge has no issue templates).
+2. Labels or template headings identify the submission type.
 3. A maintainer reviews the issue and may request changes.
-4. `process_submissions` runs through GitLab CI on a schedule or manual pipeline.
-5. `scripts/process-gitlab-submissions.js` reads open issues with the GitLab API.
+4. `.forkmesh/blt-jobs--process-submissions.yml` runs when the issue is opened, edited or labelled (or by hand for one issue number).
+5. `scripts/actions/process-submission.mjs` hands the issue to `createFromIssue()` in `scripts/submissions.js`.
 6. The script converts accepted issues into Markdown files under `jobs/` or `seekers/`.
 7. The build script regenerates JSON.
-8. CI commits the Markdown/JSON update to `main` and closes the processed issue.
+8. The workflow commits the Markdown/JSON update to `main`, comments, and closes the processed issue.
 9. Cloudflare serves the updated static frontend after deployment.
 
 Current templates:
 
 | Template | Purpose | Current label |
 | --- | --- | --- |
-| `.gitlab/issue_templates/job-posting.md` | Manual job submission | `job-posting` |
-| `.gitlab/issue_templates/job-posting-from-link.md` | Job URL to reviewable draft input | `job-posting-from-link` |
-| `.gitlab/issue_templates/job-seeker.md` | Public seeker profile submission | `job-seeker` |
-| `.gitlab/issue_templates/flag-job-posting.md` | Request listing removal | `flag-job-posting` |
+| `issue-templates/job-posting.md` | Manual job submission | `job-posting` |
+| `issue-templates/job-posting-from-link.md` | Job URL to reviewable draft input | `job-posting-from-link` |
+| `issue-templates/job-seeker.md` | Public seeker profile submission | `job-seeker` |
+| `issue-templates/flag-job-posting.md` | Request listing removal | `flag-job-posting` |
 
 The GitLab provider owns provider-specific details such as issue templates, labels, issue URLs, merge request URLs, project API paths, and pipeline behavior.
 

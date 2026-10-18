@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Turns a job / job-seeker / flag issue into a commit on main, then comments and closes the issue.
 // Run by .forkmesh/blt-jobs--process-submissions.yml for `issues` events, or for one issue number
-// with workflow_dispatch (input `issue`). Replaces the GitLab-only scripts/process-gitlab-submissions.js,
-// reusing its createFromIssue(): the job API cannot list issues, so each issue is processed on its own event.
+// with workflow_dispatch (input `issue`). Replaces the GitLab polling job that lived in scripts/process-gitlab-submissions.js,
+// using scripts/submissions.js createFromIssue(): the job API cannot list issues, so each issue is processed on its own event.
 import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
 import { dirname, join } from "node:path";
@@ -45,7 +45,7 @@ async function main() {
     console.log(`Issue #${issue.number} is ${issue.state}; nothing to do.`);
     return;
   }
-  const { createFromIssue } = require("../process-gitlab-submissions.js");
+  const { createFromIssue } = require("../submissions.js");
   let result;
   try {
     result = createFromIssue(toGitlabIssue(issue));

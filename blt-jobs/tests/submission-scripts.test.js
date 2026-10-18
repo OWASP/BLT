@@ -21,7 +21,7 @@ function readOutputFile(root, relativeFile) {
   return fs.readFileSync(path.join(root, relativeFile), "utf8");
 }
 
-test("issue-form-to-job writes GitLab source and public contact metadata", () => {
+test("issue-form-to-job writes forge source and public contact metadata", () => {
   const root = tempDir();
   const body = `## Company Name
 Acme
@@ -50,7 +50,7 @@ Apply at https://acme.example/jobs/security-engineer
   });
 
   const output = readOutputFile(root, relativeFile);
-  assert.match(output, /source_platform: "gitlab"/);
+  assert.match(output, /source_platform: "forge"/);
   assert.match(output, /source_issue_url: "https:\/\/gitlab\.com\/owasp-blt\/blt-jobs\/-\/issues\/123"/);
   assert.match(output, /submission_type: "issue"/);
   assert.match(output, /review_status: "submitted"/);
@@ -58,7 +58,7 @@ Apply at https://acme.example/jobs/security-engineer
   assert.match(output, /public_contact_policy: "external_apply"/);
 });
 
-test("issue-form-to-seeker writes GitLab source and public email metadata", () => {
+test("issue-form-to-seeker writes forge source and public email metadata", () => {
   const root = tempDir();
   const body = `## Personal Information
 **Name:** Jane Doe
@@ -81,7 +81,7 @@ test("issue-form-to-seeker writes GitLab source and public email metadata", () =
   });
 
   const output = readOutputFile(root, relativeFile);
-  assert.match(output, /source_platform: "gitlab"/);
+  assert.match(output, /source_platform: "forge"/);
   assert.match(output, /source_issue_url: "https:\/\/gitlab\.com\/owasp-blt\/blt-jobs\/-\/issues\/456"/);
   assert.match(output, /submission_type: "issue"/);
   assert.match(output, /review_status: "submitted"/);
