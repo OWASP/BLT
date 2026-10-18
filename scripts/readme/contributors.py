@@ -11,7 +11,8 @@ history of each project, and turns the commit identities (name + email) into peo
   4. known GitHub logins                      a name or email local part equal to a login seen above
                                               or in blt-waypoint/public/github_data.json
   5. GitHub commit search by author email     (network, a few per run, cached)
-  6. GitLab merge request authors             gitlab.com/owasp-blt, matched by name (network, cached)
+  6. git.owaspblt.org pull and issue authors  the forkmesh/pulls and .forkmesh/issues ledgers
+                                              (scripts/forkmesh/ledger.py), matched by name (cached)
 
 Identities are merged into one person when they share an email, an account, a GitHub user id or a
 full name. Bots and placeholder identities are left out; people without any account are kept by name
@@ -48,17 +49,15 @@ ROUTES = os.path.join(ROOT, "scripts", "routing", "projects.tsv")
 GSOC = os.path.join(ROOT, "blt-gsoc", "data", "contributors.json")
 WAYPOINT = os.path.join(ROOT, "blt-waypoint", "public", "github_data.json")
 INSTANCE = "https://git.owaspblt.org"
-GITLAB_GROUP = "owasp-blt"
 
 AVATAR_SIZE = 64
 AVATAR_MAX_AGE_DAYS = int(os.environ.get("CONTRIBUTOR_AVATAR_DAYS", "30"))
 AVATAR_REFRESH_PER_RUN = int(os.environ.get("CONTRIBUTOR_AVATAR_REFRESH", "60"))
 AVATAR_RETRY_DAYS = 7          # retry a failed avatar download after this many days
 INSTANCE_RECHECK_DAYS = 7      # re-check git.owaspblt.org accounts
-GITLAB_RECHECK_DAYS = 7        # re-read GitLab merge request authors
+FORGE_RECHECK_DAYS = 1         # re-read the git.owaspblt.org pull and issue ledgers
 SEARCH_NEGATIVE_DAYS = 90      # re-try a GitHub email search that found nothing
 GH_TOKEN = os.environ.get("GH_API_TOKEN", "").strip()
-GITLAB_TOKEN = os.environ.get("GITLAB_TOKEN", "").strip()
 # GitHub API calls per run: commit searches (30/min with a token, 10/min without) and user lookups
 GITHUB_BUDGET = int(os.environ.get("CONTRIBUTOR_GITHUB_LOOKUPS", "40" if GH_TOKEN else "8"))
 UA = {"User-Agent": "owasp-blt-readme"}
@@ -523,39 +522,37 @@ def github_ids(idents, cache, gh):
             ids[gid] = {"login": None, "checked": today()}
 
 
-def gitlab_authors(cache, offline):
-    """norm(name or username) -> {username, name, avatar_url} for merge request authors in the group."""
-    entry = cache.setdefault("gitlab", {})
-    if not offline and older_than(entry.get("checked"), GITLAB_RECHECK_DAYS):
-        authors, ok = {}, True
-        headers = {"PRIVATE-TOKEN": GITLAB_TOKEN} if GITLAB_TOKEN else {}
-        for page in range(1, 21):
-            resp = get(f"https://gitlab.com/api/v4/groups/{GITLAB_GROUP}/merge_requests",
-                       params={"state": "all", "scope": "all", "per_page": 100, "page": page}, headers=headers)
-            if resp is None or resp.status_code != 200:
-                ok = False
-                break
-            for mr in resp.json():
-                a = mr.get("author") or {}
-                if a.get("username") and not is_bot(a.get("name") or "", a["username"]) \
-                        and not a["username"].startswith(("project_", "group_", "ghost")):
-                    authors[a["username"]] = {"name": a.get("name") or "", "avatar_url": a.get("avatar_url") or ""}
-            if not resp.headers.get("x-next-page"):
-                break
-        if ok:
-            entry.update({"checked": today(), "authors": dict(sorted(authors.items()))})
+def forge_authors(cache, offline):
+    """norm(account name) -> {account names} of pull request and issue authors on git.owaspblt.org.
+
+    Read from the public ledgers (anonymous /pulls and /issues answer 401), at most daily.
+    """
+    cache.pop("gitlab", None)  # the closed gitlab.com group's merge request authors
+    entry = cache.setdefault("forge", {})
+    if not offline and older_than(entry.get("checked"), FORGE_RECHECK_DAYS):
+        try:
+            sys.path.insert(0, os.path.join(ROOT, "scripts", "forkmesh"))
+            import ledger
+            client = ledger.client(seconds=120)
+            names = {p.get("authorName") for p in ledger.pulls(client)}
+            for issue in ledger.issues(client):
+                names.add(issue.get("authorName"))
+                names.update(c.get("authorName") for c in ledger.comments(issue))
+            names = sorted(n for n in names if n and not is_bot(n, n))
+            entry.update({"checked": today(), "authors": names})
+        except Exception as exc:  # network trouble keeps the cached answer
+            log(f"could not read the git.owaspblt.org ledgers: {exc}")
     index = defaultdict(set)
-    for user, a in (entry.get("authors") or {}).items():
-        index[norm(user)].add(user)
-        if len(norm(a["name"])) >= 5:
-            index[norm(a["name"])].add(user)
-    return entry.get("authors") or {}, index
+    for name in entry.get("authors") or []:
+        index[norm(name)].add(name)
+    return index
 
 
 def instance_accounts(people, cache, offline):
     """login.lower() -> account name (with case) for logins that exist on git.owaspblt.org."""
     known = cache.setdefault("instance", {})
-    names = sorted({(p["github"] or p["gitlab"]).lower() for p in people if p["github"] or p["gitlab"]})
+    names = sorted({(p.get("forge") or p["github"] or p["gitlab"]).lower()
+                    for p in people if p.get("forge") or p["github"] or p["gitlab"]})
 
     def check(name):
         resp = get(f"{INSTANCE}/api/accounts/{name}", timeout=15)
@@ -637,23 +634,17 @@ def fetch_avatar(url):
         return None
 
 
-def avatar_url(p, gitlab_info):
+def avatar_url(p):
     if p["source"] == "instance":
         return f"{INSTANCE}/api/accounts/{p['login'].lower()}/avatar"
     if p["source"] == "github":
         if p.get("github_id"):
             return f"https://avatars.githubusercontent.com/u/{p['github_id']}?s={AVATAR_SIZE}&v=4"
         return f"https://github.com/{p['login']}.png?size={AVATAR_SIZE}"
-    if p["source"] == "gitlab":
-        url = (gitlab_info.get(p["login"]) or {}).get("avatar_url") or ""
-        if url:
-            url = re.sub(r"([?&])s=\d+", rf"\1s={AVATAR_SIZE}", url)
-            return url + ("&" if "?" in url else "?") + f"width={AVATAR_SIZE}"
-        return f"https://gitlab.com/{p['login']}.png?width={AVATAR_SIZE}"
     return None
 
 
-def update_avatars(people, previous, gitlab_info, offline):
+def update_avatars(people, previous, offline):
     try:
         import PIL  # noqa: F401
     except ImportError:
@@ -668,7 +659,7 @@ def update_avatars(people, previous, gitlab_info, offline):
         path = os.path.join(OUT_DIR, f"{p['slug']}.png")
         old = previous.get(p["slug"], {})
         p["avatar_kind"], p["avatar_checked"] = old.get("avatar_kind"), old.get("avatar_checked")
-        url = avatar_url(p, gitlab_info)
+        url = avatar_url(p)
         exists = os.path.exists(path)
         if not url:
             if not exists or p["avatar_kind"] != "identicon":
@@ -751,19 +742,19 @@ def build(offline=False):
         people = people_now()
         check_logins(idents, cache)
         people = people_now()
-    gitlab_info, gitlab_index = gitlab_authors(cache, offline)
+    forge_index = forge_authors(cache, offline)
     for p in people:
         if p["github"] or p["gitlab"]:
             continue
         for key in [norm(n) for n in p["names"]] + [norm(e.split("@")[0]) for e in p["emails"]]:
-            if len(key) >= 5 and len(gitlab_index.get(key, ())) == 1:
-                p["gitlab"] = next(iter(gitlab_index[key]))
+            if len(key) >= 5 and len(forge_index.get(key, ())) == 1:
+                p["forge"] = next(iter(forge_index[key]))
                 break
     on_instance = instance_accounts(people, cache, offline)
 
     slugs = set()
     for p in people:
-        login = p["github"] or p["gitlab"]
+        login = p.get("forge") or p["github"] or p["gitlab"]
         if login and login.lower() in on_instance:
             p["source"], p["login"] = "instance", on_instance[login.lower()]
             p["profile"] = f"{INSTANCE}/@{p['login']}"
@@ -773,13 +764,14 @@ def build(offline=False):
             p["profile"] = f"https://github.com/{p['github']}"
             base = p["github"].lower()
         elif p["gitlab"]:
-            p["source"], p["login"] = "gitlab", p["gitlab"]
-            p["profile"] = f"https://gitlab.com/{p['gitlab']}"
+            # gitlab.com/owasp-blt is closed: no gitlab.com profile link or avatar, the name and an identicon.
+            p["source"], p["login"], p["profile"] = "git", None, ""
             base = "gitlab-" + p["gitlab"].lower()
         else:
             p["source"], p["login"], p["profile"] = "git", None, ""
             base = "git-" + slugify(p["name"])
-        slug, n = slugify(base) if p["source"] == "git" else re.sub(r"[^a-z0-9_.-]", "-", base), 2
+        slug, n = slugify(base) if p["source"] == "git" and not base.startswith("gitlab-") \
+            else re.sub(r"[^a-z0-9_.-]", "-", base), 2
         while slug in slugs:
             slug, n = f"{base}-{n}", n + 1
         slugs.add(slug)
@@ -788,7 +780,7 @@ def build(offline=False):
             p["gitlab"] = gsoc_gitlab[p["github"].lower()]
     people.sort(key=lambda p: (-p["commits"], p["name"].lower()))
 
-    update_avatars(people, previous, gitlab_info, offline)
+    update_avatars(people, previous, offline)
     for name in os.listdir(OUT_DIR):
         if name.endswith(".png") and name[:-4] not in slugs:
             os.remove(os.path.join(OUT_DIR, name))

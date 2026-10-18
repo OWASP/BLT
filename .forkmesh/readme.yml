@@ -24,7 +24,6 @@ jobs:
       - name: Regenerate README sections
         env:
           GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           blog=--blog
           [ "${FORKMESH_EVENT:-$GITHUB_EVENT_NAME}" = push ] && blog=

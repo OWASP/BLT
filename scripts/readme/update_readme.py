@@ -157,7 +157,7 @@ def contributors_section(offline=False):
         img = f'<img src="{p["avatar"]}" width="50" height="50" alt="{html.escape(p["name"], quote=True)}"'
         cells.append(f'<a href="{p["profile"]}" title="{label}">{img}></a>' if p["profile"] else f'{img} title="{label}">')
     accounts = ", ".join(f"{sources[k]} {label}" for k, label in
-                         (("instance", "on git.owaspblt.org"), ("github", "on GitHub"), ("gitlab", "on GitLab"),
+                         (("instance", "on git.owaspblt.org"), ("github", "on GitHub"),
                           ("git", "by commit name only")) if sources[k])
     return (
         f"## 👥 Contributors ({len(people)} total)\n\n"

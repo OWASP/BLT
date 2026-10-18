@@ -20,6 +20,9 @@ This page lists every GitLab dependency left in the monorepo (found with `git gr
   list takes one `label` filter), `/BLT/issues/new` and `/BLT/issues/<n>`.
 - **blt-safecloak**: `install.sh` builds from a sparse clone of `blt-safecloak/client` (or `SAFECLOAK_SOURCE_DIR`);
   the GitLab artifact download, `.gitlab-ci.yml` and the gitlab.com link tests are gone.
+- **README contributors**: `gitlab_authors()` is replaced by `forge_authors()`, which reads pull, issue and comment
+  authors from the git.owaspblt.org ledgers (`scripts/forkmesh/ledger.py`). No gitlab.com avatar or profile links;
+  `readme.yml` no longer passes `GITLAB_TOKEN`.
 
 ## What git.owaspblt.org can serve
 
