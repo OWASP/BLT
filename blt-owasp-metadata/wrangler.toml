@@ -19,4 +19,4 @@ run_worker_first = [
 # Created by scripts/worker-data/create-kv.sh, which replaces the placeholder id.
 [[kv_namespaces]]
 binding = "DATA"
-id = "REPLACE_WITH_KV_ID_blt-owasp-metadata-data"
+id = "3beb55584fa045bea8c200f20bb21f6f"

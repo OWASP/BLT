@@ -13,4 +13,4 @@ run_worker_first = ["/slack_apps.json"]
 # Created by scripts/worker-data/create-kv.sh, which replaces the placeholder id.
 [[kv_namespaces]]
 binding = "DATA"
-id = "REPLACE_WITH_KV_ID_blt-panini-data"
+id = "8acfabf29b564b2aa62765965994a9b4"

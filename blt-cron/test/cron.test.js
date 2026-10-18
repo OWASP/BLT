@@ -26,7 +26,7 @@ test("cron matching", () => {
 
 test("due jobs at the top of an even hour", () => {
   const names = dueJobs(Date.parse("2026-10-18T04:00:30Z")).map((j) => j.name).sort();
-  assert.deepEqual(names, ["blt-leaf", "blt-lettuce", "blt-monitor", "blt-netguardian", "blt-pool", "blt-sizzle", "blt-toasty"]);
+  assert.deepEqual(names, ["blt-leaf", "blt-lettuce", "blt-monitor", "blt-netguardian", "blt-pool", "blt-sizzle"]);
   const quiet = dueJobs(Date.parse("2026-10-18T04:07:00Z")).map((j) => j.name);
   assert.deepEqual(quiet, ["blt-lettuce"]);
 });

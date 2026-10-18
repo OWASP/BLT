@@ -31,9 +31,6 @@ service = "blt-sizzle"
 binding = "NETGUARDIAN"
 service = "blt-netguardian"
 
-[[services]]
-binding = "TOASTY"
-service = "blt-toasty"
 
 [[services]]
 binding = "GSOC"

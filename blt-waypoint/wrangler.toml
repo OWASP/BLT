@@ -13,4 +13,4 @@ run_worker_first = ["/forge_data.json", "/gitlab_data.json"]
 # Created by scripts/worker-data/create-kv.sh, which replaces the placeholder id.
 [[kv_namespaces]]
 binding = "DATA"
-id = "REPLACE_WITH_KV_ID_blt-waypoint-data"
+id = "6f63a266111e4fde887473aaacc62b86"
