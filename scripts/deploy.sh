@@ -3,6 +3,8 @@
 #
 #   scripts/deploy.sh <project> [<project>...]   deploy one or more projects
 #   scripts/deploy.sh --all                      deploy every project in scripts/deploy/projects.tsv
+#   scripts/deploy.sh --changed <base>           deploy projects whose folder changed between <base> and HEAD
+#                                                (an empty or all-zero <base> deploys nothing)
 #   scripts/deploy.sh --list                     show the deploy table
 #   add --dry-run to build and validate without publishing
 #
@@ -16,20 +18,40 @@ TABLE="$ROOT/scripts/deploy/projects.tsv"
 WRANGLER="${WRANGLER:-npx --yes wrangler@4}"
 DRY_RUN=0
 ALL=0
+CHANGED=0
+BASE=""
 TARGETS=()
 
-for arg in "$@"; do
+args=("$@")
+for ((i = 0; i < ${#args[@]}; i++)); do
+  arg="${args[i]}"
   case "$arg" in
+    --changed) CHANGED=1; i=$((i + 1)); BASE="${args[i]:-}" ;;
     --dry-run) DRY_RUN=1 ;;
     --all) ALL=1 ;;
     --list) grep -v '^#' "$TABLE" | column -t -s $'\t'; exit 0 ;;
-    -h|--help) sed -n '2,10p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
     -*) echo "unknown option: $arg" >&2; exit 2 ;;
     *) TARGETS+=("$arg") ;;
   esac
 done
+if [[ $CHANGED -eq 1 ]]; then
+  if [[ -z "$BASE" || "$BASE" =~ ^0+$ ]]; then echo "no base commit; nothing to deploy"; exit 0; fi
+  if ! git -C "$ROOT" cat-file -e "$BASE^{commit}" 2>/dev/null; then
+    echo "base commit $BASE not found; deploy by name instead" >&2; exit 2
+  fi
+  mapfile -t changed_files < <(git -C "$ROOT" diff --name-only "$BASE" HEAD)
+  while IFS=$'\t' read -r project dir _; do
+    [[ -z "$project" || "$project" == \#* ]] && continue
+    for f in "${changed_files[@]}"; do
+      if [[ "$f" == "$dir/"* ]]; then TARGETS+=("$project"); break; fi
+    done
+  done < "$TABLE"
+  if [[ ${#TARGETS[@]} -eq 0 ]]; then echo "no deployable project changed since $BASE"; exit 0; fi
+  echo "changed since $BASE: ${TARGETS[*]}"
+fi
 if [[ $ALL -eq 0 && ${#TARGETS[@]} -eq 0 ]]; then
-  echo "usage: scripts/deploy.sh <project>... | --all | --list  [--dry-run]" >&2
+  echo "usage: scripts/deploy.sh <project>... | --all | --changed <base> | --list  [--dry-run]" >&2
   exit 2
 fi
 

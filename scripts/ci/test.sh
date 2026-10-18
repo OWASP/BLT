@@ -12,7 +12,12 @@ projects=()
 case "${1:-}" in
   --all) mapfile -t projects < <(grep -v '^#' "$TABLE" | cut -f1) ;;
   --changed)
-    base="${2:?usage: --changed <base-ref>}"
+    # An empty or all-zero base (new branch, first push) tests nothing.
+    base="${2:-}"
+    if [[ -z "$base" || "$base" =~ ^0+$ ]]; then echo "no base commit; nothing to test"; exit 0; fi
+    if ! git -C "$ROOT" cat-file -e "$base^{commit}" 2>/dev/null; then
+      echo "base commit $base not found; nothing to test (run with --all or project names)" >&2; exit 0
+    fi
     mapfile -t changed < <(git -C "$ROOT" diff --name-only "$base"...HEAD | cut -d/ -f1 | sort -u)
     for p in $(grep -v '^#' "$TABLE" | cut -f1); do
       [[ " ${changed[*]} " == *" $p "* ]] && projects+=("$p")

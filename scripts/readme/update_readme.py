@@ -30,7 +30,7 @@ PROFILE_OVERRIDES = {"DonnieBLT": "https://git.owaspblt.org/@DonnieBLT"}
 NOREPLY = re.compile(r"^(?:\d+\+)?([A-Za-z0-9-]+(?:\[bot\])?)@users\.noreply\.github\.com$")
 BOTS = {"actions-user", "github-actions", "github-actions[bot]", "copilot", "copilot-swe-agent[bot]",
         "dependabot", "dependabot[bot]", "sentry-io[bot]", "web-flow", "coderabbitai[bot]"}
-SKIP_DIRS = {"scripts", ".github"}
+SKIP_DIRS = {"scripts", "docs", ".github"}
 # For folders whose README has no usable opening paragraph
 DESCRIPTIONS = {
     "blt-action": "GitHub Action that automates issue and pull request management: self-assignment, unassignment of stale issues and contributor prompts.",
