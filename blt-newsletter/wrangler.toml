@@ -10,8 +10,10 @@ run_worker_first = ["/", "/dashboard", "/dashboard/", "/login", "/login/", "/sig
 
 [[d1_databases]]
 binding = "DB"
-database_name = "blt-newsletter"
-database_id = "00000000-0000-0000-0000-000000000000" # Replace with the real D1 database id before production deploy.
+# The account is at the free plan's 10-database limit, so the newsletter uses the
+# previously empty blt_zero database. Move to a dedicated database when a slot frees up.
+database_name = "blt_zero"
+database_id = "0fd8d04c-f434-48a1-a5d2-617b49ce79ff"
 migrations_dir = "migrations"
 
 [[queues.producers]]

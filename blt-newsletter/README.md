@@ -103,7 +103,7 @@ D1 database:
 ```toml
 [[d1_databases]]
 binding = "DB"
-database_name = "blt-newsletter"
+database_name = "blt_zero"  # shared: the account is at the free D1 limit
 migrations_dir = "migrations"
 ```
 
