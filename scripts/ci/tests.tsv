@@ -34,6 +34,6 @@ blt-vanish	python	cd cloudflare_workers && python -m compileall -q src
 blt-vanish-flutter	flutter	flutter pub get && flutter test
 blt-zero	python	pip install pytest==8.3.3 pytest-asyncio==0.24.0 cryptography==46.0.5 && PYTHONPATH=. python -m pytest tests/ -q
 my-gsoc-tool	node	npm test
-scripts	node	node --test 'actions/*.test.mjs' 'worker-data/*.test.mjs'
+scripts	node	node --test 'actions/*.test.mjs' 'worker-data/*.test.mjs' && python3 -m unittest discover -s forkmesh -p 'test_*.py'
 blt-cron	node	npm test
 blt-monitor	python	pip install pytest && python -m pytest tests/ -q

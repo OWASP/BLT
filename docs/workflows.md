@@ -119,6 +119,14 @@ Shared code is in [`scripts/worker-data/`](../scripts/worker-data/):
 - `create-kv.sh`: creates the namespaces (`blt-hackathons-data`, `blt-gsoc-data`,
   `my-gsoc-tool-data`, all bound as `DATA`) and writes their ids into the `wrangler.toml` files.
 - `testing.mjs`: an in-memory KV, a static `ASSETS` stub and a fetch stub for the projects' tests.
+- `kvSiteWorker(patterns, {aliases})` in `kv-data.js`: a whole Worker for a static site whose
+  refreshed files live in KV. Paths matching `patterns` are served by `serveData()`, the rest by
+  `ASSETS`. The project's `wrangler.toml` lists the same paths in `[assets] run_worker_first`.
+
+Generators that read git.owaspblt.org use [`scripts/forkmesh/ledger.py`](../scripts/forkmesh/ledger.py):
+full issue records from `.forkmesh/issues` (labels, comments, votes, an oid cache), pull front
+matter from the `forkmesh/pulls` ledger, and `history?path=<folder>` paged by `ref`. It builds on
+`blt-hackathons/forkmesh_source.py` and its project attribution rules.
 
 Free plan limits shaped each refresh. A Worker invocation may make 50 subrequests and use 10 ms of CPU:
 

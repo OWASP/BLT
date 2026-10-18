@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  CACHE_CONTROL, contentTypeFor, cronAuthorized, handleCronDispatch, putData, readJsonOrAsset, runChunked, serveData,
+  CACHE_CONTROL, contentTypeFor, cronAuthorized, handleCronDispatch, kvSiteWorker, putData, readJsonOrAsset, runChunked,
+  serveData,
 } from "./kv-data.js";
 import { MemoryKV, cronRequest, staticAssets } from "./testing.mjs";
 
@@ -90,4 +91,20 @@ test("runChunked spreads items over calls within the budget and finishes once", 
   r = await runChunked(env, opts({ run: "2026-10-19", budget: 100, reset: true }));
   assert.equal(r.done, true);
   assert.equal(seen.length, 12);
+});
+
+test("kvSiteWorker serves matching paths from KV and the rest from ASSETS", async () => {
+  const worker = kvSiteWorker([/^\/data\/[\w.-]+\.json$/, "/index.html"], { aliases: { "/": "index.html" } });
+  const env = {
+    DATA: new MemoryKV(),
+    ASSETS: staticAssets({ "/data/a.json": "{\"old\":1}", "/index.html": "<p>old</p>", "/app.js": "x" }),
+  };
+  await putData(env, "index.html", "<p>new</p>");
+  const home = await worker.fetch(get("/"), env, {});
+  assert.equal(home.headers.get("content-type"), "text/html; charset=utf-8");
+  assert.equal(await home.text(), "<p>new</p>");
+  const data = await worker.fetch(get("/data/a.json"), env, {});
+  assert.equal(data.headers.get("x-data-source"), "static");
+  assert.equal(await (await worker.fetch(get("/app.js"), env, {})).text(), "x");
+  assert.equal((await worker.fetch(get("/data/../x.json"), env, {})).status, 404);
 });

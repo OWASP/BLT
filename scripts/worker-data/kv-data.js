@@ -19,6 +19,10 @@ const CONTENT_TYPES = {
   json: "application/json; charset=utf-8",
   js: "text/javascript; charset=utf-8",
   txt: "text/plain; charset=utf-8",
+  html: "text/html; charset=utf-8",
+  csv: "text/csv; charset=utf-8",
+  xml: "application/xml; charset=utf-8",
+  svg: "image/svg+xml",
 };
 
 export function contentTypeFor(key) {
@@ -66,6 +70,27 @@ export async function serveData(request, env, ctx, { key, contentType, binding =
     ctx.waitUntil(cache.put(cacheKey, response.clone()).catch(() => {}));
   }
   return response;
+}
+
+// A whole Worker for a static site whose refreshed files live in KV: requests whose path matches
+// one of `patterns` (RegExps tested against the pathname, or exact "/path" strings) are served
+// from KV by serveData() (falling back to the deployed asset); everything else goes to ASSETS.
+// The project's wrangler.toml lists the same paths in [assets] run_worker_first. Used as
+//   export default kvSiteWorker([/^\/data\/[\w.-]+\.json$/, "/index.html"]);
+// `aliases` maps a request path to the KV key that answers it (for example "/" -> "index.html").
+export function kvSiteWorker(patterns, { aliases = {}, binding = "DATA" } = {}) {
+  const tests = patterns.map((p) => (typeof p === "string" ? (path) => path === p : (path) => p.test(path)));
+  return {
+    async fetch(request, env, ctx) {
+      const { pathname } = new URL(request.url);
+      const alias = Object.prototype.hasOwnProperty.call(aliases, pathname) ? aliases[pathname] : null;
+      if (!pathname.includes("..") && (alias || tests.some((t) => t(pathname)))) {
+        const key = alias || decodeURIComponent(pathname.replace(/^\/+/, ""));
+        return serveData(request, env, ctx, { key, binding });
+      }
+      return env.ASSETS.fetch(request);
+    },
+  };
 }
 
 // Store a value (string or object; objects are JSON-encoded) with `updatedAt` metadata.
