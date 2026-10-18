@@ -20,9 +20,12 @@ blt-netguardian	python	pip install -r requirements-dev.txt && python -m pytest -
 blt-netguardian-client	flutter	flutter pub get && flutter test
 blt-newsletter	python	pip install --group dev && python -m unittest discover -s tests
 blt-next	node	npm_install && npm run lint --if-present && npm test --if-present && python3 -m py_compile workers/main.py
-blt-ossh	node	node --test 'scripts/actions/*.test.mjs'
-blt-owasp-projects	python	for f in index.html projects.html issues.html; do test -f public/$f || exit 1; done && for f in repo_status www_project_repos project_repos_links issues known_issue_ids; do python -m json.tool public/$f.json > /dev/null || exit 1; done && python -m py_compile scripts/*.py
+blt-ossh	node	python3 -m py_compile scripts/fetch_articles.py scripts/fetch_discord.py scripts/fetch_reddit.py && node --test 'scripts/actions/*.test.mjs' 'test/*.test.mjs'
+blt-owasp-bumper	node	python3 -m py_compile generate_repo_list.py && node --test 'test/*.test.mjs'
+blt-owasp-metadata	node	python3 -m py_compile scripts/scrape_metadata.py && node --test 'test/*.test.mjs'
+blt-owasp-projects	python	for f in index.html projects.html issues.html; do test -f public/$f || exit 1; done && for f in repo_status www_project_repos project_repos_links issues known_issue_ids; do python -m json.tool public/$f.json > /dev/null || exit 1; done && python -m py_compile scripts/*.py && node --test 'test/*.test.mjs'
 blt-pages	python	python -m unittest discover -s tests -p 'test_*.py' && node --test tests/worker.test.mjs
+blt-panini	node	python3 -m py_compile scripts/update_slack_apps.py && node --test 'test/*.test.mjs'
 blt-pool	python	pip install pytest && python -m compileall -q src/worker.py && python -m pytest test_worker.py -q
 blt-preflight	python	pip install -r requirements.txt -e . && python -m pytest -q
 blt-safecloak	python	npm_install && pip install -r requirements-dev.txt && python -m playwright install chromium --with-deps && python -m pytest tests/ -q
@@ -31,6 +34,7 @@ blt-sizzle	python	pip install pytest && python -m pytest tests/ -q
 blt-timer-flutter	flutter	flutter pub get && flutter test
 blt-timer-web	python	pip install pytest && python -m pytest tests/ -q
 blt-toasty	python	pip install --group dev && python -m pytest -q
+blt-tomato	node	python3 -m py_compile .github/scripts/funding/owasp_funding_yml_scraper.py && node --test 'test/*.test.mjs'
 blt-university	node	npm_install && npm test
 blt-vanish	python	cd cloudflare_workers && python -m compileall -q src
 blt-vanish-flutter	flutter	flutter pub get && flutter test

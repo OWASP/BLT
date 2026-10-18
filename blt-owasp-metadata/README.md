@@ -73,6 +73,19 @@ The scraper generates several data files in the `public/data/` directory so they
 | `metadata_summary.md` | Summary of field usage across all repositories |
 | `metadata_checklist.csv` | Checklist format for tracking metadata completeness |
 
+### Weekly refresh (Workers KV)
+
+`.forkmesh/blt-owasp-metadata--scraper.yml` runs every Monday at 03:00 UTC on git.owaspblt.org. It
+runs `scripts/refresh-kv.sh`, which runs the scraper into `public/data/` and writes the five
+generated files (all but `metadata_checklist.csv`, which is maintained by hand) into the Worker's KV
+namespace, unless `metadata.json` or `metadata_matrix.json` lists fewer than half as many
+repositories as before. Nothing is committed and nothing is redeployed. The Worker
+(`worker/index.js`) serves `/data/metadata*.{json,csv,md}` from KV and falls back to the copies
+committed under `public/data/` (no longer updated) while KV has none. The workflow needs the
+Actions secrets `GH_API_TOKEN`, `CLOUDFLARE_API_TOKEN` (Workers KV Storage: Edit) and
+`CLOUDFLARE_ACCOUNT_ID`. Deploy with `scripts/deploy.sh blt-owasp-metadata`; test with
+`scripts/ci/test.sh blt-owasp-metadata` (from the monorepo root).
+
 ## Web Interface
 
 The project includes multiple interactive web interfaces:
@@ -90,7 +103,7 @@ The project includes multiple interactive web interfaces:
 - 🔍 **Advanced Filtering** - Filter by project type, maturity level, and metadata fields
 - 📥 **Export Functionality** - Download data as CSV or diagrams as SVG
 - 📱 **Responsive Design** - Works on desktop and mobile devices
-- ⚡ **Real-time Updates** - Data refreshes weekly via GitHub Actions
+- ⚡ **Weekly Updates** - Data refreshes weekly into Workers KV (no commits)
 
 ## OWASP Slack Bot Integration
 
@@ -105,7 +118,8 @@ The standardized metadata from this project will be consumed by the OWASP Slack 
 
 ```
 ├── scripts/
-│   └── scrape_metadata.py    # Main scraper script
+│   ├── scrape_metadata.py    # Main scraper script
+│   └── refresh-kv.sh         # Weekly refresh into Workers KV
 ├── public/                   # Cloudflare static asset root
 │   ├── data/                 # Generated metadata files
 │   ├── index.html            # Metadata explorer UI
@@ -119,7 +133,8 @@ The standardized metadata from this project will be consumed by the OWASP Slack 
 │   ├── mermaid.min.js        # Mermaid library for diagrams
 │   ├── styles.css            # Shared styles
 │   └── charts.css            # Analytics-specific styles
-└── wrangler.toml             # Cloudflare static assets config
+├── worker/index.js           # Serves public/data/metadata* from KV, the rest from public/
+└── wrangler.toml             # Cloudflare Worker + static assets config
 ```
 
 ## Usage

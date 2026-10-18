@@ -29,15 +29,25 @@ This project was extracted from the [OWASP BLT](https://git.owaspblt.org/BLT/BLT
 
 The data is stored in `public/banned_apps.json` in a structured format, making it easy to update or expand.
 
+`public/slack_apps.json` lists Slack apps with curated security notes. New apps from the Slack App
+Directory are merged in weekly (see below); curated fields are edited in the committed file.
+
 ## Deployment
 
-The static site is configured for Cloudflare Workers Static Assets. Deploy it with:
+`wrangler.toml` deploys a Worker (`worker/index.js`) with `public/` as its static assets. Deploy it
+with `scripts/deploy.sh blt-panini` from the monorepo root (or `npx wrangler deploy` here); test with
+`scripts/ci/test.sh blt-panini`.
 
-```bash
-npx wrangler deploy
-```
+## Weekly Slack apps refresh (Workers KV)
 
-For Cloudflare Pages, use `public` as the build output directory. No build command is required.
+`.forkmesh/blt-panini--update_slack_apps.yml` runs every Sunday at 00:00 UTC on git.owaspblt.org.
+It runs `scripts/refresh-kv.sh`, which starts from the `slack_apps.json` in the Worker's KV
+namespace with the committed entries laid over it (so curation in git wins and apps found earlier
+are kept), runs `scripts/update_slack_apps.py` and writes the result back to KV when it changed.
+Nothing is committed and nothing is redeployed. The Worker serves `/slack_apps.json` from KV and
+falls back to the committed file while KV has none; `banned_apps.json` is a plain static file. The
+workflow needs the Actions secrets `CLOUDFLARE_API_TOKEN` (Workers KV Storage: Edit) and
+`CLOUDFLARE_ACCOUNT_ID`.
 
 ## 🤝 Contributing
 

@@ -7,7 +7,7 @@ A static dashboard for tracking OWASP project repositories, repository status, a
 
 ## Overview
 
-The hosted site lives in `public/` so Cloudflare can serve it directly. GitLab CI validates that deployable folder and can refresh the JSON data files that power the dashboards.
+The hosted site lives in `public/`, served by a small Worker that reads the refreshed JSON data files from Workers KV.
 
 ## Project Structure
 
@@ -23,53 +23,44 @@ The hosted site lives in `public/` so Cloudflare can serve it directly. GitLab C
 │   ├── issues.json
 │   └── known_issue_ids.json
 ├── scripts/
+│   ├── refresh-kv.sh
 │   ├── main.py
 │   ├── fetch_repo_status.py
 │   ├── fetch_issues.py
 │   ├── scrape_github_links.py
 │   └── sweep.py
-├── .gitlab-ci.yml
+├── worker/index.js
+├── test/worker.test.mjs
 ├── requirements.txt
 └── wrangler.toml
 ```
 
-## GitLab CI
+## Data refresh (Workers KV)
 
-`validate_static` runs on normal pipelines and checks that `public/` contains the hosted pages plus valid JSON.
+The workflow `.forkmesh/blt-owasp-projects--refresh-data.yml` runs daily (04:23 UTC) on
+git.owaspblt.org. It runs `scripts/refresh-kv.sh`, which seeds `public/` with the live data files,
+runs the four generators and writes each data file that is valid, not much smaller than before and
+changed into the Worker's KV namespace. It refreshes:
 
-`refresh_data` runs from scheduled pipelines or as a manual job from a web pipeline. It refreshes:
+- `www_project_repos.json`
+- `repo_status.json`
+- `issues.json`
+- `known_issue_ids.json`
+- `project_repos_links.json`
 
-- `public/www_project_repos.json`
-- `public/repo_status.json`
-- `public/issues.json`
-- `public/known_issue_ids.json`
-- `public/project_repos_links.json`
+Nothing is committed and nothing is redeployed. The Worker (`worker/index.js`) serves those paths
+from KV and falls back to the copies committed under `public/` while KV has none. The committed
+copies are only that fallback; they are no longer updated.
 
-When those files change, the job commits them back to the default branch. Cloudflare can then auto-deploy the checked-in `public/` folder.
-
-`sweep_repos` is manual and notification-only.
-
-Set these GitLab CI/CD variables as needed:
-
-- `GITHUB_TOKEN`
-- `ACCESS_TOKEN`
-- `SLACK_WEBHOOK_URL`
-- `SLACK_NEW_ISSUES_WEBHOOK`
-- `SLACK_WEBHOOK_URL_SWEEP`
-- `CI_PUSH_TOKEN` if the default branch does not allow `CI_JOB_TOKEN` pushes
+The workflow needs the Actions secrets `GH_API_TOKEN`, `CLOUDFLARE_API_TOKEN` (Workers KV
+Storage: Edit) and `CLOUDFLARE_ACCOUNT_ID`. `.forkmesh/blt-owasp-projects--sweep-repos.yml` is a
+manual, notification-only job (`SLACK_WEBHOOK_URL_SWEEP`).
 
 ## Cloudflare
 
-`wrangler.toml` points at `./public`:
-
-```toml
-pages_build_output_dir = "./public"
-
-[assets]
-directory = "./public"
-```
-
-Use `public` as the Cloudflare Pages build output directory. No Cloudflare-side build command is required.
+`wrangler.toml` deploys a Worker (`worker/index.js`) with `public/` as its static assets, and binds
+the KV namespace as `DATA`. Deploy with `scripts/deploy.sh blt-owasp-projects` from the repository
+root. Tests: `scripts/ci/test.sh blt-owasp-projects` (runs `node --test test/*.test.mjs`).
 
 ## Local Development
 
@@ -83,7 +74,6 @@ Run data refresh scripts locally:
 
 ```bash
 export GITHUB_TOKEN="your_token_here"
-export ACCESS_TOKEN="your_token_here"
 python scripts/main.py
 python scripts/fetch_repo_status.py
 python scripts/fetch_issues.py

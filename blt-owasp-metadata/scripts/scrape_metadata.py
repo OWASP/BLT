@@ -9,7 +9,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import yaml   
 
-DATA_DIR = Path("public") / "data"
+DATA_DIR = Path(os.environ.get("METADATA_DATA_DIR") or Path("public") / "data")
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 ORGS = ["OWASP"]                      

@@ -1,6 +1,22 @@
+# Static site (public/) plus a Worker (worker/index.js) that serves the generated dataset
+# (public/data/metadata*.{json,csv,md}) from KV (binding DATA). The workflow
+# .forkmesh/blt-owasp-metadata--scraper.yml (weekly) writes those keys; nothing is committed to git.
 name = "blt-owasp-metadata"
+main = "worker/index.js"
 compatibility_date = "2026-06-06"
-pages_build_output_dir = "./public"
 
 [assets]
 directory = "./public"
+binding = "ASSETS"
+run_worker_first = [
+  "/data/metadata.json",
+  "/data/metadata_matrix.json",
+  "/data/metadata.csv",
+  "/data/metadata_matrix.csv",
+  "/data/metadata_summary.md",
+]
+
+# Created by scripts/worker-data/create-kv.sh, which replaces the placeholder id.
+[[kv_namespaces]]
+binding = "DATA"
+id = "REPLACE_WITH_KV_ID_blt-owasp-metadata-data"

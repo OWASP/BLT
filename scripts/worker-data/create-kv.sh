@@ -21,6 +21,12 @@ NAMESPACES=(
   "blt-pages DATA blt-pages-data"
   "blt-design-contest DATA blt-design-contest-data"
   "blt-waypoint DATA blt-waypoint-data"
+  "blt-owasp-projects DATA blt-owasp-projects-data"
+  "blt-owasp-bumper DATA blt-owasp-bumper-data"
+  "blt-ossh DATA blt-ossh-data"
+  "blt-owasp-metadata DATA blt-owasp-metadata-data"
+  "blt-tomato DATA blt-tomato-data"
+  "blt-panini DATA blt-panini-data"
 )
 
 if [[ "${1:-}" == --list ]]; then

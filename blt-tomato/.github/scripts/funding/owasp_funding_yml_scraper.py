@@ -102,7 +102,8 @@ for project in unique_data:
         print(f"Added project: {project_name} with funding details: {funding_details}")
 
 # Write the JSON output file
-output_file = "project_repos_links.json"
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", ".")
+output_file = os.path.join(OUTPUT_DIR, "project_repos_links.json")
 with open(output_file, "w") as f:
     json.dump(project_links, f, indent=2)
 
@@ -210,7 +211,7 @@ html_content += """
 </html>
 """
 
-with open("index.html", "w") as f:
+with open(os.path.join(OUTPUT_DIR, "index.html"), "w") as f:
     f.write(html_content)
 
 print("index.html file has been created.")

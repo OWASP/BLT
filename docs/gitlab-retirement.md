@@ -163,7 +163,7 @@ Replace them with forge wording and a neutral icon such as `fa-code-branch`.
 | blt-hackerhouse | "GitLab repository" titles on forge links. Its GitLab event ingestion is a product feature (below). |
 | blt-owasp-bumper, blt-owasp-projects | README sections that describe a `.gitlab-ci.yml` which no longer exists. |
 | dot_github, coderabbit, blt-autopatch | The stock GitLab "Getting started" README boilerplate. Delete it. |
-| blt-ossh | `public/data/ossh_catalog.json:28720` lists `gitlab.com/owasp-blt/www-project-bug-logging-tool`. Drop it or point it elsewhere on the next catalog refresh. |
+| blt-ossh | **Done**: the `gitlab.com/owasp-blt/...` catalog entry is removed and filtered on every refresh (`scripts/refresh-kv.sh`). |
 | blt-core | `MIGRATION_PLAN.md:20` says source links use the GitLab group. Update it. |
 | blt-docs | Plan and history pages. Leave them, or say "GitLab (closed)". |
 | docs/workflows.md | Port notes. Update the token columns as readers move. |

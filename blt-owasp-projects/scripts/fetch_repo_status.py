@@ -6,10 +6,11 @@ OUTPUT_DIR = os.environ.get('OUTPUT_DIR', 'public')
 OUTPUT_FILE = os.path.join(OUTPUT_DIR, 'repo_status.json')
 
 projects_url = 'https://raw.githubusercontent.com/OWASP/owasp.github.io/main/_data/projects.json'
-response = requests.get(projects_url)
+response = requests.get(projects_url, timeout=60)
+response.raise_for_status()
 projects = response.json()
-access_token = os.environ.get('ACCESS_TOKEN')
-headers = {'Authorization': f'token {access_token}'}
+access_token = os.environ.get('ACCESS_TOKEN') or os.environ.get('GITHUB_TOKEN')
+headers = {'Authorization': f'token {access_token}'} if access_token else {}
 
 repo_statuses = []
 print('processing projects from json')

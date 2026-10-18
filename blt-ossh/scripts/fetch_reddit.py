@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import re
 from pathlib import Path
 from time import sleep
@@ -11,7 +12,10 @@ import requests
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-CATALOG_PATH = Path(__file__).resolve().parent.parent / "public" / "data" / "ossh_catalog.json"
+CATALOG_PATH = Path(
+    os.environ.get("OSSH_CATALOG_PATH")
+    or Path(__file__).resolve().parent.parent / "public" / "data" / "ossh_catalog.json"
+)
 HEADERS = {"User-Agent": "OsshCommunity/1.0"}
 MAX_COMMUNITIES = 100
 

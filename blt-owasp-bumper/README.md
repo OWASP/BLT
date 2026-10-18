@@ -92,7 +92,7 @@ Perfect for organization administrators, project leaders, and contributors who n
 ### 🤖 Automated Workflows
 
 - ⏰ **Daily Updates**: Automatically runs at 00:00 UTC
-- 🚀 **Auto-deployment**: Pushes to GitHub Pages automatically
+- 🚀 **No redeploys**: the page is written to Workers KV, not committed
 - 🔄 **Manual Triggers**: Run on-demand via workflow dispatch
 - 🔐 **Secure**: Uses GitHub's built-in authentication
 - 🌐 **Zero Dependencies**: No external libraries required
@@ -130,14 +130,14 @@ Perfect for organization administrators, project leaders, and contributors who n
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Commit & Push to Main                        │
-│              (index.html updated automatically)                 │
+│                 Write index.html to Workers KV                  │
+│            (scripts/refresh-kv.sh; nothing committed)           │
 └────────────────────────┬────────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│               Deploy to GitHub Pages                            │
-│          (Accessible at username.github.io/repo)                │
+│        Worker serves / from KV (bumper.owaspblt.org)            │
+│        (falls back to the committed public/index.html)          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -147,7 +147,7 @@ Perfect for organization administrators, project leaders, and contributors who n
 |-----------|-----------|---------|
 | **Backend** | Python 3.11+ | Repository data fetching and HTML generation |
 | **CI/CD** | GitHub Actions | Automated daily runs and deployment |
-| **Hosting** | GitHub Pages | Free, fast, and reliable static hosting |
+| **Hosting** | Cloudflare Worker + Workers KV | Static assets plus the generated page from KV |
 | **Frontend** | Vanilla JS/HTML/CSS | Zero-dependency interactive dashboard |
 | **API** | GitHub REST API v3 | Repository data and statistics |
 | **Styling** | Custom CSS3 | Modern, responsive design with Flexbox/Grid |
@@ -269,17 +269,19 @@ Customize behavior with these environment variables:
 | `FETCH_SPARKLINES` | `true` | Enable 52-week activity charts | `export FETCH_SPARKLINES=false` |
 | `FETCH_METADATA` | `true` | Enable index.md parsing & PR counts | `export FETCH_METADATA=false` |
 
-## GitLab and Cloudflare
+## Hosting and daily refresh (Workers KV)
 
-This repository now builds the dashboard in GitLab and exposes the generated
-site from `public/` for Cloudflare.
+The page is generated on git.owaspblt.org by `.forkmesh/blt-owasp-bumper--generate-repo-list.yml`
+(daily at 00:00 UTC, on demand, and when the generator changes). It runs `scripts/refresh-kv.sh`,
+which runs `generate_repo_list.py` with `OUTPUT_FILE=public/index.html` and writes the page into the
+Worker's KV namespace as `index.html`, unless it lists fewer than half as many repositories as
+before. Nothing is committed and nothing is redeployed.
 
-- `.gitlab-ci.yml` runs `python3 generate_repo_list.py` with
-  `OUTPUT_FILE=public/index.html`.
-- `wrangler.toml` points both `pages_build_output_dir` and `[assets].directory`
-  at `public`.
-- Cloudflare can deploy the repository as a static asset project with
-  `public/` as the served output directory.
+`wrangler.toml` deploys a Worker (`worker/index.js`) with `public/` as its static assets. The Worker
+serves `/` and `/index.html` from KV and falls back to the committed `public/index.html` (no longer
+updated) while KV has none. Deploy with `scripts/deploy.sh blt-owasp-bumper` from the repository
+root; test with `scripts/ci/test.sh blt-owasp-bumper`. The workflow needs the Actions secrets
+`GH_API_TOKEN`, `CLOUDFLARE_API_TOKEN` (Workers KV Storage: Edit) and `CLOUDFLARE_ACCOUNT_ID`.
 
 ### 🎯 Advanced Examples
 
@@ -360,11 +362,9 @@ OWASP-Bumper/
 - Generates a complete, self-contained HTML file
 - Uses only Python standard library
 
-**`.github/workflows/generate-repo-list.yml`**
+**`.forkmesh/blt-owasp-bumper--generate-repo-list.yml`** (monorepo root)
 - Defines automated workflow triggers (daily/manual/push)
-- Sets up Python environment
-- Runs the generation script
-- Commits and deploys to GitHub Pages
+- Runs `scripts/refresh-kv.sh`: generates the page and writes it to Workers KV (no commit, no redeploy)
 
 **`index.html`** (auto-generated)
 - Complete single-page application

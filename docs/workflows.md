@@ -41,15 +41,15 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `blt-hackathons--update-stats.yml` | GitHub `update-stats.yml` + GitLab `update-future-hackathons` | `37 */6 * * *` (every 6 h), push under `blt-hackathons/`; reads git.owaspblt.org incrementally within a 15-minute budget and writes changed stats and its state to KV (`scripts/refresh-kv.sh`), no commit | CF (with KV read/write); optional `GH_API_TOKEN`, `GITLAB_TOKEN` (third-party GitLab events only), `SLACK_TOKEN_OWASP`, `SLACK_TOKEN_BLT` |
 | `blt-jobs--expire-jobs.yml` | GitLab `expire_jobs` | dispatch only (optional cleanup of expired `jobs/*.md`; the Worker already hides expired jobs) | CF |
 | `blt-jobs--process-submissions.yml` | GitLab `process_submissions` | issues opened/edited/labeled that look like job, seeker or flag submissions; dispatch input `issue` | CF |
-| `blt-ossh--update-catalog.yml` | GitHub | `0 6 * * *` | `DISCORD_BOT_TOKEN` (optional), CF |
+| `blt-ossh--update-catalog.yml` | GitHub | `0 6 * * *`; seeds from KV, writes `data/ossh_catalog.json` to KV when changed (`blt-ossh/scripts/refresh-kv.sh`), no commit | `DISCORD_BOT_TOKEN` (optional), CF (with KV read/write) |
 | `blt-ossh--update-profiles.yml` | GitHub | `13 4 * * *` (safety net), issue events on `profile` issues; dispatch input `issues` to import issues | CF |
-| `blt-owasp-bumper--generate-repo-list.yml` | GitHub + GitLab `pages` | `0 0 * * *`, push of `generate_repo_list.py` | `GH_API_TOKEN`, CF |
-| `blt-owasp-metadata--scraper.yml` | GitHub | `0 3 * * 1` | `GH_API_TOKEN`, CF |
-| `blt-owasp-projects--refresh-data.yml` | GitLab `refresh_data` | `23 4 * * *` | `GH_API_TOKEN` (required by `main.py`), CF |
+| `blt-owasp-bumper--generate-repo-list.yml` | GitHub + GitLab `pages` | `0 0 * * *`, push of `generate_repo_list.py` or `scripts/refresh-kv.sh`; writes `index.html` to KV (`blt-owasp-bumper/scripts/refresh-kv.sh`), no commit | `GH_API_TOKEN`, CF (with KV write) |
+| `blt-owasp-metadata--scraper.yml` | GitHub | `0 3 * * 1`; writes `data/metadata*.{json,csv,md}` to KV (`blt-owasp-metadata/scripts/refresh-kv.sh`), no commit | `GH_API_TOKEN`, CF (with KV write) |
+| `blt-owasp-projects--refresh-data.yml` | GitLab `refresh_data` | `23 4 * * *`; seeds from the live site, writes changed data files to KV (`blt-owasp-projects/scripts/refresh-kv.sh`), no commit | `GH_API_TOKEN`, CF (with KV write) |
 | `blt-owasp-projects--sweep-repos.yml` | GitLab `sweep_repos` (manual) | dispatch only | `GH_API_TOKEN`, `SLACK_WEBHOOK_URL_SWEEP` |
 | `blt-pages--update-leaderboard.yml` | GitLab `update_leaderboard` | issue events on blt-pages or `[NOMINATION]` issues, `11 5 * * *` (safety net), push under `blt-pages/scripts/` or of the two pre-rendered pages or `public/data/leaders.json`; reads git.owaspblt.org and writes to KV (`blt-pages/scripts/refresh-kv.sh`), no commit | CF (with KV write) |
-| `blt-panini--update_slack_apps.yml` | GitHub | `0 0 * * 0` | CF |
-| `blt-tomato--scrape_funding.yml` | GitHub | `0 18 * * 5`, push under `blt-tomato/.github/scripts/` | `GH_API_TOKEN`, CF |
+| `blt-panini--update_slack_apps.yml` | GitHub | `0 0 * * 0`; seeds from KV with the committed entries over it, writes `slack_apps.json` to KV when changed (`blt-panini/scripts/refresh-kv.sh`), no commit | CF (with KV read/write) |
+| `blt-tomato--scrape_funding.yml` | GitHub | `0 18 * * 5`, push under `blt-tomato/.github/scripts/` or `scripts/refresh-kv.sh`; writes `index.html` and `project_repos_links.json` to KV (`blt-tomato/scripts/refresh-kv.sh`), no commit | `GH_API_TOKEN`, CF (with KV write) |
 | `blt-university--course-submission.yml` | GitHub | issue opened with `course-submission` or `[COURSE]` title, or that label added | none |
 | `blt-university--enrollment.yml` | GitHub | issue opened with `enrollment` or `[ENROLLMENT]` title, or that label added | none |
 | `blt-waypoint--build-site.yml` | GitLab `build_site` | `29 6 * * *`, push of `blt-waypoint/scripts/generate_forge_data.py`, `forge_urls.py` or `scripts/routing/projects.tsv`; reads git.owaspblt.org and writes `forge_data.json` to KV, no commit | CF (with KV write) |
@@ -106,21 +106,28 @@ Responses carry `Cache-Control: public, max-age=60, stale-while-revalidate=600`,
 | `blt-pages` | `/`, `/index.html`, `/leaderboard`, `/leaderboard.html` (pre-rendered), `/data/leaderboard.json`, `/data/leaders.json` | `blt-pages--update-leaderboard.yml` (issue events, daily, pushes of the pages) through the Cloudflare KV API | none |
 | `blt-design-contest` | `/`, `/index.html`, `/show-all-entries.html`, `/<contest>.html` and the extensionless forms | `blt-design-contest--build-showcase.yml` (issue events, daily), only pages whose content changed | none |
 | `blt-waypoint` | `/forge_data.json` (also at the old `/gitlab_data.json`) | `blt-waypoint--build-site.yml`, daily: per-folder `history?path`, the issue and pull ledgers (about 200 anonymous requests, `FORGE_BUDGET_SECONDS` 420) | none |
+| `blt-owasp-projects` | `/www_project_repos.json`, `/repo_status.json`, `/issues.json`, `/known_issue_ids.json`, `/project_repos_links.json` | `blt-owasp-projects--refresh-data.yml`, daily (seeded from the live site) | none |
+| `blt-owasp-bumper` | `/` and `/index.html` (key `index.html`) | `blt-owasp-bumper--generate-repo-list.yml`, daily | none |
+| `blt-ossh` | `/data/ossh_catalog.json` | `blt-ossh--update-catalog.yml`, daily (`kv-get.sh`, `kv-put.sh`) | none |
+| `blt-owasp-metadata` | `/data/metadata.json`, `/data/metadata_matrix.json`, `/data/metadata.csv`, `/data/metadata_matrix.csv`, `/data/metadata_summary.md` | `blt-owasp-metadata--scraper.yml`, weekly | none |
+| `blt-tomato` | `/`, `/index.html` (key `index.html`), `/project_repos_links.json` | `blt-tomato--scrape_funding.yml`, weekly | none |
+| `blt-panini` | `/slack_apps.json` | `blt-panini--update_slack_apps.yml`, weekly (`kv-get.sh`, `kv-put.sh`) | none |
 
 Shared code is in [`scripts/worker-data/`](../scripts/worker-data/):
 
 - `kv-data.js`: `serveData()` (KV, else the static file), `putData()` (stores `updatedAt` as KV
   metadata), `handleCronDispatch()` (the `POST /__scheduled` endpoint, checked against
   `CRON_SECRET`) and `runChunked()`. The Workers import it and wrangler bundles it, so a change
-  here needs `scripts/deploy.sh blt-hackathons blt-gsoc my-gsoc-tool` (`deploy.sh --changed` only
-  looks at project folders).
+  here needs a redeploy of every project in the KV table above (`deploy.sh --changed` only looks at
+  project folders).
 - `kv-put.sh`: writes files to a project's namespace through the Cloudflare API. It reads the
   namespace id from the project's `wrangler.toml` and needs `CLOUDFLARE_API_TOKEN` with
   Workers KV Storage: Edit.
 - `kv-get.sh`: reads one key back the same way (exit 3 when the key is missing); blt-hackathons
   keeps its refresh state with it.
-- `create-kv.sh`: creates the namespaces (`blt-hackathons-data`, `blt-gsoc-data`,
-  `my-gsoc-tool-data`, all bound as `DATA`) and writes their ids into the `wrangler.toml` files.
+- `create-kv.sh`: creates the namespaces (`<project>-data` for each project in the KV table above,
+  all bound as `DATA`) and writes their ids into the `wrangler.toml` files, replacing the
+  `REPLACE_WITH_KV_ID_<title>` placeholders.
 - `testing.mjs`: an in-memory KV, a static `ASSETS` stub and a fetch stub for the projects' tests.
 - `kvSiteWorker(patterns, {aliases})` in `kv-data.js`: a whole Worker for a static site whose
   refreshed files live in KV. Paths matching `patterns` are served by `serveData()`, the rest by
@@ -200,8 +207,8 @@ For blt-hackathons, run the workflow by hand.
   image or an identicon, and never fails the job. The job needs Pillow and runs with `GH_API_TOKEN`
   for higher GitHub limits.
 - **Small fixes**:
-  - `blt-tomato` scrapes into `public/`, where the site lives. It sends `GITHUB_TOKEN` when one is set.
-  - `blt-owasp-bumper` writes `public/index.html`.
+  - `blt-tomato` scrapes into the runner checkout (`OUTPUT_DIR`), then KV. It sends `GITHUB_TOKEN` when one is set.
+  - `blt-owasp-bumper` writes `public/index.html` in the runner checkout, then KV.
   - `my-gsoc-tool`'s two workflows became Worker tasks (`my-gsoc-tool/worker/refresh.js`). The forks
     list (GitHub repository OWASP-BLT/MY-GSOC-TOOL) is served at `/data/forks.json` instead of being
     written into the README.

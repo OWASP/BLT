@@ -1,6 +1,9 @@
 name: "blt-owasp-bumper: Generate OWASP Repository List"
 # Ported from .github/workflows/blt-owasp-bumper--generate-repo-list.yml and the pages job of
-# blt-owasp-bumper/.gitlab-ci.yml (both generated the list; the site is served from public/).
+# blt-owasp-bumper/.gitlab-ci.yml. Regenerates the dashboard page and writes it to the
+# blt-owasp-bumper Worker's KV namespace (scripts/refresh-kv.sh), which serves it at / and
+# /index.html. Nothing is committed and nothing is redeployed. The generator stays here rather
+# than in the Worker: it makes several thousand GitHub requests.
 on:
   schedule:
     - cron: "0 0 * * *"
@@ -9,9 +12,10 @@ on:
     branches: [main]
     paths:
       - blt-owasp-bumper/generate_repo_list.py
+      - blt-owasp-bumper/scripts/refresh-kv.sh
       - .forkmesh/blt-owasp-bumper--generate-repo-list.yml
 permissions:
-  contents: write
+  contents: read
 jobs:
   generate:
     runs-on: runner
@@ -19,16 +23,11 @@ jobs:
     defaults:
       run:
         working-directory: blt-owasp-bumper
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
-      - name: Generate repository list
+      - name: Generate the repository list and write it to KV
         env:
           GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}
           GITHUB_ORG: owasp
-          OUTPUT_FILE: public/index.html
-        run: python3 generate_repo_list.py
-      - name: Commit and deploy if changed
-        run: |
-          ../scripts/actions/commit-back.sh --deploy blt-owasp-bumper -m "blt-owasp-bumper: update repository list" -- public/index.html
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: scripts/refresh-kv.sh

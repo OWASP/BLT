@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import time
 from pathlib import Path
 
@@ -10,7 +11,10 @@ import requests
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-CATALOG_PATH = Path(__file__).resolve().parent.parent / "public" / "data" / "ossh_catalog.json"
+CATALOG_PATH = Path(
+    os.environ.get("OSSH_CATALOG_PATH")
+    or Path(__file__).resolve().parent.parent / "public" / "data" / "ossh_catalog.json"
+)
 BASE_URL = "https://dev.to/api/articles"
 TAGS = ["programming", "javascript", "python", "webdev", "tutorial"]
 RATE_LIMIT_DELAY = 1

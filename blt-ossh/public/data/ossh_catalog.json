@@ -28716,25 +28716,6 @@
       "updated": "Mar 03, 2026"
     },
     {
-      "name": "www-project-bug-logging-tool OWASP BLT",
-      "url": "https://gitlab.com/owasp-blt/www-project-bug-logging-tool",
-      "description": "OWASP BLT (Bug Logging Tool)",
-      "stars": 1,
-      "forks": 1,
-      "issues": 1,
-      "closed_prs": 0,
-      "contributors": 0,
-      "primary_language": "-",
-      "tags": [
-        "-",
-        "owasp",
-        "blt",
-        "bug",
-        "logging"
-      ],
-      "updated": "Feb 19, 2026"
-    },
-    {
       "name": "www-project-webgoat-php OWASP Archived",
       "url": "https://github.com/OWASP/www-project-webgoat-php",
       "description": "OWASP Foundation Web Respository",

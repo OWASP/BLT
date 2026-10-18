@@ -1,11 +1,14 @@
 name: "blt-ossh: Update Catalog Data"
-# Ported from .github/workflows/blt-ossh--update-catalog.yml (was Python 3.12; runs on 3.13 here).
+# Ported from .github/workflows/blt-ossh--update-catalog.yml. Refreshes the articles, Discord
+# servers and Reddit communities of the catalog and writes it to the blt-ossh Worker's KV namespace
+# (scripts/refresh-kv.sh), which serves it at /data/ossh_catalog.json. Nothing is committed and
+# nothing is redeployed. The fetch stays here rather than in the Worker: it is over 50 requests.
 on:
   schedule:
     - cron: "0 6 * * *"
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
   update-catalog:
     runs-on: runner
@@ -13,20 +16,13 @@ jobs:
     defaults:
       run:
         working-directory: blt-ossh
-    env:
-      DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - name: Set up Python
         run: python3 -m venv .venv && .venv/bin/pip install -q requests
-      - name: Fetch DEV.to articles
-        run: .venv/bin/python scripts/fetch_articles.py
-      - name: Fetch Discord servers
-        if: env.DISCORD_BOT_TOKEN != ''
-        run: .venv/bin/python scripts/fetch_discord.py
-      - name: Fetch Reddit communities
-        run: .venv/bin/python scripts/fetch_reddit.py
-      - name: Commit and deploy if changed
-        run: |
-          ../scripts/actions/commit-back.sh --deploy blt-ossh -m "blt-ossh: update catalog data" -- public/data/ossh_catalog.json
+      - name: Fetch the catalog and write it to KV
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PYTHON: .venv/bin/python
+        run: scripts/refresh-kv.sh

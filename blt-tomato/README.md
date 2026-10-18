@@ -7,17 +7,18 @@
 Scripts related to projects mainly for high level OWASP project management
 1) Funding site served from `public/`
 
-## Cloudflare
+## Cloudflare and the weekly refresh (Workers KV)
 
-This is a static Cloudflare site. The publish directory is `public/`, and
-`wrangler.toml` points both Pages and Workers Static Assets at that folder.
+`wrangler.toml` deploys a Worker (`worker/index.js`) with `public/` as its static assets. Deploy
+with `scripts/deploy.sh blt-tomato` from the monorepo root; test with `scripts/ci/test.sh blt-tomato`.
 
-## Manually Triggering the Workflow
-
-The workflow can be manually triggered using the `workflow_dispatch` event. This allows you to run the workflow on demand without waiting for a push event to the `main` branch.
-
-To manually trigger the workflow, follow these steps:
-1. Go to the "Actions" tab in your GitHub repository.
-2. Select the workflow you want to run.
-3. Click on the "Run workflow" button.
-4. Optionally, provide any required inputs and click "Run workflow" again.
+`.forkmesh/blt-tomato--scrape_funding.yml` runs every Friday at 18:00 UTC on git.owaspblt.org (also
+on demand, and when the scraper changes). It runs `scripts/refresh-kv.sh`, which runs
+`.github/scripts/funding/owasp_funding_yml_scraper.py` with `OUTPUT_DIR=public` and writes
+`index.html` and `project_repos_links.json` into the Worker's KV namespace, unless the new list
+has fewer than half as many projects as before. Nothing is committed and nothing is redeployed.
+The Worker serves `/`, `/index.html` and `/project_repos_links.json` from KV and falls back to the
+committed copies in `public/` (no longer updated) while KV has none. The workflow needs the
+Actions secrets `GH_API_TOKEN`, `CLOUDFLARE_API_TOKEN` (Workers KV Storage: Edit) and
+`CLOUDFLARE_ACCOUNT_ID`. Run it by hand from the Actions page of https://git.owaspblt.org/BLT
+(workflow_dispatch).
