@@ -8,7 +8,6 @@ Some Workers refresh data into Workers KV instead of having a workflow commit it
 
 | Job | Worker | Schedule (UTC) | Task |
 | --- | --- | --- | --- |
-| blt-gsoc-stats | blt-gsoc | 02:17-02:31, once a minute | `gsoc2026-stats` |
 | my-gsoc-tool | my-gsoc-tool | 00:03 | all (`contributions`, `forks`) |
 
 The GSoC 2026 progress job (`blt-gsoc-progress`, task `progress`) was turned off on 2026-10-18 because GSoC 2026 coding ended on 17 Aug. blt-gsoc still has the `progress` task and its KV data, so the progress page shows the final state; it can be run by hand (see `docs/workflows.md`).

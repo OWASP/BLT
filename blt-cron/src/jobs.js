@@ -12,8 +12,10 @@ export const JOBS = [
   { name: "blt-sizzle", binding: "SIZZLE", cron: "0 * * * *" },
   { name: "blt-netguardian", binding: "NETGUARDIAN", cron: "*/5 * * * *" },
   { name: "blt-toasty", binding: "TOASTY", cron: "0 * * * *" },
-  { name: "blt-gsoc-stats", binding: "GSOC", cron: "17-31 2 * * *", task: "gsoc2026-stats" },
   { name: "my-gsoc-tool", binding: "GSOC_TOOL", cron: "3 0 * * *" },
 ];
 // blt-gsoc-progress (task "progress", 23:07-23:11) was removed on 2026-10-18: GSoC 2026 coding
 // ended on 17 Aug. The task code and its KV data stay, so /data/progress.json keeps the final state.
+// blt-gsoc-stats (task "gsoc2026-stats", 02:17-02:31) was removed the same day: it counted activity on
+// the old OWASP-BLT/* GitHub repos, which are frozen copies now, so its numbers could not change.
+// /js/gsoc2026_stats.generated.js keeps serving the last stored data.

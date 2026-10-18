@@ -101,7 +101,7 @@ Responses carry `Cache-Control: public, max-age=60, stale-while-revalidate=600`,
 | Project | Paths served from KV | Refreshed by | Secrets on the Worker |
 | --- | --- | --- | --- |
 | `blt-hackathons` | `/stats.json`, `/hackathon-data/*.json` (and the unserved refresh state `state/fetch-state.json`) | `blt-hackathons--update-stats.yml`, every 6 hours, through the Cloudflare KV API (`scripts/worker-data/kv-get.sh`, `kv-put.sh`) | none |
-| `blt-gsoc` | `/js/gsoc2026_stats.generated.js`, `/data/progress.json` | the Worker, from blt-cron: `gsoc2026-stats` 02:17-02:31 (once a minute, in chunks); `progress` is no longer scheduled (GSoC 2026 ended) and keeps its final data | `CRON_SECRET`, `GH_API_TOKEN`, `GITLAB_TOKEN` (optional), `SLACK_TOKEN_OWASP`, `SLACK_TOKEN_BLT` |
+| `blt-gsoc` | `/js/gsoc2026_stats.generated.js`, `/data/progress.json` | no longer scheduled: GSoC 2026 ended, and `gsoc2026-stats` counted the frozen OWASP-BLT/* GitHub copies; both keep serving their final data from KV (run `POST /__scheduled` with a task by hand if needed) | `CRON_SECRET`, `GH_API_TOKEN`, `GITLAB_TOKEN` (optional), `SLACK_TOKEN_OWASP`, `SLACK_TOKEN_BLT` |
 | `my-gsoc-tool` | `/data/github-contributions.json`, `/data/forks.json` | the Worker, from blt-cron at 00:03 | `CRON_SECRET`, `GH_API_TOKEN` |
 
 Shared code is in [`scripts/worker-data/`](../scripts/worker-data/):
