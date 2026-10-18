@@ -5,7 +5,8 @@
 #
 # Paths are relative to the current directory. Only those paths are staged (deletions included);
 # nothing is committed when they did not change. The commit is rebased onto origin/<branch> and
-# pushed with a few retries. The runner sets the bot identity, so none is configured here.
+# pushed with a few retries. On a conflict in those regenerated files the rebase keeps this run's
+# output (-X theirs), so a newer run never fails because an older one already pushed. The runner sets the bot identity, so none is configured here.
 # --deploy runs scripts/deploy.sh <project> after a successful push when CLOUDFLARE_API_TOKEN is set,
 # because pushes made by a workflow do not trigger other push workflows (.forkmesh/deploy.yml).
 set -euo pipefail
@@ -37,7 +38,7 @@ git --no-pager show --stat --format='%h %s' HEAD
 
 pushed=0
 for attempt in 1 2 3 4 5; do
-  if git pull -q --rebase --autostash origin "$branch" && git push origin "HEAD:$branch"; then
+  if git pull -q --rebase -X theirs --autostash origin "$branch" && git push origin "HEAD:$branch"; then
     pushed=1; break
   fi
   git rebase --abort >/dev/null 2>&1 || true
