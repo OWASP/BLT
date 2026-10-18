@@ -131,7 +131,7 @@ npx wrangler deploy --env staging
 npx wrangler deploy --env production
 ```
 
-*Note: The deployment process automatically provisions scheduled background jobs (Cron). The system runs a background validation job for shadow mode hourly (`0 * * * *`).*
+*Note: The hourly shadow mode validation job (`0 * * * *`) is scheduled by the [blt-cron](../blt-cron) dispatcher Worker, not by a cron trigger on this Worker (`[triggers] crons = []`). blt-cron calls `POST /__scheduled` with a shared secret; set the same value here with `npx wrangler secret put CRON_SECRET`.*
 
 ## 7. Verification Runbook
 
@@ -140,4 +140,4 @@ After deployment, verify the system's operational status by performing the follo
 1.  **Health Check**: Access the root API endpoint or `/health` (if configured) to verify the worker is responsive and properly routing traffic.
 2.  **Webhook Test**: Send a test payload to the Gitlab webhook endpoint, ensuring the `X-Gitlab-Token` header matches the `GITLAB_WEBHOOK_SECRET`. Check the Cloudflare Worker logs for a successful validation and triage event generation.
 3.  **Dashboard Auth**: Verify that access to the static frontend assets and subsequent API calls correctly validates your JWT against the configured `MCP_PUBLIC_KEY`.
-4.  **Shadow Mode Validation**: Check the worker logs at the top of the hour to ensure the scheduled cron trigger `on_scheduled` fires successfully and completes shadow mode validation without errors.
+4.  **Shadow Mode Validation**: Check the worker logs at the top of the hour to ensure the blt-cron dispatch to `POST /__scheduled` runs `on_scheduled` successfully and completes shadow mode validation without errors.

@@ -7145,6 +7145,47 @@ async def handle_request(request, env):
 _current_env = None
 _sentry_initialized = False
 
+# Cron dispatch: the blt-cron Worker holds the account's cron trigger and calls
+# POST /__scheduled through a service binding, authenticated with CRON_SECRET.
+CRON_DISPATCH_PATH = "/__scheduled"
+
+
+class _CronEvent:
+    """Stand-in for the ScheduledController the runtime would pass."""
+
+    type = "scheduled"
+
+    def __init__(self, cron, scheduled_time):
+        self.cron = cron
+        self.scheduledTime = scheduled_time
+
+
+async def _handle_cron_dispatch(request, env, run_scheduled):
+    """Authenticate a dispatcher call and await ``run_scheduled(event)``."""
+    if request.method != "POST":
+        return _json_response({"ok": False, "error": "Method not allowed"}, 405)
+    expected = str(getattr(env, "CRON_SECRET", None) or "")
+    provided = str(request.headers.get("X-BLT-Cron-Secret") or "")
+    if not expected or not hmac.compare_digest(provided.encode(), expected.encode()):
+        return _json_response({"ok": False, "error": "Forbidden"}, 403)
+    try:
+        body = json.loads(await request.text() or "{}")
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    try:
+        scheduled_time = int(body.get("scheduledTime"))
+    except (TypeError, ValueError):
+        scheduled_time = int(datetime.now(timezone.utc).timestamp() * 1000)
+    event = _CronEvent(str(body.get("cron") or ""), scheduled_time)
+    try:
+        await run_scheduled(event)
+    except Exception as exc:
+        traceback.print_exc()
+        return _json_response({"ok": False, "error": str(exc)}, 500)
+    return _json_response({"ok": True}, 200)
+
 
 class Default(WorkerEntrypoint):
     """Cloudflare Python Worker entrypoint class."""
@@ -7153,6 +7194,13 @@ class Default(WorkerEntrypoint):
         """Main entry point for the Cloudflare Worker."""
         global _current_env
         global _sentry_initialized
+
+        if urlparse(request.url).path == CRON_DISPATCH_PATH:
+            return await _handle_cron_dispatch(
+                request,
+                self.env,
+                lambda event: self.scheduled(event, self.env, getattr(self, "ctx", None)),
+            )
 
         try:
             # Initialize Sentry on first request

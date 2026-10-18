@@ -3,9 +3,13 @@ main = "workers/main.py"
 compatibility_date = "2024-04-03"
 compatibility_flags = ["python_workers"]
 
-# Scheduled notifications - runs every hour to check for users needing reminders
+# Scheduled notifications - runs every hour ("0 * * * *") to check for users
+# needing reminders. The schedule now runs from the blt-cron dispatcher Worker,
+# which calls POST /__scheduled through a service binding with the CRON_SECRET
+# secret (wrangler secret put CRON_SECRET). The empty list makes deploys remove
+# the old trigger (the free plan allows only 5 cron triggers per account).
 [triggers]
-crons = ["0 * * * *"]
+crons = []
 
 # D1 Database binding
 [[d1_databases]]
@@ -33,6 +37,7 @@ run_worker_first = [
   "/checkins",
   "/pages",
   "/pages/*",
+  "/__scheduled",
 ]
 
 

@@ -43,8 +43,12 @@ GITHUB_APP_SLUG = "blt-github-app"
 # ---------------------------------------------------------------------------
 # Scheduled triggers (cron jobs)
 # ---------------------------------------------------------------------------
+# The schedule ("0 */2 * * *", every 2 hours) now runs from the blt-cron
+# dispatcher Worker, which calls POST /__scheduled through a service binding
+# with the CRON_SECRET secret. The empty list makes deploys remove the old
+# trigger (the free plan allows only 5 cron triggers per account).
 [triggers]
-crons = ["0 */2 * * *"]  # Run every 2 hours
+crons = []
 
 [observability]
 enabled = false

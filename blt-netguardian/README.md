@@ -52,7 +52,7 @@ In-repo Flutter desktop producer ([`client/`](client/README.md)): distributed do
 | POST | `/api/domains/{id}/complete` | Record scan result |
 | POST | `/api/domains/{id}/fail` | Fail → retry_required (lease expiry also retries) |
 
-Storage is **D1** (not KV). Optional R2 binding `EVIDENCE`. Cron `*/5 * * * *` retries pending webhooks.
+Storage is **D1** (not KV). Optional R2 binding `EVIDENCE`. Every 5 minutes (`*/5 * * * *`) a scheduled run retries pending webhooks; the schedule runs from the [blt-cron](../blt-cron) dispatcher Worker, which calls `POST /__scheduled` with the shared `CRON_SECRET` secret (`wrangler secret put CRON_SECRET`).
 
 ## Legacy surfaces (not the product)
 

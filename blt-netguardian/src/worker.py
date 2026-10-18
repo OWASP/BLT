@@ -7,7 +7,7 @@ import hashlib
 import hmac
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Tuple
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlparse
 try:
     from workers import Response
 except ImportError:
@@ -1250,9 +1250,57 @@ class BLTWorker:
         )
 
 
+# Cron dispatch: the blt-cron Worker holds the account's cron trigger and calls
+# POST /__scheduled through a service binding, authenticated with CRON_SECRET.
+CRON_DISPATCH_PATH = '/__scheduled'
+
+
+class CronEvent:
+    """Stand-in for the ScheduledEvent the runtime would pass."""
+
+    type = 'scheduled'
+
+    def __init__(self, cron: str, scheduled_time: int):
+        self.cron = cron
+        self.scheduledTime = scheduled_time
+
+
+def _cron_json(data: Dict[str, Any], status: int) -> 'Response':
+    return Response(json.dumps(data), status=status, headers={'Content-Type': 'application/json'})
+
+
+async def handle_cron_dispatch(request, env, ctx=None):
+    if request.method != 'POST':
+        return _cron_json({'ok': False, 'error': 'Method not allowed'}, 405)
+    expected = str(getattr(env, 'CRON_SECRET', None) or '')
+    provided = str(request.headers.get('X-BLT-Cron-Secret') or '')
+    if not expected or not hmac.compare_digest(provided.encode(), expected.encode()):
+        return _cron_json({'ok': False, 'error': 'Forbidden'}, 403)
+    try:
+        body = json.loads(await request.text() or '{}')
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    try:
+        scheduled_time = int(body.get('scheduledTime'))
+    except (TypeError, ValueError):
+        scheduled_time = int(datetime.now(timezone.utc).timestamp() * 1000)
+    event = CronEvent(str(body.get('cron') or ''), scheduled_time)
+    try:
+        await on_scheduled(event, env, ctx)
+    except Exception as exc:
+        print(f'Dispatched scheduled run failed: {exc}')
+        return _cron_json({'ok': False, 'error': str(exc)}, 500)
+    return _cron_json({'ok': True}, 200)
+
+
 # Main worker entry point
 async def on_fetch(request, env, ctx):
     """Cloudflare Workers fetch handler."""
+    if urlparse(str(request.url)).path == CRON_DISPATCH_PATH:
+        return await handle_cron_dispatch(request, env, ctx)
+
     url = request.url
     path = url.split('?')[0].split('/', 3)[-1] if '/' in url else ''
 

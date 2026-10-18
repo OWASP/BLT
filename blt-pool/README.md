@@ -9,7 +9,7 @@ A GitHub App that integrates [OWASP BLT](https://owaspblt.org) services into Git
 
 - **`/assign` command** — Comment `/assign` on any issue to be automatically assigned to it. Assignments expire after 8 hours if no linked PR is submitted.
 - **`/unassign` command** — Comment `/unassign` to release an issue assignment so others can pick it up.
-- **Automatic unassignment** — A cron task runs every 2 hours to automatically unassign issues where the 8-hour deadline has passed without a linked pull request.
+- **Automatic unassignment** — A cron task runs every 2 hours to automatically unassign issues where the 8-hour deadline has passed without a linked pull request. The schedule (`0 */2 * * *`) now runs from the [blt-cron](../blt-cron) dispatcher Worker, which calls `POST /__scheduled` with the shared `CRON_SECRET` (set it with `wrangler secret put CRON_SECRET`); this Worker has no cron trigger of its own.
 - **`/leaderboard` command** — Comment `/leaderboard` on any issue or PR to see your rank in the monthly leaderboard.
 - **Monthly leaderboard** — Uses D1-backed event counters for accurate, scalable org-wide ranking (no per-request repo scanning). Automatically posted on PRs (when opened or merged) showing contributor rankings based on:
   - Open PRs (+1 each)

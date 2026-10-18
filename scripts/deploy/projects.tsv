@@ -52,3 +52,4 @@ blt-waypoint	blt-waypoint	worker	-	-
 blt-zero	blt-zero	worker	-	-
 my-gsoc-tool	my-gsoc-tool	worker	-	-
 blt-vanish	blt-vanish/cloudflare_workers	worker	-	-
+blt-cron	blt-cron	worker	-	-

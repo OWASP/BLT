@@ -6,7 +6,9 @@ It provides endpoints for code analysis, health checks, webhook ingestion,
 and status monitoring.
 """
 
+import hmac
 import json
+import time
 import urllib.parse
 import traceback
 from js import Response, Headers, console, Object, Request as JSRequest
@@ -49,6 +51,48 @@ def parse_path(url):
     return path
 
 
+# Cron dispatch: the blt-cron Worker holds the account's cron trigger and calls
+# POST /__scheduled through a service binding, authenticated with CRON_SECRET.
+CRON_DISPATCH_PATH = "/__scheduled"
+
+
+class CronEvent:
+    """Stand-in for the ScheduledEvent the runtime would pass."""
+
+    type = "scheduled"
+
+    def __init__(self, cron, scheduled_time):
+        self.cron = cron
+        self.scheduledTime = scheduled_time
+
+
+async def handle_cron_dispatch(request, env, ctx=None):
+    """Run the cron handler for a blt-cron dispatcher call and wait for it."""
+    if request.method != "POST":
+        return create_json_response({"ok": False, "error": "Method not allowed"}, 405)
+    expected = str(getattr(env, "CRON_SECRET", None) or "")
+    provided = str(request.headers.get("X-BLT-Cron-Secret") or "")
+    if not expected or not hmac.compare_digest(provided.encode(), expected.encode()):
+        return create_json_response({"ok": False, "error": "Forbidden"}, 403)
+    try:
+        body = json.loads(await request.text() or "{}")
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    try:
+        scheduled_time = int(body.get("scheduledTime"))
+    except (TypeError, ValueError):
+        scheduled_time = int(time.time() * 1000)
+    event = CronEvent(str(body.get("cron") or ""), scheduled_time)
+    try:
+        await on_scheduled(event, env, ctx)
+    except Exception as exc:
+        console.error(f"Dispatched scheduled run failed: {exc}")
+        return create_json_response({"ok": False, "error": str(exc)}, 500)
+    return create_json_response({"ok": True}, 200)
+
+
 async def on_fetch(request, env):
     """
     Main entry point for Cloudflare Worker requests.
@@ -62,6 +106,9 @@ async def on_fetch(request, env):
     """
     url = request.url
     method = request.method
+
+    if urllib.parse.urlparse(str(url)).path == CRON_DISPATCH_PATH:
+        return await handle_cron_dispatch(request, env)
 
     # Parse the URL to get the path
     try:

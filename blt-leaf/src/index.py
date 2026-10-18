@@ -1,4 +1,5 @@
 """Main entry point for BLT-Leaf PR Readiness Checker - Cloudflare Worker"""
+import hmac
 import json
 from js import Response, URL, Object, Request
 import time as _time
@@ -84,8 +85,54 @@ def json_response(data: dict, status: int, extra_headers: dict | None = None):
         dict_converter=Object.fromEntries
     )
     return Response.new(json.dumps(data), init)
+
+
+# Cron dispatch: the blt-cron Worker holds the account's cron trigger and calls
+# POST /__scheduled through a service binding, authenticated with CRON_SECRET.
+CRON_DISPATCH_PATH = '/__scheduled'
+
+
+class _CronEvent:
+    """Stand-in for the ScheduledController the runtime would pass."""
+
+    type = 'scheduled'
+
+    def __init__(self, cron, scheduled_time):
+        self.cron = cron
+        self.scheduledTime = scheduled_time
+
+
+async def handle_cron_dispatch(request, env, ctx=None):
+    if request.method != 'POST':
+        return json_response({'ok': False, 'error': 'Method not allowed'}, 405)
+    expected = str(getattr(env, 'CRON_SECRET', None) or '')
+    provided = str(request.headers.get('X-BLT-Cron-Secret') or '')
+    if not expected or not hmac.compare_digest(provided.encode(), expected.encode()):
+        return json_response({'ok': False, 'error': 'Forbidden'}, 403)
+    try:
+        body = json.loads(await request.text() or '{}')
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    try:
+        scheduled_time = int(body.get('scheduledTime'))
+    except (TypeError, ValueError):
+        scheduled_time = int(_time.time() * 1000)
+    event = _CronEvent(str(body.get('cron') or ''), scheduled_time)
+    try:
+        await on_scheduled(event, env, ctx)
+    except Exception as exc:
+        print(f'Cron dispatch: scheduled run failed: {exc}')
+        return json_response({'ok': False, 'error': str(exc)}, 500)
+    return json_response({'ok': True}, 200)
+
+
 async def on_fetch(request, env):
     """Main request handler"""
+    if URL.new(request.url).pathname == CRON_DISPATCH_PATH:
+        return await handle_cron_dispatch(request, env)
+
     slack_webhook = getattr(env, 'SLACK_ERROR_WEBHOOK', '')
 
     url = URL.new(request.url)

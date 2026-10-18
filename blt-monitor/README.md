@@ -12,7 +12,7 @@ visual dashboard with a compact list view and detailed monitor pages.
 - **Multi-Monitor Support**: Monitor multiple websites from a single dashboard
 - **Compact List View**: Homepage shows all monitors at a glance with sparkline charts
 - **Detailed Monitor Pages**: Click any monitor for comprehensive status information
-- Monitors website availability every twenty minutes with a Cloudflare Cron Trigger
+- Monitors website availability every twenty minutes on a five-minute schedule driven by the [blt-cron](../blt-cron) dispatcher Worker
 - Checks for specific keywords in website content
 - Maintains the latest 30 checks in Workers KV for each monitor
 - Visual dashboard with response time charts
@@ -58,7 +58,12 @@ visual dashboard with a compact list view and detailed monitor pages.
    - Wrangler automatically provisions the `blt-monitor-history` KV namespace on the first
      deployment and adds its ID to `wrangler.toml`
    - The Worker serves the dashboard, exposes `/api/health`, and runs the
-     monitor cron every five minutes, checking one quarter of the monitors per run
+     monitor job every five minutes, checking one quarter of the monitors per run.
+     The schedule (`*/5 * * * *`) runs from the blt-cron dispatcher Worker, which
+     calls `POST /__scheduled` with a shared secret; set the same value here:
+     ```bash
+     npx wrangler secret put CRON_SECRET
+     ```
    - Optionally store the Slack webhook as a Worker secret:
      ```bash
      npx wrangler secret put SLACK_WEBHOOK_URL
@@ -155,8 +160,8 @@ trigger an immediate monitor run.
 
 ## Troubleshooting
 
-- If dashboard data is not updating, check the Worker Cron Events and logs in
-  the Cloudflare dashboard
+- If dashboard data is not updating, check the blt-cron Worker's logs and this
+  Worker's logs in the Cloudflare dashboard, and that `CRON_SECRET` matches
 - Ensure the optional Slack webhook URL is set as a Worker secret
 - Check that the target website allows automated monitoring
 - Verify the keyword exists in the website content

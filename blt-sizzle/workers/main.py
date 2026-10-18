@@ -3,11 +3,13 @@ from pyodide.ffi import to_js
 import json
 import base64
 import hashlib
+import hmac
 import logging
 import os
 import re
 import sys
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
+from urllib.parse import urlparse
 try:
     from zoneinfo import ZoneInfo
 except Exception:
@@ -2511,9 +2513,56 @@ async def handle_get_org_checkins(request, env, org_name):
                           {"status": 500, "headers": {"Content-Type": "application/json"}})
 
 
+# Cron dispatch: the blt-cron Worker holds the account's cron trigger and calls
+# POST /__scheduled through a service binding, authenticated with CRON_SECRET.
+CRON_DISPATCH_PATH = "/__scheduled"
+
+
+class CronEvent:
+    """Stand-in for the ScheduledEvent the runtime would pass."""
+
+    type = "scheduled"
+
+    def __init__(self, cron, scheduled_time):
+        self.cron = cron
+        self.scheduledTime = scheduled_time
+
+
+def _cron_json(data, status):
+    return Response.new(json.dumps(data), response_init(status, {"Content-Type": "application/json"}))
+
+
+async def handle_cron_dispatch(request, env):
+    if request.method != "POST":
+        return _cron_json({"ok": False, "error": "Method not allowed"}, 405)
+    expected = str(getattr(env, "CRON_SECRET", None) or "")
+    provided = str(request.headers.get("X-BLT-Cron-Secret") or "")
+    if not expected or not hmac.compare_digest(provided.encode(), expected.encode()):
+        return _cron_json({"ok": False, "error": "Forbidden"}, 403)
+    try:
+        body = json.loads(await request.text() or "{}")
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    try:
+        scheduled_time = int(body.get("scheduledTime"))
+    except (TypeError, ValueError):
+        scheduled_time = int(datetime.now(timezone.utc).timestamp() * 1000)
+    event = CronEvent(str(body.get("cron") or ""), scheduled_time)
+    try:
+        await on_scheduled(event, env)
+    except Exception as e:
+        logger.error("Dispatched scheduled run failed: %s", e, exc_info=True)
+        return _cron_json({"ok": False, "error": str(e)}, 500)
+    return _cron_json({"ok": True}, 200)
+
+
 # Main entry point for Cloudflare Worker
 async def on_fetch(request, env):
     """Worker entry point for HTTP requests"""
+    if urlparse(str(request.url)).path == CRON_DISPATCH_PATH:
+        return await handle_cron_dispatch(request, env)
     try:
         return await handle_request(request, env)
     except Exception as e:

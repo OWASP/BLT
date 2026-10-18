@@ -5204,6 +5204,51 @@ def _html(html: str, status: int = 200) -> Response:
 
 
 # ---------------------------------------------------------------------------
+# Cron dispatch — the blt-cron Worker calls POST /__scheduled through a
+# service binding (the account's cron trigger limit means this Worker no
+# longer has its own [triggers] crons).
+# ---------------------------------------------------------------------------
+
+CRON_DISPATCH_PATH = "/__scheduled"
+
+
+class _CronEvent:
+    """Stand-in for the ScheduledController the runtime would pass."""
+
+    type = "scheduled"
+
+    def __init__(self, cron: str, scheduled_time: int):
+        self.cron = cron
+        self.scheduledTime = scheduled_time
+
+
+async def _handle_cron_dispatch(request, env) -> Response:
+    if request.method != "POST":
+        return _json({"ok": False, "error": "Method not allowed"}, 405)
+    expected = str(getattr(env, "CRON_SECRET", None) or "")
+    provided = str(request.headers.get("X-BLT-Cron-Secret") or "")
+    if not expected or not _hmac.compare_digest(provided.encode(), expected.encode()):
+        return _json({"ok": False, "error": "Forbidden"}, 403)
+    try:
+        body = json.loads(await request.text() or "{}")
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    try:
+        scheduled_time = int(body.get("scheduledTime"))
+    except (TypeError, ValueError):
+        scheduled_time = int(time.time() * 1000)
+    event = _CronEvent(str(body.get("cron") or ""), scheduled_time)
+    try:
+        await on_scheduled(event, env, None)
+    except Exception as exc:
+        console.error(f"[CRON] Dispatched scheduled run failed: {exc}")
+        return _json({"ok": False, "error": str(exc)}, 500)
+    return _json({"ok": True})
+
+
+# ---------------------------------------------------------------------------
 # Main entry point — called by the Cloudflare runtime
 # ---------------------------------------------------------------------------
 
@@ -5211,6 +5256,9 @@ def _html(html: str, status: int = 200) -> Response:
 async def on_fetch(request, env) -> Response:
     method = request.method
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
+
+    if path == CRON_DISPATCH_PATH:
+        return await _handle_cron_dispatch(request, env)
 
     if method == "GET" and path == "/":
         # Load mentors from D1.

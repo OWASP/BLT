@@ -23,11 +23,14 @@ command = ""
 # assets layer while keeping backend requests routed through the Worker.
 [assets]
 directory = "frontend/dist"
-run_worker_first = ["/api/*", "/health", "/mcp/*", "/admin/*", "/conversations/*", "/triage/*", "/webhook/*"]
+run_worker_first = ["/api/*", "/health", "/mcp/*", "/admin/*", "/conversations/*", "/triage/*", "/webhook/*", "/__scheduled"]
 
-# Cron Triggers — shadow mode validation runs hourly
+# Cron — shadow mode validation runs hourly ("0 * * * *"). The schedule now runs
+# from the blt-cron dispatcher Worker, which calls POST /__scheduled through a
+# service binding with the CRON_SECRET secret (wrangler secret put CRON_SECRET).
+# The empty list makes deploys remove the old trigger (free plan: 5 per account).
 [triggers]
-crons = ["0 * * * *"]
+crons = []
 
 
 # Environment variables

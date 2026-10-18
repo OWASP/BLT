@@ -45,8 +45,12 @@ enabled = false
 persist = true
 head_sampling_rate = 1
 
+# Cron ("*/5 * * * *") now runs from the blt-cron dispatcher Worker, which calls
+# POST /__scheduled through a service binding with the CRON_SECRET secret
+# (wrangler secret put CRON_SECRET). The empty list makes deploys remove the old
+# trigger (the free plan allows only 5 cron triggers per account).
 [triggers]
-crons = ["*/5 * * * *"]
+crons = []
 
 # Optional R2 evidence bucket (uncomment after: wrangler r2 bucket create ng-evidence)
 # [[r2_buckets]]
