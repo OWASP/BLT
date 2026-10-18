@@ -1,7 +1,6 @@
 // node --test scripts/actions/*.test.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createServer } from "node:http";
 import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -12,26 +11,25 @@ const COMMIT_BACK = join(forge.ROOT, "scripts", "actions", "commit-back.sh");
 
 async function withStub(fn) {
   const requests = [];
-  const server = createServer((req, res) => {
-    let body = "";
-    req.on("data", (c) => (body += c));
-    req.on("end", () => {
-      requests.push({ method: req.method, url: req.url, auth: req.headers.authorization, body: body ? JSON.parse(body) : null });
-      res.setHeader("Content-Type", "application/json");
-      if (req.url === "/api/actions/job/issues/404") { res.statusCode = 404; return res.end('{"error":"not found"}'); }
-      if (req.method === "GET") return res.end(JSON.stringify({ number: 7, title: "t", body: "b", state: "open", labels: ["profile"], author: "alice" }));
-      res.end(req.url.endsWith("/issues") ? '{"number":9}' : "{}");
-    });
-  });
-  await new Promise((r) => server.listen(0, "127.0.0.1", r));
+  const savedFetch = globalThis.fetch;
   const saved = { ...process.env };
-  process.env.FORKMESH_API_URL = `http://127.0.0.1:${server.address().port}/`;
+  process.env.FORKMESH_API_URL = "http://job-api.test/";
   process.env.FORKMESH_TOKEN = "job-token";
+  globalThis.fetch = async (url, init = {}) => {
+    const { pathname } = new URL(String(url));
+    const headers = new Headers(init.headers || {});
+    const method = String(init.method || "GET").toUpperCase();
+    requests.push({ method, url: pathname, auth: headers.get("authorization"), body: init.body ? JSON.parse(init.body) : null });
+    const json = (status, value) => new Response(value, { status, headers: { "Content-Type": "application/json" } });
+    if (pathname === "/api/actions/job/issues/404") return json(404, '{"error":"not found"}');
+    if (method === "GET") return json(200, JSON.stringify({ number: 7, title: "t", body: "b", state: "open", labels: ["profile"], author: "alice" }));
+    return json(200, pathname.endsWith("/issues") ? '{"number":9}' : "{}");
+  };
   try {
     await fn(requests);
   } finally {
+    globalThis.fetch = savedFetch;
     process.env = saved;
-    server.close();
   }
 }
 
