@@ -183,17 +183,18 @@ Celebrate your achievements:
 
 ### 5. Automatic GitHub Contributions
 
-The dashboard automatically fetches your GitHub activity! The workflow:
+The dashboard automatically fetches your GitHub activity! The site's Worker (`worker/`):
 
-1. Runs daily at midnight UTC
+1. Runs daily at 00:03 UTC (called by the blt-cron Worker)
 2. Fetches your commits, pull requests, issues, and reviews
-3. Updates `public/data/github-contributions.json`
-4. Leaves the updated dashboard ready for Cloudflare to serve from `public/`
+3. Stores them in Workers KV and serves them at `/data/github-contributions.json`
+   (until the first run, the committed `public/data/github-contributions.json` is served)
 
-**Manual Update:**
-1. Go to the **Actions** tab in your repository
-2. Click **Update GSoC Dashboard**
-3. Click **Run workflow** → **Run workflow**
+**Manual Update:** send `POST /__scheduled` to the site with the `X-BLT-Cron-Secret` header (see
+README.md, "Data refresh"). On your own fork, set the Worker secrets `CRON_SECRET` and
+`GH_API_TOKEN`, create a KV namespace for the `DATA` binding in `wrangler.toml`, and either call
+`/__scheduled` from a scheduler or add `[triggers] crons = ["3 0 * * *"]` to `wrangler.toml` (the
+Worker's `scheduled` handler runs the same refresh).
 
 ### 6. View Your Dashboard
 

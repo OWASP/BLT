@@ -34,6 +34,7 @@ BLT-GSOC/
 │   └── gsoc.png       # GSoC logo
 ├── js/
 │   └── gsoc_pr_report.js  # Analytics scripts
+├── worker/            # Worker: serves the site, refreshes data into KV
 ├── README.md          # This file
 ├── CHANGELOG.md       # Version history
 └── SUMMARY.md         # Project summary
@@ -80,6 +81,34 @@ The site is configured to serve from the repository root. To enable GitHub Pages
 
 The site will be published at: `https://gsoc.owaspblt.org/`
 
+## 📊 Data refresh (Worker and KV)
+
+The site is the `blt-gsoc` Cloudflare Worker: `scripts/deploy.sh blt-gsoc` copies the pages into
+`public/` and deploys `worker/index.js`, which serves them. Two data files are kept in Workers KV
+(binding `DATA`, namespace `blt-gsoc-data`) instead of being committed, and are served at their old
+paths, so the pages did not change. Until KV has a copy, the committed file is served.
+
+| Path | Task | When (UTC, called by [blt-cron](../blt-cron)) | Source |
+| --- | --- | --- | --- |
+| `/js/gsoc2026_stats.generated.js` | `gsoc2026-stats` (`worker/gsoc2026-stats.js`) | once a minute 02:17-02:31 until done | GitHub search and commits API |
+| `/data/progress.json` | `progress` (`worker/progress.js`) | once a minute 23:07-23:11 until done | GitLab commits, Slack search (both workspaces) |
+
+A full refresh needs more requests than one free-plan invocation may make (50), and GitHub allows 30
+searches a minute, so each task works through its list a few items per call and keeps its cursor in
+KV (`state:<task>`). A GitHub count that fails keeps the previous value. `data/contributors.json`
+still lives in git and lists who the progress tracker follows.
+
+Worker secrets: `CRON_SECRET` (same as blt-cron), `GH_API_TOKEN`, `GITLAB_TOKEN` (optional),
+`SLACK_TOKEN_OWASP`, `SLACK_TOKEN_BLT` (user tokens with `search:read`). To run a task by hand, or
+to backfill a day of progress, call the Worker (repeat until the answer says `"done": true`):
+
+```bash
+curl -X POST https://gsoc.owaspblt.org/__scheduled -H "X-BLT-Cron-Secret: $CRON_SECRET" \
+  -d '{"task": "progress", "day": "2026-06-11", "reset": true}'
+```
+
+Tests: `npm test` (stubbed fetch and KV).
+
 ## 🔧 Local Development
 
 To test the pages locally:
@@ -90,6 +119,8 @@ python3 -m http.server 8000
 
 # Then open http://localhost:8000 in your browser
 ```
+
+Locally the data files come from `js/` and `data/` as committed, not from KV.
 
 Or use any static file server like:
 - `npx serve`

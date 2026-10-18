@@ -31,6 +31,16 @@ test("due jobs at the top of an even hour", () => {
   assert.deepEqual(quiet, ["blt-lettuce"]);
 });
 
+test("chunked data refreshes run once a minute in their window", () => {
+  const names = (iso) => dueJobs(Date.parse(iso)).map((j) => j.name);
+  assert.ok(names("2026-10-18T02:17:00Z").includes("blt-gsoc-stats"));
+  assert.ok(names("2026-10-18T02:31:00Z").includes("blt-gsoc-stats"));
+  assert.ok(!names("2026-10-18T02:32:00Z").includes("blt-gsoc-stats"));
+  assert.ok(names("2026-10-18T23:09:00Z").includes("blt-gsoc-progress"));
+  assert.ok(names("2026-10-18T00:03:00Z").includes("my-gsoc-tool"));
+  for (const job of JOBS) assert.ok(job.binding, job.name);
+});
+
 test("runJob posts the cron and secret through the binding", async () => {
   const calls = [];
   const env = {
@@ -42,6 +52,8 @@ test("runJob posts the cron and secret through the binding", async () => {
   assert.equal(calls[0].url, "https://cron.internal/__scheduled");
   assert.equal(calls[0].init.headers["x-blt-cron-secret"], "s3cret");
   assert.deepEqual(JSON.parse(calls[0].init.body), { cron: "0 * * * *", scheduledTime: 123 });
+  await runJob(env, { name: "g", binding: "LEAF", cron: "7-11 23 * * *", task: "progress" }, 9);
+  assert.deepEqual(JSON.parse(calls[1].init.body), { cron: "7-11 23 * * *", scheduledTime: 9, task: "progress" });
   const missing = await runJob({}, { name: "x", binding: "NOPE", cron: "* * * * *" }, 1);
   assert.equal(missing.ok, false);
 });

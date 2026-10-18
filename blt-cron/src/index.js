@@ -16,7 +16,7 @@ export async function runJob(env, job, scheduledTime) {
         "content-type": "application/json",
         "x-blt-cron-secret": env.CRON_SECRET || "",
       },
-      body: JSON.stringify({ cron: job.cron, scheduledTime }),
+      body: JSON.stringify(job.task ? { cron: job.cron, scheduledTime, task: job.task } : { cron: job.cron, scheduledTime }),
     });
     const ok = response.ok;
     if (!ok) console.error(`${job.name}: /__scheduled answered ${response.status}`);
@@ -36,7 +36,7 @@ export default {
   async fetch(request) {
     const url = new URL(request.url);
     if (url.pathname === "/health") {
-      return Response.json({ ok: true, jobs: JOBS.map(({ name, cron }) => ({ name, cron })) });
+      return Response.json({ ok: true, jobs: JOBS.map(({ name, cron, task }) => ({ name, cron, task })) });
     }
     return new Response("Not found", { status: 404 });
   },

@@ -224,7 +224,7 @@ public/config.json → public/dashboard.js → Renders to HTML
      ↓
 public/data/*.json → public/dashboard.js → Updates sections
      ↓
-GitHub API → GitHub Actions → public/data/github-contributions.json
+GitHub API → Worker (daily, worker/refresh.js) → Workers KV → /data/github-contributions.json
 ```
 
 ### Key Components

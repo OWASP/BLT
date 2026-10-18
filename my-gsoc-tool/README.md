@@ -188,16 +188,36 @@ Modify `public/index.html` to change the dashboard layout or add new sections.
 
 The `public/dashboard.js` file handles all data loading and rendering. Modify it to add custom data processing logic.
 
+## 🔄 Data refresh (Worker and KV)
+
+`wrangler.toml` deploys `worker/index.js` with the static dashboard in `public/`. Once a day
+[blt-cron](../blt-cron) calls the Worker's `POST /__scheduled`, which fetches:
+
+- the student's recent public GitHub events (user from `public/config.json`) into
+  `/data/github-contributions.json`;
+- the forks of `OWASP-BLT/MY-GSOC-TOOL` (or the `FORKS_REPO` variable) into `/data/forks.json`.
+
+Both are stored in Workers KV (binding `DATA`, namespace `my-gsoc-tool-data`) and served at those
+paths, falling back to the committed files in `public/data/` until the first refresh. Nothing is
+committed. Worker secrets: `CRON_SECRET` (same as blt-cron) and `GH_API_TOKEN`. After changing
+`student.github` in `config.json`, the dashboard shows the new user's activity after the next daily
+run, or right away with:
+
+```bash
+curl -X POST https://gsoc-tool.owaspblt.org/__scheduled -H "X-BLT-Cron-Secret: $CRON_SECRET" -d '{}'
+```
+
+Tests: `npm test`.
+
 ## 📋 File Structure
 
 ```
 MY-GSOC-TOOL/
-├── .github/
-│   └── workflows/
-│       └── update-dashboard.yml  # GitHub Actions workflow
+├── worker/                       # Worker: daily data refresh into KV
 ├── public/                       # Cloudflare static site root
 │   ├── data/
-│   │   ├── github-contributions.json # Auto-generated GitHub data
+│   │   ├── github-contributions.json # GitHub data fallback (live copy in KV)
+│   │   ├── forks.json                # Forks list fallback (live copy in KV)
 │   │   ├── blog-posts.json           # Your blog posts
 │   │   ├── feedback.json             # Mentor feedback
 │   │   ├── weekly-updates.json       # Weekly progress
@@ -206,7 +226,7 @@ MY-GSOC-TOOL/
 │   ├── styles.css                # Dashboard styles
 │   ├── dashboard.js              # Dashboard logic
 │   └── config.json               # Your personal config
-├── wrangler.toml                 # Cloudflare asset config
+├── wrangler.toml                 # Cloudflare Worker, assets and KV config
 └── README.md                     # This file
 ```
 
@@ -215,13 +235,14 @@ MY-GSOC-TOOL/
 ### Dashboard not updating?
 
 1. Check that Cloudflare is serving `public` as the output directory
-2. Verify the GitHub Actions workflow ran successfully in the Actions tab
+2. GitHub data refreshes once a day (00:03 UTC); the response header `X-Data-Updated-At` of
+   `/data/github-contributions.json` shows when it last ran
 3. Make sure `public/config.json` has valid JSON syntax
 
 ### GitHub contributions not showing?
 
 1. Ensure your `public/config.json` has the correct GitHub username
-2. Check that the GitHub Actions workflow has the necessary permissions
+2. Check the Worker's logs in the Cloudflare dashboard and that its `GH_API_TOKEN` secret is set
 3. Verify your repository activity is public
 
 ### Custom domain?
@@ -264,15 +285,11 @@ If you encounter issues or have questions:
 
 ---
 
-<!-- FORKS_START -->
 ## 🍴 Project Forks
 
-The following users have forked this project:
-
-No forks yet. Be the first to fork this project!
-
-_Last updated: 2026-05-30 03:51:04 UTC_
-<!-- FORKS_END -->
+The forks of the template repository (GitHub `OWASP-BLT/MY-GSOC-TOOL`) are listed at
+[`/data/forks.json`](https://gsoc-tool.owaspblt.org/data/forks.json), refreshed daily by the site's
+Worker. This section used to be rewritten by a workflow that committed to the repository.
 
 ---
 

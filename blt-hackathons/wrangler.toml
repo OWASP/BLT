@@ -1,9 +1,20 @@
+# Static site (public/) plus a Worker (worker/index.js) that serves /stats.json and
+# /hackathon-data/*.json from KV (binding DATA). The hourly workflow
+# .forkmesh/blt-hackathons--update-stats.yml writes those keys; nothing is committed to git.
 name = "blt-hackathons"
+main = "worker/index.js"
 compatibility_date = "2026-08-29"
 
 [assets]
 directory = "./public"
+binding = "ASSETS"
 not_found_handling = "single-page-application"
+run_worker_first = ["/stats.json", "/hackathon-data/*"]
+
+# Created by scripts/worker-data/create-kv.sh, which replaces the placeholder id.
+[[kv_namespaces]]
+binding = "DATA"
+id = "REPLACE_WITH_KV_ID_blt-hackathons-data"
 
 [[routes]]
 pattern = "hackathons.owaspblt.org"

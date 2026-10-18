@@ -220,14 +220,14 @@
             { name: 'Jayant',             github: 'Jayant2908',     gitlab: 'Jayant2908',     slack: '', project: 'BLT-MAYO',        repo: 'BLT-MAYO' }
         ];
 
-        // The two Slack workspaces tracked by scripts/update_progress.py.
+        // The two Slack workspaces tracked by the Worker's progress refresh (worker/progress.js).
         const SLACK_SERVERS = [
             { key: 'owasp', label: 'OWASP Slack' },
             { key: 'blt',   label: 'BLT Slack' }
         ];
 
-        // Daily data is produced by scripts/update_progress.py (run by the
-        // scheduled GitLab CI job) and saved to data/progress.json:
+        // Daily data is produced by worker/progress.js (called nightly by blt-cron)
+        // and served from Workers KV at data/progress.json:
         //   { "updated": "...", "days": { "2026-06-11": { "Pritz395":
         //       { "commits": 3, "checkin": true, "slack": { "owasp": true, "blt": false } } } } }
         // Anything missing renders as 0 commits / no check-in.

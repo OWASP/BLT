@@ -34,3 +34,11 @@ service = "blt-netguardian"
 [[services]]
 binding = "TOASTY"
 service = "blt-toasty"
+
+[[services]]
+binding = "GSOC"
+service = "blt-gsoc"
+
+[[services]]
+binding = "GSOC_TOOL"
+service = "my-gsoc-tool"

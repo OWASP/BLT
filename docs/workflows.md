@@ -36,12 +36,9 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `blt-cve--build-index.yml` | GitHub | push to main under `blt-cve/public/cves`, `public/schema`, `scripts/build_index.py` | CF |
 | `blt-design-contest--build-showcase.yml` | GitLab `build_showcase` | `47 7 * * *`, push under `blt-design-contest/scripts/` | `GITLAB_TOKEN` (optional), CF |
 | `blt-extension--release.yml` | GitHub `release.yml` + packaging from `create-release.yml` | dispatch only (input `publish`) | `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` |
-| `blt-gsoc--update-gsoc2026-stats.yml` | GitHub | `17 2 * * *` | `GH_API_TOKEN`, CF |
-| `blt-gsoc--update-progress.yml` | GitLab `update-progress` | `7 23 * * *` | `GITLAB_TOKEN` (optional), `SLACK_TOKEN_OWASP`, `SLACK_TOKEN_BLT`, CF |
 | `blt-hackathons--create-hackathon.yml` | GitHub | issues opened/labeled with `hackathon-creation` | CF |
 | `blt-hackathons--process-sponsor.yml` | GitHub | issues opened/labeled with `sponsorship` | CF |
-| `blt-hackathons--update-stats.yml` | GitHub | `0 * * * *`, push under `blt-hackathons/` (hackathons starting through 2026-05-31) | `GH_API_TOKEN`, `GITLAB_TOKEN`, CF |
-| `blt-hackathons--update-future-hackathons.yml` | GitLab `update-future-hackathons` | `37 0 * * *` (hackathons starting after 2026-05-31) | `GH_API_TOKEN`, `GITLAB_TOKEN`, CF |
+| `blt-hackathons--update-stats.yml` | GitHub `update-stats.yml` + GitLab `update-future-hackathons` | `0 * * * *`, push under `blt-hackathons/`; writes changed stats to KV (`scripts/refresh-kv.sh`), no commit | `GH_API_TOKEN`, `GITLAB_TOKEN`, CF (with KV write) |
 | `blt-jobs--expire-jobs.yml` | GitLab `expire_jobs` | dispatch only (optional cleanup of expired `jobs/*.md`; the Worker already hides expired jobs) | CF |
 | `blt-jobs--process-submissions.yml` | GitLab `process_submissions` | issues opened/edited/labeled that look like job, seeker or flag submissions; dispatch input `issue` | CF |
 | `blt-ossh--update-catalog.yml` | GitHub | `0 6 * * *` | `DISCORD_BOT_TOKEN` (optional), CF |
@@ -56,15 +53,15 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `blt-university--course-submission.yml` | GitHub | issue opened with `course-submission` or `[COURSE]` title, or that label added | none |
 | `blt-university--enrollment.yml` | GitHub | issue opened with `enrollment` or `[ENROLLMENT]` title, or that label added | none |
 | `blt-waypoint--build-site.yml` | GitLab `build_site` | `29 6 * * *`, push under `blt-waypoint/scripts/` or of `public/github_data.json` | `GITLAB_TOKEN` (optional), CF |
-| `my-gsoc-tool--update-dashboard.yml` | GitHub | `0 0 * * *`, push of `public/config.json` / `public/data/` | `GH_API_TOKEN`, CF |
-| `my-gsoc-tool--update-forks.yml` | GitHub | `0 0 * * *`, push under `my-gsoc-tool/` | `GH_API_TOKEN` |
 
 ### Schedules chosen for the GitLab jobs
 
 GitLab pipeline schedules were set in the GitLab UI, so their times were not in the repository. The schedules above came from:
 
 - `blt-gsoc` update-progress: `7 23 * * *`. The `.gitlab-ci.yml` comment gives `0 23 * * *`, and the job fills in the current day.
-- `blt-hackathons` future hackathons: `37 0 * * *`. The README says the schedule is daily.
+  It now runs in the Worker (blt-cron, 23:07-23:11), see "Data in Workers KV".
+- `blt-hackathons` future hackathons: was `37 0 * * *` (the README said daily). Since the data moved to KV
+  there is one hourly job for every hackathon that has not ended.
 - `blt-jobs` expire: no schedule (see "Fewer bot commits" below). Submissions are driven by issue events instead of polling.
 - `blt-owasp-projects` refresh: `23 4 * * *`, daily. This is OWASP repository metadata.
 - `blt-pages` leaderboard: `11 5 * * *`, daily. The page carries a timestamp, so an hourly run would commit every hour.
@@ -87,6 +84,63 @@ Every data commit a workflow pushes lands on `main`, so schedules are chosen to 
   stay in the repository until someone runs the workflow by hand. `seekers.json` has no expiry rule
   and is still served as a plain asset.
 - `blt-ossh` profiles are updated by issue events; the poll went from every 6 hours to once a day.
+- Hackathon statistics, GSoC stats and progress, and the my-gsoc-tool dashboard data and forks list
+  are kept in Workers KV (next section). Their six workflows (up to 28 commits a day, 24 of them the
+  hourly hackathon stats, whose `stats.json` timestamp changed every run) are gone or no
+  longer commit.
+
+### Data in Workers KV
+
+Data that a schedule refreshes now lives in each project's Workers KV namespace, not in git: no data
+commits and no redeploys. Each Worker serves the data at the same path the pages already load, from KV,
+and falls back to the copy committed under its static assets while KV has none (the first deploy).
+Responses carry `Cache-Control: public, max-age=60, stale-while-revalidate=600`, `X-Data-Source: kv` or
+`static`, and `X-Data-Updated-At`.
+
+| Project | Paths served from KV | Refreshed by | Secrets on the Worker |
+| --- | --- | --- | --- |
+| `blt-hackathons` | `/stats.json`, `/hackathon-data/*.json` | `blt-hackathons--update-stats.yml`, hourly, through the Cloudflare KV API (`scripts/worker-data/kv-put.sh`) | none |
+| `blt-gsoc` | `/js/gsoc2026_stats.generated.js`, `/data/progress.json` | the Worker, from blt-cron: `gsoc2026-stats` 02:17-02:31, `progress` 23:07-23:11 (once a minute, in chunks) | `CRON_SECRET`, `GH_API_TOKEN`, `GITLAB_TOKEN` (optional), `SLACK_TOKEN_OWASP`, `SLACK_TOKEN_BLT` |
+| `my-gsoc-tool` | `/data/github-contributions.json`, `/data/forks.json` | the Worker, from blt-cron at 00:03 | `CRON_SECRET`, `GH_API_TOKEN` |
+
+Shared code is in [`scripts/worker-data/`](../scripts/worker-data/):
+
+- `kv-data.js`: `serveData()` (KV, else the static file), `putData()` (stores `updatedAt` as KV
+  metadata), `handleCronDispatch()` (the `POST /__scheduled` endpoint, checked against
+  `CRON_SECRET`) and `runChunked()`. The Workers import it and wrangler bundles it, so a change
+  here needs `scripts/deploy.sh blt-hackathons blt-gsoc my-gsoc-tool` (`deploy.sh --changed` only
+  looks at project folders).
+- `kv-put.sh`: writes files to a project's namespace through the Cloudflare API. It reads the
+  namespace id from the project's `wrangler.toml` and needs `CLOUDFLARE_API_TOKEN` with
+  Workers KV Storage: Edit.
+- `create-kv.sh`: creates the namespaces (`blt-hackathons-data`, `blt-gsoc-data`,
+  `my-gsoc-tool-data`, all bound as `DATA`) and writes their ids into the `wrangler.toml` files.
+- `testing.mjs`: an in-memory KV, a static `ASSETS` stub and a fetch stub for the projects' tests.
+
+Free plan limits shaped each refresh. A Worker invocation may make 50 subrequests and use 10 ms of CPU:
+
+- **blt-hackathons** stays in Actions. One refresh of an active hackathon lists every pull request,
+  issue and review in 57 GitLab projects (or the GitHub org): hundreds of requests and a result of up
+  to 1.5 MB, far over one invocation's subrequests and CPU. The job seeds the incremental review merge
+  from the live files (KV holds the latest data, not git), runs `fetch_stats.py`, and writes only the
+  files it rewrote. `stats.json` is written only when something other than `lastUpdated` changed. The
+  Worker only streams KV values, so serving costs almost no CPU.
+- **blt-gsoc `gsoc2026-stats`** is about 90 GitHub requests, 78 of them searches (30 per minute
+  allowed). `runChunked()` does about 3 projects (at most 24 requests) per call, keeping its cursor
+  at `state:gsoc2026-stats`; a count that fails keeps the previous day's value.
+- **blt-gsoc `progress`** is about 40 requests (GitLab commits per repository, two Slack searches
+  per contributor), done in 2 calls of at most 30.
+- **my-gsoc-tool** needs 2 requests.
+
+To refresh by hand, call the Worker with the cron secret (`reset` redoes a run that already finished;
+repeat chunked tasks until the answer says `"done": true`; `progress` also takes `"day": "YYYY-MM-DD"`):
+
+```bash
+curl -X POST https://gsoc.owaspblt.org/__scheduled -H "X-BLT-Cron-Secret: $CRON_SECRET" \
+  -d '{"task": "progress", "reset": true}'
+```
+
+For blt-hackathons, run the workflow by hand.
 
 ## Behaviour changes
 
@@ -130,8 +184,9 @@ Every data commit a workflow pushes lands on `main`, so schedules are chosen to 
 - **Small fixes**:
   - `blt-tomato` scrapes into `public/`, where the site lives. It sends `GITHUB_TOKEN` when one is set.
   - `blt-owasp-bumper` writes `public/index.html`.
-  - `my-gsoc-tool` scripts are real files (`my-gsoc-tool/scripts/`) instead of being generated at
-    run time. Its forks list reads the GitHub repository OWASP-BLT/MY-GSOC-TOOL.
+  - `my-gsoc-tool`'s two workflows became Worker tasks (`my-gsoc-tool/worker/refresh.js`). The forks
+    list (GitHub repository OWASP-BLT/MY-GSOC-TOOL) is served at `/data/forks.json` instead of being
+    written into the README.
 - **Scripts**:
   - `scripts/ci/test.sh --changed` tests nothing when the base is empty, all zeros (a new branch)
     or unknown.

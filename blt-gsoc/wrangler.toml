@@ -1,8 +1,20 @@
-# Cloudflare Workers configuration. Deploys happen automatically via webhook
-# and serves static assets directly from the repository root. The GitLab CI
-# pipeline builds a temporary public/ directory for GitLab Pages deployment.
+# Cloudflare Workers configuration. scripts/deploy.sh builds public/ (see scripts/deploy/projects.tsv)
+# and deploys this Worker, which serves those static files. Two data files are kept in KV and
+# refreshed by the Worker itself (worker/index.js), called by blt-cron:
+#   /js/gsoc2026_stats.generated.js  (task gsoc2026-stats, daily 02:17-02:31 UTC)
+#   /data/progress.json              (task progress, daily 23:07-23:11 UTC)
+# Secrets: CRON_SECRET (same value as blt-cron), GH_API_TOKEN, GITLAB_TOKEN (optional),
+# SLACK_TOKEN_OWASP, SLACK_TOKEN_BLT.
 name = "blt-gsoc"
+main = "worker/index.js"
 compatibility_date = "2026-06-11"
 
 [assets]
 directory = "./public"
+binding = "ASSETS"
+run_worker_first = ["/__scheduled", "/js/gsoc2026_stats.generated.js", "/data/progress.json"]
+
+# Created by scripts/worker-data/create-kv.sh, which replaces the placeholder id.
+[[kv_namespaces]]
+binding = "DATA"
+id = "REPLACE_WITH_KV_ID_blt-gsoc-data"

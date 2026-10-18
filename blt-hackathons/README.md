@@ -18,7 +18,7 @@ A static hackathon platform for GitHub and GitLab projects with **charts**, **le
 - 🏆 **Prize Management** - Showcase prizes and awards for top contributors
 - 🤝 **Sponsor Display** - Highlight your hackathon sponsors
 - 📱 **Responsive Design** - Works perfectly on desktop and mobile devices
-- 🚀 **Zero Backend** - Deploys as static files to Cloudflare Pages or GitHub Pages
+- 🚀 **Almost No Backend** - Static files plus a tiny Worker that serves statistics from Workers KV
 - ⚡ **Easy Setup** - Just edit a config file and deploy!
 
 ## 🎯 Quick Start
@@ -77,25 +77,33 @@ Your main page (`index.html`) will show all hackathons, and each hackathon will 
 3. Under "Source", select the branch you want to deploy (usually `main`)
 4. Your hackathon platform will be live at: `https://your-username.github.io/BLT-Hackathons/`
 
-### Deploy to Cloudflare Pages
+### Deploy to Cloudflare
 
-Connect the repository in Cloudflare Pages and use:
+In this repository the site is the `blt-hackathons` Cloudflare Worker (`wrangler.toml`), deployed by
+`scripts/deploy.sh blt-hackathons`. It serves `public/` as static assets. A small Worker
+(`worker/index.js`) answers `/stats.json` and `/hackathon-data/*.json` from Workers KV (binding
+`DATA`, namespace `blt-hackathons-data`), and falls back to the files committed under `public/` when
+KV has no copy yet.
 
-- Production branch: `main`
-- Build command: leave empty
-- Build output directory: `public`
+### Statistics updates
 
-The site is entirely static. No Cloudflare Worker is needed.
+The workflow `.forkmesh/blt-hackathons--update-stats.yml` runs every hour, on pushes under
+`blt-hackathons/`, and by hand. It runs `scripts/refresh-kv.sh`:
 
-### Daily GitLab Updates
+1. downloads the live data of every hackathon that has not ended, because KV holds the latest copy
+   and `fetch_stats.py` merges reviews incrementally;
+2. runs `fetch_stats.py`, which skips ended hackathons (GitHub or GitLab, per hackathon);
+3. writes the files it changed to KV through the Cloudflare API (`scripts/worker-data/kv-put.sh`).
 
-Create a GitLab pipeline schedule that runs daily on `main`. The included `.gitlab-ci.yml` updates hackathons starting after May 31, 2026. Add these masked CI/CD variables:
+Nothing is committed and the site is not redeployed. The fetch stays in the workflow because a
+refresh is hundreds of API requests, more than a free-plan Worker invocation may make (50).
+Secrets: `GH_API_TOKEN`, `GITLAB_TOKEN` (optional for public projects), and `CLOUDFLARE_API_TOKEN`
+(with Workers KV Storage: Edit) plus `CLOUDFLARE_ACCOUNT_ID`.
 
-- `GITHUB_TOKEN`: optional, for future hackathons that track GitHub repositories
-- `GITLAB_TOKEN`: optional for public GitLab projects, required for private projects
-- `GITLAB_PUSH_TOKEN`: required project access token with repository write access
+The JSON files under `public/hackathon-data/` are only the fallback. A hackathon's final data stays
+in KV after it ends; copy it into git by hand if you want a snapshot there.
 
-The existing GitHub Action remains in place for hackathons starting on or before May 31, 2026.
+Tests: `node --test 'test/*.test.mjs'` (the Worker and `refresh-kv.sh` with stubbed fetch and curl).
 
 ## 📖 Configuration Guide
 
@@ -317,7 +325,10 @@ BLT-Hackathons/
 │   │   ├── github-api.js       # GitHub API integration
 │   │   └── main.js             # Dashboard logic
 │   ├── images/                 # Optional: images and logos
-│   └── hackathon-data/         # Generated JSON statistics
+│   └── hackathon-data/         # Statistics fallback (live data is in Workers KV)
+├── worker/index.js             # Serves the statistics from KV
+├── scripts/refresh-kv.sh       # Hourly refresh into KV
+├── fetch_stats.py              # GitHub/GitLab statistics fetcher
 └── README.md
 ```
 

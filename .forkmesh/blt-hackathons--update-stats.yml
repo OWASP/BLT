@@ -1,6 +1,9 @@
 name: "blt-hackathons: Update Statistics"
-# Ported from .github/workflows/blt-hackathons--update-stats.yml. Refreshes hackathons starting
-# through 2026-05-31; blt-hackathons--update-future-hackathons.yml covers the later ones.
+# Refreshes the statistics of every hackathon that has not ended and writes the changed files to
+# the blt-hackathons Worker's KV namespace (scripts/refresh-kv.sh). The Worker serves them at
+# /stats.json and /hackathon-data/*.json. Nothing is committed and nothing is redeployed.
+# The fetch stays here rather than in the Worker: one refresh is hundreds of GitHub/GitLab
+# requests, and a free-plan Worker invocation may make 50.
 on:
   push:
     branches: [main]
@@ -10,7 +13,7 @@ on:
     - cron: "0 * * * *"
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
   update-stats:
     runs-on: runner
@@ -18,20 +21,14 @@ jobs:
     defaults:
       run:
         working-directory: blt-hackathons
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - name: Set up Python
         run: python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt
-      - name: Parse hackathons config
-        run: node scripts/parse_hackathons_config.js public/js/hackathons-config.js "$PWD/.venv/hackathons-config-parsed.json"
-      - name: Fetch and update statistics
+      - name: Fetch statistics and write them to KV
         env:
           GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          UPDATE_HACKATHONS_STARTING_THROUGH: "2026-05-31 23:59:59+00:00"
-        run: HACKATHONS_CONFIG_PATH="$PWD/.venv/hackathons-config-parsed.json" .venv/bin/python fetch_stats.py
-      - name: Commit and deploy if changed
-        run: |
-          ../scripts/actions/commit-back.sh --deploy blt-hackathons -m "blt-hackathons: update statistics" -- public/stats.json public/hackathon-data
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PYTHON: .venv/bin/python
+        run: scripts/refresh-kv.sh
