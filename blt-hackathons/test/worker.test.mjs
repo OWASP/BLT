@@ -63,6 +63,10 @@ esac
 cat "$PUBLIC_DIR/hackathon-data/gsoc-2027-warmup-summary.json" > "${dir}/seen-summary"
 echo '{"lastUpdated":"new","stats":{}}' > "$PUBLIC_DIR/hackathon-data/gsoc-2027-warmup.json"
 echo "{\\"lastUpdated\\":\\"new\\",\\"hackathons\\":[\${STATS_N:-1}]}" > "$PUBLIC_DIR/stats.json"
+echo "$FETCH_STATE_PATH $FETCH_BUDGET_SECONDS" > "${dir}/seen-state-path"
+[[ -f "$FETCH_STATE_PATH" ]] && cp "$FETCH_STATE_PATH" "${dir}/seen-state"
+[[ -n "\${STATE_OUT:-}" ]] && echo "$STATE_OUT" > "$FETCH_STATE_PATH"
+exit 0
 `);
     chmodSync(join(bin, "curl"), 0o755);
     chmodSync(join(bin, "fakepy"), 0o755);
@@ -88,6 +92,18 @@ echo "{\\"lastUpdated\\":\\"new\\",\\"hackathons\\":[\${STATS_N:-1}]}" > "$PUBLI
     assert.doesNotMatch(log, /may-2025-hackathon/); // ended hackathons are not seeded
     out = run({ STATS_N: "2" });
     assert.match(out, /would write stats\.json/);
+    assert.doesNotMatch(out, /state\/fetch-state\.json/); // no state, none written
+    assert.match(out, /no refresh state in KV/);
+    assert.match(readFileSync(join(dir, "seen-state-path"), "utf8"), /state\/fetch-state\.json 900/);
+
+    // The refresh state is read from KV and written back only when the fetch changed it.
+    writeFileSync(join(dir, "state.json"), '{"cursor":1}\n');
+    out = run({ KV_GET_FROM: join(dir, "state.json"), STATE_OUT: '{"cursor":1}' });
+    assert.match(out, /loaded refresh state from KV/);
+    assert.equal(readFileSync(join(dir, "seen-state"), "utf8"), '{"cursor":1}\n');
+    assert.doesNotMatch(out, /would write state\/fetch-state\.json/);
+    out = run({ KV_GET_FROM: join(dir, "state.json"), STATE_OUT: '{"cursor":2}' });
+    assert.match(out, /would write state\/fetch-state\.json/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

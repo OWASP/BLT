@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-10-18T10:00:19.099702+00:00",
-  "repositories": 64,
+  "lastUpdated": "2026-10-18T12:02:52.039583+00:00",
+  "repositories": 66,
   "hackathonName": "BLT Mentor Warmup Hackathon",
   "startTime": "2025-10-31T00:00:00Z",
   "endTime": "2026-03-30T18:00:00Z",
@@ -24,7 +24,7 @@
       "name": "GSOC 2027 Warmup",
       "startTime": "2026-11-01T00:00:00Z",
       "endTime": "2027-05-09T23:59:59Z",
-      "provider": "gitlab"
+      "provider": "forkmesh"
     },
     {
       "slug": "may-2025-hackathon",

@@ -80,7 +80,6 @@ INDEX_REQUIRED_TEXT = [
     "contribution",
     "Featured event",
     "GSoC",
-    "GitLab",
     "OWASP BLT ecosystem",
 ]
 

@@ -11,64 +11,19 @@ const summaryPath = "public/hackathon-data/gsoc-2027-warmup-summary.json";
 
 const HACKATHONS_CONFIG = eval(`${configSource}\nHACKATHONS_CONFIG`);
 
-const requiredProjects = [
-  "owasp-blt/blt",
-  "owasp-blt/blt-action",
-  "owasp-blt/blt-api",
-  "owasp-blt/blt-autopatch",
-  "owasp-blt/blt-byte",
-  "owasp-blt/blt-cve",
-  "owasp-blt/blt-dash",
-  "owasp-blt/blt-design",
-  "owasp-blt/blt-design-contest",
-  "owasp-blt/blt-docs",
-  "owasp-blt/blt-enforcement",
-  "owasp-blt/blt-extension",
-  "owasp-blt/blt-flutter",
-  "owasp-blt/blt-gitcaster",
-  "owasp-blt/blt-gsoc",
-  "owasp-blt/blt-hackathons",
-  "owasp-blt/blt-hackerhouse",
-  "owasp-blt/blt-ideas",
-  "owasp-blt/blt-jobs",
-  "owasp-blt/blt-ketchup",
-  "owasp-blt/blt-leaf",
-  "owasp-blt/blt-lettuce",
-  "owasp-blt/blt-mayo",
-  "owasp-blt/blt-mcp",
-  "owasp-blt/blt-monitor",
-  "owasp-blt/blt-netguardian",
-  "owasp-blt/blt-netguardian-client",
-  "owasp-blt/blt-newsletter",
-  "owasp-blt/blt-next",
-  "owasp-blt/blt-nexus",
-  "owasp-blt/blt-ossh",
-  "owasp-blt/blt-owasp-bumper",
-  "owasp-blt/blt-owasp-metadata",
-  "owasp-blt/blt-owasp-projects",
-  "owasp-blt/blt-owasp-wich",
-  "owasp-blt/blt-pages",
-  "owasp-blt/blt-panini",
-  "owasp-blt/blt-pool",
-  "owasp-blt/blt-preflight",
-  "owasp-blt/blt-profiles",
-  "owasp-blt/blt-rewards",
-  "owasp-blt/blt-safecloak",
-  "owasp-blt/blt-sammich",
-  "owasp-blt/blt-sizzle",
-  "owasp-blt/blt-start",
-  "owasp-blt/blt-timer-flutter",
-  "owasp-blt/blt-timer-web",
-  "owasp-blt/blt-toasty",
-  "owasp-blt/blt-tomato",
-  "owasp-blt/blt-university",
-  "owasp-blt/blt-vanish",
-  "owasp-blt/blt-vanish-flutter",
-  "owasp-blt/blt-waypoint",
-  "owasp-blt/blt-zero",
-  "owasp-blt/coderabbit",
-  "owasp-blt/dot_github",
-  "owasp-blt/my-gsoc-tool",
+// The 57 gitlab.com/owasp-blt projects the event was announced with, now folders of the BLT
+// monorepo on git.owaspblt.org (owasp-blt/blt is blt-core).
+const requiredFolders = [
+  "blt-core", "blt-action", "blt-api", "blt-autopatch", "blt-byte", "blt-cve", "blt-dash",
+  "blt-design", "blt-design-contest", "blt-docs", "blt-enforcement", "blt-extension",
+  "blt-flutter", "blt-gitcaster", "blt-gsoc", "blt-hackathons", "blt-hackerhouse", "blt-ideas",
+  "blt-jobs", "blt-ketchup", "blt-leaf", "blt-lettuce", "blt-mayo", "blt-mcp", "blt-monitor",
+  "blt-netguardian", "blt-netguardian-client", "blt-newsletter", "blt-next", "blt-nexus",
+  "blt-ossh", "blt-owasp-bumper", "blt-owasp-metadata", "blt-owasp-projects", "blt-owasp-wich",
+  "blt-pages", "blt-panini", "blt-pool", "blt-preflight", "blt-profiles", "blt-rewards",
+  "blt-safecloak", "blt-sammich", "blt-sizzle", "blt-start", "blt-timer-flutter",
+  "blt-timer-web", "blt-toasty", "blt-tomato", "blt-university", "blt-vanish",
+  "blt-vanish-flutter", "blt-waypoint", "blt-zero", "coderabbit", "dot_github", "my-gsoc-tool",
 ];
 
 const failures = [];
@@ -79,55 +34,39 @@ const gsoc2027 = HACKATHONS_CONFIG.hackathons.find(
 if (!gsoc2027) {
   failures.push("missing gsoc-2027-warmup hackathon");
 } else {
-  if (gsoc2027.provider !== "gitlab") {
-    failures.push("gsoc-2027-warmup must use provider=gitlab");
+  if (gsoc2027.provider !== "forkmesh") {
+    failures.push("gsoc-2027-warmup must use provider=forkmesh");
   }
-  if (gsoc2027.gitlab?.url !== "https://gitlab.com") {
-    failures.push("gsoc-2027-warmup must point at https://gitlab.com");
+  if (gsoc2027.forkmesh?.url !== "https://git.owaspblt.org") {
+    failures.push("gsoc-2027-warmup must point at https://git.owaspblt.org");
   }
-  if (gsoc2027.gitlab?.group !== "owasp-blt") {
-    failures.push("gsoc-2027-warmup must use the owasp-blt GitLab group");
+  if (gsoc2027.forkmesh?.owner !== "owasp-blt" || gsoc2027.forkmesh?.repo !== "BLT") {
+    failures.push("gsoc-2027-warmup must read the owasp-blt/BLT repository");
   }
-  const projects = gsoc2027.gitlab?.projects || [];
-  const missing = requiredProjects.filter((project) => !projects.includes(project));
+  const paths = gsoc2027.forkmesh?.paths || [];
+  const missing = requiredFolders.filter((folder) => !paths.includes(folder));
   if (missing.length > 0) {
-    failures.push(`gsoc-2027-warmup missing GitLab projects: ${missing.join(", ")}`);
+    failures.push(`gsoc-2027-warmup missing project folders: ${missing.join(", ")}`);
   }
-  if (projects.length < requiredProjects.length) {
-    failures.push(
-      `gsoc-2027-warmup has ${projects.length} projects; expected at least ${requiredProjects.length}`,
-    );
+  if (gsoc2027.trackSlack !== true || !gsoc2027.slackUsersFile) {
+    failures.push("gsoc-2027-warmup must track Slack activity (trackSlack, slackUsersFile)");
+  } else if (!fs.existsSync(gsoc2027.slackUsersFile)) {
+    failures.push(`${gsoc2027.slackUsersFile} must exist`);
   }
 }
 
 if (HACKATHONS_CONFIG.global.organizationUrl !== "https://git.owaspblt.org/BLT") {
-  failures.push("global organizationUrl must point to the OWASP-BLT GitLab group");
+  failures.push("global organizationUrl must point to https://git.owaspblt.org/BLT");
 }
 
-if (!fs.existsSync(dataPath)) {
-  failures.push(`${dataPath} must exist`);
-} else {
-  const data = JSON.parse(fs.readFileSync(dataPath, "utf8"));
-  if (data.provider !== "gitlab") {
-    failures.push(`${dataPath} must use provider=gitlab`);
+for (const path of [dataPath, summaryPath]) {
+  if (!fs.existsSync(path)) {
+    failures.push(`${path} must exist`);
+    continue;
   }
-  const missing = requiredProjects.filter((project) => !data.repositories?.includes(project));
-  if (missing.length > 0) {
-    failures.push(`${dataPath} missing repositories: ${missing.join(", ")}`);
-  }
-}
-
-if (!fs.existsSync(summaryPath)) {
-  failures.push(`${summaryPath} must exist`);
-} else {
-  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
-  if (summary.provider !== "gitlab") {
-    failures.push(`${summaryPath} must use provider=gitlab`);
-  }
-  if (summary.repositories < requiredProjects.length) {
-    failures.push(
-      `${summaryPath} tracks ${summary.repositories} repositories; expected at least ${requiredProjects.length}`,
-    );
+  const data = JSON.parse(fs.readFileSync(path, "utf8"));
+  if (data.provider !== "forkmesh") {
+    failures.push(`${path} must use provider=forkmesh`);
   }
 }
 
@@ -155,14 +94,10 @@ statColorChecks.forEach(({ name, source, selector }) => {
   }
 });
 
-const forbiddenPublicProjectUrls = [
-  "https://git.owaspblt.org/BLT/BLT-Hackathons",
-  "https://git.owaspblt.org/BLT/issues",
-];
-
-forbiddenPublicProjectUrls.forEach((url) => {
-  if (indexHtml.includes(url) || hackathonHtml.includes(url)) {
-    failures.push(`public pages must use GitLab instead of ${url}`);
+// gitlab.com/owasp-blt is closed: the pages must not send anyone there.
+[["index.html", indexHtml], ["hackathon.html", hackathonHtml]].forEach(([name, html]) => {
+  if (/gitlab\.com\/owasp-blt/i.test(html)) {
+    failures.push(`public/${name} must not link to gitlab.com/owasp-blt`);
   }
 });
 

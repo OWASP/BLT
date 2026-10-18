@@ -194,7 +194,35 @@ const EXAMPLE_CONFIG = {
     }
 };
 
-// GitLab hackathons use the same top-level fields and display options.
+// Hackathons on git.owaspblt.org (the BLT monorepo, one folder per project).
+const FORKMESH_EXAMPLE_CONFIG = {
+    slug: "summer-2027",
+    name: "Summer 2027 Hackathon",
+    description: "Track contributions to a few BLT projects.",
+    startTime: "2027-06-01T00:00:00Z",
+    endTime: "2027-06-30T23:59:59Z",
+    provider: "forkmesh",
+    forkmesh: {
+        url: "https://git.owaspblt.org",
+        owner: "owasp-blt",
+        repo: "BLT",
+        webUrl: "https://git.owaspblt.org/BLT",
+        paths: ["blt-leaf", "blt-jobs"]   // or ["*"] for every folder
+    },
+    // Optional: Slack messages per participant (see README "Slack activity").
+    trackSlack: false,
+    slackUsersFile: "hackathon-participants/summer-2027-slack.yml",
+    prizes: [],
+    sponsors: [],
+    display: {
+        showRepoStats: true,
+        maxLeaderboardEntries: 15,
+        showPRsInLeaderboard: true,
+        showReviewsInLeaderboard: true
+    }
+};
+
+// GitLab hackathons (third-party groups; gitlab.com/owasp-blt is closed) use the same fields.
 const GITLAB_EXAMPLE_CONFIG = {
     slug: "summer-2026",
     name: "Summer 2026 GitLab Hackathon",
@@ -204,9 +232,9 @@ const GITLAB_EXAMPLE_CONFIG = {
     provider: "gitlab",
     gitlab: {
         url: "https://gitlab.com",
-        group: "owasp-blt",
+        group: "example-group",
         projects: [
-            "owasp-blt/blt-hackathons"
+            "example-group/example-project"
         ]
     },
     prizes: [],

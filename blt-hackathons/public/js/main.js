@@ -9,7 +9,9 @@ class HackathonDashboard {
         this.provider = (config.provider || 'github').toLowerCase();
         this.providerConfig = this.provider === 'gitlab'
             ? (config.gitlab || {})
-            : (config.github || {});
+            : this.provider === 'forkmesh'
+                ? (config.forkmesh || {})
+                : (config.github || {});
         // The class also contains the shared leaderboard sorting helpers.
         this.api = new GitHubAPI((config.github || {}).token);
         this.chart = null;
@@ -97,9 +99,16 @@ class HackathonDashboard {
                         mergedCount: p.mergedCount || 0,
                         reviewCount: p.reviewCount || 0,
                         reviews: p.reviews || [],
+                        slackMessages: p.slackMessages,
                     });
                 }
             });
+
+            // Slack counts by lowercase username, for the leaderboard badges
+            this.slackEnabled = Boolean(stats.slack && stats.slack.enabled);
+            this.slackByUser = new Map(
+                ((stats.slack && stats.slack.participants) || []).map(p => [String(p.username).toLowerCase(), p.total])
+            );
 
             // Update UI
             this.updateStats({
@@ -127,6 +136,7 @@ class HackathonDashboard {
                 }
             }
 
+            this.renderSlackActivity(stats.slack);
             this.renderRepositories(stats.repoStats || {}, stats.repoData || []);
             this.renderSponsors();
             this.hideLoading();
@@ -332,7 +342,7 @@ class HackathonDashboard {
                             ${safeUsername}
                         </a>
                         ${trophyIcon}
-                        <p>${mergedCount.toLocaleString()} merged ${mergedCount === 1 ? this.changeLabels.singular : this.changeLabels.plural}</p>
+                        <p>${mergedCount.toLocaleString()} merged ${mergedCount === 1 ? this.changeLabels.singular : this.changeLabels.plural}${this.slackBadge(participant)}</p>
                     </div>
                     <a href="${this.escapeAttribute(activityUrl)}"
                        target="_blank"
@@ -623,7 +633,7 @@ class HackathonDashboard {
             const stats = repoStats[repoPath] || { total: 0, merged: 0, issues: 0, closedIssues: 0 };
             const meta = repoMetaMap[repoPath] || {};
             const urls = this.getRepositoryUrls(repoPath, meta);
-            const providerIcon = this.provider === 'gitlab' ? 'gitlab' : 'github';
+            const providerIcon = this.providerIconClass();
             const repositoryUrl = this.safeUrl(urls.repository, '#');
             const changesUrl = this.safeUrl(urls.changes, '#');
             const issuesUrl = this.safeUrl(urls.issues, '#');
@@ -633,7 +643,7 @@ class HackathonDashboard {
                 <article class="dashboard-repo-item">
                     <div class="dashboard-repo-heading">
                         <div class="flex items-center gap-2">
-                            <i class="fab fa-${providerIcon}" aria-hidden="true"></i>
+                            <i class="${providerIcon}" aria-hidden="true"></i>
                             <a href="${this.escapeAttribute(repositoryUrl)}" target="_blank" rel="noopener noreferrer">
                                 ${this.escapeHtml(repoPath)}
                             </a>
@@ -663,12 +673,12 @@ class HackathonDashboard {
                     ` : ''}
                     <div class="dashboard-repo-actions">
                         <a href="${this.escapeAttribute(repositoryUrl)}" target="_blank" rel="noopener noreferrer" class="dashboard-small-link">
-                            <i class="fab fa-${providerIcon}" aria-hidden="true"></i>
-                            ${this.provider === 'gitlab' ? 'GitLab' : 'GitHub'}
+                            <i class="${providerIcon}" aria-hidden="true"></i>
+                            ${this.providerName()}
                         </a>
                         <a href="${this.escapeAttribute(changesUrl)}" target="_blank" rel="noopener noreferrer" class="dashboard-small-link">
                             <i class="fas fa-code-branch" aria-hidden="true"></i>
-                            ${this.provider === 'gitlab' ? 'Merge Requests' : 'Pull Requests'}
+                            ${this.changeLabels.titlePlural}
                         </a>
                         <a href="${this.escapeAttribute(issuesUrl)}" target="_blank" rel="noopener noreferrer" class="dashboard-small-link">
                             <i class="fas fa-circle-dot" aria-hidden="true"></i>
@@ -686,12 +696,37 @@ class HackathonDashboard {
      * Return configured repositories or projects before generated data loads.
      */
     getConfiguredRepositories() {
+        if (this.provider === 'forkmesh') {
+            return (this.providerConfig.paths || []).filter(path => path !== '*');
+        }
         return this.provider === 'gitlab'
             ? (this.providerConfig.projects || [])
             : (this.providerConfig.repositories || []);
     }
 
+    providerName() {
+        return { gitlab: 'GitLab', forkmesh: 'Source' }[this.provider] || 'GitHub';
+    }
+
+    providerIconClass() {
+        return { gitlab: 'fab fa-gitlab', forkmesh: 'fas fa-code-branch' }[this.provider] || 'fab fa-github';
+    }
+
+    forkmeshWebUrl() {
+        const cfg = this.providerConfig;
+        const url = (cfg.url || 'https://git.owaspblt.org').replace(/\/$/, '');
+        return (cfg.webUrl || `${url}/${cfg.repo || 'BLT'}`).replace(/\/$/, '');
+    }
+
     getRepositoryUrls(repoPath, metadata = {}) {
+        if (this.provider === 'forkmesh') {
+            const web = this.forkmeshWebUrl();
+            return {
+                repository: metadata.html_url || `${web}/tree/main/${repoPath}`,
+                changes: metadata.pulls_url || `${web}/pulls`,
+                issues: metadata.issues_url || `${web}/issues`,
+            };
+        }
         const baseUrl = metadata.html_url || (
             this.provider === 'gitlab'
                 ? `${(this.providerConfig.url || 'https://gitlab.com').replace(/\/$/, '')}/${repoPath}`
@@ -705,12 +740,51 @@ class HackathonDashboard {
     }
 
     getContributorActivityUrl(participant) {
-        if (this.provider === 'gitlab') return participant.url;
+        if (this.provider === 'gitlab' || this.provider === 'forkmesh') return participant.url;
         return `https://github.com/search?q=author%3A${encodeURIComponent(participant.username)}+org%3AOWASP-BLT+type%3Apr+is%3Amerged`;
     }
 
+    /**
+     * " · 12 Slack messages" for the contributor leaderboard, when the event tracks Slack.
+     */
+    slackBadge(participant) {
+        if (!this.slackEnabled || !this.slackByUser) return '';
+        const total = this.slackByUser.get(String(participant.user?.username || participant.username || '').toLowerCase());
+        if (total === undefined) return '';
+        const text = typeof total === 'number' ? total.toLocaleString() : '—';
+        return ` · <span class="dashboard-slack-badge" title="Slack messages during the event"><i class="fab fa-slack" aria-hidden="true"></i> ${text}</span>`;
+    }
+
+    /**
+     * Slack activity card (hackathons with trackSlack). Hidden when Slack is not configured.
+     */
+    renderSlackActivity(slack) {
+        const card = document.getElementById('slack-card');
+        if (!card) return;
+        if (!slack || !slack.enabled) {
+            card.hidden = true;
+            return;
+        }
+        const servers = slack.servers || [];
+        const names = { owasp: 'OWASP', blt: 'BLT' };
+        this.setText('slack-total', Number(slack.totalMessages || 0).toLocaleString());
+        const list = document.getElementById('slack-leaderboard');
+        const rows = slack.participants || [];
+        const count = (value) => typeof value === 'number' ? value.toLocaleString() : '—';
+        if (list) {
+            list.setAttribute('aria-busy', 'false');
+            list.innerHTML = rows.length === 0
+                ? this.renderEmptyState('fa-comments', 'No participants have linked a Slack account yet.')
+                : `<table class="dashboard-slack-table">
+                    <thead><tr><th scope="col">Participant</th>${servers.map(s => `<th scope="col">${this.escapeHtml(names[s] || s)}</th>`).join('')}<th scope="col">Total</th></tr></thead>
+                    <tbody>${rows.map(row => `<tr><td>${this.escapeHtml(row.username)}</td>${servers.map(s => `<td>${count(row[s])}</td>`).join('')}<td><strong>${count(row.total)}</strong></td></tr>`).join('')}</tbody>
+                </table>`;
+        }
+        card.hidden = false;
+    }
+
     getReviewActivityUrl(participant) {
-        if (this.provider === 'gitlab') return participant.url;
+        if (this.provider === 'gitlab' || this.provider === 'forkmesh') return participant.url;
         return `https://github.com/search?q=reviewed-by%3A${encodeURIComponent(participant.username)}+type%3Apr`;
     }
 
@@ -817,7 +891,7 @@ class HackathonDashboard {
         if (!infoEl) return;
 
         const lastUpdatedHtml = this.loadedAt
-            ? `<span><i class="fas fa-sync-alt" aria-hidden="true"></i> Stats auto-refreshed ${this.provider === 'gitlab' ? 'daily' : 'hourly'}</span>` +
+            ? `<span><i class="fas fa-sync-alt" aria-hidden="true"></i> Stats auto-refreshed every 6 hours</span>` +
               `<span aria-hidden="true">|</span>` +
               `<span>Last updated: <span id="last-updated-time" title="${this.escapeAttribute(this.loadedAt.toLocaleString())}">${this.timeAgo(this.loadedAt)}</span></span>`
             : '';

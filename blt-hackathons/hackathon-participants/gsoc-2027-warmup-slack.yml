@@ -1,0 +1,19 @@
+# GSoC 2027 Warmup: Slack accounts of participants (used because the hackathon sets trackSlack).
+#
+# The hackathon page shows how many messages each participant listed here posted in the OWASP
+# and BLT Slack workspaces between the start and end of the event. People who are not listed
+# still count for pull requests, issues and reviews; they just have no Slack count.
+#
+# To add yourself, open a pull request on git.owaspblt.org that adds one line under `slack:`.
+# The key is your git.owaspblt.org username (the author name on your pull requests); the value
+# is your Slack handle, the same in both workspaces, or a map when they differ. A Slack member
+# id (Profile > ... > Copy member ID, e.g. U012ABCDEF) also works and survives handle changes.
+#
+#   slack:
+#     alice: alice.dev
+#     bob: {owasp: bob.smith, blt: bob}
+#     carol: {owasp: U012ABCDEF}
+#
+# Counts refresh about once a day (Slack allows ~20 searches a minute).
+
+slack: {}

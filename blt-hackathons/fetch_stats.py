@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Fetch GitHub or GitLab stats for hackathons and save to public/hackathon-data/.
-The CI workflow selects which date range it owns.
+Fetch hackathon stats from git.owaspblt.org (ForkMesh), GitHub or GitLab and save them to
+public/hackathon-data/. The CI workflow selects which date range it owns.
 
 The frontend simply loads the resulting JSON files without making any live
 GitHub API calls.
@@ -10,6 +10,11 @@ OPTIMIZATIONS:
 - Skip ended hackathons (keeps historical data static)
 - Incremental review fetching (only fetch reviews for PRs updated since last run)
 - Org repos caching (fetch once, reuse for all hackathons)
+- ForkMesh: one incremental, resumable sync of the monorepo's pulls and issues per run, shared by
+  every hackathon (forkmesh_source.py), cached in the refresh state (FETCH_STATE_PATH, kept in KV)
+- A time budget for the whole run (FETCH_BUDGET_SECONDS, default 900): requests stop when it is
+  spent; a hackathon whose data is incomplete keeps its previous file
+- Optional Slack activity per participant (slack_activity.py, hackathons with trackSlack: true)
 """
 
 import json
@@ -23,7 +28,9 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-import yaml
+import forkmesh_source
+import slack_activity
+from forkmesh_source import Deadline, DeadlineExceeded
 
 logging.basicConfig(
     level=logging.INFO,
@@ -34,6 +41,8 @@ logger = logging.getLogger(__name__)
 GITHUB_API_BASE = "https://api.github.com"
 DEFAULT_GITLAB_URL = "https://gitlab.com"
 PUBLIC_DIR = os.environ.get("PUBLIC_DIR", "public")
+# Shared by every request of a run; main() replaces it with the configured budget.
+DEADLINE = Deadline()
 
 
 def public_path(*parts):
@@ -71,6 +80,7 @@ def make_request(url, token=None, retry_count=3):
         headers["Authorization"] = f"Bearer {token}"
 
     for attempt in range(retry_count):
+        DEADLINE.check()
         try:
             req = Request(url, headers=headers)
             with urlopen(req, timeout=30) as response:
@@ -79,8 +89,9 @@ def make_request(url, token=None, retry_count=3):
             if e.code in (429, 403):
                 reset = e.headers.get("X-RateLimit-Reset")
                 wait = max(int(reset) - int(time.time()) + 5, 10) if reset else 60
-                logger.warning("Rate limited on %s. Waiting %ds...", url, min(wait, 300))
-                time.sleep(min(wait, 300))
+                wait = min(wait, 300, max(DEADLINE.remaining(), 0))
+                logger.warning("Rate limited on %s. Waiting %ds...", url, wait)
+                time.sleep(wait)
             elif e.code == 404:
                 logger.warning("Not found: %s", url)
                 return None
@@ -109,15 +120,16 @@ def make_gitlab_request(url, token=None, retry_count=3):
         headers["PRIVATE-TOKEN"] = token
 
     for attempt in range(retry_count):
+        DEADLINE.check()
         try:
             req = Request(url, headers=headers)
             with urlopen(req, timeout=30) as response:
                 return json.loads(response.read().decode("utf-8"))
         except HTTPError as exc:
             if exc.code == 429:
-                wait = int(exc.headers.get("Retry-After", "60"))
-                logger.warning("Rate limited on %s. Waiting %ds...", url, min(wait, 300))
-                time.sleep(min(wait, 300))
+                wait = min(int(exc.headers.get("Retry-After", "60")), 300, max(DEADLINE.remaining(), 0))
+                logger.warning("Rate limited on %s. Waiting %ds...", url, wait)
+                time.sleep(wait)
             elif exc.code == 404:
                 logger.warning("Not found: %s", url)
                 return None
@@ -286,6 +298,8 @@ def load_participants_allowlist(participants_file):
         logger.warning("Participants file not found: %s — no filtering applied", participants_file)
         return None
     try:
+        import yaml
+
         with open(participants_file, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
         if not isinstance(data, dict):
@@ -441,13 +455,13 @@ def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, reposito
         if is_merged:
             merged_prs += 1
 
-        # Track per-repository stats
-        repo_key = pr.get("repository", "unknown")
-        if repo_key not in repo_stats:
-            repo_stats[repo_key] = {"total": 0, "merged": 0, "issues": 0, "closedIssues": 0}
-        repo_stats[repo_key]["total"] += 1
-        if is_merged:
-            repo_stats[repo_key]["merged"] += 1
+        # Track per-repository stats (a monorepo pull can belong to several project folders)
+        for repo_key in pr.get("repositories") or [pr.get("repository", "unknown")]:
+            if repo_key not in repo_stats:
+                repo_stats[repo_key] = {"total": 0, "merged": 0, "issues": 0, "closedIssues": 0}
+            repo_stats[repo_key]["total"] += 1
+            if is_merged:
+                repo_stats[repo_key]["merged"] += 1
 
         # Track daily creation activity
         created_at = datetime.fromisoformat(pr["created_at"].replace("Z", "+00:00"))
@@ -544,13 +558,14 @@ def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, reposito
     total_issues = 0
     closed_issues = 0
     for issue in issues:
-        repo_key = issue.get("repository", "unknown")
-        if repo_key not in repo_stats:
-            repo_stats[repo_key] = {"total": 0, "merged": 0, "issues": 0, "closedIssues": 0}
-        repo_stats[repo_key]["issues"] += 1
+        for repo_key in issue.get("repositories") or [issue.get("repository", "unknown")]:
+            if repo_key not in repo_stats:
+                repo_stats[repo_key] = {"total": 0, "merged": 0, "issues": 0, "closedIssues": 0}
+            repo_stats[repo_key]["issues"] += 1
+            if issue["state"] == "closed":
+                repo_stats[repo_key]["closedIssues"] += 1
         total_issues += 1
         if issue["state"] == "closed":
-            repo_stats[repo_key]["closedIssues"] += 1
             closed_issues += 1
 
     # Get last 10 PRs (filtered for humans and optionally by allowlist)
@@ -865,6 +880,10 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
             except Exception as exc:
                 logger.error("Failed to fetch metadata for %s: %s", repo_path, exc)
 
+    # A request refused by the time budget was logged as a failed fetch above; never publish
+    # the partial result.
+    DEADLINE.check()
+
     # Compute stats
     stats = process_hackathon_stats(
         all_prs, all_reviews, all_issues, start_dt, end_dt, repositories,
@@ -882,6 +901,118 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
         "repositories": repositories,
         "stats": stats,
     }
+
+
+def forkmesh_settings(hackathon_config):
+    """(api url, owner, repo, web base, folders) of a ``provider: "forkmesh"`` hackathon."""
+    cfg = hackathon_config.get("forkmesh", {})
+    url = (cfg.get("url") or forkmesh_source.DEFAULT_URL).rstrip("/")
+    owner = cfg.get("owner", "owasp-blt")
+    repo = cfg.get("repo", "BLT")
+    web = (cfg.get("webUrl") or f"{url}/{repo}").rstrip("/")
+    folders = [str(p).strip("/").lower() for p in cfg.get("paths") or ["*"]]
+    return url, owner, repo, web, folders
+
+
+def sync_forkmesh(hackathons, state):
+    """Sync each ForkMesh repository used by an active hackathon once. Returns {key: complete}."""
+    results = {}
+    caches = state.setdefault("forkmesh", {})
+    for hackathon in hackathons:
+        url, owner, repo, web, folders = forkmesh_settings(hackathon)
+        key = f"{url}/{owner}/{repo}"
+        wanted = sorted({f for h in hackathons if forkmesh_settings(h)[:3] == (url, owner, repo)
+                         for f in forkmesh_settings(h)[4]})
+        if key in results:
+            continue
+        client = forkmesh_source.ForkMeshClient(url, owner, repo, deadline=DEADLINE)
+        caches[key], results[key] = forkmesh_source.sync_repository(client, caches.get(key), web, wanted)
+    return results
+
+
+def process_forkmesh_hackathon(hackathon_config, state):
+    """Stats for a hackathon on git.owaspblt.org, computed from the synced repository cache."""
+    url, owner, repo, web, folders = forkmesh_settings(hackathon_config)
+    cache = state.get("forkmesh", {}).get(f"{url}/{owner}/{repo}") or forkmesh_source.new_cache()
+    start_dt = datetime.fromisoformat(hackathon_config["startTime"].replace("Z", "+00:00"))
+    end_dt = datetime.fromisoformat(hackathon_config["endTime"].replace("Z", "+00:00"))
+    prs, reviews, issues, repositories, repo_data = forkmesh_source.hackathon_inputs(
+        cache, folders, start_dt, end_dt, web)
+    allowed = load_participants_allowlist(hackathon_config.get("participantsFile"))
+    stats = process_hackathon_stats(prs, reviews, issues, start_dt, end_dt, repositories,
+                                    allowed_participants=allowed)
+    stats["repoData"] = repo_data
+    return {
+        "lastUpdated": datetime.now(timezone.utc).isoformat(),
+        "slug": hackathon_config["slug"],
+        "name": hackathon_config["name"],
+        "startTime": hackathon_config["startTime"],
+        "endTime": hackathon_config["endTime"],
+        "provider": "forkmesh",
+        "source": {"url": url, "owner": owner, "repo": repo, "web": web, "paths": folders},
+        "repositories": repositories,
+        "stats": stats,
+    }
+
+
+def add_slack_activity(hackathon_config, data, state):
+    """Attach Slack message counts when the hackathon sets trackSlack; never raises."""
+    if not hackathon_config.get("trackSlack"):
+        return data
+    slug = hackathon_config["slug"]
+    try:
+        start_dt = datetime.fromisoformat(hackathon_config["startTime"].replace("Z", "+00:00"))
+        end_dt = datetime.fromisoformat(hackathon_config["endTime"].replace("Z", "+00:00"))
+        mapping = slack_activity.load_mapping(hackathon_config.get("slackUsersFile"))
+        section = state.setdefault("slack", {}).setdefault(slug, {})
+        block = slack_activity.refresh(slug, mapping, start_dt, end_dt, section, deadline=DEADLINE)
+    except Exception as exc:
+        logger.error("Slack activity for %s failed: %s", slug, exc)
+        block = {"enabled": False, "reason": "Slack activity could not be read"}
+    slack_activity.attach(data.setdefault("stats", {}), block)
+    return data
+
+
+def load_state(path):
+    if path and os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                state = json.load(f)
+            if isinstance(state, dict):
+                return state
+        except Exception as exc:
+            logger.warning("Ignoring unreadable refresh state %s: %s", path, exc)
+    return {}
+
+
+def save_state(path, state):
+    if not path:
+        return
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(state, f, separators=(",", ":"), sort_keys=True)
+
+
+def configured_repositories(hackathon):
+    """Repository or project-folder names listed in a hackathon's config (for stats.json)."""
+    provider = hackathon.get("provider", "github").lower()
+    if provider == "forkmesh":
+        cfg = hackathon.get("forkmesh", {})
+        return [f"{cfg.get('repo', 'BLT')}/{p}" for p in cfg.get("paths") or [] if p != "*"]
+    if provider == "gitlab":
+        return list(hackathon.get("gitlab", {}).get("projects", []))
+    return list(hackathon.get("github", {}).get("repositories", []))
+
+
+def write_hackathon_files(slug, data):
+    output_path = public_path("hackathon-data", f"{slug}.json")
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    logger.info("✅ Saved stats for '%s' to %s", slug, output_path)
+    summary_path = public_path("hackathon-data", f"{slug}-summary.json")
+    with open(summary_path, "w", encoding="utf-8") as f:
+        json.dump(build_summary(data), f, indent=2)
+    logger.info("✅ Saved summary for '%s' to %s", slug, summary_path)
 
 
 def build_summary(data):
@@ -926,6 +1057,7 @@ def is_owned_by_workflow(hackathon, starts_after=None, starts_through=None):
 
 
 def main():
+    global DEADLINE
     config_path = os.environ.get(
         "HACKATHONS_CONFIG_PATH", "/tmp/hackathons-config-parsed.json"
     )
@@ -941,6 +1073,9 @@ def main():
     gitlab_token = os.environ.get("GITLAB_TOKEN", "")
     starts_after = parse_optional_datetime(os.environ.get("UPDATE_HACKATHONS_STARTING_AFTER"))
     starts_through = parse_optional_datetime(os.environ.get("UPDATE_HACKATHONS_STARTING_THROUGH"))
+    DEADLINE = Deadline(float(os.environ.get("FETCH_BUDGET_SECONDS", "900") or 0))
+    state_path = os.environ.get("FETCH_STATE_PATH", "")
+    state = load_state(state_path)
 
     hackathons = config.get("hackathons", [])
     if not hackathons:
@@ -949,9 +1084,14 @@ def main():
 
     # Create output directory
     os.makedirs(public_path("hackathon-data"), exist_ok=True)
-    
+
     # Cache for org repos to avoid fetching multiple times
     org_repos_cache = {}
+
+    owned = [h for h in hackathons if is_owned_by_workflow(h, starts_after, starts_through)]
+    active = [h for h in owned if is_hackathon_active(h.get("startTime"), h.get("endTime"))]
+    forkmesh_active = [h for h in active if h.get("provider", "github").lower() == "forkmesh"]
+    synced = sync_forkmesh(forkmesh_active, state) if forkmesh_active else {}
 
     for hackathon in hackathons:
         slug = hackathon.get("slug", "unknown")
@@ -961,19 +1101,19 @@ def main():
         provider = hackathon.get("provider", "github").lower()
         token = gitlab_token if provider == "gitlab" else github_token
 
-        if not is_owned_by_workflow(hackathon, starts_after, starts_through):
+        if hackathon not in owned:
             logger.info("Skipping hackathon outside this workflow's date range: %s", name)
             continue
 
-        if not token:
+        if not token and provider != "forkmesh":
             logger.warning("No %s token set for %s; public API rate limits apply", provider.upper(), name)
-        
+
+        output_path = public_path("hackathon-data", f"{slug}.json")
+        summary_path = public_path("hackathon-data", f"{slug}-summary.json")
         # Skip ended hackathons (optimization!)
         if not is_hackathon_active(start_time, end_time):
             logger.info("⏭️  Skipping ended hackathon: %s (ended on %s)", name, end_time)
             # Verify the data file exists
-            output_path = public_path("hackathon-data", f"{slug}.json")
-            summary_path = public_path("hackathon-data", f"{slug}-summary.json")
             if not os.path.exists(output_path):
                 logger.warning("⚠️  No data file found for ended hackathon %s, processing once", slug)
             else:
@@ -988,35 +1128,36 @@ def main():
                     except Exception as exc:
                         logger.warning("Could not generate summary for %s: %s", slug, exc)
                 continue
-        
+
         logger.info("🔄 Processing active hackathon: %s", name)
         try:
-            data = process_hackathon(hackathon, token, org_repos_cache)
+            if provider == "forkmesh":
+                url, owner, repo, _, _ = forkmesh_settings(hackathon)
+                complete = synced.get(f"{url}/{owner}/{repo}", False)
+                if not complete and os.path.exists(output_path):
+                    logger.warning("ForkMesh data for %s is incomplete this run; keeping the previous file", slug)
+                    continue
+                data = process_forkmesh_hackathon(hackathon, state)
+            else:
+                data = process_hackathon(hackathon, token, org_repos_cache)
             if data:
-                output_path = public_path("hackathon-data", f"{slug}.json")
-                with open(output_path, "w", encoding="utf-8") as f:
-                    json.dump(data, f, indent=2)
-                logger.info("✅ Saved stats for '%s' to %s", slug, output_path)
-                # Write lightweight summary file for the index page
-                summary_path = public_path("hackathon-data", f"{slug}-summary.json")
-                with open(summary_path, "w", encoding="utf-8") as f:
-                    json.dump(build_summary(data), f, indent=2)
-                logger.info("✅ Saved summary for '%s' to %s", slug, summary_path)
+                add_slack_activity(hackathon, data, state)
+                write_hackathon_files(slug, data)
+        except DeadlineExceeded:
+            logger.warning("⏱️  Time budget spent before %s finished; keeping its previous file", slug)
         except Exception as exc:
             logger.error("❌ Failed to process hackathon %s: %s", slug, exc)
             import traceback
 
             traceback.print_exc()
 
+    save_state(state_path, state)
+
     # Update the top-level stats.json with basic summary info
     primary = hackathons[0] if hackathons else {}
     all_repos: set = set()
     for h in hackathons:
-        provider = h.get("provider", "github").lower()
-        provider_config = h.get("gitlab", {}) if provider == "gitlab" else h.get("github", {})
-        repo_key = "projects" if provider == "gitlab" else "repositories"
-        for r in provider_config.get(repo_key, []):
-            all_repos.add(r)
+        all_repos.update(configured_repositories(h))
 
     stats_data = {
         "lastUpdated": datetime.now(timezone.utc).isoformat(),

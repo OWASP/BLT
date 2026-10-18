@@ -38,7 +38,7 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `blt-extension--release.yml` | GitHub `release.yml` + packaging from `create-release.yml` | dispatch only (input `publish`) | `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` |
 | `blt-hackathons--create-hackathon.yml` | GitHub | issues opened/labeled with `hackathon-creation` | CF |
 | `blt-hackathons--process-sponsor.yml` | GitHub | issues opened/labeled with `sponsorship` | CF |
-| `blt-hackathons--update-stats.yml` | GitHub `update-stats.yml` + GitLab `update-future-hackathons` | `37 */6 * * *` (every 6 h; GitLab rate limits without `GITLAB_TOKEN`), push under `blt-hackathons/`; writes changed stats to KV (`scripts/refresh-kv.sh`), no commit | `GH_API_TOKEN`, `GITLAB_TOKEN`, CF (with KV write) |
+| `blt-hackathons--update-stats.yml` | GitHub `update-stats.yml` + GitLab `update-future-hackathons` | `37 */6 * * *` (every 6 h), push under `blt-hackathons/`; reads git.owaspblt.org incrementally within a 15-minute budget and writes changed stats and its state to KV (`scripts/refresh-kv.sh`), no commit | CF (with KV read/write); optional `GH_API_TOKEN`, `GITLAB_TOKEN` (third-party GitLab events only), `SLACK_TOKEN_OWASP`, `SLACK_TOKEN_BLT` |
 | `blt-jobs--expire-jobs.yml` | GitLab `expire_jobs` | dispatch only (optional cleanup of expired `jobs/*.md`; the Worker already hides expired jobs) | CF |
 | `blt-jobs--process-submissions.yml` | GitLab `process_submissions` | issues opened/edited/labeled that look like job, seeker or flag submissions; dispatch input `issue` | CF |
 | `blt-ossh--update-catalog.yml` | GitHub | `0 6 * * *` | `DISCORD_BOT_TOKEN` (optional), CF |
@@ -62,7 +62,7 @@ GitLab pipeline schedules were set in the GitLab UI, so their times were not in 
   It ran in the Worker (blt-cron, 23:07-23:11) until 2026-10-18, when the job was turned off because GSoC 2026
   coding ended on 17 Aug. The `progress` task and its KV data stay, so the page shows the final state.
 - `blt-hackathons` future hackathons: was `37 0 * * *` (the README said daily). Since the data moved to KV
-  there is one hourly job for every hackathon that has not ended.
+  there is one job (every 6 hours) for every hackathon that has not ended.
 - `blt-jobs` expire: no schedule (see "Fewer bot commits" below). Submissions are driven by issue events instead of polling.
 - `blt-owasp-projects` refresh: `23 4 * * *`, daily. This is OWASP repository metadata.
 - `blt-pages` leaderboard: `11 5 * * *`, daily. The page carries a timestamp, so an hourly run would commit every hour.
@@ -100,7 +100,7 @@ Responses carry `Cache-Control: public, max-age=60, stale-while-revalidate=600`,
 
 | Project | Paths served from KV | Refreshed by | Secrets on the Worker |
 | --- | --- | --- | --- |
-| `blt-hackathons` | `/stats.json`, `/hackathon-data/*.json` | `blt-hackathons--update-stats.yml`, every 6 hours, through the Cloudflare KV API (`scripts/worker-data/kv-put.sh`) | none |
+| `blt-hackathons` | `/stats.json`, `/hackathon-data/*.json` (and the unserved refresh state `state/fetch-state.json`) | `blt-hackathons--update-stats.yml`, every 6 hours, through the Cloudflare KV API (`scripts/worker-data/kv-get.sh`, `kv-put.sh`) | none |
 | `blt-gsoc` | `/js/gsoc2026_stats.generated.js`, `/data/progress.json` | the Worker, from blt-cron: `gsoc2026-stats` 02:17-02:31 (once a minute, in chunks); `progress` is no longer scheduled (GSoC 2026 ended) and keeps its final data | `CRON_SECRET`, `GH_API_TOKEN`, `GITLAB_TOKEN` (optional), `SLACK_TOKEN_OWASP`, `SLACK_TOKEN_BLT` |
 | `my-gsoc-tool` | `/data/github-contributions.json`, `/data/forks.json` | the Worker, from blt-cron at 00:03 | `CRON_SECRET`, `GH_API_TOKEN` |
 
@@ -114,18 +114,25 @@ Shared code is in [`scripts/worker-data/`](../scripts/worker-data/):
 - `kv-put.sh`: writes files to a project's namespace through the Cloudflare API. It reads the
   namespace id from the project's `wrangler.toml` and needs `CLOUDFLARE_API_TOKEN` with
   Workers KV Storage: Edit.
+- `kv-get.sh`: reads one key back the same way (exit 3 when the key is missing); blt-hackathons
+  keeps its refresh state with it.
 - `create-kv.sh`: creates the namespaces (`blt-hackathons-data`, `blt-gsoc-data`,
   `my-gsoc-tool-data`, all bound as `DATA`) and writes their ids into the `wrangler.toml` files.
 - `testing.mjs`: an in-memory KV, a static `ASSETS` stub and a fetch stub for the projects' tests.
 
 Free plan limits shaped each refresh. A Worker invocation may make 50 subrequests and use 10 ms of CPU:
 
-- **blt-hackathons** stays in Actions. One refresh of an active hackathon lists every pull request,
-  issue and review in 57 GitLab projects (or the GitHub org): hundreds of requests and a result of up
-  to 1.5 MB, far over one invocation's subrequests and CPU. The job seeds the incremental review merge
-  from the live files (KV holds the latest data, not git), runs `fetch_stats.py`, and writes only the
-  files it rewrote. `stats.json` is written only when something other than `lastUpdated` changed. The
-  Worker only streams KV values, so serving costs almost no CPU.
+- **blt-hackathons** stays in Actions. The first sync of a hackathon reads every pull request and
+  issue folder of the monorepo on git.owaspblt.org (GitHub events: every pull request and review of
+  each repository), hundreds of requests, over one invocation's subrequests and CPU. Later runs
+  are incremental: the refresh state in KV (`state/fetch-state.json`) keeps each pull and issue
+  folder's git oid, so a run lists the folders (3 requests) and re-reads only the changed ones.
+  `FETCH_BUDGET_SECONDS` (900) stops a run early and saves its progress for the next one, so the
+  single runner is never held for the whole 30-minute timeout. Slack counts (`trackSlack`) are
+  spaced for Slack's 20-a-minute search limit, at most 40 per run. The job seeds the incremental
+  review merge from the live files (KV holds the latest data, not git), runs `fetch_stats.py`, and
+  writes only the files it rewrote. `stats.json` is written only when something other than
+  `lastUpdated` changed. The Worker only streams KV values, so serving costs almost no CPU.
 - **blt-gsoc `gsoc2026-stats`** is about 90 GitHub requests, 78 of them searches (30 per minute
   allowed). `runChunked()` does about 3 projects (at most 24 requests) per call, keeping its cursor
   at `state:gsoc2026-stats`; a count that fails keeps the previous day's value.

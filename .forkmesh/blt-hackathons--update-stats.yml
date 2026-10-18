@@ -2,11 +2,13 @@ name: "blt-hackathons: Update Statistics"
 # Refreshes the statistics of every hackathon that has not ended and writes the changed files to
 # the blt-hackathons Worker's KV namespace (scripts/refresh-kv.sh). The Worker serves them at
 # /stats.json and /hackathon-data/*.json. Nothing is committed and nothing is redeployed.
-# The fetch stays here rather than in the Worker: one refresh is hundreds of GitHub/GitLab
-# requests, and a free-plan Worker invocation may make 50.
-# Every 6 hours, not hourly: the hackathons still running are GitLab-based (57 projects for one
-# event), so an hourly run hit GitLab's anonymous rate limit, slept for minutes at a time and held
-# the single runner while other jobs queued.
+# The fetch stays here rather than in the Worker: a first sync is hundreds of requests, and a
+# free-plan Worker invocation may make 50.
+# BLT hackathons read git.owaspblt.org (pulls and issues of the monorepo, by project folder);
+# gitlab.com/owasp-blt is closed. The sync is incremental (only pull/issue folders whose git oid
+# changed are re-read; the cache is the KV key state/fetch-state.json) and stops after
+# FETCH_BUDGET_SECONDS, saving its progress, so one run cannot hold the single runner: a steady
+# run takes seconds, and the 30-minute timeout is only a backstop.
 on:
   push:
     branches: [main]
@@ -30,7 +32,10 @@ jobs:
       - name: Fetch statistics and write them to KV
         env:
           GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}  # only for third-party GitLab hackathons
+          SLACK_TOKEN_OWASP: ${{ secrets.SLACK_TOKEN_OWASP }}  # optional: Slack counts (trackSlack)
+          SLACK_TOKEN_BLT: ${{ secrets.SLACK_TOKEN_BLT }}
+          FETCH_BUDGET_SECONDS: "900"
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PYTHON: .venv/bin/python

@@ -248,7 +248,7 @@
             class="hidden items-center justify-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 sm:inline-flex"
           >
             <i
-              class="fab fa-gitlab text-xs text-orange-500"
+              class="fas fa-code-branch text-xs text-gray-500"
               aria-hidden="true"
             ></i>
             Source
@@ -679,6 +679,52 @@
         </article>
       </div>
 
+      <!-- ══ Slack activity (hackathons with trackSlack; hidden otherwise) ══ -->
+      <div class="mx-auto max-w-7xl px-6 pt-4 max-md:px-4">
+        <article
+          class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+          id="slack-card"
+          aria-labelledby="slack-heading"
+          hidden
+        >
+          <div class="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p
+                class="font-mono text-[.6rem] font-semibold uppercase tracking-[.16em] text-gray-400"
+              >
+                Community activity
+              </p>
+              <h2
+                id="slack-heading"
+                class="mt-1 text-lg font-semibold text-gray-900"
+              >
+                Slack messages
+                <span class="ml-2 text-sm font-normal text-gray-500"
+                  ><strong id="slack-total">0</strong> in total</span
+                >
+              </h2>
+            </div>
+            <span
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-red-600"
+              aria-hidden="true"
+            >
+              <i class="fab fa-slack text-sm"></i>
+            </span>
+          </div>
+          <div
+            id="slack-leaderboard"
+            class="dashboard-list overflow-x-auto"
+            aria-live="polite"
+            aria-busy="true"
+          ></div>
+          <p class="mt-3 text-xs text-gray-500">
+            Messages in the OWASP and BLT Slack workspaces during the event, for participants who
+            linked their Slack account (blt-hackathons/hackathon-participants). "—" means not
+            counted yet.
+          </p>
+        </article>
+      </div>
+
       <!-- ══ Wave-dots divider ══ -->
       <div
         class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%-2rem))] items-center gap-3 text-gray-500"
@@ -868,7 +914,7 @@
 
         <p class="text-sm leading-6 text-gray-600 mb-4">
           Fill in your details below. Clicking <strong>Submit</strong> will open
-          a GitLab issue pre-filled with your information.
+          an issue on git.owaspblt.org pre-filled with your information.
         </p>
 
         <div
@@ -960,7 +1006,7 @@
             class="inline-flex items-center gap-2 rounded-lg border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-px"
           >
             <i class="fas fa-external-link-alt text-xs"></i>
-            Submit via GitLab
+            Submit as an issue
           </button>
         </div>
       </div>

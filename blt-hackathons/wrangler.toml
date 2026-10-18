@@ -1,5 +1,5 @@
 # Static site (public/) plus a Worker (worker/index.js) that serves /stats.json and
-# /hackathon-data/*.json from KV (binding DATA). The hourly workflow
+# /hackathon-data/*.json from KV (binding DATA). The workflow (every 6 hours)
 # .forkmesh/blt-hackathons--update-stats.yml writes those keys; nothing is committed to git.
 name = "blt-hackathons"
 main = "worker/index.js"

@@ -1469,3 +1469,32 @@ body.blt-page {
 .dark body.blt-page .shadow-xl {
     box-shadow: var(--blt-shadow) !important;
 }
+
+/* Slack activity (hackathons with trackSlack) */
+.dashboard-slack-badge {
+    white-space: nowrap;
+}
+
+.dashboard-slack-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.dashboard-slack-table th,
+.dashboard-slack-table td {
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid #f3f4f6;
+    text-align: right;
+}
+
+.dashboard-slack-table th:first-child,
+.dashboard-slack-table td:first-child {
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.dashboard-slack-table th {
+    color: #6b7280;
+    font-weight: 600;
+}

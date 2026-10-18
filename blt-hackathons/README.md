@@ -5,7 +5,7 @@
 
 <p align="center"><img src="logo.png" alt="blt-hackathons logo" width="160" height="160"></p>
 
-A static hackathon platform for GitHub and GitLab projects with **charts**, **leaderboards**, and **prizes**.
+A static hackathon platform for the BLT projects on git.owaspblt.org (and GitHub or GitLab projects) with **charts**, **leaderboards**, and **prizes**.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Pages](https://img.shields.io/badge/Deployed%20on-GitHub%20Pages-blue)](https://pages.github.com/)
@@ -87,23 +87,77 @@ KV has no copy yet.
 
 ### Statistics updates
 
-The workflow `.forkmesh/blt-hackathons--update-stats.yml` runs every hour, on pushes under
+The workflow `.forkmesh/blt-hackathons--update-stats.yml` runs every 6 hours, on pushes under
 `blt-hackathons/`, and by hand. It runs `scripts/refresh-kv.sh`:
 
 1. downloads the live data of every hackathon that has not ended, because KV holds the latest copy
-   and `fetch_stats.py` merges reviews incrementally;
-2. runs `fetch_stats.py`, which skips ended hackathons (GitHub or GitLab, per hackathon);
-3. writes the files it changed to KV through the Cloudflare API (`scripts/worker-data/kv-put.sh`).
+   and `fetch_stats.py` merges GitHub reviews incrementally;
+2. reads the refresh state from KV (`state/fetch-state.json`, not served by the Worker) with
+   `scripts/worker-data/kv-get.sh`;
+3. runs `fetch_stats.py`, which skips ended hackathons and stops after `FETCH_BUDGET_SECONDS`
+   (900 in the workflow, against a 30-minute job timeout);
+4. writes the files it changed, and the state when it changed, to KV through the Cloudflare API
+   (`scripts/worker-data/kv-put.sh`).
 
-Nothing is committed and the site is not redeployed. The fetch stays in the workflow because a
-refresh is hundreds of API requests, more than a free-plan Worker invocation may make (50).
-Secrets: `GH_API_TOKEN`, `GITLAB_TOKEN` (optional for public projects), and `CLOUDFLARE_API_TOKEN`
-(with Workers KV Storage: Edit) plus `CLOUDFLARE_ACCOUNT_ID`.
+Nothing is committed and the site is not redeployed.
+
+**git.owaspblt.org hackathons** (`provider: "forkmesh"`) are cheap and resumable. ForkMesh keeps pull
+requests on the `forkmesh/pulls` ledger branch and issues under `.forkmesh/issues/` in the
+repository, and its public API serves them (`GET https://git.owaspblt.org/api/repo/owasp-blt/BLT/`
+`tree`, `blobs` and `compare`, no token). `forkmesh_source.py` keeps every pull and issue folder's git
+oid in the state and re-reads only the folders that changed: a refresh with no news is 3 requests.
+One sync serves every hackathon on the same repository. When the budget runs out mid-sync, what was
+read is saved and the next run continues; the hackathon keeps its previous file until a sync
+completes. The monorepo has one folder per project, so items are attributed to projects:
+
+1. a pull request counts for every project folder its diff touches (`changes.patch`,
+   `commits.mbox`, or the compare of a branch-backed pull); `.forkmesh/<folder>--*.yml`
+   workflows count for `<folder>`; files outside project folders count for none;
+2. a pull request with no readable diff counts for the folder named by a `blt-leaf:` or
+   `[blt-leaf]` title prefix;
+3. an issue counts for the folders named by its labels (`blt-leaf` or `project:blt-leaf`), else
+   for its title prefix.
+
+A pull or issue that matches none of a hackathon's `paths` does not count for it. `paths: ["*"]`
+counts everything, with one card per folder that has activity. Review files (`review`, `comment`,
+`line-comment`, `thread-comment`) count as reviews; self-reviews do not.
+
+GitHub hackathons still fetch every pull request of each repository and are not resumable: one
+that runs out of budget keeps its previous file. GitLab support remains for third-party groups;
+the BLT GitLab group is closed.
+
+Secrets (Actions): `CLOUDFLARE_API_TOKEN` (Workers KV Storage: Edit) and `CLOUDFLARE_ACCOUNT_ID`;
+optional `GH_API_TOKEN` (GitHub hackathons), `GITLAB_TOKEN` (third-party GitLab hackathons),
+`SLACK_TOKEN_OWASP` and `SLACK_TOKEN_BLT` (Slack activity, below).
 
 The JSON files under `public/hackathon-data/` are only the fallback. A hackathon's final data stays
 in KV after it ends; copy it into git by hand if you want a snapshot there.
 
-Tests: `node --test 'test/*.test.mjs'` (the Worker and `refresh-kv.sh` with stubbed fetch and curl).
+Tests: `python3 -m unittest discover -s test -p 'test_*.py'` (the ForkMesh source, the budget and
+Slack, with a fake API) and `node --test 'test/*.test.mjs'` (the Worker and `refresh-kv.sh` with
+stubbed fetch and curl).
+
+### Slack activity
+
+A hackathon with `trackSlack: true` shows how many messages each participant posted in the OWASP and
+BLT Slack workspaces during the event (a "Slack messages" card with a total, and a Slack count next
+to each contributor). `slackUsersFile` maps participants to Slack, because nothing else links a
+git.owaspblt.org account to a Slack account:
+
+```yaml
+# hackathon-participants/<slug>-slack.yml; keys are git.owaspblt.org usernames
+slack:
+  alice: alice.dev                    # the same handle in both workspaces
+  bob: {owasp: bob.smith, blt: bob}   # different handles
+  carol: {owasp: U012ABCDEF}          # a Slack member id; only the OWASP workspace
+```
+
+Participants add themselves with a pull request to that file. The counts use Slack's
+`search.messages` (`from:` plus the event's dates, as the GSoC progress tracker did) with the
+user tokens `SLACK_TOKEN_OWASP` and `SLACK_TOKEN_BLT` (scope `search:read`). Slack allows about
+20 searches a minute, so calls are 3.2 s apart, at most 40 per run (`SLACK_MAX_CALLS`), and each
+participant is re-checked after 20 hours (`SLACK_REFRESH_HOURS`), oldest first. A workspace without
+a token shows "—"; with no token at all the card is hidden. Slack errors never fail the run.
 
 ## 📖 Configuration Guide
 
@@ -147,6 +201,30 @@ When an `organization` field is specified, the system will automatically fetch a
 - Create a new token with `public_repo` scope
 - Add it to the config to avoid API rate limits (60 requests/hour without token, 5000 with token)
 
+### git.owaspblt.org (ForkMesh) Configuration
+
+BLT hackathons read the BLT monorepo on git.owaspblt.org, one folder per project:
+
+```javascript
+{
+    slug: "summer-2027",
+    name: "Summer 2027",
+    startTime: "2027-06-01T00:00:00Z",
+    endTime: "2027-06-30T23:59:59Z",
+    provider: "forkmesh",
+    forkmesh: {
+        url: "https://git.owaspblt.org",       // API at <url>/api/repo/<owner>/<repo>/...
+        owner: "owasp-blt",
+        repo: "BLT",
+        webUrl: "https://git.owaspblt.org/BLT", // pull and issue links
+        paths: ["blt-leaf", "blt-jobs"]          // project folders, or ["*"] for all
+    }
+}
+```
+
+`OWASP_BLT_PROJECT_FOLDERS` in `public/js/hackathons-config.js` lists every project folder (a test
+keeps it equal to `scripts/routing/projects.tsv`). No token is needed.
+
 ### GitLab Configuration
 
 New hackathons can track GitLab projects and groups. Set `provider: "gitlab"` and use a `gitlab` block:
@@ -160,13 +238,13 @@ New hackathons can track GitLab projects and groups. Set `provider: "gitlab"` an
     provider: "gitlab",
     gitlab: {
         url: "https://gitlab.com",
-        group: "owasp-blt",
-        projects: ["owasp-blt/blt-hackathons"]
+        group: "example-group",
+        projects: ["example-group/example-project"]
     }
 }
 ```
 
-`group` includes projects from nested subgroups. `projects` can also contain paths such as `group/subgroup/project`. Public projects work without a token; private projects require a CI variable named `GITLAB_TOKEN`.
+`group` includes projects from nested subgroups. `projects` can also contain paths such as `group/subgroup/project`. Public projects work without a token; private projects require an Actions secret named `GITLAB_TOKEN`. This is for third-party GitLab groups: gitlab.com/owasp-blt is closed.
 
 GitLab merge-request notes are counted as review activity. Existing GitHub hackathons and their generated JSON files remain unchanged.
 
@@ -327,8 +405,10 @@ BLT-Hackathons/
 │   ├── images/                 # Optional: images and logos
 │   └── hackathon-data/         # Statistics fallback (live data is in Workers KV)
 ├── worker/index.js             # Serves the statistics from KV
-├── scripts/refresh-kv.sh       # Hourly refresh into KV
-├── fetch_stats.py              # GitHub/GitLab statistics fetcher
+├── scripts/refresh-kv.sh       # Refresh into KV (every 6 hours)
+├── fetch_stats.py              # Statistics fetcher (git.owaspblt.org, GitHub, GitLab)
+├── forkmesh_source.py          # git.owaspblt.org pulls/issues, incremental and resumable
+├── slack_activity.py           # Slack message counts (trackSlack)
 └── README.md
 ```
 
