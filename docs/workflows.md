@@ -227,7 +227,7 @@ this server:
 
 - Flutter projects (`blt-flutter`, `blt-netguardian-client`, `blt-timer-flutter`, `blt-vanish-flutter`)
   and `blt-cli` (Rust) are reported as skipped.
-- `blt-mcp` requires Python 3.12, so it fails on the server's 3.13.
+- `blt-mcp` requires Python 3.12; its `tests.tsv` row installs with `--ignore-requires-python`, so it runs on the server's 3.13 (the OAuth and SSE tests need loopback connections).
 - `blt-core` passes only if xvfb, Chromium and libmemcached are installed, and that needs sudo.
 - `blt-safecloak` runs `playwright install --with-deps`, which needs sudo.
 
@@ -240,7 +240,7 @@ Run these on a machine with the toolchain: `scripts/ci/test.sh <project>`.
 | `blt-extension` create-release (GitHub release with the zip) | There is no release-upload API yet, and tag pushes do not trigger workflows. `scripts/release-chrome.sh --package-only` builds the zip locally. |
 | `blt-vanish` release (Flutter APK/desktop builds + GitHub release) | No Flutter or Java on the runner, and no release API. |
 | `blt-waypoint` screenshot-repos (Playwright) | No Chromium, and no sudo for `--with-deps`. |
-| `blt-mcp` Rust build, nightly and tagged release uploads (GitLab packages) | The jobs built `blt-cli/`, now a separate project. There is no Rust and no package registry. The golden-snapshot test stays in `blt-mcp/.gitlab-ci.yml` for reference. |
+| `blt-mcp` Rust build, nightly and tagged release uploads (GitLab packages) | The jobs built `blt-cli/`, now a separate project. There is no Rust and no package registry. `blt-mcp/.gitlab-ci.yml` is deleted; run the golden-snapshot test locally with `BLT_VERIFY_SNAPSHOTS=true pytest`. |
 | `blt-university` validate-labs, validate-vulnerability-intel, Jekyll build + commit of `public/`, Playwright e2e | Jekyll needs Ruby and e2e needs Chromium. They stay in `blt-university/.gitlab-ci.yml`. Build `public/` locally (`bundle exec jekyll build -d public`) and commit it. |
 | `blt-hackerhouse` D1 migrations and staging deploy | `deploy.yml` deploys production with pywrangler but does not apply migrations. Run `npx wrangler d1 migrations apply hackerhouse --remote` by hand. Kept in `blt-hackerhouse/.gitlab-ci.yml`. |
 | `blt-toasty` lint (black/ruff/bandit) and staging/production environments | Kept in `blt-toasty/.gitlab-ci.yml`. Tests run in CI, and `deploy.sh` deploys the default environment. |

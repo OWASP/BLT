@@ -56,22 +56,42 @@ if os.getenv("BLT_MOCK_HTTP") == "true":
                         "response": "**Severity Suggestion:**\nHigh\n\n**Vulnerability Class:** SQL Injection\n\n**Detailed Recommendation:**\n\n### Immediate Mitigation Steps:\n\n1. **Validate and Sanitize User Input:**\n   - Ensure that the login form inputs (e.g., username and password) are validated and sanitized to prevent any malicious SQL code from being injected.\n   - Use prepared statements or parameterized queries to separate the SQL code from user input.\n\n2. **Use Whitelisting:**\n   - Implement a whitelisting approach to only allow specific characters or patterns in the login form inputs.\n   - This can be achieved by using regular expressions to validate the input data.\n\n3. **Implement Input Validation:**\n   - Validate the length and format of the input data to prevent any potential SQL injection attacks.\n   - For example, you can check if the username is not empty and contains only alphanumeric characters.\n\n4. **Review and Update the Database Schema:**\n   - Review the database schema to ensure that it is not vulnerable to SQL injection attacks.\n   - Consider updating the schema to use stored procedures or views to further secure the database.\n\n5. **Implement a Web Application Firewall (WAF):**\n   - Consider implementing a WAF to detect and prevent SQL injection attacks in real"
                     },
                 }
-        elif "gitlab.com" in url_str:
-            if method == "GET" and re.match(r"^/api/v4/groups/[^/]+/issues$", path):
+        elif path.startswith("/api/repo/owasp-blt/BLT/"):
+            # git.owaspblt.org issue ledger (blt://good-first-issues)
+            target = request.url.params.get("path", "")
+            if path.endswith("/tree") and target == ".forkmesh/issues":
                 handled = True
-                content_dict = [
-                    {
-                        "id": 1,
-                        "title": "Good First Issue 1",
-                        "references": {"full": "org/repo1"},
-                        "web_url": "https://gitlab.com/org/repo1/-/issues/1",
-                        "description": "This is a good first issue description.",
+                content_dict = {
+                    "commit": "c1",
+                    "entries": [{"name": "open", "type": "tree", "oid": "o1"}],
+                }
+            elif path.endswith("/tree") and target == ".forkmesh/issues/open":
+                handled = True
+                content_dict = {
+                    "entries": [{"name": "1", "type": "tree", "oid": "i1"}]
+                }
+            elif path.endswith("/blobs"):
+                handled = True
+                record = {
+                    "number": 1,
+                    "title": "[blt-pages] Good First Issue 1",
+                    "status": "open",
+                    "labels": [{"name": "good first issue"}],
+                    "events": [
+                        {
+                            "type": "open",
+                            "id": "e1",
+                            "ts": 1,
+                            "body": "This is a good first issue description.",
+                        }
+                    ],
+                }
+                content_dict = {
+                    "blobs": {
+                        p: {"content": json.dumps(record)}
+                        for p in request.url.params.get_list("path")
                     }
-                ]
-            elif method == "POST" and re.match(r"^/api/v4/projects/.+/uploads$", path):
-                handled = True
-                status_code = 201
-                content_dict = {"markdown": "![vuln](/uploads/vuln.png)"}
+                }
         elif path in ("/v2/bugs", "/bugs"):
             if method == "GET":
                 handled = True

@@ -37,6 +37,10 @@ This page lists every GitLab dependency left in the monorepo (found with `git gr
   ledgers, descriptions from `info.json`. Stars, forks, languages and releases are null and hidden. Output is
   `forge_data.json` in KV (the old `/gitlab_data.json` URL is aliased). The "GitLab migration" column and tab are
   retired, `github_data.json` and `main_data.*` use forge folder URLs, and `GITLAB_TOKEN` is gone.
+- **blt-mcp**: `blt://good-first-issues` reads open `good first issue` issues from the forge ledger
+  (`blt_mcp/forge_issues.py`: anonymous, 5-minute cache; the server is a pip-installed process, so it has its own
+  reader). `upload_screenshot` and `GITLAB_API_TOKEN` are removed, and so are the gitlabci Renovate manager and
+  `.gitlab-ci.yml`. blt-cli needs no change (same JSON shape).
 
 ## What git.owaspblt.org can serve
 
@@ -120,7 +124,6 @@ Remove each one when its reader is switched. Then delete the Actions secret `GIT
 - `blt-gsoc`: `GITLAB_TOKEN`
 - `blt-profiles`: `GITLAB_ACCESS_TOKEN`, `GITLAB_WEBHOOK_TOKEN`
 - `blt-toasty`: `GITLAB_ACCESS_TOKEN`, `GITLAB_WEBHOOK_SECRET`
-- `blt-mcp`: `GITLAB_API_TOKEN`
 - `blt-hackerhouse`: `GITLAB_WEBHOOK_SECRET`, `GITLAB_API_TOKEN`
 
 The "Ported from …/.gitlab-ci.yml" comments in five workflows are history and are harmless.
@@ -130,7 +133,6 @@ The "Ported from …/.gitlab-ci.yml" comments in five workflows are history and 
 These `.gitlab-ci.yml` files are not run anywhere:
 
 - blt-hackerhouse
-- blt-mcp
 - blt-netguardian
 - blt-pages
 - blt-safecloak (still read by a test)

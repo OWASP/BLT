@@ -61,7 +61,7 @@ dev = [
 requires-dist = [
     { name = "click" },
     { name = "httpx" },
-    { name = "mcp" },
+    { name = "mcp", specifier = "<2" },
     { name = "mcp-vcr", marker = "extra == 'dev'", specifier = "==0.2.1" },
     { name = "pydantic" },
     { name = "pytest", marker = "extra == 'dev'" },

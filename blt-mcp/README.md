@@ -23,13 +23,14 @@ Access BLT data through standardized URIs:
 - `blt://workflows/{id}` - Specific workflow details
 - `blt://leaderboards` - Leaderboard rankings and statistics
 - `blt://rewards` - Rewards and contributor bacon
+- `blt://good-first-issues` - Open issues labelled `good first issue` on [git.owaspblt.org/BLT](https://git.owaspblt.org/BLT/issues), read anonymously from the forge's public issue ledger (cached for 5 minutes); each entry has the issue `number`, `folder`, `labels` and `web_url`
 
 ### Tools
 Perform actions on BLT:
 - **submit_issue** - Report new bugs and vulnerabilities directly to the platform
 - **add_comment** - Add comments to issues
 - **triage_vulnerability** - Use Cloudflare Workers AI to automatically triage vulnerability severity
-- **draft_vision_issue** - Process screenshots through Cloudflare AI and auto-draft GitLab issues
+- **draft_vision_issue** - Process screenshots through Cloudflare AI and draft issue reports
 
 ### Prompts
 AI-guided workflows for common security tasks:
@@ -41,7 +42,7 @@ AI-guided workflows for common security tasks:
 - **JSON-RPC 2.0** - Standard protocol for reliable communication
 - **Authentication** - Secure access to BLT endpoints via API Keys
 - **Cloudflare AI Integration** - Leverages Cloudflare Workers AI for image processing and vulnerability triage
-- **GitLab Vision-to-Issue Pipeline** - Automatically drafts rich Markdown issues from vulnerability screenshots
+- **Vision-to-Issue Pipeline** - Drafts Markdown issue reports from vulnerability screenshots
 - **Interactive TUI (BLT-CLI)** - A rich terminal UI featuring Leaderboards and bulk triage
 - **Gamification Support** - Built-in support for BLT's bacon system with pending verifications
 
@@ -360,9 +361,9 @@ If the client crashes, halts, or gets poisoned:
 
 BLT-MCP supports two distinct workflows for reporting bugs and processing vulnerability images:
 
-#### 1. IDE / MCP Integration (GitLab & API)
+#### 1. IDE / MCP Integration
 When running within an IDE, the MCP server can execute complex tasks across both BLT and external services:
-- **Vision Pipeline:** Use the `draft_vision_issue` tool to process vulnerability screenshots via Cloudflare Vision AI, drafting rich Markdown vulnerability reports. If a `gitlab_project_id` is provided, the image is automatically uploaded to GitLab and linked in the Markdown.
+- **Vision Pipeline:** Use the `draft_vision_issue` tool to process vulnerability screenshots via Cloudflare Vision AI, drafting rich Markdown vulnerability reports.
 - **Direct Submission:** Use the `submit_issue` tool to submit structured vulnerabilities (including titles, severities, bug types, and steps to reproduce) directly to the centralized `api.owaspblt.org/v2/bugs` endpoint.
 
 #### 2. Terminal UI (BLT-CLI)
@@ -411,5 +412,5 @@ GNU AGPL v3 - see the `LICENSE` file for details.
 ## Support
 
 For issues, questions, or contributions, please visit:
-- GitLab: [https://git.owaspblt.org/BLT/BLT-MCP](https://git.owaspblt.org/BLT/BLT-MCP)
+- Source and issues: [https://git.owaspblt.org/BLT/tree/main/blt-mcp](https://git.owaspblt.org/BLT/tree/main/blt-mcp) (title issues `[blt-mcp] ...`)
 - OWASP BLT: [https://owasp.org/www-project-bug-logging-tool/](https://owasp.org/www-project-bug-logging-tool/)

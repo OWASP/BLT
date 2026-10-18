@@ -11,7 +11,7 @@ Key Offerings:
   - `blt://stats`: Retrieves global statistics.
   - `blt://repos/{repo_id}/issues`: Retrieves issues in a specific repository.
   - `blt://issues/{issue_id}`: Retrieves details for a specific bug ID.
-  - `blt://good-first-issues`: Fetches good-first-issues from GitLab APIs.
+  - `blt://good-first-issues`: Open 'good first issue' issues from the git.owaspblt.org issue ledger.
 - **V1 Tools**:
   - `submit_issue`: Submits a new bug report to the OWASP BLT platform (requires confirmation).
   - `add_comment`: Adds a discussion comment to an existing bug (requires confirmation).
@@ -31,13 +31,10 @@ Entry Point:
 import asyncio
 import hmac
 import json
-import mimetypes
 import os
-import re
 import sys
 import tempfile
 from pathlib import Path
-from urllib.parse import quote
 
 import anyio
 import httpx
@@ -49,10 +46,12 @@ if sys.platform == "win32":
 
 # Import v2 modular resources, tools and prompts to register them on the mcp instance
 import blt_mcp.prompts  # noqa: F401
-from blt_mcp import server_base, v2_resources, v2_tools  # noqa: F401
+from blt_mcp import forge_issues, server_base, v2_resources, v2_tools  # noqa: F401
 from blt_mcp.server_base import _fetch, logger, mcp
 from blt_mcp.tools import generate_ai_metadata, summarize_issue_context_impl
 from blt_mcp.validation import InterceptingStdinBuffer, StdinWrapper
+
+GOOD_FIRST_ISSUE = "good first issue"
 
 # --- Image validation constants and helper ---
 
@@ -141,31 +140,31 @@ async def get_issue(issue_id: str) -> str:
 
 @mcp.resource("blt://good-first-issues")
 async def list_good_first_issues() -> str:
-    """Get the list of cross-project 'good first issues' from GitLab."""
+    """Open issues labelled 'good first issue' on git.owaspblt.org, across all BLT folders."""
     try:
         async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                "https://gitlab.com/api/v4/groups/133215711/issues?labels=good first issue&state=opened&sort=desc&order_by=created_at",
-                headers={"User-Agent": "BLT-MCP"},
+            records = await forge_issues.cached_issues(client)
+        results = []
+        for issue in records:
+            if not forge_issues.is_open(issue) or GOOD_FIRST_ISSUE not in forge_issues.labels(issue):
+                continue
+            folders = forge_issues.issue_projects(issue)
+            description = forge_issues.body(issue)
+            results.append(
+                {
+                    "id": int(issue.get("number") or 0),
+                    "number": int(issue.get("number") or 0),
+                    "title": issue.get("title"),
+                    "folder": folders[0] if folders else None,
+                    "folders": folders,
+                    "repository": folders[0] if folders else "BLT",
+                    "labels": forge_issues.labels(issue),
+                    "web_url": forge_issues.issue_url(issue.get("number")),
+                    "description": description[:200] + ("..." if len(description) > 200 else ""),
+                    "bacon_estimate": 100,
+                }
             )
-            resp.raise_for_status()
-            issues = resp.json()
-            # Map them into a standard format
-            results = []
-            for issue in issues:
-                results.append(
-                    {
-                        "id": issue.get("id"),
-                        "title": issue.get("title"),
-                        "repository": issue.get("references", {}).get(
-                            "full", "unknown"
-                        ),
-                        "web_url": issue.get("web_url"),
-                        "description": issue.get("description", "")[:200] + "...",
-                        "bacon_estimate": 100,  # Add bacon estimate
-                    }
-                )
-            return json.dumps({"success": True, "data": results})
+        return json.dumps({"success": True, "data": results})
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to fetch good first issues: {e}")
         return json.dumps({"success": False, "error": str(e)})
@@ -468,67 +467,6 @@ async def draft_vision_issue(
         raise RuntimeError(f"Failed to call Cloudflare Vision AI: {e!s}") from e
 
     return analysis_text
-
-
-@mcp.tool()
-async def upload_screenshot(
-    image_path: str,
-    gitlab_project_id: str,
-) -> str:
-    """Upload a screenshot/image to a GitLab project and return the markdown link.
-
-    Args:
-        image_path: Absolute path to the screenshot image on the local system.
-        gitlab_project_id: GitLab project ID to upload the image to.
-    """
-    resolved_path = _validate_image_path(image_path)
-
-    gl_token = os.getenv("GITLAB_API_TOKEN")
-    if not gl_token:
-        raise ValueError("Missing GitLab API Token (GITLAB_API_TOKEN in .env).")
-
-    # GitLab accepts a numeric ID or a URL-encoded "namespace/project" path.
-    if not re.fullmatch(
-        r"[0-9]+|[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)+", gitlab_project_id
-    ):
-        raise ValueError("Invalid GitLab project ID.")
-    project_ref = quote(gitlab_project_id, safe="")
-    gl_url = f"https://gitlab.com/api/v4/projects/{project_ref}/uploads"
-
-    try:
-        image_bytes = await anyio.to_thread.run_sync(resolved_path.read_bytes)
-    except Exception as e:
-        raise RuntimeError(f"Failed to read image file: {e!s}") from e
-    gl_headers = {"PRIVATE-TOKEN": gl_token}
-
-    try:
-        logger.info("Uploading image to GitLab...")
-        filename = os.path.basename(str(resolved_path))
-        content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
-        files = {"file": (filename, image_bytes, content_type)}
-        async with httpx.AsyncClient() as client:
-            res = await client.post(
-                gl_url, headers=gl_headers, files=files, timeout=30.0
-            )
-            if res.status_code == 201:
-                upload_data = res.json()
-                markdown = upload_data.get("markdown")
-                if not markdown:
-                    logger.error("GitLab upload response missing 'markdown' field.")
-                    raise RuntimeError(
-                        "GitLab upload succeeded but returned no markdown link."
-                    )
-                return markdown
-            else:
-                logger.error(f"GitLab upload failed: {res.text}")
-                raise RuntimeError(
-                    f"GitLab upload failed with status {res.status_code}"
-                )
-    except Exception as e:
-        if isinstance(e, (ValueError, RuntimeError)):
-            raise
-        logger.error(f"GitLab upload exception: {e!s}")
-        raise RuntimeError(f"Failed to upload image to GitLab: {e!s}") from e
 
 
 def main(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8080) -> None:

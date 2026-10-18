@@ -267,19 +267,6 @@ TOOL_SCHEMAS = {
             },
         },
     },
-    "upload_screenshot": {
-        "required": ["image_path", "gitlab_project_id"],
-        "properties": {
-            "image_path": {
-                "type": str,
-                "description": "Absolute path to the screenshot image on the local system.",
-            },
-            "gitlab_project_id": {
-                "type": str,
-                "description": "GitLab project ID to upload the image to.",
-            },
-        },
-    },
 }
 
 

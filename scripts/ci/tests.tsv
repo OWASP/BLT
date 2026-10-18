@@ -15,7 +15,7 @@ blt-jobs	node	npm_install && npm test && npm run test:worker
 blt-leaf	node	npm_install && npm test
 blt-lettuce	python	pip install pytest pytest-cov pytest-asyncio && PYTHONPATH=src python -m pytest tests/ -q
 blt-mayo	python	pip install -e '.[dev]' && python -m pytest -q
-blt-mcp	python	pip install -e '.[dev]' && python -m pytest -q
+blt-mcp	python	pip install --ignore-requires-python -e '.[dev]' && python -m pytest -q
 blt-netguardian	python	pip install -r requirements-dev.txt && python -m pytest -q
 blt-netguardian-client	flutter	flutter pub get && flutter test
 blt-newsletter	python	pip install --group dev && python -m unittest discover -s tests

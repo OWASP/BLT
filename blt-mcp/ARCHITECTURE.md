@@ -139,7 +139,7 @@ Tools enable AI agents to perform actions:
 #### draft_vision_issue
 - Purpose: Analyze a screenshot and draft a vulnerability issue report
 - Required: image_path
-- Optional: gitlab_project_id, context
+- Optional: context
 - Maps to: Cloudflare Vision AI model client call
 
 ### Prompts Layer
