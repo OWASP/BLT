@@ -47,7 +47,7 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `blt-owasp-metadata--scraper.yml` | GitHub | `0 3 * * 1` | `GH_API_TOKEN`, CF |
 | `blt-owasp-projects--refresh-data.yml` | GitLab `refresh_data` | `23 4 * * *` | `GH_API_TOKEN` (required by `main.py`), CF |
 | `blt-owasp-projects--sweep-repos.yml` | GitLab `sweep_repos` (manual) | dispatch only | `GH_API_TOKEN`, `SLACK_WEBHOOK_URL_SWEEP` |
-| `blt-pages--update-leaderboard.yml` | GitLab `update_leaderboard` | `11 5 * * *`, push under `blt-pages/scripts/` | `GITLAB_TOKEN` (optional), CF |
+| `blt-pages--update-leaderboard.yml` | GitLab `update_leaderboard` | issue events on blt-pages or `[NOMINATION]` issues, `11 5 * * *` (safety net), push under `blt-pages/scripts/` or of the two pre-rendered pages or `public/data/leaders.json`; reads git.owaspblt.org and writes to KV (`blt-pages/scripts/refresh-kv.sh`), no commit | CF (with KV write) |
 | `blt-panini--update_slack_apps.yml` | GitHub | `0 0 * * 0` | CF |
 | `blt-tomato--scrape_funding.yml` | GitHub | `0 18 * * 5`, push under `blt-tomato/.github/scripts/` | `GH_API_TOKEN`, CF |
 | `blt-university--course-submission.yml` | GitHub | issue opened with `course-submission` or `[COURSE]` title, or that label added | none |
@@ -65,7 +65,7 @@ GitLab pipeline schedules were set in the GitLab UI, so their times were not in 
   there is one job (every 6 hours) for every hackathon that has not ended.
 - `blt-jobs` expire: no schedule (see "Fewer bot commits" below). Submissions are driven by issue events instead of polling.
 - `blt-owasp-projects` refresh: `23 4 * * *`, daily. This is OWASP repository metadata.
-- `blt-pages` leaderboard: `11 5 * * *`, daily. The page carries a timestamp, so an hourly run would commit every hour.
+- `blt-pages` leaderboard: `11 5 * * *`, daily, plus issue events. It writes KV, not git, since 2026-10-18.
 - `blt-waypoint` data: `29 6 * * *`, daily.
 - `blt-design-contest` showcase: `47 7 * * *`, daily. The old setup only rebuilt on push, but submissions are GitLab issues that change independently of pushes.
 
@@ -103,6 +103,7 @@ Responses carry `Cache-Control: public, max-age=60, stale-while-revalidate=600`,
 | `blt-hackathons` | `/stats.json`, `/hackathon-data/*.json` (and the unserved refresh state `state/fetch-state.json`) | `blt-hackathons--update-stats.yml`, every 6 hours, through the Cloudflare KV API (`scripts/worker-data/kv-get.sh`, `kv-put.sh`) | none |
 | `blt-gsoc` | `/js/gsoc2026_stats.generated.js`, `/data/progress.json` | no longer scheduled: GSoC 2026 ended, and `gsoc2026-stats` counted the frozen OWASP-BLT/* GitHub copies; both keep serving their final data from KV (run `POST /__scheduled` with a task by hand if needed) | `CRON_SECRET`, `GH_API_TOKEN`, `GITLAB_TOKEN` (optional), `SLACK_TOKEN_OWASP`, `SLACK_TOKEN_BLT` |
 | `my-gsoc-tool` | `/data/github-contributions.json`, `/data/forks.json` | the Worker, from blt-cron at 00:03 | `CRON_SECRET`, `GH_API_TOKEN` |
+| `blt-pages` | `/`, `/index.html`, `/leaderboard`, `/leaderboard.html` (pre-rendered), `/data/leaderboard.json`, `/data/leaders.json` | `blt-pages--update-leaderboard.yml` (issue events, daily, pushes of the pages) through the Cloudflare KV API | none |
 
 Shared code is in [`scripts/worker-data/`](../scripts/worker-data/):
 

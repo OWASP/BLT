@@ -18,6 +18,7 @@ NAMESPACES=(
   "blt-hackathons DATA blt-hackathons-data"
   "blt-gsoc DATA blt-gsoc-data"
   "my-gsoc-tool DATA my-gsoc-tool-data"
+  "blt-pages DATA blt-pages-data"
 )
 
 if [[ "${1:-}" == --list ]]; then

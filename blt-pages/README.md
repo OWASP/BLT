@@ -19,9 +19,10 @@ Community-powered bug-reporting platform hosted from `public/` on Cloudflare, pa
 | Feature | Description |
 |---|---|
 | 🐛 **Public bug reports** | 404/500 errors, functional, performance, typos, design, IP violations |
-| 🕶️ **Anonymous reporting** | Submit via [BLT-API](https://blt.owasp.org/api) — no GitLab account required |
+| 🕶️ **Anonymous reporting** | Submit via [BLT-API](https://blt.owasp.org/api) — no account required |
 | 🔒 **Security vulnerabilities** | Zero-log, zero-tracking via [BLT-Zero](https://zero.owaspblt.org) |
-| 🏆 **Leaderboard** | Generated from GitLab issues |
+| 🏆 **Leaderboard** | Generated from the blt-pages bug reports on git.owaspblt.org |
+| 🗳️ **Leaders** | Leadership nominations are forge issues; votes are the forge's issue votes |
 
 ---
 
@@ -29,8 +30,8 @@ Community-powered bug-reporting platform hosted from `public/` on Cloudflare, pa
 
 - **Pure HTML + Tailwind CSS** (CDN) — no build step
 - **Font Awesome** (CDN)
-- **GitLab CI** for tests and leaderboard generation
-- **Cloudflare Workers Static Assets** serving `public/`
+- **ForkMesh Actions** on git.owaspblt.org for leaderboard generation
+- **Cloudflare Workers Static Assets** serving `public/`, with the leaderboard pages and data in Workers KV
 - **BLT-API** for anonymous report submission
 
 ---
@@ -50,11 +51,27 @@ npx serve public
 
 ---
 
-## GitLab CI
+## Leaderboard and leaders data
 
-| Workflow | Trigger | Purpose |
-|---|---|---|
-| `.gitlab-ci.yml` | Push · schedule · manual | Runs tests and regenerates `public/data/leaderboard.json` from all `bug`-labelled GitLab issues |
+`.forkmesh/blt-pages--update-leaderboard.yml` runs `scripts/refresh-kv.sh` when a blt-pages or
+nomination issue changes, when the generator or a pre-rendered page changes, and daily at 05:11 UTC.
+`scripts/generate_leaderboard.py` reads the issue ledger of the BLT monorepo on git.owaspblt.org
+(`scripts/forkmesh/ledger.py`, anonymous):
+
+- **bug reports**: issues labelled `bug` that belong to blt-pages (label `blt-pages` or a `[blt-pages]`
+  title prefix). Reporters, commenters, domains (from the `### URL` field) and the three newest open
+  reports. Forge issues have votes, not emoji reactions; votes show as +1.
+- **leaders** (`leaders.html`): elections and past winners are curated in `public/data/leaders.json`.
+  Nominations are issues titled `[NOMINATION] ...` (the page copies the text and opens a new issue);
+  a maintainer adds the label `accepted`. Votes are the issue's Vote button on git.owaspblt.org, one per
+  account, counted once per role. The project list comes from `scripts/routing/projects.tsv`.
+
+The script writes `data/leaderboard.json` and `data/leaders.json` and pre-renders `index.html` and
+`leaderboard.html`; the job writes those four files to the Worker's KV and commits nothing.
+`worker/index.js` serves them from KV and falls back to the committed copies.
+
+The Playwright tests in `.gitlab-ci.yml` are not run on the forge runner (no Chromium). Unit tests:
+`scripts/ci/test.sh blt-pages`.
 
 ---
 

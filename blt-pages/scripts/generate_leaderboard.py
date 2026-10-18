@@ -2,16 +2,20 @@
 """
 Generate leaderboard data and pre-render index.html for OWASP BLT Pages.
 
-Fetches all bug-labelled issues from GitLab, builds leaderboard / commenter /
-domain / recent-bug statistics, writes ``data/leaderboard.json``, and patches
-``index.html`` with server-side-rendered (SSR) content so the page is useful
-even when JavaScript is blocked.
+Reads the bug reports of the blt-pages folder from git.owaspblt.org (the public issue ledger
+``.forkmesh/issues`` of the BLT monorepo, via scripts/forkmesh/ledger.py): issues labelled ``bug``
+that belong to blt-pages (label ``blt-pages`` / ``project:blt-pages``, or a ``[blt-pages]`` title
+prefix). Builds leaderboard / commenter / domain / recent-bug statistics, writes
+``data/leaderboard.json``, and patches ``index.html`` and ``leaderboard.html`` with server-side-rendered
+(SSR) content so the pages are useful even when JavaScript is blocked.
 
-Required environment variables:
-  GITLAB_TOKEN      - Personal/project access token (optional)
-  CI_JOB_TOKEN      - GitLab CI job token (optional fallback)
-  CI_PROJECT_PATH   - namespace/project (e.g. owasp-blt/blt-pages)
-  CI_COMMIT_SHA     - Current commit SHA (optional; used in timestamp link)
+The files are written under PUBLIC_DIR (default ``public``) and are not committed:
+.forkmesh/blt-pages--update-leaderboard.yml writes them to the Worker's KV (scripts/refresh-kv.sh).
+
+Environment variables (all optional):
+  PUBLIC_DIR        - where to read and write the pages (default public)
+  COMMIT_SHA        - commit shown next to the timestamp
+  FORKMESH_URL      - forge to read (default https://git.owaspblt.org)
 
 License: AGPLv3
 """
@@ -20,76 +24,27 @@ import json
 import os
 import re
 import sys
-import urllib.parse
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
-from urllib.parse import urlparse, quote
-import urllib.request
-import urllib.error
+from urllib.parse import urlparse
+
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
+sys.path.insert(0, os.path.join(ROOT, "scripts", "forkmesh"))
+import ledger  # noqa: E402  (scripts/forkmesh/ledger.py)
 
 # ---------------------------------------------------------------------------
 # Configuration from environment
 # ---------------------------------------------------------------------------
-TOKEN = os.environ.get("GITLAB_TOKEN", "")
-JOB_TOKEN = os.environ.get("CI_JOB_TOKEN", "")
-PROJECT_PATH = os.environ.get("CI_PROJECT_PATH", "owasp-blt/blt-pages")
-COMMIT_SHA = os.environ.get("CI_COMMIT_SHA", "")
+COMMIT_SHA = os.environ.get("COMMIT_SHA", os.environ.get("GITHUB_SHA", ""))
 PUBLIC_DIR = os.environ.get("PUBLIC_DIR", "public")
+PROJECT = "blt-pages"
+BUG_LABEL = "bug"
 
-if "/" not in PROJECT_PATH:
-    print(f"ERROR: CI_PROJECT_PATH must be 'namespace/project', got: {PROJECT_PATH}", file=sys.stderr)
-    sys.exit(1)
-
-PROJECT_API_PATH = urllib.parse.quote(PROJECT_PATH, safe="")
-BASE_URL = f"https://gitlab.com/api/v4/projects/{PROJECT_API_PATH}"
 # Links shown on the pages point at the BLT monorepo on git.owaspblt.org (folder blt-pages).
-FORGE_URL = "https://git.owaspblt.org/BLT"
+INSTANCE = ledger.DEFAULT_URL
+FORGE_URL = ledger.WEB_URL
 PROJECT_URL = f"{FORGE_URL}/tree/main/blt-pages"
 NEW_BUG_URL = f"{FORGE_URL}/issues/new"
 ISSUES_URL = f"{FORGE_URL}/issues?label=blt-pages"
-
-HEADERS = {
-    "Accept": "application/json",
-    "User-Agent": "BLT-Pages-leaderboard-generator",
-}
-if TOKEN:
-    HEADERS["PRIVATE-TOKEN"] = TOKEN
-elif JOB_TOKEN:
-    HEADERS["JOB-TOKEN"] = JOB_TOKEN
-
-# ---------------------------------------------------------------------------
-# GitLab API helpers
-# ---------------------------------------------------------------------------
-
-def paginate(url, params=None):
-    """Fetch every page of a GitLab list endpoint and return all items."""
-    items = []
-    page = 1
-    while True:
-        p = dict(params or {})
-        p["per_page"] = 100
-        p["page"] = page
-        query = "&".join(
-            f"{urllib.parse.quote(str(k))}={urllib.parse.quote(str(v))}"
-            for k, v in p.items()
-        )
-        paged_url = f"{url}?{query}"
-        req = urllib.request.Request(paged_url, headers=HEADERS)
-        try:
-            with urllib.request.urlopen(req) as resp:
-                resp_headers = resp.headers
-                data = json.loads(resp.read().decode())
-        except urllib.error.HTTPError as exc:
-            print(f"HTTP {exc.code} for {paged_url}: {exc.reason}", file=sys.stderr)
-            raise
-        if not data:
-            break
-        items.extend(data)
-        next_page = resp_headers.get("X-Next-Page", "")
-        if not next_page and len(data) < 100:
-            break
-        page = int(next_page) if next_page else page + 1
-    return items
 
 # ---------------------------------------------------------------------------
 # Data-extraction helpers
@@ -129,45 +84,46 @@ def extract_first_image(body):
     return None
 
 
-def user_login(user):
-    return user.get("username") or user.get("login") or "unknown"
+def forge_user(name):
+    """login / avatar / profile of a git.owaspblt.org account name."""
+    login = name or "unknown"
+    return {
+        "login": login,
+        "avatar_url": f"{INSTANCE}/api/accounts/{login.lower()}/avatar" if name else "",
+        "profile_url": ledger.profile_url(name),
+    }
 
 
-def user_profile_url(user):
-    return user.get("web_url") or user.get("html_url") or f"https://gitlab.com/{user_login(user)}"
+def is_bug_report(issue):
+    """A bug report of this project: labelled bug, attributed to blt-pages."""
+    return BUG_LABEL in ledger.labels(issue) and PROJECT in ledger.issue_projects(issue)
 
 
-def user_avatar_url(user):
-    return user.get("avatar_url") or f"https://gitlab.com/uploads/-/system/user/avatar/{user_login(user)}"
-
-
-def issue_body(issue):
-    return issue.get("description") or issue.get("body") or ""
-
-
-def issue_url(issue):
-    return issue.get("web_url") or issue.get("html_url") or f"{FORGE_URL}/issues/{issue.get('iid', issue.get('number', ''))}"
-
-
-def issue_number(issue):
-    return issue.get("iid") or issue.get("number")
-
-
-def issue_comment_count(issue):
-    return issue.get("user_notes_count", issue.get("comments", 0))
-
-
-def normalize_reactions(awards):
-    counts = {}
-    for award in awards:
-        name = award.get("name")
-        if name == "thumbsup":
-            name = "+1"
-        elif name == "thumbsdown":
-            name = "-1"
-        if name:
-            counts[name] = counts.get(name, 0) + 1
-    return counts
+def bug_reports(issues):
+    """Normalized bug reports (newest first) from raw ledger issue records."""
+    bugs = []
+    for issue in issues:
+        if not is_bug_report(issue):
+            continue
+        comments = [c for c in ledger.comments(issue) if not str(c.get("authorName") or "").endswith("[bot]")]
+        number = int(issue["number"])
+        bugs.append({
+            "number": number,
+            "title": issue.get("title", ""),
+            "state": "open" if ledger.is_open(issue) else "closed",
+            "created_at": ledger.ms_to_iso(issue.get("createdAt")) or "",
+            "html_url": ledger.issue_url(number),
+            "body": ledger.body(issue),
+            "user": forge_user(issue.get("authorName")),
+            "votes": ledger.vote_count(issue),
+            "comments": [{
+                "body": c.get("body") or "",
+                "created_at": ledger.ms_to_iso(c.get("ts")) or "",
+                "html_url": ledger.issue_url(number),
+                "user": forge_user(c.get("authorName")),
+            } for c in comments],
+        })
+    return sorted(bugs, key=lambda b: b["created_at"], reverse=True)
 
 # ---------------------------------------------------------------------------
 # HTML-rendering helpers
@@ -259,7 +215,7 @@ def render_leaderboard_rows(leaderboard):
     for entry in leaderboard:
         rank = entry["rank"]
         pct = min(100.0, entry["count"] / max_lb * 100)
-        profile_url = esc(entry.get("profile_url") or f"https://gitlab.com/{entry['login']}")
+        profile_url = esc(entry.get("profile_url") or ledger.profile_url(entry["login"]))
         avatar_url = esc(entry.get("avatar_url") or "")
         login = esc(entry["login"])
         rows.append(
@@ -310,7 +266,7 @@ def render_commenters_rows(commenters):
     for entry in commenters:
         rank = entry["rank"]
         pct = min(100.0, entry["count"] / max_cm * 100)
-        profile_url = esc(entry.get("profile_url") or f"https://gitlab.com/{entry['login']}")
+        profile_url = esc(entry.get("profile_url") or ledger.profile_url(entry["login"]))
         avatar_url = esc(entry.get("avatar_url") or "")
         login = esc(entry["login"])
         rows.append(
@@ -426,7 +382,7 @@ def render_recent_bugs(bugs):
         dt = datetime.fromisoformat(bug["created_at"].replace("Z", "+00:00"))
         date = _fmt_date(dt)
         avatar_url = esc(bug["user"].get("avatar_url") or "")
-        profile_url = esc(bug["user"].get("profile_url") or f"https://gitlab.com/{bug['user']['login']}")
+        profile_url = esc(bug["user"].get("profile_url") or ledger.profile_url(bug["user"]["login"]))
         login = esc(bug["user"]["login"])
         reactions_html = ssr_reactions(bug.get("reactions"))
 
@@ -448,7 +404,7 @@ def render_recent_bugs(bugs):
         if isinstance(comment_count, int) and comment_count > 0 and bug.get("latest_comment"):
             c = bug["latest_comment"]["user"]
             c_avatar = esc(c.get("avatar_url") or "")
-            c_profile = esc(c.get("profile_url") or f"https://gitlab.com/{c['login']}")
+            c_profile = esc(c.get("profile_url") or ledger.profile_url(c["login"]))
             c_login = esc(c["login"])
             c_body = esc(re.sub(r"\s+", " ", (bug["latest_comment"].get("body") or "")).strip())
             c_label = "1 comment" if comment_count == 1 else f"{fmt(comment_count)} comments"
@@ -634,139 +590,68 @@ def patch_html(html, payload):
 # Main
 # ---------------------------------------------------------------------------
 
-def main():
-    print(f"Fetching issues for {PROJECT_PATH} …")
-
-    # Fetch all bug-labelled issues (all states)
-    all_issues = paginate(f"{BASE_URL}/issues", {"state": "all", "labels": "bug"})
-    bug_issues = all_issues
-    print(f"  {len(bug_issues)} bug issues found")
-
-    # ── Leaderboard ──────────────────────────────────────────────────────────
+def build_payload(bugs, now=None):
+    """The leaderboard.json document for a list of bug_reports()."""
     counts = {}
     org_set = set()
-    for issue in bug_issues:
-        login = user_login(issue["author"])
-        if login not in counts:
-            counts[login] = {
-                "count": 0,
-                "avatar_url": user_avatar_url(issue["author"]),
-                "profile_url": user_profile_url(issue["author"]),
-            }
-        counts[login]["count"] += 1
-        body = issue_body(issue)
-        if body:
-            m = re.search(r"### Organization Name.*?\n\n(.+)", body, re.DOTALL)
-            if m:
-                org_set.add(m.group(1).strip().split("\n")[0])
-
+    for bug in bugs:
+        login = bug["user"]["login"]
+        entry = counts.setdefault(login, {"count": 0, "avatar_url": bug["user"]["avatar_url"],
+                                          "profile_url": bug["user"]["profile_url"]})
+        entry["count"] += 1
+        m = re.search(r"### Organization Name.*?\n\n(.+)", bug["body"], re.DOTALL)
+        if m:
+            org_set.add(m.group(1).strip().split("\n")[0])
     leaderboard = [
         {"rank": i + 1, "login": login, **data}
-        for i, (login, data) in enumerate(
-            sorted(counts.items(), key=lambda x: x[1]["count"], reverse=True)[:50]
-        )
+        for i, (login, data) in enumerate(sorted(counts.items(), key=lambda x: (-x[1]["count"], x[0]))[:50])
     ]
 
-    # ── Top domains ───────────────────────────────────────────────────────────
     domain_counts = {}
-    for issue in bug_issues:
-        domain = extract_domain(issue_body(issue))
+    for bug in bugs:
+        domain = extract_domain(bug["body"])
         if domain:
             domain_counts[domain] = domain_counts.get(domain, 0) + 1
-
     top_domains = [
         {"rank": i + 1, "domain": domain, "count": count}
-        for i, (domain, count) in enumerate(
-            sorted(domain_counts.items(), key=lambda x: x[1], reverse=True)[:20]
-        )
+        for i, (domain, count) in enumerate(sorted(domain_counts.items(), key=lambda x: (-x[1], x[0]))[:20])
     ]
-
-    # ── Top commenters & comment map ─────────────────────────────────────────
-    print("  Fetching comments …")
-
-    issues_needing_comments = [i for i in bug_issues if issue_comment_count(i) > 0]
-
-    def fetch_comments(issue):
-        number = issue_number(issue)
-        return number, paginate(f"{BASE_URL}/issues/{number}/notes")
-
-    issue_comments_map = {issue_number(i): [] for i in bug_issues}
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {executor.submit(fetch_comments, issue): issue for issue in issues_needing_comments}
-        for future in as_completed(futures):
-            number, comments = future.result()
-            issue_comments_map[number] = comments
 
     comment_counts = {}
-    for comments in issue_comments_map.values():
-        for comment in comments:
-            if comment.get("system"):
-                continue
-            c_login = user_login(comment["author"])
-            if c_login.endswith("[bot]"):
-                continue
-            if c_login not in comment_counts:
-                comment_counts[c_login] = {
-                    "count": 0,
-                    "avatar_url": user_avatar_url(comment["author"]),
-                    "profile_url": user_profile_url(comment["author"]),
-                }
-            comment_counts[c_login]["count"] += 1
-
+    for bug in bugs:
+        for comment in bug["comments"]:
+            user = comment["user"]
+            entry = comment_counts.setdefault(user["login"], {"count": 0, "avatar_url": user["avatar_url"],
+                                                              "profile_url": user["profile_url"]})
+            entry["count"] += 1
     top_commenters = [
         {"rank": i + 1, "login": login, **data}
-        for i, (login, data) in enumerate(
-            sorted(comment_counts.items(), key=lambda x: x[1]["count"], reverse=True)[:20]
-        )
+        for i, (login, data) in enumerate(sorted(comment_counts.items(), key=lambda x: (-x[1]["count"], x[0]))[:20])
     ]
 
-    # ── Recent bugs ───────────────────────────────────────────────────────────
-    open_bugs = sorted(
-        [i for i in bug_issues if i["state"] == "open"],
-        key=lambda x: x["created_at"],
-        reverse=True,
-    )
     recent_bugs = []
-    for issue in open_bugs[:3]:
-        comments = issue_comments_map.get(issue_number(issue), [])
-        latest_comment = comments[-1] if comments else None
-        reactions = normalize_reactions(
-            paginate(f"{BASE_URL}/issues/{issue_number(issue)}/award_emoji")
-        )
-        reactions = {k: v for k, v in reactions.items() if k in REACTION_EMOJIS and v > 0}
+    for bug in [b for b in bugs if b["state"] == "open"][:3]:
+        latest = bug["comments"][-1] if bug["comments"] else None
         recent_bugs.append({
-            "number": issue_number(issue),
-            "title": issue["title"],
-            "html_url": issue_url(issue),
-            "created_at": issue["created_at"],
-            "comment_count": issue_comment_count(issue),
-            "user": {
-                "login": user_login(issue["author"]),
-                "avatar_url": user_avatar_url(issue["author"]),
-                "profile_url": user_profile_url(issue["author"]),
-            },
-            "image_url": extract_first_image(issue_body(issue)),
-            "domain": extract_domain(issue_body(issue)),
-            "reactions": reactions,
-            "latest_comment": {
-                "body": latest_comment["body"],
-                "created_at": latest_comment["created_at"],
-                "html_url": latest_comment.get("web_url") or issue_url(issue),
-                "user": {
-                    "login": user_login(latest_comment["author"]),
-                    "avatar_url": user_avatar_url(latest_comment["author"]),
-                    "profile_url": user_profile_url(latest_comment["author"]),
-                },
-            } if latest_comment else None,
+            "number": bug["number"],
+            "title": bug["title"],
+            "html_url": bug["html_url"],
+            "created_at": bug["created_at"],
+            "comment_count": len(bug["comments"]),
+            "user": bug["user"],
+            "image_url": extract_first_image(bug["body"]),
+            "domain": extract_domain(bug["body"]),
+            # Forge issues have votes, not emoji reactions: shown as +1.
+            "reactions": {"+1": bug["votes"]} if bug["votes"] else {},
+            "latest_comment": latest,
         })
 
-    # ── Assemble payload ──────────────────────────────────────────────────────
-    payload = {
-        "updated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+    return {
+        "updated_at": (now or datetime.now(timezone.utc)).isoformat().replace("+00:00", "Z"),
         "commit_sha": COMMIT_SHA,
-        "total_bugs": len(bug_issues),
-        "open_bugs": sum(1 for i in bug_issues if i["state"] == "open"),
-        "closed_bugs": sum(1 for i in bug_issues if i["state"] == "closed"),
+        "total_bugs": len(bugs),
+        "open_bugs": sum(1 for b in bugs if b["state"] == "open"),
+        "closed_bugs": sum(1 for b in bugs if b["state"] == "closed"),
         "total_domains": len(domain_counts),
         "total_orgs": len(org_set),
         "leaderboard": leaderboard,
@@ -774,6 +659,89 @@ def main():
         "top_domains": top_domains,
         "recent_bugs": recent_bugs,
     }
+
+
+NOMINATION_FIELD = re.compile(r"^\*\*(Election|Project|Role|Nominee):\*\*\s*(.+?)\s*$", re.MULTILINE)
+
+
+def _section(body, title):
+    m = re.search(rf"^###\s+{title}\s*\n(.*?)(?=^###\s|^---\s*$|\Z)", body, re.MULTILINE | re.DOTALL)
+    text = m.group(1).strip() if m else ""
+    return "" if text == "_Not provided_" else text
+
+
+def parse_nomination(issue, projects):
+    """A leaders.json nomination from a "[NOMINATION] ..." forge issue, or None."""
+    labels = ledger.labels(issue)
+    title = issue.get("title") or ""
+    if not (title.upper().startswith("[NOMINATION]") or "nomination" in labels):
+        return None
+    body = ledger.body(issue)
+    fields = {k.lower(): v for k, v in NOMINATION_FIELD.findall(body)}
+    nominee = fields.get("nominee", "").lstrip("@").strip()
+    if not nominee or not fields.get("role"):
+        return None
+    election = re.search(r"\(([^()]+)\)\s*$", fields.get("election", ""))
+    project_name = fields.get("project", "").strip().lower()
+    project_id = next((p["id"] for p in projects if project_name in (p["id"].lower(), p["name"].lower())), "")
+    author = issue.get("authorName") or ""
+    if "accepted" in labels:
+        status = "accepted"
+    elif "rejected" in labels:
+        status = "rejected"
+    else:
+        status = "pending"
+    skills = _section(body, "Skills")
+    return {
+        "id": f"issue-{issue['number']}",
+        "election_id": election.group(1).strip() if election else "",
+        "project_id": project_id,
+        "role": fields["role"].strip(),
+        "nominee_login": nominee,
+        "nominee_avatar": forge_user(nominee)["avatar_url"],
+        "nominator_login": author,
+        "self_nominated": author.lower() == nominee.lower(),
+        "statement": _section(body, "Statement"),
+        "skills": [x.strip() for x in skills.split(",") if x.strip()],
+        "contributions": _section(body, "Prior Contributions"),
+        "issue_number": int(issue["number"]),
+        "status": status,
+        "voters": ledger.voters(issue),
+        "votes": ledger.vote_count(issue),
+    }
+
+
+def build_leaders(issues, previous, folders, now=None):
+    """data/leaders.json: curated elections and past winners kept from ``previous``; projects from
+    scripts/routing/projects.tsv; nominations from forge issues (votes = the forge's issue votes)."""
+    previous = previous if isinstance(previous, dict) else {}
+    projects = [{
+        "id": folder, "name": name, "description": "", "repo_url": f"{FORGE_URL}/tree/main/{folder}",
+        "maintainer": "OWASP BLT", "active": True, "gsoc": False,
+    } for folder, name in folders]
+    known = {p["id"] for p in projects}
+    projects += [p for p in previous.get("projects") or [] if isinstance(p, dict) and p.get("id") not in known]
+    nominations = [n for n in previous.get("nominations") or [] if isinstance(n, dict) and not n.get("issue_number")]
+    for issue in issues:
+        nomination = parse_nomination(issue, projects)
+        if nomination:
+            nominations.append(nomination)
+    return {
+        "updated_at": (now or datetime.now(timezone.utc)).isoformat().replace("+00:00", "Z"),
+        "projects": projects,
+        "elections": previous.get("elections") or [],
+        "nominations": nominations,
+        "past_winners": previous.get("past_winners") or [],
+    }
+
+
+def main():
+    print(f"Reading {PROJECT} bug reports from {FORGE_URL} …")
+    client = ledger.client(seconds=600)
+    issues = ledger.issues(client)
+    bugs = bug_reports(issues)
+    print(f"  {len(bugs)} bug reports found ({client.requests} requests)")
+    payload = build_payload(bugs)
 
     # ── Write JSON ────────────────────────────────────────────────────────────
     data_dir = os.path.join(PUBLIC_DIR, "data")
@@ -783,6 +751,19 @@ def main():
         json.dump(payload, fh, indent=2, ensure_ascii=False)
         fh.write("\n")
     print(f"  Wrote {leaderboard_path}")
+
+    # ── Leaders (elections) ───────────────────────────────────────────────────
+    leaders_path = os.path.join(data_dir, "leaders.json")
+    try:
+        with open(leaders_path, encoding="utf-8") as fh:
+            previous = json.load(fh)
+    except (OSError, ValueError):
+        previous = {}
+    leaders = build_leaders(issues, previous, ledger.folders(ROOT))
+    with open(leaders_path, "w", encoding="utf-8") as fh:
+        json.dump(leaders, fh, indent=2, ensure_ascii=False)
+        fh.write("\n")
+    print(f"  Wrote {leaders_path} ({len(leaders['nominations'])} nominations)")
 
     # ── Patch index.html and leaderboard.html ──────────────────────────────────────────────────────
     for html_file in [os.path.join(PUBLIC_DIR, "index.html"), os.path.join(PUBLIC_DIR, "leaderboard.html")]:
@@ -797,9 +778,9 @@ def main():
         print(f"  Patched {html_file}")
 
     print(
-        f"Done: {len(bug_issues)} bugs, {len(leaderboard)} reporters, "
-        f"{len(org_set)} orgs, {len(top_commenters)} commenters, "
-        f"{len(domain_counts)} domains"
+        f"Done: {payload['total_bugs']} bugs, {len(payload['leaderboard'])} reporters, "
+        f"{payload['total_orgs']} orgs, {len(payload['top_commenters'])} commenters, "
+        f"{payload['total_domains']} domains"
     )
 
 

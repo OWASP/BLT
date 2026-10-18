@@ -23,6 +23,10 @@ This page lists every GitLab dependency left in the monorepo (found with `git gr
 - **README contributors**: `gitlab_authors()` is replaced by `forge_authors()`, which reads pull, issue and comment
   authors from the git.owaspblt.org ledgers (`scripts/forkmesh/ledger.py`). No gitlab.com avatar or profile links;
   `readme.yml` no longer passes `GITLAB_TOKEN`.
+- **blt-pages**: the leaderboard reads `bug` + blt-pages issues from the forge ledger, and the browser no longer
+  falls back to the gitlab.com API. Elections were redesigned instead of dropped: nominations are `[NOMINATION]`
+  forge issues, votes are the forge's native issue votes (one per account, counted once per role), and the fake
+  "Sign in with GitLab" is gone. The data and pre-rendered pages live in KV (see docs/workflows.md).
 
 ## What git.owaspblt.org can serve
 
@@ -40,7 +44,8 @@ These were checked read-only against the live instance on 2026-10-18. Every read
 | Pull and issue lists | `/pulls`, `/issues` | Answer **401** to anonymous callers. Read the ledger files instead, as above. |
 | Folder descriptions | `<folder>/.forkmesh/info.json` (folder About box: name, about, website, topics). | Supported, but no folder has one yet. |
 | Stars, forks, releases, tags, languages per project | none | Not available per folder. Drop these features or derive them some other way. |
-| Reactions (award emoji), issue templates (`?issuable_template=`), webhooks to external services, write APIs for bots | not found in the public API | Treat as **unavailable** until confirmed. Use `.forkmesh/` workflows on issue events instead, as blt-jobs does. |
+| Votes | Issue records carry `votes` and one signed `vote` event per vote (`authorName`); signed-in users press Vote on the issue page. | Works: `scripts/forkmesh/ledger.py` `voters()`, `vote_count()`. Use instead of 👍 award emoji. |
+| Issue templates (`?issuable_template=`), prefilled new issues, webhooks to external services, write APIs for bots | not found | **Unavailable.** Link to a template file in the folder (blt-jobs `issue-templates/`) and use `.forkmesh/` workflows on issue events, as blt-jobs does. Issue `reaction` events exist on the ledger but are not used by any BLT page. |
 
 ## How items are attributed to projects
 

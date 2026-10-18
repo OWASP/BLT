@@ -306,7 +306,7 @@
             >
               <svg class="fa-icon mr-1" aria-hidden="true">
                 <use href="#fa-code-branch"></use></svg
-              >GitLab
+              >Source
             </a>
           </nav>
 
@@ -326,35 +326,17 @@
             class="h-6 w-px bg-neutral-border dark:bg-gray-700 shrink-0"
           ></div>
 
-          <!-- Auth chip -->
-          <div class="flex items-center gap-2 shrink-0">
-            <button
-              id="gh-login-btn"
-              class="inline-flex items-center gap-2 rounded-md border border-neutral-border px-3 py-2 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors whitespace-nowrap"
-            >
-              <svg class="fa-icon" aria-hidden="true">
-                <use href="#fa-code-branch"></use></svg
-              >Sign in
-            </button>
-            <div id="gh-user-chip" class="hidden items-center gap-2">
-              <img
-                id="gh-user-avatar"
-                src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
-                alt="Your avatar"
-                class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700 shrink-0"
-              />
-              <span
-                id="gh-user-login"
-                class="text-sm font-semibold text-gray-800 dark:text-gray-200 whitespace-nowrap"
-              ></span>
-              <button
-                id="gh-logout-btn"
-                class="text-xs text-gray-400 hover:text-primary transition-colors whitespace-nowrap"
-              >
-                Sign out
-              </button>
-            </div>
-          </div>
+          <!-- Nominating and voting happen on git.owaspblt.org; sign in there. -->
+          <a
+            href="https://git.owaspblt.org/login"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex shrink-0 items-center gap-2 rounded-md border border-neutral-border px-3 py-2 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors whitespace-nowrap"
+          >
+            <svg class="fa-icon" aria-hidden="true">
+              <use href="#fa-code-branch"></use></svg
+            >Sign in to vote
+          </a>
         </div>
 
         <div class="flex shrink-0 items-center gap-2">
@@ -410,16 +392,18 @@
             target="_blank"
             rel="noopener noreferrer"
             class="block text-sm font-semibold dark:text-gray-200"
-            >GitLab</a
+            >Source</a
           >
-          <button
-            id="gh-login-btn-mobile"
+          <a
+            href="https://git.owaspblt.org/login"
+            target="_blank"
+            rel="noopener noreferrer"
             class="inline-flex items-center gap-2 rounded-md border border-neutral-border px-3 py-2 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:text-gray-300"
           >
             <svg class="fa-icon" aria-hidden="true">
               <use href="#fa-code-branch"></use></svg
-            >Sign in with GitLab
-          </button>
+            >Sign in to vote
+          </a>
         </nav>
       </div>
     </header>
@@ -436,7 +420,7 @@
           <svg class="fa-icon mr-2" aria-hidden="true">
             <use href="#fa-shield-halved"></use>
           </svg>
-          Community Governance · GitLab-Verified
+          Community Governance · On git.owaspblt.org
         </span>
         <h1
           class="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl dark:text-gray-100"
@@ -449,7 +433,7 @@
           class="mt-4 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg dark:text-gray-300"
         >
           Nominate contributors and vote for project Leads and Co-Leads.
-          Elections are GitLab-verified, transparent, and community-driven.
+          Elections run on git.owaspblt.org issues: transparent and community-driven.
         </p>
         <div
           class="mt-6 flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400"
@@ -462,12 +446,12 @@
           <span class="inline-flex items-center gap-1.5"
             ><svg class="fa-icon text-primary" aria-hidden="true">
               <use href="#fa-check"></use></svg
-            >One vote per GitLab account per role</span
+            >One vote per git.owaspblt.org account per role</span
           >
           <span class="inline-flex items-center gap-1.5"
             ><svg class="fa-icon text-primary" aria-hidden="true">
               <use href="#fa-check"></use></svg
-            >Nominations auditable via GitLab Issues</span
+            >Nominations auditable as forge issues</span
           >
         </div>
       </div>
@@ -653,8 +637,8 @@
               Anyone can nominate themselves or another contributor for any
               project. Click <strong>Start Nomination</strong> or the
               <strong>Nominate</strong> button on a project card — no admin
-              setup required. Sign in with GitLab to have your identity
-              recorded as the nominator.
+              setup required. The issue you open on git.owaspblt.org records you
+              as the nominator.
             </p>
           </div>
           <div class="flex flex-col gap-2">
@@ -664,12 +648,12 @@
               2
             </div>
             <h3 class="font-bold text-gray-900 dark:text-white text-sm">
-              Nomination becomes a GitLab Issue
+              Nomination becomes a forge issue
             </h3>
             <p class="text-sm text-gray-500 dark:text-gray-400">
-              Filling in the form opens a pre-filled GitLab Issue. Submit it to
-              make your nomination public and auditable — your GitLab identity
-              is your credential.
+              Filling in the form copies the nomination and opens a new issue on
+              git.owaspblt.org. Paste and submit it to make your nomination
+              public and auditable; your forge account is your credential.
             </p>
           </div>
           <div class="flex flex-col gap-2">
@@ -679,12 +663,11 @@
               3
             </div>
             <h3 class="font-bold text-gray-900 dark:text-white text-sm">
-              Community votes with 👍
+              Community votes on the issue
             </h3>
             <p class="text-sm text-gray-500 dark:text-gray-400">
-              React with 👍 on a nomination issue to cast your vote. GitLab
-              enforces one reaction per account, and vote counts are tallied
-              live on this page.
+              Press Vote on a nomination issue on git.owaspblt.org. Each account
+              counts once per role, and the counts on this page refresh daily.
             </p>
           </div>
         </div>
@@ -700,7 +683,7 @@
       >
         <p>
           &copy; <span id="footer-year"></span> OWASP Foundation and BLT
-          Contributors. Elections are community-governed and GitLab-verified.
+          Contributors. Elections are community-governed and run on git.owaspblt.org.
         </p>
       </div>
     </footer>
