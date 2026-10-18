@@ -1,0 +1,32 @@
+name: "blt-ossh: Update Catalog Data"
+# Ported from .github/workflows/blt-ossh--update-catalog.yml (was Python 3.12; runs on 3.13 here).
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update-catalog:
+    runs-on: runner
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: blt-ossh
+    env:
+      DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Set up Python
+        run: python3 -m venv .venv && .venv/bin/pip install -q requests
+      - name: Fetch DEV.to articles
+        run: .venv/bin/python scripts/fetch_articles.py
+      - name: Fetch Discord servers
+        if: env.DISCORD_BOT_TOKEN != ''
+        run: .venv/bin/python scripts/fetch_discord.py
+      - name: Fetch Reddit communities
+        run: .venv/bin/python scripts/fetch_reddit.py
+      - name: Commit and deploy if changed
+        run: |
+          ../scripts/actions/commit-back.sh --deploy blt-ossh -m "blt-ossh: update catalog data" -- public/data/ossh_catalog.json

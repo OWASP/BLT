@@ -1,4 +1,6 @@
 import json
+import os
+
 import requests
 import yaml
 
@@ -26,10 +28,12 @@ ADDITIONAL_PROJECTS = [
 
 
 def get_owasp_repos():
-    url = f"{GITHUB_API_URL}/orgs/{ORG_NAME}/repos"
+    url = f"{GITHUB_API_URL}/orgs/{ORG_NAME}/repos?per_page=100"
+    token = os.environ.get("GITHUB_TOKEN")
+    headers = {"Authorization": f"token {token}"} if token else {}
     repos = []
     while url:
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
         repos.extend(response.json())
         url = response.links.get("next", {}).get("url")

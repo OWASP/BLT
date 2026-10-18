@@ -1,0 +1,20 @@
+name: "blt-owasp-projects: Sweep Repositories"
+# Ported from the manual sweep_repos job of blt-owasp-projects/.gitlab-ci.yml. Reports OWASP www-project
+# repositories that still carry the template page to Slack; commits nothing.
+on:
+  workflow_dispatch:
+jobs:
+  sweep-repos:
+    runs-on: runner
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: blt-owasp-projects
+    env:
+      GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}
+      SLACK_WEBHOOK_URL_SWEEP: ${{ secrets.SLACK_WEBHOOK_URL_SWEEP }}
+    steps:
+      - name: Set up Python
+        run: python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt
+      - name: Sweep repositories
+        run: .venv/bin/python scripts/sweep.py

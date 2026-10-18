@@ -1,0 +1,21 @@
+name: "blt-university: Process Course Submission"
+# Ported from .github/workflows/blt-university--course-submission.yml; the github-script steps live in
+# blt-university/scripts/actions/welcome.mjs. Runs when a course issue is opened, or when the
+# course-submission label is added later (the old workflow also re-ran for unrelated labels).
+on:
+  issues:
+    types: [opened, labeled]
+jobs:
+  process-course-submission:
+    if: >-
+      (github.event.action == 'opened' && (contains(github.event.issue.labels.*.name, 'course-submission') ||
+      startsWith(github.event.issue.title, '[COURSE]'))) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'course-submission')
+    runs-on: runner
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: blt-university
+    steps:
+      - name: Label and welcome
+        run: node scripts/actions/welcome.mjs course

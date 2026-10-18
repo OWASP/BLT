@@ -1,0 +1,21 @@
+name: Refresh README
+# Regenerates the Projects, Contributors, Deploying and Blog Posts sections of the root README.md.
+# Ported from .github/workflows/readme.yml.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: runner
+    timeout-minutes: 15
+    steps:
+      - name: Set up Python
+        run: python3 -m venv .venv && .venv/bin/pip install -q requests
+      - name: Regenerate README sections
+        run: .venv/bin/python scripts/readme/update_readme.py --blog
+      - name: Commit if changed
+        run: |
+          scripts/actions/commit-back.sh -m "README: refresh generated sections" -- README.md

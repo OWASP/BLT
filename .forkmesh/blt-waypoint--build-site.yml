@@ -1,0 +1,32 @@
+name: "blt-waypoint: Refresh Data"
+# Ported from the build_site job of blt-waypoint/.gitlab-ci.yml (push + GitLab pipeline schedule):
+# regenerates public/gitlab_data.json and the main_data files, then commits them.
+on:
+  schedule:
+    - cron: "29 6 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - blt-waypoint/scripts/**
+      - blt-waypoint/public/github_data.json
+permissions:
+  contents: write
+jobs:
+  build-site:
+    runs-on: runner
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: blt-waypoint
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Generate data files
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: sh scripts/build_static.sh
+      - name: Commit and deploy if changed
+        run: |
+          ../scripts/actions/commit-back.sh --deploy blt-waypoint -m "blt-waypoint: refresh data files" -- public/gitlab_data.json public/main_data.csv public/main_data.js public/main_data.json

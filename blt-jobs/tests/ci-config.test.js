@@ -4,23 +4,45 @@ const path = require("node:path");
 const test = require("node:test");
 const yaml = require("js-yaml");
 
-function isScriptStringList(value) {
-  if (typeof value === "string") return true;
-  if (!Array.isArray(value)) return false;
-  return value.every(isScriptStringList);
-}
+const projectDir = path.join(__dirname, "..");
+const workflowDir = path.join(projectDir, "..", ".forkmesh");
 
-test("GitLab CI script entries parse as strings", () => {
-  const ciPath = path.join(__dirname, "..", ".gitlab-ci.yml");
-  const config = yaml.load(fs.readFileSync(ciPath, "utf8"));
-
-  for (const [jobName, job] of Object.entries(config)) {
-    if (!job || typeof job !== "object" || Array.isArray(job)) continue;
-    if (job.script) {
-      assert.equal(isScriptStringList(job.script), true, `${jobName}.script must contain only strings`);
-    }
-    if (job.before_script) {
-      assert.equal(isScriptStringList(job.before_script), true, `${jobName}.before_script must contain only strings`);
+test("blt-jobs workflows run steps that exist in this project", () => {
+  const files = fs.readdirSync(workflowDir).filter((f) => f.startsWith("blt-jobs--") && f.endsWith(".yml"));
+  assert.ok(files.length >= 2, "expected the blt-jobs workflows in .forkmesh/");
+  for (const file of files) {
+    const workflow = yaml.load(fs.readFileSync(path.join(workflowDir, file), "utf8"));
+    for (const [jobName, job] of Object.entries(workflow.jobs)) {
+      assert.equal(job.defaults.run["working-directory"], "blt-jobs", `${file} ${jobName}`);
+      for (const step of job.steps) {
+        assert.equal(typeof step.run, "string", `${file} ${jobName}: every step is a run step`);
+        for (const [, script] of step.run.matchAll(/node (scripts\/\S+)/g)) {
+          assert.ok(fs.existsSync(path.join(projectDir, script)), `${file}: ${script} exists`);
+        }
+      }
     }
   }
+});
+
+test("process-submission maps platform issues to the GitLab shape createFromIssue expects", async () => {
+  const { toGitlabIssue } = await import("../scripts/actions/process-submission.mjs");
+  process.env.FORKMESH_API_URL = "https://git.example.org";
+  process.env.GITHUB_REPOSITORY = "BLT/BLT";
+  const issue = toGitlabIssue({
+    number: 12,
+    title: "[FLAG] job",
+    body: "### Job ID\n\nabc",
+    state: "open",
+    labels: [{ name: "flag-job-posting" }],
+    user: { login: "alice" },
+  });
+  assert.deepEqual(issue, {
+    iid: 12,
+    title: "[FLAG] job",
+    description: "### Job ID\n\nabc",
+    labels: ["flag-job-posting"],
+    author: { username: "alice", web_url: "https://git.example.org/alice" },
+    web_url: "https://git.example.org/BLT/BLT/issues/12",
+    state: "open",
+  });
 });

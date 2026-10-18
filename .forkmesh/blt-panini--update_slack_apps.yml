@@ -1,0 +1,26 @@
+name: "blt-panini: Update Slack Apps List"
+# Ported from .github/workflows/blt-panini--update_slack_apps.yml (was Python 3.12; runs on 3.13 here).
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update-slack-apps:
+    runs-on: runner
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: blt-panini
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Set up Python
+        run: python3 -m venv .venv && .venv/bin/pip install -q -r scripts/requirements.txt
+      - name: Run Slack apps scraper
+        run: .venv/bin/python scripts/update_slack_apps.py
+      - name: Commit and deploy if changed
+        run: |
+          ../scripts/actions/commit-back.sh --deploy blt-panini -m "blt-panini: update public/slack_apps.json" -- public/slack_apps.json

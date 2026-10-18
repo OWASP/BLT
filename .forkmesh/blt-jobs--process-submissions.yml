@@ -1,0 +1,43 @@
+name: "blt-jobs: Process Submissions"
+# Ported from the process_submissions job of blt-jobs/.gitlab-ci.yml, which polled open GitLab issues
+# (scripts/process-gitlab-submissions.js). Here each job / job-seeker / flag issue is processed when it
+# is opened, edited or labelled (scripts/actions/process-submission.mjs), or by number by hand.
+on:
+  issues:
+    types: [opened, edited, labeled]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Issue number to process
+        required: true
+        default: ""
+        type: string
+permissions:
+  contents: write
+jobs:
+  process-submission:
+    if: >-
+      github.event_name == 'workflow_dispatch' || (github.event.issue.state == 'open' && (
+      contains(github.event.issue.labels.*.name, 'job-posting') ||
+      contains(github.event.issue.labels.*.name, 'job-posting-from-link') ||
+      contains(github.event.issue.labels.*.name, 'job-seeker') ||
+      contains(github.event.issue.labels.*.name, 'flag-job-posting') ||
+      startsWith(github.event.issue.title, '[FLAG]') ||
+      contains(github.event.issue.body, 'Job Posting URL') ||
+      contains(github.event.issue.body, 'Job Title') ||
+      contains(github.event.issue.body, 'Professional Information')))
+    runs-on: runner
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: blt-jobs
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Install dependencies
+        run: |
+          npm ci --no-audit --no-fund
+          python3 -m venv .venv && .venv/bin/pip install -q -r scripts/requirements-scrape.txt
+      - name: Process the submission, commit, comment and close
+        run: PATH="$PWD/.venv/bin:$PATH" node scripts/actions/process-submission.mjs

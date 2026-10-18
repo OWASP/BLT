@@ -1,0 +1,32 @@
+name: CI
+# Tests the project folders a push touches. Per-project commands live in scripts/ci/tests.tsv.
+# Ported from .github/workflows/ci.yml. Flutter and Rust projects are skipped on this runner
+# (no toolchain); see docs/workflows.md.
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+    inputs:
+      projects:
+        description: Space-separated projects to test, or all
+        required: false
+        default: all
+        type: string
+jobs:
+  test:
+    runs-on: runner
+    timeout-minutes: 120
+    steps:
+      - name: Test changed projects
+        if: github.event_name == 'push'
+        run: scripts/ci/test.sh --changed "$FORKMESH_BEFORE"
+      - name: Test selected projects
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          PROJECTS: ${{ inputs.projects }}
+        run: |
+          if [ -z "$PROJECTS" ] || [ "$PROJECTS" = all ]; then
+            scripts/ci/test.sh --all
+          else
+            scripts/ci/test.sh $PROJECTS
+          fi

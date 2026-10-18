@@ -14,7 +14,6 @@ npm-debug.log*
 tmp/
 temp/
 *.tmp
-scripts/
 
 # Build artifacts
 dist/

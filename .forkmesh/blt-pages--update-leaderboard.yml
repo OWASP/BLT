@@ -1,0 +1,36 @@
+name: "blt-pages: Update Leaderboard"
+# Ported from the update_leaderboard job of blt-pages/.gitlab-ci.yml (push, schedule and manual runs).
+# Reads the bug-labelled GitLab issues of owasp-blt/blt-pages, writes public/data/leaderboard.json and
+# pre-renders index.html / leaderboard.html, then commits them (the GitLab job only published them).
+on:
+  schedule:
+    - cron: "11 5 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - blt-pages/scripts/**
+permissions:
+  contents: write
+jobs:
+  update-leaderboard:
+    runs-on: runner
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: blt-pages
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Generate leaderboard
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          CI_PROJECT_PATH: owasp-blt/blt-pages
+        run: |
+          python3 scripts/generate_leaderboard.py
+          test -f public/index.html
+          test -f public/data/leaderboard.json
+      - name: Commit and deploy if changed
+        run: |
+          ../scripts/actions/commit-back.sh --deploy blt-pages -m "blt-pages: update leaderboard" -- public/data/leaderboard.json public/index.html public/leaderboard.html

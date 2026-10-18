@@ -1,0 +1,21 @@
+name: "blt-university: Process Enrollment"
+# Ported from .github/workflows/blt-university--enrollment.yml; the github-script steps live in
+# blt-university/scripts/actions/welcome.mjs. Runs when an enrollment issue is opened, or when the
+# enrollment label is added later (the old workflow also re-ran for unrelated labels).
+on:
+  issues:
+    types: [opened, labeled]
+jobs:
+  process-enrollment:
+    if: >-
+      (github.event.action == 'opened' && (contains(github.event.issue.labels.*.name, 'enrollment') ||
+      startsWith(github.event.issue.title, '[ENROLLMENT]'))) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'enrollment')
+    runs-on: runner
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: blt-university
+    steps:
+      - name: Label and welcome
+        run: node scripts/actions/welcome.mjs enrollment
