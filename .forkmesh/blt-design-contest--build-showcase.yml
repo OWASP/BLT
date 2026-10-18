@@ -1,8 +1,13 @@
 name: "blt-design-contest: Build Showcase"
-# Ported from the build_showcase job of blt-design-contest/.gitlab-ci.yml (it rebuilt public/ on every
-# push and the Cloudflare deploy published it). Submissions are GitLab issues of
-# owasp-blt/blt-design-contest, so the pages are rebuilt daily and committed.
+# Rebuilds the showcase pages from the git.owaspblt.org issue ledger (open blt-design-contest
+# submission issues, native issue votes and +1 comments) plus the frozen GitLab entries in
+# blt-design-contest/data/gitlab-archive.json, and writes the pages that changed to the Worker's KV
+# (scripts/refresh-kv.sh). Nothing is committed and nothing is redeployed; the Worker serves the
+# pages from KV under their usual URLs. Issue events on contest issues refresh at once; votes do not
+# raise an issue event, so the daily run picks them up.
 on:
+  issues:
+    types: [opened, edited, labeled, unlabeled, closed, reopened]
   schedule:
     - cron: "47 7 * * *"
   workflow_dispatch:
@@ -10,30 +15,33 @@ on:
     branches: [main]
     paths:
       - blt-design-contest/scripts/**
+      - blt-design-contest/data/**
 permissions:
-  contents: write
+  contents: read
 jobs:
   build-showcase:
+    if: >-
+      github.event_name != 'issues' ||
+      startsWith(github.event.issue.title, '[blt-design-contest]') ||
+      startsWith(github.event.issue.title, 'blt-design-contest:') ||
+      contains(github.event.issue.labels.*.name, 'blt-design-contest') ||
+      contains(github.event.issue.labels.*.name, 'project:blt-design-contest') ||
+      contains(github.event.issue.labels.*.name, 'design-submission') ||
+      contains(github.event.issue.labels.*.name, 'logo-submission') ||
+      contains(github.event.issue.labels.*.name, 'homepage-submission') ||
+      contains(github.event.issue.labels.*.name, 'video-meme-submission') ||
+      contains(github.event.issue.labels.*.name, 'welcome-video-submission') ||
+      contains(github.event.issue.labels.*.name, 'appsecil-tshirt-submission') ||
+      contains(github.event.issue.labels.*.name, 'winner') ||
+      github.event.label.name == 'winner'
     runs-on: runner
-    timeout-minutes: 30
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: blt-design-contest
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
-      - name: Build showcase pages
+      - name: Build showcase pages and write changed ones to KV
         env:
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          GITLAB_PROJECT_PATH: owasp-blt/blt-design-contest
-        run: |
-          python3 scripts/build_showcase.py
-          python3 scripts/vendor_github_assets.py
-          if grep -R "https://github.com/user-attachments/assets/" public/*.html; then
-            echo "un-vendored GitHub attachment links left in public/" >&2
-            exit 1
-          fi
-      - name: Commit and deploy if changed
-        run: |
-          ../scripts/actions/commit-back.sh --deploy blt-design-contest -m "blt-design-contest: rebuild showcase pages" -- public
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: scripts/refresh-kv.sh

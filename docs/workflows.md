@@ -34,7 +34,7 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `deploy.yml` | new | push to main: `scripts/deploy.sh --changed $FORKMESH_BEFORE` (folders in `scripts/deploy/projects.tsv`); dispatch input `project` (a name, several space-separated, or `all`) | CF |
 | `readme.yml` | GitHub `readme.yml` | push to main (any path; Projects, Deploying and Contributors), `17 6 * * *` (also refreshes Blog Posts); commits `README.md` and `.forkmesh/contributors/` | `GH_API_TOKEN` (optional) |
 | `blt-cve--build-index.yml` | GitHub | push to main under `blt-cve/public/cves`, `public/schema`, `scripts/build_index.py` | CF |
-| `blt-design-contest--build-showcase.yml` | GitLab `build_showcase` | `47 7 * * *`, push under `blt-design-contest/scripts/` | `GITLAB_TOKEN` (optional), CF |
+| `blt-design-contest--build-showcase.yml` | GitLab `build_showcase` | issue events on contest issues (project label or `[blt-design-contest]` prefix, contest labels, `winner`), `47 7 * * *` (votes raise no issue event), push under `blt-design-contest/scripts/` or `data/`; reads the git.owaspblt.org issue ledger and writes changed pages to KV (`blt-design-contest/scripts/refresh-kv.sh`), no commit | CF (with KV write) |
 | `blt-extension--release.yml` | GitHub `release.yml` + packaging from `create-release.yml` | dispatch only (input `publish`) | `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` |
 | `blt-hackathons--create-hackathon.yml` | GitHub | issues opened/labeled with `hackathon-creation` | CF |
 | `blt-hackathons--process-sponsor.yml` | GitHub | issues opened/labeled with `sponsorship` | CF |
@@ -67,7 +67,7 @@ GitLab pipeline schedules were set in the GitLab UI, so their times were not in 
 - `blt-owasp-projects` refresh: `23 4 * * *`, daily. This is OWASP repository metadata.
 - `blt-pages` leaderboard: `11 5 * * *`, daily, plus issue events. It writes KV, not git, since 2026-10-18.
 - `blt-waypoint` data: `29 6 * * *`, daily.
-- `blt-design-contest` showcase: `47 7 * * *`, daily. The old setup only rebuilt on push, but submissions are GitLab issues that change independently of pushes.
+- `blt-design-contest` showcase: issue events on contest issues plus a daily `47 7 * * *` run for votes; the pages go to KV, not git.
 
 ### Fewer bot commits
 
@@ -104,6 +104,7 @@ Responses carry `Cache-Control: public, max-age=60, stale-while-revalidate=600`,
 | `blt-gsoc` | `/js/gsoc2026_stats.generated.js`, `/data/progress.json` | no longer scheduled: GSoC 2026 ended, and `gsoc2026-stats` counted the frozen OWASP-BLT/* GitHub copies; both keep serving their final data from KV (run `POST /__scheduled` with a task by hand if needed) | `CRON_SECRET`, `GH_API_TOKEN`, `GITLAB_TOKEN` (optional), `SLACK_TOKEN_OWASP`, `SLACK_TOKEN_BLT` |
 | `my-gsoc-tool` | `/data/github-contributions.json`, `/data/forks.json` | the Worker, from blt-cron at 00:03 | `CRON_SECRET`, `GH_API_TOKEN` |
 | `blt-pages` | `/`, `/index.html`, `/leaderboard`, `/leaderboard.html` (pre-rendered), `/data/leaderboard.json`, `/data/leaders.json` | `blt-pages--update-leaderboard.yml` (issue events, daily, pushes of the pages) through the Cloudflare KV API | none |
+| `blt-design-contest` | `/`, `/index.html`, `/show-all-entries.html`, `/<contest>.html` and the extensionless forms | `blt-design-contest--build-showcase.yml` (issue events, daily), only pages whose content changed | none |
 
 Shared code is in [`scripts/worker-data/`](../scripts/worker-data/):
 

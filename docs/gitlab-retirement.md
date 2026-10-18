@@ -27,6 +27,11 @@ This page lists every GitLab dependency left in the monorepo (found with `git gr
   falls back to the gitlab.com API. Elections were redesigned instead of dropped: nominations are `[NOMINATION]`
   forge issues, votes are the forge's native issue votes (one per account, counted once per role), and the fake
   "Sign in with GitLab" is gone. The data and pre-rendered pages live in KV (see docs/workflows.md).
+- **blt-design-contest**: submissions are open forge issues (project label or `[blt-design-contest]` prefix, plus a
+  contest label or prefix); votes are forge votes plus `+1` comments; the browser fetch of gitlab.com is gone; the 7
+  GitLab templates are documented bodies in `issue-templates/`. The 45 GitLab-era submissions and their final votes
+  are kept in `data/gitlab-archive.json` and shown as "GitLab archive". Pages are rebuilt on issue events and daily
+  and served from KV.
 
 ## What git.owaspblt.org can serve
 

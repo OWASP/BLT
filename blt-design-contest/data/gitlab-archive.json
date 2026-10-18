@@ -1,0 +1,1189 @@
+{
+  "source": "gitlab.com/owasp-blt/blt-design-contest issues (closed with the GitLab group)",
+  "snapshot_commit": "729f99853f",
+  "note": "Frozen copy of the submissions and their GitLab reaction counts, read from the showcase pages committed at snapshot_commit. Votes are the thumbs-up count; GitLab links no longer resolve.",
+  "entries": [
+    {
+      "contest": "blt-tshirt",
+      "number": 26,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/26",
+      "title": "Cyber surgery",
+      "created_at": "2026-02-24T20:00:54Z",
+      "category": "UI / Website Redesign",
+      "description": "The internet is sick",
+      "preview_url": "assets/entries/f7da98fd-3097-4cd2-a9fb-d64486609d89.jpg",
+      "design_url": "",
+      "author": {
+        "login": "mdkaifansari04",
+        "url": "https://github.com/mdkaifansari04",
+        "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4"
+      },
+      "votes": 21,
+      "reactions": {
+        "+1": 21,
+        "heart": 7,
+        "rocket": 7,
+        "eyes": 2
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": true
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 84,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/84",
+      "title": "Hunting bugs",
+      "created_at": "2026-03-02T20:47:46Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "The design features a bold, black T-shirt with the slogan “HUNTING BUGS” across the chest. At the center is a globe with interconnected nodes symbolizing a global bug-hunting community. A magnifyin…",
+      "preview_url": "assets/entries/45603fef-1e06-40d6-a6b8-b46add56b94a.png",
+      "design_url": "",
+      "author": {
+        "login": "ma0z",
+        "url": "https://github.com/ma0z",
+        "avatar": "https://avatars.githubusercontent.com/u/14869174?v=4"
+      },
+      "votes": 0,
+      "reactions": {},
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 66,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/66",
+      "title": "Emergence",
+      "created_at": "2026-03-01T03:05:10Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "OWASP-BLT emerges from the abyss.",
+      "preview_url": "assets/entries/e18b234b-0355-42cb-8f06-a05c8d66c047.png",
+      "design_url": "",
+      "author": {
+        "login": "Nachiket-Roy",
+        "url": "https://github.com/Nachiket-Roy",
+        "avatar": "https://avatars.githubusercontent.com/u/204239697?v=4"
+      },
+      "votes": 2,
+      "reactions": {
+        "+1": 2
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 61,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/61",
+      "title": "BLT's Merchandise Design Attempt",
+      "created_at": "2026-02-28T22:20:33Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "My Design focuses majorly on showcasing the main idea of the core BLT website. It states the main goal and purpose of OWASP BLT Website.",
+      "preview_url": "assets/entries/a67e2012-ca79-4312-a324-e40ab5a06630.png",
+      "design_url": "",
+      "author": {
+        "login": "ananya-09",
+        "url": "https://github.com/ananya-09",
+        "avatar": "https://avatars.githubusercontent.com/u/175581593?v=4"
+      },
+      "votes": 13,
+      "reactions": {
+        "+1": 13,
+        "hooray": 8,
+        "heart": 13,
+        "rocket": 8,
+        "eyes": 8
+      },
+      "comments": 3,
+      "last_comment": {
+        "login": "Anurag142yadav",
+        "url": "https://github.com/Anurag142yadav",
+        "avatar": "https://avatars.githubusercontent.com/u/159868548?v=4",
+        "body": "Nice work 👍"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 59,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/59",
+      "title": "Signal &  Response",
+      "created_at": "2026-02-28T19:11:13Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "“Signal & Response” represents OWASP BLT as a coordinated global defense network.\n\nAt the center is a geometric, interconnected sphere symbolizing the modern internet — complex, distributed, and in…",
+      "preview_url": "assets/entries/baf5cbd6-e058-4865-b403-97a9f484a574.png",
+      "design_url": "",
+      "author": {
+        "login": "yashaksthana158",
+        "url": "https://github.com/yashaksthana158",
+        "avatar": "https://avatars.githubusercontent.com/u/169891212?v=4"
+      },
+      "votes": 0,
+      "reactions": {
+        "heart": 2,
+        "rocket": 2
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 58,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/58",
+      "title": "The BLT System Sandwich (Hoodie)",
+      "created_at": "2026-02-28T17:13:22Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "A technical blueprint that reimagines the OWASP BLT framework as a modular hardware sandwich where each ingredient represents a core system component.",
+      "preview_url": "assets/entries/a368e853-5d36-4411-a795-d964b0e813c6.png",
+      "design_url": "",
+      "author": {
+        "login": "Shhazzz",
+        "url": "https://github.com/Shhazzz",
+        "avatar": "https://avatars.githubusercontent.com/u/182691106?v=4"
+      },
+      "votes": 2,
+      "reactions": {
+        "+1": 2
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 57,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/57",
+      "title": "Buggy Squashing Bug",
+      "created_at": "2026-02-28T15:03:33Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "My design inspired by One Piece's Buggy. Buggy Squashing Bugs just sounds good lol",
+      "preview_url": "assets/entries/8abe394a-ce15-45dc-bbda-263e1fa5764e.png",
+      "design_url": "",
+      "author": {
+        "login": "karunarapolu",
+        "url": "https://github.com/karunarapolu",
+        "avatar": "https://avatars.githubusercontent.com/u/165272362?v=4"
+      },
+      "votes": 2,
+      "reactions": {
+        "+1": 2
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 56,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/56",
+      "title": "BLT-Karuna Design Contest Submission",
+      "created_at": "2026-02-28T13:39:56Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "My design shows a bug being trapped and being flushed out. Find. Log. Fix. Repeat.",
+      "preview_url": "assets/entries/7ebeaf5e-c1de-4e0a-950d-bf44f9211f33.png",
+      "design_url": "",
+      "author": {
+        "login": "karunarapolu",
+        "url": "https://github.com/karunarapolu",
+        "avatar": "https://avatars.githubusercontent.com/u/165272362?v=4"
+      },
+      "votes": 2,
+      "reactions": {
+        "+1": 2,
+        "heart": 2
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 55,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/55",
+      "title": "Agent P’s Bug Heist: Heist 'em Bugs",
+      "created_at": "2026-02-28T12:25:38Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "A Phineas and Ferb style design where Agent P \"heists\" bugs using inventive machines that represent the different OWASP BLT software repositories.",
+      "preview_url": "assets/entries/bf6a7f67-d8af-4671-b05f-5fa63b5fa015.png",
+      "design_url": "",
+      "author": {
+        "login": "Shhazzz",
+        "url": "https://github.com/Shhazzz",
+        "avatar": "https://avatars.githubusercontent.com/u/182691106?v=4"
+      },
+      "votes": 5,
+      "reactions": {
+        "+1": 5,
+        "laugh": 1,
+        "rocket": 1
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 54,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/54",
+      "title": "BLT: Minimalist Branding Concept",
+      "created_at": "2026-02-28T09:41:44Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "This design features a minimal tech aesthetic to promote OWASP BLT through clean branding. It pairs the official wasp logo with circuitry accents and places \"Bug Logging Tool\" along the neckline to…",
+      "preview_url": "assets/entries/9de3603c-5d17-4660-b91a-44ac549827a4.png",
+      "design_url": "",
+      "author": {
+        "login": "Shhazzz",
+        "url": "https://github.com/Shhazzz",
+        "avatar": "https://avatars.githubusercontent.com/u/182691106?v=4"
+      },
+      "votes": 5,
+      "reactions": {
+        "+1": 5,
+        "hooray": 2,
+        "heart": 2,
+        "rocket": 1
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 53,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/53",
+      "title": "Simple & Wearable OWASP BLT T-Shirt Merch",
+      "created_at": "2026-02-27T18:44:28Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "My design focuses on creating a clean, wearable OWASP BLT T-shirt that anyone - contributors, developers, organizers, and even general supporters - can comfortably wear. The goal was to keep the de…",
+      "preview_url": "assets/entries/6522a8d6-f175-4cf2-b87a-569bf9eab4c3.png",
+      "design_url": "",
+      "author": {
+        "login": "Nachiket-Roy",
+        "url": "https://github.com/Nachiket-Roy",
+        "avatar": "https://avatars.githubusercontent.com/u/204239697?v=4"
+      },
+      "votes": 4,
+      "reactions": {
+        "+1": 4
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 52,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/52",
+      "title": "3",
+      "created_at": "2026-02-27T13:59:37Z",
+      "category": "UI / Website Redesign",
+      "description": "Liquid style",
+      "preview_url": "assets/entries/63c49ca4-5600-4ea9-975b-a44bec1f4276.png",
+      "design_url": "",
+      "author": {
+        "login": "Pritz395",
+        "url": "https://github.com/Pritz395",
+        "avatar": "https://avatars.githubusercontent.com/u/146115505?v=4"
+      },
+      "votes": 2,
+      "reactions": {
+        "+1": 2
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 51,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/51",
+      "title": "1-2",
+      "created_at": "2026-02-27T13:58:36Z",
+      "category": "UI / Website Redesign",
+      "description": "Rick and morty style",
+      "preview_url": "assets/entries/27ba35a5-78f7-4fee-8ad2-6d62200f6e15.png",
+      "design_url": "",
+      "author": {
+        "login": "Pritz395",
+        "url": "https://github.com/Pritz395",
+        "avatar": "https://avatars.githubusercontent.com/u/146115505?v=4"
+      },
+      "votes": 0,
+      "reactions": {
+        "laugh": 3,
+        "heart": 2
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 49,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/49",
+      "title": "BLT",
+      "created_at": "2026-02-27T13:21:52Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "The red wasp aligned with the official OWASP identity symbolizes the community itself: sharp, precise, and defensive by nature.\n\nThe Guardian Edition centers on a eye with a shutter style iris, sym…",
+      "preview_url": "assets/entries/b350ed8b-d637-4f73-a061-cb86b8291219.png",
+      "design_url": "",
+      "author": {
+        "login": "Rudra-rps",
+        "url": "https://github.com/Rudra-rps",
+        "avatar": "https://avatars.githubusercontent.com/u/199046682?v=4"
+      },
+      "votes": 4,
+      "reactions": {
+        "+1": 4
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 39,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/39",
+      "title": "Security blueprint.",
+      "created_at": "2026-02-27T10:14:30Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "Design focuses on the relation of a anatomical WASP and security concepts (theoretical ofc).",
+      "preview_url": "assets/entries/a6af1448-7dce-4a8b-aebf-1c49c7e1a6da.png",
+      "design_url": "",
+      "author": {
+        "login": "gojo-satorou-v7",
+        "url": "https://github.com/gojo-satorou-v7",
+        "avatar": "https://avatars.githubusercontent.com/u/118048127?v=4"
+      },
+      "votes": 15,
+      "reactions": {
+        "+1": 15,
+        "heart": 6,
+        "rocket": 1
+      },
+      "comments": 4,
+      "last_comment": {
+        "login": "S3DFX-CYBER",
+        "url": "https://github.com/S3DFX-CYBER",
+        "avatar": "https://avatars.githubusercontent.com/u/213652949?v=4",
+        "body": "Nice conceptual thinking of bug classification"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 38,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/38",
+      "title": "BLT-lettuce",
+      "created_at": "2026-02-26T16:20:12Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "Intelligent slack bot",
+      "preview_url": "assets/entries/df3dd54c-550e-4346-9121-fccdd10f0384.png",
+      "design_url": "",
+      "author": {
+        "login": "mdkaifansari04",
+        "url": "https://github.com/mdkaifansari04",
+        "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4"
+      },
+      "votes": 2,
+      "reactions": {
+        "+1": 2,
+        "heart": 2,
+        "rocket": 2
+      },
+      "comments": 1,
+      "last_comment": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar",
+        "body": "Nice!"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 37,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/37",
+      "title": "Bug Heist vs OWASP BLT",
+      "created_at": "2026-02-25T19:57:05Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "This design presents cybersecurity as a dramatic comic-style showdown between a money heist professor and bugs. When chaos erupts, OWASP BLT appears as a superhero, stepping in to secure the system.",
+      "preview_url": "assets/entries/220e5e28-3cb5-44e7-9177-5b2da17841a5.png",
+      "design_url": "",
+      "author": {
+        "login": "e-esakman",
+        "url": "https://github.com/e-esakman",
+        "avatar": "https://avatars.githubusercontent.com/u/187769872?v=4"
+      },
+      "votes": 2,
+      "reactions": {
+        "+1": 2,
+        "hooray": 1,
+        "heart": 1
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 36,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/36",
+      "title": "Log Out UR Bugs Community Tee",
+      "created_at": "2026-02-25T18:41:57Z",
+      "category": "UI / Website Redesign",
+      "description": "A clean, minimal design illustrating bugs being caught and removed from the system.",
+      "preview_url": "assets/entries/68a6cd63-2701-4001-896c-5083a51cd3fc.png",
+      "design_url": "",
+      "author": {
+        "login": "e-esakman",
+        "url": "https://github.com/e-esakman",
+        "avatar": "https://avatars.githubusercontent.com/u/187769872?v=4"
+      },
+      "votes": 5,
+      "reactions": {
+        "+1": 5,
+        "heart": 2,
+        "rocket": 1,
+        "eyes": 1
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 35,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/35",
+      "title": "BLT-rewards",
+      "created_at": "2026-02-25T18:40:24Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "It's raining BACON",
+      "preview_url": "assets/entries/bb816915-d43e-4d32-a11f-f4c7d1099e17.png",
+      "design_url": "",
+      "author": {
+        "login": "mdkaifansari04",
+        "url": "https://github.com/mdkaifansari04",
+        "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4"
+      },
+      "votes": 2,
+      "reactions": {
+        "+1": 2,
+        "laugh": 1,
+        "hooray": 2,
+        "heart": 1,
+        "rocket": 1
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 34,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/34",
+      "title": "Log. Track. Execute",
+      "created_at": "2026-02-25T18:38:37Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "My design explores the metaphor of data extraction as a visible threat. The red insect symbolizes vulnerabilities actively extracting information from a system, reinforcing the urgency of logging a…",
+      "preview_url": "assets/entries/c54c7103-a581-4c10-bfe2-89fb47559947.png",
+      "design_url": "",
+      "author": {
+        "login": "e-esakman",
+        "url": "https://github.com/e-esakman",
+        "avatar": "https://avatars.githubusercontent.com/u/187769872?v=4"
+      },
+      "votes": 0,
+      "reactions": {
+        "rocket": 2
+      },
+      "comments": 2,
+      "last_comment": {
+        "login": "e-esakman",
+        "url": "https://github.com/e-esakman",
+        "avatar": "https://avatars.githubusercontent.com/u/187769872?v=4",
+        "body": "I'll try that."
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 32,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/32",
+      "title": "BLT Leaf",
+      "created_at": "2026-02-25T17:23:51Z",
+      "category": "UI / Website Redesign",
+      "description": "Not all code is ready to merge",
+      "preview_url": "assets/entries/a190d3a1-a763-4a3c-8cba-2c8b28617969.png",
+      "design_url": "",
+      "author": {
+        "login": "mdkaifansari04",
+        "url": "https://github.com/mdkaifansari04",
+        "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4"
+      },
+      "votes": 3,
+      "reactions": {
+        "+1": 3,
+        "hooray": 2,
+        "heart": 2,
+        "rocket": 2,
+        "eyes": 2
+      },
+      "comments": 1,
+      "last_comment": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar",
+        "body": "I like the leaf designs"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 31,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/31",
+      "title": "Catch bug",
+      "created_at": "2026-02-25T16:55:09Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "BLT saves the planet from bugs",
+      "preview_url": "assets/entries/c35a1e6c-551d-48ec-9a7e-206a1c37b1dc.png",
+      "design_url": "",
+      "author": {
+        "login": "mdkaifansari04",
+        "url": "https://github.com/mdkaifansari04",
+        "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4"
+      },
+      "votes": 5,
+      "reactions": {
+        "+1": 5,
+        "heart": 2,
+        "rocket": 2
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 29,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/29",
+      "title": "Squash the bugs",
+      "created_at": "2026-02-24T23:11:27Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "My design features a black T-shirt with a central, green beetle-shaped bug, symbolizing software bugs. Above the bug are three white jagged lines, giving a sense of impact and urgency. Below, bold …",
+      "preview_url": "assets/entries/7965a43a-2bb2-48b9-a2e7-1c8aab0dcdc3.png",
+      "design_url": "",
+      "author": {
+        "login": "ma0z",
+        "url": "https://github.com/ma0z",
+        "avatar": "https://avatars.githubusercontent.com/u/14869174?v=4"
+      },
+      "votes": 1,
+      "reactions": {
+        "+1": 1,
+        "heart": 1,
+        "rocket": 1
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 28,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/28",
+      "title": "BlT & Team (General)",
+      "created_at": "2026-02-24T21:41:28Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "My design focuses on BLT Team , this design is generic",
+      "preview_url": "assets/entries/67ca9db6-d26c-45d9-9bcb-f573af319fcd.png",
+      "design_url": "",
+      "author": {
+        "login": "S3DFX-CYBER",
+        "url": "https://github.com/S3DFX-CYBER",
+        "avatar": "https://avatars.githubusercontent.com/u/213652949?v=4"
+      },
+      "votes": 9,
+      "reactions": {
+        "+1": 9
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 27,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/27",
+      "title": "BLT: Bacon-Led Testing",
+      "created_at": "2026-02-24T20:06:32Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "I thought what would be greater than layering cyber defense tools like a gourmet BLT, turning complex security architecture into something visually tasty and easy to digest.",
+      "preview_url": "assets/entries/351a83d2-feb7-4bf2-992a-6de138bdd346.png",
+      "design_url": "",
+      "author": {
+        "login": "Kunal241207",
+        "url": "https://github.com/Kunal241207",
+        "avatar": "https://avatars.githubusercontent.com/u/224205062?v=4"
+      },
+      "votes": 4,
+      "reactions": {
+        "+1": 4,
+        "laugh": 2,
+        "rocket": 1
+      },
+      "comments": 1,
+      "last_comment": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar",
+        "body": "lol"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 25,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/25",
+      "title": "Bug bounty hunters",
+      "created_at": "2026-02-24T19:57:38Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "The bigger they are the harder they fall",
+      "preview_url": "assets/entries/e3c4bee8-d8f9-45ef-ba12-a8c7952a369d.webp",
+      "design_url": "",
+      "author": {
+        "login": "mdkaifansari04",
+        "url": "https://github.com/mdkaifansari04",
+        "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4"
+      },
+      "votes": 1,
+      "reactions": {
+        "+1": 1,
+        "heart": 1,
+        "rocket": 1
+      },
+      "comments": 1,
+      "last_comment": {
+        "login": "zhaog100",
+        "url": "https://github.com/zhaog100",
+        "avatar": "https://avatars.githubusercontent.com/u/145524174?v=4",
+        "body": "/attempt\n\n**Plan:**\n1. Review the requirements\n2. Start working on the task\n3. Submit PR when complete\n\nReady to work…"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 24,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/24",
+      "title": "The Full Stack Scout: Bug, Log, Triumph",
+      "created_at": "2026-02-24T19:37:41Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "My design combines technical circuit lines, a bug-hunting and bold text to showcase the OWASP BLT as a powerful, professional tool for security automation. This design looks techno sophisticated.",
+      "preview_url": "assets/entries/a613e504-966d-47d2-a210-7c18bacbce6f.png",
+      "design_url": "",
+      "author": {
+        "login": "Kunal241207",
+        "url": "https://github.com/Kunal241207",
+        "avatar": "https://avatars.githubusercontent.com/u/224205062?v=4"
+      },
+      "votes": 4,
+      "reactions": {
+        "+1": 4
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 23,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/23",
+      "title": "Secure Your Code with BLT",
+      "created_at": "2026-02-24T13:01:28Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "Secure the world with BLT , design focuses and embraces over the importance of secure coding and open source security learning.",
+      "preview_url": "assets/entries/5ee7de87-c28d-4a87-aec2-b427989192ad.png",
+      "design_url": "",
+      "author": {
+        "login": "S3DFX-CYBER",
+        "url": "https://github.com/S3DFX-CYBER",
+        "avatar": "https://avatars.githubusercontent.com/u/213652949?v=4"
+      },
+      "votes": 8,
+      "reactions": {
+        "+1": 8
+      },
+      "comments": 3,
+      "last_comment": {
+        "login": "S3DFX-CYBER",
+        "url": "https://github.com/S3DFX-CYBER",
+        "avatar": "https://avatars.githubusercontent.com/u/213652949?v=4",
+        "body": "@Pritz395 updated it thanks for identifying the error"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 20,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/20",
+      "title": "Representing BLT and projects",
+      "created_at": "2026-02-23T13:13:29Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "This is a specific to member merch, name and role written at the top and contains of the main BLT tagline, as well as a list of a lot of important BLT projects, round about the BLT logo. Maybe this…",
+      "preview_url": "assets/entries/24b687a3-7dac-4235-af26-bde17c3c5d0f.png",
+      "design_url": "",
+      "author": {
+        "login": "sidd190",
+        "url": "https://github.com/sidd190",
+        "avatar": "https://avatars.githubusercontent.com/u/73955358?v=4"
+      },
+      "votes": 6,
+      "reactions": {
+        "+1": 6
+      },
+      "comments": 1,
+      "last_comment": {
+        "login": "S3DFX-CYBER",
+        "url": "https://github.com/S3DFX-CYBER",
+        "avatar": "https://avatars.githubusercontent.com/u/213652949?v=4",
+        "body": "@sidd190 can u if possible just improve the owasp blt header it looks little odd"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 19,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/19",
+      "title": "Subtle BLT spirit design",
+      "created_at": "2026-02-23T13:11:18Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "I think it's very cool and captures a little of what we do at BLT nicely.",
+      "preview_url": "assets/entries/09cd5b13-c904-4d24-87b7-b4e3efdad8eb.png",
+      "design_url": "",
+      "author": {
+        "login": "sidd190",
+        "url": "https://github.com/sidd190",
+        "avatar": "https://avatars.githubusercontent.com/u/73955358?v=4"
+      },
+      "votes": 3,
+      "reactions": {
+        "+1": 3
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 17,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/17",
+      "title": "DDD(Detect Defend Defeat)",
+      "created_at": "2026-02-22T16:58:52Z",
+      "category": "T-Shirt / Apparel Design",
+      "description": "LOG IT BEFORE IT EXPLOITS ,  the design is generally focusing on detect it , defend and defeat  it before its too late.",
+      "preview_url": "assets/entries/1109067f-305c-4cfa-a5f7-329445c5ced3.jpg",
+      "design_url": "",
+      "author": {
+        "login": "8Ayush000",
+        "url": "https://github.com/8Ayush000",
+        "avatar": "https://avatars.githubusercontent.com/u/180686908?v=4"
+      },
+      "votes": 4,
+      "reactions": {
+        "+1": 4
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 16,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/16",
+      "title": "Hacker alert on digital security vulnerabilities",
+      "created_at": "2026-02-22T00:36:24Z",
+      "category": "Other",
+      "description": "Hacker alert on digital security vulnerabilities",
+      "preview_url": "assets/entries/df48a24f-24a0-4649-a94d-1d5476d30c85.png",
+      "design_url": "",
+      "author": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar"
+      },
+      "votes": 2,
+      "reactions": {
+        "+1": 2
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 9,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/9",
+      "title": "Squash bugs, hold big tech accountable",
+      "created_at": "2026-02-21T23:51:28Z",
+      "category": "Logo / Brand Identity",
+      "description": "Squash bugs, hold big tech accountable",
+      "preview_url": "assets/entries/3b7aab03-fa52-4862-bde9-1c1033f8c768.png",
+      "design_url": "",
+      "author": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar"
+      },
+      "votes": 2,
+      "reactions": {
+        "+1": 2,
+        "heart": 1,
+        "rocket": 1
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-tshirt",
+      "number": 5,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/5",
+      "title": "I log bugs for fun",
+      "created_at": "2026-02-21T23:30:52Z",
+      "category": "Banner / Marketing",
+      "description": "I log bugs for fun",
+      "preview_url": "assets/entries/fa8cb51c-9f23-4ee0-80dd-e5adf7624f3f.png",
+      "design_url": "",
+      "author": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar"
+      },
+      "votes": 2,
+      "reactions": {
+        "+1": 2
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-logo",
+      "number": 85,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/85",
+      "title": "[Logo]",
+      "created_at": "2026-03-03T20:41:16Z",
+      "category": "Logo / Brand Identity",
+      "description": "I love BLT",
+      "preview_url": "assets/entries/9fb66e4a-74df-49fe-a4e0-3f2cc071a78a.png",
+      "design_url": "",
+      "author": {
+        "login": "mdkaifansari04",
+        "url": "https://github.com/mdkaifansari04",
+        "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4"
+      },
+      "votes": 18,
+      "reactions": {
+        "+1": 18,
+        "laugh": 7,
+        "hooray": 6,
+        "heart": 6,
+        "rocket": 6,
+        "eyes": 6
+      },
+      "comments": 1,
+      "last_comment": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar",
+        "body": "I like it!"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-logo",
+      "number": 83,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/83",
+      "title": "Small Logos",
+      "created_at": "2026-03-02T00:51:32Z",
+      "category": "Logo / Brand Identity",
+      "description": "logos for all sites",
+      "preview_url": "assets/entries/98a5cdd8-24d0-4fdc-9c65-b15633ba3538.png",
+      "design_url": "",
+      "author": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar"
+      },
+      "votes": 2,
+      "reactions": {
+        "+1": 2,
+        "rocket": 1
+      },
+      "comments": 0,
+      "last_comment": null,
+      "winner": false
+    },
+    {
+      "contest": "blt-homepage",
+      "number": 102,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/102",
+      "title": "[Homepage]",
+      "created_at": "2026-03-24T15:45:15Z",
+      "category": "UI / Website Redesign",
+      "description": "WE FIX THE WEB",
+      "preview_url": "assets/entries/3e9dbb4d-83b2-4318-afa3-0b25c9cb2d85.png",
+      "design_url": "",
+      "author": {
+        "login": "S3DFX-CYBER",
+        "url": "https://github.com/S3DFX-CYBER",
+        "avatar": "https://avatars.githubusercontent.com/u/213652949?v=4"
+      },
+      "votes": 4,
+      "reactions": {
+        "+1": 4,
+        "laugh": 1,
+        "hooray": 1,
+        "heart": 1,
+        "rocket": 3,
+        "eyes": 1
+      },
+      "comments": 1,
+      "last_comment": {
+        "login": "owasp-blt[bot]",
+        "url": "https://github.com/apps/owasp-blt",
+        "avatar": "https://avatars.githubusercontent.com/in/1159228?v=4",
+        "body": "👋 Thanks for opening this issue, @S3DFX-CYBER!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to …"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-homepage",
+      "number": 88,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/88",
+      "title": "[Homepage]",
+      "created_at": "2026-03-08T18:10:29Z",
+      "category": "UI / Website Redesign",
+      "description": "I am obsessed with BLT !",
+      "preview_url": "assets/entries/4c030d97-329a-46a9-bf43-23fbde9e57ab.png",
+      "design_url": "",
+      "author": {
+        "login": "mdkaifansari04",
+        "url": "https://github.com/mdkaifansari04",
+        "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4"
+      },
+      "votes": 23,
+      "reactions": {
+        "+1": 23,
+        "laugh": 8,
+        "hooray": 7,
+        "heart": 9,
+        "rocket": 8,
+        "eyes": 8
+      },
+      "comments": 4,
+      "last_comment": {
+        "login": "rinkitadhana",
+        "url": "https://github.com/rinkitadhana",
+        "avatar": "https://avatars.githubusercontent.com/u/115058302?v=4",
+        "body": "Looks Cool!"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-video-meme",
+      "number": 101,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/101",
+      "title": "#project-blt",
+      "created_at": "2026-03-22T05:37:19Z",
+      "category": "Other",
+      "description": "#project-blt",
+      "preview_url": "assets/entries/13efedde-b928-49ce-b4bf-c4af232525f9.mp4",
+      "design_url": "https://git.owaspblt.org/BLT/BLT-Design-Contest",
+      "author": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar"
+      },
+      "votes": 1,
+      "reactions": {
+        "+1": 1,
+        "laugh": 1
+      },
+      "comments": 1,
+      "last_comment": {
+        "login": "owasp-blt[bot]",
+        "url": "https://github.com/apps/owasp-blt",
+        "avatar": "https://avatars.githubusercontent.com/in/1159228?v=4",
+        "body": "👋 Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to wo…"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-video-meme",
+      "number": 100,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/100",
+      "title": "Bug vs Intended Behaviour",
+      "created_at": "2026-03-21T06:09:34Z",
+      "category": "Other",
+      "description": "Dev v/s tester confusion",
+      "preview_url": "assets/entries/d21d6170-d373-4d4b-8863-b685f5b8ddc7.mp4",
+      "design_url": "https://vimeo.com/1175688794?share=copy&fl=sv&fe=ci#t=0",
+      "author": {
+        "login": "arnavkirti",
+        "url": "https://github.com/arnavkirti",
+        "avatar": "https://avatars.githubusercontent.com/u/115366471?v=4"
+      },
+      "votes": 2,
+      "reactions": {
+        "+1": 2,
+        "hooray": 1,
+        "heart": 1,
+        "rocket": 1
+      },
+      "comments": 1,
+      "last_comment": {
+        "login": "owasp-blt[bot]",
+        "url": "https://github.com/apps/owasp-blt",
+        "avatar": "https://avatars.githubusercontent.com/in/1159228?v=4",
+        "body": "👋 Thanks for opening this issue, @arnavkirti!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to w…"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-video-meme",
+      "number": 99,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/99",
+      "title": "Logging bugs on OWASP BLT",
+      "created_at": "2026-03-21T03:07:03Z",
+      "category": "Other",
+      "description": "Logging bugs",
+      "preview_url": "assets/entries/71af9eb5-ccb9-4fd9-adb1-8a830115347c.mp4",
+      "design_url": "https://git.owaspblt.org/BLT/BLT-Design-Contest",
+      "author": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar"
+      },
+      "votes": 0,
+      "reactions": {},
+      "comments": 1,
+      "last_comment": {
+        "login": "owasp-blt[bot]",
+        "url": "https://github.com/apps/owasp-blt",
+        "avatar": "https://avatars.githubusercontent.com/in/1159228?v=4",
+        "body": "👋 Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to wo…"
+      },
+      "winner": false
+    },
+    {
+      "contest": "blt-video-meme",
+      "number": 98,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/98",
+      "title": "I’m making OWASP BLT memes",
+      "created_at": "2026-03-20T14:10:01Z",
+      "category": "Other",
+      "description": "Construction of memes",
+      "preview_url": "assets/entries/4aa7e49f-d772-44e7-bd69-2f22abf8c64a.mp4",
+      "design_url": "https://git.owaspblt.org/BLT/BLT-Design-Contest",
+      "author": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar"
+      },
+      "votes": 0,
+      "reactions": {
+        "laugh": 3
+      },
+      "comments": 1,
+      "last_comment": {
+        "login": "owasp-blt[bot]",
+        "url": "https://github.com/apps/owasp-blt",
+        "avatar": "https://avatars.githubusercontent.com/in/1159228?v=4",
+        "body": "👋 Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to wo…"
+      },
+      "winner": false
+    },
+    {
+      "contest": "appsecil-tshirt",
+      "number": 107,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/107",
+      "title": "concept 3",
+      "created_at": "2026-04-05T05:04:31Z",
+      "category": "Other",
+      "description": "Concept 3",
+      "preview_url": "assets/entries/4f7302f2-8cdf-4ef2-acc2-9b8d8dde8eca.png",
+      "design_url": "",
+      "author": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar"
+      },
+      "votes": 0,
+      "reactions": {},
+      "comments": 1,
+      "last_comment": {
+        "login": "owasp-blt[bot]",
+        "url": "https://github.com/apps/owasp-blt",
+        "avatar": "https://avatars.githubusercontent.com/in/1159228?v=4",
+        "body": "👋 Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to wo…"
+      },
+      "winner": false
+    },
+    {
+      "contest": "appsecil-tshirt",
+      "number": 106,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/106",
+      "title": "concept 2",
+      "created_at": "2026-04-05T05:03:27Z",
+      "category": "Other",
+      "description": "Concept 2",
+      "preview_url": "assets/entries/ba44667a-2498-4973-9691-34d97afba40e.png",
+      "design_url": "",
+      "author": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar"
+      },
+      "votes": 0,
+      "reactions": {},
+      "comments": 1,
+      "last_comment": {
+        "login": "owasp-blt[bot]",
+        "url": "https://github.com/apps/owasp-blt",
+        "avatar": "https://avatars.githubusercontent.com/in/1159228?v=4",
+        "body": "👋 Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to wo…"
+      },
+      "winner": false
+    },
+    {
+      "contest": "appsecil-tshirt",
+      "number": 105,
+      "gitlab_url": "https://gitlab.com/owasp-blt/blt-design-contest/-/issues/105",
+      "title": "blue shirt",
+      "created_at": "2026-04-05T04:47:18Z",
+      "category": "Other",
+      "description": "Blue shirt",
+      "preview_url": "assets/entries/54d06450-0945-46fe-8efb-8afe5a6665e8.png",
+      "design_url": "",
+      "author": {
+        "login": "DonnieBLT",
+        "url": "https://git.owaspblt.org/@DonnieBLT",
+        "avatar": "https://git.owaspblt.org/api/accounts/donnieblt/avatar"
+      },
+      "votes": 0,
+      "reactions": {},
+      "comments": 1,
+      "last_comment": {
+        "login": "owasp-blt[bot]",
+        "url": "https://github.com/apps/owasp-blt",
+        "avatar": "https://avatars.githubusercontent.com/in/1159228?v=4",
+        "body": "👋 Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to wo…"
+      },
+      "winner": false
+    }
+  ]
+}

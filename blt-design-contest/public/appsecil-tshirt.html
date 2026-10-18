@@ -79,15 +79,15 @@
           <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold">
             <i class="fa-solid fa-shirt" aria-hidden="true"></i> AppSecIL 2026 T-Shirt Design Contest
           </span>
-          <a href="https://gitlab.com/owasp-blt/blt-design-contest" target="_blank" rel="noopener"
+          <a href="https://git.owaspblt.org/BLT/issues?label=blt-design-contest" target="_blank" rel="noopener"
              class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
                     inline-flex items-center gap-1">
-            <i class="fa-brands fa-gitlab" aria-hidden="true"></i> GitLab
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i> Issues
           </a>
         </div>
 
         <!-- CTA -->
-        <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/new?issuable_template=appsecil-tshirt-submission"
+        <a href="https://git.owaspblt.org/BLT/blob/main/blt-design-contest/issue-templates/appsecil-tshirt-submission.md"
            target="_blank" rel="noopener"
            class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
                   text-white text-sm font-semibold px-4 py-2 rounded-md
@@ -117,10 +117,11 @@
 
       <!-- Last updated note -->
       <p class="text-xs text-gray-400 dark:text-gray-500 mb-4 text-right">
-        Last updated 18 Oct 2026 07:47 UTC
+        Last updated 18 Oct 2026 21:06 UTC
       </p>
 
       
+      <p class="mb-6 text-sm text-gray-500 dark:text-gray-400"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> Entries marked <strong>GitLab archive</strong> were submitted on gitlab.com before the BLT GitLab group closed; their vote counts are final. New entries and votes live on <a href="https://git.owaspblt.org/BLT/issues?label=blt-design-contest" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">git.owaspblt.org</a>.</p>
       
     <div id="contest-appsecil-tshirt" class="contest-panel" role="tabpanel" aria-labelledby="tab-appsecil-tshirt">
 
@@ -140,12 +141,20 @@
               </span>
               <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
                 <i class="fa-solid fa-images" aria-hidden="true"></i>
-                0 submissions
+                3 submissions
               </span>
             </div>
+            <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+              To enter, copy the <a href="https://git.owaspblt.org/BLT/blob/main/blt-design-contest/issue-templates/appsecil-tshirt-submission.md" target="_blank" rel="noopener"
+              class="text-[#E10101] hover:underline font-medium">submission template</a> into a
+              <a href="https://git.owaspblt.org/BLT/issues/new" target="_blank" rel="noopener"
+              class="text-[#E10101] hover:underline font-medium">new issue</a> on git.owaspblt.org
+              titled <code>[blt-design-contest] [AppSecIL] ...</code>. To vote, open a submission's
+              issue and press Vote (signed in), or comment <code>+1</code>.
+            </p>
             <div class="mt-3 text-sm text-gray-500 dark:text-gray-400">Submit via BLT below, or use the <a href="https://docs.google.com/forms/d/e/1FAIpQLSej8eFeNBeUhOyKmDffvv9y0QLIoWCgt6szrFVZjxDaY-8VOw/viewform" target="_blank" rel="noopener" class="text-[#E10101] hover:underline font-medium">official Google Form</a> as an alternative.</div>
           </div>
-          <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/new?issuable_template=appsecil-tshirt-submission"
+          <a href="https://git.owaspblt.org/BLT/blob/main/blt-design-contest/issue-templates/appsecil-tshirt-submission.md"
              target="_blank" rel="noopener"
              class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
                     text-white text-sm font-semibold px-4 py-2 rounded-md
@@ -159,30 +168,176 @@
       <!-- Sort controls -->
       <div class="flex items-center gap-3 flex-wrap mb-6">
         <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">Sort:</span>
-        <button id="sort-thumbs-appsecil-tshirt" type="button"
+        <button id="sort-votes-appsecil-tshirt" type="button"
                 class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
                        text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
                        text-sm font-semibold px-4 py-2 rounded-md transition-colors"
                 aria-pressed="false"
-                data-sort="thumbs" data-contest="appsecil-tshirt">
+                data-sort="votes" data-contest="appsecil-tshirt">
           <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
-          By 👍
+          By votes
         </button>
-        <button id="sort-reactions-appsecil-tshirt" type="button"
+        <button id="sort-comments-appsecil-tshirt" type="button"
                 class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
                        text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
                        text-sm font-semibold px-4 py-2 rounded-md transition-colors"
                 aria-pressed="false"
-                data-sort="reactions" data-contest="appsecil-tshirt">
+                data-sort="comments" data-contest="appsecil-tshirt">
           <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
-          By all reactions
+          By comments
         </button>
       </div>
 
       <!-- Cards grid -->
       <div id="cards-grid-appsecil-tshirt"
            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="col-span-full text-center py-20 text-gray-500 dark:text-gray-400"><i class="fa-solid fa-shirt text-5xl mb-4 block text-[#E10101]" aria-hidden="true"></i><p class="text-lg font-medium">No submissions yet — be the first!</p><p class="mt-2 text-sm">Click <strong>Add Entry</strong> to get started.</p></div>
+        
+    <article class="group relative bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                    border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                    flex flex-col hover:shadow-md transition-shadow"
+             data-votes="0"
+             data-comments="1"
+             data-issue-url="" data-archived="true"
+             aria-label="Contest submission: concept 3">
+      
+      <a href="assets/entries/4f7302f2-8cdf-4ef2-acc2-9b8d8dde8eca.png" target="_blank" rel="noopener"    class="block overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700">  <img src="assets/entries/4f7302f2-8cdf-4ef2-acc2-9b8d8dde8eca.png" alt="concept 3 preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+      <div class="p-5 flex flex-col gap-3 flex-1">
+        <!-- Category + issue number -->
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">Other</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500">GitLab #107 · <time class="sub-date" datetime="2026-04-05T05:04:31Z">2026-04-05</time></span>
+        </div>
+
+        <!-- Title -->
+        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+          concept 3
+        </h2>
+
+        <!-- Description -->
+        <p class="text-sm text-gray-600 dark:text-gray-300 flex-1">Concept 3</p>
+
+        <!-- Designer -->
+        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <img src="https://git.owaspblt.org/api/accounts/donnieblt/avatar" alt="" class="w-6 h-6 rounded-full" aria-hidden="true" />
+          <a href="https://git.owaspblt.org/@DonnieBLT" target="_blank" rel="noopener"
+             class="text-[#E10101] hover:underline font-medium">DonnieBLT</a>
+        </div>
+        <!-- Last comment -->
+        <div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500"><img src="https://avatars.githubusercontent.com/in/1159228?v=4" alt="owasp-blt[bot]'s avatar" class="w-5 h-5 rounded-full shrink-0" /><span>1 comment · <a href="https://github.com/apps/owasp-blt" target="_blank" rel="noopener" class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">owasp-blt[bot]</a>: 👋 Thanks for opening this issue, @DonnieBLT!
+
+Our team will review it shortly. In the meantime:
+- If you&#x27;d like to wo…</span></div>
+        <!-- Footer: votes + design link -->
+        <div class="flex items-center justify-between gap-2 flex-wrap pt-2
+                    border-t border-[#E5E5E5] dark:border-gray-700">
+          <div class="flex items-center gap-2 flex-wrap" aria-label="Votes">
+            <span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5" title="Final GitLab vote count (archived)"><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <span>0</span><span class="sr-only"> votes</span></span><span class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> GitLab archive</span>
+          </div>
+          <div class="flex items-center gap-3">
+            
+            
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="group relative bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                    border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                    flex flex-col hover:shadow-md transition-shadow"
+             data-votes="0"
+             data-comments="1"
+             data-issue-url="" data-archived="true"
+             aria-label="Contest submission: concept 2">
+      
+      <a href="assets/entries/ba44667a-2498-4973-9691-34d97afba40e.png" target="_blank" rel="noopener"    class="block overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700">  <img src="assets/entries/ba44667a-2498-4973-9691-34d97afba40e.png" alt="concept 2 preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+      <div class="p-5 flex flex-col gap-3 flex-1">
+        <!-- Category + issue number -->
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">Other</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500">GitLab #106 · <time class="sub-date" datetime="2026-04-05T05:03:27Z">2026-04-05</time></span>
+        </div>
+
+        <!-- Title -->
+        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+          concept 2
+        </h2>
+
+        <!-- Description -->
+        <p class="text-sm text-gray-600 dark:text-gray-300 flex-1">Concept 2</p>
+
+        <!-- Designer -->
+        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <img src="https://git.owaspblt.org/api/accounts/donnieblt/avatar" alt="" class="w-6 h-6 rounded-full" aria-hidden="true" />
+          <a href="https://git.owaspblt.org/@DonnieBLT" target="_blank" rel="noopener"
+             class="text-[#E10101] hover:underline font-medium">DonnieBLT</a>
+        </div>
+        <!-- Last comment -->
+        <div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500"><img src="https://avatars.githubusercontent.com/in/1159228?v=4" alt="owasp-blt[bot]'s avatar" class="w-5 h-5 rounded-full shrink-0" /><span>1 comment · <a href="https://github.com/apps/owasp-blt" target="_blank" rel="noopener" class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">owasp-blt[bot]</a>: 👋 Thanks for opening this issue, @DonnieBLT!
+
+Our team will review it shortly. In the meantime:
+- If you&#x27;d like to wo…</span></div>
+        <!-- Footer: votes + design link -->
+        <div class="flex items-center justify-between gap-2 flex-wrap pt-2
+                    border-t border-[#E5E5E5] dark:border-gray-700">
+          <div class="flex items-center gap-2 flex-wrap" aria-label="Votes">
+            <span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5" title="Final GitLab vote count (archived)"><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <span>0</span><span class="sr-only"> votes</span></span><span class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> GitLab archive</span>
+          </div>
+          <div class="flex items-center gap-3">
+            
+            
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="group relative bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                    border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                    flex flex-col hover:shadow-md transition-shadow"
+             data-votes="0"
+             data-comments="1"
+             data-issue-url="" data-archived="true"
+             aria-label="Contest submission: blue shirt">
+      
+      <a href="assets/entries/54d06450-0945-46fe-8efb-8afe5a6665e8.png" target="_blank" rel="noopener"    class="block overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700">  <img src="assets/entries/54d06450-0945-46fe-8efb-8afe5a6665e8.png" alt="blue shirt preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+      <div class="p-5 flex flex-col gap-3 flex-1">
+        <!-- Category + issue number -->
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">Other</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500">GitLab #105 · <time class="sub-date" datetime="2026-04-05T04:47:18Z">2026-04-05</time></span>
+        </div>
+
+        <!-- Title -->
+        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+          blue shirt
+        </h2>
+
+        <!-- Description -->
+        <p class="text-sm text-gray-600 dark:text-gray-300 flex-1">Blue shirt</p>
+
+        <!-- Designer -->
+        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <img src="https://git.owaspblt.org/api/accounts/donnieblt/avatar" alt="" class="w-6 h-6 rounded-full" aria-hidden="true" />
+          <a href="https://git.owaspblt.org/@DonnieBLT" target="_blank" rel="noopener"
+             class="text-[#E10101] hover:underline font-medium">DonnieBLT</a>
+        </div>
+        <!-- Last comment -->
+        <div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500"><img src="https://avatars.githubusercontent.com/in/1159228?v=4" alt="owasp-blt[bot]'s avatar" class="w-5 h-5 rounded-full shrink-0" /><span>1 comment · <a href="https://github.com/apps/owasp-blt" target="_blank" rel="noopener" class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">owasp-blt[bot]</a>: 👋 Thanks for opening this issue, @DonnieBLT!
+
+Our team will review it shortly. In the meantime:
+- If you&#x27;d like to wo…</span></div>
+        <!-- Footer: votes + design link -->
+        <div class="flex items-center justify-between gap-2 flex-wrap pt-2
+                    border-t border-[#E5E5E5] dark:border-gray-700">
+          <div class="flex items-center gap-2 flex-wrap" aria-label="Votes">
+            <span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5" title="Final GitLab vote count (archived)"><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <span>0</span><span class="sr-only"> votes</span></span><span class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> GitLab archive</span>
+          </div>
+          <div class="flex items-center gap-3">
+            
+            
+          </div>
+        </div>
+      </div>
+    </article>
       </div>
 
     </div>
@@ -210,9 +365,9 @@
            class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
         </a>
-        <a href="https://gitlab.com/owasp-blt/blt-design-contest" target="_blank" rel="noopener"
+        <a href="https://git.owaspblt.org/BLT/tree/main/blt-design-contest" target="_blank" rel="noopener"
            class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
-          <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Source
+          <i class="fa-solid fa-code" aria-hidden="true"></i> Source
         </a>
         <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
            class="hover:text-[#E10101] transition-colors">OWASP BLT</a>
@@ -257,10 +412,10 @@
         const grid = document.getElementById(`cards-grid-${cid}`);
         if (!grid) return;
 
-        if (!sortState[cid]) sortState[cid] = { thumbs: false, reactions: false, originalOrder: null };
+        if (!sortState[cid]) sortState[cid] = { votes: false, comments: false, originalOrder: null };
         if (!sortState[cid].originalOrder) sortState[cid].originalOrder = Array.from(grid.children);
 
-        const otherType = sortType === 'thumbs' ? 'reactions' : 'thumbs';
+        const otherType = sortType === 'votes' ? 'comments' : 'votes';
         const otherBtn = document.querySelector(`[data-sort="${otherType}"][data-contest="${cid}"]`);
         const isActive = sortState[cid][sortType];
 
@@ -276,7 +431,7 @@
         btn.classList.toggle('text-gray-700', isActive);
         btn.classList.toggle('dark:text-gray-200', isActive);
 
-        const dataKey = sortType === 'thumbs' ? 'thumbs' : 'totalReactions';
+        const dataKey = sortType; // data-votes / data-comments
         // Preserve winner pinning: keep winner cards at the top, only sort within non-winners.
         const allCards = [...sortState[cid].originalOrder];
         const winnerCards = allCards.filter(card => card.dataset.winner === 'true');
@@ -290,130 +445,6 @@
         cards.forEach(card => grid.appendChild(card));
       });
     });
-
-    // Thumbs-up click handler — opens the GitLab issue so the user can react there
-    // Uses event delegation so it works for both static and live-updated buttons
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-thumbs-btn]');
-      if (!btn) return;
-      const issueUrl = btn.closest('article')?.dataset.issueUrl;
-      if (issueUrl) {
-        window.open(issueUrl, '_blank', 'noopener,noreferrer');
-      }
-    });
-
-    // Live-update reaction counts from the GitLab API on page load
-    (async function () {
-      const REACTION_LABELS = [
-        ['+1',      '👍'],
-        ['-1',      '👎'],
-        ['laugh',   '😄'],
-        ['hooray',  '🎉'],
-        ['confused','😕'],
-        ['heart',   '❤️'],
-        ['rocket',  '🚀'],
-        ['eyes',    '👀'],
-      ];
-      const PILL = 'inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 '
-                 + 'text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5';
-      const THUMBS_PILL = PILL + ' hover:bg-red-100 dark:hover:bg-red-900/30 '
-                        + 'hover:text-[#E10101] transition-colors cursor-pointer';
-      const ETAG_KEY   = 'bltDesignIssuesEtag';
-      const CACHE_KEY  = 'bltDesignIssuesCache';
-      const BASE_URL   = 'https://gitlab.com/api/v4/projects/owasp-blt%2Fblt-design-contest/issues?state=opened&per_page=100';
-      const API_HEADERS = { 'Accept': 'application/json' };
-
-      const cards = Array.from(document.querySelectorAll('article[data-issue-url]'));
-      if (!cards.length) return;
-
-      // Load cached data from localStorage
-      let cachedEtag = null;
-      let issues = null;
-      try {
-        cachedEtag = localStorage.getItem(ETAG_KEY);
-        const raw = localStorage.getItem(CACHE_KEY);
-        if (raw) issues = JSON.parse(raw);
-      } catch (_) {}
-
-      // Fetch fresh data, using a conditional request when we have a cached ETag
-      try {
-        const firstPageHeaders = cachedEtag
-          ? { ...API_HEADERS, 'If-None-Match': cachedEtag }
-          : { ...API_HEADERS };
-        const resp = await fetch(`${BASE_URL}&page=1`, { headers: firstPageHeaders });
-
-        if (resp.status === 304) {
-          // Not modified — reuse cached issues, no rate-limit hit
-        } else if (resp.ok) {
-          const allIssues = await resp.json();
-          const newEtag = resp.headers.get('ETag');
-          let page = 2;
-          while (true) {
-            const next = await fetch(`${BASE_URL}&page=${page}`, { headers: API_HEADERS });
-            if (!next.ok) break;
-            const batch = await next.json();
-            if (!Array.isArray(batch) || !batch.length) break;
-            allIssues.push(...batch);
-            if (batch.length < 100) break;
-            page++;
-          }
-          issues = allIssues;
-          try {
-            if (newEtag) localStorage.setItem(ETAG_KEY, newEtag);
-            localStorage.setItem(CACHE_KEY, JSON.stringify(issues));
-          } catch (_) {}
-        } else {
-          console.error('Failed to fetch live reaction counts:', resp.status, resp.statusText);
-        }
-      } catch (err) {
-        console.error('Failed to fetch live reaction counts:', err);
-      }
-
-      if (!issues) return;
-
-      const byUrl = {};
-      for (const issue of issues) {
-        byUrl[issue.web_url] = {
-          '+1': parseInt(issue.upvotes, 10) || 0,
-          '-1': parseInt(issue.downvotes, 10) || 0,
-        };
-      }
-
-      for (const card of cards) {
-        const reactions = byUrl[card.dataset.issueUrl];
-        if (!reactions) continue;
-
-        const thumbsCount = parseInt(reactions['+1'], 10) || 0;
-        card.dataset.thumbs = thumbsCount;
-        const totalReactions = REACTION_LABELS.reduce((sum, [c]) => sum + (parseInt(reactions[c], 10) || 0), 0);
-        card.dataset.totalReactions = totalReactions;
-
-        const container = card.querySelector('[aria-label="Reactions"]');
-        if (!container) continue;
-
-        let html = '';
-        let total = 0;
-        for (const [content, emoji] of REACTION_LABELS) {
-          const count = parseInt(reactions[content], 10) || 0;
-          if (!count) continue;
-          total++;
-          if (content === '+1') {
-            html += `<button type="button" class="${THUMBS_PILL}" data-thumbs-btn `
-                  + `aria-label="Thumbs up this design on GitLab">${emoji} <span>${count}</span></button>`;
-          } else {
-            html += `<span class="${PILL}">${emoji} <span>${count}</span></span>`;
-          }
-        }
-        if (!total) {
-          html = `<a href="${card.dataset.issueUrl}" target="_blank" rel="noopener" `
-               + `class="inline-flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 `
-               + `hover:text-[#E10101] dark:hover:text-[#E10101] transition-colors" `
-               + `aria-label="Be the first to react on GitLab">`
-               + `<i class="fa-regular fa-face-smile" aria-hidden="true"></i>Be the first to react!</a>`;
-        }
-        container.innerHTML = html;
-      }
-    })();
 
     // Format submission dates in user's local timezone; cap any future dates to today
     (function () {

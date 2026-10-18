@@ -2,50 +2,50 @@
 """
 build_showcase.py
 -----------------
-Fetches GitLab issues for each configured design contest and generates
-a static index.html design-showcase page styled with the BLT brand guide.
+Builds the BLT Design Contest showcase pages (index.html, show-all-entries.html and one page per
+contest) from:
 
-Each contest is configured in CONTESTS below with its own label, title
-prefix, and issue template.  Issues labelled with WINNER_LABEL are
-highlighted at the top of their contest section.
+- open issues of blt-design-contest on git.owaspblt.org, read from the public issue ledger with
+  scripts/forkmesh/ledger.py. A submission is attributed to the project (label
+  `blt-design-contest` / `project:blt-design-contest`, or title prefix `[blt-design-contest]`) or
+  carries a contest label; its contest comes from the contest label (e.g. `logo-submission`), else
+  from the contest title prefix (e.g. `[Logo]`). Bodies follow issue-templates/*.md.
+- data/gitlab-archive.json: the frozen GitLab-era submissions (gitlab.com/owasp-blt is closed),
+  shown with their final GitLab vote counts and marked as archived.
 
-Environment variables
-  GITLAB_TOKEN   – optional; private-token for the GitLab API
-  GITLAB_PROJECT_PATH – set automatically from CI_PROJECT_PATH in GitLab CI
+Votes are the forge's native issue votes (signed-in users press Vote on the issue) plus distinct
+`+1` comments from other accounts. Issues labelled WINNER_LABEL are pinned first.
 
 Usage:
-  python scripts/build_showcase.py
+  python scripts/build_showcase.py [--out DIR] [--offline]
+    --out DIR   output directory (default: public/)
+    --offline   skip git.owaspblt.org (archive only), for local previews
+  FORKMESH_URL overrides the forge instance.
 """
 
+import argparse
 import html
 import json
 import os
 import re
 import sys
-import urllib.parse
-import urllib.request
-import urllib.error
 from datetime import datetime, timezone
-import heapq
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+PROJECT_DIR = os.path.dirname(HERE)
+sys.path.insert(0, os.path.join(PROJECT_DIR, "..", "scripts", "forkmesh"))
+
+import ledger  # noqa: E402  (scripts/forkmesh/ledger.py)
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-PROJECT_PATH = os.environ.get(
-    "GITLAB_PROJECT_PATH",
-    os.environ.get("CI_PROJECT_PATH", "owasp-blt/blt-design-contest"),
-)
-PROJECT_URL = os.environ.get(
-    "CI_PROJECT_URL",
-    f"https://gitlab.com/{PROJECT_PATH}",
-)
-PROJECT_ID = urllib.parse.quote(
-    os.environ.get("GITLAB_PROJECT_ID", PROJECT_PATH),
-    safe="",
-)
-GITLAB_API_BASE = os.environ.get("GITLAB_API_BASE", "https://gitlab.com/api/v4")
-GITLAB_TOKEN = os.environ.get("GITLAB_TOKEN", os.environ.get("PRIVATE_TOKEN", ""))
-CI_JOB_TOKEN = os.environ.get("CI_JOB_TOKEN", "")
+PROJECT = "blt-design-contest"
+PROJECT_URL = f"{ledger.WEB_URL}/tree/main/{PROJECT}"
+ISSUES_URL = f"{ledger.WEB_URL}/issues?label={PROJECT}"
+NEW_ISSUE_URL = f"{ledger.WEB_URL}/issues/new"
+TEMPLATES_URL = f"{ledger.WEB_URL}/blob/main/{PROJECT}/issue-templates"
+ARCHIVE_PATH = os.path.join(PROJECT_DIR, "data", "gitlab-archive.json")
 
 # Label applied to the winning submission(s) in any contest
 WINNER_LABEL = "winner"
@@ -57,7 +57,7 @@ CONTESTS = [
         "name": "BLT T-Shirt Design Contest",
         "label": "design-submission",
         "title_prefix": "[Design]",
-        "template": "design-submission.yml",
+        "template": "design-submission.md",
         "description": "Design a T-shirt or apparel for OWASP BLT.",
         "prize": "$25",
         "deadline": "2026-03-01T00:00:00Z",
@@ -70,7 +70,7 @@ CONTESTS = [
         "name": "BLT Logo Contest",
         "label": "logo-submission",
         "title_prefix": "[Logo]",
-        "template": "logo-submission.yml",
+        "template": "logo-submission.md",
         "description": "Design a new logo for OWASP BLT and all its repositories.",
         "prize": "$25",
         "deadline": "2026-04-15T00:00:00Z",
@@ -82,7 +82,7 @@ CONTESTS = [
         "name": "BLT Homepage Design",
         "label": "homepage-submission",
         "title_prefix": "[Homepage]",
-        "template": "homepage-submission.yml",
+        "template": "homepage-submission.md",
         "description": "Design the new homepage for the OWASP BLT website.",
         "prize": "$25",
         "deadline": "2026-04-15T00:00:00Z",
@@ -94,7 +94,7 @@ CONTESTS = [
         "name": "BLT Video Meme",
         "label": "video-meme-submission",
         "title_prefix": "[Video Meme]",
-        "template": "video-meme-submission.yml",
+        "template": "video-meme-submission.md",
         "description": "Design a meme video for OWASP BLT.",
         "prize": "$10",
         "deadline": "2026-04-15T00:00:00Z",
@@ -106,7 +106,7 @@ CONTESTS = [
         "name": "BLT Welcome Video",
         "label": "welcome-video-submission",
         "title_prefix": "[Welcome Video]",
-        "template": "welcome-video-submission.yml",
+        "template": "welcome-video-submission.md",
         "description": "Design a welcome video for beginners giving a walkthrough explanation of the OWASP BLT ecosystem.",
         "prize": "$20",
         "deadline": "2026-04-15T00:00:00Z",
@@ -118,7 +118,7 @@ CONTESTS = [
         "name": "AppSecIL 2026 T-Shirt Design Contest",
         "label": "appsecil-tshirt-submission",
         "title_prefix": "[AppSecIL]",
-        "template": "appsecil-tshirt-submission.yml",
+        "template": "appsecil-tshirt-submission.md",
         "description": "Design a T-shirt for OWASP AppSec Israel — one of the region's leading cybersecurity conferences, bringing together 1,000+ security professionals, developers, and open source contributors.",
         "long_description": (
             "Israel's premier application security event is back! "
@@ -144,347 +144,248 @@ CONTESTS = [
 LABEL = CONTESTS[0]["label"]
 TITLE_PREFIX = CONTESTS[0]["title_prefix"]
 
-REACTION_LABELS = {
-    "+1": "👍",
-    "-1": "👎",
-    "laugh": "😄",
-    "hooray": "🎉",
-    "confused": "😕",
-    "heart": "❤️",
-    "rocket": "🚀",
-    "eyes": "👀",
-}
-
-MARKDOWN_IMAGE_RE = re.compile(r"!\[.*?\]\((https?://[^)]+)\)")
-HTML_IMAGE_RE = re.compile(r'<img\s[^>]*src="(https?://[^"]+)"', re.IGNORECASE)
+PROJECT_PREFIX_RE = re.compile(r"^\s*(?:\[\s*blt-design-contest\s*\]|blt-design-contest\s*:)\s*", re.IGNORECASE)
+PLUS_ONE_RE = re.compile(r"^\s*(?:\+1|:\+1:|:thumbsup:|\U0001F44D)\s*$")
+IMAGE_EXT_RE = re.compile(r"\.(?:png|jpe?g|gif|webp|svg|avif)(?:\?.*)?$", re.IGNORECASE)
+MARKDOWN_IMAGE_RE = re.compile(r"!\[.*?\]\(((?:https?://|/)[^)\s]+)")
+HTML_IMAGE_RE = re.compile(r'<img\s[^>]*src="((?:https?://|/)[^"]+)"', re.IGNORECASE)
 COMMENT_STRIP_IMAGE_RE = re.compile(r"!\[.*?\]\(.*?\)")
 COMMENT_STRIP_LINK_RE = re.compile(r"\[([^\]]+)\]\([^)]+\)")
 MAX_COMMENT_LENGTH = 120
 
 
-def gitlab_request(path: str) -> list | dict:
-  """Perform a paginated GET against the GitLab REST API."""
-  url = f"{GITLAB_API_BASE}{path}"
-  headers = {"Accept": "application/json"}
-  if GITLAB_TOKEN:
-    headers["PRIVATE-TOKEN"] = GITLAB_TOKEN
-  elif CI_JOB_TOKEN:
-    headers["JOB-TOKEN"] = CI_JOB_TOKEN
-
-  results = []
-  page = 1
-  while True:
-    paged_url = f"{url}{'&' if '?' in url else '?'}per_page=100&page={page}"
-    req = urllib.request.Request(paged_url, headers=headers)
-    try:
-      with urllib.request.urlopen(req) as resp:
-        data = json.loads(resp.read().decode())
-    except urllib.error.HTTPError as exc:
-      error_msg = (
-          f"GitLab API error {exc.code} for {paged_url}: {exc.reason}"
-      )
-      print(f"ERROR: {error_msg}", file=sys.stderr)
-      sys.exit(1)
-    if isinstance(data, list):
-      results.extend(data)
-      if len(data) < 100:
-        break
-      page += 1
-    else:
-      return data
-  return results
+def absolute_url(url: str) -> str:
+    """Forge uploads may be site-relative ("/..."); make them absolute."""
+    url = (url or "").strip()
+    return f"{ledger.DEFAULT_URL}{url}" if url.startswith("/") and not url.startswith("//") else url
 
 
-def normalize_gitlab_issue(issue: dict) -> dict:
-    """Return a GitLab-shaped issue dict for the existing render helpers."""
-    author = issue.get("author") or {}
-    labels = [{"name": label} for label in issue.get("labels", [])]
+def strip_project_prefix(title: str) -> str:
+    return PROJECT_PREFIX_RE.sub("", title or "", count=1).strip()
+
+
+def contest_for(record: dict) -> dict | None:
+    """The contest of an issue record: its contest label, else its contest title prefix."""
+    labels = ledger.labels(record)
+    for contest in CONTESTS:
+        if contest["label"] in labels:
+            return contest
+    title = strip_project_prefix(record.get("title")).lower()
+    for contest in CONTESTS:
+        if title.startswith(contest["title_prefix"].lower()):
+            return contest
+    return None
+
+
+def submission_contest(record: dict) -> dict | None:
+    """The contest of an open submission issue, or None when the issue is not one."""
+    if not ledger.is_open(record):
+        return None
+    contest = contest_for(record)
+    if not contest:
+        return None
+    if contest["label"] in ledger.labels(record) or PROJECT in ledger.issue_projects(record):
+        return contest
+    return None
+
+
+def _name(event: dict) -> str:
+    return event.get("authorName") or event.get("author") or ""
+
+
+def plus_one_voters(record: dict) -> list[str]:
+    """Distinct accounts (other than the issue author) that commented just `+1`."""
+    author = _name(record)
+    names = []
+    for comment in ledger.comments(record):
+        name = _name(comment)
+        if name and name != author and name not in names and PLUS_ONE_RE.match(comment.get("body") or ""):
+            names.append(name)
+    return names
+
+
+def vote_total(record: dict) -> int:
+    """Native forge votes plus `+1` commenters who did not also press Vote."""
+    native = ledger.voters(record)
+    return ledger.vote_count(record) + len([n for n in plus_one_voters(record) if n not in native])
+
+
+def avatar_url(name: str) -> str:
+    return f"{ledger.DEFAULT_URL}/api/accounts/{name.lower()}/avatar" if name else ""
+
+
+def attachment_images(record: dict) -> list[str]:
+    """Image URLs attached to the issue's opening event (defensive about the record shape)."""
+    found = []
+    for event in ledger.events(record, "open"):
+        for item in event.get("attachments") or []:
+            url = item if isinstance(item, str) else (item or {}).get("url") or (item or {}).get("path") or ""
+            if isinstance(url, str) and IMAGE_EXT_RE.search(url):
+                found.append(absolute_url(url))
+    return found
+
+
+def normalize_forge_issue(record: dict) -> dict:
+    """An issue ledger record in the shape the render helpers use."""
+    number = int(record.get("number") or 0)
+    name = _name(record)
+    body = ledger.body(record)
+    comments = ledger.comments(record)
+    plus_ones = set(plus_one_voters(record))
+    talk = [c for c in comments if not (PLUS_ONE_RE.match(c.get("body") or "") and _name(c) in plus_ones)]
+    last = talk[-1] if talk else None
+    fields = parse_issue_body(body)
+    preview = extract_preview_url(fields, body) or next(iter(attachment_images(record)), "")
     return {
-        "number": issue.get("iid"),
-        "title": issue.get("title", ""),
-        "body": issue.get("description") or "",
-        "html_url": issue.get("web_url", "#"),
-        "created_at": issue.get("created_at", ""),
-        "comments": issue.get("user_notes_count", 0),
-        "labels": labels,
-        "user": {
-            "login": author.get("username", "unknown"),
-            "html_url": author.get("web_url", "#"),
-            "avatar_url": author.get("avatar_url", ""),
-        },
-        "reactions": {
-            "+1": issue.get("upvotes", 0),
-            "-1": issue.get("downvotes", 0),
-        },
+        "number": number,
+        "title": strip_project_prefix(record.get("title")),
+        "body": body,
+        "html_url": ledger.issue_url(number),
+        "created_at": ledger.ms_to_iso(record.get("createdAt")) or "",
+        "comments": len(talk),
+        "labels": [{"name": label} for label in ledger.labels(record)],
+        "user": {"login": name or "unknown", "html_url": ledger.profile_url(name) or "#",
+                 "avatar_url": avatar_url(name)},
+        "votes": vote_total(record),
+        "last_comment": {
+            "body": last.get("body") or "",
+            "user": {"login": _name(last), "html_url": ledger.profile_url(_name(last)) or "#",
+                     "avatar_url": avatar_url(_name(last))},
+        } if last else None,
+        "preview_url": preview,
+        "design_url": extract_design_url(fields),
+        "category": extract_category(fields),
+        "description": extract_description(fields),
+        "archived": False,
     }
 
 
-def fetch_issues(params: dict[str, str] | None = None) -> list[dict]:
-    query = {"state": "opened"}
-    if params:
-        query.update(params)
-    encoded = urllib.parse.urlencode(query)
-    issues = gitlab_request(f"/projects/{PROJECT_ID}/issues?{encoded}")
-    return [normalize_gitlab_issue(issue) for issue in issues]
+def load_archive(path: str = ARCHIVE_PATH) -> list[dict]:
+    """The frozen GitLab-era entries (data/gitlab-archive.json), or [] when the file is absent."""
+    try:
+        with open(path, encoding="utf-8") as handle:
+            return json.load(handle).get("entries") or []
+    except FileNotFoundError:
+        return []
+
+
+def normalize_archive_entry(entry: dict) -> dict:
+    author = entry.get("author") or {}
+    last = entry.get("last_comment")
+    return {
+        "number": int(entry.get("number") or 0),
+        "title": entry.get("title") or "Untitled",
+        "body": "",
+        "html_url": "",
+        "created_at": entry.get("created_at") or "",
+        "comments": int(entry.get("comments") or 0),
+        "labels": [{"name": WINNER_LABEL}] if entry.get("winner") else [],
+        "user": {"login": author.get("login") or "unknown", "html_url": author.get("url") or "#",
+                 "avatar_url": author.get("avatar") or ""},
+        "votes": int(entry.get("votes") or 0),
+        "last_comment": {
+            "body": last.get("body") or "",
+            "user": {"login": last.get("login") or "unknown", "html_url": last.get("url") or "#",
+                     "avatar_url": last.get("avatar") or ""},
+        } if last else None,
+        "preview_url": entry.get("preview_url") or "",
+        "design_url": entry.get("design_url") or "",
+        "category": entry.get("category") or "Other",
+        "description": entry.get("description") or "",
+        "archived": True,
+    }
 
 
 def issue_template_url(template: str | None = None) -> str:
-    if not template:
-        return f"{PROJECT_URL}/-/issues/new"
-    name = os.path.splitext(template)[0]
-    return f"{PROJECT_URL}/-/issues/new?issuable_template={urllib.parse.quote(name)}"
+    """The issue body to copy (the forge has no issue templates or prefill)."""
+    return f"{TEMPLATES_URL}/{template}" if template else f"{TEMPLATES_URL}/README.md"
 
 
+def is_winner(issue: dict) -> bool:
+    return WINNER_LABEL in [label["name"] for label in issue.get("labels", [])]
 
 
-def build_html(contests_data: list[dict], last_updated: str) -> str:
-  """Return the complete index.html (homepage) as a string.
-
-  ``contests_data`` is a list of dicts, each with keys:
-    - ``config``  – the CONTESTS entry dict
-    - ``cards``   – list of card HTML strings (winners first)
-    - ``total``   – submission count for that contest
-    - ``issues``  – raw issue payloads for that contest
-  """
-  total_all = sum(d["total"] for d in contests_data)
-
-  # Build contest summary cards for the homepage
-  contest_cards_html = ""
-  for d in contests_data:
-    c = d["config"]
-    cid = html.escape(c["id"])
-    cname = html.escape(c["name"])
-    cdesc = html.escape(c["description"])
-    cprize = html.escape(c["prize"])
-    cdeadline = html.escape(c["deadline_display"])
-    ctotal = d["total"]
-    icon = c["icon"]
-    page_url = f"{cid}.html"
-    cstatus = c.get("status", "active")
-    if cstatus == "selecting_winner":
-      status_badge = (
-        '<span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full'
-        ' bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">'
-        'Ended \u2013 Selecting Winner'
-        '</span>'
-      )
-      ends_text = f"Ended {cdeadline}"
-    else:
-      status_badge = (
-        '<span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full'
-        ' bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">'
-        'Active'
-        '</span>'
-      )
-      ends_text = f"Ends {cdeadline}"
-
-    contest_cards_html += f"""
-    <a href="{page_url}"
-       class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
-          border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-          hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
-      <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
-      <div class="p-6 sm:p-7">
-      <div class="flex items-start gap-4 mb-4">
-        <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
-              flex items-center justify-center shrink-0">
-        <i class="{icon} text-2xl text-[#E10101]" aria-hidden="true"></i>
-        </div>
-        <div class="min-w-0">
-        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">{cname}</h3>
-        {status_badge}
-        </div>
-      </div>
-      <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">{cdesc}</p>
-      <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
-        {'<span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> ' + cprize + ' prize</span>' if cprize else ''}
-        <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
-        <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_text}
-        </span>
-      </div>
-      <div class="flex items-center justify-between pt-4
-            border-t border-[#E5E5E5] dark:border-gray-700">
-        <div>
-        <p class="text-2xl font-black text-[#E10101]">{ctotal}</p>
-        <p class="text-xs text-gray-500 dark:text-gray-400">
-          submission{'' if ctotal == 1 else 's'}
-        </p>
-        </div>
-        <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
-               group-hover:gap-2.5 transition-all duration-200">
-        View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-        </span>
-      </div>
-      </div>
-    </a>"""
-
-  # Build the latest submissions across contests by submitted time.
-  # Use a min-heap to keep only the top 3 most recent entries without sorting the full list.
-  heap = []  # min-heap of (submitted_dt, entry_dict) tuples
-  for d in contests_data:
-    c = d["config"]
-    cid = c["id"]
-    contest_name = html.escape(c["name"])
-    contest_url = html.escape(f"{cid}.html")
-    title_prefix = c.get("title_prefix", "")
-
-    for issue in d.get("issues", []):
-      created_at = issue.get("created_at", "")
-      if not created_at:
-        continue
-      try:
-        submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
-      except ValueError:
-        continue
-
-      raw_title = (issue.get("title", "Untitled") or "Untitled").strip()
-      if title_prefix and raw_title.startswith(title_prefix):
-        raw_title = raw_title[len(title_prefix):].strip()
-
-      body = issue.get("body", "") or ""
-      fields = parse_issue_body(body)
-      preview_url = html.escape(extract_preview_url(fields, body))
-      issue_url = html.escape(issue.get("html_url", "#"))
-
-      entry = {
-        "contest_name": contest_name,
-        "contest_url": contest_url,
-        "title": html.escape(raw_title or "Untitled submission"),
-        "issue_url": issue_url,
-        "preview_url": preview_url,
-        "submitted_iso": html.escape(created_at),
-        "submitted_fallback": html.escape(created_at[:10]),
-        "submitted_dt": submitted_dt,
-      }
-
-      # Maintain a heap of the 3 most recent entries
-      if len(heap) < 3:
-        heapq.heappush(heap, (submitted_dt, entry))
-      elif submitted_dt > heap[0][0]:
-        heapq.heapreplace(heap, (submitted_dt, entry))
-
-  # Extract the 3 entries and sort them in descending order
-  latest_three = sorted(heap, reverse=True)
-  latest_three = [entry for _, entry in latest_three]
+def display_title(issue: dict, title_prefix: str) -> str:
+    title = (issue.get("title") or "").strip()
+    if title_prefix and title.lower().startswith(title_prefix.lower()):
+        title = title[len(title_prefix):].strip()
+    return title or "Untitled submission"
 
 
-def fetch_reactions(issue_number: int) -> dict:
-    """Return reaction totals for an issue as {emoji: count}."""
-    data = gitlab_request(
-        f"/projects/{PROJECT_ID}/issues/{issue_number}/award_emoji"
-    )
-    totals: dict[str, int] = {}
-    gitlab_reaction_names = {
-        "thumbsup": "+1",
-        "thumbs_up": "+1",
-        "+1": "+1",
-        "thumbsdown": "-1",
-        "thumbs_down": "-1",
-        "-1": "-1",
-        "smile": "laugh",
-        "tada": "hooray",
-        "heart": "heart",
-        "rocket": "rocket",
-        "eyes": "eyes",
-    }
-    for item in data:
-        content = gitlab_reaction_names.get(item.get("name", ""), item.get("name", ""))
-        if content in REACTION_LABELS:
-            totals[content] = totals.get(content, 0) + 1
-    return totals
+def entry_link(issue: dict, fallback: str = "#") -> str:
+    """Where a card links: the forge issue, else (archived) the preview, else ``fallback``."""
+    return issue.get("html_url") or issue.get("preview_url") or fallback
 
-
-def fetch_last_comment(issue_number: int) -> dict | None:
-    """Return the last comment on an issue, or None if there are none."""
-    data = gitlab_request(
-        f"/projects/{PROJECT_ID}/issues/{issue_number}/notes?order_by=created_at&sort=asc"
-    )
-    if isinstance(data, list) and data:
-        note = data[-1]
-        author = note.get("author") or {}
-        return {
-            "body": note.get("body", ""),
-            "created_at": note.get("created_at", ""),
-            "user": {
-                "login": author.get("username", "unknown"),
-                "html_url": author.get("web_url", "#"),
-            },
-        }
-    return None
+def strip_comments(body: str) -> str:
+    return re.sub(r"<!--.*?-->", "", (body or "").replace("\r\n", "\n"), flags=re.DOTALL)
 
 
 def parse_issue_body(body: str) -> dict:
     """
-    Extract structured fields from a GitLab issue-template body.
-    Templates render as markdown with ### headings above each answer.
+    Extract the fields of an issue body written from issue-templates/*.md: each answer sits below
+    a `### Field Label` heading (`##` also works). HTML comments (template hints) are dropped.
+    Keys are the lower-cased labels with runs of other characters turned into `_`
+    (`Design / Prototype Link` -> `design_prototype_link`).
     """
     fields: dict[str, str] = {}
     if not body:
         return fields
-
-    # GitLab issue templates render sections as:
-    #   ### Field Label\n\nanswer text
-    sections = re.split(r"\n###\s+", "\n" + body)
-    for section in sections:
+    body = strip_comments(body)
+    for section in re.split(r"\n#{2,3}[ \t]+", "\n" + body):
         lines = section.strip().splitlines()
         if not lines:
             continue
-        heading = lines[0].strip()
-        value = "\n".join(lines[1:]).strip()
-        # Normalise key
-        key = heading.lower().replace("/", " ").replace(" ", "_").strip("_")
-        fields[key] = value
+        key = re.sub(r"[^a-z0-9]+", "_", lines[0].strip().lower()).strip("_")
+        if key:
+            fields[key] = "\n".join(lines[1:]).strip()
     return fields
 
 
 def extract_preview_url(fields: dict, body: str) -> str:
-    """Find the preview image URL from parsed fields or raw body."""
-    # Check known field keys (including legacy keys for backward compatibility)
-    for key in ("preview_image_url", "preview_url", "preview_image"):
+    """Find the preview image URL from parsed fields or the body (template hints ignored)."""
+    body = strip_comments(body)
+    for key in ("preview_image", "preview_image_url", "preview_url"):
         val = fields.get(key, "").strip()
-        if val and val.startswith("http"):
-            return val
-        # Handle markdown image syntax: ![alt](url) or HTML <img src="url">
-        if val:
-            m = MARKDOWN_IMAGE_RE.search(val)
+        if not val:
+            continue
+        for regex in (MARKDOWN_IMAGE_RE, HTML_IMAGE_RE):
+            m = regex.search(val)
             if m:
-                return m.group(1)
-            m = HTML_IMAGE_RE.search(val)
-            if m:
-                return m.group(1)
+                return absolute_url(m.group(1))
+        m = re.search(r"https?://\S+", val)
+        if m:
+            return m.group(0)
 
-    # Fallback: first markdown image in body  ![alt](url)
-    m = MARKDOWN_IMAGE_RE.search(body or "")
-    if m:
-        return m.group(1)
+    for regex in (MARKDOWN_IMAGE_RE, HTML_IMAGE_RE):
+        m = regex.search(body or "")
+        if m:
+            return absolute_url(m.group(1))
 
-    # Fallback: HTML <img src="url"> in body
-    m = HTML_IMAGE_RE.search(body or "")
-    if m:
-        return m.group(1)
-
-    # Fallback: first bare URL ending in image extension
-    m = re.search(r"(https?://\S+\.(?:png|jpg|jpeg|gif|webp|svg))", body or "",
-                  re.IGNORECASE)
-    if m:
-        return m.group(1)
-
-    return ""
+    # Fallback: first bare URL ending in an image extension
+    m = re.search(r"(https?://\S+\.(?:png|jpg|jpeg|gif|webp|svg))", body or "", re.IGNORECASE)
+    return m.group(1) if m else ""
 
 
 def extract_design_url(fields: dict) -> str:
-    for key in ("design_prototype_link", "design_url", "prototype_link"):
-        val = fields.get(key, "").strip()
-        if val and val.startswith("http"):
-            return val
+    for key in ("design_prototype_link", "design_source_file_link", "design_url", "prototype_link"):
+        m = re.search(r"https?://[^\s)>\]]+", fields.get(key, ""))
+        if m and m.group(0) not in ("https://", "http://"):
+            return m.group(0)
     return ""
 
 
 def extract_category(fields: dict) -> str:
-    return fields.get("design_category", fields.get("category", "Other")).strip()
+    value = fields.get("design_category") or fields.get("category") or next(
+        (v for k, v in fields.items() if k.endswith("_category") and v), "")
+    for line in value.splitlines():
+        line = re.sub(r"^[-*]\s+(?:\[[ xX]\]\s*)?", "", line.strip()).strip()
+        if line:
+            return line
+    return "Other"
 
 
 def extract_description(fields: dict) -> str:
+    """The description as plain text (not escaped), at most 200 characters."""
     desc = fields.get("description", "").strip()
     # Strip matched markdown code fences (e.g. ```markdown ... ```)
     desc = re.sub(r"^```[^\n]*\n(.*?)^```\s*$", r"\1", desc, flags=re.DOTALL | re.MULTILINE)
@@ -495,15 +396,15 @@ def extract_description(fields: dict) -> str:
     desc = desc.strip()
     if len(desc) > 200:
         desc = desc[:197] + "…"
-    return html.escape(desc)
-
-
-def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
-               is_winner: bool = False, title_prefix: str = TITLE_PREFIX) -> str:
-    """Return the HTML card markup for a single submission."""
+    return desc
+def build_card(issue: dict, title_prefix: str = TITLE_PREFIX) -> str:
+    """Return the HTML card markup for a single submission (forge issue or archived entry)."""
     number = issue["number"]
-    title = html.escape(issue.get("title", "Untitled").replace(title_prefix + " ", "").strip())
-    issue_url = html.escape(issue.get("html_url", "#"))
+    archived = bool(issue.get("archived"))
+    winner = is_winner(issue)
+    title = html.escape(display_title(issue, title_prefix))
+    issue_url = html.escape(issue.get("html_url") or "")
+    link = html.escape(entry_link(issue))
     created_at_iso = html.escape(issue.get("created_at", ""))
     created = created_at_iso[:10]  # UTC date used as static fallback
     user = issue.get("user", {})
@@ -511,18 +412,16 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
     author_url = html.escape(user.get("html_url", "#"))
     author_avatar = html.escape(user.get("avatar_url", ""))
 
-    body = issue.get("body", "") or ""
-    fields = parse_issue_body(body)
-
-    designer_name = html.escape(author_login)
-    preview_url = html.escape(extract_preview_url(fields, body))
-    design_url = html.escape(extract_design_url(fields))
-    category = html.escape(extract_category(fields))
-    description = extract_description(fields)
-    comment_count = issue.get("comments", 0)
+    preview_url = html.escape(issue.get("preview_url", ""))
+    design_url = html.escape(issue.get("design_url", ""))
+    category = html.escape(issue.get("category") or "Other")
+    description = html.escape(issue.get("description", ""))
+    comment_count = int(issue.get("comments", 0) or 0)
+    votes = int(issue.get("votes", 0) or 0)
 
     # Last comment snippet
     comment_block = ""
+    last_comment = issue.get("last_comment")
     if last_comment:
         c_user = last_comment.get("user", {})
         c_login = html.escape(c_user.get("login", "unknown"))
@@ -542,72 +441,59 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
                 if c_avatar else
                 '<i class="fa-solid fa-user-circle text-base shrink-0" aria-hidden="true"></i>'
             )
-            count_label = f'{comment_count} comment{"s" if comment_count != 1 else ""} · ' if comment_count > 0 else ''
+            count_text = f'{comment_count} comment{"s" if comment_count != 1 else ""} · ' if comment_count > 0 else ''
+            count_label = (
+                f'<a href="{issue_url}" target="_blank" rel="noopener" '
+                f'class="hover:text-[#E10101] transition-colors">{count_text}</a>'
+                if issue_url else count_text
+            )
             comment_block = (
                 f'<div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500">'
                 f'{c_avatar_img}'
-                f'<span>'
-                f'<a href="{issue_url}" target="_blank" rel="noopener" '
-                f'class="hover:text-[#E10101] transition-colors">{count_label}</a>'
+                f'<span>{count_label}'
                 f'<a href="{c_url}" target="_blank" rel="noopener" '
                 f'class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">'
                 f'{c_login}</a>: {c_body_escaped}</span>'
                 f'</div>'
             )
-    if not comment_block:
+    if not comment_block and not archived:
         comment_block = (
             f'<a href="{issue_url}" target="_blank" rel="noopener" '
             f'class="inline-flex items-center gap-1.5 text-xs '
             f'text-gray-400 dark:text-gray-500 hover:text-[#E10101] '
             f'dark:hover:text-[#E10101] transition-colors" '
-            f'aria-label="Be the first to comment on GitLab">'
+            f'aria-label="Be the first to comment on the issue">'
             f'<i class="fa-regular fa-comment" aria-hidden="true"></i>'
             f'Be the first to comment!</a>'
         )
 
-    # Reaction pills
-    thumbs_count = reactions.get("+1", 0)
-    total_reactions = sum(reactions.get(c, 0) for c in REACTION_LABELS)
-
-    if total_reactions > 0:
-        reaction_html = ""
-        for content, emoji in REACTION_LABELS.items():
-            count = reactions.get(content, 0)
-            if count == 0:
-                continue
-            if content == "+1":
-                reaction_html += (
-                    f'<button type="button" '
-                    f'class="inline-flex items-center gap-1 text-sm '
-                    f'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 '
-                    f'rounded-full px-2 py-0.5 hover:bg-red-100 dark:hover:bg-red-900/30 '
-                    f'hover:text-[#E10101] transition-colors cursor-pointer" '
-                    f'data-thumbs-btn '
-                    f'aria-label="Thumbs up this design on GitLab">'
-                    f'{emoji} <span>{count}</span></button>'
-                )
-            else:
-                reaction_html += (
-                    f'<span class="inline-flex items-center gap-1 text-sm '
-                    f'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 '
-                    f'rounded-full px-2 py-0.5">'
-                    f'{emoji} <span>{count}</span></span>'
-                )
+    # Votes: generated counts; voting happens on the forge issue
+    vote_word = f'vote{"" if votes == 1 else "s"}'
+    pill = ('inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 '
+            'text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5')
+    if archived:
+        vote_html = (
+            f'<span class="{pill}" title="Final GitLab vote count (archived)">'
+            f'<i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <span>{votes}</span>'
+            f'<span class="sr-only"> {vote_word}</span></span>'
+            f'<span class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">'
+            f'<i class="fa-solid fa-box-archive" aria-hidden="true"></i> GitLab archive</span>'
+        )
     else:
-        reaction_html = (
+        vote_html = (
             f'<a href="{issue_url}" target="_blank" rel="noopener" '
-            f'class="inline-flex items-center gap-1.5 text-xs '
-            f'text-gray-400 dark:text-gray-500 hover:text-[#E10101] '
-            f'dark:hover:text-[#E10101] transition-colors" '
-            f'aria-label="Be the first to react on GitLab">'
-            f'<i class="fa-regular fa-face-smile" aria-hidden="true"></i>'
-            f'Be the first to react!</a>'
+            f'class="{pill} hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-[#E10101] transition-colors" '
+            f'aria-label="{votes} {vote_word}. Vote on the issue">'
+            f'<i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <span>{votes}</span></a>'
+            f'<a href="{issue_url}" target="_blank" rel="noopener" '
+            f'class="text-xs text-gray-400 dark:text-gray-500 hover:text-[#E10101] transition-colors">'
+            f'Vote on the issue</a>'
         )
 
     # Preview image
     if preview_url:
         preview_block = (
-            f'<a href="{issue_url}" target="_blank" rel="noopener" '
+            f'<a href="{link}" target="_blank" rel="noopener" '
             f'   class="block overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700">'
             f'  <img src="{preview_url}" alt="{title} preview" loading="lazy" '
             f'       class="w-full h-full object-cover transition-transform duration-300 '
@@ -616,7 +502,7 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
         )
     else:
         preview_block = (
-            f'<a href="{issue_url}" target="_blank" rel="noopener" '
+            f'<a href="{link}" target="_blank" rel="noopener" '
             f'   class="flex items-center justify-center aspect-square '
             f'          bg-gray-100 dark:bg-gray-700 text-gray-400">'
             f'  <i class="fa-solid fa-image text-4xl" aria-hidden="true"></i>'
@@ -632,6 +518,21 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
             f'  View Design</a>'
         )
 
+    if archived:
+        issue_button = ""  # the GitLab issue is gone; the header shows its number
+        title_html = title
+    else:
+        issue_button = (
+            f'<a href="{issue_url}" target="_blank" rel="noopener" '
+            f'class="inline-flex items-center gap-1 text-sm font-medium '
+            f'border border-[#E10101] text-[#E10101] rounded-md px-3 py-1 '
+            f'hover:bg-[#E10101] hover:text-white transition-colors" '
+            f'aria-label="View issue #{number}">'
+            f'<i class="fa-solid fa-code-branch" aria-hidden="true"></i> Issue</a>'
+        )
+        title_html = (f'<a href="{issue_url}" target="_blank" rel="noopener" '
+                      f'class="hover:text-[#E10101] transition-colors">{title}</a>')
+
     # Category badge colour
     cat_colour = {
         "UI / Website Redesign": "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200",
@@ -646,7 +547,7 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
     winner_badge = ""
     winner_ring = ""
     winner_attr = ""
-    if is_winner:
+    if winner:
         winner_badge = (
             '<div class="absolute top-2 left-2 z-10 flex items-center gap-1.5 '
             'bg-amber-400 text-amber-900 text-xs font-bold px-2.5 py-1 '
@@ -655,14 +556,16 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
         )
         winner_ring = " ring-2 ring-amber-400 ring-offset-2 dark:ring-offset-[#111827]"
         winner_attr = ' data-winner="true"'
+    archived_attr = ' data-archived="true"' if archived else ""
+    number_label = f"GitLab #{number}" if archived else f"#{number}"
 
     return f"""
     <article class="group relative bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
                     border-[#E5E5E5] dark:border-gray-700 overflow-hidden
                     flex flex-col hover:shadow-md transition-shadow{winner_ring}"
-             data-thumbs="{thumbs_count}"
-             data-total-reactions="{total_reactions}"
-             data-issue-url="{issue_url}"{winner_attr}
+             data-votes="{votes}"
+             data-comments="{comment_count}"
+             data-issue-url="{issue_url}"{winner_attr}{archived_attr}
              aria-label="Contest submission: {title}">
       {winner_badge}
       {preview_block}
@@ -670,13 +573,12 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
         <!-- Category + issue number -->
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <span class="text-xs font-medium px-2 py-0.5 rounded-full {cat_colour}">{category}</span>
-          <span class="text-xs text-gray-400 dark:text-gray-500">#{number} · <time class="sub-date" datetime="{created_at_iso}">{created}</time></span>
+          <span class="text-xs text-gray-400 dark:text-gray-500">{number_label} · <time class="sub-date" datetime="{created_at_iso}">{created}</time></span>
         </div>
 
         <!-- Title -->
         <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
-          <a href="{issue_url}" target="_blank" rel="noopener"
-             class="hover:text-[#E10101] transition-colors">{title}</a>
+          {title_html}
         </h2>
 
         <!-- Description -->
@@ -686,25 +588,19 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
         <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           {'<img src="' + author_avatar + '" alt="" class="w-6 h-6 rounded-full" aria-hidden="true" />' if author_avatar else '<i class="fa-solid fa-user-circle text-lg" aria-hidden="true"></i>'}
           <a href="{author_url}" target="_blank" rel="noopener"
-             class="text-[#E10101] hover:underline font-medium">{designer_name}</a>
+             class="text-[#E10101] hover:underline font-medium">{author_login}</a>
         </div>
         <!-- Last comment -->
         {comment_block}
-        <!-- Footer: reactions + design link -->
+        <!-- Footer: votes + design link -->
         <div class="flex items-center justify-between gap-2 flex-wrap pt-2
                     border-t border-[#E5E5E5] dark:border-gray-700">
-          <div class="flex items-center gap-1 flex-wrap" aria-label="Reactions">
-            {reaction_html}
+          <div class="flex items-center gap-2 flex-wrap" aria-label="Votes">
+            {vote_html}
           </div>
           <div class="flex items-center gap-3">
             {design_link}
-            <a href="{issue_url}" target="_blank" rel="noopener"
-               class="inline-flex items-center gap-1 text-sm font-medium
-                      border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
-                      hover:bg-[#E10101] hover:text-white transition-colors"
-               aria-label="View issue #{number}">
-              <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Issue
-            </a>
+            {issue_button}
           </div>
         </div>
       </div>
@@ -720,6 +616,7 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
     prize = html.escape(contest["prize"])
     deadline_display = html.escape(contest["deadline_display"])
     submit_url = html.escape(issue_template_url(contest["template"]))
+    title_prefix = html.escape(contest["title_prefix"])
     icon = contest["icon"]
     cstatus = contest.get("status", "active")
     ends_label = "Ended" if cstatus == "selecting_winner" else "Ends"
@@ -789,6 +686,14 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
                 {total} submission{'' if total == 1 else 's'}
               </span>
             </div>
+            <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+              To enter, copy the <a href="{submit_url}" target="_blank" rel="noopener"
+              class="text-[#E10101] hover:underline font-medium">submission template</a> into a
+              <a href="{NEW_ISSUE_URL}" target="_blank" rel="noopener"
+              class="text-[#E10101] hover:underline font-medium">new issue</a> on git.owaspblt.org
+              titled <code>[blt-design-contest] {title_prefix} ...</code>. To vote, open a submission's
+              issue and press Vote (signed in), or comment <code>+1</code>.
+            </p>
             {google_form_html}
           </div>
           <a href="{submit_url}"
@@ -805,23 +710,23 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
       <!-- Sort controls -->
       <div class="flex items-center gap-3 flex-wrap mb-6">
         <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">Sort:</span>
-        <button id="sort-thumbs-{cid}" type="button"
+        <button id="sort-votes-{cid}" type="button"
                 class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
                        text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
                        text-sm font-semibold px-4 py-2 rounded-md transition-colors"
                 aria-pressed="false"
-                data-sort="thumbs" data-contest="{cid}">
+                data-sort="votes" data-contest="{cid}">
           <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
-          By 👍
+          By votes
         </button>
-        <button id="sort-reactions-{cid}" type="button"
+        <button id="sort-comments-{cid}" type="button"
                 class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
                        text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
                        text-sm font-semibold px-4 py-2 rounded-md transition-colors"
                 aria-pressed="false"
-                data-sort="reactions" data-contest="{cid}">
+                data-sort="comments" data-contest="{cid}">
           <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
-          By all reactions
+          By comments
         </button>
       </div>
 
@@ -833,6 +738,99 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
 
     </div>"""
 
+
+
+def entry_summaries(contests_data: list[dict]) -> list[dict]:
+    """Every submission of every contest (escaped for HTML), newest first."""
+    entries = []
+    for d in contests_data:
+        c = d["config"]
+        contest_page = f'{c["id"]}.html'
+        for issue in d.get("issues", []):
+            created_at = issue.get("created_at", "")
+            try:
+                submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            except ValueError:
+                continue
+            archived = bool(issue.get("archived"))
+            entries.append({
+                "contest_id": html.escape(c["id"]),
+                "contest_name": html.escape(c["name"]),
+                "contest_url": html.escape(contest_page),
+                "title": html.escape(display_title(issue, c.get("title_prefix", ""))),
+                "link": html.escape(entry_link(issue, contest_page)),
+                "issue_url": html.escape(issue.get("html_url") or ""),
+                "archived": archived,
+                "number": issue.get("number"),
+                "preview_url": html.escape(issue.get("preview_url", "")),
+                "submitted_iso": html.escape(created_at),
+                "submitted_fallback": html.escape(created_at[:10]),
+                "submitted_dt": submitted_dt,
+            })
+    entries.sort(key=lambda item: item["submitted_dt"], reverse=True)
+    return entries
+
+
+def summary_card(item: dict, aspect: str = "aspect-square") -> str:
+    """A compact card (homepage "Recent Submissions" and show-all-entries.html)."""
+    if item["preview_url"]:
+        preview_block = (
+            f'<a href="{item["link"]}" target="_blank" rel="noopener" '
+            f'   class="block overflow-hidden {aspect} bg-gray-100 dark:bg-gray-700">'
+            f'  <img src="{item["preview_url"]}" alt="{item["title"]} preview" loading="lazy" '
+            f'       class="w-full h-full object-cover transition-transform duration-300 '
+            f'              group-hover:scale-105" />'
+            f'</a>'
+        )
+    else:
+        preview_block = (
+            f'<a href="{item["link"]}" target="_blank" rel="noopener" '
+            f'   class="flex items-center justify-center {aspect} '
+            f'          bg-gray-100 dark:bg-gray-700 text-gray-400">'
+            f'  <i class="fa-solid fa-image text-3xl" aria-hidden="true"></i>'
+            f'</a>'
+        )
+    if item["archived"]:
+        issue_button = (
+            f'<span class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">'
+            f'<i class="fa-solid fa-box-archive" aria-hidden="true"></i> GitLab #{item["number"]} (archived)</span>'
+        )
+    else:
+        issue_button = (
+            f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
+            f'class="inline-flex items-center gap-1 text-sm font-medium '
+            f'border border-[#E10101] text-[#E10101] rounded-md px-3 py-1 '
+            f'hover:bg-[#E10101] hover:text-white transition-colors">'
+            f'<i class="fa-solid fa-code-branch" aria-hidden="true"></i> Issue</a>'
+        )
+    return f"""
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="{item["contest_id"]}">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          {preview_block}
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">{item["contest_name"]}</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="{item["submitted_iso"]}">{item["submitted_fallback"]}</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="{item["link"]}" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">{item["title"]}</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="{item["contest_url"]}"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              {issue_button}
+            </div>
+          </div>
+        </article>"""
 
 
 def build_html(contests_data: list[dict], last_updated: str) -> str:
@@ -916,141 +914,9 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
           </div>
         </a>"""
 
-    # Build the latest submissions across contests by submitted time.
-    recent_entries = []
-    for d in contests_data:
-        c = d["config"]
-        cid = c["id"]
-        contest_name = html.escape(c["name"])
-        contest_url = html.escape(f"{cid}.html")
-        title_prefix = c.get("title_prefix", "")
-
-        for issue in d.get("issues", []):
-            created_at = issue.get("created_at", "")
-            if not created_at:
-                continue
-            try:
-                submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
-            except ValueError:
-                continue
-
-            raw_title = (issue.get("title", "Untitled") or "Untitled").strip()
-            if title_prefix and raw_title.startswith(title_prefix):
-                raw_title = raw_title[len(title_prefix):].strip()
-
-            body = issue.get("body", "") or ""
-            fields = parse_issue_body(body)
-            preview_url = html.escape(extract_preview_url(fields, body))
-            issue_url = html.escape(issue.get("html_url", "#"))
-
-            recent_entries.append({
-                "contest_name": contest_name,
-                "contest_url": contest_url,
-                "title": html.escape(raw_title or "Untitled submission"),
-                "issue_url": issue_url,
-                "preview_url": preview_url,
-                "submitted_iso": html.escape(created_at),
-                "submitted_fallback": html.escape(created_at[:10]),
-                "submitted_dt": submitted_dt,
-            })
-
-    recent_entries.sort(key=lambda item: item["submitted_dt"], reverse=True)
-    latest_three = recent_entries[:3]
-
+    latest_three = entry_summaries(contests_data)[:3]
     if latest_three:
-        recent_cards_html = ""
-        for item in latest_three:
-            if item["preview_url"]:
-                preview_block = (
-                    f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
-                    f'   class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">'
-                    f'  <img src="{item["preview_url"]}" alt="{item["title"]} preview" loading="lazy" '
-                    f'       class="w-full h-full object-cover transition-transform duration-300 '
-                    f'              group-hover:scale-105" />'
-                    f'</a>'
-                )
-            else:
-                # Build the latest submissions across contests by submitted time.
-                # Use a min-heap to keep only the top 3 most recent entries without sorting the full list.
-                heap = []  # min-heap of (submitted_dt, entry_dict) tuples
-                for d in contests_data:
-                  c = d["config"]
-                  cid = c["id"]
-                  contest_name = html.escape(c["name"])
-                  contest_url = html.escape(f"{cid}.html")
-                  title_prefix = c.get("title_prefix", "")
-
-                  for issue in d.get("issues", []):
-                    created_at = issue.get("created_at", "")
-                    if not created_at:
-                      continue
-                    try:
-                      submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
-                    except ValueError:
-                      continue
-
-                    raw_title = (issue.get("title", "Untitled") or "Untitled").strip()
-                    if title_prefix and raw_title.startswith(title_prefix):
-                      raw_title = raw_title[len(title_prefix):].strip()
-
-                    body = issue.get("body", "") or ""
-                    fields = parse_issue_body(body)
-                    preview_url = html.escape(extract_preview_url(fields, body))
-                    issue_url = html.escape(issue.get("html_url", "#"))
-
-                    entry = {
-                      "contest_name": contest_name,
-                      "contest_url": contest_url,
-                      "title": html.escape(raw_title or "Untitled submission"),
-                      "issue_url": issue_url,
-                      "preview_url": preview_url,
-                      "submitted_iso": html.escape(created_at),
-                      "submitted_fallback": html.escape(created_at[:10]),
-                      "submitted_dt": submitted_dt,
-                    }
-
-                    # Maintain a heap of the 3 most recent entries
-                    if len(heap) < 3:
-                      heapq.heappush(heap, (submitted_dt, entry))
-                    elif submitted_dt > heap[0][0]:
-                      heapq.heapreplace(heap, (submitted_dt, entry))
-
-                # Extract the 3 entries and sort them in descending order
-                latest_three = sorted(heap, reverse=True)
-                latest_three = [entry for _, entry in latest_three]
-
-            recent_cards_html += f"""
-        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
-                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
-          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
-          {preview_block}
-          <div class="p-5 flex flex-col gap-3">
-            <div class="flex items-center justify-between gap-2 flex-wrap">
-              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">{item["contest_name"]}</span>
-              <span class="text-xs text-gray-400 dark:text-gray-500">
-                <time class="sub-date" datetime="{item["submitted_iso"]}">{item["submitted_fallback"]}</time>
-              </span>
-            </div>
-            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
-              <a href="{item["issue_url"]}" target="_blank" rel="noopener"
-                 class="hover:text-[#E10101] transition-colors">{item["title"]}</a>
-            </h3>
-            <div class="flex items-center justify-between gap-3 pt-2
-                        border-t border-[#E5E5E5] dark:border-gray-700">
-              <a href="{item["contest_url"]}"
-                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
-                Open Contest
-              </a>
-              <a href="{item["issue_url"]}" target="_blank" rel="noopener"
-                 class="inline-flex items-center gap-1 text-sm font-medium
-                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
-                        hover:bg-[#E10101] hover:text-white transition-colors">
-                <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Issue
-              </a>
-            </div>
-          </div>
-        </article>"""
+        recent_cards_html = "".join(summary_card(item, "aspect-video") for item in latest_three)
     else:
         recent_cards_html = (
             '<div class="md:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm '
@@ -1061,10 +927,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
         )
 
     # For the hero submit URL, use the first contest
-    first_submit_url = html.escape(
-        issue_template_url(contests_data[0]["config"]["template"])
-        if contests_data else issue_template_url()
-    )
+    first_submit_url = html.escape(issue_template_url())
 
     return f"""<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
@@ -1146,10 +1009,10 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
              class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">
             How it works
           </a>
-          <a href="{PROJECT_URL}" target="_blank" rel="noopener"
+          <a href="{ISSUES_URL}" target="_blank" rel="noopener"
              class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
                     inline-flex items-center gap-1">
-            <i class="fa-brands fa-gitlab" aria-hidden="true"></i> GitLab
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i> Issues
           </a>
         </div>
 
@@ -1190,7 +1053,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       </h1>
       <p class="max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-300 mb-8">
         Anyone passionate about BLT, open source, and application security is welcome to participate.
-        Browse entries, share your appreciation with a 👍 on GitLab, and submit your own design.
+        Browse entries, vote for your favourites on git.owaspblt.org, and submit your own design.
       </p>
     </div>
   </section>
@@ -1209,8 +1072,9 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
                        flex items-center justify-center text-xl font-black">1</span>
           <h3 class="font-semibold text-gray-900 dark:text-gray-100">Submit your design</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            Open a new GitLab issue using the contest's submission template — no prior experience needed.
-            Upload a preview image, add a short description, and link to your design.
+            Open a new issue on git.owaspblt.org and paste the contest's
+            <a href="{TEMPLATES_URL}/README.md" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">submission template</a>
+            into it — no prior experience needed. Add a preview image, a short description, and a link to your design.
           </p>
         </li>
         <li class="flex flex-col items-center text-center gap-3">
@@ -1218,8 +1082,8 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
                        flex items-center justify-center text-xl font-black">2</span>
           <h3 class="font-semibold text-gray-900 dark:text-gray-100">Everyone votes</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            Anyone — from seasoned security pros to open source newcomers — can leave a 👍 reaction
-            to show appreciation. The showcase reflects live reaction counts.
+            Anyone — from seasoned security pros to open source newcomers — can sign in and press
+            Vote on a submission's issue (or comment <code>+1</code>). The showcase shows the counts from its last update.
           </p>
         </li>
         <li class="flex flex-col items-center text-center gap-3">
@@ -1227,8 +1091,8 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
                        flex items-center justify-center text-xl font-black">3</span>
           <h3 class="font-semibold text-gray-900 dark:text-gray-100">Showcase updates</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            GitLab Actions rebuilds this page whenever a submission is
-            opened or edited, keeping the showcase always up to date.
+            The showcase is rebuilt whenever a submission issue is opened, edited, labelled or closed,
+            and once a day for new votes.
           </p>
         </li>
       </ol>
@@ -1306,7 +1170,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       <div class="flex items-center gap-4">
         <a href="{PROJECT_URL}" target="_blank" rel="noopener"
            class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
-          <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Source
+          <i class="fa-solid fa-code" aria-hidden="true"></i> Source
         </a>
         <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
            class="hover:text-[#E10101] transition-colors">OWASP BLT</a>
@@ -1355,102 +1219,10 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
 
 def build_show_all_entries_html(contests_data: list[dict], last_updated: str) -> str:
     """Return a standalone page with all submissions in a simple card layout."""
-    entries = []
-
-    for d in contests_data:
-        c = d["config"]
-        cid = c["id"]
-        contest_name = html.escape(c["name"])
-        contest_page = html.escape(f"{cid}.html")
-        title_prefix = c.get("title_prefix", "")
-
-        for issue in d.get("issues", []):
-            created_at = issue.get("created_at", "")
-            if not created_at:
-                continue
-            try:
-                submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
-            except ValueError:
-                continue
-
-            raw_title = (issue.get("title", "Untitled submission") or "Untitled submission").strip()
-            if title_prefix and raw_title.startswith(title_prefix):
-                raw_title = raw_title[len(title_prefix):].strip()
-
-            body = issue.get("body", "") or ""
-            fields = parse_issue_body(body)
-            preview_url = html.escape(extract_preview_url(fields, body))
-            issue_url = html.escape(issue.get("html_url", "#"))
-
-            entries.append({
-                "contest_id": html.escape(cid),
-                "contest_name": contest_name,
-                "contest_page": contest_page,
-                "title": html.escape(raw_title or "Untitled submission"),
-                "issue_url": issue_url,
-                "preview_url": preview_url,
-                "submitted_iso": html.escape(created_at),
-                "submitted_fallback": html.escape(created_at[:10]),
-                "submitted_dt": submitted_dt,
-            })
-
-    entries.sort(key=lambda item: item["submitted_dt"], reverse=True)
+    entries = entry_summaries(contests_data)
 
     if entries:
-        cards = []
-        for item in entries:
-            if item["preview_url"]:
-                preview_block = (
-                    f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
-                    f'   class="block overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700">'
-                    f'  <img src="{item["preview_url"]}" alt="{item["title"]} preview" loading="lazy" '
-                    f'       class="w-full h-full object-cover transition-transform duration-300 '
-                    f'              group-hover:scale-105" />'
-                    f'</a>'
-                )
-            else:
-                preview_block = (
-                    f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
-                    f'   class="flex items-center justify-center aspect-square '
-                    f'          bg-gray-100 dark:bg-gray-700 text-gray-400">'
-                    f'  <i class="fa-solid fa-image text-3xl" aria-hidden="true"></i>'
-                    f'</a>'
-                )
-
-            cards.append(f"""
-        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
-                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
-                 data-contest="{item["contest_id"]}">
-          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
-          {preview_block}
-          <div class="p-5 flex flex-col gap-3">
-            <div class="flex items-center justify-between gap-2 flex-wrap">
-              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">{item["contest_name"]}</span>
-              <span class="text-xs text-gray-400 dark:text-gray-500">
-                <time class="sub-date" datetime="{item["submitted_iso"]}">{item["submitted_fallback"]}</time>
-              </span>
-            </div>
-            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
-              <a href="{item["issue_url"]}" target="_blank" rel="noopener"
-                 class="hover:text-[#E10101] transition-colors">{item["title"]}</a>
-            </h3>
-            <div class="flex items-center justify-between gap-3 pt-2
-                        border-t border-[#E5E5E5] dark:border-gray-700">
-              <a href="{item["contest_page"]}"
-                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
-                Open Contest
-              </a>
-              <a href="{item["issue_url"]}" target="_blank" rel="noopener"
-                 class="inline-flex items-center gap-1 text-sm font-medium
-                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
-                        hover:bg-[#E10101] hover:text-white transition-colors">
-                <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Issue
-              </a>
-            </div>
-          </div>
-        </article>""")
-
+        cards = [summary_card(item) for item in entries]
         cards_html = "\n".join(cards)
     else:
         cards_html = (
@@ -1472,10 +1244,7 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
         )
     filter_buttons_html = "\n        ".join(filter_buttons)
 
-    first_submit_url = html.escape(
-        issue_template_url(contests_data[0]["config"]["template"])
-        if contests_data else issue_template_url()
-    )
+    first_submit_url = html.escape(issue_template_url())
 
     return f"""<!DOCTYPE html>
     <html lang="en" class="scroll-smooth">
@@ -1539,9 +1308,9 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
        aria-current="page">
       <i class="fa-solid fa-images" aria-hidden="true"></i> All Entries
       </a>
-      <a href="{PROJECT_URL}" target="_blank" rel="noopener"
+      <a href="{ISSUES_URL}" target="_blank" rel="noopener"
        class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
-      <i class="fa-brands fa-gitlab" aria-hidden="true"></i> GitLab
+      <i class="fa-solid fa-list-check" aria-hidden="true"></i> Issues
       </a>
       </div>
 
@@ -1607,7 +1376,7 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
       <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
       </a>
       <a href="{PROJECT_URL}" target="_blank" rel="noopener" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
-      <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Source
+      <i class="fa-solid fa-code" aria-hidden="true"></i> Source
       </a>
       </div>
     </div>
@@ -1706,7 +1475,7 @@ def build_winner_showcase(winner_issues: list, title_prefix: str) -> str:
     """Return a prominent winner-showcase hero section for a contest page.
 
     Displayed at the top of the main content area when one or more winners
-    have been selected.  Each winner gets their design image, GitLab avatar,
+    have been selected.  Each winner gets their design image, avatar,
     username, and a link back to the winning submission.
     """
     if not winner_issues:
@@ -1715,21 +1484,14 @@ def build_winner_showcase(winner_issues: list, title_prefix: str) -> str:
     entry_blocks: list[str] = []
     for i, issue in enumerate(winner_issues):
         number = issue["number"]
-        raw_title = (
-            issue.get("title", "Untitled").replace(
-                title_prefix + " ", "", 1
-            ).strip() if title_prefix else issue.get("title", "Untitled")
-        )
-        title = html.escape(raw_title)
-        issue_url = html.escape(issue.get("html_url", "#"))
+        title = html.escape(display_title(issue, title_prefix))
+        issue_url = html.escape(issue.get("html_url") or "")
         user = issue.get("user", {})
         author_login = html.escape(user.get("login", "unknown"))
         author_url = html.escape(user.get("html_url", "#"))
         author_avatar = html.escape(user.get("avatar_url", ""))
 
-        body_text = issue.get("body", "") or ""
-        fields = parse_issue_body(body_text)
-        preview_url = html.escape(extract_preview_url(fields, body_text))
+        preview_url = html.escape(issue.get("preview_url", ""))
 
         avatar_img = (
             f'<img src="{author_avatar}" alt="{author_login}\'s avatar" '
@@ -1744,7 +1506,7 @@ def build_winner_showcase(winner_issues: list, title_prefix: str) -> str:
         )
 
         preview_html = (
-            f'<a href="{issue_url}" target="_blank" rel="noopener"'
+            f'<a href="{html.escape(entry_link(issue))}" target="_blank" rel="noopener"'
             f'   class="block w-full md:w-1/2 lg:w-2/5 shrink-0 rounded-xl'
             f"          overflow-hidden shadow-lg border-2 border-amber-300"
             f'          dark:border-amber-600">'
@@ -1753,6 +1515,18 @@ def build_winner_showcase(winner_issues: list, title_prefix: str) -> str:
             f"</a>"
         ) if preview_url else ""
 
+        if issue_url:
+            submission_link = (
+                f'<a href="{issue_url}" target="_blank" rel="noopener" '
+                f'class="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-500 '
+                f'text-amber-900 font-semibold text-sm px-4 py-2 rounded-md transition-colors w-fit">'
+                f'<i class="fa-solid fa-code-branch" aria-hidden="true"></i> View Winning Submission #{number}</a>'
+            )
+        else:
+            submission_link = (
+                f'<span class="inline-flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">'
+                f'<i class="fa-solid fa-box-archive" aria-hidden="true"></i> GitLab submission #{number} (archived)</span>'
+            )
         sep = (
             '<hr class="border-amber-200 dark:border-amber-700" />'
             if i > 0
@@ -1777,13 +1551,7 @@ def build_winner_showcase(winner_issues: list, title_prefix: str) -> str:
             <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-snug">
               {title}
             </h3>
-            <a href="{issue_url}" target="_blank" rel="noopener"
-               class="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-500
-                      text-amber-900 font-semibold text-sm px-4 py-2 rounded-md
-                      transition-colors w-fit">
-              <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
-              View Winning Submission #{number}
-            </a>
+            {submission_link}
           </div>
           {preview_html}
         </div>""")
@@ -1833,12 +1601,17 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
     deadline = c["deadline"]
 
     # Build winner showcase from issues carrying the winner label
-    winner_issues = [
-        issue
-        for issue in contest_data.get("issues", [])
-        if WINNER_LABEL in [lb["name"] for lb in issue.get("labels", [])]
-    ]
+    winner_issues = [issue for issue in contest_data.get("issues", []) if is_winner(issue)]
     winner_showcase = build_winner_showcase(winner_issues, c["title_prefix"])
+    archive_note = (
+        '<p class="mb-6 text-sm text-gray-500 dark:text-gray-400">'
+        '<i class="fa-solid fa-box-archive" aria-hidden="true"></i> '
+        'Entries marked <strong>GitLab archive</strong> were submitted on gitlab.com before the BLT '
+        'GitLab group closed; their vote counts are final. New entries and votes live on '
+        f'<a href="{html.escape(ISSUES_URL)}" target="_blank" rel="noopener" '
+        'class="text-[#E10101] hover:underline">git.owaspblt.org</a>.</p>'
+        if any(i.get("archived") for i in contest_data.get("issues", [])) else ""
+    )
 
     # The contest content (info bar + winner banner + sort controls + cards grid)
     contest_section = build_contest_section(
@@ -1929,10 +1702,10 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
           <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold">
             <i class="{icon}" aria-hidden="true"></i> {cname}
           </span>
-          <a href="{PROJECT_URL}" target="_blank" rel="noopener"
+          <a href="{ISSUES_URL}" target="_blank" rel="noopener"
              class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
                     inline-flex items-center gap-1">
-            <i class="fa-brands fa-gitlab" aria-hidden="true"></i> GitLab
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i> Issues
           </a>
         </div>
 
@@ -1971,6 +1744,7 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
       </p>
 
       {winner_showcase}
+      {archive_note}
       {contest_section}
 
     </div>
@@ -1998,7 +1772,7 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
         </a>
         <a href="{PROJECT_URL}" target="_blank" rel="noopener"
            class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
-          <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Source
+          <i class="fa-solid fa-code" aria-hidden="true"></i> Source
         </a>
         <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
            class="hover:text-[#E10101] transition-colors">OWASP BLT</a>
@@ -2043,10 +1817,10 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
         const grid = document.getElementById(`cards-grid-${{cid}}`);
         if (!grid) return;
 
-        if (!sortState[cid]) sortState[cid] = {{ thumbs: false, reactions: false, originalOrder: null }};
+        if (!sortState[cid]) sortState[cid] = {{ votes: false, comments: false, originalOrder: null }};
         if (!sortState[cid].originalOrder) sortState[cid].originalOrder = Array.from(grid.children);
 
-        const otherType = sortType === 'thumbs' ? 'reactions' : 'thumbs';
+        const otherType = sortType === 'votes' ? 'comments' : 'votes';
         const otherBtn = document.querySelector(`[data-sort="${{otherType}}"][data-contest="${{cid}}"]`);
         const isActive = sortState[cid][sortType];
 
@@ -2062,7 +1836,7 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
         btn.classList.toggle('text-gray-700', isActive);
         btn.classList.toggle('dark:text-gray-200', isActive);
 
-        const dataKey = sortType === 'thumbs' ? 'thumbs' : 'totalReactions';
+        const dataKey = sortType; // data-votes / data-comments
         // Preserve winner pinning: keep winner cards at the top, only sort within non-winners.
         const allCards = [...sortState[cid].originalOrder];
         const winnerCards = allCards.filter(card => card.dataset.winner === 'true');
@@ -2076,130 +1850,6 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
         cards.forEach(card => grid.appendChild(card));
       }});
     }});
-
-    // Thumbs-up click handler — opens the GitLab issue so the user can react there
-    // Uses event delegation so it works for both static and live-updated buttons
-    document.addEventListener('click', (e) => {{
-      const btn = e.target.closest('[data-thumbs-btn]');
-      if (!btn) return;
-      const issueUrl = btn.closest('article')?.dataset.issueUrl;
-      if (issueUrl) {{
-        window.open(issueUrl, '_blank', 'noopener,noreferrer');
-      }}
-    }});
-
-    // Live-update reaction counts from the GitLab API on page load
-    (async function () {{
-      const REACTION_LABELS = [
-        ['+1',      '\U0001F44D'],
-        ['-1',      '\U0001F44E'],
-        ['laugh',   '\U0001F604'],
-        ['hooray',  '\U0001F389'],
-        ['confused','\U0001F615'],
-        ['heart',   '\u2764\uFE0F'],
-        ['rocket',  '\U0001F680'],
-        ['eyes',    '\U0001F440'],
-      ];
-      const PILL = 'inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 '
-                 + 'text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5';
-      const THUMBS_PILL = PILL + ' hover:bg-red-100 dark:hover:bg-red-900/30 '
-                        + 'hover:text-[#E10101] transition-colors cursor-pointer';
-      const ETAG_KEY   = 'bltDesignIssuesEtag';
-      const CACHE_KEY  = 'bltDesignIssuesCache';
-      const BASE_URL   = '{GITLAB_API_BASE}/projects/{PROJECT_ID}/issues?state=opened&per_page=100';
-      const API_HEADERS = {{ 'Accept': 'application/json' }};
-
-      const cards = Array.from(document.querySelectorAll('article[data-issue-url]'));
-      if (!cards.length) return;
-
-      // Load cached data from localStorage
-      let cachedEtag = null;
-      let issues = null;
-      try {{
-        cachedEtag = localStorage.getItem(ETAG_KEY);
-        const raw = localStorage.getItem(CACHE_KEY);
-        if (raw) issues = JSON.parse(raw);
-      }} catch (_) {{}}
-
-      // Fetch fresh data, using a conditional request when we have a cached ETag
-      try {{
-        const firstPageHeaders = cachedEtag
-          ? {{ ...API_HEADERS, 'If-None-Match': cachedEtag }}
-          : {{ ...API_HEADERS }};
-        const resp = await fetch(`${{BASE_URL}}&page=1`, {{ headers: firstPageHeaders }});
-
-        if (resp.status === 304) {{
-          // Not modified — reuse cached issues, no rate-limit hit
-        }} else if (resp.ok) {{
-          const allIssues = await resp.json();
-          const newEtag = resp.headers.get('ETag');
-          let page = 2;
-          while (true) {{
-            const next = await fetch(`${{BASE_URL}}&page=${{page}}`, {{ headers: API_HEADERS }});
-            if (!next.ok) break;
-            const batch = await next.json();
-            if (!Array.isArray(batch) || !batch.length) break;
-            allIssues.push(...batch);
-            if (batch.length < 100) break;
-            page++;
-          }}
-          issues = allIssues;
-          try {{
-            if (newEtag) localStorage.setItem(ETAG_KEY, newEtag);
-            localStorage.setItem(CACHE_KEY, JSON.stringify(issues));
-          }} catch (_) {{}}
-        }} else {{
-          console.error('Failed to fetch live reaction counts:', resp.status, resp.statusText);
-        }}
-      }} catch (err) {{
-        console.error('Failed to fetch live reaction counts:', err);
-      }}
-
-      if (!issues) return;
-
-      const byUrl = {{}};
-      for (const issue of issues) {{
-        byUrl[issue.web_url] = {{
-          '+1': parseInt(issue.upvotes, 10) || 0,
-          '-1': parseInt(issue.downvotes, 10) || 0,
-        }};
-      }}
-
-      for (const card of cards) {{
-        const reactions = byUrl[card.dataset.issueUrl];
-        if (!reactions) continue;
-
-        const thumbsCount = parseInt(reactions['+1'], 10) || 0;
-        card.dataset.thumbs = thumbsCount;
-        const totalReactions = REACTION_LABELS.reduce((sum, [c]) => sum + (parseInt(reactions[c], 10) || 0), 0);
-        card.dataset.totalReactions = totalReactions;
-
-        const container = card.querySelector('[aria-label="Reactions"]');
-        if (!container) continue;
-
-        let html = '';
-        let total = 0;
-        for (const [content, emoji] of REACTION_LABELS) {{
-          const count = parseInt(reactions[content], 10) || 0;
-          if (!count) continue;
-          total++;
-          if (content === '+1') {{
-            html += `<button type="button" class="${{THUMBS_PILL}}" data-thumbs-btn `
-                  + `aria-label="Thumbs up this design on GitLab">${{emoji}} <span>${{count}}</span></button>`;
-          }} else {{
-            html += `<span class="${{PILL}}">${{emoji}} <span>${{count}}</span></span>`;
-          }}
-        }}
-        if (!total) {{
-          html = `<a href="${{card.dataset.issueUrl}}" target="_blank" rel="noopener" `
-               + `class="inline-flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 `
-               + `hover:text-[#E10101] dark:hover:text-[#E10101] transition-colors" `
-               + `aria-label="Be the first to react on GitLab">`
-               + `<i class="fa-regular fa-face-smile" aria-hidden="true"></i>Be the first to react!</a>`;
-        }}
-        container.innerHTML = html;
-      }}
-    }})();
 
     // Format submission dates in user's local timezone; cap any future dates to today
     (function () {{
@@ -2220,85 +1870,69 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
 </html>"""
 
 
-def main() -> None:
-    last_updated = datetime.now(timezone.utc).strftime("%d %b %Y %H:%M UTC")
+def group_submissions(records: list[dict], archive: list[dict]) -> list[dict]:
+    """contests_data: per contest, its open forge submissions (newest first), then its archived
+    GitLab entries; winners first. ``records`` are issue ledger records."""
+    live: dict[str, list[dict]] = {c["id"]: [] for c in CONTESTS}
+    for record in sorted(records, key=lambda r: int(r.get("number") or 0), reverse=True):
+        contest = submission_contest(record)
+        if contest:
+            live[contest["id"]].append(normalize_forge_issue(record))
+    archived: dict[str, list[dict]] = {c["id"]: [] for c in CONTESTS}
+    for entry in archive:
+        if entry.get("contest") in archived:
+            archived[entry["contest"]].append(normalize_archive_entry(entry))
+
     contests_data = []
-
-    # Fetch all open issues once to use for the title-prefix fallback across all contests
-    print(f"Fetching all open issues from {PROJECT_PATH}…")
-    all_issues = fetch_issues()
-    print(f"  Found {len(all_issues)} open issues total.")
-
     for contest in CONTESTS:
-        label = contest["label"]
-        title_prefix = contest["title_prefix"]
-        print(f"\nFetching issues for contest '{contest['name']}' (label: {label})…")
-
-        issues = fetch_issues({"labels": label})
-        print(f"  Found {len(issues)} labelled submissions.")
-
-        # Also pick up issues with the correct title prefix that may be missing the label
-        seen = {i["number"] for i in issues}
-        for issue in all_issues:
-            if issue["number"] not in seen and issue.get("title", "").startswith(title_prefix):
-                issues.append(issue)
-                seen.add(issue["number"])
-                print(f"  Picked up unlabelled issue #{issue['number']}: {issue.get('title', '')[:60]}")
-
-        print(f"  Total submissions: {len(issues)}.")
-
-        winner_cards = []
-        non_winner_cards = []
-        for issue in issues:
-            number = issue["number"]
-            print(f"  Processing issue #{number}: {issue.get('title', '')[:60]}")
-            reactions = fetch_reactions(number)
-            last_comment = fetch_last_comment(number)
-            label_names = [lb["name"] for lb in issue.get("labels", [])]
-            is_winner = WINNER_LABEL in label_names
-            card_html = build_card(issue, reactions, last_comment,
-                                   is_winner=is_winner, title_prefix=title_prefix)
-            if is_winner:
-                winner_cards.append(card_html)
-            else:
-                non_winner_cards.append(card_html)
-
-        # Winners always appear first
-        cards = winner_cards + non_winner_cards
+        issues = live[contest["id"]] + archived[contest["id"]]
+        issues = [i for i in issues if is_winner(i)] + [i for i in issues if not is_winner(i)]
+        cards = [build_card(issue, title_prefix=contest["title_prefix"]) for issue in issues]
         contests_data.append({
             "config": contest,
             "cards": cards,
             "issues": issues,
             "total": len(cards),
-            "winner_count": len(winner_cards),
+            "winner_count": sum(1 for i in issues if is_winner(i)),
+            "live": len(live[contest["id"]]),
         })
+    return contests_data
 
-    root_dir = os.path.dirname(os.path.dirname(__file__))
-    output_dir = os.path.join(root_dir, "public")
+
+def write_pages(contests_data: list[dict], output_dir: str, last_updated: str) -> list[str]:
     os.makedirs(output_dir, exist_ok=True)
-
-    # Write homepage (index.html) with contest summary cards
-    page_html = build_html(contests_data, last_updated)
-    out_path = os.path.join(output_dir, "index.html")
-    with open(out_path, "w", encoding="utf-8") as fh:
-        fh.write(page_html)
-    print(f"\nWritten → {out_path}")
-
-    # Write the all-entries aggregation page (show-all-entries.html)
-    show_all_html = build_show_all_entries_html(contests_data, last_updated)
-    show_all_out_path = os.path.join(output_dir, "show-all-entries.html")
-    with open(show_all_out_path, "w", encoding="utf-8") as fh:
-        fh.write(show_all_html)
-    print(f"Written → {show_all_out_path}")
-
-    # Write a standalone page for each contest (e.g. blt-tshirt.html)
+    pages = {"index.html": build_html(contests_data, last_updated),
+             "show-all-entries.html": build_show_all_entries_html(contests_data, last_updated)}
     for contest_data in contests_data:
-        cid = contest_data["config"]["id"]
-        contest_page_html = build_contest_page_html(contest_data, last_updated)
-        contest_out_path = os.path.join(output_dir, f"{cid}.html")
-        with open(contest_out_path, "w", encoding="utf-8") as fh:
-            fh.write(contest_page_html)
-        print(f"Written → {contest_out_path}")
+        pages[f'{contest_data["config"]["id"]}.html'] = build_contest_page_html(contest_data, last_updated)
+    written = []
+    for name, page_html in pages.items():
+        path = os.path.join(output_dir, name)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(page_html)
+        written.append(path)
+        print(f"Written -> {path}")
+    return written
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument("--out", default=os.path.join(PROJECT_DIR, "public"), help="output directory")
+    parser.add_argument("--offline", action="store_true", help="skip git.owaspblt.org (archive only)")
+    args = parser.parse_args(argv)
+    last_updated = datetime.now(timezone.utc).strftime("%d %b %Y %H:%M UTC")
+
+    records: list[dict] = []
+    if not args.offline:
+        client = ledger.client()
+        print(f"Reading issues from {ledger.WEB_URL}/issues ...")
+        records = ledger.issues(client)  # a failure stops the run, so no empty pages are published
+        print(f"  {len(records)} issues ({client.requests} requests).")
+    archive = load_archive()
+    contests_data = group_submissions(records, archive)
+    for d in contests_data:
+        print(f'  {d["config"]["id"]}: {d["live"]} open submissions, {d["total"] - d["live"]} archived')
+    write_pages(contests_data, args.out, last_updated)
 
 
 if __name__ == "__main__":

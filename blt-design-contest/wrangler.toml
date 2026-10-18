@@ -1,5 +1,21 @@
+# Static site (public/) plus a Worker (worker/index.js) that serves the generated showcase pages
+# from KV (binding DATA). .forkmesh/blt-design-contest--build-showcase.yml writes those keys;
+# nothing is committed to git. The pages under public/ are the static fallback.
 name = "blt-contest"
+main = "worker/index.js"
 compatibility_date = "2026-06-05"
 
 [assets]
 directory = "./public"
+binding = "ASSETS"
+run_worker_first = [
+  "/", "/index", "/index.html", "/show-all-entries", "/show-all-entries.html",
+  "/blt-tshirt", "/blt-tshirt.html", "/blt-logo", "/blt-logo.html",
+  "/blt-homepage", "/blt-homepage.html", "/blt-video-meme", "/blt-video-meme.html",
+  "/blt-welcome-video", "/blt-welcome-video.html", "/appsecil-tshirt", "/appsecil-tshirt.html",
+]
+
+# Created by scripts/worker-data/create-kv.sh, which replaces the placeholder id.
+[[kv_namespaces]]
+binding = "DATA"
+id = "REPLACE_WITH_KV_ID_blt-design-contest-data"
