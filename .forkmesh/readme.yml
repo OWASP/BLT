@@ -2,9 +2,15 @@ name: Refresh README
 # Regenerates the Projects, Contributors, Deploying and Blog Posts sections of the root README.md,
 # and the contributor avatars and list in .forkmesh/contributors/.
 # Ported from .github/workflows/readme.yml.
+# Runs on every push to main (any project's commit can change Projects, Deploying or Contributors);
+# ForkMesh has no paths-ignore, but pushes made by workflows do not trigger push workflows, and a
+# run with no new content commits nothing because unchanged sections keep their "Last updated"
+# time. The daily schedule (and workflow_dispatch) also refreshes the external Blog Posts section.
 on:
+  push:
+    branches: [main]
   schedule:
-    - cron: "17 * * * *"
+    - cron: "17 6 * * *"
   workflow_dispatch:
 permissions:
   contents: write
@@ -19,7 +25,10 @@ jobs:
         env:
           GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-        run: .venv/bin/python scripts/readme/update_readme.py --blog
+        run: |
+          blog=--blog
+          [ "${FORKMESH_EVENT:-$GITHUB_EVENT_NAME}" = push ] && blog=
+          .venv/bin/python scripts/readme/update_readme.py $blog
       - name: Commit if changed
         run: |
           scripts/actions/commit-back.sh -m "README: refresh generated sections" -- README.md .forkmesh/contributors

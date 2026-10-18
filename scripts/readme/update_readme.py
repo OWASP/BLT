@@ -49,11 +49,19 @@ def now():
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
 
+STAMP = re.compile(r"\*Last updated: [^*]*? UTC")
+
+
 def replace_section(text, name, body):
+    """Swap the body between the section markers. A section whose content is unchanged apart from
+    its "Last updated" time keeps the old text, so a run with nothing new produces no commit."""
     start, end = f"<!-- {name}-START -->", f"<!-- {name}-END -->"
-    pattern = re.compile(re.escape(start) + r".*?" + re.escape(end), re.S)
-    if not pattern.search(text):
+    pattern = re.compile(re.escape(start) + r"\n?(.*?)\n?" + re.escape(end), re.S)
+    match = pattern.search(text)
+    if not match:
         raise SystemExit(f"README.md is missing the {start} / {end} markers")
+    if STAMP.sub("", match.group(1)) == STAMP.sub("", body):
+        return text
     return pattern.sub(lambda _: f"{start}\n{body}\n{end}", text)
 
 

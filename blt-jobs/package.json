@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "test": "node --test tests/main.test.js",
+    "test:worker": "python3 -m unittest discover -s tests -p 'test_*.py'",
     "build:jobs": "node scripts/build-jobs.js",
     "validate:jobs": "node scripts/validate-jobs.js",
     "list:jobs": "node scripts/list-jobs-status.js",

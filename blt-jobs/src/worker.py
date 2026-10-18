@@ -5,6 +5,7 @@ import html
 import json
 import re
 import time
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 try:
@@ -36,6 +37,10 @@ DEFAULT_FROM = "jobs@owaspblt.org"
 SESSION_COOKIE = "blt_jobs_admin"
 SESSION_TTL_SECONDS = 60 * 60 * 8
 EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+# Expired jobs are dropped when /data/jobs.json is served, so listings disappear on time without a
+# scheduled job deleting files and redeploying. Short cache so an expiry shows within minutes.
+JOBS_DATA_PATH = "/data/jobs.json"
+DATA_CACHE_CONTROL = "public, max-age=300"
 
 
 class Default(WorkerEntrypoint):
@@ -52,7 +57,49 @@ class Default(WorkerEntrypoint):
         if url.path.startswith("/api/admin/"):
             return await handle_admin_api(request, self.env, url.path)
 
+        if url.path == JOBS_DATA_PATH and request.method in ("GET", "HEAD"):
+            return await serve_active_jobs(self.env, request.method)
+
         return await self.env.ASSETS.fetch(request)
+
+
+async def serve_active_jobs(env, method="GET"):
+    # Fetch the asset by URL, without the client's conditional headers: the asset's ETag does not
+    # change when a job expires, so a 304 would keep serving the expired listing.
+    asset = await env.ASSETS.fetch(f"https://assets.local{JOBS_DATA_PATH}")
+    if asset.status != 200:
+        return asset
+    data = drop_expired_jobs(json.loads(await asset.text()))
+    body = "" if method == "HEAD" else json.dumps(data)
+    return Response(
+        body,
+        status=200,
+        headers={"Content-Type": "application/json; charset=utf-8", "Cache-Control": DATA_CACHE_CONTROL},
+    )
+
+
+def parse_timestamp(value):
+    if not value or not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
+def drop_expired_jobs(data, now=None):
+    """Keep jobs whose effective_expires_at (set by scripts/build-jobs.js: expires_at, else
+    date_posted/created_at/created + 60 days) is in the future or absent; fix `count`."""
+    if not isinstance(data, dict) or not isinstance(data.get("jobs"), list):
+        return data
+    now = now or datetime.now(timezone.utc)
+    active = []
+    for job in data["jobs"]:
+        expiry = parse_timestamp(job.get("effective_expires_at")) if isinstance(job, dict) else None
+        if expiry is None or expiry > now:
+            active.append(job)
+    return {**data, "jobs": active, "count": len(active)}
 
 
 async def handle_admin_api(request, env, path):

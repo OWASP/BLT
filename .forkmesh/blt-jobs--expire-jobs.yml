@@ -1,8 +1,9 @@
 name: "blt-jobs: Expire Stale Jobs"
 # Ported from the expire_jobs job of blt-jobs/.gitlab-ci.yml (GitLab pipeline schedule or manual run).
+# Manual only: the Worker drops expired jobs when it serves /data/jobs.json (blt-jobs/src/worker.py),
+# so expired listings disappear on time without this run. Run it by hand to delete the expired
+# jobs/*.md files (optional housekeeping; they stay in git history either way).
 on:
-  schedule:
-    - cron: "41 1 * * *"
   workflow_dispatch:
 permissions:
   contents: write

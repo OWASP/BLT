@@ -9,7 +9,7 @@ blt-extension	node	npm_install && npm test
 blt-flutter	flutter	flutter pub get && flutter test
 blt-hackathons	python	python -m py_compile fetch_stats.py && python -m json.tool public/stats.json > /dev/null && node --test 'scripts/actions/*.test.mjs'
 blt-hackerhouse	python	pip install -e '.[dev]' && python -m pytest -q backend/tests
-blt-jobs	node	npm_install && npm test
+blt-jobs	node	npm_install && npm test && npm run test:worker
 blt-leaf	node	npm_install && npm test
 blt-lettuce	python	pip install pytest pytest-cov pytest-asyncio && PYTHONPATH=src python -m pytest tests/ -q
 blt-mayo	python	pip install -e '.[dev]' && python -m pytest -q

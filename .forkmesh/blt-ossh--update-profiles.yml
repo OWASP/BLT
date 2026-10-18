@@ -2,10 +2,11 @@ name: "blt-ossh: Update Profiles"
 # Ported from .github/workflows/blt-ossh--update-profiles.yml; the github-script step lives in
 # blt-ossh/scripts/actions/update-profiles.mjs. The job API cannot list issues, so an issue event
 # updates that issue's profile and the schedule re-checks the profiles already in the file.
-# workflow_dispatch can import existing profile issues by number.
+# workflow_dispatch can import existing profile issues by number. Issue events carry the updates;
+# the daily schedule is only a safety net for a missed event (was every 6 hours).
 on:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "13 4 * * *"
   issues:
     types: [opened, labeled, unlabeled, closed, reopened, edited]
   workflow_dispatch:

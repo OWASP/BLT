@@ -52,6 +52,7 @@ Useful commands:
 ```bash
 npm run build:jobs
 npm test
+npm run test:worker
 npm run validate:jobs
 npm run list:jobs
 npm run expire:jobs
@@ -75,6 +76,8 @@ The pipeline is defined in `.gitlab-ci.yml`. Add these masked CI/CD variables in
 Create a GitLab pipeline schedule for periodic submission processing and stale job expiry. The same maintenance jobs can also be started manually from the GitLab pipeline UI.
 
 If `GITLAB_TOKEN` is not configured or is not exposed to a pipeline, GitLab skips the `process_submissions` job. The `expire_jobs` maintenance job can still run on the schedule.
+
+Expired jobs do not need that job to disappear from the site: the Worker serves `/data/jobs.json` and drops every job whose `effective_expires_at` (`expires_at`, else the posted/created date + 60 days) has passed. `npm run expire:jobs` only deletes the expired Markdown files, as optional cleanup.
 
 ## Cloudflare Workers
 

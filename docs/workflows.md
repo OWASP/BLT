@@ -32,7 +32,7 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | --- | --- | --- | --- |
 | `ci.yml` | GitHub `ci.yml` | push (any branch): `scripts/ci/test.sh --changed $FORKMESH_BEFORE`; dispatch input `projects` (default `all`) | none |
 | `deploy.yml` | new | push to main: `scripts/deploy.sh --changed $FORKMESH_BEFORE` (folders in `scripts/deploy/projects.tsv`); dispatch input `project` (a name, several space-separated, or `all`) | CF |
-| `readme.yml` | GitHub `readme.yml` | `17 * * * *`; commits `README.md` and `.forkmesh/contributors/` | `GH_API_TOKEN` (optional), `GITLAB_TOKEN` (optional) |
+| `readme.yml` | GitHub `readme.yml` | push to main (any path; Projects, Deploying and Contributors), `17 6 * * *` (also refreshes Blog Posts); commits `README.md` and `.forkmesh/contributors/` | `GH_API_TOKEN` (optional), `GITLAB_TOKEN` (optional) |
 | `blt-cve--build-index.yml` | GitHub | push to main under `blt-cve/public/cves`, `public/schema`, `scripts/build_index.py` | CF |
 | `blt-design-contest--build-showcase.yml` | GitLab `build_showcase` | `47 7 * * *`, push under `blt-design-contest/scripts/` | `GITLAB_TOKEN` (optional), CF |
 | `blt-extension--release.yml` | GitHub `release.yml` + packaging from `create-release.yml` | dispatch only (input `publish`) | `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` |
@@ -42,10 +42,10 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `blt-hackathons--process-sponsor.yml` | GitHub | issues opened/labeled with `sponsorship` | CF |
 | `blt-hackathons--update-stats.yml` | GitHub | `0 * * * *`, push under `blt-hackathons/` (hackathons starting through 2026-05-31) | `GH_API_TOKEN`, `GITLAB_TOKEN`, CF |
 | `blt-hackathons--update-future-hackathons.yml` | GitLab `update-future-hackathons` | `37 0 * * *` (hackathons starting after 2026-05-31) | `GH_API_TOKEN`, `GITLAB_TOKEN`, CF |
-| `blt-jobs--expire-jobs.yml` | GitLab `expire_jobs` | `41 1 * * *` | CF |
+| `blt-jobs--expire-jobs.yml` | GitLab `expire_jobs` | dispatch only (optional cleanup of expired `jobs/*.md`; the Worker already hides expired jobs) | CF |
 | `blt-jobs--process-submissions.yml` | GitLab `process_submissions` | issues opened/edited/labeled that look like job, seeker or flag submissions; dispatch input `issue` | CF |
 | `blt-ossh--update-catalog.yml` | GitHub | `0 6 * * *` | `DISCORD_BOT_TOKEN` (optional), CF |
-| `blt-ossh--update-profiles.yml` | GitHub | `0 */6 * * *`, issue events on `profile` issues; dispatch input `issues` to import issues | CF |
+| `blt-ossh--update-profiles.yml` | GitHub | `13 4 * * *` (safety net), issue events on `profile` issues; dispatch input `issues` to import issues | CF |
 | `blt-owasp-bumper--generate-repo-list.yml` | GitHub + GitLab `pages` | `0 0 * * *`, push of `generate_repo_list.py` | `GH_API_TOKEN`, CF |
 | `blt-owasp-metadata--scraper.yml` | GitHub | `0 3 * * 1` | `GH_API_TOKEN`, CF |
 | `blt-owasp-projects--refresh-data.yml` | GitLab `refresh_data` | `23 4 * * *` | `GH_API_TOKEN` (required by `main.py`), CF |
@@ -65,11 +65,28 @@ GitLab pipeline schedules were set in the GitLab UI, so their times were not in 
 
 - `blt-gsoc` update-progress: `7 23 * * *`. The `.gitlab-ci.yml` comment gives `0 23 * * *`, and the job fills in the current day.
 - `blt-hackathons` future hackathons: `37 0 * * *`. The README says the schedule is daily.
-- `blt-jobs` expire: `41 1 * * *`, daily. Submissions are now driven by issue events instead of polling.
+- `blt-jobs` expire: no schedule (see "Fewer bot commits" below). Submissions are driven by issue events instead of polling.
 - `blt-owasp-projects` refresh: `23 4 * * *`, daily. This is OWASP repository metadata.
 - `blt-pages` leaderboard: `11 5 * * *`, daily. The page carries a timestamp, so an hourly run would commit every hour.
 - `blt-waypoint` data: `29 6 * * *`, daily.
 - `blt-design-contest` showcase: `47 7 * * *`, daily. The old setup only rebuilt on push, but submissions are GitLab issues that change independently of pushes.
+
+### Fewer bot commits
+
+Every data commit a workflow pushes lands on `main`, so schedules are chosen to commit only when something changed:
+
+- `readme.yml` used to run hourly and committed every time because both "Last updated" lines carried
+  the run time. It now runs on each push to main (ForkMesh has no `paths-ignore`, but pushes made by
+  workflows, including its own commit, do not trigger push workflows) and once a day for the external
+  Blog Posts section. `scripts/readme/update_readme.py` keeps a section's old text, timestamp
+  included, when nothing else in it changed, so a run with no news commits nothing.
+- `blt-jobs` expired listings are hidden at read time: the Worker serves `/data/jobs.json`
+  (`run_worker_first`) from the static asset and drops jobs whose `effective_expires_at` (written by
+  `npm run build:jobs`: `expires_at`, else posted/created + 60 days) has passed, fixing `count`, with
+  `Cache-Control: max-age=300`. The daily delete-commit-redeploy is gone; the expired Markdown files
+  stay in the repository until someone runs the workflow by hand. `seekers.json` has no expiry rule
+  and is still served as a plain asset.
+- `blt-ossh` profiles are updated by issue events; the poll went from every 6 hours to once a day.
 
 ## Behaviour changes
 
