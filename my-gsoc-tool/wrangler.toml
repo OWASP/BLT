@@ -14,4 +14,4 @@ run_worker_first = ["/__scheduled", "/data/github-contributions.json", "/data/fo
 # Created by scripts/worker-data/create-kv.sh, which replaces the placeholder id.
 [[kv_namespaces]]
 binding = "DATA"
-id = "REPLACE_WITH_KV_ID_my-gsoc-tool-data"
+id = "aed40ef69d07434da99cb671d4b89502"
