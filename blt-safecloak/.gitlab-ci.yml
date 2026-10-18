@@ -1,35 +1,8 @@
-stages:
-  - test
-  - build
+# Not run anywhere: this repository runs .forkmesh/ workflows (see docs/workflows.md).
+# Jobs already ported to .forkmesh/ or scripts/ci/tests.tsv were removed; these remain for reference.
 
-e2e-tests:
-  stage: test
-  image: python:3.11-bookworm
-  timeout: 30 minutes
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
-    - if: $CI_COMMIT_BRANCH == "main"
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-    npm_config_cache: "$CI_PROJECT_DIR/.cache/npm"
-    PLAYWRIGHT_BROWSERS_PATH: "$CI_PROJECT_DIR/.cache/ms-playwright"
-  cache:
-    key:
-      files:
-        - package-lock.json
-        - requirements-dev.txt
-    paths:
-      - .cache/pip
-      - .cache/npm
-      - .cache/ms-playwright
-  before_script:
-    - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-    - apt-get install -y nodejs
-    - npm ci
-    - pip install -r requirements-dev.txt
-    - playwright install chromium --with-deps
-  script:
-    - pytest tests/ -v --tb=short
+stages:
+  - build
 
 # Builds the Qt 6 desktop client and publishes the executable as an artifact.
 # The latest main-branch artifact is what public/install.sh downloads:

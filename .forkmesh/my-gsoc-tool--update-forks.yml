@@ -1,0 +1,30 @@
+name: "my-gsoc-tool: Update README with Forks"
+# Ported from .github/workflows/my-gsoc-tool--update-forks.yml; the inline script is now
+# my-gsoc-tool/scripts/update-forks.sh. It lists the GitHub forks of OWASP-BLT/MY-GSOC-TOOL
+# (the old workflow listed forks of the repository it ran in).
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - my-gsoc-tool/**
+permissions:
+  contents: write
+jobs:
+  update-forks:
+    runs-on: runner
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: my-gsoc-tool
+    steps:
+      - name: Fetch forks and update README
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}
+          FORKS_REPO: OWASP-BLT/MY-GSOC-TOOL
+        run: scripts/update-forks.sh
+      - name: Commit if changed
+        run: |
+          ../scripts/actions/commit-back.sh -m "my-gsoc-tool: update README with forks list" -- README.md

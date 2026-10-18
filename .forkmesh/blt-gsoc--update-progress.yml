@@ -1,0 +1,29 @@
+name: "blt-gsoc: Update Progress Data"
+# Ported from the update-progress job of blt-gsoc/.gitlab-ci.yml (a GitLab pipeline schedule,
+# documented there as "0 23 * * *"). Fills data/progress.json for the current UTC day.
+on:
+  schedule:
+    - cron: "7 23 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update-progress:
+    runs-on: runner
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: blt-gsoc
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Update progress data
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          SLACK_TOKEN_OWASP: ${{ secrets.SLACK_TOKEN_OWASP }}
+          SLACK_TOKEN_BLT: ${{ secrets.SLACK_TOKEN_BLT }}
+        run: python3 scripts/update_progress.py
+      - name: Commit and deploy if changed
+        run: |
+          ../scripts/actions/commit-back.sh --deploy blt-gsoc -m "blt-gsoc: update progress data for $(date -u +%F)" -- data/progress.json

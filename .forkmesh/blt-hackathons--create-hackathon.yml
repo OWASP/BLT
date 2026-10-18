@@ -1,0 +1,23 @@
+name: "blt-hackathons: Create Hackathon from Issue"
+# Ported from .github/workflows/blt-hackathons--create-hackathon.yml. The github-script steps live in
+# blt-hackathons/scripts/actions/create-hackathon.mjs and use the job API; the config change is
+# committed straight to main (as before). The "eyes" reaction is dropped (no reactions API).
+on:
+  issues:
+    types: [opened, labeled]
+permissions:
+  contents: write
+jobs:
+  create-hackathon:
+    if: contains(github.event.issue.labels.*.name, 'hackathon-creation')
+    runs-on: runner
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: blt-hackathons
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Parse issue, add hackathon, commit, comment and close
+        run: node scripts/actions/create-hackathon.mjs

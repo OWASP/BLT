@@ -1,0 +1,41 @@
+name: Deploy
+# Deploys every project in scripts/deploy/projects.tsv whose folder changed in a push to main,
+# or the projects named when run by hand. Pushes made by other workflows do not trigger this one;
+# data-refresh workflows deploy their own project after committing (scripts/actions/commit-back.sh --deploy).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      project:
+        description: A project name from scripts/deploy/projects.tsv, several separated by spaces, or all
+        required: true
+        default: all
+        type: string
+jobs:
+  deploy:
+    runs-on: runner
+    timeout-minutes: 60
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Deploy changed projects
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          # A virtualenv gives pip-based prebuild steps a writable site and puts uv (pywrangler) on PATH.
+          python3 -m venv "$PWD/.deploy-venv" && . "$PWD/.deploy-venv/bin/activate"
+          pip install -q uv
+          scripts/deploy.sh --changed "$FORKMESH_BEFORE"
+      - name: Deploy selected projects
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          PROJECTS: ${{ inputs.project }}
+        run: |
+          python3 -m venv "$PWD/.deploy-venv" && . "$PWD/.deploy-venv/bin/activate"
+          pip install -q uv
+          if [ -z "$PROJECTS" ] || [ "$PROJECTS" = all ]; then
+            scripts/deploy.sh --all
+          else
+            scripts/deploy.sh $PROJECTS
+          fi

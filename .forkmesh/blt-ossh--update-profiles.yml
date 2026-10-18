@@ -1,0 +1,35 @@
+name: "blt-ossh: Update Profiles"
+# Ported from .github/workflows/blt-ossh--update-profiles.yml; the github-script step lives in
+# blt-ossh/scripts/actions/update-profiles.mjs. The job API cannot list issues, so an issue event
+# updates that issue's profile and the schedule re-checks the profiles already in the file.
+# workflow_dispatch can import existing profile issues by number.
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  issues:
+    types: [opened, labeled, unlabeled, closed, reopened, edited]
+  workflow_dispatch:
+    inputs:
+      issues:
+        description: Extra profile issue numbers to import (space-separated, optional)
+        required: false
+        default: ""
+        type: string
+permissions:
+  contents: write
+jobs:
+  update-profiles:
+    if: github.event_name != 'issues' || contains(github.event.issue.labels.*.name, 'profile') || github.event.label.name == 'profile'
+    runs-on: runner
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: blt-ossh
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Update profiles data, commit and deploy if changed
+        env:
+          PROFILE_ISSUES: ${{ inputs.issues }}
+        run: node scripts/actions/update-profiles.mjs

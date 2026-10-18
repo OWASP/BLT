@@ -1,0 +1,32 @@
+name: "my-gsoc-tool: Update GSoC Dashboard"
+# Ported from .github/workflows/my-gsoc-tool--update-dashboard.yml; the inline script is now
+# my-gsoc-tool/scripts/fetch-github-data.js.
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - my-gsoc-tool/public/config.json
+      - my-gsoc-tool/public/data/**
+permissions:
+  contents: write
+jobs:
+  fetch-github-contributions:
+    runs-on: runner
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: my-gsoc-tool
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Fetch GitHub contributions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}
+        run: node scripts/fetch-github-data.js
+      - name: Commit and deploy if changed
+        run: |
+          ../scripts/actions/commit-back.sh --deploy my-gsoc-tool -m "my-gsoc-tool: update GitHub contributions data" -- public/data/github-contributions.json

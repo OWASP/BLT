@@ -1,0 +1,31 @@
+name: "blt-extension: Publish to Chrome Web Store"
+# Ported from .github/workflows/blt-extension--release.yml (mnao305/chrome-extension-upload) and the
+# packaging half of blt-extension--create-release.yml. Tag pushes do not trigger workflows here and
+# there is no release-upload API yet, so this runs by hand: it zips the extension at the chosen commit
+# (version from manifest.json), uploads it to the Chrome Web Store and publishes it.
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish after uploading (false leaves the upload as a draft)
+        required: true
+        default: "true"
+        type: boolean
+jobs:
+  publish:
+    runs-on: runner
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: blt-extension
+    env:
+      CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+      CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+      CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+    steps:
+      - name: Package, upload and publish
+        if: inputs.publish != 'false'
+        run: scripts/release-chrome.sh
+      - name: Package and upload as draft
+        if: inputs.publish == 'false'
+        run: scripts/release-chrome.sh --no-publish

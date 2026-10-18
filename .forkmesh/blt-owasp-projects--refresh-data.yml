@@ -1,0 +1,33 @@
+name: "blt-owasp-projects: Refresh Data"
+# Ported from the refresh_data job of blt-owasp-projects/.gitlab-ci.yml (GitLab pipeline schedule
+# or manual run). Was Python 3.12; runs on 3.13 here.
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  refresh-data:
+    runs-on: runner
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: blt-owasp-projects
+    env:
+      OUTPUT_DIR: public
+      GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Set up Python
+        run: python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt
+      - name: Refresh project data
+        run: |
+          .venv/bin/python scripts/main.py
+          .venv/bin/python scripts/fetch_repo_status.py
+          .venv/bin/python scripts/fetch_issues.py
+          .venv/bin/python scripts/scrape_github_links.py
+      - name: Commit and deploy if changed
+        run: |
+          ../scripts/actions/commit-back.sh --deploy blt-owasp-projects -m "blt-owasp-projects: update OWASP project data" -- public/www_project_repos.json public/repo_status.json public/issues.json public/known_issue_ids.json public/project_repos_links.json
