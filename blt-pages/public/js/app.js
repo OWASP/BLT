@@ -20,9 +20,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const GITLAB_PROJECT_PATH = BLT_CONFIG.PROJECT_PATH || "owasp-blt/blt-pages";
 const GITLAB_PROJECT_API_PATH = encodeURIComponent(GITLAB_PROJECT_PATH);
-const GITLAB_PROJECT_URL = BLT_CONFIG.PROJECT_URL || `https://gitlab.com/${GITLAB_PROJECT_PATH}`;
-const GITLAB_ISSUES_URL = `${GITLAB_PROJECT_URL}/-/issues`;
-const GITLAB_NEW_BUG_URL = `${GITLAB_ISSUES_URL}/new?issuable_template=${encodeURIComponent(BLT_CONFIG.ISSUE_TEMPLATE || "Bug")}`;
+const FORGE_URL = BLT_CONFIG.FORGE_URL || "https://git.owaspblt.org/BLT";
+const GITLAB_PROJECT_URL = BLT_CONFIG.PROJECT_URL || `${FORGE_URL}/tree/main/blt-pages`;
+const GITLAB_ISSUES_URL = BLT_CONFIG.ISSUES_URL || `${FORGE_URL}/issues?label=blt-pages`;
+const GITLAB_NEW_BUG_URL = BLT_CONFIG.NEW_ISSUE_URL || `${FORGE_URL}/issues/new`;
 const GITLAB_API_BASE = `https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_API_PATH}`;
 
 /* ────────────────────────────────────────────────────────────
@@ -97,7 +98,7 @@ function initAnonymousToggle() {
       btn.href = "https://next.owaspblt.org/pages/report-bug";
       btn.querySelector(".btn-label").textContent = "Report Bug Anonymously";
     } else {
-      btn.href = "https://git.owaspblt.org/BLT/issues/new?issuable_template=Bug";
+      btn.href = "https://git.owaspblt.org/BLT/issues/new";
       btn.querySelector(".btn-label").textContent = "Report a Bug";
     }
     bltCapture("anonymous_reporting_toggled", { enabled: checkbox.checked });
@@ -363,7 +364,7 @@ function renderLeaderboard(container, data, limit = 0, filter = "") {
   if (!data.leaderboard || data.leaderboard.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
       <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-trophy"></use></svg>
-      No reports yet. Be the first to <a href="https://git.owaspblt.org/BLT/issues/new?issuable_template=Bug" class="text-primary underline hover:no-underline">report a bug</a>!
+      No reports yet. Be the first to <a href="https://git.owaspblt.org/BLT/issues/new" class="text-primary underline hover:no-underline">report a bug</a>!
     </td></tr>`;
     return;
   }
@@ -456,7 +457,7 @@ function updateTimestamps(data) {
       ? data.commit_sha
       : null;
     if (sha) {
-      const commitUrl = `${GITLAB_PROJECT_URL}/-/commit/${sha}`;
+      const commitUrl = `${FORGE_URL}/commit/${sha}`;
       const shortSha = escapeHtml(sha.slice(0, 7));
       homepageTs.innerHTML = `Last updated: ${escapeHtml(ago)} &mdash; <a href="${escapeHtml(commitUrl)}" target="_blank" rel="noopener noreferrer" class="hover:underline">${shortSha}</a>`;
     } else {
@@ -630,7 +631,7 @@ function renderRecentBugs(bugs) {
   if (!bugs || bugs.length === 0) {
     grid.innerHTML = `<div class="col-span-3 text-center py-12 text-gray-400 dark:text-gray-500">
       <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-bug"></use></svg>
-      No bug reports yet. <a href="https://git.owaspblt.org/BLT/issues/new?issuable_template=Bug" class="text-primary hover:underline">Be the first to report!</a>
+      No bug reports yet. <a href="https://git.owaspblt.org/BLT/issues/new" class="text-primary hover:underline">Be the first to report!</a>
     </div>`;
     return;
   }
@@ -897,7 +898,7 @@ function renderTopDomains(container, data, limit = 0, filter = "") {
       return `<tr class="${rowClass} transition-colors">
         <td class="px-3 py-2 text-center w-10">${rankDisplay}</td>
         <td class="px-3 py-2">
-        <a href="${GITLAB_ISSUES_URL}?label_name[]=domain:%20${encodeURIComponent(entry.domain)}"
+        <a href="${FORGE_URL}/issues?label=${encodeURIComponent(`domain: ${entry.domain}`)}"
              target="_blank" rel="noopener noreferrer"
              class="flex items-center gap-2 group min-w-0">
             <img src="${faviconUrl}"

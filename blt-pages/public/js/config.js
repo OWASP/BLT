@@ -12,9 +12,13 @@ const BLT_CONFIG = {
   LOGO_URL:
     "static/logo.png",
 
-  /* ── GitLab project ── */
+  /* ── Source: the BLT monorepo on git.owaspblt.org (single organization), folder blt-pages ── */
   PROJECT_PATH: "owasp-blt/blt-pages",
-  PROJECT_URL: "https://git.owaspblt.org/BLT/BLT-Pages",
+  FORGE_URL: "https://git.owaspblt.org/BLT",
+  PROJECT_URL: "https://git.owaspblt.org/BLT/tree/main/blt-pages",
+  // The forge's issue list takes one ?label= filter. Bug reports carry the labels bug and blt-pages.
+  ISSUES_URL: "https://git.owaspblt.org/BLT/issues?label=blt-pages",
+  NEW_ISSUE_URL: "https://git.owaspblt.org/BLT/issues/new",
   ISSUE_TEMPLATE: "Bug",
 
   /* ── External services ── */

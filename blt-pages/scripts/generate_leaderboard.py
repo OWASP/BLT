@@ -42,9 +42,11 @@ if "/" not in PROJECT_PATH:
 
 PROJECT_API_PATH = urllib.parse.quote(PROJECT_PATH, safe="")
 BASE_URL = f"https://gitlab.com/api/v4/projects/{PROJECT_API_PATH}"
-PROJECT_URL = f"https://gitlab.com/{PROJECT_PATH}"
-NEW_BUG_URL = f"{PROJECT_URL}/-/issues/new?issuable_template=Bug"
-ISSUES_URL = f"{PROJECT_URL}/-/issues"
+# Links shown on the pages point at the BLT monorepo on git.owaspblt.org (folder blt-pages).
+FORGE_URL = "https://git.owaspblt.org/BLT"
+PROJECT_URL = f"{FORGE_URL}/tree/main/blt-pages"
+NEW_BUG_URL = f"{FORGE_URL}/issues/new"
+ISSUES_URL = f"{FORGE_URL}/issues?label=blt-pages"
 
 HEADERS = {
     "Accept": "application/json",
@@ -144,7 +146,7 @@ def issue_body(issue):
 
 
 def issue_url(issue):
-    return issue.get("web_url") or issue.get("html_url") or f"{ISSUES_URL}/{issue.get('iid', issue.get('number', ''))}"
+    return issue.get("web_url") or issue.get("html_url") or f"{FORGE_URL}/issues/{issue.get('iid', issue.get('number', ''))}"
 
 
 def issue_number(issue):
@@ -558,7 +560,7 @@ def patch_html(html, payload):
         sha = payload.get("commit_sha", "")
         homepage_ts = f"Last updated: {esc(updated_full)}"
         if sha and re.match(r"^[0-9a-f]{7,40}$", sha, re.I):
-            commit_url = f"{PROJECT_URL}/-/commit/{sha}"
+            commit_url = f"{FORGE_URL}/commit/{sha}"
             homepage_ts += (
                 f' &mdash; <a href="{esc(commit_url)}" target="_blank" '
                 f'rel="noopener noreferrer" class="hover:underline">{esc(sha[:7])}</a>'

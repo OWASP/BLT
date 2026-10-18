@@ -60,8 +60,10 @@ npx serve public
 
 ## Issue Template
 
-Bug reports use the GitLab issue template at
-[`.gitlab/issue_templates/Bug.md`](.gitlab/issue_templates/Bug.md).
+Bug reports are issues on [git.owaspblt.org](https://git.owaspblt.org/BLT/issues/new) with the title prefix
+`[blt-pages]` and the labels `bug` and `blt-pages`. The forge has no issue templates; copy the body from
+[`issue-templates/bug.md`](issue-templates/bug.md). The project's issues are listed at
+<https://git.owaspblt.org/BLT/issues?label=blt-pages>.
 
 ---
 

@@ -14,9 +14,10 @@ const reactorsCache = new Map();
 const GITLAB_PROJECT_PATH = BLT_CONFIG.PROJECT_PATH || 'owasp-blt/blt-pages';
 const GITLAB_PROJECT_API_PATH = encodeURIComponent(GITLAB_PROJECT_PATH);
 const GITLAB_GROUP_PATH = GITLAB_PROJECT_PATH.split('/')[0];
-const GITLAB_PROJECT_URL = BLT_CONFIG.PROJECT_URL || `https://gitlab.com/${GITLAB_PROJECT_PATH}`;
-const GITLAB_ISSUES_URL = `${GITLAB_PROJECT_URL}/-/issues`;
-const GITLAB_NEW_ISSUE_URL = `${GITLAB_ISSUES_URL}/new`;
+const FORGE_URL = BLT_CONFIG.FORGE_URL || 'https://git.owaspblt.org/BLT';
+const GITLAB_PROJECT_URL = BLT_CONFIG.PROJECT_URL || `${FORGE_URL}/tree/main/blt-pages`;
+const GITLAB_ISSUES_URL = `${FORGE_URL}/issues`;
+const GITLAB_NEW_ISSUE_URL = BLT_CONFIG.NEW_ISSUE_URL || `${FORGE_URL}/issues/new`;
 const GITLAB_API_BASE = `https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_API_PATH}`;
 
 /* ── Bootstrap ── */
