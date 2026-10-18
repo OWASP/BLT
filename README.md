@@ -76,7 +76,7 @@ Deploy a project with `scripts/deploy.sh <project>`, or every Cloudflare project
 | [BLT-University](https://git.owaspblt.org/BLT/BLT-University) | BLT University is the open-source cybersecurity learning platform maintained by the OWASP BLT community. It combines short, structured courses with browser-b... | [university.owaspblt.org](https://university.owaspblt.org/) |
 | [BLT-Vanish](https://git.owaspblt.org/BLT/BLT-Vanish) | An open-source, hybrid local+edge privacy toolkit for managing and deleting personal data online. | [vanish.owaspblt.org](https://vanish.owaspblt.org/) |
 | [BLT-Vanish-Flutter](https://git.owaspblt.org/BLT/BLT-Vanish-Flutter) | The local Flutter application for BLT-Vanish - handles all sensitive personal data locally and encrypted. |  |
-| [BLT-Waypoint](https://git.owaspblt.org/BLT/BLT-Waypoint) | A live interactive dashboard for exploring OWASP-BLT GitHub and GitLab repositories, migration progress, and repository statistics. | [waypoint.owaspblt.org](https://waypoint.owaspblt.org/) |
+| [BLT-Waypoint](https://git.owaspblt.org/BLT/BLT-Waypoint) | A live interactive dashboard of the OWASP BLT projects. Every project is a folder of the git.owaspblt.org/BLT monorepo; the dashboard shows each folder's com... | [waypoint.owaspblt.org](https://waypoint.owaspblt.org/) |
 | [BLT-Zero](https://git.owaspblt.org/BLT/BLT-Zero) | Zero-Trust Vulnerability Reporting — encrypted payload delivery. | [zero.owaspblt.org](https://zero.owaspblt.org/) |
 | [coderabbit](https://git.owaspblt.org/BLT/coderabbit) | Shared CodeRabbit AI review configuration for BLT projects. |  |
 | [dot_github](https://git.owaspblt.org/BLT/dot_github) | Organization profile README and the scripts that refresh its blog posts and contributor wall. |  |
