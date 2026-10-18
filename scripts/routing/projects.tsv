@@ -6,6 +6,7 @@ blt-autopatch	BLT-Autopatch
 blt-byte	BLT-Byte	BLT--Byte
 blt-cli	BLT-CLI	
 blt-core	BLT-Core	BLT,BLT-on-Cloudflare
+blt-cron	BLT-Cron	
 blt-cve	BLT-CVE	
 blt-dash	BLT-Dash	
 blt-design	BLT-Design	

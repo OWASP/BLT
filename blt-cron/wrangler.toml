@@ -1,0 +1,36 @@
+name = "blt-cron"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+workers_dev = false
+
+# The account's only cron trigger. Each job below runs on its own schedule.
+[triggers]
+crons = ["* * * * *"]
+
+[[services]]
+binding = "POOL"
+service = "blt-github-app"
+
+[[services]]
+binding = "LEAF"
+service = "blt-leaf"
+
+[[services]]
+binding = "LETTUCE"
+service = "blt-lettuce"
+
+[[services]]
+binding = "MONITOR"
+service = "blt-monitor"
+
+[[services]]
+binding = "SIZZLE"
+service = "blt-sizzle"
+
+[[services]]
+binding = "NETGUARDIAN"
+service = "blt-netguardian"
+
+[[services]]
+binding = "TOASTY"
+service = "blt-toasty"
