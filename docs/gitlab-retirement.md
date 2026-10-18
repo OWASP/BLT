@@ -32,6 +32,11 @@ This page lists every GitLab dependency left in the monorepo (found with `git gr
   GitLab templates are documented bodies in `issue-templates/`. The 45 GitLab-era submissions and their final votes
   are kept in `data/gitlab-archive.json` and shown as "GitLab archive". Pages are rebuilt on issue events and daily
   and served from KV.
+- **blt-waypoint**: `generate_forge_data.py` replaces `generate_gitlab_data.py`: one row per folder of `projects.tsv`
+  with 30/90/365-day commits and authors from `history?path` (live since 2026-10-18), issues and pulls from the
+  ledgers, descriptions from `info.json`. Stars, forks, languages and releases are null and hidden. Output is
+  `forge_data.json` in KV (the old `/gitlab_data.json` URL is aliased). The "GitLab migration" column and tab are
+  retired, `github_data.json` and `main_data.*` use forge folder URLs, and `GITLAB_TOKEN` is gone.
 
 ## What git.owaspblt.org can serve
 

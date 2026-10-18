@@ -1,9 +1,11 @@
 # OWASP BLT Organization Dashboard
 
 **Live Site:** [https://waypoint.owaspblt.org/](https://waypoint.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT-Waypoint](https://git.owaspblt.org/BLT/BLT-Waypoint)
+**Source Code:** [https://git.owaspblt.org/BLT/tree/main/blt-waypoint](https://git.owaspblt.org/BLT/tree/main/blt-waypoint)
 
-A live interactive dashboard for exploring OWASP-BLT GitHub and GitLab repositories, migration progress, and repository statistics.
+A live interactive dashboard of the OWASP BLT projects. Every project is a folder of the
+[git.owaspblt.org/BLT](https://git.owaspblt.org/BLT) monorepo; the dashboard shows each folder's
+commits, issues, pull requests and live site, plus the archived GitHub record.
 
 **Live Demo:** [waypoint.owaspblt.org](https://waypoint.owaspblt.org/)
 
@@ -40,44 +42,41 @@ All projects are developed transparently under OWASP governance with AGPL-3.0 li
 ## 🏗️ Architecture
 
 ```
-┌──────────────────────────────────────────────────────┐
-│        Static GitHub record / GitLab API              │
-└────────────────────────┬─────────────────────────────┘
-                         │
-                         ▼
-┌──────────────────────────────────────────────────────┐
-│      github_data.json / gitlab_data.json             │
-└────────────────────────┬─────────────────────────────┘
-                         │
-         ┌───────────────┼───────────────┐
-         ▼               ▼               ▼
-    ┌─────────┐   ┌──────────┐   ┌────────────┐
-    │index.html   │script.js │   │styles.css  │
-    └─────────┘   └──────────┘   └────────────┘
-         │               │               │
-         └───────────────┼───────────────┘
-                         ▼
-         ┌──────────────────────────────┐
-         │   Interactive Dashboard      │
-         │  (Table/Card Views, Search,  │
-         │   Sort, Filter, Dark Mode)   │
-         └──────────────────────────────┘
+git.owaspblt.org (history?path=<folder>, issue and pull ledgers)
+        |  scripts/generate_forge_data.py, daily in .forkmesh/blt-waypoint--build-site.yml
+        v
+Workers KV (forge_data.json)  --->  worker/index.js  --->  /forge_data.json (also /gitlab_data.json)
+                                         |
+public/ (index.html, issues.html, script.js, github_data.json, main_data.*)  <- static assets
 ```
 
 ### Tech Stack
 - **Frontend:** HTML5, CSS3, JavaScript
 - **Styling:** Tailwind CSS
 - **Data:** JSON-based repository metadata
-- **Hosting:** Cloudflare Pages
+- **Hosting:** Cloudflare Worker with static assets; refreshed data in Workers KV
 
 ### How It Works
-1. The preserved GitHub record is stored in `public/github_data.json`
-2. GitLab statistics are generated from the GitLab API via GitLab CI and stored in `public/gitlab_data.json`
-3. JavaScript dynamically renders the dashboard
-4. Cloudflare automatically serves the committed `public/` directory
-5. Users can search, sort, and filter in real-time
-
----
+1. **Forge tab and issues page:** `scripts/generate_forge_data.py` reads, for each folder in
+   `scripts/routing/projects.tsv`, the folder history (`history?path=<folder>`, paged back to 365
+   days or `FORGE_HISTORY_PAGES` pages), the issue and pull request ledgers (attributed by label
+   `<folder>` / `project:<folder>`, else title prefix `[<folder>]` / `<folder>:`) and
+   `<folder>/.forkmesh/info.json` where present. It writes `public/forge_data.json`: commit counts
+   for 30/90/365 days (bots excluded), last commit, distinct authors, 26 weekly counts, open issues
+   and pull requests, README size and `wrangler.toml` presence. Stars, forks, languages, releases,
+   tags, branches and sizes do not exist per folder; they are `null` and their columns are hidden
+   on the Forge tab. `FORGE_BUDGET_SECONDS` (default 300) bounds a run; when it runs out nothing
+   is written.
+2. **Daily refresh, no commits:** `.forkmesh/blt-waypoint--build-site.yml` (06:29 UTC, and on
+   changes to the generator) runs the generator in the runner checkout and writes
+   `forge_data.json` to the Worker's KV namespace with `scripts/worker-data/kv-put.sh`.
+   `worker/index.js` serves `/forge_data.json` (and the old `/gitlab_data.json` URL) from KV,
+   falling back to the committed `public/forge_data.json`; everything else is a static asset.
+3. **GitHub tab:** `public/github_data.json` is the archived GitHub record (URLs point at the
+   forge folders; `python scripts/forge_urls.py public/github_data.json` rewrites any
+   gitlab.com/owasp-blt URL).
+4. **Main tab:** `main_data.csv`/`.js`/`.json` derive from `github_data.json` with
+   `python scripts/generate_main_data.py`; commit them together (the tests check they are current).
 
 ## 🚀 Quick Start
 
@@ -92,15 +91,16 @@ python -m http.server 8000 -d public
 # Open http://localhost:8000
 ```
 
-### GitLab Build, Cloudflare Hosting
-
-GitLab builds the static site with:
+### Data and tests
 
 ```bash
-sh scripts/build_static.sh
+python3 scripts/generate_forge_data.py   # live, read-only: about 200 anonymous requests
+python3 scripts/generate_main_data.py    # after editing public/github_data.json
+../scripts/ci/test.sh blt-waypoint       # from the repo root: scripts/ci/test.sh blt-waypoint
 ```
 
-The committed Pages output directory is `public/`. GitLab refreshes the data files there on the configured schedule, and Cloudflare handles deployment automatically from the repository.
+Deploy with `scripts/deploy.sh blt-waypoint` from the repo root. The KV namespace
+(`blt-waypoint-data`, binding `DATA`) is created by `scripts/worker-data/create-kv.sh`.
 
 ### Usage
 - **Search:** Type in the search bar to find repositories
@@ -127,7 +127,7 @@ We welcome contributions! To contribute:
 
 - 🌐 **Website:** [owaspblt.org](https://owaspblt.org)
 - 💬 **Slack:** [Join OWASP Slack](https://owasp.org/slack/invite)
-- 📧 **Issues:** [GitLab Issues](https://git.owaspblt.org/BLT/issues)
+- 📧 **Issues:** [git.owaspblt.org issues](https://git.owaspblt.org/BLT/issues?label=blt-waypoint)
 
 ---
 

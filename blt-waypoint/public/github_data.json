@@ -46,7 +46,7 @@
       "name": "BLT-Monitor",
       "full_name": "OWASP-BLT/BLT-Monitor",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-monitor",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-monitor",
       "description": "Monitors a website using Github Actions",
       "fork": false,
       "created_at": "2025-05-03T18:49:01Z",
@@ -209,7 +209,7 @@
       "name": ".github",
       "full_name": "OWASP-BLT/.github",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/dot_github",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/dot_github",
       "description": "Info on the BLT Repos",
       "fork": false,
       "created_at": "2024-03-02T00:39:49Z",
@@ -321,7 +321,7 @@
       "name": "BLT-Waypoint",
       "full_name": "OWASP-BLT/BLT-Waypoint",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-waypoint",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-waypoint",
       "description": "OWASP BLT project directory and deployment waypoint",
       "fork": false,
       "created_at": "2026-02-24T01:10:47Z",
@@ -423,7 +423,7 @@
           }
         ],
         "repo_name": "owasp-blt.github.io",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-waypoint"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-waypoint"
       },
       "latest_commit": {
         "sha": "ba3aa14",
@@ -479,14 +479,14 @@
         0
       ],
       "has_wrangler_toml": false,
-      "gitlab_url": "https://gitlab.com/owasp-blt/blt-waypoint"
+      "gitlab_url": "https://git.owaspblt.org/BLT/tree/main/blt-waypoint"
     },
     {
       "id": 1087909796,
       "name": "BLT-Hackathons",
       "full_name": "OWASP-BLT/BLT-Hackathons",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-hackathons",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-hackathons",
       "description": "a self hosted github project to let you conduct a hackthon on your project with charts and leaderboards and prizes ",
       "fork": false,
       "created_at": "2025-11-01T22:26:46Z",
@@ -624,7 +624,7 @@
           }
         ],
         "repo_name": "BLT-Hackathons",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-hackathons"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-hackathons"
       },
       "latest_commit": {
         "sha": "26e48d7",
@@ -686,7 +686,7 @@
       "name": "BLT-Jobs",
       "full_name": "OWASP-BLT/BLT-Jobs",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-jobs",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-jobs",
       "description": "A community-driven job board for the OWASP BLT ecosystem, deployed on GitHub Pages.",
       "fork": false,
       "created_at": "2026-02-08T16:11:20Z",
@@ -788,7 +788,7 @@
         "assignees": [],
         "linked_prs": [],
         "repo_name": "BLT-Jobs",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-jobs"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-jobs"
       },
       "latest_commit": {
         "sha": "e10899c",
@@ -845,7 +845,7 @@
       "name": "BLT-Design-Contest",
       "full_name": "OWASP-BLT/BLT-Design-Contest",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-design-contest",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest",
       "description": "Design Contest Website",
       "fork": false,
       "created_at": "2026-02-21T23:09:08Z",
@@ -922,7 +922,7 @@
         "assignees": [],
         "linked_prs": [],
         "repo_name": "BLT-Design-Contest",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
       },
       "latest_commit": {
         "sha": "65b024d",
@@ -984,7 +984,7 @@
       "name": "BLT-OSSH",
       "full_name": "OWASP-BLT/BLT-OSSH",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-ossh",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-ossh",
       "description": "a magical hat that reads your GitHub profile and suggests blogs or projects you might like ",
       "fork": false,
       "created_at": "2026-03-01T08:16:02Z",
@@ -1086,7 +1086,7 @@
         "assignees": [],
         "linked_prs": [],
         "repo_name": "BLT-OSSH",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-ossh"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-ossh"
       },
       "latest_commit": {
         "sha": "8ab86cd",
@@ -1143,7 +1143,7 @@
       "name": "MY-GSOC-TOOL",
       "full_name": "OWASP-BLT/MY-GSOC-TOOL",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/my-gsoc-tool",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/my-gsoc-tool",
       "description": "Allows students to keep track of their voyage through a dashboard of contributions, feedback and documentation ",
       "fork": false,
       "created_at": "2025-11-09T19:53:03Z",
@@ -1296,7 +1296,7 @@
       "name": "BLT-OWASP-Bumper",
       "full_name": "OWASP-BLT/BLT-OWASP-Bumper",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-owasp-bumper",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-owasp-bumper",
       "description": "OWASP repo dashboard with smart insights & metrics",
       "fork": false,
       "created_at": "2025-11-15T21:17:30Z",
@@ -1407,7 +1407,7 @@
       "name": "BLT-OWASP-Projects",
       "full_name": "OWASP-BLT/BLT-OWASP-Projects",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-owasp-projects",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-owasp-projects",
       "description": "A comprehensive dashboard for tracking and visualizing OWASP (Open Web Application Security Project) repositories and their statistics.",
       "fork": false,
       "created_at": "2023-03-23T00:34:01Z",
@@ -1514,7 +1514,7 @@
       "name": "BLT",
       "full_name": "OWASP-BLT/BLT",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core",
       "description": "A community-driven OWASP Foundation project building open-source tools for vulnerability reporting, bug tracking, security automation & contributor engagement.",
       "fork": false,
       "created_at": "2016-07-09T18:34:15Z",
@@ -1656,7 +1656,7 @@
         ],
         "linked_prs": [],
         "repo_name": "BLT",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
       },
       "latest_commit": {
         "sha": "af00d89",
@@ -1718,7 +1718,7 @@
       "name": "BLT-Leaf",
       "full_name": "OWASP-BLT/BLT-Leaf",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-leaf",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf",
       "description": "PR readiness checker ",
       "fork": false,
       "created_at": "2026-02-09T06:36:58Z",
@@ -1855,7 +1855,7 @@
           }
         ],
         "repo_name": "BLT-Leaf",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-leaf"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf"
       },
       "latest_commit": {
         "sha": "0af8287",
@@ -1917,7 +1917,7 @@
       "name": "BLT-GSOC",
       "full_name": "OWASP-BLT/BLT-GSOC",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-gsoc",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-gsoc",
       "description": "GSOC related",
       "fork": false,
       "created_at": "2026-02-15T18:44:32Z",
@@ -2030,7 +2030,7 @@
         ],
         "linked_prs": [],
         "repo_name": "BLT-GSOC",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-gsoc"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-gsoc"
       },
       "latest_commit": {
         "sha": "56398d6",
@@ -2087,7 +2087,7 @@
       "name": "BLT-API",
       "full_name": "OWASP-BLT/BLT-API",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-api",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-api",
       "description": "Full-featured REST API for OWASP BLT",
       "fork": false,
       "created_at": "2025-12-02T20:17:43Z",
@@ -2224,7 +2224,7 @@
           }
         ],
         "repo_name": "BLT-API",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-api"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-api"
       },
       "latest_commit": {
         "sha": "5a957b0",
@@ -2281,7 +2281,7 @@
       "name": "BLT-Sizzle",
       "full_name": "OWASP-BLT/BLT-Sizzle",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-sizzle",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle",
       "description": "A simple, secure daily check-in application built as a Cloudflare Python Worker. Track your progress, plan your day, and share your mood with your team via Slack or email notifications.",
       "fork": false,
       "created_at": "2025-11-15T18:40:10Z",
@@ -2382,7 +2382,7 @@
         ],
         "linked_prs": [],
         "repo_name": "BLT-Sizzle",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
       },
       "latest_commit": {
         "sha": "eecb357",
@@ -2439,7 +2439,7 @@
       "name": "BLT-SafeCloak",
       "full_name": "OWASP-BLT/BLT-SafeCloak",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-safecloak",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak",
       "description": "secure video chat and voice protection with secure AI notes and consent protection",
       "fork": false,
       "created_at": "2026-02-20T17:57:18Z",
@@ -2547,7 +2547,7 @@
         "assignees": [],
         "linked_prs": [],
         "repo_name": "BLT-SafeCloak",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-safecloak"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
       },
       "latest_commit": {
         "sha": "215e421",
@@ -2604,7 +2604,7 @@
       "name": "BLT-OWASP-metadata",
       "full_name": "OWASP-BLT/BLT-OWASP-metadata",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-owasp-metadata",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-owasp-metadata",
       "description": "metadata aggregation system for OWASP projects ",
       "fork": false,
       "created_at": "2025-11-27T07:54:40Z",
@@ -2703,7 +2703,7 @@
           }
         ],
         "repo_name": "BLT-OWASP-metadata",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-owasp-metadata"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-owasp-metadata"
       },
       "latest_commit": {
         "sha": "e05d192",
@@ -2760,7 +2760,7 @@
       "name": "BLT-Nexus",
       "full_name": "OWASP-BLT/BLT-Nexus",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-nexus",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-nexus",
       "description": "The BLT Ambassador program",
       "fork": false,
       "created_at": "2026-05-03T18:10:34Z",
@@ -2861,7 +2861,7 @@
       "name": "BLT-Profiles",
       "full_name": "OWASP-BLT/BLT-Profiles",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-profiles",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-profiles",
       "description": "Create your BLT profile",
       "fork": false,
       "created_at": "2026-05-03T17:02:18Z",
@@ -2962,7 +2962,7 @@
       "name": "BLT-NetGuardian",
       "full_name": "OWASP-BLT/BLT-NetGuardian",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-netguardian",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-netguardian",
       "description": "an agent that continually scans the web making it secure by reporting bugs",
       "fork": false,
       "created_at": "2025-12-12T07:09:39Z",
@@ -3080,7 +3080,7 @@
       "name": "BLT-Pages",
       "full_name": "OWASP-BLT/BLT-Pages",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-pages",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pages",
       "description": "Pages Based UI issue reporting platform",
       "fork": false,
       "created_at": "2026-02-28T21:36:59Z",
@@ -3188,7 +3188,7 @@
         "assignees": [],
         "linked_prs": [],
         "repo_name": "BLT-Pages",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-pages"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pages"
       },
       "latest_commit": {
         "sha": "c97a119",
@@ -3250,7 +3250,7 @@
       "name": "BLT-Preflight",
       "full_name": "OWASP-BLT/BLT-Preflight",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-preflight",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-preflight",
       "description": "Provide security intent and risk guidance before contributors submit code to prevent common mistakes and improve contributor understanding",
       "fork": false,
       "created_at": "2026-02-18T02:18:15Z",
@@ -3352,7 +3352,7 @@
           }
         ],
         "repo_name": "BLT-Preflight",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-preflight"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-preflight"
       },
       "latest_commit": {
         "sha": "0115961",
@@ -3409,7 +3409,7 @@
       "name": "BLT-Start",
       "full_name": "OWASP-BLT/BLT-Start",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-start",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-start",
       "description": "A github pages start page to orientate contributors and mentors guiding for good first issues and direction on creating PRs",
       "fork": false,
       "created_at": "2026-03-14T19:00:51Z",
@@ -3516,7 +3516,7 @@
       "name": "BLT-Toasty",
       "full_name": "OWASP-BLT/BLT-Toasty",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-toasty",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty",
       "description": "The BLT AI bot that checks your code, updates your priorities and looks at issues through a magnifying glass",
       "fork": false,
       "created_at": "2025-11-15T19:32:58Z",
@@ -3597,7 +3597,7 @@
         "assignees": [],
         "linked_prs": [],
         "repo_name": "BLT-Toasty",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-toasty"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty"
       },
       "latest_commit": {
         "sha": "7d4a3c8",
@@ -3654,7 +3654,7 @@
       "name": "BLT-Flutter",
       "full_name": "OWASP-BLT/BLT-Flutter",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-flutter",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-flutter",
       "description": "The official OWASP BLT App repository",
       "fork": false,
       "created_at": "2021-04-01T22:44:38Z",
@@ -3768,7 +3768,7 @@
         "assignees": [],
         "linked_prs": [],
         "repo_name": "BLT-Flutter",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-flutter"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-flutter"
       },
       "latest_commit": {
         "sha": "6a2eabe",
@@ -3830,7 +3830,7 @@
       "name": "BLT-Pool",
       "full_name": "OWASP-BLT/BLT-Pool",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-pool",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pool",
       "description": "BLT GitHub App that integrates BLT services into GitHub",
       "fork": false,
       "created_at": "2026-02-23T01:24:09Z",
@@ -3944,7 +3944,7 @@
         ],
         "linked_prs": [],
         "repo_name": "BLT-Pool",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-pool"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pool"
       },
       "latest_commit": {
         "sha": "bb38e6b",
@@ -4001,7 +4001,7 @@
       "name": "BLT-Ideas",
       "full_name": "OWASP-BLT/BLT-Ideas",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-ideas",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-ideas",
       "description": "BLT Ideas",
       "fork": false,
       "created_at": "2026-01-29T16:08:31Z",
@@ -4120,7 +4120,7 @@
         ],
         "linked_prs": [],
         "repo_name": "BLT-Ideas",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-ideas"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-ideas"
       },
       "latest_commit": {
         "sha": "928511d",
@@ -4177,7 +4177,7 @@
       "name": "BLT-Next",
       "full_name": "OWASP-BLT/BLT-Next",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-next",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-next",
       "description": "a fresh, modern design by removing non-core components to create a clear, enjoyable user experience focused on core value",
       "fork": false,
       "created_at": "2026-02-18T02:20:36Z",
@@ -4319,7 +4319,7 @@
       "name": "BLT-University",
       "full_name": "OWASP-BLT/BLT-University",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-university",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-university",
       "description": "Security related courses and knowledge transfer",
       "fork": false,
       "created_at": "2026-02-12T00:37:48Z",
@@ -4442,7 +4442,7 @@
       "name": "BLT-MCP",
       "full_name": "OWASP-BLT/BLT-MCP",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-mcp",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-mcp",
       "description": "An interface to the BLT ecosystem enabling AI agents and developers to log bugs, triage issues, query data, and manage workflows from IDEs or chat interfaces",
       "fork": false,
       "created_at": "2026-02-18T02:22:13Z",
@@ -4572,7 +4572,7 @@
       "name": "BLT-Rewards",
       "full_name": "OWASP-BLT/BLT-Rewards",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-rewards",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-rewards",
       "description": "BACON is a cutting-edge Bitcoin-based token system designed to incentivize engagement and contributions within the OWASP BLT ecosystem. By integrating with Bitcoin Core and utilizing the Runes protocol, BACON introduces a transparent, secure, and gamified environment that rewards developers and contributors for their efforts.",
       "fork": false,
       "created_at": "2023-03-06T15:15:28Z",
@@ -4732,7 +4732,7 @@
           }
         ],
         "repo_name": "BLT-Rewards",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-rewards"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-rewards"
       },
       "latest_commit": {
         "sha": "99e6b27",
@@ -4789,7 +4789,7 @@
       "name": "BLT-CLI",
       "full_name": "OWASP-BLT/BLT-CLI",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-cli",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-cli",
       "description": null,
       "fork": false,
       "created_at": "2026-03-29T17:21:41Z",
@@ -4884,7 +4884,7 @@
       "name": "coderabbit",
       "full_name": "OWASP-BLT/coderabbit",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/coderabbit",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/coderabbit",
       "description": "Coderabbit settings ",
       "fork": false,
       "created_at": "2026-03-06T02:32:42Z",
@@ -4950,7 +4950,7 @@
         ],
         "linked_prs": [],
         "repo_name": "coderabbit",
-        "repo_html_url": "https://gitlab.com/owasp-blt/coderabbit"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/coderabbit"
       },
       "latest_commit": {
         "sha": "1fc892d",
@@ -5007,7 +5007,7 @@
       "name": "BLT-Sammich",
       "full_name": "OWASP-BLT/BLT-Sammich",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-sammich",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich",
       "description": "The Slack bot for BLT",
       "fork": false,
       "created_at": "2024-06-01T20:19:30Z",
@@ -5112,7 +5112,7 @@
         "assignees": [],
         "linked_prs": [],
         "repo_name": "BLT-Sammich",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-sammich"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich"
       },
       "latest_commit": {
         "sha": "7d4a31c",
@@ -5174,7 +5174,7 @@
       "name": "BLT-Zero",
       "full_name": "OWASP-BLT/BLT-Zero",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-zero",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-zero",
       "description": "Zero Trust Bug Reporting without a trace",
       "fork": false,
       "created_at": "2026-02-21T22:03:10Z",
@@ -5278,7 +5278,7 @@
           }
         ],
         "repo_name": "BLT-Zero",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-zero"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-zero"
       },
       "latest_commit": {
         "sha": "826602a",
@@ -5335,7 +5335,7 @@
       "name": "BLT-Lettuce",
       "full_name": "OWASP-BLT/BLT-Lettuce",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-lettuce",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-lettuce",
       "description": "An intelligent Slack bot for the OWASP community",
       "fork": false,
       "created_at": "2024-03-01T01:59:33Z",
@@ -5449,7 +5449,7 @@
         "assignees": [],
         "linked_prs": [],
         "repo_name": "BLT-Lettuce",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-lettuce"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-lettuce"
       },
       "latest_commit": {
         "sha": "71cb7e5",
@@ -5511,7 +5511,7 @@
       "name": "BLT-Timer-Web",
       "full_name": "OWASP-BLT/BLT-Timer-Web",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-timer-web",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-timer-web",
       "description": "Privacy-focused time tracking system for developers with GitHub integration and local LLM analysis",
       "fork": false,
       "created_at": "2025-11-15T18:38:32Z",
@@ -5610,7 +5610,7 @@
         ],
         "linked_prs": [],
         "repo_name": "BLT-Timer-Web",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-timer-web"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-timer-web"
       },
       "latest_commit": {
         "sha": "0ab1565",
@@ -5667,7 +5667,7 @@
       "name": "BLT-Ketchup",
       "full_name": "OWASP-BLT/BLT-Ketchup",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-ketchup",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-ketchup",
       "description": "BLT Penetration Testing Collaboration Workspace A real-time collaboration environment for red-team engagements where multiple pentesters can share findings, tag team members, and escalate issues directly to BLT. Think \"Google Docs for pentest reports\" with built-in CVSS scoring and evidence management.",
       "fork": false,
       "created_at": "2026-03-16T21:55:21Z",
@@ -5768,7 +5768,7 @@
       "name": "BLT-Newsletter",
       "full_name": "OWASP-BLT/BLT-Newsletter",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-newsletter",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-newsletter",
       "description": "The BLT Newsletter",
       "fork": false,
       "created_at": "2026-02-16T21:17:40Z",
@@ -5865,7 +5865,7 @@
           }
         ],
         "repo_name": "BLT-Newsletter",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-newsletter"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-newsletter"
       },
       "latest_commit": {
         "sha": "cf857c5",
@@ -5922,7 +5922,7 @@
       "name": "BLT-Design",
       "full_name": "OWASP-BLT/BLT-Design",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-design",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design",
       "description": "Our design system light and dark mode, logos, colors etc. ",
       "fork": false,
       "created_at": "2026-02-12T00:46:09Z",
@@ -5994,7 +5994,7 @@
         "assignees": [],
         "linked_prs": [],
         "repo_name": "BLT-Design",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-design"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design"
       },
       "latest_commit": {
         "sha": "4669d03",
@@ -6051,7 +6051,7 @@
       "name": "BLT-Byte",
       "full_name": "OWASP-BLT/BLT-Byte",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-byte",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-byte",
       "description": "AI assistant, orchestrator and agent",
       "fork": false,
       "created_at": "2026-02-28T12:52:52Z",
@@ -6161,7 +6161,7 @@
           }
         ],
         "repo_name": "BLT-Byte",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-byte"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-byte"
       },
       "latest_commit": {
         "sha": "1a5de29",
@@ -6218,7 +6218,7 @@
       "name": "BLT-Vanish-Web",
       "full_name": "OWASP-BLT/BLT-Vanish-Web",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-vanish",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-vanish",
       "description": "An open-source, hybrid local+edge privacy toolkit for managing and deleting personal data online.",
       "fork": false,
       "created_at": "2025-11-15T18:29:58Z",
@@ -6313,7 +6313,7 @@
           }
         ],
         "repo_name": "BLT-Vanish-Web",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-vanish"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-vanish"
       },
       "latest_commit": {
         "sha": "68cc852",
@@ -6375,7 +6375,7 @@
       "name": "BLT-Dash",
       "full_name": "OWASP-BLT/BLT-Dash",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-dash",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-dash",
       "description": "A company cybersecurity dashboard that integrates with everything and gives a heads up display single page of everything you need to see",
       "fork": false,
       "created_at": "2026-03-14T01:14:57Z",
@@ -6476,7 +6476,7 @@
       "name": "BLT-Github-Sportscaster",
       "full_name": "OWASP-BLT/BLT-Github-Sportscaster",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-gitcaster",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-gitcaster",
       "description": "A real-time, AI-powered leaderboard of GitHub repository activity with live play-by-play commentary! Watch as repositories compete for the top spots with an animated sportscaster announcing each event.",
       "fork": false,
       "created_at": "2025-11-16T02:01:41Z",
@@ -6594,7 +6594,7 @@
       "name": "BLT-OWASP-Wich",
       "full_name": "OWASP-BLT/BLT-OWASP-Wich",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-owasp-wich",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-owasp-wich",
       "description": "OWASP Project compliance checker can be used on other repos too ",
       "fork": false,
       "created_at": "2025-11-15T21:11:04Z",
@@ -6664,7 +6664,7 @@
         "assignees": [],
         "linked_prs": [],
         "repo_name": "BLT-OWASP-Wich",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-owasp-wich"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-owasp-wich"
       },
       "latest_commit": {
         "sha": "700bb78",
@@ -6726,7 +6726,7 @@
       "name": "BLT-Vanish-Flutter",
       "full_name": "OWASP-BLT/BLT-Vanish-Flutter",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-vanish-flutter",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-vanish-flutter",
       "description": "Flutter app for Vanish to help people remove themselves off the web, monitor links for removal and send requests ",
       "fork": false,
       "created_at": "2026-03-02T01:08:37Z",
@@ -6827,7 +6827,7 @@
       "name": "BLT-NetGuardian-Client",
       "full_name": "OWASP-BLT/BLT-NetGuardian-Client",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-netguardian-client",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-netguardian-client",
       "description": "The client run on your computer to make the web safer",
       "fork": false,
       "created_at": "2025-12-12T07:23:47Z",
@@ -6930,7 +6930,7 @@
       "name": "BLT-Timer-Flutter",
       "full_name": "OWASP-BLT/BLT-Timer-Flutter",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-timer-flutter",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-timer-flutter",
       "description": "Flutter App for local time tracking",
       "fork": false,
       "created_at": "2026-03-01T01:35:43Z",
@@ -7031,7 +7031,7 @@
       "name": "BLT-Enforcement",
       "full_name": "OWASP-BLT/BLT-Enforcement",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-enforcement",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-enforcement",
       "description": "IP / Trademarks defense tools related to Cybersecurity  and keeping organizations save by enforcement",
       "fork": false,
       "created_at": "2026-03-01T20:47:42Z",
@@ -7132,7 +7132,7 @@
       "name": "BLT-CVE",
       "full_name": "OWASP-BLT/BLT-CVE",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-cve",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-cve",
       "description": "A decentralized CVE database that stays online and offers a backup to CVE and a way to keep it online",
       "fork": false,
       "created_at": "2025-11-23T19:19:30Z",
@@ -7239,7 +7239,7 @@
       "name": "BLT-Action",
       "full_name": "OWASP-BLT/BLT-Action",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-action",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-action",
       "description": "A github action that lets contributors type /assign to be assigned issues and automatically removes it within 24 hours ",
       "fork": false,
       "created_at": "2023-03-06T15:16:32Z",
@@ -7352,7 +7352,7 @@
         "assignees": [],
         "linked_prs": [],
         "repo_name": "BLT-Action",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-action"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-action"
       },
       "latest_commit": {
         "sha": "d4f8510",
@@ -7414,7 +7414,7 @@
       "name": "BLT-Panini",
       "full_name": "OWASP-BLT/BLT-Panini",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-panini",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-panini",
       "description": "App Security Ratings",
       "fork": false,
       "created_at": "2025-11-23T03:51:10Z",
@@ -7511,7 +7511,7 @@
           }
         ],
         "repo_name": "BLT-Panini",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-panini"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-panini"
       },
       "latest_commit": {
         "sha": "93938be",
@@ -7568,7 +7568,7 @@
       "name": "BLT-docs",
       "full_name": "OWASP-BLT/BLT-docs",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-docs",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-docs",
       "description": "Official documentation for the OWASP Bug Logging Tool (BLT) project",
       "fork": false,
       "created_at": "2025-11-15T23:17:30Z",
@@ -7674,7 +7674,7 @@
       "name": "BLT-Extension",
       "full_name": "OWASP-BLT/BLT-Extension",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-extension",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-extension",
       "description": "The chrome extension to BLT that allows you to take screenshots of websites and report them",
       "fork": false,
       "created_at": "2023-03-06T15:16:11Z",
@@ -7800,7 +7800,7 @@
         ],
         "linked_prs": [],
         "repo_name": "BLT-Extension",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-extension"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-extension"
       },
       "latest_commit": {
         "sha": "9e68d96",
@@ -7862,7 +7862,7 @@
       "name": "BLT-Tomato",
       "full_name": "OWASP-BLT/BLT-Tomato",
       "private": false,
-      "html_url": "https://gitlab.com/owasp-blt/blt-tomato",
+      "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-tomato",
       "description": "Scripts related to projects mainly for high level OWASP project management",
       "fork": false,
       "created_at": "2024-05-27T16:54:12Z",
@@ -7938,7 +7938,7 @@
         "assignees": [],
         "linked_prs": [],
         "repo_name": "BLT-Tomato",
-        "repo_html_url": "https://gitlab.com/owasp-blt/blt-tomato"
+        "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-tomato"
       },
       "latest_commit": {
         "sha": "94a1351",
@@ -8007,7 +8007,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-SafeCloak",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-safecloak"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
     },
     {
       "number": 131,
@@ -8024,7 +8024,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-SafeCloak",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-safecloak"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
     },
     {
       "number": 110,
@@ -8041,7 +8041,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Pages",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pages"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pages"
     },
     {
       "number": 107,
@@ -8058,7 +8058,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Pages",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pages"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pages"
     },
     {
       "number": 111,
@@ -8075,7 +8075,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-SafeCloak",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-safecloak"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
     },
     {
       "number": 108,
@@ -8103,7 +8103,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-SafeCloak",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-safecloak"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
     },
     {
       "number": 106,
@@ -8131,7 +8131,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-SafeCloak",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-safecloak"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
     },
     {
       "number": 100,
@@ -8148,7 +8148,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-SafeCloak",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-safecloak"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
     },
     {
       "number": 99,
@@ -8165,7 +8165,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-SafeCloak",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-safecloak"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
     },
     {
       "number": 91,
@@ -8207,7 +8207,7 @@
         }
       ],
       "repo_name": "BLT-SafeCloak",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-safecloak"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
     },
     {
       "number": 6186,
@@ -8243,7 +8243,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6185,
@@ -8273,7 +8273,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 298,
@@ -8319,7 +8319,7 @@
         }
       ],
       "repo_name": "BLT-Leaf",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-leaf"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf"
     },
     {
       "number": 296,
@@ -8365,7 +8365,7 @@
         }
       ],
       "repo_name": "BLT-Leaf",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-leaf"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf"
     },
     {
       "number": 122,
@@ -8387,7 +8387,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 121,
@@ -8409,7 +8409,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 67,
@@ -8461,7 +8461,7 @@
         }
       ],
       "repo_name": "BLT-SafeCloak",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-safecloak"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
     },
     {
       "number": 6171,
@@ -8497,7 +8497,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6170,
@@ -8527,7 +8527,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6168,
@@ -8557,7 +8557,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6167,
@@ -8579,7 +8579,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 120,
@@ -8601,7 +8601,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 119,
@@ -8623,7 +8623,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 118,
@@ -8645,7 +8645,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 117,
@@ -8667,7 +8667,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 116,
@@ -8693,7 +8693,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 115,
@@ -8715,7 +8715,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 114,
@@ -8737,7 +8737,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 105,
@@ -8763,7 +8763,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Pages",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pages"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pages"
     },
     {
       "number": 104,
@@ -8789,7 +8789,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Pages",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pages"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pages"
     },
     {
       "number": 113,
@@ -8811,7 +8811,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 112,
@@ -8833,7 +8833,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 111,
@@ -8855,7 +8855,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 26,
@@ -8892,7 +8892,7 @@
         }
       ],
       "repo_name": "BLT-Zero",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-zero"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-zero"
     },
     {
       "number": 110,
@@ -8914,7 +8914,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 109,
@@ -8936,7 +8936,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 108,
@@ -8958,7 +8958,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 107,
@@ -8980,7 +8980,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 106,
@@ -9002,7 +9002,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 105,
@@ -9028,7 +9028,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 25,
@@ -9045,7 +9045,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Zero",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-zero"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-zero"
     },
     {
       "number": 6132,
@@ -9081,7 +9081,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6131,
@@ -9117,7 +9117,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6130,
@@ -9189,7 +9189,7 @@
         }
       ],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6129,
@@ -9225,7 +9225,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6127,
@@ -9255,7 +9255,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6125,
@@ -9285,7 +9285,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6122,
@@ -9315,7 +9315,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6121,
@@ -9351,7 +9351,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6119,
@@ -9389,7 +9389,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6117,
@@ -9425,7 +9425,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6116,
@@ -9501,7 +9501,7 @@
         }
       ],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6115,
@@ -9577,7 +9577,7 @@
         }
       ],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6114,
@@ -9613,7 +9613,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6113,
@@ -9649,7 +9649,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6112,
@@ -9679,7 +9679,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6111,
@@ -9715,7 +9715,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6110,
@@ -9751,7 +9751,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6109,
@@ -9781,7 +9781,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6108,
@@ -9811,7 +9811,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6107,
@@ -9881,7 +9881,7 @@
         }
       ],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6106,
@@ -9911,7 +9911,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 6105,
@@ -9947,7 +9947,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 46,
@@ -10008,7 +10008,7 @@
         }
       ],
       "repo_name": "BLT-Rewards",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-rewards"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-rewards"
     },
     {
       "number": 23,
@@ -10046,7 +10046,7 @@
         }
       ],
       "repo_name": "BLT-OWASP-metadata",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-owasp-metadata"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-owasp-metadata"
     },
     {
       "number": 6100,
@@ -10076,7 +10076,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core"
     },
     {
       "number": 8,
@@ -10099,7 +10099,7 @@
       ],
       "linked_prs": [],
       "repo_name": "coderabbit",
-      "repo_html_url": "https://gitlab.com/owasp-blt/coderabbit"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/coderabbit"
     },
     {
       "number": 7,
@@ -10122,7 +10122,7 @@
       ],
       "linked_prs": [],
       "repo_name": "coderabbit",
-      "repo_html_url": "https://gitlab.com/owasp-blt/coderabbit"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/coderabbit"
     },
     {
       "number": 6,
@@ -10145,7 +10145,7 @@
       ],
       "linked_prs": [],
       "repo_name": "coderabbit",
-      "repo_html_url": "https://gitlab.com/owasp-blt/coderabbit"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/coderabbit"
     },
     {
       "number": 5,
@@ -10168,7 +10168,7 @@
       ],
       "linked_prs": [],
       "repo_name": "coderabbit",
-      "repo_html_url": "https://gitlab.com/owasp-blt/coderabbit"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/coderabbit"
     },
     {
       "number": 4,
@@ -10185,7 +10185,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "coderabbit",
-      "repo_html_url": "https://gitlab.com/owasp-blt/coderabbit"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/coderabbit"
     },
     {
       "number": 70,
@@ -10207,7 +10207,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sammich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sammich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich"
     },
     {
       "number": 69,
@@ -10229,7 +10229,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sammich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sammich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich"
     },
     {
       "number": 68,
@@ -10251,7 +10251,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sammich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sammich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich"
     },
     {
       "number": 67,
@@ -10273,7 +10273,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sammich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sammich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich"
     },
     {
       "number": 66,
@@ -10295,7 +10295,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sammich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sammich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich"
     },
     {
       "number": 65,
@@ -10317,7 +10317,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sammich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sammich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich"
     },
     {
       "number": 64,
@@ -10339,7 +10339,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sammich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sammich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich"
     },
     {
       "number": 63,
@@ -10361,7 +10361,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sammich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sammich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich"
     },
     {
       "number": 62,
@@ -10383,7 +10383,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sammich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sammich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich"
     },
     {
       "number": 61,
@@ -10405,7 +10405,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sammich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sammich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich"
     },
     {
       "number": 60,
@@ -10427,7 +10427,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sammich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sammich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich"
     },
     {
       "number": 83,
@@ -10468,7 +10468,7 @@
         }
       ],
       "repo_name": "owasp-blt.github.io",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-waypoint"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-waypoint"
     },
     {
       "number": 82,
@@ -10509,7 +10509,7 @@
         }
       ],
       "repo_name": "owasp-blt.github.io",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-waypoint"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-waypoint"
     },
     {
       "number": 19,
@@ -10551,7 +10551,7 @@
         }
       ],
       "repo_name": "BLT-Panini",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-panini"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-panini"
     },
     {
       "number": 98,
@@ -10568,7 +10568,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Pages",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pages"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pages"
     },
     {
       "number": 79,
@@ -10620,7 +10620,7 @@
         }
       ],
       "repo_name": "BLT-API",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-api"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-api"
     },
     {
       "number": 102,
@@ -10642,7 +10642,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 79,
@@ -10684,7 +10684,7 @@
         }
       ],
       "repo_name": "BLT-Hackathons",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-hackathons"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-hackathons"
     },
     {
       "number": 78,
@@ -10726,7 +10726,7 @@
         }
       ],
       "repo_name": "BLT-Hackathons",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-hackathons"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-hackathons"
     },
     {
       "number": 76,
@@ -10772,7 +10772,7 @@
         }
       ],
       "repo_name": "BLT-Hackathons",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-hackathons"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-hackathons"
     },
     {
       "number": 74,
@@ -10818,7 +10818,7 @@
         }
       ],
       "repo_name": "BLT-Hackathons",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-hackathons"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-hackathons"
     },
     {
       "number": 59,
@@ -10846,7 +10846,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-GSOC",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-gsoc"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-gsoc"
     },
     {
       "number": 7,
@@ -10863,7 +10863,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design"
     },
     {
       "number": 73,
@@ -10885,7 +10885,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Hackathons",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-hackathons"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-hackathons"
     },
     {
       "number": 32,
@@ -10933,7 +10933,7 @@
         }
       ],
       "repo_name": "BLT-SafeCloak",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-safecloak"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
     },
     {
       "number": 101,
@@ -10955,7 +10955,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 32,
@@ -10977,7 +10977,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Toasty",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-toasty"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty"
     },
     {
       "number": 7,
@@ -11019,7 +11019,7 @@
         }
       ],
       "repo_name": "BLT-Newsletter",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-newsletter"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-newsletter"
     },
     {
       "number": 21,
@@ -11041,7 +11041,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-SafeCloak",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-safecloak"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
     },
     {
       "number": 19,
@@ -11063,7 +11063,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-SafeCloak",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-safecloak"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
     },
     {
       "number": 100,
@@ -11085,7 +11085,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 99,
@@ -11111,7 +11111,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 291,
@@ -11128,7 +11128,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Leaf",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-leaf"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf"
     },
     {
       "number": 290,
@@ -11145,7 +11145,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Leaf",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-leaf"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf"
     },
     {
       "number": 15,
@@ -11182,7 +11182,7 @@
         }
       ],
       "repo_name": "BLT-Byte",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-byte"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-byte"
     },
     {
       "number": 98,
@@ -11204,7 +11204,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 95,
@@ -11234,7 +11234,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Pages",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pages"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pages"
     },
     {
       "number": 30,
@@ -11251,7 +11251,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-OSSH",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-ossh"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-ossh"
     },
     {
       "number": 69,
@@ -11274,7 +11274,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-API",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-api"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-api"
     },
     {
       "number": 83,
@@ -11297,7 +11297,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Pool",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pool"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pool"
     },
     {
       "number": 285,
@@ -11344,7 +11344,7 @@
         }
       ],
       "repo_name": "BLT-Leaf",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-leaf"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf"
     },
     {
       "number": 65,
@@ -11387,7 +11387,7 @@
         }
       ],
       "repo_name": "BLT-API",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-api"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-api"
     },
     {
       "number": 69,
@@ -11410,7 +11410,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Pool",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pool"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pool"
     },
     {
       "number": 67,
@@ -11433,7 +11433,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Pool",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pool"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pool"
     },
     {
       "number": 63,
@@ -11472,7 +11472,7 @@
         }
       ],
       "repo_name": "BLT-API",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-api"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-api"
     },
     {
       "number": 19,
@@ -11514,7 +11514,7 @@
         }
       ],
       "repo_name": "BLT-Zero",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-zero"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-zero"
     },
     {
       "number": 282,
@@ -11561,7 +11561,7 @@
         }
       ],
       "repo_name": "BLT-Leaf",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-leaf"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf"
     },
     {
       "number": 52,
@@ -11600,7 +11600,7 @@
         }
       ],
       "repo_name": "BLT-API",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-api"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-api"
     },
     {
       "number": 51,
@@ -11623,7 +11623,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-API",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-api"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-api"
     },
     {
       "number": 49,
@@ -11662,7 +11662,7 @@
         }
       ],
       "repo_name": "BLT-API",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-api"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-api"
     },
     {
       "number": 52,
@@ -11685,7 +11685,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Pool",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pool"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pool"
     },
     {
       "number": 90,
@@ -11743,7 +11743,7 @@
         }
       ],
       "repo_name": "BLT-Pages",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pages"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pages"
     },
     {
       "number": 94,
@@ -11760,7 +11760,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 92,
@@ -11777,7 +11777,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 62,
@@ -11805,7 +11805,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Ideas",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-ideas"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-ideas"
     },
     {
       "number": 56,
@@ -11822,7 +11822,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Jobs",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-jobs"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-jobs"
     },
     {
       "number": 81,
@@ -11854,7 +11854,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Pages",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pages"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pages"
     },
     {
       "number": 88,
@@ -11876,7 +11876,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 33,
@@ -11934,7 +11934,7 @@
         }
       ],
       "repo_name": "BLT-Rewards",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-rewards"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-rewards"
     },
     {
       "number": 40,
@@ -11951,7 +11951,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-API",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-api"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-api"
     },
     {
       "number": 85,
@@ -11973,7 +11973,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 7,
@@ -11990,7 +11990,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-OWASP-Wich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-owasp-wich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-owasp-wich"
     },
     {
       "number": 6,
@@ -12023,7 +12023,7 @@
         }
       ],
       "repo_name": "BLT-OWASP-Wich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-owasp-wich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-owasp-wich"
     },
     {
       "number": 17,
@@ -12056,7 +12056,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Pages",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pages"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pages"
     },
     {
       "number": 84,
@@ -12078,7 +12078,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 83,
@@ -12100,7 +12100,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 6,
@@ -12128,7 +12128,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Pages",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-pages"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-pages"
     },
     {
       "number": 66,
@@ -12150,7 +12150,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 61,
@@ -12172,7 +12172,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 59,
@@ -12194,7 +12194,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 58,
@@ -12216,7 +12216,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 57,
@@ -12238,7 +12238,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 56,
@@ -12260,7 +12260,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 55,
@@ -12282,7 +12282,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 54,
@@ -12304,7 +12304,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 9,
@@ -12343,7 +12343,7 @@
         }
       ],
       "repo_name": "BLT-Preflight",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-preflight"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-preflight"
     },
     {
       "number": 9,
@@ -12366,7 +12366,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-GSOC",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-gsoc"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-gsoc"
     },
     {
       "number": 53,
@@ -12388,7 +12388,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 52,
@@ -12410,7 +12410,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 51,
@@ -12432,7 +12432,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 49,
@@ -12454,7 +12454,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 39,
@@ -12476,7 +12476,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 38,
@@ -12498,7 +12498,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 5,
@@ -12521,7 +12521,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Preflight",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-preflight"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-preflight"
     },
     {
       "number": 37,
@@ -12543,7 +12543,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 36,
@@ -12565,7 +12565,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 35,
@@ -12587,7 +12587,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 34,
@@ -12609,7 +12609,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 4,
@@ -12642,7 +12642,7 @@
         }
       ],
       "repo_name": "BLT-Preflight",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-preflight"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-preflight"
     },
     {
       "number": 32,
@@ -12664,7 +12664,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 31,
@@ -12686,7 +12686,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 29,
@@ -12708,7 +12708,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 28,
@@ -12730,7 +12730,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 27,
@@ -12752,7 +12752,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 26,
@@ -12778,7 +12778,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 25,
@@ -12800,7 +12800,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 24,
@@ -12822,7 +12822,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 23,
@@ -12844,7 +12844,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 20,
@@ -12866,7 +12866,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 19,
@@ -12888,7 +12888,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 113,
@@ -12905,7 +12905,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Action",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-action"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-action"
     },
     {
       "number": 486,
@@ -12922,7 +12922,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Flutter",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-flutter"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-flutter"
     },
     {
       "number": 17,
@@ -12944,7 +12944,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 16,
@@ -12966,7 +12966,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 9,
@@ -12988,7 +12988,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 5,
@@ -13010,7 +13010,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Design-Contest",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-design-contest"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-design-contest"
     },
     {
       "number": 201,
@@ -13027,7 +13027,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Leaf",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-leaf"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf"
     },
     {
       "number": 116,
@@ -13044,7 +13044,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Lettuce",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-lettuce"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-lettuce"
     },
     {
       "number": 185,
@@ -13061,7 +13061,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Leaf",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-leaf"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf"
     },
     {
       "number": 21,
@@ -13078,7 +13078,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Rewards",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-rewards"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-rewards"
     },
     {
       "number": 83,
@@ -13130,7 +13130,7 @@
         }
       ],
       "repo_name": "BLT-Leaf",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-leaf"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf"
     },
     {
       "number": 6,
@@ -13147,7 +13147,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Tomato",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-tomato"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-tomato"
     },
     {
       "number": 19,
@@ -13180,7 +13180,7 @@
         }
       ],
       "repo_name": "BLT-Rewards",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-rewards"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-rewards"
     },
     {
       "number": 71,
@@ -13197,7 +13197,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Leaf",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-leaf"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf"
     },
     {
       "number": 32,
@@ -13225,7 +13225,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Leaf",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-leaf"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf"
     },
     {
       "number": 2,
@@ -13242,7 +13242,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Leaf",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-leaf"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-leaf"
     },
     {
       "number": 19,
@@ -13259,7 +13259,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Toasty",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-toasty"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty"
     },
     {
       "number": 17,
@@ -13276,7 +13276,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Toasty",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-toasty"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty"
     },
     {
       "number": 14,
@@ -13311,11 +13311,11 @@
         }
       ],
       "repo_name": "BLT-Toasty",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-toasty"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty"
     },
     {
       "number": 7,
-      "title": "Move BLT AI bot into https://gitlab.com/owasp-blt/toasty",
+      "title": "Move BLT AI bot into https://git.owaspblt.org/BLT/tree/main/blt-toasty",
       "html_url": "https://github.com/OWASP-BLT/BLT-Toasty/issues/7",
       "created_at": "2025-11-15T19:33:41Z",
       "updated_at": "2026-01-18T08:36:43Z",
@@ -13341,7 +13341,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Toasty",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-toasty"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty"
     },
     {
       "number": 3,
@@ -13389,7 +13389,7 @@
         }
       ],
       "repo_name": "BLT-Vanish-Web",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-vanish"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-vanish"
     },
     {
       "number": 11,
@@ -13419,7 +13419,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Toasty",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-toasty"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty"
     },
     {
       "number": 1,
@@ -13475,7 +13475,7 @@
         }
       ],
       "repo_name": "BLT-Toasty",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-toasty"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty"
     },
     {
       "number": 6,
@@ -13505,7 +13505,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Toasty",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-toasty"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty"
     },
     {
       "number": 5,
@@ -13535,7 +13535,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Toasty",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-toasty"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty"
     },
     {
       "number": 4,
@@ -13571,7 +13571,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Toasty",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-toasty"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty"
     },
     {
       "number": 3,
@@ -13601,7 +13601,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Toasty",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-toasty"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty"
     },
     {
       "number": 2,
@@ -13655,7 +13655,7 @@
         }
       ],
       "repo_name": "BLT-Toasty",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-toasty"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-toasty"
     },
     {
       "number": 4,
@@ -13696,7 +13696,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Timer-Web",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-timer-web"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-timer-web"
     },
     {
       "number": 43,
@@ -13733,7 +13733,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Sammich",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sammich"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sammich"
     },
     {
       "number": 83,
@@ -13769,7 +13769,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Lettuce",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-lettuce"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-lettuce"
     },
     {
       "number": 468,
@@ -13803,7 +13803,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Flutter",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-flutter"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-flutter"
     },
     {
       "number": 470,
@@ -13833,7 +13833,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Flutter",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-flutter"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-flutter"
     },
     {
       "number": 15,
@@ -13869,7 +13869,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 2,
@@ -13905,7 +13905,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 3,
@@ -13941,7 +13941,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 4,
@@ -13977,7 +13977,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 5,
@@ -14013,7 +14013,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 6,
@@ -14043,7 +14043,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 8,
@@ -14079,7 +14079,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 9,
@@ -14109,7 +14109,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 16,
@@ -14139,7 +14139,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 14,
@@ -14169,7 +14169,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 13,
@@ -14199,7 +14199,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 12,
@@ -14229,7 +14229,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 11,
@@ -14265,7 +14265,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 10,
@@ -14295,7 +14295,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Sizzle",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-sizzle"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-sizzle"
     },
     {
       "number": 22,
@@ -14331,7 +14331,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Extension",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-extension"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-extension"
     },
     {
       "number": 474,
@@ -14365,7 +14365,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Flutter",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-flutter"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-flutter"
     },
     {
       "number": 86,
@@ -14395,7 +14395,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Lettuce",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-lettuce"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-lettuce"
     },
     {
       "number": 84,
@@ -14436,7 +14436,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Lettuce",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-lettuce"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-lettuce"
     },
     {
       "number": 103,
@@ -14466,7 +14466,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Lettuce",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-lettuce"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-lettuce"
     },
     {
       "number": 26,
@@ -14502,7 +14502,7 @@
       ],
       "linked_prs": [],
       "repo_name": "BLT-Extension",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-extension"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-extension"
     },
     {
       "number": 478,
@@ -14532,7 +14532,7 @@
       "assignees": [],
       "linked_prs": [],
       "repo_name": "BLT-Flutter",
-      "repo_html_url": "https://gitlab.com/owasp-blt/blt-flutter"
+      "repo_html_url": "https://git.owaspblt.org/BLT/tree/main/blt-flutter"
     }
   ]
 }

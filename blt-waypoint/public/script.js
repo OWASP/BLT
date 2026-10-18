@@ -5,7 +5,7 @@ const ORG  = 'OWASP-BLT';
 const API  = 'https://api.github.com';
 const PER_PAGE = 100;            // max allowed by GitHub API
 const MAX_LANGUAGES_DISPLAYED = 12; // sidebar language filter cap
-const APP_VERSION = 'v0.2.9';
+const APP_VERSION = 'v0.3.0';
 const DATA_SOURCES = {
   main: {
     label: 'Main',
@@ -17,16 +17,18 @@ const DATA_SOURCES = {
     label: 'GitHub',
     file: 'github_data.json',
     orgUrl: 'https://git.owaspblt.org/BLT',
+    generatedBy: 'archived GitHub record from',
   },
-  gitlab: {
-    label: 'GitLab',
-    file: 'gitlab_data.json',
+  // Per-folder data of the monorepo on git.owaspblt.org (scripts/generate_forge_data.py, daily,
+  // served from KV). Stars, forks, languages, releases, branches and sizes do not exist per folder.
+  forge: {
+    label: 'Forge',
+    file: 'forge_data.json',
     orgUrl: 'https://git.owaspblt.org/BLT',
+    generatedBy: 'generated daily from git.owaspblt.org at',
   },
 };
-const MIGRATION_TOTAL_REPOS = 55;
-const MIGRATION_MIGRATED_REPOS = 55;
-const MIGRATION_COMPLETION_POINTS = MIGRATION_TOTAL_REPOS * 100;
+const FORGE_WEB = 'https://git.owaspblt.org/BLT';
 
 // Project board URLs sourced from https://git.owaspblt.org/BLT/dot_github/blob/main/scripts/project_urls.json
 const PROJECT_URLS = {
@@ -67,11 +69,6 @@ let tableSortCol  = localStorage.getItem('blt-table-sort-col') || 'updated_at';
 let tableSortDir  = localStorage.getItem('blt-table-sort-dir') || 'desc';
 let allLabels     = [];
 let currentDataSource = 'main';
-let currentMigrationSummary = {
-  migrated_repos: MIGRATION_MIGRATED_REPOS,
-  total_repos: MIGRATION_TOTAL_REPOS,
-  percent: Number(migrationOverallPercent()),
-};
 
 /* ------------------------------------------------------------------ */
 /*  DARK MODE                                                           */
@@ -196,7 +193,7 @@ function updateDataSourceTabs() {
     tab.classList.toggle('ring-offset-1', isActive);
     tab.classList.toggle('dark:ring-offset-gray-900', isActive);
     tab.classList.toggle('ring-brand', isActive && currentDataSource === 'github');
-    tab.classList.toggle('ring-green-500', isActive && currentDataSource === 'gitlab');
+    tab.classList.toggle('ring-green-500', isActive && currentDataSource === 'forge');
     tab.classList.toggle('ring-gray-500', isActive && currentDataSource === 'main');
     tab.classList.toggle('shadow-sm', isActive);
     tab.classList.toggle('scale-[1.03]', isActive);
@@ -212,7 +209,7 @@ function resetDataSourceFilters(source) {
   currentLang = '';
   currentLabel = '';
 
-  if (source === 'github' || source === 'gitlab') {
+  if (source === 'github' || source === 'forge') {
     currentView = 'table';
     localStorage.setItem('blt-view', currentView);
   }
@@ -229,11 +226,6 @@ function resetDataSourceFilters(source) {
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.lang === ''));
   document.querySelectorAll('.label-option').forEach(b => b.classList.remove('nav-active', 'text-brand'));
   updateViewButtons();
-}
-
-function gitlabMigrationProgress(r) {
-  if (typeof r.gitlab_migration_progress === 'number') return r.gitlab_migration_progress;
-  return gitlabRepoUrl(r) ? 100 : 0;
 }
 
 function repoDisplayName(r) {
@@ -263,6 +255,10 @@ function orgMetaRepoLast(a, b) {
 const PROJECT_LOGOS = {
   '.github': 'project-logos/.github.svg',
   'blt': 'project-logos-v2/BLT-Core.svg',
+  'blt-core': 'project-logos-v2/BLT-Core.svg',
+  'dot_github': 'project-logos/.github.svg',
+  'blt-gitcaster': 'canonical-logos/github-sport-caster.png',
+  'blt-vanish': 'canonical-logos/blt-vanish.png',
   'blt-autopatch': 'project-logos-v2/BLT-Autopatch.svg',
   'blt-action': 'canonical-logos/blt-action.png',
   'blt-api': 'canonical-logos/blt-api.png',
@@ -322,7 +318,7 @@ const PROJECT_LOGOS = {
 };
 
 function projectLogoPath(r) {
-  const filename = PROJECT_LOGOS[String(r.name || '').toLowerCase()];
+  const filename = PROJECT_LOGOS[String(r.folder || '').toLowerCase()] || PROJECT_LOGOS[String(r.name || '').toLowerCase()];
   return filename ? `./imgs/${filename}` : './imgs/project-logos-v2/BLT-Core.svg';
 }
 
@@ -331,40 +327,41 @@ function projectLogoHTML(r, classes = 'h-9 w-9') {
   return `<span class="${classes} shrink-0 rounded-full overflow-hidden flex items-center justify-center"><img src="${escapeHtml(path)}" alt="${escapeHtml(repoDisplayName(r))} logo" class="h-full w-full object-contain" loading="lazy" /></span>`;
 }
 
-function gitlabMigrationClasses(progress) {
-  if (progress === 100) {
-    return 'bg-green-50 text-green-700 ring-green-200 dark:bg-green-900/30 dark:text-green-300 dark:ring-green-800';
-  }
-  if (progress > 0) {
-    return 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-800';
-  }
-  return 'bg-red-50 text-red-700 ring-red-200 dark:bg-red-900/30 dark:text-red-300 dark:ring-red-800';
+// Forge URLs of a project folder (rows of every source carry `folder` or a folder html_url).
+function repoFolder(r) {
+  if (r.folder) return r.folder;
+  const match = /^https:\/\/git\.owaspblt\.org\/BLT\/tree\/main\/([^/?#]+)/.exec(r.html_url || '');
+  return match ? match[1] : '';
 }
 
-function gitlabRepoUrl(r) {
-  if (r.gitlab_url) return r.gitlab_url;
-  return (r.html_url || '').startsWith('https://gitlab.com/') ? r.html_url : '';
-}
-
-function calculateMigrationSummary(repos) {
-  const totalRepos = repos.length || MIGRATION_TOTAL_REPOS;
-  const completionPoints = repos.reduce((sum, repo) => sum + gitlabMigrationProgress(repo), 0);
+function repoLinks(r) {
+  const folder = repoFolder(r);
+  if (!folder) {
+    const base = r.html_url || '';
+    return { repo: base, issues: `${base}/issues`, newIssue: `${base}/issues/new`, pulls: `${base}/pulls`, commits: `${base}/commits`, stars: `${base}/stargazers`, forks: `${base}/forks`, branches: `${base}/branches` };
+  }
+  const repo = `${FORGE_WEB}/tree/main/${folder}`;
   return {
-    migrated_repos: repos.filter(repo => gitlabMigrationProgress(repo) > 0).length,
-    total_repos: totalRepos,
-    percent: Number((completionPoints / totalRepos).toFixed(1)),
+    repo,
+    issues: `${FORGE_WEB}/issues?label=${encodeURIComponent(folder)}`,
+    newIssue: `${FORGE_WEB}/issues/new`,
+    pulls: `${FORGE_WEB}/pulls`,
+    commits: repo,
+    stars: '',
+    forks: '',
+    branches: '',
   };
 }
 
-function updateMigrationSummary() {
-  const text = document.getElementById('migration-summary-text');
-  if (!text) return;
-  const migration = currentMigrationSummary;
-  text.textContent = `Migration ${migration.migrated_repos}/${migration.total_repos} (${migration.percent}%)`;
+// A stat that links when the forge has a page for it, else plain text.
+function statLink(url, cls, title, inner) {
+  return url
+    ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(title)}" class="${cls}">${inner}</a>`
+    : `<span title="${escapeHtml(title)}">${inner}</span>`;
 }
 
-function migrationOverallPercent() {
-  return (MIGRATION_COMPLETION_POINTS / MIGRATION_TOTAL_REPOS).toFixed(1);
+function hasValue(v) {
+  return v !== null && v !== undefined;
 }
 
 function updateVersionLabel() {
@@ -535,8 +532,7 @@ function csvToMainPayload(text) {
       fork: (raw.fork || '').toLowerCase() === 'true',
       archived: (raw.archived || '').toLowerCase() === 'true',
       updated_at: raw.updated_at,
-      gitlab_migration_progress: raw.gitlab_migration_progress ? Number(raw.gitlab_migration_progress) : 0,
-      gitlab_url: raw.gitlab_url,
+      folder: raw.folder || '',
     };
   }).filter(repo => repo.name);
 
@@ -544,7 +540,6 @@ function csvToMainPayload(text) {
     generated_at: '',
     source: 'main',
     org: ORG,
-    migration: calculateMigrationSummary(repos),
     repos,
   };
 }
@@ -649,10 +644,6 @@ async function loadRepos() {
     }
     snapshotLoaded = true;
     allRepos = payload.repos || [];
-    currentMigrationSummary = currentDataSource === 'main'
-      ? calculateMigrationSummary(allRepos)
-      : (payload.migration || currentMigrationSummary);
-    updateMigrationSummary();
     buildLangFilter(allRepos);
     buildLabelFilter(allRepos);
     const searchInput = document.getElementById('search-input');
@@ -677,7 +668,7 @@ async function loadRepos() {
           ` &nbsp;·&nbsp; <a href="${loadedFile}" class="text-brand hover:underline" target="_blank" rel="noopener">${loadedFile}</a>`;
       } else {
         footerTs.innerHTML =
-          `${source.label} stats generated by hourly action at <strong>${generatedAt}</strong>` +
+          `${source.label} data ${source.generatedBy || 'generated at'} <strong>${generatedAt}</strong>` +
           ` &nbsp;·&nbsp; <a href="${loadedFile}" class="text-brand hover:underline" target="_blank" rel="noopener">${loadedFile}</a>` +
           (source.orgUrl ? ` &nbsp;·&nbsp; <a href="${source.orgUrl}" class="text-brand hover:underline" target="_blank" rel="noopener">${source.label} org</a>` : '');
       }
@@ -735,6 +726,8 @@ async function loadRepos() {
 
 /** Returns the number of real open issues (excluding PRs) for a repo. */
 function repoIssueCount(r) {
+  // Forge rows count issues only; GitHub's open_issues_count included pull requests.
+  if (r.folder && hasValue(r.commits_365d)) return r.open_issues_count || 0;
   return Math.max(0, (r.open_issues_count || 0) - (r.open_pr_count || 0));
 }
 
@@ -1032,7 +1025,7 @@ function repoCardHTML(r) {
   const license = r.license ? `<span title="License" class="text-xs text-gray-400 dark:text-gray-500"><i class="fa-solid fa-scale-balanced mr-1" aria-hidden="true"></i>${escapeHtml(r.license.spdx_id)}</span>` : '';
 
   // Contributor avatars (slightly overlapping)
-  const contributors = (r.contributors || []).slice(0, 10);
+  const contributors = (r.contributors || []).filter(c => c.avatar_url).slice(0, 10);
   const avatarStack = contributors.length
     ? `<div class="avatar-stack" title="Top contributors: ${contributors.map(c => escapeHtml(c.login)).join(', ')}">
         ${contributors.map(c => `<a href="${escapeHtml(c.html_url || `https://github.com/${c.login}`)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(c.avatar_url)}&amp;s=44" alt="${escapeHtml(c.login)}" title="${escapeHtml(c.login)} (${c.contributions} commits)" loading="lazy" /></a>`).join('')}
@@ -1062,6 +1055,7 @@ function repoCardHTML(r) {
 
   // Project board URL (rocket button)
   const projectUrl = PROJECT_URLS[r.name];
+  const links = repoLinks(r);
 
   return `
   <article class="repo-card${hasGsoc ? ' gsoc-card' : ''} bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden flex flex-col shadow-sm" aria-label="Repository: ${escapeHtml(r.name)}">
@@ -1089,7 +1083,7 @@ function repoCardHTML(r) {
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2 flex-wrap mb-1">
           <a
-            href="${escapeHtml(r.html_url)}"
+            href="${escapeHtml(links.repo)}"
             target="_blank"
             rel="noopener noreferrer"
             class="font-semibold text-brand hover:underline underline-offset-2 truncate text-sm"
@@ -1114,15 +1108,17 @@ function repoCardHTML(r) {
           <span class="lang-dot" style="background:${langColor}"></span>${escapeHtml(r.language)}
         </span>
       ` : ''}
-      <a href="${escapeHtml(r.html_url)}/stargazers" target="_blank" rel="noopener noreferrer" title="Stars" class="hover:text-yellow-500 transition-colors"><i class="fa-solid fa-star mr-1 text-yellow-400" aria-hidden="true"></i>${formatNumber(r.stargazers_count)}</a>
-      <a href="${escapeHtml(r.html_url)}/forks" target="_blank" rel="noopener noreferrer" title="Forks" class="hover:text-green-600 transition-colors"><i class="fa-solid fa-code-fork mr-1 text-green-500" aria-hidden="true"></i>${formatNumber(r.forks_count)}</a>
-      <a href="${escapeHtml(r.html_url)}/issues" target="_blank" rel="noopener noreferrer" title="Open issues" class="hover:text-brand transition-colors"><i class="fa-solid fa-circle-dot mr-1 text-brand" aria-hidden="true"></i>${formatNumber(repoIssueCount(r))}</a>
-      ${r.open_pr_count ? `<a href="${escapeHtml(r.html_url)}/pulls" target="_blank" rel="noopener noreferrer" title="Open pull requests" class="hover:text-teal-500 transition-colors"><i class="fa-solid fa-code-pull-request mr-1 text-teal-500" aria-hidden="true"></i>${formatNumber(r.open_pr_count)}</a>` : ''}
-      ${r.agent_pr_count ? `<a href="${escapeHtml(r.html_url)}/pulls" target="_blank" rel="noopener noreferrer" title="Open bot/agent pull requests" class="hover:text-purple-500 transition-colors"><i class="fa-solid fa-robot mr-1 text-purple-500" aria-hidden="true"></i>${formatNumber(r.agent_pr_count)}</a>` : ''}
+      ${hasValue(r.stargazers_count) ? statLink(links.stars, 'hover:text-yellow-500 transition-colors', 'Stars', `<i class="fa-solid fa-star mr-1 text-yellow-400" aria-hidden="true"></i>${formatNumber(r.stargazers_count)}`) : ''}
+      ${hasValue(r.forks_count) ? statLink(links.forks, 'hover:text-green-600 transition-colors', 'Forks', `<i class="fa-solid fa-code-fork mr-1 text-green-500" aria-hidden="true"></i>${formatNumber(r.forks_count)}`) : ''}
+      ${statLink(links.issues, 'hover:text-brand transition-colors', 'Open issues', `<i class="fa-solid fa-circle-dot mr-1 text-brand" aria-hidden="true"></i>${formatNumber(repoIssueCount(r))}`)}
+      ${r.open_pr_count ? statLink(links.pulls, 'hover:text-teal-500 transition-colors', 'Open pull requests', `<i class="fa-solid fa-code-pull-request mr-1 text-teal-500" aria-hidden="true"></i>${formatNumber(r.open_pr_count)}`) : ''}
+      ${r.agent_pr_count ? statLink(links.pulls, 'hover:text-purple-500 transition-colors', 'Open bot/agent pull requests', `<i class="fa-solid fa-robot mr-1 text-purple-500" aria-hidden="true"></i>${formatNumber(r.agent_pr_count)}`) : ''}
       ${r.size ? `<span title="Repository size"><i class="fa-solid fa-database mr-1 text-cyan-400" aria-hidden="true"></i>${formatSize(r.size)}</span>` : ''}
       ${r.file_count ? `<span title="Total files (recursive)"><i class="fa-solid fa-file mr-1 text-teal-400" aria-hidden="true"></i>${formatNumber(r.file_count)} files</span>` : ''}
-      ${r.branch_count ? `<a href="${escapeHtml(r.html_url)}/branches" target="_blank" rel="noopener noreferrer" title="Branches" class="hover:text-violet-500 transition-colors"><i class="fa-solid fa-code-branch mr-1 text-violet-400" aria-hidden="true"></i>${formatNumber(r.branch_count)} branches</a>` : ''}
-      ${r.total_commits ? `<a href="${escapeHtml(r.html_url)}/commits" target="_blank" rel="noopener noreferrer" title="Total commits" class="hover:text-blue-500 transition-colors"><i class="fa-solid fa-code-commit mr-1 text-blue-400" aria-hidden="true"></i>${formatNumber(r.total_commits)} commits</a>` : ''}
+      ${r.branch_count ? statLink(links.branches, 'hover:text-violet-500 transition-colors', 'Branches', `<i class="fa-solid fa-code-branch mr-1 text-violet-400" aria-hidden="true"></i>${formatNumber(r.branch_count)} branches`) : ''}
+      ${r.total_commits ? statLink(links.commits, 'hover:text-blue-500 transition-colors', 'Total commits', `<i class="fa-solid fa-code-commit mr-1 text-blue-400" aria-hidden="true"></i>${formatNumber(r.total_commits)} commits`) : ''}
+      ${hasValue(r.commits_365d) ? statLink(links.commits, 'hover:text-blue-500 transition-colors', 'Commits in the last 30 days / year (bots excluded)', `<i class="fa-solid fa-code-commit mr-1 text-blue-400" aria-hidden="true"></i>${formatNumber(r.commits_30d || 0)} / ${formatNumber(r.commits_365d)}${r.commits_truncated ? '+' : ''} commits (30d / 1y)`) : ''}
+      ${r.contributor_count ? `<span title="Distinct commit authors in the last year"><i class="fa-solid fa-users mr-1 text-indigo-400" aria-hidden="true"></i>${formatNumber(r.contributor_count)} authors</span>` : ''}
       ${r.readme_chars ? `<span title="README character count"><i class="fa-solid fa-file-lines mr-1 text-pink-400" aria-hidden="true"></i>${formatNumber(r.readme_chars)} chars</span>` : ''}
     </div>
 
@@ -1182,22 +1178,22 @@ function repoCardHTML(r) {
     <div class="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-gray-100 dark:border-gray-700">
       <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500 flex-wrap">
         ${license}
-        <span title="Default branch"><i class="fa-solid fa-code-branch mr-1" aria-hidden="true"></i>${escapeHtml(r.default_branch)}</span>
+        ${r.default_branch ? `<span title="Default branch"><i class="fa-solid fa-code-branch mr-1" aria-hidden="true"></i>${escapeHtml(r.default_branch)}</span>` : ''}
       </div>
       <span class="text-xs text-gray-400 dark:text-gray-500" title="Last updated: ${escapeHtml(r.updated_at)}">
-        <i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>${timeAgo(r.updated_at)}
+        <i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>${r.updated_at ? timeAgo(r.updated_at) : '—'}
       </span>
     </div>
 
     <!-- Action buttons -->
     <div class="flex gap-2 flex-wrap">
       <a
-        href="${escapeHtml(r.html_url)}"
+        href="${escapeHtml(links.repo)}"
         target="_blank"
         rel="noopener noreferrer"
         class="flex-1 text-center text-xs font-semibold px-3 py-1.5 bg-brand text-white rounded-md hover:bg-red-700 transition-colors"
       >
-        <i class="fa-brands fa-github mr-1.5" aria-hidden="true"></i>View Repo
+        <i class="fa-solid fa-code-branch mr-1.5" aria-hidden="true"></i>View Source
       </a>
       ${r.homepage ? (() => {
         let isGithubPages = false;
@@ -1247,7 +1243,7 @@ function repoCardHTML(r) {
     <!-- Tiny action buttons -->
     <div class="flex gap-1.5 flex-wrap">
       <a
-        href="${escapeHtml(r.html_url)}/issues/new"
+        href="${escapeHtml(links.newIssue)}"
         target="_blank"
         rel="noopener noreferrer"
         title="Create new issue"
@@ -1270,67 +1266,51 @@ function repoCardHTML(r) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  RENDER MAIN MIGRATION SUMMARY                                      */
+/*  RENDER MAIN SUMMARY                                                 */
 /* ------------------------------------------------------------------ */
 function renderMainSummaryView(repos, container) {
-  const sorted = [...repos].sort((a, b) => {
-    const metaOrder = orgMetaRepoLast(a, b);
-    if (metaOrder) return metaOrder;
-    const progressDiff = gitlabMigrationProgress(b) - gitlabMigrationProgress(a);
-    return progressDiff || a.name.localeCompare(b.name);
-  });
+  const sorted = [...repos].sort((a, b) => orgMetaRepoLast(a, b) || a.name.localeCompare(b.name));
 
   const rows = sorted.map((r, i) => {
-    const migrationProgress = gitlabMigrationProgress(r);
-    const migrationClasses = gitlabMigrationClasses(migrationProgress);
     const live = liveSiteMeta(r);
+    const links = repoLinks(r);
     const rowBg = i % 2 === 0
       ? 'bg-white dark:bg-gray-900'
       : 'bg-gray-50/60 dark:bg-gray-800/60';
-    const gitlabUrl = gitlabRepoUrl(r);
     const liveCell = live.url
       ? `<a href="${escapeHtml(live.url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ring-1 max-w-[28rem] ${live.classes}" title="${escapeHtml(live.label)}: ${escapeHtml(live.url)}"><i class="${live.icon}" aria-hidden="true"></i><span class="truncate">${escapeHtml(live.url)}</span></a>`
       : `<span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${live.classes}"><i class="${live.icon}" aria-hidden="true"></i>${escapeHtml(live.label)}</span>`;
+    const folder = repoFolder(r);
 
     return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
       <td class="px-3 py-2 font-medium">
         <div class="flex items-center gap-2">
           ${projectLogoHTML(r, 'h-9 w-9')}
           <div class="min-w-0">
-            <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(repoDisplayName(r))}</a>
+            <a href="${escapeHtml(links.repo)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(repoDisplayName(r))}</a>
             ${repoDescription(r) ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-sm mt-0.5">${escapeHtml(repoDescription(r))}</p>` : ''}
           </div>
         </div>
       </td>
-      <td class="px-3 py-2 whitespace-nowrap">
-        <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ring-1 ${migrationClasses}" title="GitLab migration progress: ${migrationProgress}%">
-          <i class="fa-brands fa-gitlab" aria-hidden="true"></i>${migrationProgress}%
-        </span>
-      </td>
       <td class="px-3 py-2">${liveCell}</td>
       <td class="px-3 py-2 whitespace-nowrap">
-        ${gitlabUrl
-          ? `<a href="${escapeHtml(gitlabUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/30 ring-1 ring-orange-200 dark:ring-orange-800" title="${escapeHtml(gitlabUrl)}"><i class="fa-brands fa-gitlab" aria-hidden="true"></i>GitLab</a>`
+        ${folder
+          ? `<a href="${escapeHtml(links.repo)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 ring-1 ring-gray-200 dark:ring-gray-700" title="${escapeHtml(links.repo)}"><i class="fa-solid fa-code-branch" aria-hidden="true"></i>${escapeHtml(folder)}</a>`
           : `<span class="text-gray-300 dark:text-gray-600">-</span>`}
       </td>
     </tr>`;
   }).join('');
 
-  const percent = migrationOverallPercent();
-  const migration = currentMigrationSummary;
-  const migrationPercent = Number.isFinite(migration.percent) ? migration.percent : percent;
   container.innerHTML = `
     <table class="border-collapse text-sm w-max">
       <caption class="caption-top text-left px-3 pb-3 text-sm text-gray-600 dark:text-gray-300">
-        <span class="font-semibold text-gray-800 dark:text-gray-100">GitLab migration summary:</span>
-        ${migration.migrated_repos} of ${migration.total_repos} repositories in migration progress (${migrationPercent}% complete).
+        Every project is a folder of <a href="${FORGE_WEB}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline">git.owaspblt.org/BLT</a>.
       </caption>
       <thead class="bg-gray-50 dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700">
         <tr>
           <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Repository (${formatNumber(repos.length)})</th>
-          <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Migrated</th>
           <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Live Site URL</th>
-          <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">GitLab</th>
+          <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Source</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -1340,99 +1320,97 @@ function renderMainSummaryView(repos, container) {
 /* ------------------------------------------------------------------ */
 /*  RENDER TABLE VIEW                                                   */
 /* ------------------------------------------------------------------ */
+// `only` limits a column to some data sources; the forge has no stars, forks, languages,
+// releases, branches or sizes per folder, so those columns are hidden there.
+const NOT_FORGE = ['github'];
 const TABLE_COLS = [
   { key: 'name',              label: 'Repository' },
-  { key: 'gitlab_migration',  label: 'GitLab Migration' },
   { key: 'topics',            label: 'Labels'     },
-  { key: 'language',          label: 'Language'   },
-  { key: 'stargazers_count',  label: 'Stars'      },
-  { key: 'forks_count',       label: 'Forks'      },
+  { key: 'language',          label: 'Language',    only: NOT_FORGE },
+  { key: 'stargazers_count',  label: 'Stars',       only: NOT_FORGE },
+  { key: 'forks_count',       label: 'Forks',       only: NOT_FORGE },
   { key: 'open_issues_count', label: 'Issues'     },
   { key: 'open_pr_count',     label: 'PRs'        },
-  { key: 'agent_pr_count',    label: 'Agent PRs'  },
-  { key: 'total_commits',     label: 'Commits'    },
-  { key: 'branch_count',      label: 'Branches'   },
-  { key: 'size',              label: 'Size'       },
+  { key: 'agent_pr_count',    label: 'Agent PRs',   only: NOT_FORGE },
+  { key: 'total_commits',     label: 'Commits',     only: NOT_FORGE },
+  { key: 'commits_30d',       label: 'Commits 30d', only: ['forge'] },
+  { key: 'commits_90d',       label: 'Commits 90d', only: ['forge'] },
+  { key: 'commits_365d',      label: 'Commits 1y',  only: ['forge'] },
+  { key: 'contributor_count', label: 'Authors 1y',  only: ['forge'] },
+  { key: 'branch_count',      label: 'Branches',    only: NOT_FORGE },
+  { key: 'size',              label: 'Size',        only: NOT_FORGE },
   { key: 'readme_chars',      label: 'README Size' },
-  { key: 'maturity',          label: 'Maturity'   },
-  { key: 'latest_release',    label: 'Release'    },
+  { key: 'maturity',          label: 'Maturity',    only: NOT_FORGE },
+  { key: 'latest_release',    label: 'Release',     only: NOT_FORGE },
   { key: 'latest_commit',     label: 'Last Commit' },
-  { key: 'latest_pr',        label: 'Last PR'    },
+  { key: 'latest_pr',         label: 'Last PR'    },
   { key: 'updated_at',        label: 'Updated'    },
   { key: 'latest_issue',      label: 'Latest Issue' },
   { key: 'infra',             label: 'Infra'        },
 ];
 
+function visibleTableCols() {
+  return TABLE_COLS.filter(col => !col.only || col.only.includes(currentDataSource));
+}
+
+function byDate(get) {
+  return (a, b) => {
+    const ta = get(a) ? new Date(get(a)) : null;
+    const tb = get(b) ? new Date(get(b)) : null;
+    if (!ta && !tb) return 0;
+    if (!ta) return -1;
+    if (!tb) return 1;
+    return ta - tb;
+  };
+}
+
+const EMPTY_CELL = `<span class="text-gray-300 dark:text-gray-600">—</span>`;
+
 function renderTableView(repos, container) {
-  // Sort repos by current table sort state
+  const cols = visibleTableCols();
+  const sortCol = cols.some(c => c.key === tableSortCol) ? tableSortCol : 'updated_at';
   const sorted = [...repos].sort((a, b) => {
     const metaOrder = orgMetaRepoLast(a, b);
     if (metaOrder) return metaOrder;
     let v;
-    if (tableSortCol === 'name')       v = a.name.localeCompare(b.name);
-    else if (tableSortCol === 'gitlab_migration') {
-      v = gitlabMigrationProgress(a) - gitlabMigrationProgress(b);
+    if (sortCol === 'name')       v = a.name.localeCompare(b.name);
+    else if (sortCol === 'maturity') v = (a._maturityScore || 0) - (b._maturityScore || 0);
+    else if (sortCol === 'updated_at' || sortCol === 'created_at' || sortCol === 'pushed_at') {
+      v = byDate(r => r[sortCol])(a, b);
     }
-    else if (tableSortCol === 'maturity') {
-      v = (a._maturityScore || 0) - (b._maturityScore || 0);
-    }
-    else if (tableSortCol === 'updated_at' || tableSortCol === 'created_at' || tableSortCol === 'pushed_at') {
-      const ta = new Date(a[tableSortCol]);
-      const tb = new Date(b[tableSortCol]);
-      v = ta - tb;
-    }
-    else if (tableSortCol === 'open_issues_count') v = repoIssueCount(a) - repoIssueCount(b);
-    else if (tableSortCol === 'topics') v = (a.topics || []).length - (b.topics || []).length;
-    else if (tableSortCol === 'latest_release') {
-      const ta = (a.latest_release && a.latest_release.published_at) ? new Date(a.latest_release.published_at) : null;
-      const tb = (b.latest_release && b.latest_release.published_at) ? new Date(b.latest_release.published_at) : null;
-      if (!ta && !tb) v = 0;
-      else if (!ta) v = -1;
-      else if (!tb) v = 1;
-      else v = ta - tb;
-    }
-    else if (tableSortCol === 'latest_commit') {
-      const ta = (a.latest_commit && a.latest_commit.date) ? new Date(a.latest_commit.date) : null;
-      const tb = (b.latest_commit && b.latest_commit.date) ? new Date(b.latest_commit.date) : null;
-      if (!ta && !tb) v = 0;
-      else if (!ta) v = -1;
-      else if (!tb) v = 1;
-      else v = ta - tb;
-    }
-    else if (tableSortCol === 'latest_pr') {
-      const ta = (a.latest_pr && a.latest_pr.updated_at) ? new Date(a.latest_pr.updated_at) : null;
-      const tb = (b.latest_pr && b.latest_pr.updated_at) ? new Date(b.latest_pr.updated_at) : null;
-      if (!ta && !tb) v = 0;
-      else if (!ta) v = -1;
-      else if (!tb) v = 1;
-      else v = ta - tb;
-    }
-    else if (tableSortCol === 'latest_issue') {
+    else if (sortCol === 'open_issues_count') v = repoIssueCount(a) - repoIssueCount(b);
+    else if (sortCol === 'topics') v = (a.topics || []).length - (b.topics || []).length;
+    else if (sortCol === 'latest_release') v = byDate(r => r.latest_release && r.latest_release.published_at)(a, b);
+    else if (sortCol === 'latest_commit') v = byDate(r => r.latest_commit && r.latest_commit.date)(a, b);
+    else if (sortCol === 'latest_pr') v = byDate(r => r.latest_pr && r.latest_pr.updated_at)(a, b);
+    else if (sortCol === 'latest_issue') {
       v = (a.latest_issue ? a.latest_issue.number : 0) - (b.latest_issue ? b.latest_issue.number : 0);
     }
-    else v = (a[tableSortCol] || 0) - (b[tableSortCol] || 0);
+    else v = (a[sortCol] || 0) - (b[sortCol] || 0);
     return tableSortDir === 'asc' ? v : -v;
   });
 
-  // Compute column totals for headers
+  const sum = key => repos.reduce((s, r) => s + (r[key] || 0), 0);
   const colTotals = {
     name:               repos.length,
-    stargazers_count:   repos.reduce((s, r) => s + (r.stargazers_count || 0), 0),
-    forks_count:        repos.reduce((s, r) => s + (r.forks_count || 0), 0),
+    stargazers_count:   sum('stargazers_count'),
+    forks_count:        sum('forks_count'),
     open_issues_count:  repos.reduce((s, r) => s + repoIssueCount(r), 0),
-    open_pr_count:      repos.reduce((s, r) => s + (r.open_pr_count || 0), 0),
-    agent_pr_count:     repos.reduce((s, r) => s + (r.agent_pr_count || 0), 0),
-    total_commits:      repos.reduce((s, r) => s + (r.total_commits || 0), 0),
-    branch_count:       repos.reduce((s, r) => s + (r.branch_count || 0), 0),
-    size:               repos.reduce((s, r) => s + (r.size || 0), 0),
-    readme_chars:       repos.reduce((s, r) => s + (r.readme_chars || 0), 0),
+    open_pr_count:      sum('open_pr_count'),
+    agent_pr_count:     sum('agent_pr_count'),
+    total_commits:      sum('total_commits'),
+    commits_30d:        sum('commits_30d'),
+    commits_90d:        sum('commits_90d'),
+    commits_365d:       sum('commits_365d'),
+    branch_count:       sum('branch_count'),
+    size:               sum('size'),
+    readme_chars:       sum('readme_chars'),
     language:           new Set(repos.map(r => r.language).filter(Boolean)).size,
     topics:             new Set(repos.flatMap(r => r.topics || [])).size,
   };
 
-  // Build header cells
-  const headerCells = TABLE_COLS.map(col => {
-    const isActive = tableSortCol === col.key;
+  const headerCells = cols.map(col => {
+    const isActive = sortCol === col.key;
     const arrow = isActive ? (tableSortDir === 'asc' ? ' ▲' : ' ▼') : '';
     const activeCls = isActive ? ' text-brand dark:text-red-400 font-bold' : '';
     const total = colTotals[col.key];
@@ -1440,13 +1418,12 @@ function renderTableView(repos, container) {
     return `<th data-col="${col.key}" class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap transition-colors${activeCls}" title="Sort by ${escapeHtml(col.label)}">${escapeHtml(col.label)}${totalStr}<span class="ml-1">${arrow}</span></th>`;
   }).join('');
 
-  // Build rows
+  const num = 'px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums';
   const rows = sorted.map((r, i) => {
+    const links = repoLinks(r);
     const langColor = LANG_COLORS[r.language] || '#8b949e';
     const score = r._maturityScore || 0;
     const { label: matLabel, color: matColor, bg: matBg } = r._maturityMeta || maturityMeta(0);
-    const migrationProgress = gitlabMigrationProgress(r);
-    const migrationClasses = gitlabMigrationClasses(migrationProgress);
     const rowBg = i % 2 === 0
       ? 'bg-white dark:bg-gray-900'
       : 'bg-gray-50/60 dark:bg-gray-800/60';
@@ -1459,7 +1436,6 @@ function renderTableView(repos, container) {
     const projectUrl = PROJECT_URLS[r.name];
     const live = liveSiteMeta(r);
     const topics = r.topics || [];
-    const topicCount = topics.length;
     const gsocTopic = topics.find(t => t.toLowerCase().includes('gsoc'));
     const gsocBadge = gsocTopic
       ? `<span class="inline-block gsoc-label text-xs px-2 py-0.5 rounded-full whitespace-nowrap ml-1">${escapeHtml(gsocTopic)}</span>`
@@ -1470,87 +1446,65 @@ function renderTableView(repos, container) {
     const pagesIcon = r.has_pages
       ? `<i class="fa-solid fa-scroll text-purple-500 text-xs ml-1" title="GitHub Pages enabled" aria-label="GitHub Pages"></i>`
       : '';
-    const gitlabUrl = gitlabRepoUrl(r);
-    return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
-      <td class="px-3 py-2 font-medium">
+    const count = (key, title) => `<td class="${num}">${r[key]
+      ? statLink(links.commits, 'hover:text-blue-500 transition-colors', title, `<i class="fa-solid fa-code-commit text-blue-400 mr-1" aria-hidden="true"></i>${formatNumber(r[key])}${key === 'commits_365d' && r.commits_truncated ? '+' : ''}`)
+      : EMPTY_CELL}</td>`;
+
+    const cells = {
+      name: `<td class="px-3 py-2 font-medium">
         <div class="flex items-center gap-2">
           ${projectLogoHTML(r, 'h-9 w-9')}
           <div class="min-w-0">
             <div class="flex items-center gap-1 flex-wrap">
-              <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(repoDisplayName(r))}</a>${archiveBadge}${forkBadge}${gsocBadge}
+              <a href="${escapeHtml(links.repo)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(repoDisplayName(r))}</a>${archiveBadge}${forkBadge}${gsocBadge}
             </div>
             ${repoDescription(r) ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs mt-0.5">${escapeHtml(repoDescription(r))}</p>` : ''}
           </div>
         </div>
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap">
-        <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ring-1 ${migrationClasses}" title="GitLab migration progress: ${migrationProgress}%">
-          <i class="fa-brands fa-gitlab" aria-hidden="true"></i>${migrationProgress}%
-        </span>
-      </td>
-      <td class="px-3 py-2 text-center whitespace-nowrap text-sm tabular-nums">
-        ${topicCount > 0 ? `<span class="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">${topicCount}</span>` : '<span class="text-gray-300 dark:text-gray-600">—</span>'}
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm">
+      </td>`,
+      topics: `<td class="px-3 py-2 text-center whitespace-nowrap text-sm tabular-nums">
+        ${topics.length > 0 ? `<span class="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">${topics.length}</span>` : EMPTY_CELL}
+      </td>`,
+      language: `<td class="px-3 py-2 whitespace-nowrap text-sm">
         ${r.language
           ? `<span class="lang-dot" style="background:${langColor}"></span><span class="text-gray-600 dark:text-gray-300">${escapeHtml(r.language)}</span>`
-          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
-      </td>
-      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
-        <a href="${escapeHtml(r.html_url)}/stargazers" target="_blank" rel="noopener noreferrer" class="hover:text-yellow-500 transition-colors" title="Stars">
-          <i class="fa-solid fa-star text-yellow-400 mr-1" aria-hidden="true"></i>${formatNumber(r.stargazers_count || 0)}
-        </a>
-      </td>
-      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
-        <a href="${escapeHtml(r.html_url)}/forks" target="_blank" rel="noopener noreferrer" class="hover:text-green-600 transition-colors" title="Forks">
-          <i class="fa-solid fa-code-fork text-green-500 mr-1" aria-hidden="true"></i>${formatNumber(r.forks_count || 0)}
-        </a>
-      </td>
-      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
-        <a href="${escapeHtml(r.html_url)}/issues" target="_blank" rel="noopener noreferrer" class="hover:text-brand transition-colors" title="Open issues">
-          <i class="fa-solid fa-circle-dot text-brand mr-1" aria-hidden="true"></i>${formatNumber(repoIssueCount(r))}
-        </a>
-      </td>
-      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
-        ${r.open_pr_count
-          ? `<a href="${escapeHtml(r.html_url)}/pulls" target="_blank" rel="noopener noreferrer" class="hover:text-teal-500 transition-colors" title="Open pull requests"><i class="fa-solid fa-code-pull-request text-teal-500 mr-1" aria-hidden="true"></i>${formatNumber(r.open_pr_count)}</a>`
-          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
-      </td>
-      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
-        ${r.agent_pr_count
-          ? `<a href="${escapeHtml(r.html_url)}/pulls" target="_blank" rel="noopener noreferrer" class="hover:text-purple-500 transition-colors" title="Open agent pull requests"><i class="fa-solid fa-robot text-purple-500 mr-1" aria-hidden="true"></i>${formatNumber(r.agent_pr_count)}</a>`
-          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
-      </td>
-      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
-        ${r.total_commits
-          ? `<a href="${escapeHtml(r.html_url)}/commits" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 transition-colors" title="Total commits"><i class="fa-solid fa-code-commit text-blue-400 mr-1" aria-hidden="true"></i>${formatNumber(r.total_commits)}</a>`
-          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
-      </td>
-      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
-        ${r.branch_count
-          ? `<a href="${escapeHtml(r.html_url)}/branches" target="_blank" rel="noopener noreferrer" class="hover:text-violet-500 transition-colors" title="Branches"><i class="fa-solid fa-code-branch text-violet-400 mr-1" aria-hidden="true"></i>${formatNumber(r.branch_count)}</a>`
-          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
-      </td>
-      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
-        <i class="fa-solid fa-database text-cyan-400 mr-1" aria-hidden="true"></i>${formatSize(r.size)}
-      </td>
-      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
-        ${r.readme_chars ? `<i class="fa-solid fa-file-lines text-pink-400 mr-1" aria-hidden="true"></i>${formatNumber(r.readme_chars)}` : '<span class="text-gray-300 dark:text-gray-600">—</span>'}
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap">
+          : EMPTY_CELL}
+      </td>`,
+      stargazers_count: `<td class="${num}">${statLink(links.stars, 'hover:text-yellow-500 transition-colors', 'Stars', `<i class="fa-solid fa-star text-yellow-400 mr-1" aria-hidden="true"></i>${formatNumber(r.stargazers_count || 0)}`)}</td>`,
+      forks_count: `<td class="${num}">${statLink(links.forks, 'hover:text-green-600 transition-colors', 'Forks', `<i class="fa-solid fa-code-fork text-green-500 mr-1" aria-hidden="true"></i>${formatNumber(r.forks_count || 0)}`)}</td>`,
+      open_issues_count: `<td class="${num}">${statLink(links.issues, 'hover:text-brand transition-colors', 'Open issues', `<i class="fa-solid fa-circle-dot text-brand mr-1" aria-hidden="true"></i>${formatNumber(repoIssueCount(r))}`)}</td>`,
+      open_pr_count: `<td class="${num}">${r.open_pr_count
+        ? statLink(links.pulls, 'hover:text-teal-500 transition-colors', 'Open pull requests', `<i class="fa-solid fa-code-pull-request text-teal-500 mr-1" aria-hidden="true"></i>${formatNumber(r.open_pr_count)}`)
+        : EMPTY_CELL}</td>`,
+      agent_pr_count: `<td class="${num}">${r.agent_pr_count
+        ? statLink(links.pulls, 'hover:text-purple-500 transition-colors', 'Open agent pull requests', `<i class="fa-solid fa-robot text-purple-500 mr-1" aria-hidden="true"></i>${formatNumber(r.agent_pr_count)}`)
+        : EMPTY_CELL}</td>`,
+      total_commits: count('total_commits', 'Total commits'),
+      commits_30d: count('commits_30d', 'Commits in the last 30 days (bots excluded)'),
+      commits_90d: count('commits_90d', 'Commits in the last 90 days (bots excluded)'),
+      commits_365d: count('commits_365d', r.commits_truncated ? 'Commits in the last year (at least; history page cap reached)' : 'Commits in the last year (bots excluded)'),
+      contributor_count: `<td class="${num}" title="${escapeHtml((r.contributors || []).map(c => c.login).join(', '))}">${r.contributor_count
+        ? `<i class="fa-solid fa-users text-indigo-400 mr-1" aria-hidden="true"></i>${formatNumber(r.contributor_count)}`
+        : EMPTY_CELL}</td>`,
+      branch_count: `<td class="${num}">${r.branch_count
+        ? statLink(links.branches, 'hover:text-violet-500 transition-colors', 'Branches', `<i class="fa-solid fa-code-branch text-violet-400 mr-1" aria-hidden="true"></i>${formatNumber(r.branch_count)}`)
+        : EMPTY_CELL}</td>`,
+      size: `<td class="${num}"><i class="fa-solid fa-database text-cyan-400 mr-1" aria-hidden="true"></i>${formatSize(r.size)}</td>`,
+      readme_chars: `<td class="${num}">${r.readme_chars ? `<i class="fa-solid fa-file-lines text-pink-400 mr-1" aria-hidden="true"></i>${formatNumber(r.readme_chars)}` : EMPTY_CELL}</td>`,
+      maturity: `<td class="px-3 py-2 whitespace-nowrap">
         <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${matBg} ${matColor}" title="Maturity score: ${score}/100">${matLabel} ${score}</span>
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-xs">
+      </td>`,
+      latest_release: `<td class="px-3 py-2 whitespace-nowrap text-xs">
         ${r.latest_release
           ? `<a href="${escapeHtml(r.latest_release.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-green-600 transition-colors text-gray-600 dark:text-gray-300" title="Latest release${r.latest_release.published_at ? ': ' + r.latest_release.published_at : ''}"><i class="fa-solid fa-tag text-green-500 mr-1" aria-hidden="true"></i>${escapeHtml(r.latest_release.tag_name)}</a>`
-          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
-      </td>
-      <td class="px-3 py-2 text-xs max-w-[16rem]">
+          : EMPTY_CELL}
+      </td>`,
+      latest_commit: `<td class="px-3 py-2 text-xs max-w-[16rem]">
         ${r.latest_commit
           ? `<a href="${escapeHtml(r.latest_commit.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors text-gray-600 dark:text-gray-300 truncate block" title="${escapeHtml(r.latest_commit.message)}${r.latest_commit.author ? ' by ' + escapeHtml(r.latest_commit.author) : ''}"><i class="fa-solid fa-code-commit text-blue-400 mr-1" aria-hidden="true"></i>${r.latest_commit.author_avatar ? `<img src="${escapeHtml(r.latest_commit.author_avatar)}&amp;s=20" alt="${escapeHtml(r.latest_commit.author)}" title="${escapeHtml(r.latest_commit.author)}" class="inline-block w-4 h-4 rounded-full mr-1 align-middle" loading="lazy" />` : ''}${escapeHtml(r.latest_commit.message)}${r.latest_commit.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${escapeHtml(r.latest_commit.author)}</span>` : ''}</a>`
-          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
-      </td>
-      <td class="px-3 py-2 text-xs max-w-[16rem]">
+          : EMPTY_CELL}
+      </td>`,
+      latest_pr: `<td class="px-3 py-2 text-xs max-w-[16rem]">
         ${r.latest_pr ? (() => {
           const prState = r.latest_pr.state;
           const prIcon = prState === 'merged'
@@ -1559,26 +1513,29 @@ function renderTableView(repos, container) {
               ? `<i class="fa-solid fa-code-pull-request text-green-500 mr-1" aria-hidden="true" title="Open"></i>`
               : `<i class="fa-solid fa-circle-xmark text-red-500 mr-1" aria-hidden="true" title="Closed"></i>`;
           return `<a href="${escapeHtml(r.latest_pr.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors text-gray-600 dark:text-gray-300 truncate block" title="#${r.latest_pr.number}: ${escapeHtml(r.latest_pr.title)}${r.latest_pr.author ? ' by ' + escapeHtml(r.latest_pr.author) : ''} [${prState}]">${prIcon}${r.latest_pr.author_avatar ? `<img src="${escapeHtml(r.latest_pr.author_avatar)}&amp;s=20" alt="${escapeHtml(r.latest_pr.author)}" title="${escapeHtml(r.latest_pr.author)}" class="inline-block w-4 h-4 rounded-full mr-1 align-middle" loading="lazy" />` : ''}#${r.latest_pr.number}: ${escapeHtml(r.latest_pr.title)}${r.latest_pr.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${escapeHtml(r.latest_pr.author)}</span>` : ''}</a>`;
-        })() : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400" title="Last updated: ${escapeHtml(r.updated_at)}">${timeAgo(r.updated_at)}</td>
-      <td class="px-3 py-2 text-xs max-w-[14rem]">
+        })() : EMPTY_CELL}
+      </td>`,
+      updated_at: `<td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400" title="Last updated: ${escapeHtml(r.updated_at)}">${r.updated_at ? timeAgo(r.updated_at) : '—'}</td>`,
+      latest_issue: `<td class="px-3 py-2 text-xs max-w-[14rem]">
         ${r.latest_issue
           ? `<a href="${escapeHtml(r.latest_issue.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-brand hover:underline transition-colors text-gray-600 dark:text-gray-300 truncate block" title="#${r.latest_issue.number}: ${escapeHtml(r.latest_issue.title)}"><i class="fa-solid fa-circle-dot text-brand mr-1" aria-hidden="true"></i>#${r.latest_issue.number}: ${escapeHtml(r.latest_issue.title)}</a>`
-          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-center">
+          : EMPTY_CELL}
+      </td>`,
+      infra: `<td class="px-3 py-2 whitespace-nowrap text-center">
         <div class="flex items-center justify-center gap-1.5">
-          ${wranglerIcon}${pagesIcon}${(!wranglerIcon && !pagesIcon) ? '<span class="text-gray-300 dark:text-gray-600">—</span>' : ''}
+          ${wranglerIcon}${pagesIcon}${(!wranglerIcon && !pagesIcon) ? EMPTY_CELL : ''}
         </div>
-      </td>
+      </td>`,
+    };
+
+    return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
+      ${cols.map(col => cells[col.key]).join('')}
       <td class="px-3 py-2 whitespace-nowrap">
         <div class="flex gap-1.5">
-          <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 bg-brand text-white rounded hover:bg-red-700 transition-colors" title="View on GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
-          ${gitlabUrl ? `<a href="${escapeHtml(gitlabUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-orange-500 text-orange-600 dark:text-orange-400 rounded hover:bg-orange-500 hover:text-white transition-colors" title="View Source"><i class="fa-brands fa-gitlab" aria-hidden="true"></i></a>` : ''}
+          <a href="${escapeHtml(links.repo)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 bg-brand text-white rounded hover:bg-red-700 transition-colors" title="View source on git.owaspblt.org"><i class="fa-solid fa-code-branch" aria-hidden="true"></i></a>
           ${live.url ? `<a href="${escapeHtml(live.url)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="${escapeHtml(live.label)}"><i class="${live.icon}" aria-hidden="true"></i></a>` : `<span role="button" aria-disabled="true" class="text-xs px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded cursor-not-allowed" title="No live site"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></span>`}
           ${projectUrl ? `<a href="${escapeHtml(projectUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Project Board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></a>` : `<span role="button" aria-disabled="true" class="text-xs px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded cursor-not-allowed" title="No project board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></span>`}
-          <a href="${escapeHtml(r.html_url)}/issues/new" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="New Issue"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i></a>
+          <a href="${escapeHtml(links.newIssue)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="New Issue"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i></a>
           <a href="https://github.com/${ORG}/${r.name}/agents" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="Open agent tasks for this repo"><i class="fa-solid fa-robot" aria-hidden="true"></i></a>
         </div>
       </td>
@@ -1600,12 +1557,12 @@ function renderTableView(repos, container) {
   container.querySelectorAll('th[data-col]').forEach(th => {
     th.addEventListener('click', () => {
       const col = th.dataset.col;
-      if (tableSortCol === col) {
+      if (sortCol === col) {
         tableSortDir = tableSortDir === 'desc' ? 'asc' : 'desc';
       } else {
-        tableSortCol = col;
         tableSortDir = 'desc';
       }
+      tableSortCol = col;
       localStorage.setItem('blt-table-sort-col', tableSortCol);
       localStorage.setItem('blt-table-sort-dir', tableSortDir);
       renderTableView(filtered, container);
@@ -1681,7 +1638,6 @@ document.querySelectorAll('.data-source-tab').forEach(tab => {
 // Initialize button states immediately
 updateViewButtons();
 updateDataSourceTabs();
-updateMigrationSummary();
 updateVersionLabel();
 
 // Initialize sort UI to reflect stored preference

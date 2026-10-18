@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OWASP BLT – Organization Dashboard</title>
   <meta name="description"
-    content="Live dashboard for all OWASP-BLT GitHub and GitLab repositories – stats, commits, issues, PRs, migration progress, and more." />
+    content="Live dashboard for all OWASP BLT projects on git.owaspblt.org – per-project commits, issues, pull requests and live sites, plus the archived GitHub record." />
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="./imgs/logo.png" />
@@ -35,7 +35,7 @@
     crossorigin="anonymous" referrerpolicy="no-referrer" />
 
   <!-- Custom styles -->
-  <link rel="stylesheet" href="styles.css?v=0.2.9" />
+  <link rel="stylesheet" href="styles.css?v=0.3.0" />
 </head>
 
 <body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen font-sans">
@@ -64,37 +64,29 @@
       <!-- Data source tabs -->
       <div class="hidden md:flex items-center gap-1 shrink-0" role="tablist" aria-label="Repository data source">
         <button id="data-source-main" type="button" role="tab" aria-selected="true" aria-current="page" data-source="main"
-          title="Show migration summary data"
+          title="Show the project summary"
           class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all text-xs font-bold ring-2 ring-offset-1 dark:ring-offset-gray-900 ring-gray-500 shadow-sm scale-[1.03]">
           <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
           <span>Main</span>
         </button>
         <button id="data-source-github" type="button" role="tab" aria-selected="false" aria-current="false" data-source="github"
-          title="Show GitHub repository data"
+          title="Show the archived GitHub record"
           class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all text-xs font-semibold opacity-60 grayscale">
           <i class="fa-brands fa-github" aria-hidden="true"></i>
           <i class="fa-solid fa-xmark" aria-hidden="true"></i>
           <span>GitHub</span>
         </button>
-        <button id="data-source-gitlab" type="button" role="tab" aria-selected="false" aria-current="false" data-source="gitlab"
-          title="Show GitLab repository data"
+        <button id="data-source-forge" type="button" role="tab" aria-selected="false" aria-current="false" data-source="forge"
+          title="Show per-project data from git.owaspblt.org"
           class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 transition-all text-xs font-semibold opacity-60 grayscale">
-          <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
-          <i class="fa-solid fa-check" aria-hidden="true"></i>
-          <span>GitLab</span>
+          <i class="fa-solid fa-code-branch" aria-hidden="true"></i>
+          <span>Forge</span>
         </button>
-      </div>
-
-      <div id="migration-summary"
-        class="hidden xl:flex h-8 items-center gap-1.5 rounded-md border border-green-200 dark:border-green-800 bg-white dark:bg-gray-800 px-2 text-xs font-semibold text-gray-700 dark:text-gray-200 whitespace-nowrap"
-        title="GitLab migration progress">
-        <i class="fa-brands fa-gitlab text-green-600 dark:text-green-400" aria-hidden="true"></i>
-        <span id="migration-summary-text">Migration 55/55 (100%)</span>
       </div>
 
       <span id="version-label"
         class="hidden md:inline-flex h-8 items-center rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400"
-        title="Dashboard version">v0.2.9</span>
+        title="Dashboard version">v0.3.0</span>
 
       <!-- Right controls -->
       <div class="flex items-center gap-1 sm:gap-2 shrink-0">
@@ -147,17 +139,10 @@
         </a>
 
         <!-- Source code link -->
-        <a href="https://git.owaspblt.org/BLT" target="_blank" rel="noopener noreferrer"
-          aria-label="OWASP BLT source code on GitLab"
+        <a href="https://git.owaspblt.org/BLT/tree/main/blt-waypoint" target="_blank" rel="noopener noreferrer"
+          aria-label="BLT-Waypoint source code on git.owaspblt.org" title="Source code on git.owaspblt.org"
           class="w-7 h-7 sm:w-auto sm:h-auto sm:p-2 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-          <i class="fa-brands fa-gitlab text-xs sm:text-base" aria-hidden="true"></i>
-        </a>
-
-        <!-- GitLab link -->
-        <a href="https://git.owaspblt.org/BLT" target="_blank" rel="noopener noreferrer"
-          aria-label="OWASP BLT on GitLab"
-          class="w-7 h-7 sm:w-auto sm:h-auto sm:p-2 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-          <i class="fa-brands fa-gitlab text-xs sm:text-base" aria-hidden="true"></i>
+          <i class="fa-solid fa-code-branch text-xs sm:text-base" aria-hidden="true"></i>
         </a>
       </div>
     </div>
@@ -375,7 +360,7 @@
   <footer
     class="mt-10 border-t border-gray-200 dark:border-gray-700 py-6 text-center text-xs text-gray-400 dark:text-gray-500">
     <p>
-      Data sourced from the GitHub and GitLab APIs.
+      Data from git.owaspblt.org (daily) and the archived GitHub record.
       Built for <a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer"
         class="text-brand underline-offset-2 hover:underline">OWASP BLT</a>.
     </p>
@@ -384,8 +369,8 @@
 
 
   <!-- ===== JAVASCRIPT ===== -->
-  <script src="main_data.js?v=0.2.9"></script>
-  <script src="script.js?v=0.2.9"></script>
+  <script src="main_data.js?v=0.3.0"></script>
+  <script src="script.js?v=0.3.0"></script>
 </body>
 
 </html>

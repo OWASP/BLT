@@ -70,10 +70,10 @@
       </button>
 
       <!-- Source code link -->
-      <a href="https://git.owaspblt.org/BLT/BLT-Waypoint" target="_blank" rel="noopener noreferrer"
-        aria-label="OWASP-BLT dashboard source code on GitLab"
+      <a href="https://git.owaspblt.org/BLT/tree/main/blt-waypoint" target="_blank" rel="noopener noreferrer"
+        aria-label="BLT-Waypoint source code on git.owaspblt.org" title="Source code on git.owaspblt.org"
         class="w-8 h-8 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-        <i class="fa-brands fa-gitlab text-base" aria-hidden="true"></i>
+        <i class="fa-solid fa-code-branch text-base" aria-hidden="true"></i>
       </a>
     </div>
   </div>
@@ -160,9 +160,9 @@
 <!-- ===== FOOTER ===== -->
 <footer class="mt-8 border-t border-gray-200 dark:border-gray-700 py-5 text-center text-xs text-gray-400 dark:text-gray-500">
   <p>
-    Data sourced from the
-    <a href="https://docs.github.com/en/rest" target="_blank" rel="noopener noreferrer"
-      class="text-brand underline-offset-2 hover:underline">GitHub REST API</a>.
+    Open issues from
+    <a href="https://git.owaspblt.org/BLT/issues" target="_blank" rel="noopener noreferrer"
+      class="text-brand underline-offset-2 hover:underline">git.owaspblt.org/BLT</a>, refreshed daily.
     Built for <a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer"
       class="text-brand underline-offset-2 hover:underline">OWASP BLT</a>.
   </p>
@@ -194,6 +194,15 @@ if (darkToggle) darkToggle.addEventListener('click', () => {
 /* ------------------------------------------------------------------ */
 /*  HELPERS                                                             */
 /* ------------------------------------------------------------------ */
+// The forge issue list of a project folder (rows carry `folder` or a folder repo_html_url).
+function repoIssuesUrl(issue) {
+  const match = /^https:\/\/git\.owaspblt\.org\/BLT\/tree\/main\/([^/?#]+)/.exec(issue.repo_html_url || '');
+  const folder = issue.folder || (match && match[1]);
+  if (folder) return `https://git.owaspblt.org/BLT/issues?label=${encodeURIComponent(folder)}`;
+  if ((issue.repo_html_url || '').startsWith('https://git.owaspblt.org/')) return 'https://git.owaspblt.org/BLT/issues';
+  return `${issue.repo_html_url}/issues`;
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return str
@@ -403,18 +412,18 @@ function renderIssues() {
         <div class="sticky top-14 z-10 flex items-center gap-2 px-3 py-1.5
           bg-gray-50 dark:bg-gray-800/90 border-b border-gray-200 dark:border-gray-700
           backdrop-blur-sm">
-          <a href="${repoUrl}/issues" target="_blank" rel="noopener noreferrer"
+          <a href="${escapeHtml(repoIssuesUrl(issue))}" target="_blank" rel="noopener noreferrer"
             class="text-xs font-semibold text-brand hover:underline truncate">${escapeHtml(issue.repo_name)}</a>
-          <a href="${repoUrl}" target="_blank" rel="noopener noreferrer"
+          <a href="${repoUrl}" target="_blank" rel="noopener noreferrer" title="Source"
             class="shrink-0 text-[10px] text-gray-400 dark:text-gray-500 hover:text-brand transition-colors">
-            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            <i class="fa-solid fa-code-branch" aria-hidden="true"></i>
           </a>
           <span class="ml-auto text-[10px] text-gray-400 dark:text-gray-500 shrink-0">${repoCount} open</span>
         </div>`);
     }
 
     const labels       = (issue.labels || []).map(labelBadgeHTML).join('');
-    const assigneeImgs = (issue.assignees || []).map(a =>
+    const assigneeImgs = (issue.assignees || []).filter(a => a.avatar_url).map(a =>
       `<a href="${escapeHtml(a.html_url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(a.login)}">
         <img src="${escapeHtml(a.avatar_url)}&s=24" alt="${escapeHtml(a.login)}"
           class="inline-block w-4 h-4 rounded-full border border-white dark:border-gray-800 -ml-0.5 first:ml-0 hover:scale-110 transition-transform"
@@ -447,7 +456,7 @@ function renderIssues() {
     const updatedStr = issue.updated_at !== issue.created_at ? timeAgo(issue.updated_at) : '';
 
     const repoTag = sortKey !== 'repo'
-      ? `<a href="${escapeHtml(issue.repo_html_url)}/issues" target="_blank" rel="noopener noreferrer"
+      ? `<a href="${escapeHtml(repoIssuesUrl(issue))}" target="_blank" rel="noopener noreferrer"
           class="text-[10px] text-gray-400 dark:text-gray-500 hover:text-brand transition-colors whitespace-nowrap shrink-0">${escapeHtml(issue.repo_name)}</a>`
       : '';
 
@@ -507,7 +516,13 @@ async function loadData() {
   if (errEl) errEl.classList.add('hidden');
 
   try {
-    const resp = await fetch(`github_data.json?t=${Date.now()}`);
+    // Forge issues (forge_data.json, daily); ?source=github shows the archived GitHub record.
+    let file = new URLSearchParams(location.search).get('source') === 'github' ? 'github_data.json' : 'forge_data.json';
+    let resp = await fetch(`${file}?t=${Date.now()}`);
+    if (!resp.ok && file === 'forge_data.json') {
+      file = 'github_data.json';
+      resp = await fetch(`${file}?t=${Date.now()}`);
+    }
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const payload = await resp.json();
 
@@ -521,9 +536,11 @@ async function loadData() {
 
     const footerTs = document.getElementById('footer-ts');
     if (footerTs && payload.generated_at) {
+      const forge = file === 'forge_data.json';
       footerTs.innerHTML =
-        `GitHub stats generated by hourly action at <strong>${new Date(payload.generated_at).toLocaleString()}</strong>` +
-        ` &nbsp;·&nbsp; <a href="github_data.json" class="text-brand hover:underline" target="_blank" rel="noopener">github_data.json</a>`;
+        `${forge ? 'Forge issues generated' : 'Archived GitHub record generated'} at <strong>${new Date(payload.generated_at).toLocaleString()}</strong>` +
+        ` &nbsp;·&nbsp; <a href="${file}" class="text-brand hover:underline" target="_blank" rel="noopener">${file}</a>` +
+        ` &nbsp;·&nbsp; <a href="${forge ? '?source=github' : '?'}" class="text-brand hover:underline">${forge ? 'archived GitHub issues' : 'forge issues'}</a>`;
     }
   } catch (err) {
     console.error('Failed to load issues:', err);

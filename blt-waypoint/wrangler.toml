@@ -1,6 +1,16 @@
+# Static dashboard (public/) plus a Worker (worker/index.js) that serves /forge_data.json (and the
+# old /gitlab_data.json URL) from KV (binding DATA). The daily workflow
+# .forkmesh/blt-waypoint--build-site.yml writes that key; nothing is committed to git.
 name = "blt-waypoint"
+main = "worker/index.js"
 compatibility_date = "2026-06-05"
-pages_build_output_dir = "./public"
 
 [assets]
 directory = "./public"
+binding = "ASSETS"
+run_worker_first = ["/forge_data.json", "/gitlab_data.json"]
+
+# Created by scripts/worker-data/create-kv.sh, which replaces the placeholder id.
+[[kv_namespaces]]
+binding = "DATA"
+id = "REPLACE_WITH_KV_ID_blt-waypoint-data"

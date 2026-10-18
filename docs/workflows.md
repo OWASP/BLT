@@ -52,7 +52,7 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `blt-tomato--scrape_funding.yml` | GitHub | `0 18 * * 5`, push under `blt-tomato/.github/scripts/` | `GH_API_TOKEN`, CF |
 | `blt-university--course-submission.yml` | GitHub | issue opened with `course-submission` or `[COURSE]` title, or that label added | none |
 | `blt-university--enrollment.yml` | GitHub | issue opened with `enrollment` or `[ENROLLMENT]` title, or that label added | none |
-| `blt-waypoint--build-site.yml` | GitLab `build_site` | `29 6 * * *`, push under `blt-waypoint/scripts/` or of `public/github_data.json` | `GITLAB_TOKEN` (optional), CF |
+| `blt-waypoint--build-site.yml` | GitLab `build_site` | `29 6 * * *`, push of `blt-waypoint/scripts/generate_forge_data.py`, `forge_urls.py` or `scripts/routing/projects.tsv`; reads git.owaspblt.org and writes `forge_data.json` to KV, no commit | CF (with KV write) |
 
 ### Schedules chosen for the GitLab jobs
 
@@ -66,7 +66,7 @@ GitLab pipeline schedules were set in the GitLab UI, so their times were not in 
 - `blt-jobs` expire: no schedule (see "Fewer bot commits" below). Submissions are driven by issue events instead of polling.
 - `blt-owasp-projects` refresh: `23 4 * * *`, daily. This is OWASP repository metadata.
 - `blt-pages` leaderboard: `11 5 * * *`, daily, plus issue events. It writes KV, not git, since 2026-10-18.
-- `blt-waypoint` data: `29 6 * * *`, daily.
+- `blt-waypoint` data: `29 6 * * *`, daily (KV, no commits).
 - `blt-design-contest` showcase: issue events on contest issues plus a daily `47 7 * * *` run for votes; the pages go to KV, not git.
 
 ### Fewer bot commits
@@ -105,6 +105,7 @@ Responses carry `Cache-Control: public, max-age=60, stale-while-revalidate=600`,
 | `my-gsoc-tool` | `/data/github-contributions.json`, `/data/forks.json` | the Worker, from blt-cron at 00:03 | `CRON_SECRET`, `GH_API_TOKEN` |
 | `blt-pages` | `/`, `/index.html`, `/leaderboard`, `/leaderboard.html` (pre-rendered), `/data/leaderboard.json`, `/data/leaders.json` | `blt-pages--update-leaderboard.yml` (issue events, daily, pushes of the pages) through the Cloudflare KV API | none |
 | `blt-design-contest` | `/`, `/index.html`, `/show-all-entries.html`, `/<contest>.html` and the extensionless forms | `blt-design-contest--build-showcase.yml` (issue events, daily), only pages whose content changed | none |
+| `blt-waypoint` | `/forge_data.json` (also at the old `/gitlab_data.json`) | `blt-waypoint--build-site.yml`, daily: per-folder `history?path`, the issue and pull ledgers (about 200 anonymous requests, `FORGE_BUDGET_SECONDS` 420) | none |
 
 Shared code is in [`scripts/worker-data/`](../scripts/worker-data/):
 
