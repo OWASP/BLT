@@ -3,15 +3,18 @@
 #
 #   curl -fsSL https://<this-site>/install.sh | bash
 #
-# Tries the latest matching GitLab CI artifact first. If no artifact exists for
-# this platform, or it cannot be installed, it builds from source instead.
+# Builds the client from source: a sparse, blob-less clone of the BLT monorepo on
+# git.owaspblt.org that fetches only blt-safecloak/client (about 2 MB), or a local
+# checkout when SAFECLOAK_SOURCE_DIR points at one (the blt-safecloak folder or its
+# client/ folder). There are no prebuilt downloads: the old CI artifacts are gone
+# and the forge has no release files yet.
 # Installs the CLI launcher to ~/.local/bin/safecloak unless SAFECLOAK_BIN_DIR
 # is set. On macOS, the app bundle is installed to ~/Applications/SafeCloak.app
 # unless SAFECLOAK_APP_DIR is set.
 set -euo pipefail
 
-REPO_URL="https://git.owaspblt.org/BLT/BLT-SafeCloak"
-ARTIFACT_BASE="$REPO_URL/-/jobs/artifacts/main/raw"
+REPO_URL="${SAFECLOAK_REPO_URL:-https://git.owaspblt.org/BLT.git}"
+REPO_FOLDER="blt-safecloak"
 OS_NAME="$(uname -s)"
 ARCH_NAME="$(uname -m)"
 BIN_DIR="${SAFECLOAK_BIN_DIR:-$HOME/.local/bin}"
@@ -20,7 +23,6 @@ BIN_PATH="$BIN_DIR/safecloak"
 info() { printf '\033[1;31m[safecloak]\033[0m %s\n' "$*"; }
 fail() { printf '\033[1;31m[safecloak] ERROR:\033[0m %s\n' "$*" >&2; exit 1; }
 
-command -v curl >/dev/null 2>&1 || fail "curl is required."
 mkdir -p "$BIN_DIR"
 
 build_jobs() {
@@ -42,27 +44,13 @@ platform_label() {
     esac
 }
 
-prebuilt_url() {
-    case "$OS_NAME:$ARCH_NAME" in
-        Linux:x86_64|Linux:amd64)
-            printf '%s/client/build/safecloak?job=build-client\n' "$ARTIFACT_BASE"
-            ;;
-        Darwin:arm64|Darwin:aarch64)
-            printf '%s/client/dist/safecloak-macos-arm64.zip?job=build-client-macos-arm64\n' "$ARTIFACT_BASE"
-            ;;
-        *)
-            return 1
-            ;;
-    esac
-}
-
 install_macos_app() {
     local app="$1"
     local app_dir="${SAFECLOAK_APP_DIR:-$HOME/Applications}"
     local dest="$app_dir/SafeCloak.app"
-    [ -d "$app" ] || fail "Missing SafeCloak.app in downloaded artifact."
+    [ -d "$app" ] || fail "Missing SafeCloak.app in the build."
     [ -x "$app/Contents/MacOS/SafeCloak" ] ||
-        fail "Downloaded SafeCloak.app is missing its executable."
+        fail "SafeCloak.app is missing its executable."
 
     mkdir -p "$app_dir"
     rm -rf "$dest"
@@ -73,79 +61,6 @@ install_macos_app() {
     fi
     ln -sf "$dest/Contents/MacOS/SafeCloak" "$BIN_PATH"
     info "Installed app bundle: $dest"
-}
-
-try_prebuilt_linux() {
-    local url="$1"
-    local tmp
-    tmp="$(mktemp)"
-
-    if ! curl -fsSL -o "$tmp" "$url"; then
-        rm -f "$tmp"
-        info "No prebuilt Linux binary available."
-        return 1
-    fi
-
-    chmod +x "$tmp"
-    if command -v ldd >/dev/null 2>&1 && ldd "$tmp" 2>/dev/null | grep -q "not found"; then
-        rm -f "$tmp"
-        info "Prebuilt binary needs libraries this system does not have" \
-             "(install the Qt 6 runtime, e.g. 'sudo apt install libqt6widgets6 libqt6network6')."
-        return 1
-    fi
-
-    mv "$tmp" "$BIN_PATH"
-}
-
-try_prebuilt_macos() {
-    local url="$1"
-    command -v unzip >/dev/null 2>&1 || {
-        info "unzip is required to install the prebuilt macOS app."
-        return 1
-    }
-
-    local tmp extract app
-    tmp="$(mktemp)"
-    extract="$(mktemp -d)"
-
-    if ! curl -fsSL -o "$tmp" "$url"; then
-        rm -rf "$tmp" "$extract"
-        info "No prebuilt macOS app available."
-        return 1
-    fi
-
-    if ! unzip -q "$tmp" -d "$extract"; then
-        rm -rf "$tmp" "$extract"
-        info "Downloaded macOS artifact could not be unpacked."
-        return 1
-    fi
-
-    app="$extract/SafeCloak.app"
-    if [ ! -d "$app" ]; then
-        app="$(find "$extract" -maxdepth 3 -type d -name 'SafeCloak.app' | head -n 1)"
-    fi
-    if [ -z "$app" ] || [ ! -d "$app" ]; then
-        rm -rf "$tmp" "$extract"
-        info "Downloaded macOS artifact did not contain SafeCloak.app."
-        return 1
-    fi
-    install_macos_app "$app"
-    rm -rf "$tmp" "$extract"
-}
-
-try_prebuilt() {
-    local url
-    if ! url="$(prebuilt_url)"; then
-        info "No prebuilt artifact is configured for $(platform_label)."
-        return 1
-    fi
-
-    info "Downloading the latest prebuilt $(platform_label) build from GitLab CI..."
-    case "$OS_NAME" in
-        Linux) try_prebuilt_linux "$url" ;;
-        Darwin) try_prebuilt_macos "$url" ;;
-        *) return 1 ;;
-    esac
 }
 
 require_tool() {
@@ -182,8 +97,41 @@ install_built_client() {
     fi
 }
 
+# Set CLIENT_DIR to the client sources (the folder with CMakeLists.txt).
+CLIENT_DIR=""
+CLONE_DIR=""
+cleanup() { [ -z "$CLONE_DIR" ] || rm -rf "$CLONE_DIR"; [ -z "${BUILD_DIR:-}" ] || rm -rf "$BUILD_DIR"; }
+trap cleanup EXIT
+
+client_source() {
+    local dir="${SAFECLOAK_SOURCE_DIR:-}"
+    if [ -n "$dir" ]; then
+        for candidate in "$dir" "$dir/client" "$dir/$REPO_FOLDER/client"; do
+            if [ -f "$candidate/CMakeLists.txt" ]; then
+                CLIENT_DIR="$candidate"
+                return 0
+            fi
+        done
+        fail "SAFECLOAK_SOURCE_DIR=$dir has no SafeCloak client sources (client/CMakeLists.txt)."
+    fi
+
+    CLONE_DIR="$(mktemp -d)"
+    info "Fetching $REPO_FOLDER/client from $REPO_URL..."
+    if git clone --quiet --depth 1 --filter=blob:none --sparse "$REPO_URL" "$CLONE_DIR/src" &&
+        git -C "$CLONE_DIR/src" sparse-checkout set "$REPO_FOLDER/client"; then
+        :
+    else
+        # Older git without sparse-checkout or partial clone: a shallow full clone.
+        rm -rf "$CLONE_DIR/src"
+        git clone --quiet --depth 1 "$REPO_URL" "$CLONE_DIR/src" ||
+            fail "Could not clone $REPO_URL."
+    fi
+    CLIENT_DIR="$CLONE_DIR/src/$REPO_FOLDER/client"
+    [ -f "$CLIENT_DIR/CMakeLists.txt" ] || fail "The clone has no $REPO_FOLDER/client/CMakeLists.txt."
+}
+
 build_from_source() {
-    info "Building from source instead..."
+    info "Building SafeCloak from source..."
     case "$OS_NAME" in
         Linux)
             require_tool git "On Debian/Ubuntu: sudo apt install build-essential cmake git qt6-base-dev libssl-dev libxkbcommon-dev libxkbcommon-x11-dev openssl"
@@ -204,23 +152,21 @@ build_from_source() {
             ;;
     esac
 
-    local src
-    src="$(mktemp -d)"
-    trap 'rm -rf "$src"' EXIT
-    git clone --quiet --depth 1 "$REPO_URL.git" "$src"
+    client_source
 
     local args=()
     while IFS= read -r -d '' arg; do
         args+=("$arg")
     done < <(cmake_configure_args)
 
-    cmake -S "$src/client" -B "$src/client/build" "${args[@]}" ||
+    BUILD_DIR="$(mktemp -d)"
+    cmake -S "$CLIENT_DIR" -B "$BUILD_DIR" "${args[@]}" ||
         fail "CMake configure failed. Make sure Qt 6 and OpenSSL development headers are installed."
-    cmake --build "$src/client/build" --parallel "$(build_jobs)"
-    install_built_client "$src/client/build"
+    cmake --build "$BUILD_DIR" --parallel "$(build_jobs)"
+    install_built_client "$BUILD_DIR"
 }
 
-try_prebuilt || build_from_source
+build_from_source
 
 info "Installed launcher: $BIN_PATH"
 case ":$PATH:" in

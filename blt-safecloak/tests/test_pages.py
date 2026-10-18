@@ -6,7 +6,7 @@ These tests verify that:
   - Navigation elements are present (navbar, theme toggle).
   - Page-specific UI elements are present (editor, consent form, etc.).
   - The correct JS/CSS assets are referenced.
-  - GitLab links are present where expected.
+  - Source links point at the BLT monorepo on git.owaspblt.org.
 
 No browser or server is required – files are read directly from disk.
 """
@@ -97,9 +97,10 @@ def test_index_html_title():
     assert '<title>' in html
 
 
-def test_index_html_has_gitlab_link():
+def test_index_html_has_forge_link():
     html = _read('index.html')
-    assert 'gitlab.com/owasp-blt/blt-safecloak' in html
+    assert 'https://git.owaspblt.org/BLT/tree/main/blt-safecloak' in html
+    assert 'gitlab.com' not in html
 
 
 def test_index_html_includes_ui_js():
@@ -286,6 +287,7 @@ def test_video_room_html_has_walkie_banner():
     assert 'id="walkie-cue-text"' in html
 
 
-def test_video_room_html_has_gitlab_footer():
+def test_video_room_html_has_forge_footer():
     html = _read('video-room.html')
-    assert 'gitlab.com/owasp-blt/blt-safecloak' in html
+    assert 'https://git.owaspblt.org/BLT/tree/main/blt-safecloak' in html
+    assert 'gitlab.com' not in html

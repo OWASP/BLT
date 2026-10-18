@@ -16,6 +16,10 @@ This page lists every GitLab dependency left in the monorepo (found with `git gr
 - **blt-jobs**: every link points at git.owaspblt.org (`/BLT/tree/main/blt-jobs`, `/BLT/blob/main/blt-jobs/...`,
   `/BLT/issues/new`); the issue templates moved to `blt-jobs/issue-templates/`, and the GitLab polling script is
   gone (`createFromIssue()` is in `scripts/submissions.js`).
+- **blt-pages links**: the `/BLT/BLT-Pages/-/issues` links now go to `/BLT/issues?label=blt-pages` (the forge's issue
+  list takes one `label` filter), `/BLT/issues/new` and `/BLT/issues/<n>`.
+- **blt-safecloak**: `install.sh` builds from a sparse clone of `blt-safecloak/client` (or `SAFECLOAK_SOURCE_DIR`);
+  the GitLab artifact download, `.gitlab-ci.yml` and the gitlab.com link tests are gone.
 
 ## What git.owaspblt.org can serve
 

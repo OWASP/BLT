@@ -227,5 +227,5 @@ Run these on a machine with the toolchain: `scripts/ci/test.sh <project>`.
 | `blt-hackerhouse` D1 migrations and staging deploy | `deploy.yml` deploys production with pywrangler but does not apply migrations. Run `npx wrangler d1 migrations apply hackerhouse --remote` by hand. Kept in `blt-hackerhouse/.gitlab-ci.yml`. |
 | `blt-toasty` lint (black/ruff/bandit) and staging/production environments | Kept in `blt-toasty/.gitlab-ci.yml`. Tests run in CI, and `deploy.sh` deploys the default environment. |
 | `blt-pages` Playwright tests, `blt-netguardian` Flutter client tests | No Chromium or Flutter on the runner. Kept in their `.gitlab-ci.yml`. |
-| `blt-safecloak` desktop client builds | Already disabled in GitLab. The commented jobs stay in `blt-safecloak/.gitlab-ci.yml` because a test reads them. |
+| `blt-safecloak` desktop client builds | Already disabled in GitLab, and `.gitlab-ci.yml` is deleted. `public/install.sh` builds the client from a sparse clone of `blt-safecloak/client`; there are no prebuilt downloads. |
 | GitLab Pages / Cloudflare deploy jobs (`blt-gsoc`, `blt-university`, `blt-design-contest`, `blt-toasty`, `blt-hackerhouse`) | Replaced by `scripts/deploy.sh` and `deploy.yml`. |
