@@ -172,6 +172,8 @@ Secrets are set per Worker with `wrangler secret put` (see each project's README
 | blt-vanish | `blt-vanish/cloudflare_workers/` | worker | blt-vanish |  |
 <!-- DEPLOY-END -->
 
+CI, scheduled data refreshes, issue automation and deploys run as ForkMesh Actions from `.forkmesh/`; see [docs/workflows.md](docs/workflows.md) for every workflow, its schedule and the secrets it needs.
+
 ## License
 
 Each project keeps its own license; see the `LICENSE` file in its folder.

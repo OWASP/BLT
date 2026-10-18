@@ -1,3 +1,6 @@
+# Not run anywhere: this repository runs .forkmesh/ workflows (see docs/workflows.md).
+# Jobs already ported to .forkmesh/ or scripts/ci/tests.tsv were removed; these remain for reference.
+
 workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -8,22 +11,7 @@ stages:
   - test
 
 variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   PUB_CACHE: "$CI_PROJECT_DIR/client/.pub-cache"
-
-pytest:
-  stage: test
-  image: python:3.11-slim
-  cache:
-    key: pip-py311
-    paths:
-      - .cache/pip
-  before_script:
-    - python3 -m pip install --upgrade pip
-    - python3 -m pip install -r requirements.txt
-  script:
-    - python3 -m compileall src tests
-    - python3 -m pytest -q
 
 flutter:
   stage: test
