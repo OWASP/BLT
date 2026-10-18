@@ -9,8 +9,9 @@ Some Workers refresh data into Workers KV instead of having a workflow commit it
 | Job | Worker | Schedule (UTC) | Task |
 | --- | --- | --- | --- |
 | blt-gsoc-stats | blt-gsoc | 02:17-02:31, once a minute | `gsoc2026-stats` |
-| blt-gsoc-progress | blt-gsoc | 23:07-23:11, once a minute | `progress` |
 | my-gsoc-tool | my-gsoc-tool | 00:03 | all (`contributions`, `forks`) |
+
+The GSoC 2026 progress job (`blt-gsoc-progress`, task `progress`) was turned off on 2026-10-18 because GSoC 2026 coding ended on 17 Aug. blt-gsoc still has the `progress` task and its KV data, so the progress page shows the final state; it can be run by hand (see `docs/workflows.md`).
 
 The other rows of `src/jobs.js` replace the cron triggers of blt-github-app (pool), blt-leaf, blt-lettuce, blt-monitor, blt-sizzle, blt-netguardian and blt-toasty.
 

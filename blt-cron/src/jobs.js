@@ -13,6 +13,7 @@ export const JOBS = [
   { name: "blt-netguardian", binding: "NETGUARDIAN", cron: "*/5 * * * *" },
   { name: "blt-toasty", binding: "TOASTY", cron: "0 * * * *" },
   { name: "blt-gsoc-stats", binding: "GSOC", cron: "17-31 2 * * *", task: "gsoc2026-stats" },
-  { name: "blt-gsoc-progress", binding: "GSOC", cron: "7-11 23 * * *", task: "progress" },
   { name: "my-gsoc-tool", binding: "GSOC_TOOL", cron: "3 0 * * *" },
 ];
+// blt-gsoc-progress (task "progress", 23:07-23:11) was removed on 2026-10-18: GSoC 2026 coding
+// ended on 17 Aug. The task code and its KV data stay, so /data/progress.json keeps the final state.

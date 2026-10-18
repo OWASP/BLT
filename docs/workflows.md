@@ -59,7 +59,8 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 GitLab pipeline schedules were set in the GitLab UI, so their times were not in the repository. The schedules above came from:
 
 - `blt-gsoc` update-progress: `7 23 * * *`. The `.gitlab-ci.yml` comment gives `0 23 * * *`, and the job fills in the current day.
-  It now runs in the Worker (blt-cron, 23:07-23:11), see "Data in Workers KV".
+  It ran in the Worker (blt-cron, 23:07-23:11) until 2026-10-18, when the job was turned off because GSoC 2026
+  coding ended on 17 Aug. The `progress` task and its KV data stay, so the page shows the final state.
 - `blt-hackathons` future hackathons: was `37 0 * * *` (the README said daily). Since the data moved to KV
   there is one hourly job for every hackathon that has not ended.
 - `blt-jobs` expire: no schedule (see "Fewer bot commits" below). Submissions are driven by issue events instead of polling.
@@ -100,7 +101,7 @@ Responses carry `Cache-Control: public, max-age=60, stale-while-revalidate=600`,
 | Project | Paths served from KV | Refreshed by | Secrets on the Worker |
 | --- | --- | --- | --- |
 | `blt-hackathons` | `/stats.json`, `/hackathon-data/*.json` | `blt-hackathons--update-stats.yml`, every 6 hours, through the Cloudflare KV API (`scripts/worker-data/kv-put.sh`) | none |
-| `blt-gsoc` | `/js/gsoc2026_stats.generated.js`, `/data/progress.json` | the Worker, from blt-cron: `gsoc2026-stats` 02:17-02:31, `progress` 23:07-23:11 (once a minute, in chunks) | `CRON_SECRET`, `GH_API_TOKEN`, `GITLAB_TOKEN` (optional), `SLACK_TOKEN_OWASP`, `SLACK_TOKEN_BLT` |
+| `blt-gsoc` | `/js/gsoc2026_stats.generated.js`, `/data/progress.json` | the Worker, from blt-cron: `gsoc2026-stats` 02:17-02:31 (once a minute, in chunks); `progress` is no longer scheduled (GSoC 2026 ended) and keeps its final data | `CRON_SECRET`, `GH_API_TOKEN`, `GITLAB_TOKEN` (optional), `SLACK_TOKEN_OWASP`, `SLACK_TOKEN_BLT` |
 | `my-gsoc-tool` | `/data/github-contributions.json`, `/data/forks.json` | the Worker, from blt-cron at 00:03 | `CRON_SECRET`, `GH_API_TOKEN` |
 
 Shared code is in [`scripts/worker-data/`](../scripts/worker-data/):
@@ -128,7 +129,7 @@ Free plan limits shaped each refresh. A Worker invocation may make 50 subrequest
 - **blt-gsoc `gsoc2026-stats`** is about 90 GitHub requests, 78 of them searches (30 per minute
   allowed). `runChunked()` does about 3 projects (at most 24 requests) per call, keeping its cursor
   at `state:gsoc2026-stats`; a count that fails keeps the previous day's value.
-- **blt-gsoc `progress`** is about 40 requests (GitLab commits per repository, two Slack searches
+- **blt-gsoc `progress`** (not scheduled since 2026-10-18; run by hand only) is about 40 requests (GitLab commits per repository, two Slack searches
   per contributor), done in 2 calls of at most 30.
 - **my-gsoc-tool** needs 2 requests.
 
