@@ -92,3 +92,20 @@ test("the scheduled handler runs both refreshes for forks with their own cron tr
     fetches.restore();
   }
 });
+
+test("a missing template repository skips the forks refresh and keeps the last list", async () => {
+  const e = env();
+  e.DATA.put(FORKS_KEY, JSON.stringify({ forks: [{ full_name: "kept/one" }] }));
+  const fetches = stubFetch((url) => (url.includes("/forks")
+    ? new Response('{"message":"Not Found"}', { status: 404 })
+    : EVENTS));
+  try {
+    const res = await worker.fetch(cronRequest({ task: "forks" }), e, { waitUntil() {} });
+    const body = await res.json();
+    assert.equal(body.ok, true);
+    assert.equal(body.results.forks.skipped, "repository_not_found");
+    assert.deepEqual(JSON.parse(e.DATA.text(FORKS_KEY)).forks, [{ full_name: "kept/one" }]);
+  } finally {
+    fetches.restore();
+  }
+});

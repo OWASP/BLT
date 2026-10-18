@@ -14,7 +14,11 @@ async function github(env, path) {
   const headers = { "User-Agent": "GSoC-Dashboard", Accept: "application/vnd.github.v3+json" };
   if (env.GH_API_TOKEN) headers.Authorization = `token ${env.GH_API_TOKEN}`;
   const res = await fetch(`https://api.github.com${path}`, { headers });
-  if (!res.ok) throw new Error(`GitHub API ${res.status} for ${path}`);
+  if (!res.ok) {
+    const error = new Error(`GitHub API ${res.status} for ${path}`);
+    error.status = res.status;
+    throw error;
+  }
   return res.json();
 }
 
@@ -88,7 +92,15 @@ export async function refreshContributions(env) {
 
 export async function refreshForks(env) {
   const repo = env.FORKS_REPO || DEFAULT_FORKS_REPO;
-  const forks = await github(env, `/repos/${repo}/forks?per_page=100&sort=stargazers`);
+  let forks;
+  try {
+    forks = await github(env, `/repos/${repo}/forks?per_page=100&sort=stargazers`);
+  } catch (error) {
+    // The template repository was moved or deleted: keep serving the last list instead of
+    // failing the daily run.
+    if (error.status === 404) return { repository: repo, skipped: "repository_not_found" };
+    throw error;
+  }
   if (!Array.isArray(forks)) throw new Error("unexpected forks response");
   const lastUpdated = new Date().toISOString();
   const output = {
