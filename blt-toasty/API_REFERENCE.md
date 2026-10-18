@@ -227,11 +227,3 @@ Across all endpoints, an error response generally adheres to the following JSON 
   - `200 OK`: Returns structured JSON dashboard data.
   - `401 Unauthorized`: Missing auth, invalid JWT, or token lacks the required admin role.
 
-#### Shadow Mode Report
-- **Method**: `GET`
-- **Path**: `/admin/shadow-report`
-- **Auth Required**: Yes (Bearer JWT)
-- **Description**: Provides shadow AI prediction accuracy and performance metrics for the last 7 days.
-- **Responses**:
-  - `200 OK`: Returns a report of shadow mode evaluations.
-  - `401 Unauthorized`: Missing or invalid JWT.

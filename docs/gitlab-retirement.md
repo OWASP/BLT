@@ -41,6 +41,9 @@ This page lists every GitLab dependency left in the monorepo (found with `git gr
   (`blt_mcp/forge_issues.py`: anonymous, 5-minute cache; the server is a pip-installed process, so it has its own
   reader). `upload_screenshot` and `GITLAB_API_TOKEN` are removed, and so are the gitlabci Renovate manager and
   `.gitlab-ci.yml`. blt-cli needs no change (same JSON shape).
+- **blt-toasty**: deleted `gitlab_client.py`, `gitlab_linker.py` and the shadow-mode pipeline that read closed issues
+  of GitLab project 14998512 (`/admin/shadow-report`, `SHADOW_*` vars; `on_scheduled` is now a no-op).
+  `/webhook/gitlab` stays as an integration for external GitLab projects. `.gitlab-ci.yml` is removed.
 
 ## What git.owaspblt.org can serve
 
@@ -123,7 +126,7 @@ Remove each one when its reader is switched. Then delete the Actions secret `GIT
 
 - `blt-gsoc`: `GITLAB_TOKEN`
 - `blt-profiles`: `GITLAB_ACCESS_TOKEN`, `GITLAB_WEBHOOK_TOKEN`
-- `blt-toasty`: `GITLAB_ACCESS_TOKEN`, `GITLAB_WEBHOOK_SECRET`
+- `blt-toasty`: `GITLAB_ACCESS_TOKEN` (`GITLAB_WEBHOOK_SECRET` stays for external GitLab webhooks)
 - `blt-hackerhouse`: `GITLAB_WEBHOOK_SECRET`, `GITLAB_API_TOKEN`
 
 The "Ported from …/.gitlab-ci.yml" comments in five workflows are history and are harmless.
@@ -136,7 +139,6 @@ These `.gitlab-ci.yml` files are not run anywhere:
 - blt-netguardian
 - blt-pages
 - blt-safecloak (still read by a test)
-- blt-toasty
 - blt-university
 
 Delete them once nothing reads them; `docs/workflows.md` records what each one did.

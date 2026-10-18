@@ -1,7 +1,7 @@
 # OWASP BLT-Toasty Architecture
 
 ## 1. System Overview
-OWASP BLT-Toasty is a serverless application built on the Cloudflare Workers Python runtime (Pyodide/Workerd, `compatibility_flags = ["python_workers"]`). It acts as an intelligent triage and duplicate detection pipeline for GitLab issues. The system ingests incoming webhooks, applies fail-closed PII redaction, detects duplicates using vector similarity, and provides a multi-provider LLM-powered summarization and triage decision. It features stateful conversational capabilities via Durable Objects, Model Context Protocol (MCP) exports, and a Shadow Mode for validating ML predictions against ground truth without affecting production data.
+OWASP BLT-Toasty is a serverless application built on the Cloudflare Workers Python runtime (Pyodide/Workerd, `compatibility_flags = ["python_workers"]`). It acts as an intelligent triage and duplicate detection pipeline for issues of any GitLab project that points a webhook at it (BLT's own issues live on git.owaspblt.org, not GitLab). The system ingests incoming webhooks, applies fail-closed PII redaction, detects duplicates using vector similarity, and provides a multi-provider LLM-powered summarization and triage decision. It features stateful conversational capabilities via Durable Objects and Model Context Protocol (MCP) exports.
 
 ## 2. Data Flow Diagram
 
@@ -33,7 +33,6 @@ The primary entry point is `worker.py` handling `on_fetch` for HTTP requests and
   - `GET /mcp/triage/{id}` - MCP export
   - `GET /triage/{id}/rationale` - Rationale
   - `GET /admin/dashboard` - Dashboard (JWT auth, role=admin)
-  - `GET /admin/shadow-report` - Shadow report (JWT auth)
   - `/conversations/*` - Durable Object conversations (JWT auth)
 
 ### Source Modules
@@ -50,18 +49,14 @@ The primary entry point is `worker.py` handling `on_fetch` for HTTP requests and
 - **`src/llm_router.py`**: Handles multi-provider LLM routing.
 - **`src/mcp_export.py`**: Model Context Protocol (MCP) export endpoint.
 - **`src/rationale_builder.py`**: Generates structured rationale for triage decisions.
-- **`src/shadow_pipeline.py`**: Validates predictions in shadow mode by running a dual-run pipeline and comparing predictions against ground truth.
 - **`src/dashboard.py`**: Aggregates queries for the dashboard.
 - **`src/auth.py`**: RS256 JWT verification (`iss: owasp-blt-service`, `aud: toasty-mcp`).
 - **`src/durable_objects.py`**: Implementations for `ConversationDO` and `RateLimiterDO`.
 - **`src/errors.py`**: Defines the custom error hierarchy.
-- **`src/gitlab_linker.py`**: Handles GitLab API integrations.
 
-## 4. Shadow Mode Architecture
+## 4. Scheduled Work
 
-Shadow Mode provides a safe environment to validate ML models and pipeline logic in production without mutating production state. When `SHADOW_MODE=true`, the triage pipeline runs parallel predictions. The actual triage operations proceed as normal, while the shadow pipeline evaluates the data independently. Results of these shadow runs are stored in the `shadow_predictions` D1 table.
-
-An hourly `on_scheduled` cron job (dispatched by the blt-cron Worker via `POST /__scheduled`) triggers the shadow mode validation. This mechanism compiles weekly summaries to track model performance, aiming for a target accuracy of >= 80% against ground truth data before deploying models to active production triage.
+There is none. The blt-cron Worker still calls `POST /__scheduled` hourly, and `on_scheduled` returns without doing anything. The former Shadow Mode job read closed issues of a gitlab.com project to compare predictions with maintainer actions; it was removed with the GitLab retirement. The `shadow_predictions` D1 table and its migration remain for old rows.
 
 ## 5. Data Storage
 

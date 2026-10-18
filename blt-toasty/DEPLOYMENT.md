@@ -15,11 +15,11 @@ Before deploying the application, ensure the following are installed and configu
 
 The project utilizes three distinct environments defined in `wrangler.toml`:
 
-| Environment | Worker Name              | D1 Database ID | Vectorize Index             | Shadow Mode |
-| :---        | :---                     | :---           | :---                        | :---        |
-| Development | `toasty-backend-dev`     | `...0003`      | `toasty-embeddings-dev`     | `true`      |
-| Staging     | `toasty-backend-staging` | `...0002`      | `toasty-embeddings-staging` | `true`      |
-| Production  | `toasty-backend-prod`    | `...0001`      | `toasty-embeddings`         | `false`     |
+| Environment | Worker Name              | D1 Database ID | Vectorize Index             |
+| :---        | :---                     | :---           | :---                        |
+| Development | `toasty-backend-dev`     | `...0003`      | `toasty-embeddings-dev`     |
+| Staging     | `toasty-backend-staging` | `...0002`      | `toasty-embeddings-staging` |
+| Production  | `toasty-backend-prod`    | `...0001`      | `toasty-embeddings`         |
 
 All environments contain the following bindings:
 *   **D1 Database**: `DB`
@@ -78,8 +78,6 @@ cd ..
 ### Environment Variables
 The following environment variables must be configured in `wrangler.toml` per environment:
 *   `FASTEMBED_URL`: The URL for the FastEmbed service.
-*   `SHADOW_MODE`: Boolean to enable/disable shadow mode testing.
-*   `SHADOW_PROJECT_ID`: The target project ID for shadow validation.
 *   `ENVIRONMENT`: The deployment environment name.
 *   `LOG_LEVEL`: Application logging level.
 
@@ -87,7 +85,7 @@ The following environment variables must be configured in `wrangler.toml` per en
 Secrets must be securely set using the Wrangler CLI for each environment:
 
 ```bash
-# Required for X-Gitlab-Token webhook verification
+# Required for X-Gitlab-Token webhook verification (external GitLab projects that send webhooks)
 npx wrangler secret put GITLAB_WEBHOOK_SECRET --env production
 
 # RS256 public key (SPKI PEM) required for JWT verification
@@ -131,7 +129,7 @@ npx wrangler deploy --env staging
 npx wrangler deploy --env production
 ```
 
-*Note: The hourly shadow mode validation job (`0 * * * *`) is scheduled by the [blt-cron](../blt-cron) dispatcher Worker, not by a cron trigger on this Worker (`[triggers] crons = []`). blt-cron calls `POST /__scheduled` with a shared secret; set the same value here with `npx wrangler secret put CRON_SECRET`.*
+*Note: There is no scheduled work (the GitLab shadow-mode job was removed). The [blt-cron](../blt-cron) dispatcher Worker still calls `POST /__scheduled` hourly with a shared secret (`npx wrangler secret put CRON_SECRET`); `on_scheduled` is a no-op. This Worker has no cron trigger (`[triggers] crons = []`).*
 
 ## 7. Verification Runbook
 
@@ -140,4 +138,4 @@ After deployment, verify the system's operational status by performing the follo
 1.  **Health Check**: Access the root API endpoint or `/health` (if configured) to verify the worker is responsive and properly routing traffic.
 2.  **Webhook Test**: Send a test payload to the Gitlab webhook endpoint, ensuring the `X-Gitlab-Token` header matches the `GITLAB_WEBHOOK_SECRET`. Check the Cloudflare Worker logs for a successful validation and triage event generation.
 3.  **Dashboard Auth**: Verify that access to the static frontend assets and subsequent API calls correctly validates your JWT against the configured `MCP_PUBLIC_KEY`.
-4.  **Shadow Mode Validation**: Check the worker logs at the top of the hour to ensure the blt-cron dispatch to `POST /__scheduled` runs `on_scheduled` successfully and completes shadow mode validation without errors.
+4.  **Cron Dispatch**: At the top of the hour, the blt-cron call to `POST /__scheduled` should answer `200 {"ok": true}`.

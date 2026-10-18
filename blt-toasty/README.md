@@ -15,7 +15,7 @@ Toasty operates entirely on Cloudflare's Edge, ensuring high performance, global
 - **Vector Store**: Cloudflare Vectorize (384-dimensional embeddings, cosine similarity)
 - **Embeddings**: FastEmbed (`BAAI/bge-small-en-v1.5`)
 - **LLM Engine**: Cloudflare Workers AI (`@cf/meta/llama-3.1-8b-instruct`) with OpenAI (`gpt-4o-mini`) fallback; proposed Quality Gate provider routing uses LiteLLM
-- **Integration**: GitLab Webhooks & REST API, Slack API, and GitHub Actions/Check Runs for mirror-specific quality automation
+- **Integration**: inbound GitLab webhooks (`POST /webhook/gitlab`, for any external GitLab project; BLT's own issues are on [git.owaspblt.org](https://git.owaspblt.org/BLT/issues)), Slack API, and GitHub Actions/Check Runs for mirror-specific quality automation
 
 ## Design Philosophy: Zero-Trust & Fail-Closed Redaction 🔒
 The most critical invariant of the BLT-Toasty architecture is **Fail-Closed Redaction**.
@@ -33,7 +33,7 @@ If the redaction gate fails for *any* reason—timeout, parse error, or low conf
 
 The AI Quality Gate is a proposed BLT-Toasty feature that acts as a post-submission gatekeeper for pull requests. It intercepts PR events at the webhook edge, runs deterministic and LLM-backed policy checks, and only allows downstream AI review tools such as CodeRabbit to run after the PR passes the gate.
 
-Although BLT-Toasty's core triage workflow is GitLab-integrated, this Quality Gate design targets the project's GitHub mirror and therefore uses GitHub-specific concepts such as pull requests, Check Runs, and Actions workflows.
+Although BLT-Toasty's core triage workflow ingests GitLab webhooks, this Quality Gate design targets the project's GitHub mirror and therefore uses GitHub-specific concepts such as pull requests, Check Runs, and Actions workflows.
 
 This is separate from **BLT-Preflight**. Preflight is an advisory tool that helps contributors before they open a PR; the Toasty Quality Gate runs after a PR is submitted and can enforce a hard `PASS`, `FAIL`, or `HOLD` decision.
 
@@ -112,13 +112,12 @@ The project is executed in a rigorous 12-week timeline, divided into three major
 *Goal: Secure the pipeline, enable agentic export, and validate against real-world data.*
 - **Week 8:** Adversarial test suite (prompt injection, PII evasion, fuzzing).
 - **Week 9:** JWT-secured Model Context Protocol (MCP) Export API and REST fallback transport.
-- **Week 10:** Shadow Mode validation pipeline comparing Toasty's output against manual maintainer actions.
+- **Week 10:** Shadow Mode validation pipeline comparing Toasty's output against manual maintainer actions (removed: it read closed issues of a gitlab.com project).
 - **Week 11:** Analytics dashboard via Cloudflare Analytics Engine and bug-fix sweeps.
 - **Week 12:** Comprehensive documentation pack, onboarding guides, and final sign-off.
 
 ## Current Status & Tracking
-Development is strictly tracked via GitLab Issues. Every week corresponds to a specific set of actionable issues mapped directly to our milestones.
-You can view our active progress on the [GitLab Issues page](https://git.owaspblt.org/BLT/issues) or project board.
+Development is tracked in the [BLT issues on git.owaspblt.org](https://git.owaspblt.org/BLT/issues) (title issues `[blt-toasty] ...` or label them `blt-toasty`).
 
 ## Dashboard & Authentication
 
@@ -141,7 +140,7 @@ There is no public login page. To access the dashboard, maintainers must manuall
 
 We enforce the OWASP BLT ecosystem quality standards:
 - **Python Version**: 3.13+ (managed via `uv`)
-- **Formatting & Linting**: `black` (line-length 120), `ruff`, `bandit`
+- **Formatting & Linting**: `black` (line-length 120), `ruff`, `bandit` (run by the pre-commit hooks; the old GitLab lint job is gone)
 - **Testing**: `pytest`, `pytest-asyncio` with a strict `80%` minimum coverage requirement.
 - **Pre-commit**: All commits must pass the configured pre-commit hooks.
 

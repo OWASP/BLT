@@ -7,7 +7,6 @@ import {
   Brain,
   MessageSquare,
   Share2,
-  FlaskConical,
   Webhook,
   ScanEye,
   Binary,
@@ -62,13 +61,6 @@ const features = [
     description:
       'JWT-secured Model Context Protocol endpoints let external AI agents (Claude, Cursor, custom tools) securely query triage data via JSON-RPC or REST.',
     accent: 'text-amber-600 bg-amber-50 border-amber-200',
-  },
-  {
-    icon: FlaskConical,
-    title: 'Shadow Mode Validation',
-    description:
-      'Run ML predictions in parallel against production traffic without mutating state. Hourly cron validates accuracy against maintainer ground truth.',
-    accent: 'text-indigo-600 bg-indigo-50 border-indigo-200',
   },
 ];
 
@@ -240,12 +232,12 @@ export default function Home() {
                   <ArrowRight size={16} />
                 </Link>
                 <a
-                  href="https://git.owaspblt.org/BLT/BLT-Toasty"
+                  href="https://git.owaspblt.org/BLT/tree/main/blt-toasty"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-outline"
                 >
-                  GitLab Repo
+                  Source
                   <ExternalLink size={14} />
                 </a>
               </div>
@@ -458,7 +450,7 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="text-red-400 underline hover:text-red-300"
               >
-                Open an issue on GitLab
+                Open an issue
               </a>
             </p>
           </div>

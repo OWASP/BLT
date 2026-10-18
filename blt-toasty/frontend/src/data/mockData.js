@@ -45,7 +45,7 @@ export const activityFeed = [
     status: 'pending',
     source: 'Reflected XSS in search endpoint #1234',
     timestamp: '2026-08-14T23:45:12.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1234',
+    target: 'gitlab.example.com/acme/app/-/issues/1234',
     latencyMs: 12
   },
   {
@@ -55,7 +55,7 @@ export const activityFeed = [
     status: 'redaction_passed',
     source: 'Stored XSS in user profile #1233',
     timestamp: '2026-08-14T23:40:05.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1233',
+    target: 'gitlab.example.com/acme/app/-/issues/1233',
     latencyMs: 450
   },
   {
@@ -65,7 +65,7 @@ export const activityFeed = [
     status: 'summarized',
     source: 'SQL Injection in login form #1232',
     timestamp: '2026-08-14T23:35:10.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1232',
+    target: 'gitlab.example.com/acme/app/-/issues/1232',
     latencyMs: 1250
   },
   {
@@ -75,7 +75,7 @@ export const activityFeed = [
     status: 'embedded',
     source: 'CSRF token missing on password reset #1231',
     timestamp: '2026-08-14T23:25:00.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1231',
+    target: 'gitlab.example.com/acme/app/-/issues/1231',
     latencyMs: 820
   },
   {
@@ -85,7 +85,7 @@ export const activityFeed = [
     status: 'failed',
     source: 'Insecure Direct Object Reference in API #1230',
     timestamp: '2026-08-14T23:15:30.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1230',
+    target: 'gitlab.example.com/acme/app/-/issues/1230',
     latencyMs: 3100
   },
   {
@@ -95,7 +95,7 @@ export const activityFeed = [
     status: 'pending',
     source: 'Broken Access Control in admin panel #1229',
     timestamp: '2026-08-14T22:50:45.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1229',
+    target: 'gitlab.example.com/acme/app/-/issues/1229',
     latencyMs: 15
   },
   {
@@ -105,7 +105,7 @@ export const activityFeed = [
     status: 'redaction_passed',
     source: 'Exposed API Keys in repository #1228',
     timestamp: '2026-08-14T22:45:10.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1228',
+    target: 'gitlab.example.com/acme/app/-/issues/1228',
     latencyMs: 520
   },
   {
@@ -115,7 +115,7 @@ export const activityFeed = [
     status: 'summarized',
     source: 'Rate limiting bypass on login #1227',
     timestamp: '2026-08-14T22:30:22.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1227',
+    target: 'gitlab.example.com/acme/app/-/issues/1227',
     latencyMs: 1400
   },
   {
@@ -125,7 +125,7 @@ export const activityFeed = [
     status: 'embedded',
     source: 'Unvalidated redirects in OAuth flow #1226',
     timestamp: '2026-08-14T22:15:15.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1226',
+    target: 'gitlab.example.com/acme/app/-/issues/1226',
     latencyMs: 850
   },
   {
@@ -135,7 +135,7 @@ export const activityFeed = [
     status: 'failed',
     source: 'Server-Side Request Forgery (SSRF) #1225',
     timestamp: '2026-08-14T21:45:50.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1225',
+    target: 'gitlab.example.com/acme/app/-/issues/1225',
     latencyMs: 3500
   },
   {
@@ -145,7 +145,7 @@ export const activityFeed = [
     status: 'pending',
     source: 'XML External Entity (XXE) injection #1224',
     timestamp: '2026-08-14T21:20:10.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1224',
+    target: 'gitlab.example.com/acme/app/-/issues/1224',
     latencyMs: 18
   },
   {
@@ -155,7 +155,7 @@ export const activityFeed = [
     status: 'redaction_passed',
     source: 'Missing Security Headers #1223',
     timestamp: '2026-08-14T21:05:40.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1223',
+    target: 'gitlab.example.com/acme/app/-/issues/1223',
     latencyMs: 410
   },
   {
@@ -165,7 +165,7 @@ export const activityFeed = [
     status: 'summarized',
     source: 'Command Injection via image upload #1222',
     timestamp: '2026-08-14T20:50:20.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1222',
+    target: 'gitlab.example.com/acme/app/-/issues/1222',
     latencyMs: 1600
   },
   {
@@ -175,7 +175,7 @@ export const activityFeed = [
     status: 'embedded',
     source: 'Insecure Deserialization of user session #1221',
     timestamp: '2026-08-14T20:25:10.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1221',
+    target: 'gitlab.example.com/acme/app/-/issues/1221',
     latencyMs: 910
   },
   {
@@ -185,7 +185,7 @@ export const activityFeed = [
     status: 'failed',
     source: 'Session Fixation Vulnerability #1220',
     timestamp: '2026-08-14T20:10:05.000Z',
-    target: 'gitlab.com/owasp-blt/blt/issues/1220',
+    target: 'gitlab.example.com/acme/app/-/issues/1220',
     latencyMs: 3050
   }
 ];
@@ -262,8 +262,8 @@ export const quarantineItems = [
 export const duplicateDetections = [
   {
     id: 'dup-1',
-    sourceIssue: { id: 'ISS-1234', title: 'Reflected XSS in search endpoint #1234', url: 'https://gitlab.com/owasp-blt/blt/issues/1234' },
-    targetIssue: { id: 'ISS-1180', title: 'XSS vulnerability in search bar #1180', url: 'https://gitlab.com/owasp-blt/blt/issues/1180' },
+    sourceIssue: { id: 'ISS-1234', title: 'Reflected XSS in search endpoint #1234', url: 'https://gitlab.example.com/acme/app/-/issues/1234' },
+    targetIssue: { id: 'ISS-1180', title: 'XSS vulnerability in search bar #1180', url: 'https://gitlab.example.com/acme/app/-/issues/1180' },
     confidence: 0.92,
     vectorSimilarity: 0.89,
     status: 'matched',
@@ -272,8 +272,8 @@ export const duplicateDetections = [
   },
   {
     id: 'dup-2',
-    sourceIssue: { id: 'ISS-1232', title: 'SQL Injection in login form #1232', url: 'https://gitlab.com/owasp-blt/blt/issues/1232' },
-    targetIssue: { id: 'ISS-1050', title: 'Blind SQLi on authentication endpoint #1050', url: 'https://gitlab.com/owasp-blt/blt/issues/1050' },
+    sourceIssue: { id: 'ISS-1232', title: 'SQL Injection in login form #1232', url: 'https://gitlab.example.com/acme/app/-/issues/1232' },
+    targetIssue: { id: 'ISS-1050', title: 'Blind SQLi on authentication endpoint #1050', url: 'https://gitlab.example.com/acme/app/-/issues/1050' },
     confidence: 0.87,
     vectorSimilarity: 0.85,
     status: 'reviewing',
@@ -282,8 +282,8 @@ export const duplicateDetections = [
   },
   {
     id: 'dup-3',
-    sourceIssue: { id: 'ISS-1222', title: 'Command Injection via image upload #1222', url: 'https://gitlab.com/owasp-blt/blt/issues/1222' },
-    targetIssue: { id: 'ISS-0985', title: 'RCE in avatar upload #985', url: 'https://gitlab.com/owasp-blt/blt/issues/985' },
+    sourceIssue: { id: 'ISS-1222', title: 'Command Injection via image upload #1222', url: 'https://gitlab.example.com/acme/app/-/issues/1222' },
+    targetIssue: { id: 'ISS-0985', title: 'RCE in avatar upload #985', url: 'https://gitlab.example.com/acme/app/-/issues/985' },
     confidence: 0.95,
     vectorSimilarity: 0.93,
     status: 'matched',
@@ -292,8 +292,8 @@ export const duplicateDetections = [
   },
   {
     id: 'dup-4',
-    sourceIssue: { id: 'ISS-1229', title: 'Broken Access Control in admin panel #1229', url: 'https://gitlab.com/owasp-blt/blt/issues/1229' },
-    targetIssue: { id: 'ISS-1100', title: 'Privilege escalation via admin routes #1100', url: 'https://gitlab.com/owasp-blt/blt/issues/1100' },
+    sourceIssue: { id: 'ISS-1229', title: 'Broken Access Control in admin panel #1229', url: 'https://gitlab.example.com/acme/app/-/issues/1229' },
+    targetIssue: { id: 'ISS-1100', title: 'Privilege escalation via admin routes #1100', url: 'https://gitlab.example.com/acme/app/-/issues/1100' },
     confidence: 0.81,
     vectorSimilarity: 0.79,
     status: 'dismissed',
@@ -302,8 +302,8 @@ export const duplicateDetections = [
   },
   {
     id: 'dup-5',
-    sourceIssue: { id: 'ISS-1226', title: 'Unvalidated redirects in OAuth flow #1226', url: 'https://gitlab.com/owasp-blt/blt/issues/1226' },
-    targetIssue: { id: 'ISS-0890', title: 'Open redirect vulnerability on login #890', url: 'https://gitlab.com/owasp-blt/blt/issues/890' },
+    sourceIssue: { id: 'ISS-1226', title: 'Unvalidated redirects in OAuth flow #1226', url: 'https://gitlab.example.com/acme/app/-/issues/1226' },
+    targetIssue: { id: 'ISS-0890', title: 'Open redirect vulnerability on login #890', url: 'https://gitlab.example.com/acme/app/-/issues/890' },
     confidence: 0.88,
     vectorSimilarity: 0.86,
     status: 'reviewing',

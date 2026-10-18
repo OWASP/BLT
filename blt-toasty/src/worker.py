@@ -172,14 +172,6 @@ async def on_fetch(request, env):
             return await handle_api_redactions(request, env)
         else:
             return create_method_not_allowed_response(path, ["GET"])
-    elif path == "/admin/shadow-report":
-        if method == "GET":
-            claims, err_resp = await _authenticate_request(request, env)
-            if err_resp:
-                return err_resp
-            return await handle_shadow_report(request, env)
-        else:
-            return create_method_not_allowed_response(path, ["GET"])
     elif path.startswith("/mcp/triage/"):
         if method == "GET":
             raw_triage_id = path[len("/mcp/triage/") :]
@@ -262,7 +254,6 @@ def handle_root(request):
             "/api/status": "GET - Check service status",
             "/triage/{event_id}/rationale": "GET - Retrieve structured rationale for a triage event",
             "/mcp/triage/{triage_id}": "GET - JWT-authenticated canonical MCP triage export",
-            "/admin/shadow-report": "GET - Shadow mode accuracy report (internal)",
             "/conversations/{triage_id}/reply": "POST - Append a turn to a triage conversation",
             "/conversations/{triage_id}/history": "GET - Retrieve conversation history",
             "/conversations/{triage_id}": "DELETE - Close and archive a conversation",
@@ -1166,85 +1157,14 @@ async def handle_conversation_close(request, env, triage_id):
 
 
 # ---------------------------------------------------------------------------
-# Shadow mode
-# ---------------------------------------------------------------------------
-
-
-async def handle_shadow_report(request, env):
-    """Handle GET /admin/shadow-report.
-
-    Returns a JSON summary of shadow mode prediction accuracy
-    for the last 7 days.  Internal endpoint, no JWT required.
-
-    Args:
-        request: The incoming HTTP request.
-        env: The Cloudflare Worker environment.
-
-    Returns:
-        Response: 200 with JSON accuracy summary.
-    """
-    try:
-        from shadow_pipeline import generate_weekly_summary
-
-        summary = await generate_weekly_summary(env.DB)
-        return create_json_response(summary, 200)
-    except Exception as exc:
-        console.error(f"handle_shadow_report error: {exc}")
-        return create_error_response("Internal server error", 500)
-
-
-# ---------------------------------------------------------------------------
 # Cron Trigger handler
 # ---------------------------------------------------------------------------
 
 
 async def on_scheduled(event, env, ctx):
-    """Cloudflare Workers Cron Trigger handler.
+    """Cron handler (dispatched hourly by blt-cron through POST /__scheduled).
 
-    When ``SHADOW_MODE=true``, fetches recently closed GitLab issues,
-    runs each through the full Toasty triage pipeline silently (no
-    GitLab mutations), and stores prediction/accuracy results in D1.
-
-    Also generates and posts a weekly summary on Sundays.
-
-    Args:
-        event: The scheduled event object (contains ``cron`` and ``scheduledTime``).
-        env: The Cloudflare Worker environment.
-        ctx: The execution context (for ``ctx.waitUntil``).
+    There is no scheduled work: the shadow-mode job, which read closed issues of a
+    gitlab.com project, was removed.
     """
-    shadow_mode = getattr(env, "SHADOW_MODE", "false")
-    if shadow_mode != "true":
-        return
-
-    from shadow_pipeline import (
-        fetch_recent_closed_issues,
-        run_shadow_triage,
-        compare_and_store,
-        generate_weekly_summary,
-        post_slack_summary,
-    )
-
-    db = env.DB
-
-    # ── Hourly: fetch and triage closed issues ────────────────────────────
-    try:
-        issues = await fetch_recent_closed_issues(env, since_hours=1)
-        for issue in issues:
-            try:
-                shadow_result = await run_shadow_triage(issue, env, db)
-                await compare_and_store(db, issue, shadow_result)
-            except Exception as exc:
-                console.error(f"Shadow triage failed for issue #{issue.get('iid', '?')}: {exc}")
-    except Exception as exc:
-        console.error(f"Shadow fetch failed: {exc}")
-
-    # ── Weekly: generate and post summary (Sunday midnight UTC) ───────────
-    from datetime import datetime, timezone
-
-    now = datetime.now(timezone.utc)
-    if now.weekday() == 6 and now.hour == 0:  # Sunday 00:xx UTC
-        try:
-            summary = await generate_weekly_summary(db)
-            await post_slack_summary(env, summary)
-        except Exception as exc:
-            console.error(f"Shadow weekly summary failed: {exc}")
+    return None

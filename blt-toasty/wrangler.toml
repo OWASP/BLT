@@ -25,9 +25,9 @@ command = ""
 directory = "frontend/dist"
 run_worker_first = ["/api/*", "/health", "/mcp/*", "/admin/*", "/conversations/*", "/triage/*", "/webhook/*", "/__scheduled"]
 
-# Cron — shadow mode validation runs hourly ("0 * * * *"). The schedule now runs
-# from the blt-cron dispatcher Worker, which calls POST /__scheduled through a
-# service binding with the CRON_SECRET secret (wrangler secret put CRON_SECRET).
+# Cron — no scheduled work (the GitLab shadow-mode job was removed). The blt-cron
+# dispatcher Worker still calls POST /__scheduled hourly through a service binding
+# with the CRON_SECRET secret; on_scheduled is a no-op.
 # The empty list makes deploys remove the old trigger (free plan: 5 per account).
 [triggers]
 crons = []
@@ -39,8 +39,6 @@ name = "toasty-backend-prod"
 
 [env.production.vars]
 FASTEMBED_URL = "https://fastembed.internal"
-SHADOW_MODE = "false"
-SHADOW_PROJECT_ID = "14998512"
 
 [[env.production.d1_databases]]
 binding = "DB"
@@ -68,8 +66,6 @@ name = "toasty-backend-staging"
 
 [env.staging.vars]
 FASTEMBED_URL = "https://fastembed-staging.internal"
-SHADOW_MODE = "true"
-SHADOW_PROJECT_ID = "14998512"
 
 [[env.staging.d1_databases]]
 binding = "DB"
@@ -97,8 +93,6 @@ name = "toasty-backend-dev"
 
 [env.development.vars]
 FASTEMBED_URL = "http://localhost:5003"
-SHADOW_MODE = "true"
-SHADOW_PROJECT_ID = "14998512"
 
 [[env.development.d1_databases]]
 binding = "DB"

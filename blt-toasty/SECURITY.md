@@ -15,7 +15,7 @@ All MCP and administrative endpoints require strict authentication using JSON We
   - Expiration (`exp`): Must not be expired
 - **Key Management**: The public key for verification is loaded from the `MCP_PUBLIC_KEY` environment variable (configured securely via `wrangler secret put`).
 - **Endpoint Protection**:
-  - Requires valid JWT: `/mcp/triage/*`, `/conversations/*`, `/admin/shadow-report`
+  - Requires valid JWT: `/mcp/triage/*`, `/conversations/*`, `/admin/dashboard`
   - Requires valid JWT and `role=admin`: `/admin/dashboard`
 
 ## 2. Webhook Ingress Security

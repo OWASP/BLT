@@ -109,21 +109,6 @@ class EmbeddingServiceError(Exception):
         self.status_code = status_code
 
 
-class GitLabAPIError(Exception):
-    """Raised when a GitLab REST API call fails.
-
-    Used by ``gitlab_linker`` when the GitLab API returns a non-success
-    HTTP status code (e.g. 403 Forbidden, 404 Not Found, 429 Rate Limited).
-
-    Attributes:
-        status_code: The HTTP status code from GitLab.
-    """
-
-    def __init__(self, message: str, *, status_code: int | None = None):
-        super().__init__(message)
-        self.status_code = status_code
-
-
 class AuditIncompleteError(Exception):
     """Raised when audit_completeness_check() determines that required audit fields are absent.
 
