@@ -4,20 +4,23 @@ name: "blt-hackathons: Update Statistics"
 # /stats.json and /hackathon-data/*.json. Nothing is committed and nothing is redeployed.
 # The fetch stays here rather than in the Worker: one refresh is hundreds of GitHub/GitLab
 # requests, and a free-plan Worker invocation may make 50.
+# Every 6 hours, not hourly: the hackathons still running are GitLab-based (57 projects for one
+# event), so an hourly run hit GitLab's anonymous rate limit, slept for minutes at a time and held
+# the single runner while other jobs queued.
 on:
   push:
     branches: [main]
     paths:
       - blt-hackathons/**
   schedule:
-    - cron: "0 * * * *"
+    - cron: "37 */6 * * *"
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   update-stats:
     runs-on: runner
-    timeout-minutes: 45
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: blt-hackathons

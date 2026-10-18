@@ -38,7 +38,7 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `blt-extension--release.yml` | GitHub `release.yml` + packaging from `create-release.yml` | dispatch only (input `publish`) | `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` |
 | `blt-hackathons--create-hackathon.yml` | GitHub | issues opened/labeled with `hackathon-creation` | CF |
 | `blt-hackathons--process-sponsor.yml` | GitHub | issues opened/labeled with `sponsorship` | CF |
-| `blt-hackathons--update-stats.yml` | GitHub `update-stats.yml` + GitLab `update-future-hackathons` | `0 * * * *`, push under `blt-hackathons/`; writes changed stats to KV (`scripts/refresh-kv.sh`), no commit | `GH_API_TOKEN`, `GITLAB_TOKEN`, CF (with KV write) |
+| `blt-hackathons--update-stats.yml` | GitHub `update-stats.yml` + GitLab `update-future-hackathons` | `37 */6 * * *` (every 6 h; GitLab rate limits without `GITLAB_TOKEN`), push under `blt-hackathons/`; writes changed stats to KV (`scripts/refresh-kv.sh`), no commit | `GH_API_TOKEN`, `GITLAB_TOKEN`, CF (with KV write) |
 | `blt-jobs--expire-jobs.yml` | GitLab `expire_jobs` | dispatch only (optional cleanup of expired `jobs/*.md`; the Worker already hides expired jobs) | CF |
 | `blt-jobs--process-submissions.yml` | GitLab `process_submissions` | issues opened/edited/labeled that look like job, seeker or flag submissions; dispatch input `issue` | CF |
 | `blt-ossh--update-catalog.yml` | GitHub | `0 6 * * *` | `DISCORD_BOT_TOKEN` (optional), CF |
@@ -99,7 +99,7 @@ Responses carry `Cache-Control: public, max-age=60, stale-while-revalidate=600`,
 
 | Project | Paths served from KV | Refreshed by | Secrets on the Worker |
 | --- | --- | --- | --- |
-| `blt-hackathons` | `/stats.json`, `/hackathon-data/*.json` | `blt-hackathons--update-stats.yml`, hourly, through the Cloudflare KV API (`scripts/worker-data/kv-put.sh`) | none |
+| `blt-hackathons` | `/stats.json`, `/hackathon-data/*.json` | `blt-hackathons--update-stats.yml`, every 6 hours, through the Cloudflare KV API (`scripts/worker-data/kv-put.sh`) | none |
 | `blt-gsoc` | `/js/gsoc2026_stats.generated.js`, `/data/progress.json` | the Worker, from blt-cron: `gsoc2026-stats` 02:17-02:31, `progress` 23:07-23:11 (once a minute, in chunks) | `CRON_SECRET`, `GH_API_TOKEN`, `GITLAB_TOKEN` (optional), `SLACK_TOKEN_OWASP`, `SLACK_TOKEN_BLT` |
 | `my-gsoc-tool` | `/data/github-contributions.json`, `/data/forks.json` | the Worker, from blt-cron at 00:03 | `CRON_SECRET`, `GH_API_TOKEN` |
 
