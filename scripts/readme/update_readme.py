@@ -4,11 +4,14 @@
 Sections are delimited by <!-- NAME-START --> / <!-- NAME-END --> markers:
 
   PROJECTS      one row per project folder: name, description, live site
-  CONTRIBUTORS  every contributor with a known GitHub login, by commit count
+  CONTRIBUTORS  everyone with a commit in any project, by commit count (see contributors.py; it also
+                writes .forkmesh/contributors/: avatars, contributors.json and a lookup cache)
   DEPLOY        one row per Cloudflare deploy, from scripts/deploy/projects.tsv
   BLOG-POSTS    latest posts from dev.to/owaspblt (only with --blog; needs network)
 
-Run from anywhere inside the repo:  python3 scripts/readme/update_readme.py [--blog]
+Run from anywhere inside the repo:  python3 scripts/readme/update_readme.py [--blog] [--offline]
+Needs requests and Pillow (pip install requests pillow). --offline skips every network lookup and
+download for the contributor wall; cached results and existing avatars are reused.
 """
 
 import html
@@ -16,6 +19,9 @@ import os
 import re
 import subprocess
 import sys
+
+sys.dont_write_bytecode = True  # no __pycache__ next to the scripts
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from collections import Counter
 from datetime import datetime, timezone
 
@@ -23,13 +29,8 @@ ROOT = subprocess.run(
     ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True
 ).stdout.strip()
 README = os.path.join(ROOT, "README.md")
-LOGINS = os.path.join(ROOT, "scripts", "readme", "contributor-logins.tsv")
 ROUTES = os.path.join(ROOT, "scripts", "routing", "projects.tsv")
 HOME = "https://git.owaspblt.org/BLT"
-PROFILE_OVERRIDES = {"DonnieBLT": "https://git.owaspblt.org/@DonnieBLT"}
-NOREPLY = re.compile(r"^(?:\d+\+)?([A-Za-z0-9-]+(?:\[bot\])?)@users\.noreply\.github\.com$")
-BOTS = {"actions-user", "github-actions", "github-actions[bot]", "copilot", "copilot-swe-agent[bot]",
-        "dependabot", "dependabot[bot]", "sentry-io[bot]", "web-flow", "coderabbitai[bot]"}
 SKIP_DIRS = {"scripts", "docs", ".github"}
 # For folders whose README has no usable opening paragraph
 DESCRIPTIONS = {
@@ -136,40 +137,25 @@ def deploy_section():
     )
 
 
-def load_logins():
-    logins = {}
-    if os.path.exists(LOGINS):
-        for line in open(LOGINS, encoding="utf-8"):
-            if line.startswith("#") or "\t" not in line:
-                continue
-            email, login = line.rstrip("\n").split("\t", 1)
-            logins[email.lower()] = login
-    return logins
+def contributors_section(offline=False):
+    import contributors
 
-
-def contributors_section():
-    logins = load_logins()
-    emails = subprocess.run(
-        ["git", "-C", ROOT, "log", "--no-merges", "--format=%aE", "HEAD"],
-        capture_output=True, text=True, check=True,
-    ).stdout.split()
-    counts = Counter()
-    for email in emails:
-        email = email.lower()
-        m = NOREPLY.match(email)
-        login = logins.get(email) or (m.group(1) if m else None)
-        if login and login.lower() not in BOTS and not login.endswith("[bot]"):
-            counts[login] += 1
+    people = contributors.build(offline=offline)
+    sources = Counter(p["source"] for p in people)
     cells = []
-    for login, n in counts.most_common():
-        url = PROFILE_OVERRIDES.get(login, f"https://github.com/{login}")
-        cells.append(
-            f'<a href="{url}" title="{html.escape(login)}: {n} commits">'
-            f'<img src="https://github.com/{login}.png?size=60" width="50" height="50" alt="{html.escape(login)}"></a>'
-        )
+    for p in people:
+        handle = f" (@{p['login']})" if p["login"] and p["login"].lower() != p["name"].lower() else ""
+        label = html.escape(f"{p['name']}{handle}: {p['commits']} commit{'s' if p['commits'] != 1 else ''}", quote=True)
+        img = f'<img src="{p["avatar"]}" width="50" height="50" alt="{html.escape(p["name"], quote=True)}"'
+        cells.append(f'<a href="{p["profile"]}" title="{label}">{img}></a>' if p["profile"] else f'{img} title="{label}">')
+    accounts = ", ".join(f"{sources[k]} {label}" for k, label in
+                         (("instance", "on git.owaspblt.org"), ("github", "on GitHub"), ("gitlab", "on GitLab"),
+                          ("git", "by commit name only")) if sources[k])
     return (
-        f"## 👥 Contributors ({len(counts)} total)\n\n"
-        f"*Last updated: {now()} — every commit across all BLT projects, by GitHub login*\n\n"
+        f"## 👥 Contributors ({len(people)} total)\n\n"
+        f"*Last updated: {now()} — everyone with a commit in any BLT project, authors and co-authors, bots excluded"
+        f" ({accounts}). Avatars and the full list live in"
+        f" [`.forkmesh/contributors`](.forkmesh/contributors/contributors.json).*\n\n"
         + " ".join(cells)
     )
 
@@ -192,7 +178,7 @@ def blog_section():
 def main():
     text = open(README, encoding="utf-8").read()
     text = replace_section(text, "PROJECTS", projects_section())
-    text = replace_section(text, "CONTRIBUTORS", contributors_section())
+    text = replace_section(text, "CONTRIBUTORS", contributors_section(offline="--offline" in sys.argv))
     text = replace_section(text, "DEPLOY", deploy_section())
     if "--blog" in sys.argv:
         text = replace_section(text, "BLOG-POSTS", blog_section())

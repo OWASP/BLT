@@ -1,5 +1,6 @@
 name: Refresh README
-# Regenerates the Projects, Contributors, Deploying and Blog Posts sections of the root README.md.
+# Regenerates the Projects, Contributors, Deploying and Blog Posts sections of the root README.md,
+# and the contributor avatars and list in .forkmesh/contributors/.
 # Ported from .github/workflows/readme.yml.
 on:
   schedule:
@@ -13,9 +14,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Set up Python
-        run: python3 -m venv .venv && .venv/bin/pip install -q requests
+        run: python3 -m venv .venv && .venv/bin/pip install -q requests pillow
       - name: Regenerate README sections
+        env:
+          GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: .venv/bin/python scripts/readme/update_readme.py --blog
       - name: Commit if changed
         run: |
-          scripts/actions/commit-back.sh -m "README: refresh generated sections" -- README.md
+          scripts/actions/commit-back.sh -m "README: refresh generated sections" -- README.md .forkmesh/contributors

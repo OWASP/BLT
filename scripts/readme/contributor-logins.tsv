@@ -1,5 +1,8 @@
-# commit email<TAB>GitHub login. Used by update_readme.py for the contributor wall.
-# Emails ending in @users.noreply.github.com are resolved automatically.
+# commit email<TAB>account. Used by scripts/readme/contributors.py for the README contributor wall.
+# The account is a GitHub login, or gitlab:<username>, or instance:<git.owaspblt.org name>,
+# or - (a person without an account: listed by name), or bot (left out).
+# GitHub and GitLab noreply emails are resolved automatically; other emails are looked up with the
+# GitHub commit search and cached in .forkmesh/contributors/lookups.json. Add a line here to override.
 01luyicheng@gmail.com	01luyicheng
 1apoorvindia@gmail.com	aprv10
 2005rudrapratapsingh@gmail.com	Rudra-rps

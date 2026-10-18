@@ -32,7 +32,7 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | --- | --- | --- | --- |
 | `ci.yml` | GitHub `ci.yml` | push (any branch): `scripts/ci/test.sh --changed $FORKMESH_BEFORE`; dispatch input `projects` (default `all`) | none |
 | `deploy.yml` | new | push to main: `scripts/deploy.sh --changed $FORKMESH_BEFORE` (folders in `scripts/deploy/projects.tsv`); dispatch input `project` (a name, several space-separated, or `all`) | CF |
-| `readme.yml` | GitHub `readme.yml` | `17 * * * *` | none |
+| `readme.yml` | GitHub `readme.yml` | `17 * * * *`; commits `README.md` and `.forkmesh/contributors/` | `GH_API_TOKEN` (optional), `GITLAB_TOKEN` (optional) |
 | `blt-cve--build-index.yml` | GitHub | push to main under `blt-cve/public/cves`, `public/schema`, `scripts/build_index.py` | CF |
 | `blt-design-contest--build-showcase.yml` | GitLab `build_showcase` | `47 7 * * *`, push under `blt-design-contest/scripts/` | `GITLAB_TOKEN` (optional), CF |
 | `blt-extension--release.yml` | GitHub `release.yml` + packaging from `create-release.yml` | dispatch only (input `publish`) | `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` |
@@ -96,6 +96,20 @@ GitLab pipeline schedules were set in the GitLab UI, so their times were not in 
   `process-gitlab-submissions.js`. GitLab-only scripts that remain:
   - `process-gitlab-submissions.js`, for issues still on gitlab.com
   - `blt-design-contest`, `blt-pages` and `blt-waypoint`, which read data from gitlab.com
+- **README contributor wall** (`readme.yml`): the list used to show only commit authors with a
+  known GitHub login. `scripts/readme/contributors.py` now lists every person with a commit in any
+  project, as author or co-author, and leaves out bots. It merges each person's emails and names, and
+  matches them to a GitHub, GitLab or git.owaspblt.org account. Matching uses noreply emails,
+  `scripts/readme/contributor-logins.tsv`, the GSoC contributor data, and a few GitHub commit
+  searches per run. People without an account are listed by name with an identicon. The job writes
+  the following into `.forkmesh/contributors/`, and the README shows the local images:
+  - a 64x64 PNG avatar per person (`<slug>.png`)
+  - `contributors.json`
+  - `lookups.json`, a cache of the network lookups
+
+  Avatars are downloaded again after 30 days, at most 60 per run. A failed download keeps the old
+  image or an identicon, and never fails the job. The job needs Pillow and runs with `GH_API_TOKEN`
+  for higher GitHub limits.
 - **Small fixes**:
   - `blt-tomato` scrapes into `public/`, where the site lives. It sends `GITHUB_TOKEN` when one is set.
   - `blt-owasp-bumper` writes `public/index.html`.
