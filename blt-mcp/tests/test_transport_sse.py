@@ -16,8 +16,10 @@ import sys
 import time
 
 import httpx
+import pytest
 
 
+@pytest.mark.loopback
 def test_sse_transport_unauthenticated():
     """Verify that if BLT_MCP_TOKEN is set, unauthorized requests get 401."""
     cmd = [
@@ -86,6 +88,7 @@ def test_sse_transport_unauthenticated():
             process.wait()
 
 
+@pytest.mark.loopback
 def test_sse_transport_anonymous():
     """Verify that if BLT_MCP_TOKEN is NOT set, requests succeed anonymously."""
     cmd = [

@@ -15,6 +15,7 @@ Dependencies:
 
 import os
 import shutil
+import socket
 import subprocess
 import sys
 from pathlib import Path
@@ -24,6 +25,31 @@ from dotenv import load_dotenv
 
 # Enable HTTP mock layer globally for all test server subprocesses
 os.environ["BLT_MOCK_HTTP"] = "true"
+
+
+def _loopback_reachable():
+    # Sandboxed CI runners filter loopback traffic; tests that start a local server can't run there.
+    with socket.socket() as server, socket.socket() as client:
+        server.bind(("127.0.0.1", 0))
+        server.listen(1)
+        client.settimeout(2)
+        try:
+            client.connect(server.getsockname())
+        except OSError:
+            return False
+    return True
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "loopback: needs a local server on 127.0.0.1")
+
+
+def pytest_collection_modifyitems(config, items):
+    marked = [item for item in items if item.get_closest_marker("loopback")]
+    if marked and not _loopback_reachable():
+        skip = pytest.mark.skip(reason="loopback connections are blocked here")
+        for item in marked:
+            item.add_marker(skip)
 
 
 @pytest.fixture(autouse=True)

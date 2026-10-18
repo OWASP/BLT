@@ -28,7 +28,7 @@ test("slack_apps.json comes from KV, falling back to the committed file", async 
 test("wrangler.toml runs the Worker first for slack_apps.json only", () => {
   const toml = readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
   assert.match(toml, /^run_worker_first = \["\/slack_apps\.json"\]$/m);
-  assert.match(toml, /binding = "DATA"\nid = "REPLACE_WITH_KV_ID_blt-panini-data"/);
+  assert.match(toml, /binding = "DATA"\nid = "[0-9a-f]{32}"/);
 });
 
 test("refresh-kv.sh keeps apps from KV, lets git curation win and writes changes only", () => {

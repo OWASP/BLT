@@ -45,7 +45,7 @@ test("wrangler.toml runs the Worker first for exactly the data files", () => {
   const toml = readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
   const listed = [...toml.match(/run_worker_first = \[([^\]]*)\]/)[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
   assert.deepEqual(listed, Object.keys(DATA_FILES));
-  assert.match(toml, /binding = "DATA"\nid = "REPLACE_WITH_KV_ID_blt-owasp-metadata-data"/);
+  assert.match(toml, /binding = "DATA"\nid = "[0-9a-f]{32}"/);
 });
 
 test("refresh-kv.sh writes the dataset only when it is not much smaller", () => {

@@ -50,6 +50,7 @@ def test_generate_code_challenge():
     assert challenge == expected_challenge
 
 
+@pytest.mark.loopback
 @pytest.mark.asyncio
 async def test_pkce_login_port_fallback(monkeypatch, capsys):
     """Verify that pkce_login falls back to an available port when the default port is occupied."""
@@ -119,6 +120,7 @@ async def test_pkce_login_port_fallback(monkeypatch, capsys):
         sock.close()
 
 
+@pytest.mark.loopback
 @pytest.mark.asyncio
 async def test_oauth_error_response_handling(monkeypatch, capsys):
     """Verify that OAuth error responses surface the error_description properly."""

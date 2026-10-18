@@ -32,7 +32,7 @@ test("the page and its JSON come from KV, falling back to the committed files", 
 test("wrangler.toml runs the Worker first for the page and its JSON", () => {
   const toml = readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
   assert.match(toml, /^run_worker_first = \["\/", "\/index\.html", "\/project_repos_links\.json"\]$/m);
-  assert.match(toml, /binding = "DATA"\nid = "REPLACE_WITH_KV_ID_blt-tomato-data"/);
+  assert.match(toml, /binding = "DATA"\nid = "[0-9a-f]{32}"/);
 });
 
 test("refresh-kv.sh writes both files only when the list is not much shorter", () => {

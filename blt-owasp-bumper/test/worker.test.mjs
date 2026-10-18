@@ -31,7 +31,7 @@ test("/ and /index.html come from KV, falling back to the committed page", async
 test("wrangler.toml runs the Worker first for the page", () => {
   const toml = readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
   assert.match(toml, /^run_worker_first = \["\/", "\/index\.html"\]$/m);
-  assert.match(toml, /binding = "DATA"\nid = "REPLACE_WITH_KV_ID_blt-owasp-bumper-data"/);
+  assert.match(toml, /binding = "DATA"\nid = "[0-9a-f]{32}"/);
 });
 
 test("refresh-kv.sh writes the page only when it lists enough repositories", () => {

@@ -37,7 +37,7 @@ test("wrangler.toml runs the Worker first for exactly the data paths", () => {
   const listed = [...toml.match(/run_worker_first = \[([^\]]*)\]/)[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
   assert.deepEqual(listed, DATA_PATHS);
   assert.match(toml, /^main = "worker\/index\.js"$/m);
-  assert.match(toml, /binding = "DATA"\nid = "REPLACE_WITH_KV_ID_blt-owasp-projects-data"/);
+  assert.match(toml, /binding = "DATA"\nid = "[0-9a-f]{32}"/);
 });
 
 test("refresh-kv.sh seeds live data and writes only good, changed files", () => {
