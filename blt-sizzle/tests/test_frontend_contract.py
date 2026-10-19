@@ -51,7 +51,7 @@ class TestAppRefactorFrontendContracts(unittest.TestCase):
         ):
             self.assertIn(link, footer)
 
-    def test_app_pages_use_gitlab_contribution_url(self):
+    def test_app_pages_use_forge_contribution_url(self):
         for page in SRC.rglob("*.html"):
             html = page.read_text()
             self.assertNotIn(LEGACY_CONTRIBUTION_URL, html, str(page))
