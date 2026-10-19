@@ -28,7 +28,7 @@ visual dashboard with a compact list view and detailed monitor pages.
 
 ## Setup Instructions
 
-1. **Clone or fork the [GitLab repository](https://git.owaspblt.org/BLT/BLT-Monitor)**
+1. **Clone or fork the [source code](https://git.owaspblt.org/BLT/BLT-Monitor)**
 
 2. **Configure Slack Webhook (Optional)**:
    - Go to your Slack workspace
@@ -68,7 +68,7 @@ visual dashboard with a compact list view and detailed monitor pages.
      ```bash
      npx wrangler secret put SLACK_WEBHOOK_URL
      ```
-   - For Cloudflare Workers Builds connected to GitLab, clear the optional
+   - For Cloudflare Workers Builds connected to a git repository, clear the optional
      build command under **Settings > Build** and keep the deploy command as
      `npx wrangler deploy`. The included `npm run build` compatibility script
      is a no-op for existing build settings.

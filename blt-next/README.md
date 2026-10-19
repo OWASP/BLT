@@ -169,9 +169,8 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
 ## 📧 Contact
 
 - **Project**: [OWASP BLT](https://owasp.org/www-project-bug-logging-tool/)
-- **GitHub**: [OWASP-BLT](https://git.owaspblt.org/BLT)
-- **GitLab**: [owasp-blt/BLT-Next](https://git.owaspblt.org/BLT/BLT-Next)
-- **Issues**: [GitHub Issues](https://git.owaspblt.org/BLT/issues)
+- **Source**: [BLT/BLT-Next](https://git.owaspblt.org/BLT/BLT-Next)
+- **Issues**: [BLT issues](https://git.owaspblt.org/BLT/issues)
 
 ---
 

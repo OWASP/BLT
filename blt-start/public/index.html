@@ -82,7 +82,7 @@
           class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-md
                  border border-blt-primary text-blt-primary text-sm font-medium
                  hover:bg-blt-primary hover:text-white"
-          aria-label="Browse good first issues on GitLab"
+          aria-label="Browse good first issues"
         >
           <i class="fa-solid fa-bug" aria-hidden="true"></i>
           Good First Issues
@@ -93,10 +93,10 @@
           class="inline-flex items-center gap-2 px-4 py-2 rounded-md
                  bg-blt-primary text-white text-sm font-medium
                  hover:bg-blt-hover"
-          aria-label="View BLT on GitLab"
+          aria-label="View BLT source code"
         >
-          <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
-          GitLab
+          <i class="fa-solid fa-code-branch" aria-hidden="true"></i>
+          Source code
         </a>
       </nav>
     </div>
@@ -247,7 +247,7 @@
           <div class="grid sm:grid-cols-3 gap-4">
             <!-- Stat card -->
             <div class="rounded-lg border border-blt-border dark:border-gray-700 p-4 text-center">
-              <i class="fa-brands fa-gitlab text-2xl text-gray-400 dark:text-gray-500 mb-2" aria-hidden="true"></i>
+              <i class="fa-solid fa-code-branch text-2xl text-gray-400 dark:text-gray-500 mb-2" aria-hidden="true"></i>
               <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Repository</p>
               <a href="https://git.owaspblt.org/BLT/BLT-Core" target="_blank" rel="noopener noreferrer"
                  class="text-red-600 dark:text-red-400 hover:underline text-sm font-semibold">
@@ -260,7 +260,7 @@
               <a href="https://git.owaspblt.org/BLT/issues?label_name[]=good%20first%20issue"
                  target="_blank" rel="noopener noreferrer"
                  class="text-red-600 dark:text-red-400 hover:underline text-sm font-semibold">
-                Browse on GitLab
+                Browse issues
               </a>
             </div>
             <div class="rounded-lg border border-blt-border dark:border-gray-700 p-4 text-center">
@@ -289,7 +289,7 @@
             <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blt-primary text-white text-sm font-bold shrink-0 mt-0.5">1</span>
             <div class="space-y-2">
               <p class="font-semibold text-gray-900 dark:text-white">Fork &amp; clone the repository</p>
-              <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 text-xs overflow-x-auto leading-relaxed"><code>git clone https://gitlab.com/&lt;YOUR-USERNAME&gt;/BLT.git
+              <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 text-xs overflow-x-auto leading-relaxed"><code>git clone https://git.owaspblt.org/BLT.git
 cd BLT</code></pre>
             </div>
           </div>
@@ -400,7 +400,7 @@ python manage.py runserver</code></pre>
                    bg-blt-primary text-white text-sm font-semibold
                    hover:bg-blt-hover"
           >
-            <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
+            <i class="fa-solid fa-code-branch" aria-hidden="true"></i>
             Browse Good First Issues
           </a>
 
@@ -690,8 +690,8 @@ git rebase upstream/main</code></pre>
               <span class="text-xs text-gray-500 dark:text-gray-400">fa-code-pull-request</span>
             </div>
             <div class="flex flex-col items-center gap-1.5 text-center">
-              <i class="fa-brands fa-gitlab text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
-              <span class="text-xs text-gray-500 dark:text-gray-400">fa-brands fa-gitlab</span>
+              <i class="fa-solid fa-code-branch text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
+              <span class="text-xs text-gray-500 dark:text-gray-400">fa-solid fa-code-branch</span>
             </div>
             <div class="flex flex-col items-center gap-1.5 text-center">
               <i class="fa-solid fa-star text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
@@ -812,13 +812,13 @@ git rebase upstream/main</code></pre>
           <a href="https://git.owaspblt.org/BLT/BLT-Core" target="_blank" rel="noopener noreferrer"
              class="group rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-5 flex items-start gap-4 hover:border-blt-primary dark:hover:border-red-500 transition-colors">
             <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 group-hover:bg-red-50 group-hover:text-blt-primary shrink-0 transition-colors">
-              <i class="fa-brands fa-gitlab text-lg" aria-hidden="true"></i>
+              <i class="fa-solid fa-code-branch text-lg" aria-hidden="true"></i>
             </span>
             <div>
               <p class="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-blt-primary transition-colors">
                 BLT Repository
               </p>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Main source code on GitLab</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Main source code</p>
             </div>
           </a>
 
@@ -907,8 +907,8 @@ git rebase upstream/main</code></pre>
       <nav class="flex items-center gap-5" aria-label="Footer links">
         <a href="https://git.owaspblt.org/BLT/BLT-Core" target="_blank" rel="noopener noreferrer"
            class="text-gray-400 dark:text-gray-500 hover:text-blt-primary dark:hover:text-red-400 transition-colors"
-           aria-label="BLT on GitLab">
-          <i class="fa-brands fa-gitlab text-xl" aria-hidden="true"></i>
+           aria-label="BLT source code">
+          <i class="fa-solid fa-code-branch text-xl" aria-hidden="true"></i>
         </a>
         <a href="https://owasp.slack.com/archives/CBKGH8A5P" target="_blank" rel="noopener noreferrer"
            class="text-gray-400 dark:text-gray-500 hover:text-blt-primary dark:hover:text-red-400 transition-colors"

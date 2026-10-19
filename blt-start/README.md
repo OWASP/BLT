@@ -67,13 +67,13 @@ This dashboard helps:
 1. Clone the repository:
 
    ```bash
-   git clone https://gitlab.com/shiva119127/blt-contributor-page.git
+   git clone https://git.owaspblt.org/BLT.git
    ```
 
 2. Navigate to the project directory:
 
    ```bash
-   cd blt-contributor-page
+   cd BLT/blt-start
    ```
 
 3. Start the local Cloudflare Workers development server:
@@ -143,7 +143,7 @@ git push origin feature/your-feature
 
 ## 🔮 Future Improvements
 
-* 🔗 GitLab API integration
+* 🔗 git.owaspblt.org API integration
 * 👤 Authentication system
 * 📊 Contributor analytics
 * 🌐 Multi-language UI toggle
@@ -160,7 +160,6 @@ MIT License © 2026
 
 If you like this project:
 
-👉 Give it a ⭐ on GitLab
 👉 Share with developers
 👉 Contribute 🚀
 

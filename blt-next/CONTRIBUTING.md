@@ -5,7 +5,7 @@ Thank you for your interest in contributing to OWASP BLT! We welcome contributio
 ## How Can I Contribute?
 
 ### Reporting Bugs
-Before creating bug reports, please check the [existing GitHub issues](https://git.owaspblt.org/BLT/issues) or the [GitLab repository](https://git.owaspblt.org/BLT/BLT-Next) to avoid duplicates. When creating a bug report, include:
+Before creating bug reports, please check the [existing issues](https://git.owaspblt.org/BLT/issues) to avoid duplicates. When creating a bug report, include:
 - Clear title and description.
 - Steps to reproduce the issue.
 - Expected behavior vs actual behavior.
@@ -17,12 +17,10 @@ Enhancement suggestions are tracked as GitHub issues. Provide a clear title, a d
 ## Getting Started
 
 ### 1. Fork and Clone
-Fork the [BLT-Next GitHub repository](https://git.owaspblt.org/BLT/BLT-Next) or use the [GitLab mirror](https://git.owaspblt.org/BLT/BLT-Next), then clone it locally:
+Fork [BLT](https://git.owaspblt.org/BLT) (BLT-Next is the [`blt-next` folder](https://git.owaspblt.org/BLT/BLT-Next)), then clone it locally:
 ```bash
-git clone https://github.com/your-username/BLT-Next.git
-# or
 git clone https://git.owaspblt.org/BLT.git
-cd BLT-Next
+cd BLT/blt-next
 ```
 
 ### 2. Local Setup (Recommended)
