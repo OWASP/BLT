@@ -19,7 +19,7 @@ BLT University is the open-source cybersecurity learning platform maintained by 
 - Interactive course activities built around evidence review, DevTools inspection, security decisions, and ordered response steps.
 - Browser-local progress, streaks, recommendations, and achievement badges. No account is required and learning state is not sent to a server.
 - A Security Trends dashboard backed by a validated 90-day NVD and CISA KEV dataset.
-- Schema validation, JavaScript tests, data-pipeline tests, and cross-browser learner-flow tests in GitLab CI.
+- Schema validation, JavaScript tests, data-pipeline tests, and cross-browser learner-flow tests.
 
 ## Learning model
 
@@ -39,7 +39,7 @@ All exercises run with static or simulated data. They do not target external sys
 
 1. **Browse Courses**: Visit [BLT University](https://university.owaspblt.org/) to explore our catalog.
 2. **Request a Course**: Don't see what you're looking for? [Request a course or topic](https://git.owaspblt.org/BLT/issues/new) you'd like to learn.
-3. **Create a GitLab Account**: If you don't have one, [sign up for GitLab](https://gitlab.com/users/sign_up).
+3. **Create an account**: If you don't have one, [sign up on git.owaspblt.org](https://git.owaspblt.org/).
 4. **Enroll**: Submit an [enrollment request](https://git.owaspblt.org/BLT/issues/new).
 5. **Start Learning**: Open a course and work through its lessons and practice labs.
 
@@ -59,7 +59,7 @@ Want to teach at BLT University?
 - Vanilla JavaScript powers labs, validation, local progress, recommendations, and dashboard interactions.
 - Jest and jsdom cover functional JavaScript behavior.
 - Playwright verifies the complete learner journey in desktop Chromium, Firefox, WebKit, and mobile Chromium.
-- GitLab CI validates, builds, tests, and publishes the site.
+- The forge CI runs the Jest suite; validators, the Jekyll build and Playwright run locally (see below).
 
 ## Repository structure
 
@@ -78,7 +78,6 @@ Want to teach at BLT University?
 ├── tests/e2e/                        Cross-browser learner-flow tests and guide
 ├── tests/vulnerability_intel/        Vulnerability pipeline tests
 ├── tests/                            Jest functional and content tests
-├── .gitlab-ci.yml                    Validation, build, test, and deploy jobs
 ├── playwright.config.js              Cross-browser E2E configuration
 └── _config.yml                       Jekyll and site configuration
 ```
@@ -194,19 +193,20 @@ Set `NVD_API_KEY` to increase the NVD request rate when refreshing data. Review 
 
 ## Continuous integration and deployment
 
-The GitLab pipeline contains the following relevant jobs:
+The forge CI runs `npm test` (the Jest suite) for every change to this folder. The other checks need Ruby,
+Chromium or extra Python packages that the runner does not have, so run them locally before opening a pull request:
 
-- `validate-labs` checks lab content when lab or schema files change.
-- `validate-vulnerability-intel` validates the dataset and Python pipeline tests when related files change.
-- `build_site` generates the production site in `public/`.
-- `test_js` runs the Jest suite.
-- `test_e2e` runs the Playwright learner journey against the build artifact.
-- `pages` publishes `public/` from the default branch to GitLab Pages.
-- `commit_built_pages` commits the generated `public/` output for the connected production deployment.
+- Labs (when `_labs/`, `schemas/lab.schema.json` or `scripts/validate_labs.py` change):
+  `pip install jsonschema==4.25.1 python-frontmatter==1.1.0 && python scripts/validate_labs.py`
+- Vulnerability data (when `_data/vulnerability_intel.json`, its schema or `scripts/vulnerability_intel/` change):
+  `pip install "jsonschema[format-nongpl]==4.25.1" && python -B scripts/vulnerability_intel/validate.py && python -B -m unittest discover -s tests/vulnerability_intel -p 'test_*.py'`
+- Site build: `bundle install && bundle exec jekyll build -d public`. Commit the rebuilt `public/`; the production
+  deployment serves it as is.
+- Learner journey: `npm ci && npm run test:e2e` (Playwright) against the build.
 
 ## Contributing
 
-Contributions to content, accessibility, simulations, tests, data quality, and documentation are welcome. Before opening a merge request:
+Contributions to content, accessibility, simulations, tests, data quality, and documentation are welcome. Before opening a pull request:
 
 1. Create a focused branch.
 2. Follow the existing content and code style.
@@ -223,6 +223,6 @@ BLT University is licensed under the [GNU Affero General Public License v3.0](LI
 ## Project links
 
 - Website: [university.owaspblt.org](https://university.owaspblt.org/)
-- GitLab: [owasp-blt/blt-university](https://git.owaspblt.org/BLT/BLT-University)
+- Source: [BLT/BLT-University](https://git.owaspblt.org/BLT/BLT-University)
 - OWASP BLT: [owaspblt.org](https://owaspblt.org/)
 - OWASP project page: [Bug Logging Tool](https://owasp.org/www-project-bug-logging-tool/)

@@ -45,8 +45,8 @@ Once approved:
 
 ```bash
 # Fork the repository
-git clone https://gitlab.com/YOUR-USERNAME/blt-university.git
-cd blt-university
+git clone https://git.owaspblt.org/BLT.git
+cd BLT/blt-university
 
 # Create instructor profile
 cat > _instructors/your-name.md << 'EOF'
@@ -92,7 +92,7 @@ bundle exec jekyll serve
 git add .
 git commit -m "Add new course: Your Course Title"
 git push origin feature/your-course
-# Open a merge request on GitLab
+# Open a pull request on git.owaspblt.org
 ```
 
 ### 4. Maintain Course
@@ -254,8 +254,7 @@ resources:
 ## Resources
 
 - **Website**: https://university.owaspblt.org/
-- **GitHub**: https://git.owaspblt.org/BLT/BLT-University
-- **GitLab**: https://git.owaspblt.org/BLT/BLT-University
+- **Source**: https://git.owaspblt.org/BLT/BLT-University
 - **Jekyll Docs**: https://jekyllrb.com/docs/
 - **Markdown Guide**: https://www.markdownguide.org/
 

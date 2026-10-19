@@ -239,7 +239,7 @@ git commit -m "Description of changes"
 # Push to your fork
 git push origin feature/your-feature
 
-# Open a merge request on GitLab
+# Open a pull request on git.owaspblt.org
 ```
 
 ## ✅ Merge Request Guidelines
@@ -265,8 +265,8 @@ Provide:
 
 ### Review Process
 
-1. **Automated Checks**: GitLab CI will run the configured validators and tests
-2. **Peer Review**: Community members review your merge request
+1. **Automated Checks**: CI runs the Jest suite; run the validators and Playwright locally (see the README)
+2. **Peer Review**: Community members review your pull request
 3. **Revisions**: Address feedback and make changes
 4. **Approval**: Maintainers approve and merge
 5. **Deployment**: Changes go live automatically
@@ -390,9 +390,8 @@ As a BLT University instructor, you get:
 
 Need assistance?
 
-- **Questions**: [GitHub Discussions](https://git.owaspblt.org/BLT/discussions)
+- **Questions**: [Discussions](https://git.owaspblt.org/BLT/discussions)
 - **Bugs**: [Issue Tracker](https://git.owaspblt.org/BLT/issues)
-- **GitLab Mirror**: [Issues](https://git.owaspblt.org/BLT/issues)
 - **Chat**: Join our community chat
 - **Email**: contribute@bltuniversity.org
 

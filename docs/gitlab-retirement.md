@@ -145,10 +145,9 @@ These `.gitlab-ci.yml` files are not run anywhere:
 - blt-hackerhouse
 - blt-netguardian
 - blt-pages
-- blt-university
 
-Delete them once nothing reads them; `docs/workflows.md` records what each one did. (blt-mcp, blt-safecloak and
-blt-toasty: deleted.)
+Delete them once nothing reads them; `docs/workflows.md` records what each one did. (blt-mcp, blt-safecloak,
+blt-toasty and blt-university: deleted.)
 
 The `.gitlab/issue_templates/` folders are ported: blt-design-contest (7), blt-jobs (4), blt-pages (1) and
 blt-profiles (1) now keep documented issue bodies in `<folder>/issue-templates/`, and their pages link to
@@ -162,7 +161,7 @@ Replace them with forge wording and a neutral icon such as `fa-code-branch`.
 | Project | Where |
 | --- | --- |
 | root `README.md` | **Done**: the gitlab.com mirror link is removed. |
-| blt-university | "Submit/Enroll via GitLab" (`_pages/enroll.html`, `about.html`, `contributing.html`, built `public/` copies, about 18); `QUICKSTART.md:48` clone URL; `README.md:42`. |
+| blt-university | **Done**: forge wording, clone URL and a README CI section replace the GitLab text and `.gitlab-ci.yml`. |
 | blt-start | `public/index.html` (14, including the clone URL at `:292`); `README.md:70,146,163`. |
 | blt-design | `fa-gitlab` on forge "Contribute" buttons (17 files); placeholder `https://gitlab.com/...` in `inputs.html:25`. |
 | blt-monitor, blt-next, blt-api, blt-vanish, blt-cli, blt-mayo, blt-autopatch, blt-gitcaster, blt-owasp-metadata, blt-newsletter | One to nine labels or titles each ("Source code on GitLab" and similar). |

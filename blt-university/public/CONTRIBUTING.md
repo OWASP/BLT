@@ -390,9 +390,8 @@ As a BLT University instructor, you get:
 
 Need assistance?
 
-- **Questions**: [GitHub Discussions](https://git.owaspblt.org/BLT/discussions)
+- **Questions**: [Discussions](https://git.owaspblt.org/BLT/discussions)
 - **Bugs**: [Issue Tracker](https://git.owaspblt.org/BLT/issues)
-- **GitLab Mirror**: [Issues](https://git.owaspblt.org/BLT/issues)
 - **Chat**: Join our community chat
 - **Email**: contribute@bltuniversity.org
 

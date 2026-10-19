@@ -254,8 +254,7 @@ resources:
 ## Resources
 
 - **Website**: https://university.owaspblt.org/
-- **GitHub**: https://git.owaspblt.org/BLT/BLT-University
-- **GitLab**: https://git.owaspblt.org/BLT/BLT-University
+- **Source**: https://git.owaspblt.org/BLT/BLT-University
 - **Jekyll Docs**: https://jekyllrb.com/docs/
 - **Markdown Guide**: https://www.markdownguide.org/
 

@@ -62,7 +62,6 @@ exclude:
   - .git/
   - .github/
   - .gitignore
-  - .gitlab-ci.yml
   - CNAME
   - CONTRIBUTING.md
   - FIX_PROPOSAL.md
