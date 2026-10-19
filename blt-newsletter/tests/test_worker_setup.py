@@ -90,7 +90,7 @@ class WorkerSetupTests(unittest.TestCase):
         self.assertIn("/signup", config["assets"]["run_worker_first"])
         self.assertIn("/signup/", config["assets"]["run_worker_first"])
         self.assertEqual(config["d1_databases"][0]["binding"], "DB")
-        self.assertEqual(config["d1_databases"][0]["database_name"], "blt-newsletter")
+        self.assertEqual(config["d1_databases"][0]["database_name"], "blt_zero")  # shared database; see wrangler.toml
         self.assertEqual(config["d1_databases"][0]["migrations_dir"], "migrations")
         self.assertIn("queues", config)
         producer = config["queues"]["producers"][0]
