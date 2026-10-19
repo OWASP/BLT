@@ -17,7 +17,7 @@ still in progress.
 - [x] Standalone repositories exist for the planned NetGuardian, Monitor, Leaf,
   Sizzle, Flutter, University, OSSH, Enforcement, CVE, Rewards, Hackathons,
   Jobs, and API migration targets.
-- [x] Migration-plan source links use the OWASP BLT GitLab group.
+- [x] Migration-plan source links use the git.owaspblt.org/BLT monorepo.
 - [x] The obsolete `website/templates/apps.html` Panini placeholder has been
   removed from the monolith.
 - [x] The obsolete six-line `website/views/video_call.py` view has been removed;
@@ -57,7 +57,7 @@ still in progress.
 ### Current assessment
 
 - **Repository/project separation:** mostly complete.
-- **GitHub-to-GitLab documentation migration:** complete in this plan.
+- **Source-link migration to git.owaspblt.org:** complete in this plan.
 - **API contracts and monolith extraction:** substantial work remains.
 - **Safe next milestone:** finish Phase 1 redirects and `API_CONTRACTS.md`, then
   implement the Phase 2 API endpoints before deleting any core models.

@@ -115,7 +115,7 @@ A shot-by-shot recording script lives in the repo: the midterm demo script (loca
 
 ## Code delivery
 
-Work is in **[MR !12](https://gitlab.com/owasp-blt/blt-netguardian/-/merge_requests/12)** on `owasp-blt/blt-netguardian` (branch `gsoc/evidence-encryption`), including:
+Work is in **[MR !12 (merge commit)](https://git.owaspblt.org/BLT/commit/949631b388289f466c03e8d183522a5239f40916)** on `owasp-blt/blt-netguardian` (branch `gsoc/evidence-encryption`), including:
 
 1. AES-256-GCM evidence encryption + decrypt-on-view
 2. Wording fix for ciphertext ingest validation
@@ -194,7 +194,7 @@ Refresh the UI — a new `zap.ssrf` critical finding should appear, encrypted at
 ## Links
 
 - Repo: [https://git.owaspblt.org/BLT/BLT-NetGuardian](https://git.owaspblt.org/BLT/BLT-NetGuardian)
-- Midterm MR: [!12 — Evidence encryption + findings API hardening](https://gitlab.com/owasp-blt/blt-netguardian/-/merge_requests/12)
+- Midterm MR: [!12 — Evidence encryption + findings API hardening](https://git.owaspblt.org/BLT/commit/949631b388289f466c03e8d183522a5239f40916)
 - Production (future): [netguardian.owaspblt.org](https://netguardian.owaspblt.org)
 
 ---

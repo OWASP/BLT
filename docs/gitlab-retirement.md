@@ -49,6 +49,9 @@ This page lists every GitLab dependency left in the monorepo (found with `git gr
   issue; only the account that created a profile can update it. The template is
   `blt-profiles/issue-templates/add-profile.md`. The Worker endpoint and `GITLAB_ACCESS_TOKEN`, `GITLAB_WEBHOOK_TOKEN`
   and `GITLAB_PROJECT_PATH` are gone (delete the Worker secrets and the gitlab.com project webhook).
+- **blt-gsoc archive links**: the netguardian blog's MR !12 and !34 links point at their merge commits on the forge
+  (`949631b388`, `418f8d667c`); MR !35 was never merged and is now plain text. The Worker secret is still to delete.
+- **Root README and blt-core**: the gitlab.com mirror link is gone; `MIGRATION_PLAN.md` names the forge.
 
 ## What git.owaspblt.org can serve
 
@@ -158,7 +161,7 @@ Replace them with forge wording and a neutral icon such as `fa-code-branch`.
 
 | Project | Where |
 | --- | --- |
-| root `README.md` | `:8` lists the read-only mirror `gitlab.com/owasp-blt/blt`. Remove it when the group closes, unless a mirror there is kept (plan.md, "Mirrors"). |
+| root `README.md` | **Done**: the gitlab.com mirror link is removed. |
 | blt-university | "Submit/Enroll via GitLab" (`_pages/enroll.html`, `about.html`, `contributing.html`, built `public/` copies, about 18); `QUICKSTART.md:48` clone URL; `README.md:42`. |
 | blt-start | `public/index.html` (14, including the clone URL at `:292`); `README.md:70,146,163`. |
 | blt-design | `fa-gitlab` on forge "Contribute" buttons (17 files); placeholder `https://gitlab.com/...` in `inputs.html:25`. |
@@ -167,7 +170,7 @@ Replace them with forge wording and a neutral icon such as `fa-code-branch`.
 | blt-owasp-bumper, blt-owasp-projects | README sections that describe a `.gitlab-ci.yml` which no longer exists. |
 | dot_github, coderabbit, blt-autopatch | The stock GitLab "Getting started" README boilerplate. Delete it. |
 | blt-ossh | **Done**: the `gitlab.com/owasp-blt/...` catalog entry is removed and filtered on every refresh (`scripts/refresh-kv.sh`). |
-| blt-core | `MIGRATION_PLAN.md:20` says source links use the GitLab group. Update it. |
+| blt-core | **Done**: `MIGRATION_PLAN.md` names the forge. |
 | blt-docs | Plan and history pages. Leave them, or say "GitLab (closed)". |
 | docs/workflows.md | Port notes. Update the token columns as readers move. |
 
