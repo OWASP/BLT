@@ -1186,6 +1186,19 @@
             day: "numeric",
           });
         }
+        function safeUrl(url) {
+          if (window.Sanitize && window.Sanitize.safeUrl) {
+            return window.Sanitize.safeUrl(url);
+          }
+          try {
+            var u = new URL(url);
+            return u.protocol === "https:" || u.protocol === "http:"
+              ? u.href
+              : "";
+          } catch (e) {
+            return "";
+          }
+        }
         Promise.all([
           fetch("data/jobs.json", { cache: "no-cache" }).then(function (r) {
             return r.ok ? r.json() : { jobs: [] };
@@ -1214,6 +1227,7 @@
             if (jobs.length > 0) {
               jobs.forEach(function (j) {
                 var meta = "";
+                var addedByUrl = safeUrl(j.added_by_url);
                 if (j.created_at)
                   meta +=
                     '<span class="flex items-center gap-1"><i class="fa-solid fa-calendar-days text-[.6rem]" aria-hidden="true"></i> ' +
@@ -1222,9 +1236,9 @@
                 if (j.added_by)
                   meta +=
                     '<span class="flex items-center gap-1"><i class="fa-solid fa-user text-[.6rem]" aria-hidden="true"></i> ' +
-                    (j.added_by_url
+                    (addedByUrl
                       ? '<a href="' +
-                        esc(j.added_by_url) +
+                        esc(addedByUrl) +
                         '" target="_blank" rel="noopener noreferrer" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">@' +
                         esc(j.added_by) +
                         "</a>"
@@ -1287,6 +1301,19 @@
           d.textContent = s;
           return d.innerHTML;
         }
+        function safeUrl(url) {
+          if (window.Sanitize && window.Sanitize.safeUrl) {
+            return window.Sanitize.safeUrl(url);
+          }
+          try {
+            var u = new URL(url);
+            return u.protocol === "https:" || u.protocol === "http:"
+              ? u.href
+              : "";
+          } catch (e) {
+            return "";
+          }
+        }
         fetch("data/jobs.json", { cache: "no-cache" })
           .then(function (r) {
             return r.ok ? r.json() : { jobs: [] };
@@ -1323,14 +1350,15 @@
               '<div class="divide-y divide-gray-100 dark:divide-gray-700">';
             ranked.forEach(function (entry, i) {
               var medal = MEDAL_ICONS[i] || "#" + (i + 1);
+              var profileUrl = safeUrl(entry.profileUrl);
               html += '<div class="flex items-center gap-3 py-3">';
               html +=
                 '<span class="w-7 text-center text-base">' + medal + "</span>";
               html +=
                 '<span class="flex h-7 w-7 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700 dark:bg-red-900/30 dark:text-red-300">@</span>';
-              html += entry.profileUrl
+              html += profileUrl
                 ? '<a href="' +
-                  esc(entry.profileUrl) +
+                  esc(profileUrl) +
                   '" target="_blank" rel="noopener noreferrer" class="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400">@' +
                   esc(entry.user) +
                   "</a>"
