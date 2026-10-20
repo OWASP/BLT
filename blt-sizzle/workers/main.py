@@ -29,6 +29,7 @@ from auth_utils import (
 )
 from email_service import SendGridEmailService, render_otp_email
 from timezones import all_timezones, is_valid_timezone
+from url_safety import is_slack_webhook_url
 
 # Route logs to stdout so Cloudflare Workers captures them at the correct level
 # (stderr is always treated as "error" by the Workers runtime)
@@ -1123,7 +1124,9 @@ async def handle_save_settings(request, env):
         if not is_valid_timezone(timezone):
             return json_error("Invalid timezone", 400)
 
-        slack_webhook_url = str(data.get('slackWebhookUrl') or '')
+        slack_webhook_url = str(data.get('slackWebhookUrl') or '').strip()
+        if slack_webhook_url and not is_slack_webhook_url(slack_webhook_url):
+            return json_error("Slack webhook URL must start with https://hooks.slack.com/services/", 400)
         email_notifications = normalize_bool(data.get('emailNotifications', 0))
         encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
         encrypted_slack_webhook_url = await encrypt_data(slack_webhook_url, encryption_key)
@@ -1142,14 +1145,13 @@ async def handle_save_settings(request, env):
 
 
 async def handle_test_notification(request, env):
-    """Send test notification"""
+    """Send a test notification to the session user's own Slack webhook."""
     try:
         url = URL.new(request.url)
-        user_id = url.searchParams.get('userId')
-        
+        # Identity comes from the session, never from the request (it used to trust ?userId=).
+        user_id = await get_session_user(request, env)
         if not user_id:
-            return Response.new(json.dumps({"error": "User ID required"}), 
-                              {"status": 400, "headers": {"Content-Type": "application/json"}})
+            return json_error("Unauthorized", 401)
         
         # Get user settings
         result_proxy = await env.sizzle_db.prepare("""
@@ -1163,11 +1165,11 @@ async def handle_test_notification(request, env):
                               {"status": 404, "headers": {"Content-Type": "application/json"}})
 
         result = result_proxy.to_py()
-        encryption_key = getattr(env, 'ENCRYPTION_KEY', 'sizzle-dev-key-12345')
+        encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
         slack_webhook_url = await decrypt_data(result['encrypted_slack_webhook_url'] or '', encryption_key)
 
-        # Send Slack notification if webhook is configured
-        if slack_webhook_url:
+        # Send Slack notification if webhook is configured (and still a Slack webhook URL)
+        if slack_webhook_url and is_slack_webhook_url(slack_webhook_url):
             # ... slack logic ...
             slack_message = {
                 "text": "🔔 Test Notification",
@@ -1208,8 +1210,7 @@ async def handle_test_notification(request, env):
                           {"headers": {"Content-Type": "application/json"}})
     except Exception as e:
         logger.error("Error sending test notification: %s", e, exc_info=True)
-        return Response.new(json.dumps({"error": str(e)}), 
-                          {"status": 500, "headers": {"Content-Type": "application/json"}})
+        return json_error("Test notification could not be sent", 500)
 
 
 async def handle_debug_db(request, env):
@@ -1858,6 +1859,18 @@ async def get_session_user(request, env):
     return session.get('user_id')
 
 
+OAUTH_STATE_COOKIE = "sizzle_oauth_state"
+
+
+def oauth_state_matches_cookie(cookie_header, state):
+    """True when the OAuth state cookie set by /api/auth/login equals `state` (constant time)."""
+    for part in str(cookie_header or "").split(";"):
+        name, _, value = part.strip().partition("=")
+        if name == OAUTH_STATE_COOKIE and value and state:
+            return hmac.compare_digest(value.encode(), str(state).encode())
+    return False
+
+
 async def handle_auth_login(request, env):
     """Redirect to GitHub OAuth authorization page"""
     try:
@@ -1892,7 +1905,19 @@ async def handle_auth_login(request, env):
             f"&state={state}"
         )
 
-        return Response.redirect(auth_url, 302)
+        # Bind the state to this browser: the callback accepts it only together with this cookie,
+        # so a state minted by someone else (login CSRF) does not work.
+        state_cookie = (
+            f"{OAUTH_STATE_COOKIE}={state}; HttpOnly; Secure; SameSite=Lax; "
+            f"Path=/api/auth; Max-Age=600"
+        )
+        return Response.new(
+            None,
+            to_js({
+                "status": 302,
+                "headers": {"Location": auth_url, "Set-Cookie": state_cookie},
+            }, dict_converter=Object.fromEntries)
+        )
     except Exception as e:
         logger.error("Error initiating auth: %s", e, exc_info=True)
         return Response.new(json.dumps({"error": str(e)}),
@@ -1912,6 +1937,9 @@ async def handle_auth_callback(request, env):
 
         if not code or not state:
             return redirect("/?auth_error=missing_params")
+
+        if not oauth_state_matches_cookie(request.headers.get('Cookie') or '', state):
+            return redirect("/?auth_error=invalid_state")
 
         # Validate CSRF state
         state_proxy = await env.sizzle_db.prepare(
@@ -2019,7 +2047,7 @@ async def handle_auth_callback(request, env):
         display_name = user_data.get('name') or login
 
         # Encrypt PII before storing
-        encryption_key = getattr(env, 'ENCRYPTION_KEY', 'sizzle-dev-key-12345')
+        encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
         encrypted_email = await encrypt_data(primary_email, encryption_key)
         encrypted_display_name = await encrypt_data(display_name, encryption_key)
 
@@ -2152,7 +2180,7 @@ async def get_access_token_for_request(request, env):
     if not encrypted_token:
         return None
 
-    encryption_key = getattr(env, 'ENCRYPTION_KEY', 'sizzle-dev-key-12345')
+    encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
     return await decrypt_data(encrypted_token, encryption_key)
 
 
@@ -2463,7 +2491,7 @@ async def handle_get_org_checkins(request, env, org_name):
 
         org = org_proxy.to_py()
         org_id = org['id']
-        encryption_key = getattr(env, 'ENCRYPTION_KEY', 'sizzle-dev-key-12345')
+        encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
 
         # Resolve org-level key (if set)
         org_key = None
