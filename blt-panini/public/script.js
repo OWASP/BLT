@@ -1,4 +1,20 @@
 
+// App names, developers, notes and links come from the scraped Slack Marketplace and the
+// banned-apps data: escape them before they go into HTML, and link only http(s) URLs.
+function esc(value) {
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function safeUrl(url) {
+    const value = String(url || '').trim();
+    return /^https?:\/\//i.test(value) ? value : '#';
+}
+
 // State
 let allApps = [];
 let allSlackApps = [];
@@ -150,18 +166,18 @@ function renderApps(apps) {
 
         card.innerHTML = `
             <div class="bg-gray-50 dark:bg-gray-700/30 px-6 py-4 border-b border-gray-100 dark:border-gray-700/50 flex justify-between items-center">
-                <h3 class="text-xl font-bold text-red-600 truncate mr-2">${app.app_name}</h3>
+                <h3 class="text-xl font-bold text-red-600 truncate mr-2">${esc(app.app_name)}</h3>
                 <span class="px-2 py-1 text-[10px] uppercase tracking-wider font-bold rounded bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 whitespace-nowrap">
-                    ${app.country_name}
+                    ${esc(app.country_name)}
                 </span>
             </div>
             <div class="p-6 flex-grow">
-                <p class="text-[11px] font-bold text-gray-400 dark:text-gray-500 mb-2 uppercase tracking-widest">${app.app_type}</p>
-                <p class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed line-clamp-3">${app.ban_reason}</p>
+                <p class="text-[11px] font-bold text-gray-400 dark:text-gray-500 mb-2 uppercase tracking-widest">${esc(app.app_type)}</p>
+                <p class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed line-clamp-3">${esc(app.ban_reason)}</p>
             </div>
             <div class="bg-gray-50/50 dark:bg-gray-800 px-6 py-4 border-t border-gray-100 dark:border-gray-700/50 flex justify-between items-center text-xs">
                 <span class="text-gray-500 dark:text-gray-400 font-medium">${new Date(app.ban_date).toLocaleDateString()}</span>
-                ${app.source_url ? `<a href="${app.source_url}" target="_blank" class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-bold hover:underline inline-flex items-center">Details <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></a>` : ''}
+                ${app.source_url ? `<a href="${esc(safeUrl(app.source_url))}" target="_blank" class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-bold hover:underline inline-flex items-center">Details <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></a>` : ''}
             </div>
         `;
         appsGrid.appendChild(card);
@@ -273,24 +289,24 @@ function renderSlackApps() {
         const ratingClass = RATING_CLASSES[app.security_rating] || 'bg-gray-100 text-gray-700';
         const dataClass = DATA_ACCESS_CLASSES[app.data_access] || 'bg-gray-100 text-gray-700';
         const permissions = app.permissions.map(p =>
-            `<span class="inline-block px-1.5 py-0.5 rounded text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 mr-1 mb-1">${p}</span>`
+            `<span class="inline-block px-1.5 py-0.5 rounded text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 mr-1 mb-1">${esc(p)}</span>`
         ).join('');
         const verifiedBadge = app.verified
             ? `<span class="inline-flex items-center gap-0.5 text-green-600 dark:text-green-400 font-medium" title="Verified"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Yes</span>`
             : `<span class="text-gray-400 dark:text-gray-500">—</span>`;
         const link = app.source_url
-            ? `<a href="${app.source_url}" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline font-medium text-xs inline-flex items-center gap-0.5">View<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></a>`
+            ? `<a href="${esc(safeUrl(app.source_url))}" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline font-medium text-xs inline-flex items-center gap-0.5">View<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></a>`
             : '';
         const privacyLink = app.privacy_policy_url
-            ? `<a href="${app.privacy_policy_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium text-xs inline-flex items-center gap-0.5">Privacy<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></a>`
+            ? `<a href="${esc(safeUrl(app.privacy_policy_url))}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium text-xs inline-flex items-center gap-0.5">Privacy<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></a>`
             : '<span class="text-gray-400 dark:text-gray-500 text-xs">—</span>';
         return `<tr class="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors">
-            <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white whitespace-nowrap">${app.app_name}<div class="text-xs font-normal text-gray-400 dark:text-gray-500">${app.developer}</div></td>
-            <td class="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">${app.category}</td>
-            <td class="px-4 py-3"><span class="inline-block w-7 h-7 rounded font-black text-center leading-7 text-sm ${ratingClass}">${app.security_rating}</span></td>
-            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-medium ${dataClass}">${app.data_access}</span></td>
+            <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white whitespace-nowrap">${esc(app.app_name)}<div class="text-xs font-normal text-gray-400 dark:text-gray-500">${esc(app.developer)}</div></td>
+            <td class="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">${esc(app.category)}</td>
+            <td class="px-4 py-3"><span class="inline-block w-7 h-7 rounded font-black text-center leading-7 text-sm ${ratingClass}">${esc(app.security_rating)}</span></td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-medium ${dataClass}">${esc(app.data_access)}</span></td>
             <td class="px-4 py-3 min-w-[180px]"><div class="flex flex-wrap">${permissions}</div></td>
-            <td class="px-4 py-3 text-xs text-gray-600 dark:text-gray-300 max-w-xs">${app.security_notes}</td>
+            <td class="px-4 py-3 text-xs text-gray-600 dark:text-gray-300 max-w-xs">${esc(app.security_notes)}</td>
             <td class="px-4 py-3 text-center">${verifiedBadge}</td>
             <td class="px-4 py-3">${link}</td>
             <td class="px-4 py-3">${privacyLink}</td>
@@ -466,7 +482,7 @@ function placeMarkersForApps(apps) {
                 })
             });
 
-            marker.bindTooltip(`${countryApps[0].country_name}: ${count} banned apps`, {
+            marker.bindTooltip(`${esc(countryApps[0].country_name)}: ${count} banned apps`, {
                 direction: "top",
                 offset: [0, -20],
                 className: "bg-gray-800 text-white px-2 py-1 rounded text-xs"
@@ -491,14 +507,14 @@ function showCountryInfo(countryName, apps) {
     listDiv.innerHTML = apps.map(app => `
         <div class="rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
             <div class="bg-gray-50 dark:bg-gray-700/50 px-3 py-2 border-b border-gray-100 dark:border-gray-700/50 flex justify-between items-center">
-                <h4 class="font-bold text-red-600 text-sm truncate mr-2">${app.app_name}</h4>
-                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">${app.app_type}</span>
+                <h4 class="font-bold text-red-600 text-sm truncate mr-2">${esc(app.app_name)}</h4>
+                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">${esc(app.app_type)}</span>
             </div>
             <div class="p-3 bg-white dark:bg-gray-800">
-                <p class="text-[13px] text-gray-700 dark:text-gray-300 leading-snug line-clamp-2">${app.ban_reason}</p>
+                <p class="text-[13px] text-gray-700 dark:text-gray-300 leading-snug line-clamp-2">${esc(app.ban_reason)}</p>
                 <div class="mt-2 flex justify-between items-center">
                     <span class="text-[10px] text-gray-400 font-medium italic">${new Date(app.ban_date).toLocaleDateString()}</span>
-                    ${app.source_url ? `<a href="${app.source_url}" target="_blank" class="text-[10px] text-red-600 hover:underline font-bold">Source</a>` : ''}
+                    ${app.source_url ? `<a href="${esc(safeUrl(app.source_url))}" target="_blank" class="text-[10px] text-red-600 hover:underline font-bold">Source</a>` : ''}
                 </div>
             </div>
         </div>
@@ -530,7 +546,7 @@ function highlightCountry(countryName, isActive) {
 
             const popup = L.popup()
                 .setLatLng(layer.getBounds().getCenter())
-                .setContent(`<div class="text-center font-bold px-2 py-1">${countryName.toUpperCase()}</div>`)
+                .setContent(`<div class="text-center font-bold px-2 py-1">${esc(countryName.toUpperCase())}</div>`)
                 .openOn(map);
         }
     }
