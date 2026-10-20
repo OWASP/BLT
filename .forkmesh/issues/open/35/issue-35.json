@@ -51,6 +51,16 @@
             "sig": "z5FsYqB7b1byGIIDDzWlHQbNW3Q0TltMCPj51VM9l6iMSCL0BTOn1hF3dEcqjo3oxzq0n_HTF_brFBbHfJcyCw",
             "ts": 1792477906923,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "body": "@vanshika2720 you can't be assigned to this issue because you are already assigned to #27. Please open a pull request for it, or comment `/unassign` there, before taking another issue. \u003c!-- blt-assign:ecbe3f2d12bc3462dbb7 --\u003e",
+            "id": "actions-1792477922272-FOe-tycj",
+            "sig": "s2cWvPBjhg54QzVaKE2P4zXuiEzoutW0YyWrAwRfk6I4SiIs7Ubl3S8Sn6i2yJeT07qcYY2EK52utR62Jov5Ag",
+            "ts": 1792477922272,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -65,6 +75,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-toasty: Build Slack Notification Bot",
-    "updatedAt": 1792477906923,
+    "updatedAt": 1792477922272,
     "votes": 0
 }
