@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "navodit"
+    ],
     "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
     "authorName": "gitlab-import[bot]",
     "bountyAddress": "",
@@ -72,6 +74,17 @@
             "sig": "xnaUE7jPG9XV_Aqs346oxSvkr0HC0hc7hQjZYQjWY1cwj3GlmLNWm1ok5AsRynpacmcKcbtjWM3_bVC43pnHDQ",
             "ts": 1792517305889,
             "type": "comment"
+        },
+        {
+            "assignee": "navodit",
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "actions-1792517322402-Cy98RcnJ",
+            "sig": "l7vMVldFql34qnRjxz5AC-eo_vt57bCMZwo92QC2IodqKoi-pLHB48dGANPLp7qM3kPU89-ReLPx7_PZM-QCCg",
+            "ts": 1792517322402,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -86,6 +99,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-newsletter: fix: mobile responsiveness",
-    "updatedAt": 1792517305889,
+    "updatedAt": 1792517322402,
     "votes": 0
 }
