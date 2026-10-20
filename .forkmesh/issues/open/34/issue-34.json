@@ -41,6 +41,16 @@
             "target": "gitlab-issue-82715729-53",
             "ts": 1792463360822,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "body": "/assign",
+            "id": "comment-web-1792477989796",
+            "sig": "a6tJeRIZ5jCVHbWyYeKRhtVV69RRdhX1GHPcMZS-cH0YysUySSqvmXgWylLRvK4Reu2tPSiwdklfPGqDIMD9AQ",
+            "ts": 1792477989796,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -55,6 +65,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-toasty: Decouple Webhook Ingress via Cloudflare Queues",
-    "updatedAt": 1792463360822,
+    "updatedAt": 1792477989796,
     "votes": 0
 }
