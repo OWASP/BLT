@@ -41,6 +41,16 @@
             "target": "gitlab-issue-82715729-54",
             "ts": 1792463360832,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "body": "/assign",
+            "id": "comment-web-1792477906923",
+            "sig": "z5FsYqB7b1byGIIDDzWlHQbNW3Q0TltMCPj51VM9l6iMSCL0BTOn1hF3dEcqjo3oxzq0n_HTF_brFBbHfJcyCw",
+            "ts": 1792477906923,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -55,6 +65,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-toasty: Build Slack Notification Bot",
-    "updatedAt": 1792463360832,
+    "updatedAt": 1792477906923,
     "votes": 0
 }
