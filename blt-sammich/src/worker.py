@@ -7127,11 +7127,23 @@ async def handle_admin_post(request: Any, env: Any) -> Any:
         )
 
 
+def redact_oauth_tokens(value: Any) -> Any:
+    """A copy of an oauth.v2.access response with every *token field replaced."""
+    if isinstance(value, dict):
+        return {
+            key: ("[redacted]" if str(key).endswith("token") and item else redact_oauth_tokens(item))
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [redact_oauth_tokens(item) for item in value]
+    return value
+
+
 async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
     params = parse_qs(request_url.query)
     if params.get("error"):
         return html_response(
-            "<h1>Slack OAuth failed</h1><p>{0}</p>".format(params["error"][0]),
+            "<h1>Slack OAuth failed</h1><p>{0}</p>".format(html_escape(params["error"][0])),
             status=400,
         )
 
@@ -7179,7 +7191,8 @@ async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
         {
             "type": "oauth_callback",
             "team_id": payload.get("team", {}).get("id"),
-            "payload": payload,
+            # The events table is readable in the admin panel; keep the tokens out of it.
+            "payload": redact_oauth_tokens(payload),
         },
     )
 
@@ -7192,7 +7205,7 @@ async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
     if not ok or not payload.get("ok"):
         error_message = payload.get("error") or "OAuth exchange failed."
         return html_response(
-            "<h1>Slack OAuth failed</h1><p>{0}</p>".format(error_message), status=500
+            "<h1>Slack OAuth failed</h1><p>{0}</p>".format(html_escape(error_message)), status=500
         )
 
     team_name = payload.get("team", {}).get("name") or "your workspace"
@@ -7320,6 +7333,9 @@ async def handle_request(request: Any, env: Any, ctx: Any = None) -> Any:
         body_text = str(await request.text())
         content_type = request.headers.get("content-type", "")
         parsed_events_payload: Dict[str, Any] = {}
+        # Recorded only after the signature check: record_activity upserts teams, users and
+        # channels from the payload, so an unsigned request must not reach it.
+        activity_kind = ""
 
         if normalized_path == "/slack/events":
             if "application/x-www-form-urlencoded" in content_type:
@@ -7332,7 +7348,7 @@ async def handle_request(request: Any, env: Any, ctx: Any = None) -> Any:
                             "type": "unparseable_interaction",
                             "raw_body": body_text,
                         }
-                    await record_activity(env, "interaction", parsed_events_payload)
+                    activity_kind = "interaction"
             else:
                 try:
                     parsed_events_payload = json.loads(body_text or "{}")
@@ -7341,7 +7357,7 @@ async def handle_request(request: Any, env: Any, ctx: Any = None) -> Any:
                         "type": "unparseable_event",
                         "raw_body": body_text,
                     }
-                await record_activity(env, "event", parsed_events_payload)
+                activity_kind = "event"
 
             # Slack URL verification can be sent before signing secret wiring is complete.
             if parsed_events_payload.get("type") == "url_verification":
@@ -7376,6 +7392,9 @@ async def handle_request(request: Any, env: Any, ctx: Any = None) -> Any:
         signature = request.headers.get("x-slack-signature", "")
         if not verify_slack_signature(signing_secret, timestamp, body_text, signature):
             return build_response("Invalid Slack signature.", status=401)
+
+        if activity_kind:
+            await record_activity(env, activity_kind, parsed_events_payload)
 
         if "application/x-www-form-urlencoded" in content_type:
             form = parse_form_encoded(body_text)

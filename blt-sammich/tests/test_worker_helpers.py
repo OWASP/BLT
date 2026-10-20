@@ -4,6 +4,7 @@ import contextlib
 import io
 import json
 from pathlib import Path
+from urllib.parse import urlparse
 
 from src import worker
 
@@ -166,7 +167,7 @@ def test_get_slack_endpoints_return_health_payloads():
     }
 
 
-def test_post_slack_events_logs_event_before_signature_verification():
+def test_post_slack_events_does_not_record_unsigned_events():
     original_record_activity = worker.record_activity
     original_build_response = worker.build_response
     logged = []
@@ -210,10 +211,8 @@ def test_post_slack_events_logs_event_before_signature_verification():
         worker.record_activity = original_record_activity
 
     assert response == {"body": "Invalid Slack signature.", "status": 401}
-    assert len(logged) == 1
-    assert logged[0][0] == "event"
-    assert logged[0][1]["team_id"] == "T123"
-    assert logged[0][1]["event"]["text"] == "log before auth"
+    # record_activity upserts teams/users/channels from the payload, so unsigned input must not reach it.
+    assert logged == []
 
 
 def test_post_slack_events_can_verify_with_database_signing_secret():
@@ -3363,3 +3362,29 @@ def test_handle_event_payload_does_not_reply_to_bot_message_when_lookup_fails():
 def test_channel_names_mentioned_finds_linkable_names_only():
     text = "Say hi in #general and #project-blt, not <#C1|linked> or a/#path. #general again."
     assert worker.channel_names_mentioned(text) == ["general", "project-blt"]
+
+
+def test_oauth_callback_escapes_the_error_parameter():
+    original_html_response = worker.html_response
+    worker.html_response = lambda body, status=200: {"body": body, "status": status}
+    try:
+        response = asyncio.run(
+            worker.handle_oauth_callback(
+                urlparse("https://sammich.owaspblt.org/oauth/slack/callback?error=%3Cscript%3Ealert(1)%3C/script%3E"),
+                _Env(),
+            )
+        )
+    finally:
+        worker.html_response = original_html_response
+    assert response["status"] == 400
+    assert "<script>" not in response["body"]
+    assert "&lt;script&gt;" in response["body"]
+
+
+def test_redact_oauth_tokens():
+    payload = {"ok": True, "access_token": "xoxb-1", "authed_user": {"id": "U1", "access_token": "xoxp-2"}, "team": {"id": "T1"}}
+    redacted = worker.redact_oauth_tokens(payload)
+    assert redacted["access_token"] == "[redacted]"
+    assert redacted["authed_user"] == {"id": "U1", "access_token": "[redacted]"}
+    assert redacted["team"] == {"id": "T1"}
+    assert payload["access_token"] == "xoxb-1"
