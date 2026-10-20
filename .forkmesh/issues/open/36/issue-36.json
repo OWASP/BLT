@@ -50,6 +50,16 @@
             "sig": "f0zxzGLMoyiHWdvQS8bqmWhouxjPHRD8TvPkoD6xkQChS0OColf-5XaEVseeehVDGe6wIMIy9qPaMMUSO1aiAg",
             "ts": 1792477815520,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "body": "@vanshika2720 you can't be assigned to this issue because you are already assigned to #27. Please open a pull request for it, or comment `/unassign` there, before taking another issue. \u003c!-- blt-assign:6e0227c5fdb07a53f217 --\u003e",
+            "id": "actions-1792477832003-dKcZyyhq",
+            "sig": "Eb8u7nIptxgUsyP1BK8G9EseVfr2QcjDyA6jg4t8-FGZu5CppinPYhxHmg0umkIfvIQJmvJ8sIjxzk-eiooGAQ",
+            "ts": 1792477832003,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -63,6 +73,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: Follow-up from \"feat: add macOS platform build configuration\"",
-    "updatedAt": 1792477815520,
+    "updatedAt": 1792477832003,
     "votes": 0
 }
