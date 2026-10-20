@@ -40,6 +40,16 @@
             "target": "gitlab-issue-82715256-13",
             "ts": 1792463360542,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "body": "/assign",
+            "id": "comment-web-1792477854456",
+            "sig": "wW_9rjkgLmJylVtyoeWmq2T7df5jJpKhwuj7-RDo04etEjYoGaDzWmPtlQ6raE23TAglO876M4YBp0a9DBd0DQ",
+            "ts": 1792477854456,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +63,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cli: Replace free-text Severity and Bug Type fields with cycle-able selectors",
-    "updatedAt": 1792463360542,
+    "updatedAt": 1792477854456,
     "votes": 0
 }
