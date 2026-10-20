@@ -51,6 +51,16 @@
             "sig": "a6tJeRIZ5jCVHbWyYeKRhtVV69RRdhX1GHPcMZS-cH0YysUySSqvmXgWylLRvK4Reu2tPSiwdklfPGqDIMD9AQ",
             "ts": 1792477989796,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "body": "@vanshika2720 you can't be assigned to this issue because you are already assigned to #27. Please open a pull request for it, or comment `/unassign` there, before taking another issue. \u003c!-- blt-assign:169e9aeebf3aff5be67a --\u003e",
+            "id": "actions-1792478008121-VsJWy-CD",
+            "sig": "Ts_U0karnsQHxJHohImDyifERq6uRn5yCPhSeGmIfFONRMbRnbmckeS0bMd_qvFSjLBkwjtSJ6EQgg0fFXniBg",
+            "ts": 1792478008121,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -65,6 +75,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-toasty: Decouple Webhook Ingress via Cloudflare Queues",
-    "updatedAt": 1792477989796,
+    "updatedAt": 1792478008121,
     "votes": 0
 }
