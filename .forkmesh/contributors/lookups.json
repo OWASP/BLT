@@ -114,6 +114,10 @@
    "checked": "2026-10-18",
    "login": "gayathri2006-cmd"
   },
+  "6a9dfc1e21f2f420": {
+   "checked": "2026-10-20",
+   "login": "Iloveshe"
+  },
   "6c200b7d87fd47b5": {
    "checked": "2026-10-18",
    "login": "mujeeb-mughal1"
@@ -448,6 +452,11 @@
    "id": 96260441,
    "login": "Chaimaekit"
   },
+  "charlieamadeus": {
+   "checked": "2026-10-20",
+   "id": 3020677,
+   "login": "charlieamadeus"
+  },
   "cicada0007": {
    "checked": "2026-10-18",
    "id": 101625652,
@@ -654,6 +663,11 @@
    "id": 151057784,
    "login": "Himanshu-639"
   },
+  "hsay123": {
+   "checked": "2026-10-20",
+   "id": 166712262,
+   "login": "hsay123"
+  },
   "hurrrsh": {
    "checked": "2026-10-18",
    "id": 74592384,
@@ -668,6 +682,11 @@
    "checked": "2026-10-18",
    "id": 138690953,
    "login": "iitzIrFan"
+  },
+  "iloveshe": {
+   "checked": "2026-10-20",
+   "id": 47346194,
+   "login": "Iloveshe"
   },
   "itsarthak": {
    "checked": "2026-10-18",
@@ -688,6 +707,11 @@
    "checked": "2026-10-18",
    "id": 200989760,
    "login": "Jayant2908"
+  },
+  "jesscode-theredumption": {
+   "checked": "2026-10-20",
+   "id": 234758609,
+   "login": "JessCode-TheRedumption"
   },
   "jigyasurajput": {
    "checked": "2026-10-18",
@@ -794,6 +818,11 @@
    "checked": "2026-10-18",
    "id": 37345795,
    "login": "letsintegreat"
+  },
+  "makeepan-dev": {
+   "checked": "2026-10-20",
+   "id": 183580740,
+   "login": "Makeepan-dev"
   },
   "manahil-afzal": {
    "checked": "2026-10-18",
@@ -1101,6 +1130,11 @@
    "id": 138858208,
    "login": "Rishab87"
   },
+  "riya-jain-here": {
+   "checked": "2026-10-20",
+   "id": 120404043,
+   "login": "Riya-Jain-here"
+  },
   "roboneet": {
    "checked": "2026-10-18",
    "id": 20015262,
@@ -1215,6 +1249,11 @@
    "checked": "2026-10-18",
    "id": 147265305,
    "login": "Shubhangpathak"
+  },
+  "shushmitaaaa": {
+   "checked": "2026-10-20",
+   "id": 159508056,
+   "login": "Shushmitaaaa"
   },
   "sid22": {
    "checked": "2026-10-18",
@@ -1634,6 +1673,10 @@
    "checked": "2026-10-18",
    "exists": false
   },
+  "charlieamadeus": {
+   "checked": "2026-10-20",
+   "exists": false
+  },
   "cicada0007": {
    "checked": "2026-10-18",
    "exists": false
@@ -1795,6 +1838,10 @@
    "checked": "2026-10-18",
    "exists": false
   },
+  "hsay123": {
+   "checked": "2026-10-20",
+   "exists": false
+  },
   "hurrrsh": {
    "checked": "2026-10-18",
    "exists": false
@@ -1805,6 +1852,10 @@
   },
   "iitzirfan": {
    "checked": "2026-10-18",
+   "exists": false
+  },
+  "iloveshe": {
+   "checked": "2026-10-20",
    "exists": false
   },
   "itsarthak": {
@@ -1821,6 +1872,10 @@
   },
   "jayant2908": {
    "checked": "2026-10-18",
+   "exists": false
+  },
+  "jesscode-theredumption": {
+   "checked": "2026-10-20",
    "exists": false
   },
   "jigyasurajput": {
@@ -1901,6 +1956,10 @@
   },
   "letsintegreat": {
    "checked": "2026-10-18",
+   "exists": false
+  },
+  "makeepan-dev": {
+   "checked": "2026-10-20",
    "exists": false
   },
   "manahil-afzal": {
@@ -2143,6 +2202,10 @@
    "checked": "2026-10-18",
    "exists": false
   },
+  "riya-jain-here": {
+   "checked": "2026-10-20",
+   "exists": false
+  },
   "roboneet": {
    "checked": "2026-10-18",
    "exists": false
@@ -2233,6 +2296,10 @@
   },
   "shubhangpathak": {
    "checked": "2026-10-18",
+   "exists": false
+  },
+  "shushmitaaaa": {
+   "checked": "2026-10-20",
    "exists": false
   },
   "sid22": {
