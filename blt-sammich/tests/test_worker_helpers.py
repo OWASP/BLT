@@ -3388,3 +3388,15 @@ def test_redact_oauth_tokens():
     assert redacted["authed_user"] == {"id": "U1", "access_token": "[redacted]"}
     assert redacted["team"] == {"id": "T1"}
     assert payload["access_token"] == "xoxb-1"
+
+
+def test_admin_post_refuses_cross_site_requests():
+    class Req:
+        def __init__(self, headers):
+            self.headers = headers
+            self.url = "https://sammich.owaspblt.org/admin"
+
+    assert worker.is_same_origin_post(Req({}))
+    assert worker.is_same_origin_post(Req({"origin": "https://sammich.owaspblt.org"}))
+    assert not worker.is_same_origin_post(Req({"origin": "https://evil.example"}))
+    assert not worker.is_same_origin_post(Req({"sec-fetch-site": "cross-site"}))

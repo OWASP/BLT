@@ -6987,5 +6987,22 @@ class TestCronDispatch(unittest.TestCase):
         self.assertIn("boom", body["error"])
 
 
+class TestAdminSameOriginPost(unittest.TestCase):
+    class _Req:
+        def __init__(self, headers, url="https://pool.owaspblt.org/admin/mentors/action"):
+            self.headers = _HeadersStub(headers)
+            self.url = url
+
+    def test_cross_site_posts_are_refused(self):
+        from services.admin.service import _is_same_origin_post
+
+        self.assertTrue(_is_same_origin_post(self._Req({})))
+        self.assertTrue(_is_same_origin_post(self._Req({"Origin": "https://pool.owaspblt.org"})))
+        self.assertTrue(_is_same_origin_post(self._Req({"Sec-Fetch-Site": "same-origin"})))
+        self.assertFalse(_is_same_origin_post(self._Req({"Origin": "https://evil.example"})))
+        self.assertFalse(_is_same_origin_post(self._Req({"Origin": "null"})))
+        self.assertFalse(_is_same_origin_post(self._Req({"Sec-Fetch-Site": "cross-site"})))
+
+
 if __name__ == "__main__":
     unittest.main()

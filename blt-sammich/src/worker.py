@@ -7105,9 +7105,28 @@ async def handle_admin_form_action(env: Any, form: Dict[str, str]) -> Any:
     return redirect_response(admin_path(env) + "?message=No+changes+made")
 
 
+def is_same_origin_post(request: Any) -> bool:
+    """True unless the browser says the POST came from another site (CSRF guard for Basic-auth forms).
+
+    Browsers resend cached Basic credentials on cross-site form posts, so the credentials alone do
+    not prove the admin meant to submit. Requests without Origin/Sec-Fetch-Site (curl, scripts)
+    are allowed; the credential check still applies to them.
+    """
+    if str(request.headers.get("sec-fetch-site") or "").lower() == "cross-site":
+        return False
+    origin = str(request.headers.get("origin") or "")
+    if not origin:
+        return True
+    target = urlparse(str(request.url))
+    source = urlparse(origin)
+    return (source.scheme, source.netloc) == (target.scheme, target.netloc)
+
+
 async def handle_admin_post(request: Any, env: Any) -> Any:
     if not is_admin_request(request, env):
         return basic_auth_response()
+    if not is_same_origin_post(request):
+        return build_response("Cross-site admin requests are not allowed.", status=403)
     body_text = str(await request.text())
     form = parse_form_encoded(body_text)
     try:

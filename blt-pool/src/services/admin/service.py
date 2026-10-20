@@ -40,6 +40,23 @@ def _normalize_admin_path(raw_path: str) -> str:
     return value or "/admin"
 
 
+def _is_same_origin_post(request) -> bool:
+    """True unless the browser says the POST came from another site (CSRF guard for Basic-auth forms).
+
+    Browsers resend cached Basic credentials on cross-site form posts, so the credentials alone do
+    not prove the admin meant to submit. Requests without Origin/Sec-Fetch-Site (curl, scripts)
+    are allowed; the credential check still applies to them.
+    """
+    if str(request.headers.get("Sec-Fetch-Site") or "").lower() == "cross-site":
+        return False
+    origin = str(request.headers.get("Origin") or "")
+    if not origin:
+        return True
+    target = urlparse(str(request.url))
+    source = urlparse(origin)
+    return (source.scheme, source.netloc) == (target.scheme, target.netloc)
+
+
 def _parse_basic_auth_header(auth_header: str) -> Tuple[str, str]:
     """Parse a Basic auth header and return (username, password)."""
     if not auth_header:
@@ -229,6 +246,8 @@ class AdminService:
             return self._basic_auth_challenge()
 
         if path in {self.mentor_action_path, legacy_mentor_action_path} and request.method == "POST":
+            if not _is_same_origin_post(request):
+                return self._json({"error": "Cross-site admin requests are not allowed"}, 403)
             return await self._handle_mentor_action(request, request_user)
 
         if path == self.admin_path:
