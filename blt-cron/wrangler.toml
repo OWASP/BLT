@@ -39,3 +39,7 @@ service = "blt-gsoc"
 [[services]]
 binding = "GSOC_TOOL"
 service = "my-gsoc-tool"
+
+[[services]]
+binding = "HACKERHOUSE"
+service = "hackerhouse"

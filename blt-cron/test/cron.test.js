@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { cronMatches, parseCron } from "../src/cron.js";
 import { dueJobs, runJob } from "../src/index.js";
@@ -8,6 +9,12 @@ const at = (iso) => new Date(iso);
 
 test("every job's cron parses", () => {
   for (const job of JOBS) parseCron(job.cron);
+});
+
+test("every job's binding is a service binding in wrangler.toml", () => {
+  const toml = readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
+  for (const job of JOBS) assert.match(toml, new RegExp(`binding = "${job.binding}"`), job.name);
+  assert.match(toml, /binding = "HACKERHOUSE"\nservice = "hackerhouse"/);
 });
 
 test("cron matching", () => {
@@ -27,9 +34,22 @@ test("cron matching", () => {
 test("due jobs at the top of an even hour", () => {
   const names = dueJobs(Date.parse("2026-10-18T04:00:30Z")).map((j) => j.name).sort();
   assert.deepEqual(names, ["blt-leaf", "blt-lettuce", "blt-monitor", "blt-netguardian", "blt-pool", "blt-sizzle"]);
-  const quiet = dueJobs(Date.parse("2026-10-18T04:07:00Z")).map((j) => j.name);
+  const quiet = dueJobs(Date.parse("2026-10-18T04:08:00Z")).map((j) => j.name);
   assert.deepEqual(quiet, []);
   assert.ok(dueJobs(Date.parse("2026-10-18T04:30:00Z")).some((j) => j.name === "blt-lettuce"));
+});
+
+test("hackerhouse polls the forge every 5 minutes, off the other jobs' minutes", () => {
+  const names = (iso) => dueJobs(Date.parse(iso)).map((j) => j.name);
+  const job = JOBS.find((j) => j.name === "hackerhouse");
+  assert.equal(job.binding, "HACKERHOUSE");
+  assert.deepEqual(names("2026-10-18T04:02:00Z"), ["hackerhouse"]);
+  assert.deepEqual(names("2026-10-18T04:57:00Z"), ["hackerhouse"]);
+  assert.ok(!names("2026-10-18T04:05:00Z").includes("hackerhouse"));
+  assert.ok(!names("2026-10-18T04:00:00Z").includes("hackerhouse"));
+  const perDay = Array.from({ length: 1440 }, (_, m) => Date.parse("2026-10-18T00:00:00Z") + m * 60000)
+    .filter((t) => dueJobs(t).some((j) => j.name === "hackerhouse")).length;
+  assert.equal(perDay, 288);
 });
 
 test("chunked data refreshes run once a minute in their window", () => {

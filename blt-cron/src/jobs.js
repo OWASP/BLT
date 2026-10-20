@@ -12,6 +12,7 @@ export const JOBS = [
   { name: "blt-sizzle", binding: "SIZZLE", cron: "0 * * * *" },
   { name: "blt-netguardian", binding: "NETGUARDIAN", cron: "*/5 * * * *" },
   { name: "my-gsoc-tool", binding: "GSOC_TOOL", cron: "3 0 * * *" },
+  { name: "hackerhouse", binding: "HACKERHOUSE", cron: "2-59/5 * * * *" },
 ];
 // blt-gsoc-progress (task "progress", 23:07-23:11) was removed on 2026-10-18: GSoC 2026 coding
 // ended on 17 Aug. The task code and its KV data stay, so /data/progress.json keeps the final state.
