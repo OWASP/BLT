@@ -1,0 +1,49 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792464254140,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "**Paused: this is a reminder only.** Nothing needs to change until someone decides.\n\nThe stale branch [`blt-action/disable-assign-command`](https://git.owaspblt.org/BLT/tree/blt-action/disable-assign-command) turned off the `/assign` command in BLT-Action ([`blt-action`](https://git.owaspblt.org/BLT/tree/main/blt-action)). That change would apply to every repository that uses the action, so it was not merged during the branch cleanup.\n\n## Question to settle\n\nIf both BLT-Pool ([`blt-pool`](https://git.owaspblt.org/BLT/tree/main/blt-pool)) and BLT-Action respond to `/assign` in BLT repositories, contributors get two answers (or two assignments). Pick one of them to handle `/assign` in BLT repositories, and turn the command off in the other through the workflow configuration for those repositories, not globally in the action, so other projects using BLT-Action keep `/assign`.\n\n- [ ] Confirm whether both bots actually respond to `/assign` in BLT repositories\n- [ ] Decide which one owns `/assign`\n- [ ] Disable `/assign` in the other through its per-repository configuration\n- [ ] Delete the [`blt-action/disable-assign-command`](https://git.owaspblt.org/BLT/tree/blt-action/disable-assign-command) branch once this is settled\n",
+            "id": "blt-tasks-issue-38",
+            "sig": "wmvt5D5pC2d5VvRIWnFhTsJH63_jgEYDgozcRrXsT0MzWANADTtLbViTOsabO_bxAKsozeR_lQg2Lz2FjxzICg",
+            "title": "blt-action: decide who answers /assign (BLT-Action vs BLT-Pool)",
+            "ts": 1792464254140,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-38",
+            "labels": [
+                "blt-action",
+                "blt-pool"
+            ],
+            "sig": "Rtk_5tGBnX7eKTqelTgPPom6WXmwJa7Ia1deqgvyKkXQCokK9HaVr4ENtXvYY22_uzQV_ROavxHSkRQnRZShBg",
+            "ts": 1792464254141,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-action",
+        "blt-pool"
+    ],
+    "milestone": "",
+    "number": 38,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-action: decide who answers /assign (BLT-Action vs BLT-Pool)",
+    "updatedAt": 1792464254141,
+    "votes": 0
+}

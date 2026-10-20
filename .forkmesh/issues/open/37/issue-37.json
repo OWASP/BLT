@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792464254130,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "The GSoC 2027 warm-up hackathon runs from 1 Nov 2026 to 9 May 2027. Its page shows how many Slack messages each participant posted, but only when the stats workflow has Slack tokens. Two Actions secrets are needed:\n\n- `SLACK_TOKEN_OWASP`: a Slack user token for the OWASP workspace, with the `search:read` scope.\n- `SLACK_TOKEN_BLT`: a Slack user token for the BLT workspace, with the `search:read` scope.\n\nBoth go in the Actions secrets of the [BLT repository](https://git.owaspblt.org/BLT) on git.owaspblt.org. A workspace without a token shows \"—\" on the page, and with no token at all the Slack card is hidden, so this should be done before 1 Nov 2026.\n\n## Steps\n\n1. In each workspace, create a Slack app (or use an existing one) at [api.slack.com/apps](https://api.slack.com/apps), add the user token scope `search:read`, install it, and copy the user token (`xoxp-...`).\n2. Add the two tokens as the Actions secrets `SLACK_TOKEN_OWASP` and `SLACK_TOKEN_BLT` in the BLT repository on git.owaspblt.org.\n3. Trigger the stats workflow [`.forkmesh/blt-hackathons--update-stats.yml`](https://git.owaspblt.org/BLT/blob/main/.forkmesh/blt-hackathons--update-stats.yml) by hand (it has `workflow_dispatch`; otherwise it runs every 6 hours).\n4. Check that the warm-up page on [hackathons.owaspblt.org](https://hackathons.owaspblt.org/) shows the \"Slack messages\" card and a Slack count next to the contributors.\n\nSee the \"Slack activity\" section of [`blt-hackathons/README.md`](https://git.owaspblt.org/BLT/blob/main/blt-hackathons/README.md) for how participants are mapped to Slack accounts and how the search is rate-limited.\n\n## Checklist\n\n- [ ] Slack user token with `search:read` for the OWASP workspace\n- [ ] Slack user token with `search:read` for the BLT workspace\n- [ ] `SLACK_TOKEN_OWASP` added to the BLT repository's Actions secrets\n- [ ] `SLACK_TOKEN_BLT` added to the BLT repository's Actions secrets\n- [ ] Stats workflow run by hand and finished without Slack errors in its log\n- [ ] Hackathon page shows Slack counts\n",
+            "id": "blt-tasks-issue-37",
+            "sig": "kscpb4uKRZbviBv9Rt32B2rNmWQZx9-k0TuzdXfgcvcKtQ0yOcgdY5Bw78neqvlIQtzTAYuOWpNCvpK8P-odCQ",
+            "title": "blt-hackathons: add Slack tokens for the GSoC 2027 warm-up (due before 1 Nov 2026)",
+            "ts": 1792464254130,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-37",
+            "labels": [
+                "blt-hackathons"
+            ],
+            "sig": "CsOlzyutsF7VMxLOasdHpU_DzpkwlL7N0_YUVrg6oV2BvZ0397FfPPbyp7xDk2GSLf00e6VpVSt4hMqlMn2zBg",
+            "ts": 1792464254131,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-hackathons"
+    ],
+    "milestone": "",
+    "number": 37,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-hackathons: add Slack tokens for the GSoC 2027 warm-up (due before 1 Nov 2026)",
+    "updatedAt": 1792464254131,
+    "votes": 0
+}

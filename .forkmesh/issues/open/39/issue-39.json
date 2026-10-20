@@ -1,0 +1,49 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792464254150,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "Two small changes landed on `main` during the branch cleanup without review. Please look at both and keep or change them.\n\n## blt-owasp-wich: visual redesign\n\nThe compliance checker's visual redesign was landed from the branch `blt-owasp-wich/refactor/update-style` as [`f11afa8dc0`](https://git.owaspblt.org/BLT/commit/f11afa8dc05b433e89a48d41cf25ec30dcdbfac6). It is cosmetic only and was never merged upstream.\n\n- [ ] Keep the redesign, or revert [`f11afa8dc0`](https://git.owaspblt.org/BLT/commit/f11afa8dc05b433e89a48d41cf25ec30dcdbfac6)\n\n## blt-rewards: community footer links\n\nThe blt-rewards footer had placeholder \"Discord\" links with `href=\"#\"`. [`7fc40d701b`](https://git.owaspblt.org/BLT/commit/7fc40d701be121e323f440b22919b7905511ec92) changed them to \"Discussions\", pointing at [git.owaspblt.org/BLT/discussions](https://git.owaspblt.org/BLT/discussions).\n\nAlternatives:\n\n- An official Discord invite. blt-newsletter's [`blt-newsletter/CONTRIBUTING.md`](https://git.owaspblt.org/BLT/blob/main/blt-newsletter/CONTRIBUTING.md) mentions [discord.gg/owasp-blt](https://discord.gg/owasp-blt), but that invite has not been verified.\n- The [OWASP Slack](https://owasp.org/slack/invite).\n\n- [ ] Keep \"Discussions\", or switch the footer to a verified Discord invite or the OWASP Slack\n",
+            "id": "blt-tasks-issue-39",
+            "sig": "EGSSzw6JQAL11NnCBg5Kk1oUDw1oKD6-0iTEF7xw_TUPP4MWCZFpMG0fjmL5Vk3ei47JQItvlhNION_4kA8yAg",
+            "title": "Review: blt-owasp-wich redesign and blt-rewards community links",
+            "ts": 1792464254150,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-39",
+            "labels": [
+                "blt-owasp-wich",
+                "blt-rewards"
+            ],
+            "sig": "KEtgMG4yyUC_2WqiSQBEvc7w9wEnYEw0MeLOLt9eJicoXcmDm2l5abNQgMkFifx19KZZ5sEz10B2g5IHRyyHAw",
+            "ts": 1792464254151,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-owasp-wich",
+        "blt-rewards"
+    ],
+    "milestone": "",
+    "number": 39,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "Review: blt-owasp-wich redesign and blt-rewards community links",
+    "updatedAt": 1792464254151,
+    "votes": 0
+}
