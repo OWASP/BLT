@@ -63,6 +63,16 @@
             "sig": "Gg4_9sHQdxE_bRem5yAG1xlJnEtGbKYpjRz-HVaFsVy5eknGtRiB2ont2m-p9Nem3Zl8VqNb42DiZuWeaOs6Bw",
             "ts": 1792477172857,
             "type": "assignees"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "body": "@vanshika2720 you're assigned to this issue. Please open a pull request for it within 7 days. If you stop working on it, comment `/unassign` so someone else can pick it up. \u003c!-- blt-assign:4374988e62d44635eaad --\u003e",
+            "id": "actions-1792477679401-bExV3DoW",
+            "sig": "Td3tF2O12FkDvlBlClmGHNYyLzTmaznZoknKkG9U_mnXFx6RwbC5mVsBc0FqGQ2olVtWwRbgY8eHifuSohFJCQ",
+            "ts": 1792477679401,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -76,6 +86,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-next: leaderboard showing wrong info",
-    "updatedAt": 1792477172857,
+    "updatedAt": 1792477679401,
     "votes": 0
 }
