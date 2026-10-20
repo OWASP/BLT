@@ -74,6 +74,21 @@ export function authorLogin(issue) {
   return typeof a === "string" ? a : a?.login || a?.username || a?.name || "";
 }
 
+/**
+ * The issue author's login when the event vouches for it, else "". An `opened` event counts only
+ * when its sender is a verified account of that name: anyone can open an issue, and an anonymous
+ * submitter's author name is not bound to an account. Other issue events (edited, labeled, ...)
+ * can only be caused by owners and issue managers, and a workflow_dispatch by the owners, so the
+ * stored author is used as is.
+ */
+export function trustedAuthor(event, issue) {
+  const author = authorLogin(issue);
+  if (!author) return "";
+  if (event?.action !== "opened") return author;
+  const sender = event.sender || {};
+  return sender.verified === true && String(sender.login || "").toLowerCase() === author.toLowerCase() ? author : "";
+}
+
 /** Web address of the repository on the instance, e.g. https://git.example.org/BLT/BLT. */
 export function repoUrl() {
   const base = (process.env.FORKMESH_API_URL || "").replace(/\/+$/, "");

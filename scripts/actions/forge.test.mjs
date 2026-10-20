@@ -152,3 +152,15 @@ test("commit-back.sh --rebuild regenerates on the new origin instead of keeping 
   assert.equal(git(join(dir, "origin.git"), "show", "main:log.txt"), "a\nother\nmine");
   assert.equal(git(join(dir, "origin.git"), "log", "-1", "--format=%s", "main"), "p: append");
 });
+
+test("trustedAuthor vouches for an opened issue only through a verified sender", async () => {
+  const { trustedAuthor } = await import("./forge.mjs");
+  const issue = { user: { login: "Alice" } };
+  assert.equal(trustedAuthor({ action: "opened", sender: { login: "alice", verified: true } }, issue), "Alice");
+  assert.equal(trustedAuthor({ action: "opened", sender: { login: "alice", verified: false } }, issue), "");
+  assert.equal(trustedAuthor({ action: "opened", sender: { login: "alice" } }, issue), "");
+  assert.equal(trustedAuthor({ action: "opened", sender: { login: "bob", verified: true } }, issue), "");
+  assert.equal(trustedAuthor({ action: "labeled", sender: { login: "maintainer" } }, issue), "Alice");
+  assert.equal(trustedAuthor({}, { author: "dave" }), "dave");
+  assert.equal(trustedAuthor({ action: "opened" }, {}), "");
+});

@@ -8,15 +8,14 @@ import { execFileSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  readEvent, eventName, getIssue, comment, closeIssue, labelNames, authorLogin, issueUrl, commitBack, run,
+  readEvent, eventName, getIssue, comment, closeIssue, labelNames, authorLogin, trustedAuthor, issueUrl, commitBack, run,
 } from "../../../scripts/actions/forge.mjs";
 
 const require = createRequire(import.meta.url);
 const PROJECT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 /** The GitLab-shaped issue createFromIssue() expects. */
-export function toGitlabIssue(issue) {
-  const login = authorLogin(issue);
+export function toGitlabIssue(issue, login = authorLogin(issue)) {
   return {
     iid: issue.number,
     title: issue.title || "",
@@ -48,7 +47,9 @@ async function main() {
   const { createFromIssue } = require("../submissions.js");
   let result;
   try {
-    result = createFromIssue(toGitlabIssue(issue));
+    // added_by and flag ownership use the author only when the forge vouches for it (trustedAuthor).
+    const author = eventName() === "workflow_dispatch" ? authorLogin(issue) : trustedAuthor(readEvent(), issue);
+    result = createFromIssue(toGitlabIssue(issue, author));
   } catch (error) {
     console.error(`Issue #${issue.number}: ${error.message}`);
     await comment(issue.number, `Could not process this submission: ${error.message}`);

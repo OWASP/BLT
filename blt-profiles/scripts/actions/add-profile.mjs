@@ -184,6 +184,7 @@ export async function processIssue(issue, deps = {}) {
     commit = () => true,
     issueUrl = forge.issueUrl,
     now = () => new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
+    event = null,
   } = deps;
   const number = issue.number;
   if (issue.state && issue.state !== "open") return { status: "skipped", reason: `issue is ${issue.state}` };
@@ -201,8 +202,10 @@ export async function processIssue(issue, deps = {}) {
   if (!hasTemplate(issue.body)) return fail("the description does not contain the template headings.");
   const fields = parseIssueBody(issue.body);
   if (!fields.confirmed) return fail("tick the Confirmation checkbox (`- [x]`) to consent to publishing the profile.");
-  const author = forge.authorLogin(issue);
-  if (!author) return fail("the issue has no author.");
+  // The author decides which profile may be changed (ownsProfile), so for an issue event it must be
+  // an account the forge verified, not a name an anonymous submitter typed.
+  const author = event ? forge.trustedAuthor(event, issue) : forge.authorLogin(issue);
+  if (!author) return fail("the issue must be opened by a signed-in account. Sign in on git.owaspblt.org and open it again.");
 
   let username;
   try {
@@ -252,6 +255,7 @@ async function loadIssue() {
 async function main() {
   const issue = await loadIssue();
   const result = await processIssue(issue, {
+    event: forge.eventName() === "workflow_dispatch" ? null : forge.readEvent(),
     commit: ({ message }) => forge.commitBack({ cwd: PROJECT, message, paths: ["public/profiles"], deploy: "blt-profiles" }),
   });
   console.log(`Issue #${issue.number}: ${JSON.stringify(result)}`);

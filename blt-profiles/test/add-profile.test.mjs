@@ -150,3 +150,19 @@ test("job API issue shape (author string, label strings) works", async () => {
   const result = await processIssue({ number: 3, title: "Add me", state: "open", labels: ["profile"], author: "dave", body: filled() }, deps);
   assert.equal(result.username, "dave");
 });
+
+test("an opened issue counts only from a verified sender of the author's name", async () => {
+  const { dir, deps } = harness();
+  writeFileSync(join(dir, "alice.json"), JSON.stringify({ username: "alice", submitted_by: "alice" }));
+  const spoofed = await processIssue(issue(), { ...deps, event: { action: "opened", sender: { login: "Alice", verified: false } } });
+  assert.equal(spoofed.status, "failed");
+  assert.match(spoofed.error, /signed-in account/);
+  assert.equal(JSON.parse(readFileSync(join(dir, "alice.json"), "utf8")).submitted_by, "alice");
+  const other = await processIssue(issue(), { ...deps, event: { action: "opened", sender: { login: "mallory", verified: true } } });
+  assert.equal(other.status, "failed");
+  const ok = await processIssue(issue(), { ...deps, event: { action: "opened", sender: { login: "alice", verified: true } } });
+  assert.equal(ok.status, "updated");
+  // A label or edit by an issue manager uses the stored author.
+  const labeled = await processIssue(issue(), { ...deps, event: { action: "labeled", sender: { login: "maintainer", verified: true } } });
+  assert.equal(labeled.status, "updated");
+});
