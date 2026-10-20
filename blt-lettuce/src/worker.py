@@ -503,10 +503,15 @@ async def db_get_workspaces_with_activity_markers(env):
             await env.DB.prepare(
                 "SELECT "
                 "w.id, w.team_name, w.access_token, w.created_at, "
-                "(SELECT MAX(e.created_at) FROM events e "
-                " WHERE e.workspace_id = w.id AND e.event_type != 'Inactivity_Alert') AS last_activity_at, "
-                "(SELECT MAX(e2.created_at) FROM events e2 "
-                " WHERE e2.workspace_id = w.id AND e2.event_type = 'Inactivity_Alert') AS last_alert_at "
+                # Newest-first walks of the (workspace_id, created_at) and
+                # (workspace_id, event_type, created_at) indexes read a row or two;
+                # MAX() over != read every event in the workspace.
+                "(SELECT e.created_at FROM events e "
+                " WHERE e.workspace_id = w.id AND e.event_type != 'Inactivity_Alert' "
+                " ORDER BY e.created_at DESC LIMIT 1) AS last_activity_at, "
+                "(SELECT e2.created_at FROM events e2 "
+                " WHERE e2.workspace_id = w.id AND e2.event_type = 'Inactivity_Alert' "
+                " ORDER BY e2.created_at DESC LIMIT 1) AS last_alert_at "
                 "FROM workspaces w"
             ).all()
         )
@@ -677,15 +682,13 @@ async def run_workspace_metrics_sync(env):
         repo_rows = await db_get_repositories(env, ws_id)
         repo_count = len(repo_rows)
 
-        # Always refresh saved counts. If scan fails, still persist current channel rows.
-        channel_rows = await db_get_channels(env, ws_id)
+        # Always refresh saved counts. If the scan fails, count the channels already stored.
         total_members = 0
         if ws_token:
             try:
                 await scan_workspace_channels(env, ws_id, ws_token)
             except Exception:
                 pass
-            channel_rows = await db_get_channels(env, ws_id)
             try:
                 total_members = int(await fetch_workspace_member_count(ws_token) or 0)
             except Exception:
@@ -694,7 +697,7 @@ async def run_workspace_metrics_sync(env):
         await db_update_workspace_channel_member_counts(
             env,
             ws_id,
-            channel_count=len(channel_rows),
+            channel_count=await db_count_channels(env, ws_id),
             member_count=total_members,
         )
 
@@ -866,7 +869,11 @@ async def db_upsert_channel(
                 "ON CONFLICT(workspace_id, channel_id) DO UPDATE SET "
                 "channel_name=excluded.channel_name, member_count=excluded.member_count, "
                 "topic=excluded.topic, purpose=excluded.purpose, "
-                "updated_at=excluded.updated_at"
+                "updated_at=excluded.updated_at "
+                # Every scan re-upserts every channel; only write the ones that changed.
+                "WHERE channel_name IS NOT excluded.channel_name "
+                "OR member_count IS NOT excluded.member_count "
+                "OR topic IS NOT excluded.topic OR purpose IS NOT excluded.purpose"
             )
             .bind(
                 workspace_id,
@@ -893,6 +900,18 @@ async def db_upsert_channel(
         except Exception:
             pass
         return False
+
+
+async def db_count_channels(env, workspace_id):
+    try:
+        rows = _rows(
+            await env.DB.prepare("SELECT COUNT(*) AS n FROM channels WHERE workspace_id = ?")
+            .bind(workspace_id)
+            .all()
+        )
+        return int((rows[0] if rows else {}).get("n") or 0)
+    except Exception:
+        return 0
 
 
 async def db_get_channels(env, workspace_id):
@@ -7282,10 +7301,10 @@ class Default(WorkerEntrypoint):
             except Exception:
                 minute = None
 
-            # Heavy sync runs every 10 minutes, inactivity monitor every 5 minutes.
-            # This avoids CPU spikes from running all scans every minute.
-            run_metrics = minute is not None and (minute % 10 == 0)
-            run_inactivity = minute is not None and (minute % 5 == 0)
+            # blt-cron calls at :00 and :30. The channel sync runs both times; the
+            # inactivity monitor (a one-day threshold) runs hourly.
+            run_metrics = minute is not None and (minute % 30 == 0)
+            run_inactivity = minute is not None and (minute == 0)
 
             # Fallback for runtimes that do not expose scheduledTime.
             if minute is None:

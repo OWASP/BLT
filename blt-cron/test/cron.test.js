@@ -28,7 +28,8 @@ test("due jobs at the top of an even hour", () => {
   const names = dueJobs(Date.parse("2026-10-18T04:00:30Z")).map((j) => j.name).sort();
   assert.deepEqual(names, ["blt-leaf", "blt-lettuce", "blt-monitor", "blt-netguardian", "blt-pool", "blt-sizzle"]);
   const quiet = dueJobs(Date.parse("2026-10-18T04:07:00Z")).map((j) => j.name);
-  assert.deepEqual(quiet, ["blt-lettuce"]);
+  assert.deepEqual(quiet, []);
+  assert.ok(dueJobs(Date.parse("2026-10-18T04:30:00Z")).some((j) => j.name === "blt-lettuce"));
 });
 
 test("chunked data refreshes run once a minute in their window", () => {

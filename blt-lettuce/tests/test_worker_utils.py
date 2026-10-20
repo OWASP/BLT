@@ -475,8 +475,8 @@ def test_run_workspace_metrics_sync_uses_full_workspace_for_alert_target():
     async def _fake_db_get_repositories(_env, _ws_id):
         return []
 
-    async def _fake_db_get_channels(_env, _ws_id):
-        return []
+    async def _fake_db_count_channels(_env, _ws_id):
+        return 0
 
     async def _fake_scan_workspace_channels(_env, _ws_id, _token):
         return None
@@ -513,7 +513,7 @@ def test_run_workspace_metrics_sync_uses_full_workspace_for_alert_target():
 
     orig_get_markers = worker.db_get_workspaces_with_activity_markers
     orig_get_repos = worker.db_get_repositories
-    orig_get_channels = worker.db_get_channels
+    orig_count_channels = worker.db_count_channels
     orig_scan_channels = worker.scan_workspace_channels
     orig_member_count = worker.fetch_workspace_member_count
     orig_update_counts = worker.db_update_workspace_channel_member_counts
@@ -526,7 +526,7 @@ def test_run_workspace_metrics_sync_uses_full_workspace_for_alert_target():
         _fake_get_workspaces_with_activity_markers
     )
     worker.db_get_repositories = _fake_db_get_repositories
-    worker.db_get_channels = _fake_db_get_channels
+    worker.db_count_channels = _fake_db_count_channels
     worker.scan_workspace_channels = _fake_scan_workspace_channels
     worker.fetch_workspace_member_count = _fake_fetch_workspace_member_count
     worker.db_update_workspace_channel_member_counts = _fake_update_counts
@@ -541,7 +541,7 @@ def test_run_workspace_metrics_sync_uses_full_workspace_for_alert_target():
     finally:
         worker.db_get_workspaces_with_activity_markers = orig_get_markers
         worker.db_get_repositories = orig_get_repos
-        worker.db_get_channels = orig_get_channels
+        worker.db_count_channels = orig_count_channels
         worker.scan_workspace_channels = orig_scan_channels
         worker.fetch_workspace_member_count = orig_member_count
         worker.db_update_workspace_channel_member_counts = orig_update_counts
