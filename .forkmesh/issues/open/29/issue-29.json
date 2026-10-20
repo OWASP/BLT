@@ -40,6 +40,16 @@
             "target": "gitlab-issue-82715642-6",
             "ts": 1792463360772,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "body": "/assign",
+            "id": "comment-web-1792477949473",
+            "sig": "uVYb59bB29BZ1FbpxG_uCD7EFWv0Xlv8LPMHbb_QjRBkD66BWLW8HUx5mxtXFJV5Sud2gvcJYC0DBHLZQ4swDQ",
+            "ts": 1792477949473,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +63,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-safecloak: Shared screen hides the video of the host",
-    "updatedAt": 1792463360772,
+    "updatedAt": 1792477949473,
     "votes": 0
 }
