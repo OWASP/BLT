@@ -56,7 +56,8 @@ def _status_item(name, description, value, required):
 
     if is_set:
         status_chip = '<span class="inline-flex items-center gap-1 rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-xs font-semibold"><i class="fas fa-check"></i> Set</span>'
-        preview = f'<code class="text-xs text-gray-500">{html_escape(raw_value[:12])}...</code>'
+        # /status is public: say only that the value is set, never any part of it.
+        preview = '<span class="text-xs text-gray-500">Configured</span>'
         card_class = "status-item set border-green-200"
     else:
         level = "Required" if required else "Optional"

@@ -132,6 +132,16 @@ def test_is_valid_slack_url():
     assert not is_valid_slack_url("https://evil.com/phishing")
     assert not is_valid_slack_url("javascript:alert(1)")
     assert not is_valid_slack_url("ftp://slack.com")
+    assert is_valid_slack_url("https://join.slack.com/t/owasp/shared_invite/zt-abc")
+    # Attribute breakouts and look-alike hosts are refused.
+    assert not is_valid_slack_url('https://join.slack.com/t/x" onmouseover="alert(1)')
+    assert not is_valid_slack_url("https://join.slack.com/t/x'onfocus='alert(1)")
+    assert not is_valid_slack_url("https://join.slack.com/t/x y")
+    assert not is_valid_slack_url("https://join.slack.com/t/<x>")
+    assert not is_valid_slack_url("https://evil.example@join.slack.com.evil.example/")
+    assert not is_valid_slack_url("https://user:pw@join.slack.com/")
+    assert not is_valid_slack_url("https://join.slack.com:8443/")
+    assert not is_valid_slack_url("https://slack.com.evil.example/")
 
 
 def test_welcome_message_formatting():
@@ -1286,3 +1296,38 @@ def test_webhook_persists_webhook_received_event_with_request_data():
     assert captured["webhook_fields"]["webhook_event_subtype"] == "channel_join"
     assert captured["webhook_fields"]["webhook_retry_num"] == "1"
     assert captured["webhook_fields"]["webhook_retry_reason"] == "http_timeout"
+
+
+def test_status_page_does_not_reveal_secret_prefixes():
+    import sys
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src.worker import get_status_html
+
+    env = SimpleNamespace(
+        SLACK_TOKEN="xoxb-1234567890-secret",
+        SIGNING_SECRET="abcdef0123456789",
+        SLACK_CLIENT_ID="1.2",
+        SLACK_CLIENT_SECRET="clientsecret123456",
+        SENTRY_DSN="https://key123456@sentry.example/1",
+    )
+    page = get_status_html(env)
+    for value in ("xoxb-1234567", "abcdef012345", "clientsecret", "https://key1"):
+        assert value not in page
+    assert "Configured" in page
+
+
+def test_homepage_escapes_workspace_fields():
+    import pathlib
+    import re
+
+    page = (pathlib.Path(__file__).resolve().parents[1] / "src/lettuce/templates/homepage.html").read_text()
+    assert "${ws.team_name" not in page
+    assert '<a href="${inviteLink}"' not in page
+    assert "escHtml(ws.team_name" in page
+    assert re.search(r"hasInviteLink = isSlackUrl\(inviteLink\)", page)

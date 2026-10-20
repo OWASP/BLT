@@ -4483,15 +4483,26 @@ async def handle_command(env, event, team_id=None):
     return {"ok": True, "message": "Command tracked"}
 
 
+_URL_FORBIDDEN_CHARS = re.compile(r"[\s\"'<>`\\]")
+
+
 def is_valid_slack_url(url):
-    """Return True for trusted Slack endpoints over HTTPS."""
+    """Return True for trusted Slack endpoints over HTTPS.
+
+    The invite link is shown on the public homepage, so besides the host it must not carry
+    quotes, whitespace or angle brackets, credentials or a port.
+    """
+    value = str(url or "").strip()
+    if not value or _URL_FORBIDDEN_CHARS.search(value):
+        return False
     try:
-        parsed = urlparse(str(url or "").strip())
+        parsed = urlparse(value)
+        port = parsed.port
     except Exception:
         return False
-    if parsed.scheme != "https":
+    if parsed.scheme != "https" or parsed.username or parsed.password or port is not None:
         return False
-    hostname = (parsed.netloc or "").split(":", 1)[0].lower()
+    hostname = (parsed.hostname or "").lower()
     return hostname == "slack.com" or hostname.endswith(".slack.com")
 
 
