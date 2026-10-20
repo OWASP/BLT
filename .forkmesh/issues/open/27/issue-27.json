@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "vanshika2720"
+    ],
     "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
     "authorName": "gitlab-import[bot]",
     "bountyAddress": "",
@@ -50,6 +52,17 @@
             "sig": "lcRmS-riQxCellGSyNNWV25j8RIOak-E-KhKl5vWnppBf6_hYoSUKJlvQPSUv4zcKGJtYg2NQ8jfrB-6QIAmCA",
             "ts": 1792476476195,
             "type": "comment"
+        },
+        {
+            "assignees": [
+                "vanshika2720"
+            ],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-assign-4374988e62d44635eaad",
+            "sig": "Gg4_9sHQdxE_bRem5yAG1xlJnEtGbKYpjRz-HVaFsVy5eknGtRiB2ont2m-p9Nem3Zl8VqNb42DiZuWeaOs6Bw",
+            "ts": 1792477172857,
+            "type": "assignees"
         }
     ],
     "labels": [
@@ -63,6 +76,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-next: leaderboard showing wrong info",
-    "updatedAt": 1792476476195,
+    "updatedAt": 1792477172857,
     "votes": 0
 }
