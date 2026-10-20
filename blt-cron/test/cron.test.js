@@ -15,6 +15,7 @@ test("every job's binding is a service binding in wrangler.toml", () => {
   const toml = readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
   for (const job of JOBS) assert.match(toml, new RegExp(`binding = "${job.binding}"`), job.name);
   assert.match(toml, /binding = "HACKERHOUSE"\nservice = "hackerhouse"/);
+  assert.match(toml, /binding = "SAMMICH"\nservice = "blt-sammich"/);
 });
 
 test("cron matching", () => {
@@ -49,6 +50,22 @@ test("hackerhouse polls the forge every 5 minutes, off the other jobs' minutes",
   assert.ok(!names("2026-10-18T04:00:00Z").includes("hackerhouse"));
   const perDay = Array.from({ length: 1440 }, (_, m) => Date.parse("2026-10-18T00:00:00Z") + m * 60000)
     .filter((t) => dueJobs(t).some((j) => j.name === "hackerhouse")).length;
+  assert.equal(perDay, 288);
+});
+
+test("blt-sammich sends reminders every 5 minutes on a minute no other job uses", () => {
+  const names = (iso) => dueJobs(Date.parse(iso)).map((j) => j.name);
+  const job = JOBS.find((j) => j.name === "blt-sammich");
+  assert.equal(job.binding, "SAMMICH");
+  assert.equal(job.task, undefined);
+  for (const iso of ["2026-10-18T04:04:00Z", "2026-10-18T04:09:00Z", "2026-10-18T00:59:00Z", "2026-10-18T23:34:00Z"]) {
+    assert.deepEqual(names(iso), ["blt-sammich"], iso);
+  }
+  for (const iso of ["2026-10-18T04:00:00Z", "2026-10-18T04:02:00Z", "2026-10-18T04:05:00Z", "2026-10-18T00:03:00Z"]) {
+    assert.ok(!names(iso).includes("blt-sammich"), iso);
+  }
+  const perDay = Array.from({ length: 1440 }, (_, m) => Date.parse("2026-10-18T00:00:00Z") + m * 60000)
+    .filter((t) => dueJobs(t).some((j) => j.name === "blt-sammich")).length;
   assert.equal(perDay, 288);
 });
 
