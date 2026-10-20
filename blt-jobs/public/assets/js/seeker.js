@@ -100,13 +100,14 @@ function getInitials(name) {
     .join("");
 }
 
+// The text comes from issues anyone can open: render Markdown only when DOMPurify loaded, and
+// otherwise show it escaped (a CDN failure must not turn it into raw HTML).
 function renderMarkdown(text) {
   if (!text) return "";
-  if (typeof marked !== "undefined") {
-    const html = marked.parse(text);
-    return typeof DOMPurify !== "undefined" ? DOMPurify.sanitize(html) : html;
+  if (typeof marked !== "undefined" && typeof DOMPurify !== "undefined") {
+    return DOMPurify.sanitize(marked.parse(text));
   }
-  return text.replace(/\n/g, "<br />");
+  return window.Sanitize.esc(text).replace(/\n/g, "<br />");
 }
 
 function renderSkillBadges(skillsStr) {
