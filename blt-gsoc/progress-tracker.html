@@ -256,6 +256,16 @@
             return { commits, checkins };
         }
 
+        // Contributor fields come from the progress data: escape them (text) and encode them (URLs).
+        function esc(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         function buildHead(contributors, days) {
             const cells = [`
                 <th class="w-16 border-b border-r border-neutral-border px-2 py-4 align-middle sm:w-24 sm:px-4 dark:border-gray-800">
@@ -267,36 +277,36 @@
                 cells.push(`
                 <th class="border-b border-l border-neutral-border px-1 py-4 text-center align-top font-normal sm:px-2 dark:border-gray-800">
                     <div class="flex flex-col items-center gap-1.5">
-                        <img src="https://github.com/${c.github}.png?size=96" alt="${c.name} avatar"
+                        <img src="https://github.com/${encodeURIComponent(c.github || '')}.png?size=96" alt="${esc(c.name)} avatar"
                             class="h-9 w-9 rounded-full object-cover ring-2 ring-neutral-border xl:h-12 xl:w-12 dark:ring-gray-700" loading="lazy">
-                        <p class="flex min-h-[2.5em] items-center justify-center break-words text-xs font-extrabold leading-tight text-gray-900 xl:text-sm dark:text-gray-100">${c.name}</p>
-                        <a href="https://github.com/${c.github}" target="_blank" rel="noopener noreferrer"
+                        <p class="flex min-h-[2.5em] items-center justify-center break-words text-xs font-extrabold leading-tight text-gray-900 xl:text-sm dark:text-gray-100">${esc(c.name)}</p>
+                        <a href="https://github.com/${encodeURIComponent(c.github || '')}" target="_blank" rel="noopener noreferrer"
                             class="flex max-w-full items-center gap-1 text-[10px] font-bold text-brand hover:underline xl:text-xs">
-                            <i class="fa-brands fa-github" aria-hidden="true"></i><span class="truncate">${c.github}</span>
+                            <i class="fa-brands fa-github" aria-hidden="true"></i><span class="truncate">${esc(c.github)}</span>
                         </a>
-                        <a href="https://gitlab.com/${c.gitlab}" target="_blank" rel="noopener noreferrer"
+                        <a href="https://gitlab.com/${encodeURIComponent(c.gitlab || '')}" target="_blank" rel="noopener noreferrer"
                             class="flex max-w-full items-center gap-1 text-[10px] font-bold text-orange-600 hover:underline xl:text-xs dark:text-orange-400">
-                            <i class="fa-brands fa-gitlab" aria-hidden="true"></i><span class="truncate">${c.gitlab}</span>
+                            <i class="fa-brands fa-gitlab" aria-hidden="true"></i><span class="truncate">${esc(c.gitlab)}</span>
                         </a>
                         ${c.slack ? `
                         <span class="flex max-w-full items-center gap-1 text-[10px] font-bold text-purple-600 xl:text-xs dark:text-purple-400"
                             title="Slack username">
-                            <i class="fa-brands fa-slack" aria-hidden="true"></i><span class="truncate">${typeof c.slack === 'object'
+                            <i class="fa-brands fa-slack" aria-hidden="true"></i><span class="truncate">${esc(typeof c.slack === 'object'
                                 ? [...new Set([c.slack.owasp, c.slack.blt].filter(Boolean))].join('/')
-                                : c.slack}</span>
+                                : c.slack)}</span>
                         </span>` : ''}
-                        <a href="https://git.owaspblt.org/BLT/${c.project}" target="_blank" rel="noopener noreferrer"
-                            class="max-w-full break-words text-[10px] font-semibold text-gray-600 hover:text-brand hover:underline xl:text-xs dark:text-gray-400">${c.project}</a>
+                        <a href="https://git.owaspblt.org/BLT/${encodeURIComponent(c.project || '')}" target="_blank" rel="noopener noreferrer"
+                            class="max-w-full break-words text-[10px] font-semibold text-gray-600 hover:text-brand hover:underline xl:text-xs dark:text-gray-400">${esc(c.project)}</a>
                         <div class="flex items-center gap-2 rounded-md border border-neutral-border px-2 py-1 text-[10px] font-extrabold text-gray-900 xl:text-xs dark:border-gray-700 dark:text-gray-100">
                             <span title="Total commits"><i class="fa-solid fa-code-commit mr-1 text-brand" aria-hidden="true"></i>${totals.commits}</span>
                             <span title="Total check-ins"><i class="fa-solid fa-check mr-1 text-emerald-500" aria-hidden="true"></i>${totals.checkins}</span>
                         </div>
                         <div class="flex flex-wrap items-center justify-center gap-1.5">
-                            <a href="https://git.owaspblt.org/BLT/${c.repo}/milestones" target="_blank" rel="noopener noreferrer"
+                            <a href="https://git.owaspblt.org/BLT/${encodeURIComponent(c.repo || '')}/milestones" target="_blank" rel="noopener noreferrer"
                                 class="inline-flex items-center gap-1 rounded border border-[#E10101] px-1.5 py-0.5 text-[10px] font-bold text-[#E10101] transition hover:bg-[#E10101] hover:text-white">
                                 <i class="fa-solid fa-map" aria-hidden="true"></i><span class="hidden xl:inline">Roadmap</span>
                             </a>
-                            <a href="https://git.owaspblt.org/BLT/${c.repo}/issues" target="_blank" rel="noopener noreferrer"
+                            <a href="https://git.owaspblt.org/BLT/${encodeURIComponent(c.repo || '')}/issues" target="_blank" rel="noopener noreferrer"
                                 class="inline-flex items-center gap-1 rounded border border-[#E10101] px-1.5 py-0.5 text-[10px] font-bold text-[#E10101] transition hover:bg-[#E10101] hover:text-white">
                                 <i class="fa-solid fa-list-check" aria-hidden="true"></i><span class="hidden xl:inline">Todo</span>
                             </a>
