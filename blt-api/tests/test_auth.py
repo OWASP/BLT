@@ -907,3 +907,47 @@ class TestApiKeyManagement:
         update_kwargs = mock_qs.update.await_args.kwargs
         assert update_kwargs["is_active"] is False
         assert isinstance(update_kwargs["revoked_at"], str)
+
+
+class TestRedirectUriAllowList:
+    ALLOWED = "https://app.owaspblt.org/auth/callback, http://localhost:3000"
+
+    @pytest.mark.parametrize(
+        "uri",
+        [
+            "https://app.owaspblt.org/auth/callback",
+            "https://app.owaspblt.org/auth/callback/done?x=1",
+            "https://APP.owaspblt.org:443/auth/callback",
+            "http://localhost:3000/anything",
+        ],
+    )
+    def test_allowed(self, uri):
+        from handlers.auth import redirect_uri_allowed
+
+        assert redirect_uri_allowed(uri, self.ALLOWED)
+
+    @pytest.mark.parametrize(
+        "uri",
+        [
+            "https://app.owaspblt.org.evil.net/auth/callback",
+            "https://app.owaspblt.org@evil.net/auth/callback",
+            "https://app.owaspblt.org/auth/callbackevil",
+            "https://app.owaspblt.org/other",
+            "http://app.owaspblt.org/auth/callback",
+            "https://app.owaspblt.org:8443/auth/callback",
+            "http://localhost:3000.evil.net/",
+            "http://localhost:3001/",
+            "https://app.owaspblt.org/auth/callback\\@evil.net",
+            "javascript:alert(1)",
+            "",
+        ],
+    )
+    def test_refused(self, uri):
+        from handlers.auth import redirect_uri_allowed
+
+        assert not redirect_uri_allowed(uri, self.ALLOWED)
+
+    def test_nothing_allowed_when_unset(self):
+        from handlers.auth import redirect_uri_allowed
+
+        assert not redirect_uri_allowed("https://app.owaspblt.org/", "")

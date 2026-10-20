@@ -61,6 +61,46 @@ def _local_auth_otp(env: Any) -> str:
     return _env_text(env, "LOCAL_AUTH_OTP") or LOCAL_AUTH_OTP_DEFAULT
 
 
+def _url_origin(parsed) -> tuple:
+    scheme = (parsed.scheme or "").lower()
+    port = parsed.port or {"https": 443, "http": 80}.get(scheme)
+    return scheme, (parsed.hostname or "").lower(), port
+
+
+def redirect_uri_allowed(redirect_uri: str, allowed_setting: str) -> bool:
+    """True when redirect_uri has the same origin as an ALLOWED_REDIRECT_URIS entry and its path is
+    that entry's path or below it (on a "/" boundary).
+
+    A plain startswith() let "https://app.example.com.evil.net/" or
+    "https://app.example.com@evil.net/" through for an allowed "https://app.example.com".
+    """
+    candidate = str(redirect_uri or "").strip()
+    if not candidate or any(ch.isspace() or ch == "\\" or ord(ch) < 0x20 for ch in candidate):
+        return False
+    try:
+        target = urlparse(candidate)
+        target_origin = _url_origin(target)
+    except ValueError:
+        return False
+    if target.scheme.lower() not in ("http", "https") or not target.hostname or target.username or target.password:
+        return False
+    for entry in str(allowed_setting or "").split(","):
+        entry = entry.strip()
+        if not entry:
+            continue
+        try:
+            allowed = urlparse(entry)
+            if _url_origin(allowed) != target_origin:
+                continue
+        except ValueError:
+            continue
+        base = allowed.path.rstrip("/")
+        path = target.path or "/"
+        if not base or path == base or path.startswith(base + "/"):
+            return True
+    return False
+
+
 def _is_local_request(request: Any) -> bool:
     url = str(getattr(request, "url", "") or "")
     if not url:
@@ -183,8 +223,7 @@ async def handle_signup(
 
         # Validate redirect_uri against whitelist if provided
         if redirect_uri:
-            allowed_uris = [u.strip() for u in getattr(env, "ALLOWED_REDIRECT_URIS", "").split(",") if u.strip()]
-            if not any(redirect_uri.startswith(allowed) for allowed in allowed_uris):
+            if not redirect_uri_allowed(redirect_uri, getattr(env, "ALLOWED_REDIRECT_URIS", "")):
                 return error_response("Invalid redirect_uri", 400)
 
         is_local_signup = _is_local_request(request)
@@ -454,8 +493,7 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
 
         redirect_uri = str(body.get("redirect_uri", "")).strip()
         if redirect_uri:
-            allowed_uris = [u.strip() for u in getattr(env, "ALLOWED_REDIRECT_URIS", "").split(",") if u.strip()]
-            if not any(redirect_uri.startswith(allowed) for allowed in allowed_uris):
+            if not redirect_uri_allowed(redirect_uri, getattr(env, "ALLOWED_REDIRECT_URIS", "")):
                 return error_response("Invalid redirect_uri", 400)
 
         # getting db connection
