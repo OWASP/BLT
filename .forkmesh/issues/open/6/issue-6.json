@@ -50,6 +50,16 @@
             "sig": "wW_9rjkgLmJylVtyoeWmq2T7df5jJpKhwuj7-RDo04etEjYoGaDzWmPtlQ6raE23TAglO876M4YBp0a9DBd0DQ",
             "ts": 1792477854456,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "body": "@vanshika2720 you can't be assigned to this issue because you are already assigned to #27. Please open a pull request for it, or comment `/unassign` there, before taking another issue. \u003c!-- blt-assign:1740e1898483dd7cf491 --\u003e",
+            "id": "actions-1792477881438-CmP5OC7y",
+            "sig": "cwI-fWGNogAlRm4pNRV8f2JwPXjq0iVEKzsszpVcNwBbLVIsZd-beD2lWRPxhIywCXjUmZasO9i9X8m4SFM8Aw",
+            "ts": 1792477881438,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -63,6 +73,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cli: Replace free-text Severity and Bug Type fields with cycle-able selectors",
-    "updatedAt": 1792477854456,
+    "updatedAt": 1792477881438,
     "votes": 0
 }
