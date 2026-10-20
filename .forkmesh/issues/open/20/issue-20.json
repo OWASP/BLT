@@ -50,6 +50,16 @@
             "sig": "3dm69ksufo5XvbX61wZ1KTx3ZoAfGU_oh4FktyuphZ2oDd3FmPzo8qhAREoPiGbjSItXBRz7-HzAoHkKGiwHBg",
             "ts": 1792477831374,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "body": "@vanshika2720 you can't be assigned to this issue because you are already assigned to #27. Please open a pull request for it, or comment `/unassign` there, before taking another issue. \u003c!-- blt-assign:bdb2b37beadd2720575a --\u003e",
+            "id": "actions-1792477847181-dYmmyKfA",
+            "sig": "3li_9-tTwyHrXXkDHlxhaGPmH2kUkUZu5WZmPr0ooOUQ6OsE6lyTablugMG4MyNDFQUqYelWgmnizvEvpbQuBw",
+            "ts": 1792477847181,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -63,6 +73,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mcp: Update Agent.md",
-    "updatedAt": 1792477831374,
+    "updatedAt": 1792477847181,
     "votes": 0
 }
