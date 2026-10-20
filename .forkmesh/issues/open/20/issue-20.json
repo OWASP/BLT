@@ -60,6 +60,15 @@
             "sig": "3li_9-tTwyHrXXkDHlxhaGPmH2kUkUZu5WZmPr0ooOUQ6OsE6lyTablugMG4MyNDFQUqYelWgmnizvEvpbQuBw",
             "ts": 1792477847181,
             "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "delete-bot-1792482111828-dYmmyKfA",
+            "sig": "Slt74etjjkMuEX0ODANi2uEmr4j5VFQqJhwnVE_cgOysD-5a6VM2cDwf3KhjpC7pZ1Yetf-M2BImxtbsLM8EDg",
+            "target": "actions-1792477847181-dYmmyKfA",
+            "ts": 1792482111828,
+            "type": "delete"
         }
     ],
     "labels": [
@@ -73,6 +82,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mcp: Update Agent.md",
-    "updatedAt": 1792477847181,
+    "updatedAt": 1792482111828,
     "votes": 0
 }

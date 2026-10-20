@@ -61,6 +61,15 @@
             "sig": "Ts_U0karnsQHxJHohImDyifERq6uRn5yCPhSeGmIfFONRMbRnbmckeS0bMd_qvFSjLBkwjtSJ6EQgg0fFXniBg",
             "ts": 1792478008121,
             "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "delete-bot-1792482111834-VsJWy-CD",
+            "sig": "dsJqa2nCVK1k8ZJRSJR-SrK2SbCheC4yf3jepT14fEPaMfS8f3lwCoI5KsSrpgTkVPn18dhqyEjfveqzHQ7OCw",
+            "target": "actions-1792478008121-VsJWy-CD",
+            "ts": 1792482111834,
+            "type": "delete"
         }
     ],
     "labels": [
@@ -75,6 +84,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-toasty: Decouple Webhook Ingress via Cloudflare Queues",
-    "updatedAt": 1792478008121,
+    "updatedAt": 1792482111834,
     "votes": 0
 }

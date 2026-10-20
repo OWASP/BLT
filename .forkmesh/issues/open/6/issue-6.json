@@ -60,6 +60,15 @@
             "sig": "cwI-fWGNogAlRm4pNRV8f2JwPXjq0iVEKzsszpVcNwBbLVIsZd-beD2lWRPxhIywCXjUmZasO9i9X8m4SFM8Aw",
             "ts": 1792477881438,
             "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "delete-bot-1792482111829-CmP5OC7y",
+            "sig": "MPeAiCwONq59i3yBKGE0k60gwTQJKMSkM5TRlfGY8wBOB9EbWCYhwxcZ5KyrJiU502i2CqutRiV8RWvV09JEAA",
+            "target": "actions-1792477881438-CmP5OC7y",
+            "ts": 1792482111829,
+            "type": "delete"
         }
     ],
     "labels": [
@@ -73,6 +82,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cli: Replace free-text Severity and Bug Type fields with cycle-able selectors",
-    "updatedAt": 1792477881438,
+    "updatedAt": 1792482111829,
     "votes": 0
 }

@@ -60,6 +60,15 @@
             "sig": "0JrliVZWRuAVBcv6fywvtksPvreC8KMaFi_PU4z43L_nLD_gXlvaXcNvdoTMpa5vr2zFzw_YvvJ7ojwhdevUBA",
             "ts": 1792477979545,
             "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "delete-bot-1792482111833-1_-zqXeG",
+            "sig": "SL1j9-D26QzBcLAfnX2LJELecXN8eNG4eySKhivhik-ntUbSrPhAl59aPb9K3gnGlTPALSAbLIDV-wSWBa4VCA",
+            "target": "actions-1792477979545-1_-zqXeG",
+            "ts": 1792482111833,
+            "type": "delete"
         }
     ],
     "labels": [
@@ -73,6 +82,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-safecloak: When a host shares the screen and the video is turned on and then turned off, the video is not replaced by the shared screen the video gets paused but the shared screen get's disappeared",
-    "updatedAt": 1792477979545,
+    "updatedAt": 1792482111833,
     "votes": 0
 }

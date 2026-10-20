@@ -60,6 +60,15 @@
             "sig": "4cVgMQOyjEh69_yHnlVrBu06FzZQaK_xS1c9ZAeqiz18IN1Ijf9I_mQbIK9tKYO6Ku9BjLpt2X1JhSWaN54OBg",
             "ts": 1792478029114,
             "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "delete-bot-1792482111835-E60Q3L8P",
+            "sig": "O7w6fUJj2W9Zb57YU6uTP_Ohr1gzaF3_zjEEa4iUrxgTaAI564Qsix6TVOqhREf9TNNcsX-1AY8GNu-jw_H_Dw",
+            "target": "actions-1792478029114-E60Q3L8P",
+            "ts": 1792482111835,
+            "type": "delete"
         }
     ],
     "labels": [
@@ -73,6 +82,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-docs: Add BLT-API developer docs and dashboard handoff page",
-    "updatedAt": 1792478029114,
+    "updatedAt": 1792482111835,
     "votes": 0
 }

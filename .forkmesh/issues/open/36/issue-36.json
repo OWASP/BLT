@@ -60,6 +60,15 @@
             "sig": "Eb8u7nIptxgUsyP1BK8G9EseVfr2QcjDyA6jg4t8-FGZu5CppinPYhxHmg0umkIfvIQJmvJ8sIjxzk-eiooGAQ",
             "ts": 1792477832003,
             "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "delete-bot-1792482111827-dKcZyyhq",
+            "sig": "s3TZXVMdNh6Ug4kZwFPX8m1RDz7lLp4LYGKAaT__Uf_GFrjBxZk2-7DymienmRaW6SxaLOdHkJ0BKtnojGttBA",
+            "target": "actions-1792477832003-dKcZyyhq",
+            "ts": 1792482111827,
+            "type": "delete"
         }
     ],
     "labels": [
@@ -73,6 +82,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: Follow-up from \"feat: add macOS platform build configuration\"",
-    "updatedAt": 1792477832003,
+    "updatedAt": 1792482111827,
     "votes": 0
 }

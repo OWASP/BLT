@@ -61,6 +61,15 @@
             "sig": "s2cWvPBjhg54QzVaKE2P4zXuiEzoutW0YyWrAwRfk6I4SiIs7Ubl3S8Sn6i2yJeT07qcYY2EK52utR62Jov5Ag",
             "ts": 1792477922272,
             "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "delete-bot-1792482111831-FOe-tycj",
+            "sig": "QYPKIJ438a_KaubeA0PEVSoBjB3NYvu6HtEZzE-3WH7wqNOwXSINMpUOgPoOTLJ3W4AHGoEAl0SqlzwTWxWcAg",
+            "target": "actions-1792477922272-FOe-tycj",
+            "ts": 1792482111831,
+            "type": "delete"
         }
     ],
     "labels": [
@@ -75,6 +84,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-toasty: Build Slack Notification Bot",
-    "updatedAt": 1792477922272,
+    "updatedAt": 1792482111831,
     "votes": 0
 }

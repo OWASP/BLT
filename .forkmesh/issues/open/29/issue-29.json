@@ -60,6 +60,15 @@
             "sig": "XC_vpJnQPFDdNBuoRP3KgDTlaSmyCoP0Fkla1NAShyUBCoIm40gFk0qzFOY22NgbQORbPRXI4pghHf7w3MmDCQ",
             "ts": 1792477963433,
             "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "delete-bot-1792482111832-8s0M82-x",
+            "sig": "SSHQfTNu5K8V3WaEnQ4NxOzAuDqDc2JkYmR7N7iwVNHV4DikPY4jTVgijT42Cc2T-RY-6hsEhvdUgk6wnXvNCw",
+            "target": "actions-1792477963433-8s0M82-x",
+            "ts": 1792482111832,
+            "type": "delete"
         }
     ],
     "labels": [
@@ -73,6 +82,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-safecloak: Shared screen hides the video of the host",
-    "updatedAt": 1792477963433,
+    "updatedAt": 1792482111832,
     "votes": 0
 }

@@ -60,6 +60,15 @@
             "sig": "DPMaz-n1BhDgyD_E98nn0MNeAdoGwYyFHcsVexGT5oQDfJ5ZxoM6il6T3LXhrOS88baQlnRdWlh3wk2dnL2XBw",
             "ts": 1792478048506,
             "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "delete-bot-1792482111836-X8ZgarkJ",
+            "sig": "5tdeT3nShy2sClfbiVYIT-qUnxxUizb4b9W3jAC1Gx8AvqH4l-pA0FXvC_BEf623gcYTJ-UgDlgCtP71iEnSDw",
+            "target": "actions-1792478048506-X8ZgarkJ",
+            "ts": 1792482111836,
+            "type": "delete"
         }
     ],
     "labels": [
@@ -73,6 +82,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-docs: Add screenshots/media system for user guides",
-    "updatedAt": 1792478048506,
+    "updatedAt": 1792482111836,
     "votes": 0
 }

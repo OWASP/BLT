@@ -60,6 +60,15 @@
             "sig": "MmEYBPy4AN-1uAUC5pzulvBS77z7jpfGLIrXYOty22wp_bN5c7SuG5cZ9IkTump779ZS2my-KLHKqpzECxo3Bg",
             "ts": 1792477902253,
             "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "delete-bot-1792482111830-nCkDM5Mn",
+            "sig": "bNENut6dciuHoQlnLk5wyCFgfoPG22SSiP8mKvyg25IVxkBE_8jMCXP6r2zuWbL9qjW_-YI1aWmvB8SC2dmZDQ",
+            "target": "actions-1792477902253-nCkDM5Mn",
+            "ts": 1792482111830,
+            "type": "delete"
         }
     ],
     "labels": [
@@ -73,6 +82,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mcp: Improve Vision AI prompt for structured, clean output",
-    "updatedAt": 1792477902253,
+    "updatedAt": 1792482111830,
     "votes": 0
 }
