@@ -54,4 +54,5 @@ def make_d1_mock(first_return=None, run_meta=None):
 
     db = MagicMock()
     db.prepare = MagicMock(return_value=stmt)
+    db.batch = AsyncMock(side_effect=lambda stmts: [mock_run_result for _ in stmts])
     return db

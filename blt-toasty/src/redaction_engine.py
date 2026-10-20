@@ -250,17 +250,16 @@ def _build_redaction_map(matches: list[RecogniserMatch]) -> list[dict[str, Any]]
 
 
 async def _store_redaction_audit(db: Any, event_id: str, redaction_map: list[dict[str, Any]]) -> None:
-    """INSERT each entry of the redaction map into the D1 ``redaction_audit`` table."""
+    """INSERT every entry of the redaction map into the D1 ``redaction_audit`` table in one batch."""
     import secrets
 
-    for entry in redaction_map:
-        audit_id = secrets.token_hex(16)
-        await db.prepare(
+    queries = [
+        db.prepare(
             "INSERT INTO redaction_audit "
             "(id, triage_event_id, entity_type, detector, confidence, byte_start, byte_end, original_length) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         ).bind(
-            audit_id,
+            secrets.token_hex(16),
             event_id,
             entry["entity_type"],
             entry["detector"],
@@ -268,7 +267,12 @@ async def _store_redaction_audit(db: Any, event_id: str, redaction_map: list[dic
             entry["byte_start"],
             entry["byte_end"],
             entry["original_length"],
-        ).run()
+        )
+        for entry in redaction_map
+    ]
+
+    if queries:
+        await db.batch(queries)
 
 
 async def _quarantine_event(db: Any, event_id: str, reason: str) -> None:

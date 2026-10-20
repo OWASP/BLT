@@ -366,7 +366,7 @@ class TestRedactionEngine:
     async def test_unexpected_error_quarantines_event(self, mock_env):
         """If the DB raises during audit storage, the event is quarantined."""
 
-        # run() raises on the first call, then succeeds.
+        # The audit batch() raises; the quarantine batch() that follows succeeds.
         class AttrMeta:
             changes = 1
 
@@ -374,26 +374,35 @@ class TestRedactionEngine:
             meta = AttrMeta()
 
         mock_run_ok = AttrResult()
-        call_count = 0
-
-        def run_side_effect(*args, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            if call_count == 1:
-                raise RuntimeError("D1 unavailable")
-            return mock_run_ok
 
         mock_stmt = MagicMock()
         mock_stmt.bind = MagicMock(return_value=mock_stmt)
         mock_stmt.first = AsyncMock(return_value={"status": "pending"})
-        mock_stmt.run = AsyncMock(side_effect=run_side_effect)
+        mock_stmt.run = AsyncMock(return_value=mock_run_ok)
 
         broken_db = MagicMock()
         broken_db.prepare = MagicMock(return_value=mock_stmt)
-        broken_db.batch = AsyncMock(return_value=[mock_run_ok, mock_run_ok])
+        broken_db.batch = AsyncMock(side_effect=[RuntimeError("D1 unavailable"), [mock_run_ok, mock_run_ok]])
 
         with pytest.raises(RedactionFailedError):
             await redact("Email: admin@example.com", mock_env, "evt-err", broken_db)
+
+        # The event was quarantined after the audit write failed.
+        assert broken_db.batch.await_count == 2
+
+    @pytest.mark.asyncio
+    async def test_redaction_audit_uses_single_batch(self, mock_db, mock_env):
+        """All PII audit rows are written in one db.batch() call, not one INSERT each."""
+        result = await redact(
+            "Emails: admin@example.com and ops@example.com, IP: 10.0.0.1",
+            mock_env,
+            "evt-batch",
+            mock_db,
+        )
+        assert result.entity_count >= 3
+        mock_db.batch.assert_awaited_once()
+        (statements,), _ = mock_db.batch.await_args
+        assert len(statements) == result.entity_count
 
 
 # ---------------------------------------------------------------------------
