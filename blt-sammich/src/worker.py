@@ -3517,7 +3517,10 @@ async def fetch_contributor_activity(env: Any) -> List[Dict[str, Any]]:
     since_date = (datetime.now(timezone.utc) - timedelta(days=7)).date().isoformat()
     since_stamp = "{0}T00:00:00Z".format(since_date)
 
-    headers = {"Accept": "application/vnd.github+json"}
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "OWASP-BLT-Sammich",
+    }
     if token:
         headers["Authorization"] = "Bearer {0}".format(token)
 
@@ -3562,19 +3565,38 @@ async def create_github_issue(title: str, env: Any) -> Tuple[bool, str]:
         return False, str(error)
 
     url = "https://api.github.com/repos/{0}/{1}/issues".format(owner, repo)
+    title = (title or "").strip()
+    if not title:
+        return False, "Issue title cannot be empty."
+
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": "Bearer {0}".format(token),
         "Content-Type": "application/json",
+        "User-Agent": "OWASP-BLT-Sammich",
     }
-    ok, payload, _ = await fetch_json(
-        url,
-        method="POST",
-        headers=headers,
-        body=json.dumps({"title": title}),
-    )
+    try:
+        ok, payload, status = await fetch_json(
+            url,
+            method="POST",
+            headers=headers,
+            body=json.dumps({"title": title}),
+        )
+    except ValueError:
+        return False, "GitHub issue creation failed: invalid API response."
+    if not isinstance(payload, dict):
+        payload = {}
     if not ok or not payload.get("html_url"):
         message = payload.get("message") or "GitHub issue creation failed."
+        details = [
+            str(item.get("message") or item.get("code"))
+            for item in payload.get("errors") or []
+            if isinstance(item, dict) and (item.get("message") or item.get("code"))
+        ]
+        if details:
+            message = "{0} ({1})".format(message, ", ".join(details))
+        if not ok:
+            message = "GitHub API error {0}: {1}".format(status, message)
         return False, message
     return True, str(payload["html_url"])
 
