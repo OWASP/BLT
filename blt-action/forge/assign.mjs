@@ -28,6 +28,13 @@ export const REPO_KEY = "owasp-blt/blt"; // forkmesh-issue-event-v2 signing key:
 export const MAX_OPEN_ASSIGNMENTS = 1;
 export const PR_DAYS = 7;
 export const MAX_COMMANDS_PER_RUN = 10;
+// Spam guards. One refusal reply per person per day: further refused /assign comments get no reply.
+// More than COOLDOWN_MAX_ATTEMPTS /assign comments within COOLDOWN_WINDOW_MS puts the person on a
+// COOLDOWN_MS pause from /assign, announced once.
+export const REFUSAL_QUIET_MS = 24 * 60 * 60 * 1000;
+export const COOLDOWN_WINDOW_MS = 60 * 60 * 1000;
+export const COOLDOWN_MAX_ATTEMPTS = 3;
+export const COOLDOWN_MS = 24 * 60 * 60 * 1000;
 const MAX_SCAN_BYTES = 64 * 1024;
 const MAX_SCAN_LINES = 200;
 // An account name, as the forge's NODE_NAME_RE; only these turn `@name` into a notification
@@ -125,6 +132,63 @@ export function ledgerComments(record) {
   return events
     .filter((e) => e?.type === "comment" && e.id && !deleted.has(e.id))
     .sort((a, b) => Number(a.ts || 0) - Number(b.ts || 0));
+}
+
+export const refusalMarker = (name) => `<!-- blt-assign-refused:${String(name).toLowerCase()} -->`;
+export const cooldownMarker = (name) => `<!-- blt-assign-cooldown:${String(name).toLowerCase()} -->`;
+const toMs = (ts) => {
+  const n = Number(ts || 0);
+  return n > 1e12 ? n : n * 1000;
+};
+
+/**
+ * What `name` has been doing with /assign across open issues: the times of their /assign comments
+ * and of the last refusal and cooldown replies addressed to them (found by marker).
+ */
+export function userActivity(root, name) {
+  const activity = { attempts: [], lastRefusal: 0, lastCooldown: 0 };
+  const dir = join(root, ".forkmesh", "issues", "open");
+  if (!name || !existsSync(dir)) return activity;
+  const refused = refusalMarker(name);
+  const cooled = cooldownMarker(name);
+  for (const number of readdirNumbers(dir)) {
+    const issue = loadIssue(root, number);
+    if (!issue) continue;
+    for (const c of ledgerComments(issue.record)) {
+      const body = String(c.body || "");
+      const ts = toMs(c.ts);
+      if (sameName(c.authorName || "", name) && parseCommand(body) === "assign") activity.attempts.push(ts);
+      if (body.includes(refused)) activity.lastRefusal = Math.max(activity.lastRefusal, ts);
+      if (body.includes(cooled)) activity.lastCooldown = Math.max(activity.lastCooldown, ts);
+    }
+  }
+  return activity;
+}
+
+/**
+ * Apply the spam guards to a decision for /assign. `activity` comes from userActivity; `run` holds
+ * replies already decided earlier in this run ({refused: Set, cooled: Set}).
+ */
+export function guard(decision, { command, name, activity, now = Date.now(), run }) {
+  if (command !== "assign" || !activity || !name) return decision;
+  const key = String(name).toLowerCase();
+  const recent = activity.attempts.filter((t) => now - t <= COOLDOWN_WINDOW_MS).length;
+  const cooling = (activity.lastCooldown && now - activity.lastCooldown < COOLDOWN_MS) || run?.cooled?.has(key);
+  if (cooling || recent > COOLDOWN_MAX_ATTEMPTS) {
+    if (cooling) return { change: null, reply: "" };
+    run?.cooled?.add(key);
+    return {
+      change: null,
+      reply:
+        `${mention(name)} that's a lot of \`/assign\` requests in a short time, so \`/assign\` is paused for you for ` +
+        `24 hours. Please focus on one issue and open a pull request for it. ${cooldownMarker(name)}`,
+    };
+  }
+  if (decision.change || !decision.reply) return decision;
+  const quiet = (activity.lastRefusal && now - activity.lastRefusal < REFUSAL_QUIET_MS) || run?.refused?.has(key);
+  if (quiet) return { change: null, reply: "" };
+  run?.refused?.add(key);
+  return { change: null, reply: `${decision.reply} ${refusalMarker(name)}` };
 }
 
 export const appliedEvent = (record, key) => (record.events || []).find((e) => e?.id === `blt-assign-${key}`);
@@ -266,6 +330,7 @@ export function collectCommands({ root, event, name, issueOverride }) {
  */
 export function applyCommands({ root, commands, signer, now = Date.now(), dryRun = false, log = console.log }) {
   const pending = [];
+  const run = { refused: new Set(), cooled: new Set() };
   const changed = new Set();
   for (const c of commands) {
     const command = parseCommand(c.body);
@@ -301,8 +366,12 @@ export function applyCommands({ root, commands, signer, now = Date.now(), dryRun
       pending.push(entry);
       continue;
     }
-    const decision = decide({ command, name, issue, others: command === "assign" ? openAssignments(root, name, c.number) : [] });
+    const decision = guard(
+      decide({ command, name, issue, others: command === "assign" ? openAssignments(root, name, c.number) : [] }),
+      { command, name, activity: command === "assign" ? userActivity(root, name) : null, now, run },
+    );
     entry.preview = decision.reply;
+    entry.decided = decision;
     if (decision.change) {
       if (!signer) throw new Error("BLT_TASKS_SEED is not set, so the assignment cannot be signed");
       applyChange(issue, { key, change: decision.change, signer, now });
@@ -327,7 +396,8 @@ export function replyFor(root, entry) {
   if (!issue) return "";
   const applied = appliedEvent(issue.record, entry.key);
   if (applied) return `${appliedReply(applied, entry.name, issue)} ${marker}`;
-  const decision = decide({
+  // The guarded decision from applyCommands (the ledger's reply markers only appear after posting).
+  const decision = entry.decided || decide({
     command: entry.command,
     name: entry.name,
     issue,

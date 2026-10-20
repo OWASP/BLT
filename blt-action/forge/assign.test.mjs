@@ -318,3 +318,63 @@ test("workflow run: pushes the signed assignment (rebuilt on a moved origin) and
     server.close();
   }
 });
+
+test("spam guard: one refusal reply per person per day, and only one per run", () => {
+  const now = 10_000_000_000_000;
+  const refused = { change: null, reply: "@ana you can't be assigned to this issue because you are already assigned to #1." };
+  const run = { refused: new Set(), cooled: new Set() };
+  const activity = { attempts: [now - 5000], lastRefusal: 0, lastCooldown: 0 };
+  const first = A.guard(refused, { command: "assign", name: "ana", activity, now, run });
+  assert.ok(first.reply.includes(A.refusalMarker("ana")));
+  const second = A.guard(refused, { command: "assign", name: "ana", activity, now, run });
+  assert.deepEqual(second, { change: null, reply: "" });
+  const nextRun = A.guard(refused, {
+    command: "assign", name: "ana", now: now + 60_000, run: { refused: new Set(), cooled: new Set() },
+    activity: { attempts: [now], lastRefusal: now, lastCooldown: 0 },
+  });
+  assert.equal(nextRun.reply, "", "a refusal was already posted within 24 hours");
+  const tomorrow = A.guard(refused, {
+    command: "assign", name: "ana", now: now + A.REFUSAL_QUIET_MS + 1, run: { refused: new Set(), cooled: new Set() },
+    activity: { attempts: [], lastRefusal: now, lastCooldown: 0 },
+  });
+  assert.ok(tomorrow.reply.startsWith("@ana"));
+  const ok = { change: { assignees: ["ana"] }, reply: "@ana you're assigned" };
+  assert.equal(A.guard(ok, { command: "assign", name: "ana", activity, now, run }), ok, "successes are untouched");
+  const un = { change: null, reply: "@ana you are not assigned" };
+  assert.equal(A.guard(un, { command: "unassign", name: "ana", activity, now, run }), un, "unassign is untouched");
+});
+
+test("spam guard: more than 3 /assign in an hour pauses /assign for 24 hours, announced once", () => {
+  const now = 10_000_000_000_000;
+  const ok = { change: { assignees: ["ben"] }, reply: "@ben you're assigned" };
+  const busy = { attempts: [now - 50 * 60_000, now - 30 * 60_000, now - 20 * 60_000, now - 1000], lastRefusal: 0, lastCooldown: 0 };
+  const run = { refused: new Set(), cooled: new Set() };
+  const paused = A.guard(ok, { command: "assign", name: "ben", activity: busy, now, run });
+  assert.equal(paused.change, null, "no assignment while over the limit");
+  assert.ok(paused.reply.includes(A.cooldownMarker("ben")) && paused.reply.startsWith("@ben"));
+  assert.deepEqual(A.guard(ok, { command: "assign", name: "ben", activity: busy, now, run }), { change: null, reply: "" });
+  const later = A.guard(ok, {
+    command: "assign", name: "ben", now: now + 3 * 60 * 60_000, run: { refused: new Set(), cooled: new Set() },
+    activity: { attempts: [], lastRefusal: 0, lastCooldown: now },
+  });
+  assert.deepEqual(later, { change: null, reply: "" }, "still paused, silently");
+  const after = A.guard(ok, {
+    command: "assign", name: "ben", now: now + A.COOLDOWN_MS + 1, run: { refused: new Set(), cooled: new Set() },
+    activity: { attempts: [], lastRefusal: 0, lastCooldown: now },
+  });
+  assert.equal(after, ok, "the pause ends after 24 hours");
+});
+
+test("applyCommands: several refused /assign in one run get a single reply", () => {
+  const root = ledger([
+    [1, record(1, { assignees: ["ana"] })],
+    [2, record(2, { comments: [["c2", "ana", "/assign"]] })],
+    [3, record(3, { comments: [["c3", "ana", "/assign"]] })],
+  ]);
+  const commands = [2, 3].map((n) => ({ number: n, commentId: `c${n}`, login: "ana", author: "", body: "/assign" }));
+  const { pending, changed } = A.applyCommands({ root, commands, signer, now: 20_000, log: quiet });
+  assert.equal(changed.length, 0);
+  const replies = pending.map((p) => A.replyFor(root, p)).filter(Boolean);
+  assert.equal(replies.length, 1);
+  assert.ok(replies[0].includes("#1"));
+});
