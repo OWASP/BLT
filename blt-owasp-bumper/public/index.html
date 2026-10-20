@@ -40953,11 +40953,22 @@
         let creationYearFilter = null;
         
         // HTML escape function to prevent XSS
+        // Escapes text and quoted attributes alike (commit messages, author names, front matter and
+        // descriptions all end up in title="..." attributes).
         function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+            if (text == null || text === '') return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Only http(s) URLs become links or image sources.
+        function safeUrl(url) {
+            const value = String(url || '').trim();
+            return /^https?:\/\//i.test(value) ? value : '#';
         }
         
         function formatDate(dateStr) {
@@ -41053,7 +41064,7 @@ Thank you for contributing to the OWASP community!
 ---
 *This issue was created via the [OWASP Bumper](https://git.owaspblt.org/BLT/BLT-OWASP-Bumper) tool to help keep track of repository activity.*`
             );
-            return `${repo.html_url}/issues/new?title=${title}&body=${body}`;
+            return `${safeUrl(repo.html_url)}/issues/new?title=${title}&body=${body}`;
         }
         
         function setFilter(filter) {
@@ -41289,7 +41300,7 @@ Thank you for contributing to the OWASP community!
                 if (yearsSinceUpdate >= 1) {
                     bumpButton = repo.archived 
                         ? `<span class="bump-btn archived" title="Cannot bump archived repositories">🔔</span>`
-                        : `<a href="${getBumpIssueUrl(repo)}" target="_blank" class="bump-btn" title="Create a reminder issue in this repository">🔔</a>`;
+                        : `<a href="${escapeHtml(getBumpIssueUrl(repo))}" target="_blank" class="bump-btn" title="Create a reminder issue in this repository">🔔</a>`;
                 }
                 
                 // Generate sparkline
@@ -41316,11 +41327,11 @@ Thank you for contributing to the OWASP community!
                 let lastCommitHtml = '';
                 if (repo.last_commit_message || repo.last_commit_author) {
                     const avatarHtml = repo.last_commit_avatar_url
-                        ? `<img class="last-commit-avatar" src="${escapeHtml(repo.last_commit_avatar_url)}" alt="${escapeHtml(repo.last_commit_author)}" loading="lazy">`
+                        ? `<img class="last-commit-avatar" src="${escapeHtml(safeUrl(repo.last_commit_avatar_url))}" alt="${escapeHtml(repo.last_commit_author)}" loading="lazy">`
                         : '💬';
                     const authorHtml = repo.last_commit_author
                         ? (repo.last_commit_author_url
-                            ? `<a class="last-commit-author" href="${escapeHtml(repo.last_commit_author_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(repo.last_commit_author)}</a>`
+                            ? `<a class="last-commit-author" href="${escapeHtml(safeUrl(repo.last_commit_author_url))}" target="_blank" rel="noopener noreferrer">${escapeHtml(repo.last_commit_author)}</a>`
                             : `<span class="last-commit-author">${escapeHtml(repo.last_commit_author)}</span>`)
                         : '';
                     lastCommitHtml = `<div class="last-commit">
@@ -41334,7 +41345,7 @@ Thank you for contributing to the OWASP community!
                     <div class="repo-item ${repo.archived ? 'archived' : ''}">
                         <div class="repo-header">
                             <div class="repo-name">
-                                <a href="${repo.html_url}" target="_blank">${escapeHtml(repo.name)}</a>
+                                <a href="${escapeHtml(safeUrl(repo.html_url))}" target="_blank">${escapeHtml(repo.name)}</a>
                                 ${displayTitle}
                             </div>
                             <div class="repo-badges">
@@ -41438,7 +41449,7 @@ Thank you for contributing to the OWASP community!
                 if (yearsSinceUpdate >= 1) {
                     bumpButton = repo.archived
                         ? `<span class="bump-btn archived" title="Cannot bump archived repositories">🔔</span>`
-                        : `<a href="${getBumpIssueUrl(repo)}" target="_blank" class="bump-btn" title="Create a reminder issue in this repository">🔔</a>`;
+                        : `<a href="${escapeHtml(getBumpIssueUrl(repo))}" target="_blank" class="bump-btn" title="Create a reminder issue in this repository">🔔</a>`;
                 }
                 
                 // Title (if different from name)
@@ -41450,11 +41461,11 @@ Thank you for contributing to the OWASP community!
                 let lastCommitCell = '';
                 if (repo.last_commit_message || repo.last_commit_author) {
                     const avatarHtml = repo.last_commit_avatar_url
-                        ? `<img class="last-commit-avatar" src="${escapeHtml(repo.last_commit_avatar_url)}" alt="${escapeHtml(repo.last_commit_author)}" loading="lazy"> `
+                        ? `<img class="last-commit-avatar" src="${escapeHtml(safeUrl(repo.last_commit_avatar_url))}" alt="${escapeHtml(repo.last_commit_author)}" loading="lazy"> `
                         : '';
                     const authorHtml = repo.last_commit_author
                         ? (repo.last_commit_author_url
-                            ? `<a class="last-commit-author" href="${escapeHtml(repo.last_commit_author_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(repo.last_commit_author)}</a>: `
+                            ? `<a class="last-commit-author" href="${escapeHtml(safeUrl(repo.last_commit_author_url))}" target="_blank" rel="noopener noreferrer">${escapeHtml(repo.last_commit_author)}</a>: `
                             : `<span class="last-commit-author">${escapeHtml(repo.last_commit_author)}</span>: `)
                         : '';
                     lastCommitCell = `<div class="last-commit-cell">
@@ -41463,7 +41474,7 @@ Thank you for contributing to the OWASP community!
                 }
                 
                 return `<tr class="${repo.archived ? 'archived' : ''}">
-                    <td><a href="${repo.html_url}" target="_blank" class="table-name-link">${escapeHtml(repo.name)}</a>${titleHtml}</td>
+                    <td><a href="${escapeHtml(safeUrl(repo.html_url))}" target="_blank" class="table-name-link">${escapeHtml(repo.name)}</a>${titleHtml}</td>
                     <td><div style="display:flex;gap:3px;flex-wrap:wrap">${typeBadges.join('')}</div></td>
                     <td><div class="table-desc" title="${escapeHtml(descText)}">${escapeHtml(descText)}</div></td>
                     <td><div style="display:flex;gap:3px;flex-wrap:wrap">${tagsCell}</div></td>
