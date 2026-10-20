@@ -19,6 +19,17 @@
             "title": "blt-next : Automatically shifts to light mode when clicks on login/signup",
             "ts": 1792499588125,
             "type": "open"
+        },
+        {
+            "attachments": [],
+            "author": "khvPCMyOyVupN4XgVA35Kb_L2gWJn-SZhzmfDyRk_GI",
+            "authorName": "khush173",
+            "authorVerified": true,
+            "body": "I can work on it and fix it",
+            "id": "comment-web-1792499641921",
+            "sig": "EMIlOXM1tLjQ1BNlaSlvzzfe4tRMCZJDFdgvWI4C3Tw7ucBWovqiBtmyuYVWbQ60pZARknjIAhyWeZa_oicxDQ",
+            "ts": 1792499641921,
+            "type": "comment"
         }
     ],
     "labels": [],
@@ -30,6 +41,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-next : Automatically shifts to light mode when clicks on login/signup",
-    "updatedAt": 1792499588125,
+    "updatedAt": 1792499641921,
     "votes": 0
 }
