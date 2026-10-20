@@ -4,8 +4,12 @@
 
 OWASP BLT (Bug Logging Tool) is a community-driven OWASP Foundation project that develops and maintains open-source tools for structured vulnerability reporting, contributor rewards and security education. Every BLT project lives in this one repository, each in its own folder, with its full commit history.
 
+> **git.owaspblt.org is the official source of truth for BLT.** Please do all work there: clone from it, open
+> issues and pull requests there, and discuss there. [github.com/OWASP/BLT](https://github.com/OWASP/BLT) is a
+> read-only mirror kept as a backup. It updates automatically, but issues and pull requests aren't accepted on it.
+
 - **Home:** [git.owaspblt.org/BLT](https://git.owaspblt.org/BLT): issues, pull requests and discussions happen here
-- **Mirrors (read-only):** [github.com/OWASP/BLT](https://github.com/OWASP/BLT)
+- **Mirror (read-only backup):** [github.com/OWASP/BLT](https://github.com/OWASP/BLT)
 - **Website:** [owaspblt.org](https://owaspblt.org/)
 
 ## Getting started
