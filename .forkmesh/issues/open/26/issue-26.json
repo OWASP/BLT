@@ -61,6 +61,17 @@
             "sig": "vONWMS7CzP9ZbaXTBmRE2rJxkHAak7T86SluxAG9Z1JUST5kaCPBvAXLsL89CjqRRflXLPrgw8HgsIhoAzzeBA",
             "ts": 1792477812516,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "FTSqIIVcAz6yrEUfHk8wm1rr_FLa2bBVWJKeRKZCwcQ",
+            "authorName": "navodit",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1792517305889",
+            "sig": "xnaUE7jPG9XV_Aqs346oxSvkr0HC0hc7hQjZYQjWY1cwj3GlmLNWm1ok5AsRynpacmcKcbtjWM3_bVC43pnHDQ",
+            "ts": 1792517305889,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -75,6 +86,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-newsletter: fix: mobile responsiveness",
-    "updatedAt": 1792477812516,
+    "updatedAt": 1792517305889,
     "votes": 0
 }
