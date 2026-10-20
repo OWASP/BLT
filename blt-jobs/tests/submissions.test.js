@@ -49,3 +49,17 @@ test("a flag removes a job only when it comes from the account that added it", (
     fs.rmSync(file, { force: true });
   }
 });
+
+test("leaderboard.html escapes quotes and links only https profiles", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const page = fs.readFileSync(path.join(__dirname, "..", "public", "leaderboard.html"), "utf8");
+  const pick = (name) => page.match(new RegExp(`function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n        \\}`))[0];
+  const { esc, httpsUrl } = new Function(`${pick("esc")}\n${pick("httpsUrl")}\nreturn { esc, httpsUrl };`)();
+  assert.equal(esc(`a" onmouseover="x'`), "a&quot; onmouseover=&quot;x&#39;");
+  assert.equal(httpsUrl("javascript:alert(1)"), "");
+  assert.equal(httpsUrl("http://example.org/u"), "");
+  assert.equal(httpsUrl('https://git.owaspblt.org/u" x="'), "");
+  assert.equal(httpsUrl("https://git.owaspblt.org/alice"), "https://git.owaspblt.org/alice");
+  assert.match(page, /profileUrls\[user\] = httpsUrl\(job\.added_by_url\)/);
+});

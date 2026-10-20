@@ -73,10 +73,20 @@
       (function () {
         var MEDAL_ICONS = ['🥇', '🥈', '🥉'];
 
+        // Names and profile links come from job files written from issues: escape for text and
+        // quoted attributes, and link only https profile URLs.
         function esc(s) {
-          var d = document.createElement('div');
-          d.textContent = s;
-          return d.innerHTML;
+          return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        }
+
+        function httpsUrl(url) {
+          var value = String(url || '').trim();
+          return /^https:\/\/[^\s"'<>]+$/i.test(value) ? value : '';
         }
 
         function renderLeaderboard(jobs) {
@@ -89,7 +99,7 @@
             var user = (job.added_by || '').trim();
             if (user) {
               counts[user] = (counts[user] || 0) + 1;
-              if (job.added_by_url) profileUrls[user] = job.added_by_url;
+              if (httpsUrl(job.added_by_url)) profileUrls[user] = httpsUrl(job.added_by_url);
             }
           });
 
