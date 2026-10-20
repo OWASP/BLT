@@ -28,10 +28,15 @@ from src.summarizer import (
     MAX_EXECUTIVE_WORDS,
     MAX_INPUT_TOKENS,
     MAX_REPRO_STEPS,
+    REPRO_EXTRACTED,
+    REPRO_INSUFFICIENT,
+    REPRO_MISSING,
+    REPRO_UNKNOWN,
     TriageSummary,
     build_triage_messages,
     estimate_tokens,
     extract_repro_steps,
+    resolve_repro_result,
     sanitize_cwe_hints,
     summarize,
     truncate_to_token_budget,
@@ -423,7 +428,8 @@ class TestSummarize:
         do_stub = _make_mock_do_stub()
 
         with patch("src.summarizer.call_llm", new_callable=AsyncMock, return_value=response):
-            result = await summarize("SSRF report", env, db, do_stub, "evt-006")
+            report = "SSRF report: connect to the internal host on port 8080 via the fetch endpoint."
+            result = await summarize(report, env, db, do_stub, "evt-006")
 
         assert "10.0.0.50" not in result.repro_steps[0]
         assert "[IP_ADDRESS]" in result.repro_steps[0]
@@ -480,3 +486,192 @@ class TestSummarize:
 
         insert_calls = [str(c) for c in db.prepare.call_args_list if "INSERT INTO triage_summaries" in str(c)]
         assert len(insert_calls) >= 1
+
+
+# ---------------------------------------------------------------------------
+# Tests: Repro-step extractor (explicit states, no fabrication)
+# ---------------------------------------------------------------------------
+
+NUMBERED_REPORT = (
+    "Stored XSS in comments.\n"
+    "1. Log in as any user\n"
+    "2. Open the comments page\n"
+    "3. Submit a comment containing a script tag\n"
+    "Expected: the tag is escaped."
+)
+BULLETED_REPORT = (
+    "Stored XSS in comments.\n"
+    "- Log in as any user\n"
+    "- Open the comments page\n"
+    "- Submit a comment containing a script tag\n"
+)
+NO_STEPS_REPORT = "The login form seems to be vulnerable to SQL injection."
+VAGUE_REPORT = "Login is broken for some inputs. Just try the login page with weird characters."
+
+
+def _llm_json(**overrides):
+    base = {
+        "executive_summary": "Summary.",
+        "reviewer_pack": "Details.",
+        "cwe_hints": ["CWE-79"],
+        "repro_steps": [],
+        "repro_status": "missing",
+        "confidence": 0.8,
+    }
+    base.update(overrides)
+    return json.dumps(base)
+
+
+async def _run_summarize(report: str, llm_response: str, event_id: str = "evt-r"):
+    db = _make_mock_db(status="redaction_passed")
+    with patch("src.summarizer.call_llm", new_callable=AsyncMock, return_value=llm_response):
+        result = await summarize(report, _make_mock_env(), db, _make_mock_do_stub(), event_id)
+    return result, db
+
+
+class TestReproStepExtractor:
+    """Repro steps are extracted faithfully; absence is explicit and never invented."""
+
+    def test_prompt_forbids_fabrication_and_declares_status(self):
+        system = build_triage_messages("report")[0]["content"]
+        assert "repro_status" in system
+        assert "NEVER invent" in system
+
+    @pytest.mark.asyncio
+    async def test_explicit_numbered_steps_extracted(self):
+        steps = ["Log in as any user", "Open the comments page", "Submit a comment containing a script tag"]
+        result, _ = await _run_summarize(NUMBERED_REPORT, _llm_json(repro_steps=steps, repro_status="extracted"))
+        assert result.repro_status == REPRO_EXTRACTED
+        assert result.repro_steps == steps  # order preserved
+
+    @pytest.mark.asyncio
+    async def test_bulleted_steps_extracted(self):
+        steps = ["Log in as any user", "Open the comments page", "Submit a comment containing a script tag"]
+        result, _ = await _run_summarize(BULLETED_REPORT, _llm_json(repro_steps=steps, repro_status="extracted"))
+        assert result.repro_status == REPRO_EXTRACTED
+        assert result.repro_steps == steps
+
+    @pytest.mark.asyncio
+    async def test_no_steps_reported_as_missing(self):
+        result, _ = await _run_summarize(NO_STEPS_REPORT, _llm_json())
+        assert result.repro_status == REPRO_MISSING
+        assert result.repro_steps == []
+
+    @pytest.mark.asyncio
+    async def test_vague_steps_reported_as_insufficient(self):
+        result, _ = await _run_summarize(
+            VAGUE_REPORT,
+            _llm_json(repro_steps=["Try the login page with weird characters"], repro_status="insufficient"),
+        )
+        assert result.repro_status == REPRO_INSUFFICIENT
+        assert result.repro_steps == ["Try the login page with weird characters"]
+
+    @pytest.mark.asyncio
+    async def test_bug_without_how_to_reproduce_is_not_extracted(self):
+        report = "The export feature crashes the server and leaks a stack trace."
+        result, _ = await _run_summarize(report, _llm_json(repro_status="missing"))
+        assert result.repro_status == REPRO_MISSING
+        assert result.repro_steps == []
+
+    @pytest.mark.asyncio
+    async def test_fabricated_steps_are_dropped(self):
+        """Steps with no basis in the report must not survive, even if the model claims 'extracted'."""
+        invented = ["Run sqlmap -u http://target --dump", "Download the database dump"]
+        result, _ = await _run_summarize(NO_STEPS_REPORT, _llm_json(repro_steps=invented, repro_status="extracted"))
+        assert result.repro_steps == []
+        assert result.repro_status == REPRO_MISSING
+
+    @pytest.mark.asyncio
+    async def test_extracted_claim_without_steps_is_not_trusted(self):
+        result, _ = await _run_summarize(NUMBERED_REPORT, _llm_json(repro_steps=[], repro_status="extracted"))
+        assert result.repro_status == REPRO_MISSING
+
+    @pytest.mark.asyncio
+    async def test_legacy_response_without_status_is_derived(self):
+        """Responses lacking repro_status (old schema) still work and get a derived status."""
+        data = json.loads(_llm_json(repro_steps=["Open the comments page"]))
+        del data["repro_status"]
+        result, _ = await _run_summarize(NUMBERED_REPORT, json.dumps(data))
+        assert result.repro_status == REPRO_EXTRACTED
+
+    @pytest.mark.asyncio
+    async def test_step_limit_applies(self):
+        report = "\n".join(f"{i}. perform action number {i}" for i in range(1, 9))
+        steps = [f"perform action number {i}" for i in range(1, 9)]
+        result, _ = await _run_summarize(report, _llm_json(repro_steps=steps, repro_status="extracted"))
+        assert len(result.repro_steps) == MAX_REPRO_STEPS
+
+    @pytest.mark.asyncio
+    async def test_status_persisted_to_d1(self):
+        _, db = await _run_summarize(NO_STEPS_REPORT, _llm_json())
+        stmt = db.prepare.return_value
+        insert_bind = next(c.args for c in stmt.bind.call_args_list if len(c.args) == 11 and c.args[1] == "evt-r")
+        assert REPRO_MISSING in insert_bind
+        sqls = [c.args[0] for c in db.prepare.call_args_list]
+        assert any("INSERT INTO triage_summaries" in q and "repro_status" in q for q in sqls)
+
+
+class TestReproMalformedModelOutput:
+    """Malformed model responses never yield fabricated steps."""
+
+    @pytest.mark.parametrize(
+        "response",
+        [
+            "not json at all",
+            "",
+            "[]",
+            json.dumps({"executive_summary": "x"}),
+            json.dumps({"executive_summary": "x", "cwe_hints": [], "confidence": 0.5, "repro_steps": "1. do a thing"}),
+            json.dumps({"executive_summary": "x", "cwe_hints": [], "confidence": 0.5, "repro_steps": [1, {"a": "b"}]}),
+            json.dumps({"executive_summary": "x", "cwe_hints": [], "confidence": 0.5, "repro_status": "definitely"}),
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_malformed_response_falls_back_with_unknown_status(self, response):
+        result, _ = await _run_summarize(NUMBERED_REPORT, response)
+        assert result.model_used == "fallback:truncation"
+        assert result.repro_steps == []
+        assert result.repro_status == REPRO_UNKNOWN
+
+    @pytest.mark.asyncio
+    async def test_llm_unavailable_status_is_unknown_not_missing(self):
+        db = _make_mock_db(status="redaction_passed")
+        with patch(
+            "src.summarizer.call_llm",
+            new_callable=AsyncMock,
+            side_effect=LLMUnavailableError("down", providers_tried=["cf_ai"]),
+        ):
+            result = await summarize(NUMBERED_REPORT, _make_mock_env(), db, _make_mock_do_stub(), "evt-u")
+        assert result.repro_status == REPRO_UNKNOWN
+        assert result.repro_steps == []
+
+    def test_validate_rejects_unknown_status(self):
+        ok, errs = validate_triage_output(
+            {"executive_summary": "s", "cwe_hints": [], "confidence": 0.5, "repro_status": "bogus"}
+        )
+        assert ok is False
+        assert any("repro_status" in e for e in errs)
+
+    def test_validate_accepts_absent_status(self):
+        ok, _ = validate_triage_output({"executive_summary": "s", "cwe_hints": [], "confidence": 0.5})
+        assert ok is True
+
+    def test_resolve_skips_blank_and_non_string_steps(self):
+        steps, status = resolve_repro_result(["", "   ", None, 5], "extracted", "anything here")
+        assert steps == []
+        assert status == REPRO_MISSING
+
+
+class TestExistingSummarizationCompatible:
+    @pytest.mark.asyncio
+    async def test_existing_fields_unchanged_and_default_status(self):
+        report = "Login endpoint: navigate to /login and enter a quote in the username field."
+        result, _ = await _run_summarize(report, VALID_LLM_RESPONSE)
+        assert result.executive_summary == "SQL injection vulnerability found in the login endpoint."
+        assert result.cwe_hints == ["CWE-89"]
+        assert result.confidence == 0.85
+        assert result.repro_status == REPRO_EXTRACTED
+
+    def test_summary_constructible_without_status(self):
+        summary = TriageSummary("e", "s", "r", [], [], 0.5, "m", {})
+        assert summary.repro_status == REPRO_UNKNOWN
