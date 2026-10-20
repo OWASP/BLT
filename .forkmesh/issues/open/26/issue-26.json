@@ -85,6 +85,17 @@
             "sig": "l7vMVldFql34qnRjxz5AC-eo_vt57bCMZwo92QC2IodqKoi-pLHB48dGANPLp7qM3kPU89-ReLPx7_PZM-QCCg",
             "ts": 1792517322402,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@navodit you're assigned to this issue. Please open a pull request for it within 7 days. If you stop working on it, comment `/unassign` so someone else can pick it up. \u003c!-- blt-assign:6aa1e4e85cb108e4a64f --\u003e",
+            "id": "actions-1792517322505-K6WeBagS",
+            "sig": "ytP5Qr0gfk8X6KhF5Uu0dbMPIuEf7-PjAZ0XKLMnvpR0PBuvKgdeKL83rPEolOqNUih51U6xnYz-uzuWf62iDg",
+            "ts": 1792517322505,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -99,6 +110,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-newsletter: fix: mobile responsiveness",
-    "updatedAt": 1792517322402,
+    "updatedAt": 1792517322505,
     "votes": 0
 }
