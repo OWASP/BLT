@@ -16,8 +16,27 @@ const TOKEN_KEY = 'dashboard_token';
 
 export function getToken() {
   try {
-    return localStorage.getItem(TOKEN_KEY);
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return null;
+
+    // Fast client-side sanity check to prevent UI flash.
+    // If it's obviously malformed or expired, discard it immediately.
+    const payloadB64 = token.split('.')[1];
+    if (!payloadB64) return null;
+
+    const payloadStr = atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'));
+    const payload = JSON.parse(payloadStr);
+
+    // If expiration time exists and is in the past, token is dead.
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      localStorage.removeItem(TOKEN_KEY);
+      return null;
+    }
+
+    return token;
   } catch {
+    // Fails to parse base64 or JSON -> malformed token.
+    localStorage.removeItem(TOKEN_KEY);
     return null;
   }
 }
@@ -70,6 +89,13 @@ async function request(path, options = {}) {
     } catch {
       // non-JSON error body — ignore
     }
+
+    // Signal auth failure globally so AuthGate can react without
+    // coupling every page component to authentication logic.
+    if (res.status === 401 || res.status === 403) {
+      window.dispatchEvent(new CustomEvent('toasty:unauthorized'));
+    }
+
     throw new ApiError(
       body?.error || `Request failed: ${res.status}`,
       res.status,
