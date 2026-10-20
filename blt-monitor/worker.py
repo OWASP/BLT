@@ -320,4 +320,6 @@ class Default(WorkerEntrypoint):
     def is_authorized(self, request):
         expected_token = getattr(self.env, "INGEST_TOKEN", "")
         supplied_token = request.headers.get("Authorization") or ""
-        return bool(expected_token) and supplied_token == f"Bearer {expected_token}"
+        return bool(expected_token) and hmac.compare_digest(
+            supplied_token.encode(), f"Bearer {expected_token}".encode()
+        )

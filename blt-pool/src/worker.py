@@ -6833,7 +6833,7 @@ async def on_fetch(request, env, ctx=None) -> Response:
         if not admin_secret:
             return _json({"error": "Admin endpoint not configured"}, 403)
         auth_header = (request.headers.get("Authorization") or "").strip()
-        if auth_header != f"Bearer {admin_secret}":
+        if not _hmac.compare_digest(auth_header.encode(), f"Bearer {admin_secret}".encode()):
             return _json({"error": "Unauthorized"}, 401)
         try:
             body = json.loads(await request.text())
