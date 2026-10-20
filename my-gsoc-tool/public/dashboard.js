@@ -175,6 +175,22 @@ function renderProjectInfo(config) {
     `;
 }
 
+// Contributions come from GitHub event data, which carries other people's issue and PR titles
+// and bodies: escape them, and link only https URLs.
+function escapeHtml(value) {
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function httpsUrl(url) {
+    const value = String(url || '').trim();
+    return /^https:\/\/[^\s"'<>]+$/i.test(value) ? value : '';
+}
+
 // Render GitHub stats
 function renderGitHubStats(data) {
     document.getElementById('total-commits').textContent = data.stats.commits || 0;
@@ -186,11 +202,11 @@ function renderGitHubStats(data) {
     if (data.contributions && data.contributions.length > 0) {
         contributionList.innerHTML = data.contributions.map(contrib => `
             <div class="contribution-item">
-                <h4>${contrib.title}</h4>
-                <p>${contrib.description}</p>
+                <h4>${escapeHtml(contrib.title)}</h4>
+                <p>${escapeHtml(contrib.description)}</p>
                 <div class="date">
-                    <i class="fas fa-clock"></i> ${formatDate(contrib.date)}
-                    ${contrib.url ? `| <a href="${contrib.url}" target="_blank">View on GitHub</a>` : ''}
+                    <i class="fas fa-clock"></i> ${escapeHtml(formatDate(contrib.date))}
+                    ${httpsUrl(contrib.url) ? `| <a href="${escapeHtml(httpsUrl(contrib.url))}" target="_blank" rel="noopener noreferrer">View on GitHub</a>` : ''}
                 </div>
             </div>
         `).join('');
