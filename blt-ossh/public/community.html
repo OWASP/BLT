@@ -465,7 +465,7 @@
               src="https://github.com/${escapeHtml(profile.github_username)}.png" 
               alt="${escapeHtml(profile.display_name)}" 
               class="w-20 h-20 rounded-full border-4 border-red-100 dark:border-red-900/30 shadow-md"
-              onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(profile.display_name)}&background=dc2626&color=fff&size=128'"
+              onerror="this.src='https://ui-avatars.com/api/?name=${escapeHtml(encodeURIComponent(profile.display_name || '').replace(/'/g, '%27'))}&background=dc2626&color=fff&size=128'"
             />
             <div class="flex-1 min-w-0 pt-1">
               <h3 class="font-bold text-xl text-gray-900 dark:text-white truncate mb-1">${escapeHtml(profile.display_name)}</h3>
@@ -570,7 +570,7 @@
             ${profile.website || profile.linkedin || profile.twitter ? `
               <div class="flex gap-2">
                 ${profile.website ? `
-                  <a href="${escapeHtml(profile.website)}" 
+                  <a href="${escapeHtml(safeUrl(profile.website))}" 
                      target="_blank" 
                      class="w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition"
                      title="Website">
@@ -578,7 +578,7 @@
                   </a>
                 ` : ''}
                 ${profile.linkedin ? `
-                  <a href="${escapeHtml(profile.linkedin)}" 
+                  <a href="${escapeHtml(safeUrl(profile.linkedin))}" 
                      target="_blank" 
                      class="w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition"
                      title="LinkedIn">
@@ -659,6 +659,12 @@
 
       searchInput.addEventListener('input', applyFilters);
       experienceFilter.addEventListener('change', applyFilters);
+    }
+
+    // Profile links come from issue text: only http(s) URLs become links (no javascript: etc.).
+    function safeUrl(url) {
+      const value = String(url || '').trim();
+      return /^https?:\/\//i.test(value) ? value : '#';
     }
 
     function escapeHtml(str) {
