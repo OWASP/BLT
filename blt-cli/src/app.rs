@@ -123,6 +123,18 @@ impl VulnerabilityForm {
         }
     }
 
+    /// Returns the first required field (Title, URL, Description) that is empty or whitespace-only.
+    pub fn first_missing_required_field(&self) -> Option<FormField> {
+        [
+            (FormField::Title, &self.title),
+            (FormField::Url, &self.url),
+            (FormField::Description, &self.description),
+        ]
+        .into_iter()
+        .find(|(_, value)| value.trim().is_empty())
+        .map(|(field, _)| field)
+    }
+
     /// Advances `active_field` to the next field in tab order, wrapping at the end.
     pub fn next_field(&mut self) {
         self.active_field = match self.active_field {
@@ -634,6 +646,25 @@ mod tests {
         let app = App::new(None, "https://api.owaspblt.org".to_string());
         assert_eq!(app.active_tab, Tab::Issues);
         assert_eq!(app.active_overlay, ActiveOverlay::None);
+    }
+
+    #[test]
+    fn test_first_missing_required_field() {
+        let mut form = VulnerabilityForm::default();
+        assert_eq!(form.first_missing_required_field(), Some(FormField::Title));
+
+        form.title = "XSS in search".to_string();
+        form.url = "   ".to_string();
+        assert_eq!(form.first_missing_required_field(), Some(FormField::Url));
+
+        form.url = "https://example.com".to_string();
+        assert_eq!(
+            form.first_missing_required_field(),
+            Some(FormField::Description)
+        );
+
+        form.description = "Reflected XSS via q param".to_string();
+        assert_eq!(form.first_missing_required_field(), None);
     }
 
     #[test]

@@ -118,6 +118,13 @@ pub fn submit_issue_action(app: &mut App) {
         return;
     }
 
+    if let Some(field) = app.submit_form.first_missing_required_field() {
+        app.submit_form.active_field = field;
+        app.active_overlay = crate::app::ActiveOverlay::SubmitForm;
+        app.status_message = "Error: Title, URL, and Description are required.".to_string();
+        return;
+    }
+
     app.active_overlay = crate::app::ActiveOverlay::None;
     let title = app.submit_form.title.clone();
     let url = app.submit_form.url.clone();
