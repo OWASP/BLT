@@ -21,6 +21,7 @@ blt-netguardian	python	pip install -r requirements-dev.txt && python -m pytest -
 blt-netguardian-client	flutter	flutter pub get && flutter test
 blt-newsletter	python	pip install --group dev && python -m unittest discover -s tests
 blt-next	node	npm_install && npm run lint --if-present && npm test --if-present && python3 -m py_compile workers/main.py
+blt-nexus	node	node --test 'test/*.test.mjs'
 blt-ossh	node	python3 -m py_compile scripts/fetch_articles.py scripts/fetch_discord.py scripts/fetch_reddit.py scripts/fetch_research_papers.py && node --test 'scripts/actions/*.test.mjs' 'test/*.test.mjs'
 blt-owasp-bumper	node	python3 -m py_compile generate_repo_list.py && node --test 'test/*.test.mjs'
 blt-owasp-metadata	node	python3 -m py_compile scripts/scrape_metadata.py && node --test 'test/*.test.mjs'

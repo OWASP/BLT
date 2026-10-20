@@ -37,6 +37,17 @@
   
     // ── Render helpers ───────────────────────────────────────────────────────
   
+    // Avatar fallback without an inline onerror: the initials come from data and an inline
+    // handler would decode the HTML-escaped value back into JavaScript.
+    function attachAvatarFallbacks(root) {
+      root.querySelectorAll("img[data-initials]").forEach((img) => {
+        img.addEventListener("error", () => {
+          const parent = img.parentNode;
+          if (parent) parent.textContent = img.dataset.initials || "";
+        }, { once: true });
+      });
+    }
+
     function renderAmbassador(amb) {
       const ini = escapeHtml(initials(amb.name));
       const name = escapeHtml(amb.name);
@@ -45,7 +56,7 @@
       const avatarUrl = escapeHtml(amb.avatarUrl || "");
   
       const avatarInner = avatarUrl
-        ? `<img src="${avatarUrl}" alt="${name}" loading="lazy" onerror="this.style.display='none';this.parentNode.textContent='${ini}'">`
+        ? `<img src="${avatarUrl}" alt="${name}" loading="lazy" data-initials="${ini}">`
         : ini;
   
       return `
@@ -157,6 +168,7 @@
       PROJECTS.forEach((project) => {
         const wrapper = document.createElement("div");
         wrapper.innerHTML = renderCard(project).trim();
+        attachAvatarFallbacks(wrapper);
         fragment.appendChild(wrapper.firstChild);
       });
       grid.insertBefore(fragment, noResults);
