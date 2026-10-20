@@ -16,7 +16,7 @@
     },
     "scripts": {
         "build": "ncc build src/index.js -o dist",
-        "test": "mocha src/mock-test.js",
+        "test": "mocha src/mock-test.js && node --test 'forge/*.test.mjs'",
         "postinstall": "rm -rf node_modules/auto-assign-issue"
     },
     "devDependencies": {

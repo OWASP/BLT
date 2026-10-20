@@ -112,3 +112,31 @@ test("commit-back.sh commits only the named paths, skips no-ops and pushes", () 
   assert.equal(git(bare, "show", "main:other.txt"), "x");
   assert.equal(readFileSync(join(work, "other.txt"), "utf8"), "changed\n");
 });
+
+test("commit-back.sh --rebuild regenerates on the new origin instead of keeping its side", () => {
+  const dir = mkdtempSync(join(tmpdir(), "commit-back-rebuild-"));
+  const git = (cwd, ...args) => execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@example.org", ...args], { cwd, encoding: "utf8" }).trim();
+  execFileSync("git", ["init", "-q", "--bare", "-b", "main", join(dir, "origin.git")]);
+  execFileSync("git", ["clone", "-q", join(dir, "origin.git"), join(dir, "work")], { stdio: "ignore" });
+  const work = join(dir, "work");
+  git(work, "config", "user.name", "t");
+  git(work, "config", "user.email", "t@example.org");
+  writeFileSync(join(work, "log.txt"), "a\n");
+  git(work, "add", ".");
+  git(work, "commit", "-q", "-m", "init");
+  git(work, "push", "-q", "origin", "HEAD:main");
+
+  // Another writer appends to the same file; -X theirs would drop its line.
+  execFileSync("git", ["clone", "-q", join(dir, "origin.git"), join(dir, "other")], { stdio: "ignore" });
+  writeFileSync(join(dir, "other", "log.txt"), "a\nother\n");
+  git(join(dir, "other"), "commit", "-q", "-am", "other");
+  git(join(dir, "other"), "push", "-q", "origin", "HEAD:main");
+
+  const append = "grep -qx mine log.txt || echo mine >> log.txt";
+  execFileSync("bash", ["-c", append], { cwd: work });
+  const r = spawnSync(COMMIT_BACK, ["-m", "p: append", "--rebuild", append, "--", "log.txt"], { cwd: work, encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stderr, /rebuilding on origin\/main/);
+  assert.equal(git(join(dir, "origin.git"), "show", "main:log.txt"), "a\nother\nmine");
+  assert.equal(git(join(dir, "origin.git"), "log", "-1", "--format=%s", "main"), "p: append");
+});

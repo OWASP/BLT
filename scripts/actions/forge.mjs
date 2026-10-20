@@ -70,11 +70,14 @@ export const issueUrl = (n) => `${repoUrl()}/issues/${n}`;
 
 /**
  * Commit `paths` (relative to `cwd`) and push them to `branch` through
- * scripts/actions/commit-back.sh. Returns true when a commit was pushed.
+ * scripts/actions/commit-back.sh. `rebuild` (a fixed command) regenerates the paths on the new
+ * origin/<branch> when the push is refused, instead of rebasing with -X theirs.
+ * Returns true when a commit was pushed.
  */
-export function commitBack({ cwd = process.cwd(), message, paths, branch = "main", deploy = "" }) {
+export function commitBack({ cwd = process.cwd(), message, paths, branch = "main", deploy = "", rebuild = "" }) {
   const args = ["-m", message, "-b", branch];
   if (deploy) args.push("--deploy", deploy);
+  if (rebuild) args.push("--rebuild", rebuild);
   const before = git(cwd, ["rev-parse", "HEAD"]);
   const result = spawnSync(join(ROOT, "scripts", "actions", "commit-back.sh"), [...args, "--", ...paths], {
     cwd,

@@ -1,0 +1,37 @@
+name: "blt-action: /assign and /unassign"
+# Forge port of BLT-Action's comment commands (blt-action/src/index.js). A comment whose line starts
+# with /assign or /unassign assigns or unassigns the commenter (only themselves) on that issue:
+# blt-action/forge/assign.mjs appends a signed `assignees` event to the issue ledger, pushes it with
+# scripts/actions/commit-back.sh --rebuild, and replies through the job API with "@user ...", which
+# notifies the commenter. Rules, wording and setup: docs/workflows.md ("/assign and /unassign").
+#
+# Run by hand with an issue number to process the commands already in that issue's ledger (for
+# comments made before this workflow existed, or a run that failed).
+#
+# Secret: BLT_TASKS_SEED, the blt-tasks[bot] Ed25519 seed (base64url or 64 hex). Only runs that change
+# an assignment need it; refusals are replies only.
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Issue number whose /assign and /unassign comments to process
+        required: true
+        default: ""
+        type: string
+permissions:
+  contents: write
+jobs:
+  assign:
+    # A cheap pre-filter only; the script parses the comment itself (from the event JSON, never in a shell).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.comment.body, '/assign') || contains(github.event.comment.body, '/unassign')
+    runs-on: runner
+    timeout-minutes: 5
+    env:
+      BLT_TASKS_SEED: ${{ secrets.BLT_TASKS_SEED }}
+    steps:
+      - name: Apply the command, push the ledger and reply
+        run: node blt-action/forge/assign.mjs

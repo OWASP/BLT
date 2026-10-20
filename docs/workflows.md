@@ -33,6 +33,7 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `ci.yml` | GitHub `ci.yml` | push (any branch): `scripts/ci/test.sh --changed $FORKMESH_BEFORE`; dispatch input `projects` (default `all`) | none |
 | `deploy.yml` | new | push to main: `scripts/deploy.sh --changed $FORKMESH_BEFORE` (folders in `scripts/deploy/projects.tsv`); dispatch input `project` (a name, several space-separated, or `all`) | CF |
 | `readme.yml` | GitHub `readme.yml` | push to main (any path; Projects, Deploying and Contributors), `17 6 * * *` (also refreshes Blog Posts); commits `README.md` and `.forkmesh/contributors/` | `GH_API_TOKEN` (optional) |
+| `blt-action--assign.yml` | BLT-Action `/assign`, `/unassign` | issue comments (created) starting a line with `/assign` or `/unassign`; dispatch input `issue` (process the commands already in that issue). Commits the signed assignment to the issue ledger and replies through the job API | `BLT_TASKS_SEED` |
 | `blt-cve--build-index.yml` | GitHub | push to main under `blt-cve/public/cves`, `public/schema`, `scripts/build_index.py` | CF |
 | `blt-design-contest--build-showcase.yml` | GitLab `build_showcase` | issue events on contest issues (project label or `[blt-design-contest]` prefix, contest labels, `winner`), `47 7 * * *` (votes raise no issue event), push under `blt-design-contest/scripts/` or `data/`; reads the git.owaspblt.org issue ledger and writes changed pages to KV (`blt-design-contest/scripts/refresh-kv.sh`), no commit | CF (with KV write) |
 | `blt-extension--release.yml` | GitHub `release.yml` + packaging from `create-release.yml` | dispatch only (input `publish`) | `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` |
@@ -54,6 +55,39 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `blt-university--course-submission.yml` | GitHub | issue opened with `course-submission` or `[COURSE]` title, or that label added | none |
 | `blt-university--enrollment.yml` | GitHub | issue opened with `enrollment` or `[ENROLLMENT]` title, or that label added | none |
 | `blt-waypoint--build-site.yml` | GitLab `build_site` | `29 6 * * *`, push of `blt-waypoint/scripts/generate_forge_data.py`, `forge_urls.py` or `scripts/routing/projects.tsv`; reads git.owaspblt.org and writes `forge_data.json` to KV, no commit | CF (with KV write) |
+
+### /assign and /unassign
+
+`blt-action/forge/assign.mjs` is the forge port of BLT-Action's comment commands. A line of an issue
+comment that starts with `/assign` or `/unassign` (not in a quote or code block) acts on the commenter
+only:
+
+- `/assign` is refused when the issue is closed, when someone else is assigned, or when the commenter
+  already holds another open issue (BLT-Action allowed one issue without an open pull request; the
+  forge has no issue-to-pull link, so any other open assignment counts). Otherwise the commenter is
+  assigned and asked to open a pull request within 7 days or comment `/unassign`. Nothing unassigns
+  stale issues automatically.
+- `/unassign` removes only the commenter.
+- Comments from bots (`[bot]`, `-actions`) are ignored, and a comment without an account name gets a
+  "sign in" reply.
+
+The assignment is a signed `assignees` event (`forkmesh-issue-event-v2`, as the desktop writes for an
+owner) appended to `.forkmesh/issues/open/<n>/issue-<n>.json` with the record's `assignees`, signed by
+`blt-tasks[bot]`. A ledger change committed to git is trusted through the push grant, like the
+desktop's, so the key needs no registration. The push uses `commit-back.sh --rebuild`: when another
+writer (the issue intake) moved `main`, the ledger is rebuilt on the new `main` instead of rebasing with
+`-X theirs`, which would drop the other side's events.
+
+The reply goes through the job API, signed by the instance's `<owner>-actions` bot, because only
+inbox submissions raise notifications. It starts with `@<user>`, which notifies the commenter (the
+platform's `MENTION_RE`). Each command is keyed by issue, comment id and login: the ledger event id
+`blt-assign-<key>` marks it applied and `<!-- blt-assign:<key> -->` at the end of the reply marks it
+answered, so a rerun neither assigns nor replies twice. One comment is handled per event, at most 10
+per manual run.
+
+Setup: add the Actions secret `BLT_TASKS_SEED` (the contents of `~/.config/blt/blt-tasks.seed`,
+base64url, or 64 hex characters) under the repository's Settings tab, "Actions secrets". Refusals do
+not need it.
 
 ### Schedules chosen for the GitLab jobs
 
