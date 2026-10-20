@@ -89,12 +89,15 @@ npx wrangler secret put WEBSOCKET_AUTH_TOKEN
 ### Deploy
 
 ```bash
-# Apply remote D1 migrations (first deploy only)
+# Apply remote D1 migrations (first deploy, and before any deploy that adds a migration)
 npx wrangler d1 migrations apply hackerhouse --remote
 
 # Deploy Worker
 uv run pywrangler deploy
 ```
+
+A push to `main` deploys the Worker through the repository's Deploy workflow, which does not apply
+migrations. For staging, add `--env staging` to both commands.
 
 ---
 

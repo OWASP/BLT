@@ -140,14 +140,8 @@ The "Ported from …/.gitlab-ci.yml" comments in five workflows are history and 
 
 ### CI and template leftovers
 
-These `.gitlab-ci.yml` files are not run anywhere:
-
-- blt-hackerhouse
-- blt-netguardian
-- blt-pages
-
-Delete them once nothing reads them; `docs/workflows.md` records what each one did. (blt-mcp, blt-safecloak,
-blt-toasty and blt-university: deleted.)
+**Done**: every `.gitlab-ci.yml` is deleted. What each one did is recorded in `docs/workflows.md` and in the
+project READMEs (blt-university, blt-hackerhouse, blt-pages, blt-netguardian).
 
 The `.gitlab/issue_templates/` folders are ported: blt-design-contest (7), blt-jobs (4), blt-pages (1) and
 blt-profiles (1) now keep documented issue bodies in `<folder>/issue-templates/`, and their pages link to
@@ -165,9 +159,9 @@ Replace them with forge wording and a neutral icon such as `fa-code-branch`.
 | blt-start | `public/index.html` (14, including the clone URL at `:292`); `README.md:70,146,163`. |
 | blt-design | `fa-gitlab` on forge "Contribute" buttons (17 files); placeholder `https://gitlab.com/...` in `inputs.html:25`. |
 | blt-monitor, blt-next, blt-api, blt-vanish, blt-cli, blt-mayo, blt-autopatch, blt-gitcaster, blt-owasp-metadata, blt-newsletter | One to nine labels or titles each ("Source code on GitLab" and similar). |
-| blt-hackerhouse | "GitLab repository" titles on forge links. Its GitLab event ingestion is a product feature (below). |
-| blt-owasp-bumper, blt-owasp-projects | README sections that describe a `.gitlab-ci.yml` which no longer exists. |
-| dot_github, coderabbit, blt-autopatch | The stock GitLab "Getting started" README boilerplate. Delete it. |
+| blt-hackerhouse | **Done**: link titles say "Source code". Its GitLab event ingestion is a product feature (below). |
+| blt-owasp-bumper, blt-owasp-projects | **Done**: the README tree shows the Worker layout. |
+| dot_github, coderabbit, blt-autopatch | **Done**: real READMEs. |
 | blt-ossh | **Done**: the `gitlab.com/owasp-blt/...` catalog entry is removed and filtered on every refresh (`scripts/refresh-kv.sh`). |
 | blt-core | **Done**: `MIGRATION_PLAN.md` names the forge. |
 | blt-docs | Plan and history pages. Leave them, or say "GitLab (closed)". |

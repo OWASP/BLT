@@ -344,11 +344,12 @@ OWASP-Bumper/
 ├── 📄 generate_repo_list.py    # Main Python script (generates HTML)
 ├── 📁 public/
 │   └── 📄 index.html           # Generated Cloudflare output
-├── 📄 .gitlab-ci.yml           # GitLab Pages/static build pipeline
-├── 📄 wrangler.toml            # Cloudflare static asset configuration
-├── 📁 .github/
-│   └── 📁 workflows/
-│       └── 📄 generate-repo-list.yml   # GitHub Actions workflow
+├── 📁 worker/
+│   └── 📄 index.js             # Worker that serves the page and its data from KV
+├── 📁 scripts/
+│   └── 📄 refresh-kv.sh        # Writes the generated data to KV (run by the workflow)
+├── 📁 test/                    # Worker tests
+├── 📄 wrangler.toml            # Cloudflare Worker configuration
 ├── 📄 README.md                # This file
 ├── 📄 SETUP.md                 # Detailed setup instructions
 └── 📄 .gitignore               # Git ignore patterns

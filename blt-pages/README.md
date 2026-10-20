@@ -70,8 +70,8 @@ The script writes `data/leaderboard.json` and `data/leaders.json` and pre-render
 `leaderboard.html`; the job writes those four files to the Worker's KV and commits nothing.
 `worker/index.js` serves them from KV and falls back to the committed copies.
 
-The Playwright tests in `.gitlab-ci.yml` are not run on the forge runner (no Chromium). Unit tests:
-`scripts/ci/test.sh blt-pages`.
+The Playwright tests (`npm ci && npm test`, needs Chromium) are not run on the forge runner; run them locally.
+Unit tests: `scripts/ci/test.sh blt-pages`.
 
 ---
 
