@@ -40,6 +40,16 @@
             "target": "gitlab-issue-82716184-5",
             "ts": 1792463360552,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "body": "/assign",
+            "id": "comment-web-1792478002307",
+            "sig": "razSDmRuSJKY79K5GSQoXcHy-EzFSrRXKesfWVAG8hN9R6rjP8P3KKCRBpA6qZJn3cOdWJ3u3Hkl1l15JQL5Ag",
+            "ts": 1792478002307,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +63,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-docs: Add BLT-API developer docs and dashboard handoff page",
-    "updatedAt": 1792463360552,
+    "updatedAt": 1792478002307,
     "votes": 0
 }
