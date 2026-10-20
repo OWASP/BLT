@@ -291,6 +291,27 @@ class OAuthStore:
         ).bind(now, session_id).run()
 
 
+DEFAULT_REDIRECT = "/triage.html"
+
+
+def safe_redirect_path(value: Any) -> str:
+    """A same-site path to return to after login, else the default.
+
+    Only paths starting with a single "/" are kept: "//host", "/\\host", absolute URLs and
+    anything with control characters would send the freshly signed-in user to another site.
+    """
+    path = str(value or "").strip()
+    if (
+        not path.startswith("/")
+        or path.startswith("//")
+        or path.startswith("/\\")
+        or "\\" in path
+        or any(ord(ch) < 0x20 or ord(ch) == 0x7F for ch in path)
+    ):
+        return DEFAULT_REDIRECT
+    return path
+
+
 async def start_github_login(
     *,
     env: Any,
@@ -318,7 +339,7 @@ async def start_github_login(
     await store.save_state(
         state=state,
         code_verifier=verifier,
-        redirect_to=redirect_to or "/triage.html",
+        redirect_to=safe_redirect_path(redirect_to),
         created_at=created,
         expires_at=created + DEFAULT_STATE_TTL,
     )
@@ -440,7 +461,7 @@ async def handle_github_callback(
     secure = not str(request_url).startswith("http://localhost")
     return OAuthResult(
         status=302,
-        redirect_url=str(saved.get("redirect_to") or "/triage.html"),
+        redirect_url=safe_redirect_path(saved.get("redirect_to")),
         headers={"Set-Cookie": session_cookie_header(session_id, max_age=ttl, secure=secure)},
     )
 

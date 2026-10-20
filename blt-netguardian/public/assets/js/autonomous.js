@@ -77,17 +77,17 @@ async function loadScanningStatus() {
 
         if (status.current_target) {
             document.getElementById('scanningTarget').innerHTML =
-                `Currently scanning: <span class="highlight">${status.current_target}</span>`;
+                `Currently scanning: <span class="highlight">${escapeHtml(status.current_target)}</span>`;
         }
 
         if (status.scanned_today !== undefined && status.scanned_today !== null) {
             document.getElementById('scannedCount').innerHTML =
-                `Total scanned today: <span class="highlight">${status.scanned_today.toLocaleString()}</span> targets`;
+                `Total scanned today: <span class="highlight">${escapeHtml(Number(status.scanned_today).toLocaleString())}</span> targets`;
         }
 
         if (status.vulnerabilities_found !== undefined && status.vulnerabilities_found !== null) {
             document.getElementById('foundVulns').innerHTML =
-                `Vulnerabilities found: <span class="highlight critical">${status.vulnerabilities_found}</span>`;
+                `Vulnerabilities found: <span class="highlight critical">${escapeHtml(status.vulnerabilities_found)}</span>`;
         }
 
         if (status.stats) {

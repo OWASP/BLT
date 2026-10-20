@@ -183,3 +183,47 @@ async def test_logout_and_worker_routes(env, db):
     assert me.status == 401
     body = parse_json(me)
     assert body["error"] == "unauthorized"
+
+
+def test_safe_redirect_path_accepts_only_same_site_paths():
+    from oauth_github import safe_redirect_path
+
+    assert safe_redirect_path("/findings.html?x=1") == "/findings.html?x=1"
+    for bad in [
+        "https://evil.example/",
+        "//evil.example/",
+        "/\\evil.example/",
+        "/x\\y",
+        "javascript:alert(1)",
+        "evil.example",
+        "/ok\r\nSet-Cookie: x=y",
+        "",
+        None,
+    ]:
+        assert safe_redirect_path(bad) == "/triage.html", bad
+
+
+@pytest.mark.asyncio
+async def test_login_does_not_redirect_off_site_after_callback(env, db):
+    start = await start_github_login(
+        env=env,
+        db=db,
+        request_url="https://app.example/",
+        redirect_to="//evil.example/phish",
+    )
+    state = parse_qs(urlparse(start.redirect_url).query)["state"][0]
+
+    async def fake_fetch(url, method="GET", headers=None, body=None):
+        if "login/oauth/access_token" in url:
+            return 200, {"access_token": "gho_test"}
+        return 200, {"login": "octocat", "id": 1}
+
+    cb = await handle_github_callback(
+        env=env,
+        db=db,
+        request_url="https://app.example/api/auth/github/callback",
+        query={"code": "abc", "state": state},
+        fetch_impl=fake_fetch,
+    )
+    assert cb.status == 302
+    assert cb.redirect_url == "/triage.html"
