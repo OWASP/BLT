@@ -7099,61 +7099,6 @@ async def handle_request(request, env):
             return Response.json({"ok": False, "error": str(e), "counts": {}})
 
     # ------------------------------------------------------------------ #
-    #  GET /api/debug/db  →  raw database data for debugging             #
-    # ------------------------------------------------------------------ #
-    if pathname == "/api/debug/db" and method == "GET":
-        try:
-            # Check if user is logged in (only show debug to authenticated users)
-            user = await get_current_user(env, request)
-            if not user:
-                return _json_response({"ok": False, "error": "Unauthorized"}, 401)
-
-            counts = await get_db_table_counts(env)
-
-            # Get sample data from each table
-            users = _rows(
-                await env.DB.prepare(
-                    "SELECT id, slack_user_id, team_id, name, created_at FROM users LIMIT 5"
-                ).all()
-            )
-            sessions = _rows(
-                await env.DB.prepare(
-                    "SELECT id, user_id, created_at, expires_at FROM sessions LIMIT 5"
-                ).all()
-            )
-            workspaces = _rows(
-                await env.DB.prepare(
-                    "SELECT id, team_id, team_name, created_at FROM workspaces LIMIT 5"
-                ).all()
-            )
-
-            return Response.json(
-                {
-                    "ok": True,
-                    "counts": counts,
-                    "samples": {
-                        "users": users,
-                        "sessions": sessions,
-                        "workspaces": workspaces,
-                    },
-                    "current_user": {
-                        "user_id": user.get("user_id"),
-                        "slack_user_id": user.get("slack_user_id"),
-                        "name": user.get("name"),
-                    },
-                }
-            )
-        except Exception as e:
-            try:
-                sentry = get_sentry()
-                sentry.capture_exception_nowait(
-                    e, level="error", extra={"path": "/api/debug/db"}
-                )
-            except Exception:
-                pass
-            return Response.json({"ok": False, "error": str(e)})
-
-    # ------------------------------------------------------------------ #
     #  404 Not Found                                                     #
     # ------------------------------------------------------------------ #
     await report_404_to_sentry(env, pathname, method, "route_not_found")
