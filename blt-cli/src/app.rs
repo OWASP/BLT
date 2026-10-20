@@ -128,6 +128,7 @@ pub enum ActiveOverlay {
     Help,
     Triage,
     SubmitForm,
+    SubmitConfirm,
     HuntDetail,
     AiTriage,
     SearchInput,

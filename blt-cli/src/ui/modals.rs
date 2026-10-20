@@ -670,6 +670,56 @@ pub fn draw_ai_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
     f.render_widget(p, modal_area);
 }
 
+pub fn draw_submit_confirm_modal(f: &mut Frame, rect: Rect) {
+    let area = centered_rect(54, 20, rect);
+    f.render_widget(Clear, area);
+
+    let text = vec![
+        Line::from(""),
+        Line::from(Span::styled(
+            " Submit this vulnerability report?",
+            Style::default()
+                .fg(BLT_TEXT_BODY)
+                .add_modifier(Modifier::BOLD),
+        )),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled(
+                "[Enter] ",
+                Style::default()
+                    .fg(STATUS_RESOLVED)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled("Confirm", Style::default().fg(BLT_TEXT_BODY)),
+            Span::styled("  │  ", Style::default().fg(BLT_TEXT_BODY)),
+            Span::styled(
+                "[Esc] ",
+                Style::default()
+                    .fg(SEVERITY_CRITICAL)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled("Cancel", Style::default().fg(BLT_TEXT_BODY)),
+        ]),
+    ];
+
+    let p = Paragraph::new(text).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(Span::styled(
+                " SUBMIT REPORT ",
+                Style::default().fg(SEVERITY_HIGH),
+            ))
+            .border_style(
+                Style::default()
+                    .fg(SEVERITY_HIGH)
+                    .add_modifier(Modifier::BOLD),
+            )
+            .bg(DARK_SURFACE),
+    );
+
+    f.render_widget(p, area);
+}
+
 /// Renders the bulk triage confirmation overlay dialog.
 pub fn draw_bulk_triage_modal(f: &mut Frame, app: &App, rect: Rect) {
     let area = centered_rect(54, 22, rect);

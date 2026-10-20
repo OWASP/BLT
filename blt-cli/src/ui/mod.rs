@@ -74,6 +74,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         crate::app::ActiveOverlay::Help => draw_help_modal(f, chunks[1]),
         crate::app::ActiveOverlay::Triage => draw_triage_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::SubmitForm => draw_submit_form_modal(f, app, chunks[1]),
+        crate::app::ActiveOverlay::SubmitConfirm => draw_submit_confirm_modal(f, chunks[1]),
         crate::app::ActiveOverlay::HuntDetail => draw_hunt_details_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::AiTriage => draw_ai_triage_modal(f, app, chunks[1]),
         crate::app::ActiveOverlay::BulkTriageConfirm => draw_bulk_triage_modal(f, app, chunks[1]),

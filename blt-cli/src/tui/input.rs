@@ -36,7 +36,11 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
         || app.active_overlay == ActiveOverlay::SearchInput
         || app.active_overlay == ActiveOverlay::VisionContext;
 
-    if key.code == KeyCode::Char('q') && !is_text_input && app.active_overlay != ActiveOverlay::None
+    // The submit confirmation handles `q` itself (back to the form), so the draft is not lost.
+    if key.code == KeyCode::Char('q')
+        && !is_text_input
+        && app.active_overlay != ActiveOverlay::None
+        && app.active_overlay != ActiveOverlay::SubmitConfirm
     {
         app.active_overlay = ActiveOverlay::None;
         return;
@@ -127,9 +131,21 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
             }
             return;
         }
+        ActiveOverlay::SubmitConfirm => {
+            match key.code {
+                KeyCode::Enter => {
+                    submit_issue_action(app);
+                }
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    app.active_overlay = ActiveOverlay::SubmitForm;
+                }
+                _ => {}
+            }
+            return;
+        }
         ActiveOverlay::SubmitForm => {
             if key.code == KeyCode::Char('s') && key.modifiers.contains(KeyModifiers::CONTROL) {
-                submit_issue_action(app);
+                app.active_overlay = ActiveOverlay::SubmitConfirm;
                 return;
             }
 
@@ -393,5 +409,26 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
         }
         KeyCode::Esc => app.close_popups(),
         _ => {}
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_q_in_submit_confirm_returns_to_form_and_keeps_draft() {
+        let mut app = App::new(None, "https://api.owaspblt.org".to_string());
+        app.submit_form.title = "XSS in search".to_string();
+        app.active_overlay = ActiveOverlay::SubmitConfirm;
+
+        handle_keys(
+            KeyEvent::new(KeyCode::Char('q'), KeyModifiers::NONE),
+            &mut app,
+        );
+
+        assert_eq!(app.active_overlay, ActiveOverlay::SubmitForm);
+        assert_eq!(app.submit_form.title, "XSS in search");
+        assert!(!app.should_quit);
     }
 }
