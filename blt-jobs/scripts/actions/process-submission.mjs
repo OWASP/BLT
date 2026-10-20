@@ -59,6 +59,15 @@ async function main() {
     return;
   }
 
+  if (result.kind === "flag-review") {
+    await comment(
+      issue.number,
+      `Thanks for the report. Only the account that added \`${result.file}\` can remove it with a flag, so a maintainer will review this one.`,
+    );
+    console.log(`Issue #${issue.number}: flag of ${result.file} left for a maintainer.`);
+    return;
+  }
+
   execFileSync("npm", ["run", "build:jobs"], { cwd: PROJECT, stdio: "inherit" });
   commitBack({
     cwd: PROJECT,

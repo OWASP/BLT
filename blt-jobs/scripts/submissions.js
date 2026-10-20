@@ -37,6 +37,14 @@ function extractJobUrl(issue) {
   return url;
 }
 
+/** The added_by value from a job file's front matter ("" when missing). */
+function jobAddedBy(file) {
+  const text = fs.readFileSync(path.join(root, file), "utf8");
+  const front = text.match(/^---\n([\s\S]*?)\n---/)?.[1] || "";
+  const value = front.match(/^added_by:\s*(.*)$/m)?.[1] || "";
+  return value.trim().replace(/^["']|["']$/g, "").trim();
+}
+
 function removeIfPresent(file) {
   if (file && fs.existsSync(path.join(root, file))) fs.rmSync(path.join(root, file));
 }
@@ -58,6 +66,11 @@ function createFromIssue(issue) {
     const id = extractJobId(body);
     const file = id && `jobs/${id}.md`;
     if (!file || !fs.existsSync(path.join(root, file))) throw new Error("The flagged job ID was not found.");
+    // Anyone can open a flag issue, so it removes the listing only when it comes from the account
+    // that added it; any other flag waits for a maintainer.
+    const owner = jobAddedBy(file).toLowerCase();
+    const flagger = String(issue.author?.username || "").trim().toLowerCase();
+    if (!owner || owner !== flagger) return { kind: "flag-review", file };
     fs.rmSync(path.join(root, file));
     return { kind: "flag", file };
   }
@@ -93,6 +106,7 @@ function createFromIssue(issue) {
 
 module.exports = {
   createFromIssue,
+  jobAddedBy,
   extractJobId,
   extractJobUrl,
   labels,
