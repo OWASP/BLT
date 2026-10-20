@@ -1,11 +1,11 @@
-# BLT-GitHub-App
+# BLT-Pool
 
 **Live Site:** [https://pool.owaspblt.org/](https://pool.owaspblt.org/)<br>
 **Source Code:** [https://git.owaspblt.org/BLT/BLT-Pool](https://git.owaspblt.org/BLT/BLT-Pool)
 
 A GitHub App that integrates [OWASP BLT](https://owaspblt.org) services into GitHub repositories.
 
-## Features
+This repository now serves two connected surfaces:
 
 - **`/assign` command** — Comment `/assign` on any issue to be automatically assigned to it. Assignments expire after 8 hours if no linked PR is submitted.
 - **`/unassign` command** — Comment `/unassign` to release an issue assignment so others can pick it up.
@@ -26,152 +26,171 @@ A GitHub App that integrates [OWASP BLT](https://owaspblt.org) services into Git
 
 ### Prerequisites
 
-- [Cloudflare Workers](https://workers.cloudflare.com/) account
-- A GitHub App
+- [Cloudflare Workers](https://workers.cloudflare.com/)
+- A GitHub App installation
+- Python for tests
 
-### Configuration
-
-Copy `.dev.vars.example` to `.dev.vars` and fill in your credentials:
+### Local Configuration
 
 ```bash
 cp .dev.vars.example .dev.vars
 ```
-## Architecture Notes
 
-### Leaderboard Scalability
+Fill in:
 
-The leaderboard uses an **event-driven D1 model**:
-- Webhook events increment persistent counters in D1.
-- `/leaderboard` reads precomputed counters from D1.
-- This avoids per-request org scans and scales to very large orgs.
-
-**Tracked by webhook events:**
-- `pull_request` opened: open PR counter (+1)
-- `pull_request` closed merged: merged PRs (+1), open PR counter (-1)
-- `pull_request` closed unmerged: closed PRs (+1), open PR counter (-1)
-- `pull_request_review` submitted: reviews (+1, first two unique reviewers per PR/month)
-- `issue_comment` created: comments (+1, excludes bots and CodeRabbit pings)
+| Variable | Description |
+|---|---|
+| `APP_ID` | GitHub App numeric ID |
+| `PRIVATE_KEY` | GitHub App private key |
+| `WEBHOOK_SECRET` | GitHub App webhook secret |
+| `GITHUB_APP_SLUG` | Current GitHub App slug |
+| `BLT_API_URL` | BLT API base URL |
+| `GITHUB_CLIENT_ID` | Optional OAuth client ID |
+| `GITHUB_CLIENT_SECRET` | Optional OAuth client secret |
+| `GITHUB_ORG` | Optional org used for homepage mentor stats, defaults to `OWASP-BLT` |
+| `ADMIN_BASIC_AUTH_USERNAME` | Required username for `/admin` HTTP Basic Auth |
+| `ADMIN_BASIC_AUTH_PASSWORD` | Required password for `/admin` HTTP Basic Auth |
+| `ADMIN_PATH` | Optional custom admin route path, defaults to `/admin` |
 
 ### D1 Setup
-
-1. Create database:
 
 ```bash
 npx wrangler d1 create blt-leaderboard
 ```
 
-2. Copy returned `database_id` into `wrangler.toml` under `[[d1_databases]]`.
+Copy the returned `database_id` into `wrangler.toml` under `[[d1_databases]]`.
 
-3. Deploy worker:
+The same D1 binding is used for both:
+
+- GitHub leaderboard/event tracking
+- Mentor pool storage and mentor assignment state
+
+### Run Locally
+
+```bash
+npx wrangler dev
+```
+
+### Deploy
 
 ```bash
 npx wrangler deploy
 ```
 
+Apply pending D1 migrations first with `bash scripts/run-migrations.sh` (it is not run by `wrangler deploy`).
 
-| Variable | Description |
-|---|---|
-| `APP_ID` | GitHub App numeric ID |
-| `PRIVATE_KEY` | GitHub App private key (PEM, PKCS#1 or PKCS#8) |
-| `WEBHOOK_SECRET` | GitHub App webhook secret |
-| `GITHUB_APP_SLUG` | GitHub App URL slug (e.g. `blt-github-app`) |
-| `BLT_API_URL` | BLT API base URL (default: `https://blt-api.owasp-blt.workers.dev`) |
-| `GITHUB_CLIENT_ID` | OAuth client ID (optional) |
-| `GITHUB_CLIENT_SECRET` | OAuth client secret (optional) |
+### Production Secrets
 
-### Running
-
-```bash
-cp .dev.vars.example .dev.vars   # fill in your credentials
-npx wrangler dev                 # local dev server
-npx wrangler deploy              # deploy to Cloudflare
-```
-
-**Note:** The `public/` directory contains static assets (e.g., logo image) served by Cloudflare Workers via the `[assets]` binding in `wrangler.toml`. HTML page templates live in `templates/` and are compiled into `src/index_template.py` before deploying.
-
-Set secrets securely for production:
 ```bash
 npx wrangler secret put APP_ID
 npx wrangler secret put PRIVATE_KEY
 npx wrangler secret put WEBHOOK_SECRET
+npx wrangler secret put ADMIN_BASIC_AUTH_USERNAME
+npx wrangler secret put ADMIN_BASIC_AUTH_PASSWORD
 ```
 
-Bulk upload from `.env.production` with Worker verification:
+Bulk upload is supported with:
+
 ```bash
 chmod +x scripts/upload-production-vars.sh
 ./scripts/upload-production-vars.sh
 ```
 
-The script verifies `CLOUDFLARE_WORKER_NAME` in `.env.production` matches
-`name` in `wrangler.toml` before uploading any secrets.
-
-### Testing
+## Testing
 
 ```bash
 pip install pytest
 pytest test_worker.py -v
 ```
 
+## Current Naming Note
+
+The product name is now `BLT-Pool`, but some deployment identifiers still use legacy GitHub App naming for continuity.
+
+Examples:
+
+- `wrangler.toml` worker name
+- `GITHUB_APP_SLUG`
+
+Those can be migrated separately when production deployment and GitHub App settings are ready.
+
 ## GitHub App Permissions
 
-The app requires the following repository permissions:
+Required permissions:
 
 | Permission | Access |
 |---|---|
 | Issues | Read & Write |
 | Pull Requests | Read & Write |
 | Metadata | Read |
+| Checks | Read |
+| Actions | Read |
 
-And listens for these webhook events: `issue_comment`, `issues`, `pull_request`, `pull_request_review`.
+Webhook events currently handled:
 
-## Usage
+- `issue_comment`
+- `issues`
+- `pull_request`
+- `pull_request_review`
+- `check_run`
+- `workflow_run`
 
-### Issue Assignment
+## Mentor API
 
-In any issue, comment:
+The mentor signup form on `/` submits to `POST /api/mentors`.
 
-```
-/assign
-```
+Accepted payload fields:
 
-You will be assigned to the issue with an 8-hour deadline to submit a pull request.
+- `name` required
+- `github_username` required
+- `specialties` optional list or comma-separated string
+- `max_mentees` optional, clamped to `1..10`
+- `timezone` optional
+- `referred_by` optional GitHub username
 
-To release an issue:
+Validation implemented in `worker.py`:
 
-```
-/unassign
-```
+- GitHub usernames must match GitHub's normal username shape
+- Specialty tags are validated before insert
+- Invalid payloads return `400`
+- Successful inserts return `201`
 
-### Bug Reporting
+## Seeded Mentors
 
-When an issue is labeled with `bug`, `vulnerability`, or `security`, the app automatically creates a corresponding entry in the BLT platform and posts the Bug ID as a comment.
+The worker currently seeds an initial mentor pool in code so the homepage is populated on first run. This seeded list includes mentors such as:
 
-## Cloudflare Worker
-
-This app runs as a [Cloudflare Workers](https://workers.cloudflare.com/) Python Worker
-and includes a **landing homepage** where users can view the app status and
-install it on their own GitHub organization.
-
-### Endpoints
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/` | Landing page |
-| `GET` | `/health` | JSON health check |
-| `POST` | `/api/github/webhooks` | GitHub webhook receiver |
-| `GET` | `/callback` | Post-installation success page |
+- Rinkit Adhana
+- Raj Gupta
+- Shriyash Soni
+- Mohammed Faiyaz Shaikh
+- Vinamra Vaswani
+- Carla Voorhees
+- Akshay Behl
+- Kunal Kashyap
+- Rudra Bhaskar
+- Sanidhya Shishodia
+- Vedant Anand
+- Rishab Kumar Jha
+- Aryan Jain
+- Ramansh Saxena
 
 ## Project Structure
 
-```
-├── worker.py                     # Python Cloudflare Worker (all handlers + landing page)
-├── wrangler.toml                 # Cloudflare Worker configuration
-├── .dev.vars.example             # Local dev environment variables template
-├── test_worker.py                # pytest unit tests for pure-Python utilities
-├── app.yml                       # GitHub App manifest
-├── public/                       # Static assets served via Workers Assets (logo, etc.)
-├── templates/                    # HTML source templates (compiled into src/index_template.py)
-└── LICENSE
+```text
+.
+├── README.md
+├── app.yml
+├── wrangler.toml
+├── .dev.vars.example
+├── public/
+├── scripts/
+├── src/
+│   ├── worker.py
+│   └── index_template.py
+├── templates/
+│   ├── index.html
+│   └── callback.html
+└── test_worker.py
 ```
 
 ## Related Projects
@@ -183,4 +202,3 @@ install it on their own GitHub organization.
 ## License
 
 [AGPL-3.0](LICENSE)
-

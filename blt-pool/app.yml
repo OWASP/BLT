@@ -1,6 +1,6 @@
-name: BLT GitHub App
-description: Integrates BLT services into GitHub — issue assignment, bug reporting, and PR management.
-url: https://owaspblt.org
+name: BLT-Pool
+description: BLT-Pool for OWASP BLT, including mentor discovery and GitHub automation workflows.
+url: https://pool.owaspblt.org
 hook_attributes:
   url: https://example.com/api/github/webhooks
 redirect_url: https://example.com
