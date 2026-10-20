@@ -382,6 +382,17 @@ function toggleDetail(detailId) {
   var medals = ['#FFD700', '#C0C0C0', '#CD7F32'];
   var rankClasses = ['rank-1', 'rank-2', 'rank-3'];
 
+  // Names come from git and forge author names (the poller): escape before innerHTML.
+  function esc(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function(c) {
+      return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
+    });
+  }
+
+  function safeUrl(url) {
+    return /^https:\/\//.test(url || '') ? url : '';
+  }
+
   function renderRow(entry) {
     var rank = entry.rank;
     var medal = rank <= 3 ? medals[rank - 1] : null;
@@ -390,9 +401,9 @@ function toggleDetail(detailId) {
     var rankDisplay = medal
       ? '<span class="font-mono font-bold text-sm" style="color:' + medal + '">#' + rank + '</span>'
       : '<span class="font-mono text-sm text-[var(--blt-text-subtle)]">' + rank + '</span>';
-    var avatarSrc = entry.avatar_url || '';
+    var avatarSrc = safeUrl(entry.avatar_url);
     var avatarHtml = avatarSrc
-      ? '<img src="' + avatarSrc + '" class="w-full h-full object-cover" alt="' + entry.display_name + '" onerror="this.style.display=\\'none\\'">'
+      ? '<img src="' + esc(avatarSrc) + '" class="w-full h-full object-cover" alt="' + esc(entry.display_name) + '" onerror="this.style.display=\'none\'">'
       : '<span class="material-symbols-outlined text-xs text-[var(--blt-text-subtle)]">person</span>';
     var medalBadge = rank === 1
       ? '<div class="absolute -bottom-1 -right-1 w-4 h-4 bg-[#FFD700] rounded-full flex items-center justify-center border-2 border-[var(--blt-surface)]"><span class="material-symbols-outlined text-[8px] text-black" style="font-variation-settings:\'FILL\' 1">star</span></div>'
@@ -408,7 +419,7 @@ function toggleDetail(detailId) {
             '</div>' +
             medalBadge +
           '</div>' +
-          '<div><div class="font-semibold text-sm text-[var(--blt-text)]">' + entry.display_name + '</div></div>' +
+          '<div><div class="font-semibold text-sm text-[var(--blt-text)]">' + esc(entry.display_name) + '</div></div>' +
         '</div>' +
       '</td>' +
       '<td class="p-3 text-right"><div class="font-mono font-bold text-base text-[var(--blt-text)]">' + (entry.score || 0).toLocaleString() + '</div></td>' +
