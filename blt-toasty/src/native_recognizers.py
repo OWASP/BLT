@@ -48,12 +48,21 @@ def _strip_zero_width(text: str) -> tuple[str, list[int]]:
         gives the index in the **original** text corresponding to
         position *i* in *stripped_text*.
     """
-    offset_map: list[int] = []
+    # Fast path: most reports contain no zero-width characters at all.
+    if not _ZERO_WIDTH_CHARS.search(text):
+        return text, list(range(len(text)))
+
+    # Copy the runs of text between zero-width characters in slices
+    # instead of walking the string one character at a time.
     chars: list[str] = []
-    for i, ch in enumerate(text):
-        if not _ZERO_WIDTH_CHARS.match(ch):
-            chars.append(ch)
-            offset_map.append(i)
+    offset_map: list[int] = []
+    prev = 0
+    for m in _ZERO_WIDTH_CHARS.finditer(text):
+        chars.append(text[prev : m.start()])
+        offset_map.extend(range(prev, m.start()))
+        prev = m.end()
+    chars.append(text[prev:])
+    offset_map.extend(range(prev, len(text)))
     return "".join(chars), offset_map
 
 
