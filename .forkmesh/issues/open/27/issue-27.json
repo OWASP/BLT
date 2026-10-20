@@ -40,6 +40,16 @@
             "target": "gitlab-issue-82625134-1",
             "ts": 1792463360752,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "body": "/assign",
+            "id": "comment-web-1792476476195",
+            "sig": "lcRmS-riQxCellGSyNNWV25j8RIOak-E-KhKl5vWnppBf6_hYoSUKJlvQPSUv4zcKGJtYg2NQ8jfrB-6QIAmCA",
+            "ts": 1792476476195,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +63,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-next: leaderboard showing wrong info",
-    "updatedAt": 1792463360752,
+    "updatedAt": 1792476476195,
     "votes": 0
 }
