@@ -37,7 +37,7 @@ test("due jobs at the top of an even hour", () => {
   assert.deepEqual(names, ["blt-leaf", "blt-lettuce", "blt-monitor", "blt-netguardian", "blt-pool", "blt-sizzle"]);
   const quiet = dueJobs(Date.parse("2026-10-18T04:08:00Z")).map((j) => j.name);
   assert.deepEqual(quiet, []);
-  assert.ok(dueJobs(Date.parse("2026-10-18T04:30:00Z")).some((j) => j.name === "blt-lettuce"));
+  assert.ok(!dueJobs(Date.parse("2026-10-18T04:30:00Z")).some((j) => j.name === "blt-lettuce"));
 });
 
 test("hackerhouse polls the forge every 5 minutes, off the other jobs' minutes", () => {

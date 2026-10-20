@@ -7,7 +7,7 @@
 export const JOBS = [
   { name: "blt-pool", binding: "POOL", cron: "0 */2 * * *" },
   { name: "blt-leaf", binding: "LEAF", cron: "0 * * * *" },
-  { name: "blt-lettuce", binding: "LETTUCE", cron: "0,30 * * * *" },
+  { name: "blt-lettuce", binding: "LETTUCE", cron: "0 * * * *" },
   { name: "blt-monitor", binding: "MONITOR", cron: "*/5 * * * *" },
   { name: "blt-sizzle", binding: "SIZZLE", cron: "0 * * * *" },
   { name: "blt-netguardian", binding: "NETGUARDIAN", cron: "*/5 * * * *" },
