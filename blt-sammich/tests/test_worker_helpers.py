@@ -412,11 +412,10 @@ def test_build_slack_install_url_uses_required_env_vars():
     env = _Env()
     setattr(env, "SLACK_CLIENT_ID", "123.456")
     setattr(env, "SLACK_REDIRECT_URL", "https://example.com/oauth/slack/callback")
-    setattr(env, "SLACK_OAUTH_STATE", "state-token")
     setattr(env, "SLACK_OAUTH_SCOPES", "commands,chat:write")
     setattr(env, "SLACK_OAUTH_USER_SCOPES", "users:read")
 
-    install_url = worker.build_slack_install_url(env)
+    install_url = worker.build_slack_install_url(env, "state-token")
     assert install_url.startswith("https://slack.com/oauth/v2/authorize?")
     assert "client_id=123.456" in install_url
     assert (
@@ -3400,3 +3399,76 @@ def test_admin_post_refuses_cross_site_requests():
     assert worker.is_same_origin_post(Req({"origin": "https://sammich.owaspblt.org"}))
     assert not worker.is_same_origin_post(Req({"origin": "https://evil.example"}))
     assert not worker.is_same_origin_post(Req({"sec-fetch-site": "cross-site"}))
+
+
+def _oauth_callback(query, cookie, fake_exchange=None):
+    patched = {
+        "html_response": lambda body, status=200: {"body": body, "status": status},
+    }
+    calls = []
+
+    async def fake_fetch_json(url, method="GET", headers=None, body=None):
+        calls.append(url)
+        return True, fake_exchange or {"ok": False, "error": "<b>bad</b>"}, None
+
+    async def noop(*args, **kwargs):
+        return None
+
+    patched.update(
+        fetch_json=fake_fetch_json,
+        record_activity=noop,
+        save_workspace_installer=noop,
+        db_upsert_slack_app=noop,
+        db_upsert_workspace=noop,
+        upsert_connected_workspace=noop,
+    )
+    originals = {name: getattr(worker, name) for name in patched}
+    for name, value in patched.items():
+        setattr(worker, name, value)
+    env = _Env()
+    for name, value in {
+        "SLACK_CLIENT_ID": "1.2",
+        "SLACK_CLIENT_SECRET": "s",
+        "SLACK_REDIRECT_URL": "https://sammich.owaspblt.org/oauth/slack/callback",
+    }.items():
+        setattr(env, name, value)
+    try:
+        response = asyncio.run(
+            worker.handle_oauth_callback(
+                urlparse("https://sammich.owaspblt.org/oauth/slack/callback?" + query), env, cookie
+            )
+        )
+    finally:
+        for name, value in originals.items():
+            setattr(worker, name, value)
+    return response, calls
+
+
+def test_oauth_callback_requires_the_state_cookie():
+    response, calls = _oauth_callback("code=c&state=abc", "")
+    assert response["status"] == 400 and calls == []
+    response, calls = _oauth_callback("code=c&state=abc", "sammich_oauth_state=xyz")
+    assert response["status"] == 400 and calls == []
+    response, calls = _oauth_callback("code=c&state=abc", "a=1; sammich_oauth_state=abc")
+    assert calls, "a matching state reaches the token exchange"
+
+
+def test_oauth_callback_escapes_slack_error_and_team_name():
+    response, _ = _oauth_callback("code=c&state=abc", "sammich_oauth_state=abc")
+    assert response["status"] == 500
+    assert "<b>" not in response["body"] and "&lt;b&gt;" in response["body"]
+    response, _ = _oauth_callback(
+        "code=c&state=abc",
+        "sammich_oauth_state=abc",
+        {"ok": True, "team": {"id": "T1", "name": "<img src=x onerror=alert(1)>"}, "access_token": "xoxb-1"},
+    )
+    assert response["status"] == 200
+    assert "<img" not in response["body"]
+
+
+def test_install_state_cookie():
+    state = worker.new_oauth_state()
+    assert len(state) >= 24 and state != worker.new_oauth_state()
+    cookie = worker.oauth_state_cookie(state)
+    assert cookie.startswith("sammich_oauth_state=" + state + ";")
+    assert "HttpOnly" in cookie and "Secure" in cookie and "SameSite=Lax" in cookie

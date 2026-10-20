@@ -444,10 +444,37 @@ def current_config_message(env: Any, team_id: str, installer_user_id: str) -> st
     return "\n".join(lines)
 
 
-def build_slack_install_url(env: Any) -> str:
+OAUTH_STATE_COOKIE = "sammich_oauth_state"
+
+
+def new_oauth_state() -> str:
+    return secrets.token_urlsafe(24)
+
+
+def oauth_state_cookie(state: str) -> str:
+    """Set-Cookie value binding an install's OAuth state to this browser for 10 minutes."""
+    return "{0}={1}; HttpOnly; Secure; SameSite=Lax; Path=/oauth/slack; Max-Age=600".format(
+        OAUTH_STATE_COOKIE, state
+    )
+
+
+def oauth_state_from_cookie(cookie_header: str) -> str:
+    for part in str(cookie_header or "").split(";"):
+        name, _, value = part.strip().partition("=")
+        if name == OAUTH_STATE_COOKIE:
+            return value
+    return ""
+
+
+def oauth_state_matches(cookie_header: str, state: str) -> bool:
+    """Fail closed: the callback's state must equal the state cookie set by /install-slack."""
+    expected = oauth_state_from_cookie(cookie_header)
+    return bool(expected and state) and hmac.compare_digest(expected.encode(), str(state).encode())
+
+
+def build_slack_install_url(env: Any, state: str) -> str:
     client_id = required_env_value(env, "SLACK_CLIENT_ID")
     redirect_uri = required_env_value(env, "SLACK_REDIRECT_URL")
-    state = required_env_value(env, "SLACK_OAUTH_STATE")
     scopes = required_env_value(env, "SLACK_OAUTH_SCOPES")
     user_scopes = env_value(env, "SLACK_OAUTH_USER_SCOPES")
 
@@ -7158,7 +7185,7 @@ def redact_oauth_tokens(value: Any) -> Any:
     return value
 
 
-async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
+async def handle_oauth_callback(request_url: Any, env: Any, cookie_header: str = "") -> Any:
     params = parse_qs(request_url.query)
     if params.get("error"):
         return html_response(
@@ -7168,9 +7195,10 @@ async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
 
     code = params.get("code", [""])[0]
     state = params.get("state", [""])[0]
-    expected_state = env_value(env, "SLACK_OAUTH_STATE")
-    if expected_state and state != expected_state:
-        return html_response("<h1>State mismatch</h1>", status=400)
+    # A per-install random state bound to the browser by cookie (the old check compared a static
+    # env value and was skipped when SLACK_OAUTH_STATE was unset).
+    if not oauth_state_matches(cookie_header, state):
+        return html_response("<h1>State mismatch</h1><p>Start the install again.</p>", status=400)
     if not code:
         return html_response("<h1>Missing OAuth code</h1>", status=400)
 
@@ -7258,7 +7286,7 @@ async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
             "<h1>Slack app installed</h1>"
             "<p>BLT Sammich is now connected to <strong>{0}</strong>.</p>"
             "<p>You can return to Slack and run /contributors, /project, /repo, or /ghissue.</p>"
-        ).format(team_name)
+        ).format(html_escape(team_name))
     )
 
 
@@ -7313,11 +7341,12 @@ async def handle_request(request: Any, env: Any, ctx: Any = None) -> Any:
         return await handle_admin_post(request, env)
 
     if method == "GET" and normalized_path == "/oauth/slack/callback":
-        return await handle_oauth_callback(parsed_url, env)
+        return await handle_oauth_callback(parsed_url, env, request.headers.get("cookie") or "")
 
     if method == "GET" and normalized_path == "/install-slack":
         try:
-            install_url = build_slack_install_url(env)
+            state = new_oauth_state()
+            install_url = build_slack_install_url(env, state)
         except ValueError as error:
             log_exception_one_line(
                 error,
@@ -7325,13 +7354,13 @@ async def handle_request(request: Any, env: Any, ctx: Any = None) -> Any:
                 {"path": path},
             )
             return html_response(
-                "<h1>Install URL misconfigured</h1><p>{0}</p>".format(str(error)),
+                "<h1>Install URL misconfigured</h1><p>{0}</p>".format(html_escape(str(error))),
                 status=500,
             )
         return build_response(
             "",
             status=302,
-            headers={"location": install_url},
+            headers={"location": install_url, "set-cookie": oauth_state_cookie(state)},
         )
 
     if method == "GET" and normalized_path in ("/slack/events", "/slack/commands"):
