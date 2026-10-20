@@ -14,6 +14,7 @@ Covers:
 
 from __future__ import annotations
 
+import asyncio
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -184,6 +185,32 @@ class TestDetectDuplicates:
         await detect_duplicates("evt-001", "redacted text", "owasp/blt", env, db, do_stub)
 
         mock_call_llm.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    @patch("src.duplicate_detector.find_duplicates", new_callable=AsyncMock)
+    async def test_borderline_adjudications_run_concurrently_and_cap_at_three(self, mock_find_duplicates):
+        """Up to 3 borderline candidates are adjudicated, and the LLM calls overlap."""
+        mock_find_duplicates.return_value = [
+            {"event_id": f"evt-dup-{i}", "score": 0.84 - i * 0.01, "metadata": {"repo": "owasp/blt"}} for i in range(4)
+        ]
+        in_flight = 0
+        max_in_flight = 0
+
+        async def fake_adjudicate(query_text, candidate_text, env, do_stub):
+            nonlocal in_flight, max_in_flight
+            in_flight += 1
+            max_in_flight = max(max_in_flight, in_flight)
+            await asyncio.sleep(0.01)
+            in_flight -= 1
+            return {"is_duplicate": True, "confidence": 0.9, "rationale": "same bug"}
+
+        db = _make_db(status="redaction_passed")
+        with patch("src.duplicate_detector.adjudicate_duplicate", side_effect=fake_adjudicate) as mock_adj:
+            result = await detect_duplicates("evt-001", "redacted text", "owasp/blt", _make_env(), db, _make_do_stub())
+
+        assert mock_adj.call_count == 3
+        assert max_in_flight == 3
+        assert [c.event_id for c in result.candidates] == ["evt-dup-0", "evt-dup-1", "evt-dup-2"]
 
     @pytest.mark.asyncio
     @patch("src.duplicate_detector.call_llm", new_callable=AsyncMock)

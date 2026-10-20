@@ -23,6 +23,7 @@ This module operates on events that have reached at least
 
 from __future__ import annotations
 
+import asyncio
 import dataclasses
 import json
 import logging
@@ -338,7 +339,8 @@ async def detect_duplicates(
 
     # ── 3-tier scoring ────────────────────────────────────────────────────
     candidates: list[DuplicateCandidate] = []
-    adjudications_performed = 0
+    # Borderline matches picked for LLM adjudication: (event_id, score, summary_text).
+    to_adjudicate: list[tuple[str, float, str]] = []
     MAX_ADJUDICATIONS = 3
 
     raw_matches.sort(key=lambda m: m["score"], reverse=True)
@@ -364,7 +366,7 @@ async def detect_duplicates(
                 )
             )
         elif score >= ADJUDICATION_THRESHOLD:
-            if adjudications_performed >= MAX_ADJUDICATIONS:
+            if len(to_adjudicate) >= MAX_ADJUDICATIONS:
                 continue
 
             # Tier 2: Borderline — LLM adjudication required
@@ -376,31 +378,37 @@ async def detect_duplicates(
                 )
                 continue
 
-            adjudication = await adjudicate_duplicate(redacted_text, candidate_text, env, do_stub)
-            adjudications_performed += 1
+            to_adjudicate.append((candidate_event_id, score, candidate_text))
 
-            if adjudication["is_duplicate"] and adjudication["confidence"] >= LLM_CONFIDENCE_THRESHOLD:
-                candidates.append(
-                    DuplicateCandidate(
-                        event_id=candidate_event_id,
-                        similarity_score=score,
-                        llm_confirmed=True,
-                        llm_confidence=adjudication["confidence"],
-                        llm_rationale=adjudication["rationale"],
-                        detection_method="retrieval_plus_llm",
-                    )
+    # Run the (at most MAX_ADJUDICATIONS) LLM calls concurrently instead of one
+    # after another, so their latencies don't add up against the Worker time limit.
+    adjudications = await asyncio.gather(
+        *(adjudicate_duplicate(redacted_text, text, env, do_stub) for _, _, text in to_adjudicate)
+    )
+
+    for (candidate_event_id, score, _), adjudication in zip(to_adjudicate, adjudications):
+        if adjudication["is_duplicate"] and adjudication["confidence"] >= LLM_CONFIDENCE_THRESHOLD:
+            candidates.append(
+                DuplicateCandidate(
+                    event_id=candidate_event_id,
+                    similarity_score=score,
+                    llm_confirmed=True,
+                    llm_confidence=adjudication["confidence"],
+                    llm_rationale=adjudication["rationale"],
+                    detection_method="retrieval_plus_llm",
                 )
-            else:
-                candidates.append(
-                    DuplicateCandidate(
-                        event_id=candidate_event_id,
-                        similarity_score=score,
-                        llm_confirmed=False,
-                        llm_confidence=adjudication["confidence"],
-                        llm_rationale=adjudication["rationale"],
-                        detection_method="llm_rejected",
-                    )
+            )
+        else:
+            candidates.append(
+                DuplicateCandidate(
+                    event_id=candidate_event_id,
+                    similarity_score=score,
+                    llm_confirmed=False,
+                    llm_confidence=adjudication["confidence"],
+                    llm_rationale=adjudication["rationale"],
+                    detection_method="llm_rejected",
                 )
+            )
 
     # ── Sort by similarity score descending ───────────────────────────────
     candidates.sort(key=lambda c: c.similarity_score, reverse=True)
