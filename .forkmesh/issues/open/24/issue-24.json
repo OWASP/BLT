@@ -40,6 +40,16 @@
             "target": "gitlab-issue-82715256-10",
             "ts": 1792463360722,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "body": "/assign",
+            "id": "comment-web-1792477887436",
+            "sig": "iIdCgD7DgLU5UTlw4KKze7LU3pCPF5UABzj6HqHYZNj6pX9F0k74V1rekZBDMFFxax6YRcE0p1qHgP7lcSD3Cg",
+            "ts": 1792477887436,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +63,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mcp: Improve Vision AI prompt for structured, clean output",
-    "updatedAt": 1792463360722,
+    "updatedAt": 1792477887436,
     "votes": 0
 }
