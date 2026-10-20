@@ -598,6 +598,101 @@
         ></span>
       </div>
 
+      <!-- ══ Search and filter ══ -->
+      <section
+        class="mx-auto mb-6 max-w-7xl px-6 max-md:px-4"
+        aria-labelledby="search-filter-heading"
+      >
+        <div
+          class="rounded-xl border border-gray-200 bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.05)]"
+        >
+          <div class="mb-5">
+            <p
+              class="font-mono text-[.6rem] font-semibold uppercase tracking-[.16em] text-gray-400"
+            >
+              Event data
+            </p>
+            <h2
+              id="search-filter-heading"
+              class="mt-1 text-lg font-semibold text-gray-900"
+            >
+              Search and Filter
+            </h2>
+          </div>
+          <form id="search-filter-form" class="grid gap-4 md:grid-cols-2">
+            <div>
+              <label
+                for="participant-filter"
+                class="mb-1 block text-sm font-semibold text-gray-700"
+                >Participant Name</label
+              >
+              <input
+                type="search"
+                id="participant-filter"
+                placeholder="Search participants"
+                class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+              />
+            </div>
+            <div>
+              <label
+                for="reviewer-filter"
+                class="mb-1 block text-sm font-semibold text-gray-700"
+                >Reviewer Name</label
+              >
+              <input
+                type="search"
+                id="reviewer-filter"
+                placeholder="Search reviewers"
+                class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+              />
+            </div>
+            <div>
+              <label
+                for="repository-filter"
+                class="mb-1 block text-sm font-semibold text-gray-700"
+                >Repository Name</label
+              >
+              <input
+                type="search"
+                id="repository-filter"
+                placeholder="Search repositories"
+                class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+              />
+            </div>
+            <div>
+              <label
+                for="sponsor-filter"
+                class="mb-1 block text-sm font-semibold text-gray-700"
+                >Sponsor Name</label
+              >
+              <input
+                type="search"
+                id="sponsor-filter"
+                placeholder="Search sponsors"
+                class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+              />
+            </div>
+            <div class="flex flex-wrap items-center gap-3 pt-1 md:col-span-2">
+              <button
+                type="submit"
+                class="blt-button blt-button-primary px-4 py-2 text-sm"
+              >
+                <i class="fas fa-filter" aria-hidden="true"></i>
+                Search and Filter
+              </button>
+              <button
+                id="reset-search-filter"
+                type="button"
+                class="blt-button blt-button-secondary px-4 py-2 text-sm"
+              >
+                <i class="fas fa-rotate-left" aria-hidden="true"></i>
+                Reset Search and Filter
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
       <!-- ══ Leaderboards ══ -->
       <div
         class="mx-auto grid max-w-7xl gap-4 px-6 pb-6 max-md:px-4 lg:grid-cols-2"

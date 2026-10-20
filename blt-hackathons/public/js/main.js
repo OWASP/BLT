@@ -15,6 +15,11 @@ class HackathonDashboard {
         // The class also contains the shared leaderboard sorting helpers.
         this.api = new GitHubAPI((config.github || {}).token);
         this.chart = null;
+        this.rankedLeaderboard = [];
+        this.rankedReviewLeaderboard = [];
+        this.repositoryData = [];
+        this.repositoryStats = {};
+        this.sponsors = [];
         // Store resolved repositories (set during initialization)
         // Contains the merged list of explicit repositories and organization repositories
         this.repositories = null;
@@ -121,6 +126,10 @@ class HackathonDashboard {
             });
             this.renderLeaderboard(participants);
             this.renderReviewLeaderBoard(participants);
+            this.repositoryStats = stats.repoStats || {};
+            this.repositoryData = stats.repoData || [];
+            this.sponsors = Array.isArray(this.config.sponsors) ? this.config.sponsors : [];
+            this.setupSearchAndFilter();
 
             // Render chart using pre-computed daily merged PR counts
             try {
@@ -137,7 +146,7 @@ class HackathonDashboard {
             }
 
             this.renderSlackActivity(stats.slack);
-            this.renderRepositories(stats.repoStats || {}, stats.repoData || []);
+            this.renderRepositories(this.repositoryStats, this.repositoryData);
             this.renderSponsors();
             this.hideLoading();
             this.loadedAt = statsData.lastUpdated
@@ -297,11 +306,16 @@ class HackathonDashboard {
      * Render the leaderboard
      */
     renderLeaderboard(participants) {
-        const leaderboard = this.api.generateLeaderboard(
+        // Keep each entry's overall rank so a filtered view still shows it.
+        this.rankedLeaderboard = this.api.generateLeaderboard(
             participants,
             this.config.display.maxLeaderboardEntries
-        );
+        ).map((entry, index) => ({ ...entry, rank: index + 1 }));
 
+        this.renderLeaderboardResults(this.rankedLeaderboard);
+    }
+
+    renderLeaderboardResults(leaderboard, query = '') {
         const container = document.getElementById('leaderboard');
         if (!container) return;
         container.setAttribute('aria-busy', 'false');
@@ -309,13 +323,13 @@ class HackathonDashboard {
         if (leaderboard.length === 0) {
             container.innerHTML = this.renderEmptyState(
                 'fa-code-pull-request',
-                `No merged ${this.changeLabels.plural} yet. Be the first to contribute.`
+                query ? 'No matching results found.' : `No merged ${this.changeLabels.plural} yet. Be the first to contribute.`
             );
             return;
         }
 
         container.innerHTML = leaderboard.map((participant, index) => {
-            const position = index + 1;
+            const position = participant.rank || index + 1;
             let trophyIcon = '';
 
             if (position === 1) {
@@ -358,11 +372,16 @@ class HackathonDashboard {
     }
 
     renderReviewLeaderBoard(participants) {
-        const reviewLeaderboard = this.api.generateReviewLeaderboard(
+        // Keep each entry's overall rank so a filtered view still shows it.
+        this.rankedReviewLeaderboard = this.api.generateReviewLeaderboard(
             participants,
             this.config.display.maxLeaderboardEntries
-        );
+        ).map((entry, index) => ({ ...entry, rank: index + 1 }));
 
+        this.renderReviewLeaderboardResults(this.rankedReviewLeaderboard);
+    }
+
+    renderReviewLeaderboardResults(reviewLeaderboard, query = '') {
         const container = document.getElementById('review-leaderboard');
         if (!container) return;
         container.setAttribute('aria-busy', 'false');
@@ -370,13 +389,13 @@ class HackathonDashboard {
         if (reviewLeaderboard.length === 0) {
             container.innerHTML = this.renderEmptyState(
                 'fa-comments',
-                'No reviews recorded yet. Review activity will appear here after the next data refresh.'
+                query ? 'No matching results found.' : 'No reviews recorded yet. Review activity will appear here after the next data refresh.'
             );
             return;
         }
 
         container.innerHTML = reviewLeaderboard.map((participant, index) => {
-            const position = index + 1;
+            const position = participant.rank || index + 1;
             let trophyIcon = '';
 
             if (position === 1) {
@@ -416,6 +435,55 @@ class HackathonDashboard {
                 </div>
             `;
         }).join('');
+    }
+
+    setupSearchAndFilter() {
+        const form = document.getElementById('search-filter-form');
+        const resetButton = document.getElementById('reset-search-filter');
+        if (!form || form.dataset.listenerAttached === 'true') return;
+
+        form.addEventListener('submit', event => {
+            event.preventDefault();
+            this.applySearchAndFilter();
+        });
+        if (resetButton) {
+            resetButton.addEventListener('click', () => {
+                form.reset();
+                this.applySearchAndFilter();
+            });
+        }
+        form.dataset.listenerAttached = 'true';
+    }
+
+    applySearchAndFilter() {
+        const participant = this.getFilterValue('participant-filter');
+        const reviewer = this.getFilterValue('reviewer-filter');
+        const repository = this.getFilterValue('repository-filter');
+        const sponsor = this.getFilterValue('sponsor-filter');
+
+        this.renderLeaderboardResults(this.filterByUsername(this.rankedLeaderboard, participant), participant);
+        this.renderReviewLeaderboardResults(this.filterByUsername(this.rankedReviewLeaderboard, reviewer), reviewer);
+
+        const repositories = (this.repositories || this.getConfiguredRepositories())
+            .filter(repo => this.matchesSearch(repo, repository));
+        this.renderRepositories(this.repositoryStats, this.repositoryData, repositories);
+
+        const sponsors = this.sponsors.filter(item => this.matchesSearch(item.name, sponsor));
+        this.renderSponsors(sponsors);
+    }
+
+    getFilterValue(id) {
+        return document.getElementById(id)?.value.trim() || '';
+    }
+
+    filterByUsername(items, username) {
+        return username
+            ? items.filter(item => this.matchesSearch(item.username, username))
+            : items;
+    }
+
+    matchesSearch(value, query) {
+        return !query || String(value || '').toLocaleLowerCase().includes(query.toLocaleLowerCase());
     }
 
     /**
@@ -600,12 +668,12 @@ class HackathonDashboard {
     /**
      * Render repositories list
      */
-    renderRepositories(repoStats, repoData = []) {
+    renderRepositories(repoStats, repoData = [], repositoriesOverride = null) {
         const container = document.getElementById('repositories-list');
         if (!container) return;
         container.setAttribute('aria-busy', 'false');
         // Use resolved repositories if available, otherwise fall back to config
-        const repositories = this.repositories || this.getConfiguredRepositories();
+        const repositories = repositoriesOverride || this.repositories || this.getConfiguredRepositories();
         
         // Build a lookup map from full_name -> repo metadata
         const repoMetaMap = {};
@@ -624,7 +692,9 @@ class HackathonDashboard {
         if (repositories.length === 0) {
             container.innerHTML = this.renderEmptyState(
                 'fa-code-branch',
-                'No eligible repositories or projects are configured for this event.'
+                repositoriesOverride !== null
+                    ? 'No matching results found.'
+                    : 'No eligible repositories or projects are configured for this event.'
             );
             return;
         }
@@ -791,7 +861,7 @@ class HackathonDashboard {
     /**
      * Render sponsors
      */
-    renderSponsors() {
+    renderSponsors(sponsorsOverride = null) {
         const container = document.getElementById('sponsors-list');
         if (!container) return;
 
@@ -805,7 +875,7 @@ class HackathonDashboard {
         `;
 
         const prizes = Array.isArray(this.config.prizes) ? this.config.prizes : [];
-        const sponsors = Array.isArray(this.config.sponsors) ? this.config.sponsors : [];
+        const sponsors = sponsorsOverride || this.sponsors;
 
         const prizesHtml = prizes.length > 0
             ? `
@@ -874,7 +944,10 @@ class HackathonDashboard {
             </section>
             <section aria-label="Sponsors" class="mt-4">
                 <h3 class="dashboard-section-subtitle">Sponsors</h3>
-                ${sponsorsHtml || this.renderEmptyState('fa-handshake', 'No sponsors are listed yet.')}
+                ${sponsorsHtml || this.renderEmptyState(
+                    'fa-handshake',
+                    sponsorsOverride !== null ? 'No matching results found.' : 'No sponsors are listed yet.'
+                )}
             </section>
             ${sponsorNoteHtml}
             ${becomeASponsorBtn}
