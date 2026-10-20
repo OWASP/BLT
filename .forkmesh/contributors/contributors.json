@@ -2070,6 +2070,25 @@
    "avatar_checked": "2026-10-18"
   },
   {
+   "slug": "c0d3h01",
+   "name": "Harshal Sawant",
+   "login": "c0d3h01",
+   "profile": "https://github.com/c0d3h01",
+   "source": "github",
+   "github": "c0d3h01",
+   "gitlab": null,
+   "commits": 5,
+   "first": "2026-05-06",
+   "last": "2026-10-20",
+   "projects": [
+    "BLT-Core",
+    "BLT-Jobs"
+   ],
+   "avatar": ".forkmesh/contributors/c0d3h01.png",
+   "avatar_kind": "downloaded",
+   "avatar_checked": "2026-10-18"
+  },
+  {
    "slug": "mattsilverio",
    "name": "Matheus Phillipo",
    "login": "MattSilverio",
@@ -2824,24 +2843,6 @@
     "BLT-Core"
    ],
    "avatar": ".forkmesh/contributors/harsh3dev.png",
-   "avatar_kind": "downloaded",
-   "avatar_checked": "2026-10-18"
-  },
-  {
-   "slug": "c0d3h01",
-   "name": "Harshal Sawant",
-   "login": "c0d3h01",
-   "profile": "https://github.com/c0d3h01",
-   "source": "github",
-   "github": "c0d3h01",
-   "gitlab": null,
-   "commits": 2,
-   "first": "2026-05-06",
-   "last": "2026-05-06",
-   "projects": [
-    "BLT-Jobs"
-   ],
-   "avatar": ".forkmesh/contributors/c0d3h01.png",
    "avatar_kind": "downloaded",
    "avatar_checked": "2026-10-18"
   },
