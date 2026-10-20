@@ -525,6 +525,7 @@ async def init_database(env):
             SET slug = COALESCE(NULLIF(slug, ''), github_org_name),
                 name = COALESCE(NULLIF(name, ''), github_org_name)
             WHERE github_org_name IS NOT NULL
+              AND (slug IS NULL OR slug = '' OR name IS NULL OR name = '')
         """).run()
 
         await env.sizzle_db.prepare("""
@@ -565,6 +566,8 @@ async def init_database(env):
             SET role = COALESCE(NULLIF(role, ''), 'member'),
                 requested_at = COALESCE(requested_at, joined_at, CURRENT_TIMESTAMP),
                 approved_at = CASE WHEN status = 'approved' THEN COALESCE(approved_at, joined_at, CURRENT_TIMESTAMP) ELSE approved_at END
+            WHERE role IS NULL OR role = '' OR requested_at IS NULL
+               OR (status = 'approved' AND approved_at IS NULL)
         """).run()
 
         await env.sizzle_db.prepare("""
