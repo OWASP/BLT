@@ -438,6 +438,15 @@
             return;
           }
 
+          // Titles and ids come from submitted registry entries: escape before innerHTML.
+          const escHtml = (value) =>
+            String(value == null ? "" : value)
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#39;");
+
           entriesEl.innerHTML = items
             .map((item) => {
               const url = new URL(item.url, window.location.origin);
@@ -446,10 +455,10 @@
               return `
                 <article class="entry">
                   <div>
-                    <h3><a href="${url.pathname}">${item.id}</a></h3>
+                    <h3><a href="${escHtml(url.pathname)}">${escHtml(item.id)}</a></h3>
                     <p class="muted">Published ${formatDate(item.published)}</p>
                   </div>
-                  <p>${item.title || "Untitled registry entry"}</p>
+                  <p>${escHtml(item.title || "Untitled registry entry")}</p>
                   <span class="severity ${severityClass(score)}">${label}</span>
                 </article>
               `;
