@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "khush173"
+    ],
     "author": "khvPCMyOyVupN4XgVA35Kb_L2gWJn-SZhzmfDyRk_GI",
     "authorName": "khush173",
     "bountyAddress": "",
@@ -30,6 +32,17 @@
             "sig": "EMIlOXM1tLjQ1BNlaSlvzzfe4tRMCZJDFdgvWI4C3Tw7ucBWovqiBtmyuYVWbQ60pZARknjIAhyWeZa_oicxDQ",
             "ts": 1792499641921,
             "type": "comment"
+        },
+        {
+            "assignee": "khush173",
+            "author": "khvPCMyOyVupN4XgVA35Kb_L2gWJn-SZhzmfDyRk_GI",
+            "authorName": "khush173",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1792499661636-1sw6lae",
+            "sig": "Dlo8lPv3CASICxNQ3sS78Wh8dzhskrBEHD2-oYRbdaY56N5Act2qUI1uycvGBdnZK_WN4RMKsekv1CgFX0tBDA",
+            "ts": 1792499661636,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -41,6 +54,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-next : Automatically shifts to light mode when clicks on login/signup",
-    "updatedAt": 1792499641921,
+    "updatedAt": 1792499661636,
     "votes": 0
 }
