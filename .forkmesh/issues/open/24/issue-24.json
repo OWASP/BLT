@@ -50,6 +50,16 @@
             "sig": "iIdCgD7DgLU5UTlw4KKze7LU3pCPF5UABzj6HqHYZNj6pX9F0k74V1rekZBDMFFxax6YRcE0p1qHgP7lcSD3Cg",
             "ts": 1792477887436,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "body": "@vanshika2720 you can't be assigned to this issue because you are already assigned to #27. Please open a pull request for it, or comment `/unassign` there, before taking another issue. \u003c!-- blt-assign:dade851df3c46dfbede8 --\u003e",
+            "id": "actions-1792477902253-nCkDM5Mn",
+            "sig": "MmEYBPy4AN-1uAUC5pzulvBS77z7jpfGLIrXYOty22wp_bN5c7SuG5cZ9IkTump779ZS2my-KLHKqpzECxo3Bg",
+            "ts": 1792477902253,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -63,6 +73,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mcp: Improve Vision AI prompt for structured, clean output",
-    "updatedAt": 1792477887436,
+    "updatedAt": 1792477902253,
     "votes": 0
 }
