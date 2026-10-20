@@ -10,6 +10,7 @@ import hmac
 import json
 import time
 import urllib.parse
+from datetime import datetime, timezone
 import traceback
 from js import Response, Headers, console, Object, Request as JSRequest
 
@@ -276,7 +277,7 @@ def handle_health(request):
     health_data = {
         "status": "healthy",
         "service": "toasty-backend",
-        "timestamp": None,  # Would use datetime in production
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
     return create_json_response(health_data, 200)
@@ -354,7 +355,7 @@ async def handle_review(request, env):
                 ],
                 "summary": "Review completed successfully",
             },
-            "metadata": {"processed_at": None, "worker_version": "1.0.0"},  # Would use datetime in production
+            "metadata": {"processed_at": datetime.now(timezone.utc).isoformat(), "worker_version": "1.0.0"},
         }
 
         return create_json_response(review_result, 200)

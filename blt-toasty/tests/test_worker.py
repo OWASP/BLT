@@ -9,11 +9,16 @@ the Cloudflare Workers runtime (js module) and cannot be imported in standard Py
 If you modify the parse_path logic in worker.py, you MUST update this copy to match.
 """
 
+import re
+from datetime import datetime, timezone
+
 from tests.utils import parse_path
 from src.webhook_handler import handle_webhook
 import pytest
 from unittest.mock import MagicMock
 import asyncio
+
+ISO_8601_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$")
 
 
 class MockRequest:
@@ -94,9 +99,10 @@ def test_json_response_structure():
     assert root_response["version"] == "1.0.0"
 
     # Test health response
-    health_response = {"status": "healthy", "service": "toasty-backend", "timestamp": None}
+    health_response = {"status": "healthy", "service": "toasty-backend", "timestamp": datetime.now(timezone.utc).isoformat()}
     assert health_response["status"] == "healthy"
     assert "service" in health_response
+    assert ISO_8601_RE.match(health_response["timestamp"])
 
     # Test review response
     review_response = {
@@ -108,11 +114,12 @@ def test_json_response_structure():
             "suggestions": [],
             "summary": "Review completed successfully",
         },
-        "metadata": {"processed_at": None, "worker_version": "1.0.0"},
+        "metadata": {"processed_at": datetime.now(timezone.utc).isoformat(), "worker_version": "1.0.0"},
     }
     assert review_response["status"] == "success"
     assert "analysis" in review_response
     assert "metadata" in review_response
+    assert ISO_8601_RE.match(review_response["metadata"]["processed_at"])
 
     print("✓ All JSON response structure tests passed")
 
