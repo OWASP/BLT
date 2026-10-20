@@ -6,6 +6,7 @@ blt-cli	rust	cargo test --quiet
 blt-core	python	export SECRET_KEY=ci-test-secret-key DATABASE_URL=sqlite:///db.sqlite3 && pip install uv && uv sync --locked && uv run --locked python manage.py collectstatic --noinput && $(command -v xvfb-run >/dev/null && echo 'xvfb-run --auto-servernum') uv run --locked python manage.py test --parallel --failfast
 blt-cve	python	pip install jsonschema && python -m unittest discover -s tests && python scripts/validate_cves.py && python scripts/build_index.py && git diff --exit-code -I '"updated"' -- public/index.json public/feed.json; rc=$?; git checkout -- public/index.json public/feed.json; exit $rc
 blt-design-contest	python	python -m unittest discover -s tests && bash -n scripts/refresh-kv.sh && node --test 'test/*.test.mjs'
+blt-enforcement	node	node --test 'test/*.test.mjs'
 blt-extension	node	npm_install && npm test
 blt-flutter	flutter	flutter pub get && flutter test
 blt-gsoc	node	npm test

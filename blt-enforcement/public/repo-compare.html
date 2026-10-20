@@ -298,6 +298,22 @@
 
   <script>
     // ── Helpers ─────────────────────────────────────────────────────────────────
+    // Repo names, descriptions, languages and file paths come from the GitHub API for any repo the
+    // visitor names: escape them before they go into innerHTML.
+    function esc(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function safeUrl(url) {
+      const value = String(url || '').trim();
+      return /^https:\/\//i.test(value) ? value : '#';
+    }
+
     function show(id) { document.getElementById(id).classList.remove('hidden'); }
     function hide(id) { document.getElementById(id).classList.add('hidden'); }
 
@@ -451,16 +467,16 @@
           <div class="rounded-lg border border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4 space-y-2">
             <div class="flex items-center gap-2">
               <i class="fa-brands fa-github text-gray-400" aria-hidden="true"></i>
-              <a href="${r.html_url}" class="text-[#E10101] hover:underline font-semibold text-sm" target="_blank" rel="noopener noreferrer">${r.full_name}</a>
+              <a href="${esc(safeUrl(r.html_url))}" class="text-[#E10101] hover:underline font-semibold text-sm" target="_blank" rel="noopener noreferrer">${esc(r.full_name)}</a>
             </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">${r.description || 'No description provided.'}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">${esc(r.description || 'No description provided.')}</p>
             <div class="flex flex-wrap gap-2 text-xs">
               <span class="flex items-center gap-1 text-gray-600 dark:text-gray-300"><i class="fa-solid fa-star text-yellow-400" aria-hidden="true"></i>${r.stargazers_count.toLocaleString()}</span>
               <span class="flex items-center gap-1 text-gray-600 dark:text-gray-300"><i class="fa-solid fa-code-fork text-gray-400" aria-hidden="true"></i>${r.forks_count.toLocaleString()}</span>
               <span class="flex items-center gap-1 text-gray-600 dark:text-gray-300"><i class="fa-solid fa-circle-dot text-gray-400" aria-hidden="true"></i>${r.open_issues_count.toLocaleString()} issues</span>
-              <span class="px-2 py-0.5 rounded-full font-medium ${licenseBadgeColor(lic)}">${lic}</span>
+              <span class="px-2 py-0.5 rounded-full font-medium ${licenseBadgeColor(lic)}">${esc(lic)}</span>
             </div>
-            <p class="text-xs text-gray-400 dark:text-gray-500">Language: <span class="font-medium text-gray-700 dark:text-gray-300">${r.language || 'Unknown'}</span></p>
+            <p class="text-xs text-gray-400 dark:text-gray-500">Language: <span class="font-medium text-gray-700 dark:text-gray-300">${esc(r.language || 'Unknown')}</span></p>
           </div>`;
       }).join('');
 
@@ -494,22 +510,22 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="rounded-lg border border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4 space-y-2">
             <p class="text-xs font-semibold text-gray-400 uppercase">Repository A</p>
-            <p class="font-semibold text-gray-900 dark:text-white">${dataA.info.full_name}</p>
-            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${licenseBadgeColor(licA)}">${licA}</span>
+            <p class="font-semibold text-gray-900 dark:text-white">${esc(dataA.info.full_name)}</p>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${licenseBadgeColor(licA)}">${esc(licA)}</span>
             <ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mt-2">
               <li><i class="fa-solid fa-${infoA.copyleft ? 'circle-xmark text-[#E10101]' : 'circle-check text-green-500'} mr-1" aria-hidden="true"></i>${infoA.copyleft ? 'Copyleft (share-alike required)' : 'No copyleft'}</li>
               <li><i class="fa-solid fa-${infoA.commercial ? 'circle-check text-green-500' : 'circle-xmark text-[#E10101]'} mr-1" aria-hidden="true"></i>${infoA.commercial ? 'Commercial use allowed' : 'Commercial use restricted'}</li>
-              <li><i class="fa-solid fa-tag text-gray-400 mr-1" aria-hidden="true"></i>${infoA.type || 'Unknown type'}</li>
+              <li><i class="fa-solid fa-tag text-gray-400 mr-1" aria-hidden="true"></i>${esc(infoA.type || 'Unknown type')}</li>
             </ul>
           </div>
           <div class="rounded-lg border border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4 space-y-2">
             <p class="text-xs font-semibold text-gray-400 uppercase">Repository B</p>
-            <p class="font-semibold text-gray-900 dark:text-white">${dataB.info.full_name}</p>
-            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${licenseBadgeColor(licB)}">${licB}</span>
+            <p class="font-semibold text-gray-900 dark:text-white">${esc(dataB.info.full_name)}</p>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${licenseBadgeColor(licB)}">${esc(licB)}</span>
             <ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mt-2">
               <li><i class="fa-solid fa-${infoB.copyleft ? 'circle-xmark text-[#E10101]' : 'circle-check text-green-500'} mr-1" aria-hidden="true"></i>${infoB.copyleft ? 'Copyleft (share-alike required)' : 'No copyleft'}</li>
               <li><i class="fa-solid fa-${infoB.commercial ? 'circle-check text-green-500' : 'circle-xmark text-[#E10101]'} mr-1" aria-hidden="true"></i>${infoB.commercial ? 'Commercial use allowed' : 'Commercial use restricted'}</li>
-              <li><i class="fa-solid fa-tag text-gray-400 mr-1" aria-hidden="true"></i>${infoB.type || 'Unknown type'}</li>
+              <li><i class="fa-solid fa-tag text-gray-400 mr-1" aria-hidden="true"></i>${esc(infoB.type || 'Unknown type')}</li>
             </ul>
           </div>
         </div>
@@ -548,7 +564,7 @@
           <div>
             <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Common files (top ${commonFiles.length})</p>
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-1">
-              ${commonFiles.map(f => `<li class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 rounded px-2 py-1"><i class="fa-solid fa-file-code text-[#E10101] text-[10px]" aria-hidden="true"></i><code class="truncate font-mono">${f}</code></li>`).join('')}
+              ${commonFiles.map(f => `<li class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 rounded px-2 py-1"><i class="fa-solid fa-file-code text-[#E10101] text-[10px]" aria-hidden="true"></i><code class="truncate font-mono">${esc(f)}</code></li>`).join('')}
             </ul>
           </div>` : ''}
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -556,7 +572,7 @@
             <div>
               <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Only in A</p>
               <ul class="space-y-1">
-                ${onlyA.map(f => `<li class="text-xs text-gray-500 bg-gray-50 dark:bg-gray-900 rounded px-2 py-1 font-mono truncate">${f}</li>`).join('')}
+                ${onlyA.map(f => `<li class="text-xs text-gray-500 bg-gray-50 dark:bg-gray-900 rounded px-2 py-1 font-mono truncate">${esc(f)}</li>`).join('')}
                 ${filesA.filter(f => !filesB.includes(f)).length > 8 ? `<li class="text-xs text-gray-400 italic">…and ${filesA.filter(f=>!filesB.includes(f)).length - 8} more</li>` : ''}
               </ul>
             </div>` : ''}
@@ -564,7 +580,7 @@
             <div>
               <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Only in B</p>
               <ul class="space-y-1">
-                ${onlyB.map(f => `<li class="text-xs text-gray-500 bg-gray-50 dark:bg-gray-900 rounded px-2 py-1 font-mono truncate">${f}</li>`).join('')}
+                ${onlyB.map(f => `<li class="text-xs text-gray-500 bg-gray-50 dark:bg-gray-900 rounded px-2 py-1 font-mono truncate">${esc(f)}</li>`).join('')}
                 ${filesB.filter(f => !filesA.includes(f)).length > 8 ? `<li class="text-xs text-gray-400 italic">…and ${filesB.filter(f=>!filesA.includes(f)).length - 8} more</li>` : ''}
               </ul>
             </div>` : ''}
@@ -595,7 +611,7 @@
       [{ label: 'A', info: a }, { label: 'B', info: b }].forEach(function(item) {
         const r = item.info;
         html += `<div class="rounded-lg border border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
-          <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Repository ${item.label} — <a href="${r.html_url}" class="text-[#E10101] hover:underline" target="_blank" rel="noopener noreferrer">${r.full_name}</a></p>
+          <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Repository ${item.label} — <a href="${esc(safeUrl(r.html_url))}" class="text-[#E10101] hover:underline" target="_blank" rel="noopener noreferrer">${esc(r.full_name)}</a></p>
           <div class="flex flex-wrap gap-3 text-sm">
             <span class="flex items-center gap-1.5 ${r.fork ? 'text-yellow-600' : 'text-green-600'}">
               <i class="fa-solid ${r.fork ? 'fa-code-fork' : 'fa-house'} text-xs" aria-hidden="true"></i>
