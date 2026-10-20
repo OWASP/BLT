@@ -2442,15 +2442,47 @@ async def db_upsert_channel(
     return True
 
 
-async def db_get_channels(env: Any, workspace_id: Any) -> List[Dict[str, Any]]:
+def channel_names_mentioned(text: str) -> List[str]:
+    """The #names in a message, the candidates link_workspace_channel_names can link."""
+    return sorted(set(re.findall(r"(?<![A-Za-z0-9_/<])#([\w-]+)", str(text or ""))))
+
+
+async def db_get_welcome_channels(
+    env: Any, workspace_id: Any, text: str, top: int = 5
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """The workspace's `top` channels by members, and the channels `text` mentions by #name.
+
+    Reads about top + mentions rows instead of the whole channel table (thousands of rows in
+    the OWASP workspace) on every welcome.
+    """
     await ensure_schema(env)
-    return result_rows(
-        await d1_run(
-            env,
-            "SELECT * FROM channels WHERE workspace_id = ? ORDER BY member_count DESC",
-            [workspace_id],
+    top_rows: List[Dict[str, Any]] = []
+    if top > 0:
+        top_rows = result_rows(
+            await d1_run(
+                env,
+                (
+                    "SELECT channel_id, channel_name FROM channels WHERE workspace_id = ? "
+                    "AND channel_id != '' AND channel_name != '' "
+                    "ORDER BY member_count DESC LIMIT ?"
+                ),
+                [workspace_id, int(top)],
+            )
         )
-    )
+    names = channel_names_mentioned(text)[:50]
+    mentioned: List[Dict[str, Any]] = []
+    if names:
+        mentioned = result_rows(
+            await d1_run(
+                env,
+                (
+                    "SELECT channel_id, channel_name FROM channels WHERE workspace_id = ? "
+                    "AND channel_name IN ({0})".format(", ".join("?" for _ in names))
+                ),
+                [workspace_id] + names,
+            )
+        )
+    return top_rows, mentioned
 
 
 async def db_get_channel_by_slack_id(
@@ -3105,10 +3137,10 @@ async def db_has_team_join_event_id(
         await d1_run(
             env,
             (
-                "SELECT id FROM events WHERE workspace_id = ? AND event_type = 'Team_Join' "
-                "AND request_data LIKE ? ORDER BY id DESC LIMIT 1"
+                "SELECT 1 FROM events WHERE workspace_id = ? AND event_type = 'Team_Join' "
+                "AND webhook_event_id = ? LIMIT 1"
             ),
-            [workspace_id, '%"event_id":"{0}"%'.format(event_id)],
+            [workspace_id, event_id],
         )
     )
     return row is not None
@@ -3124,11 +3156,10 @@ async def db_has_team_join_welcome_event_id(
         await d1_run(
             env,
             (
-                "SELECT id FROM events WHERE workspace_id = ? "
-                "AND event_type = 'Team_Join_Welcome' AND request_data LIKE ? "
-                "ORDER BY id DESC LIMIT 1"
+                "SELECT 1 FROM events WHERE workspace_id = ? "
+                "AND event_type = 'Team_Join_Welcome' AND webhook_event_id = ? LIMIT 1"
             ),
-            [workspace_id, '%"event_id":"{0}"%'.format(event_id)],
+            [workspace_id, event_id],
         )
     )
     return row is not None
@@ -3146,10 +3177,16 @@ async def db_mark_join_message_verified_by_tracking(
             (
                 "SELECT id, request_data FROM events "
                 "WHERE event_type IN ('Channel_Join_Message', 'Team_Join', 'Team_Join_Welcome') "
-                "AND request_data LIKE ? AND request_data LIKE ? "
+                "AND created_at >= ? AND request_data LIKE ? AND request_data LIKE ? "
                 "ORDER BY id DESC LIMIT 1"
             ),
-            ['%"logo_tracking_id"%', '%"{0}"%'.format(tracking_id)],
+            [
+                # Logo hits arrive when a welcome is first opened; older messages aren't
+                # verified, so the scan stays on recent rows (idx_events_type_created).
+                (datetime.now(timezone.utc) - timedelta(days=LOGO_TRACKING_DAYS)).isoformat(),
+                '%"logo_tracking_id"%',
+                '%"{0}"%'.format(tracking_id),
+            ],
         )
     )
     if not row:
@@ -3380,6 +3417,25 @@ async def list_connected_workspaces(env: Any) -> List[Dict[str, Any]]:
         reverse=True,
     )
     return rows
+
+
+LOGO_TRACKING_DAYS = 14
+PUBLIC_PAYLOAD_TTL_SECONDS = 300
+_public_payload_cache: Dict[str, Any] = {"at": 0.0, "payload": None}
+
+
+async def cached_public_connections_payload(env: Any) -> Dict[str, Any]:
+    """public_connections_payload, kept for a few minutes per isolate.
+
+    Every homepage view asks for it, and building it counts events per workspace.
+    """
+    now = time.time()
+    cached = _public_payload_cache.get("payload")
+    if cached is not None and now - _public_payload_cache["at"] < PUBLIC_PAYLOAD_TTL_SECONDS:
+        return cached
+    payload = await public_connections_payload(env)
+    _public_payload_cache.update(at=now, payload=payload)
+    return payload
 
 
 async def public_connections_payload(env: Any) -> Dict[str, Any]:
@@ -3733,7 +3789,6 @@ async def blt_welcome_response(form: Dict[str, str], env: Any) -> Dict[str, Any]
 
     workspace = await db_get_workspace_by_team(env, team_id) if team_id else None
     workspace_id = (workspace or {}).get("id")
-    channels = await db_get_channels(env, workspace_id) if workspace_id else []
     welcome_text = render_team_join_message({"user": {"id": user_id}}, team_id) or ""
     if not welcome_text.strip():
         welcome_text = render_join_message_template(
@@ -3744,7 +3799,9 @@ async def blt_welcome_response(form: Dict[str, str], env: Any) -> Dict[str, Any]
                 "username": user_id,
             },
         )
-    welcome_text = link_workspace_channel_names(welcome_text, channels)
+    if workspace_id:
+        _, mentioned = await db_get_welcome_channels(env, workspace_id, welcome_text, top=0)
+        welcome_text = link_workspace_channel_names(welcome_text, mentioned)
     blocks = [
         {"type": "section", "text": {"type": "mrkdwn", "text": welcome_text.strip()}}
     ]
@@ -4591,12 +4648,11 @@ async def handle_team_join_event(
     if not welcome_text:
         return {"ok": True, "action": "team_join_no_template"}
 
-    channels = await db_get_channels(env, workspace_id) if workspace_id else []
-    top_channels = [
-        channel
-        for channel in channels[:5]
-        if channel.get("channel_id") and channel.get("channel_name")
-    ]
+    top_channels, mentioned = (
+        await db_get_welcome_channels(env, workspace_id, welcome_text)
+        if workspace_id
+        else ([], [])
+    )
     if top_channels:
         welcome_text += "\n\n:bar_chart: *Most Active Channels:* {0}".format(
             ", ".join(
@@ -4606,7 +4662,7 @@ async def handle_team_join_event(
                 for channel in top_channels
             )
         )
-    welcome_text = link_workspace_channel_names(welcome_text, channels)
+    welcome_text = link_workspace_channel_names(welcome_text, mentioned)
     blocks = [
         {"type": "section", "text": {"type": "mrkdwn", "text": welcome_text.strip()}}
     ]
@@ -6046,7 +6102,7 @@ async def handle_request(request: Any, env: Any) -> Any:
         return json_response({"ok": True, "service": "blt-sammich-worker"})
 
     if method == "GET" and normalized_path == "/api/workspaces-public":
-        return json_response(await public_connections_payload(env))
+        return json_response(await cached_public_connections_payload(env))
 
     if method in ("GET", "HEAD") and normalized_path == "/logo-hit":
         params = parse_qs(parsed_url.query)

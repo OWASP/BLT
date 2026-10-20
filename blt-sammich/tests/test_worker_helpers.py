@@ -1979,7 +1979,8 @@ def test_db_mark_join_message_verified_by_tracking_matches_compact_json():
 
     assert result is True
     assert "Team_Join_Welcome" in captured["select_query"]
-    assert captured["select_params"] == ['%"logo_tracking_id"%', '%"tid-123"%']
+    assert "created_at >= ?" in captured["select_query"]
+    assert captured["select_params"][1:] == ['%"logo_tracking_id"%', '%"tid-123"%']
     updated = json.loads(captured["update_params"][0])
     assert updated["verification_ip"] == "203.0.113.7"
     assert updated["verification_user_agent"] == "Slackbot"
@@ -1989,7 +1990,7 @@ def test_db_mark_join_message_verified_by_tracking_matches_compact_json():
 def test_blt_welcome_command_sends_welcome_dm():
     captured = {"sent": None, "logs": []}
     original_get_workspace = worker.db_get_workspace_by_team
-    original_get_channels = worker.db_get_channels
+    original_get_channels = worker.db_get_welcome_channels
     original_open = worker.slack_api_open_conversation
     original_send = worker.slack_api_send_message
     original_log = worker.db_log_event
@@ -1997,8 +1998,9 @@ def test_blt_welcome_command_sends_welcome_dm():
     async def fake_get_workspace(env, team_id):
         return {"id": 7, "team_id": team_id, "team_name": "OWASP"}
 
-    async def fake_get_channels(env, workspace_id):
-        return [{"channel_id": "C077QBBLY1Z", "channel_name": "contribute"}]
+    async def fake_get_channels(env, workspace_id, text, top=5):
+        assert "#contribute" in text
+        return [], [{"channel_id": "C077QBBLY1Z", "channel_name": "contribute"}]
 
     async def fake_open(user_id, env, team_id=""):
         return {"ok": True, "channel": {"id": "D123"}}
@@ -2025,7 +2027,7 @@ def test_blt_welcome_command_sends_welcome_dm():
         return True
 
     worker.db_get_workspace_by_team = fake_get_workspace
-    worker.db_get_channels = fake_get_channels
+    worker.db_get_welcome_channels = fake_get_channels
     worker.slack_api_open_conversation = fake_open
     worker.slack_api_send_message = fake_send
     worker.db_log_event = fake_log
@@ -2038,7 +2040,7 @@ def test_blt_welcome_command_sends_welcome_dm():
         )
     finally:
         worker.db_get_workspace_by_team = original_get_workspace
-        worker.db_get_channels = original_get_channels
+        worker.db_get_welcome_channels = original_get_channels
         worker.slack_api_open_conversation = original_open
         worker.slack_api_send_message = original_send
         worker.db_log_event = original_log
@@ -2059,7 +2061,7 @@ def test_handle_team_join_event_uses_joined_users_team_for_real_member_dm():
     original_get_workspace = worker.db_get_workspace_by_team
     original_bot_user_id = worker.db_get_workspace_bot_user_id
     original_has_event = worker.db_has_team_join_welcome_event_id
-    original_get_channels = worker.db_get_channels
+    original_get_channels = worker.db_get_welcome_channels
     original_open = worker.slack_api_open_conversation
     original_send = worker.slack_api_send_message
     original_log = worker.db_log_event
@@ -2076,8 +2078,8 @@ def test_handle_team_join_event_uses_joined_users_team_for_real_member_dm():
     async def fake_has_event(env, workspace_id, event_id):
         return False
 
-    async def fake_get_channels(env, workspace_id):
-        return []
+    async def fake_get_channels(env, workspace_id, text, top=5):
+        return [], []
 
     async def fake_open(user_id, env, team_id=""):
         captured["opened"] = {"user_id": user_id, "team_id": team_id}
@@ -2105,7 +2107,7 @@ def test_handle_team_join_event_uses_joined_users_team_for_real_member_dm():
     worker.db_get_workspace_by_team = fake_get_workspace
     worker.db_get_workspace_bot_user_id = fake_bot_user_id
     worker.db_has_team_join_welcome_event_id = fake_has_event
-    worker.db_get_channels = fake_get_channels
+    worker.db_get_welcome_channels = fake_get_channels
     worker.slack_api_open_conversation = fake_open
     worker.slack_api_send_message = fake_send
     worker.db_log_event = fake_log
@@ -2122,7 +2124,7 @@ def test_handle_team_join_event_uses_joined_users_team_for_real_member_dm():
         worker.db_get_workspace_by_team = original_get_workspace
         worker.db_get_workspace_bot_user_id = original_bot_user_id
         worker.db_has_team_join_welcome_event_id = original_has_event
-        worker.db_get_channels = original_get_channels
+        worker.db_get_welcome_channels = original_get_channels
         worker.slack_api_open_conversation = original_open
         worker.slack_api_send_message = original_send
         worker.db_log_event = original_log
@@ -3356,3 +3358,8 @@ def test_handle_event_payload_does_not_reply_to_bot_message_when_lookup_fails():
 
     assert response == {"ok": True}
     assert sent == {}
+
+
+def test_channel_names_mentioned_finds_linkable_names_only():
+    text = "Say hi in #general and #project-blt, not <#C1|linked> or a/#path. #general again."
+    assert worker.channel_names_mentioned(text) == ["general", "project-blt"]
