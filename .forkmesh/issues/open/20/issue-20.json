@@ -40,6 +40,16 @@
             "target": "gitlab-issue-82715256-5",
             "ts": 1792463360682,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "body": "/assign",
+            "id": "comment-web-1792477831374",
+            "sig": "3dm69ksufo5XvbX61wZ1KTx3ZoAfGU_oh4FktyuphZ2oDd3FmPzo8qhAREoPiGbjSItXBRz7-HzAoHkKGiwHBg",
+            "ts": 1792477831374,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +63,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mcp: Update Agent.md",
-    "updatedAt": 1792463360682,
+    "updatedAt": 1792477831374,
     "votes": 0
 }
