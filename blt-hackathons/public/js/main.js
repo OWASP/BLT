@@ -1148,13 +1148,18 @@ class HackathonDashboard {
      * Escape HTML to prevent XSS
      */
     escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        // String-based so quotes are escaped too; the DOM textContent trick left them alone, and
+        // these values also go into quoted attributes.
+        return String(text == null ? '' : text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     escapeAttribute(text) {
-        return this.escapeHtml(String(text)).replace(/`/g, '&#96;');
+        return this.escapeHtml(text).replace(/`/g, '&#96;');
     }
 }
 
