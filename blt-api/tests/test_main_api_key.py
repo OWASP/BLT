@@ -240,3 +240,39 @@ async def test_on_fetch_allows_options_preflight_without_api_key():
     assert response.status == 204
     get_db.assert_not_called()
     handle.assert_not_called()
+    # Preflight must carry CORS headers; normalize list-of-pairs or dict shapes.
+    headers = response.headers
+    if isinstance(headers, (list, tuple)):
+        headers = dict(headers)
+    assert headers.get("Access-Control-Allow-Origin") == "*"
+    assert "OPTIONS" in headers.get("Access-Control-Allow-Methods", "")
+
+
+@pytest.mark.asyncio
+async def test_options_preflight_passes_headers_as_sequence():
+    """Regression: Headers.new(dict) crashes Cloudflare Workers (error 1101).
+
+    The real Workers Headers constructor only accepts a sequence of pairs,
+    while the local mock accepts anything, so feed on_fetch a strict mock
+    that rejects dicts exactly like production does.
+    """
+    worker = main.Default()
+    worker.env = MockEnv()
+    request = MockRequest(method="OPTIONS", url="https://api.example.com/auth/signup")
+    real_new = main.Headers.new
+    seen = {}
+
+    def strict_new(value):
+        seen["value"] = value
+        if isinstance(value, dict):
+            raise TypeError("Headers init must be a sequence of pairs in Workers runtime")
+        return real_new(value)
+
+    with patch("main.get_db_safe", AsyncMock()), \
+         patch.object(main.router, "handle", AsyncMock()), \
+         patch.object(main.Headers, "new", staticmethod(strict_new)):
+        response = await worker.on_fetch(request)
+
+    assert response.status == 204
+    assert isinstance(seen["value"], list)
+    assert dict(seen["value"]).get("Access-Control-Allow-Origin") == "*"

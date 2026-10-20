@@ -246,12 +246,14 @@ class Default(WorkerEntrypoint):
             Response: The HTTP response to return to the client
         """
         try:
-            # Handle CORS preflight requests
+            # Handle CORS preflight requests.
+            # Headers.new() needs a sequence of pairs, not a dict;
+            # passing a dict crashes the Workers runtime (Cloudflare error 1101).
             if request.method == "OPTIONS":
                 return Response.new(
                     None,
                     status=204,
-                    headers=Headers.new(cors_headers())
+                    headers=Headers.new(list(cors_headers().items()))
                 )
 
             db = None
