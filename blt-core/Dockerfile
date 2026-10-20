@@ -1,5 +1,5 @@
 # Stage 1: Build stage
-FROM python:3.11.2 AS builder
+FROM python:3.11-bookworm AS builder
 
 ENV PYTHONUNBUFFERED=1
 WORKDIR /blt
@@ -46,7 +46,7 @@ RUN poetry install --no-root --no-interaction || \
 RUN pip install opentelemetry-api opentelemetry-instrumentation
 
 # Stage 2: Runtime stage
-FROM python:3.11.2-slim
+FROM python:3.11-slim-bookworm
 
 ENV PYTHONUNBUFFERED=1
 WORKDIR /blt
@@ -60,9 +60,9 @@ RUN apt-get update && \
     apt-get install -y postgresql-client libpq-dev \
     libmemcached11 libmemcachedutil2 dos2unix \
     libglib2.0-0 libsm6 libxext6 libxrender1 libgomp1 \
-    libgtk-3-0 libavcodec58 libavformat58 libswscale5 \
+    libgtk-3-0 libavcodec59 libavformat59 libswscale6 \
     libgstreamer-plugins-base1.0-0 libgstreamer1.0-0 \
-    libpng16-16 libjpeg62-turbo libopenexr25 libtiff5 libwebp6 && \
+    libpng16-16 libjpeg62-turbo libopenexr-3-1-30 libtiff6 libwebp7 && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy application code
