@@ -10,6 +10,19 @@ from js import fetch, Object
 from pyodide.ffi import to_js
 
 
+MAX_CONTEXT_FIELDS = 15
+
+
+def slack_escape(value, limit):
+    """Text for a Slack mrkdwn message, capped at `limit` characters.
+
+    The client-error endpoint passes visitor-supplied text here. Escaping &, < and > (Slack's own
+    rule) keeps `<https://evil|click>` links, `<!channel>`/`<!here>` and `<@U…>` mentions inert.
+    """
+    text = str(value if value is not None else "")[:limit]
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
 async def notify_slack_error(webhook_url, error_type, error_message, context=None, stack_trace=None):
     """Send an error notification to a Slack incoming webhook.
 
@@ -23,15 +36,20 @@ async def notify_slack_error(webhook_url, error_type, error_message, context=Non
     if not webhook_url:
         return False
 
-    lines = [f"*{error_type}*: {error_message}"]
+    lines = [f"*{slack_escape(error_type, 100)}*: {slack_escape(error_message, 500)}"]
 
     if context:
-        ctx_lines = [f"• *{k}*: {v}" for k, v in context.items()]
+        ctx_lines = [
+            f"• *{slack_escape(k, 40)}*: {slack_escape(v, 200)}"
+            for k, v in list(context.items())[:MAX_CONTEXT_FIELDS]
+        ]
         lines.append("\n".join(ctx_lines))
 
     if stack_trace:
         # Truncate very long stack traces to avoid hitting Slack's message size limit
-        truncated = stack_trace[:2000]
+        stack_trace = str(stack_trace)
+        # Backticks would close the code block early.
+        truncated = slack_escape(stack_trace[:2000], 2000).replace("`", "'")
         if len(stack_trace) > 2000:
             truncated += "\n…(truncated)"
         lines.append(f"```{truncated}```")

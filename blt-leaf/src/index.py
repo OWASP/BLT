@@ -358,7 +358,12 @@ async def on_fetch(request, env):
             slack_cap = int(getattr(env, 'SLACK_MAX_PER_MIN', 20) or 20)
             slack_allowed, slack_retry = slack_budget_allow(slack_cap, 60)
 
-            ctx = {k: str(v)[:200] for k, v in body.items() if k not in ('error_type', 'message', 'stack')}
+            # Visitor-supplied: cap the number and size of fields (slack_notifier escapes the text).
+            ctx = {
+                str(k)[:40]: str(v)[:200]
+                for k, v in list(body.items())[:12]
+                if k not in ('error_type', 'message', 'stack')
+            }
             ctx['source'] = 'frontend'
             ctx['ip'] = ip
             ctx['dedupe'] = '1' if should_slack else '0'
