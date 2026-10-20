@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "khvPCMyOyVupN4XgVA35Kb_L2gWJn-SZhzmfDyRk_GI",
+    "authorName": "khush173",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792499588125,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "khvPCMyOyVupN4XgVA35Kb_L2gWJn-SZhzmfDyRk_GI",
+            "authorName": "khush173",
+            "authorVerified": true,
+            "body": "Even when we are on dark mode but when we go to login/signup page it automatically shifts to light mode. \n\nSteps to reproduce the issue.\nJust do dark mode and then go to login/signup page it will automatically shifts to light mode and then if you come back to dashboard or some other page it will be back to dark mode",
+            "id": "open-web-1792499588125",
+            "sig": "-BypubM1fWXTpKjT79mqo5lifFXVpx86n6ddk_YdDPo_nIUPE1WZoy5qySMCNLTMY7gdnRq_T4EGlErXf7N-Aw",
+            "title": "blt-next : Automatically shifts to light mode when clicks on login/signup",
+            "ts": 1792499588125,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 40,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-next : Automatically shifts to light mode when clicks on login/signup",
+    "updatedAt": 1792499588125,
+    "votes": 0
+}
