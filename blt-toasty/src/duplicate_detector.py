@@ -297,6 +297,7 @@ async def detect_duplicates(
     env: Any,
     db: Any,
     do_stub: Any,
+    embedding: list[float] | None = None,
 ) -> DuplicateDetectionResult:
     """Detect duplicate vulnerability reports using 3-tier scoring.
 
@@ -315,6 +316,8 @@ async def detect_duplicates(
         env: Cloudflare Worker environment object.
         db: Cloudflare D1 database handle.
         do_stub: Durable Object stub for the LLM router.
+        embedding: Vector already computed for *redacted_text*, passed on to
+            ``find_duplicates`` so the sidecar is not called twice.
 
     Returns:
         A ``DuplicateDetectionResult`` with sorted candidates.
@@ -327,7 +330,9 @@ async def detect_duplicates(
 
     # ── Retrieve candidates from Vectorize ────────────────────────────────
     is_shadow = event_id.startswith("shadow:")
-    raw_matches = await find_duplicates(redacted_text, repo_full_name, env, top_k=20, include_shadow=is_shadow)
+    raw_matches = await find_duplicates(
+        redacted_text, repo_full_name, env, top_k=20, include_shadow=is_shadow, embedding=embedding
+    )
 
     if not raw_matches:
         return DuplicateDetectionResult(

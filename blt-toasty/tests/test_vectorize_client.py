@@ -233,6 +233,18 @@ class TestIndexReport:
         env.VECTORIZE.deleteByIds.assert_not_called()
 
     @pytest.mark.asyncio
+    @patch("src.vectorize_client.get_embedding", new_callable=AsyncMock)
+    async def test_returns_embedding_for_reuse(self, mock_get_embedding):
+        """index_report returns the vector it computed, or None if the sidecar was down."""
+        mock_get_embedding.return_value = [0.1] * 384
+        result = await index_report("evt-001", "redacted text", "owasp/blt", _make_env(), _make_db())
+        assert result == [0.1] * 384
+
+        mock_get_embedding.side_effect = EmbeddingServiceError("sidecar down", status_code=503)
+        result = await index_report("evt-002", "redacted text", "owasp/blt", _make_env(), _make_db())
+        assert result is None
+
+    @pytest.mark.asyncio
     async def test_guard_blocks_non_summarized(self):
         """index_report raises StateTransitionError for non-summarized events."""
         db = _make_db(status="pending")
@@ -310,6 +322,21 @@ class TestFindDuplicates:
 
         assert results == []
         env.VECTORIZE.query.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    @patch("src.vectorize_client.get_embedding", new_callable=AsyncMock)
+    async def test_given_embedding_skips_sidecar(self, mock_get_embedding):
+        """A precomputed embedding is used for the query and the sidecar is not called."""
+        env = _make_env()
+        query_result = MagicMock()
+        query_result.matches = [_make_vectorize_match("evt-001", 0.95, "owasp/blt")]
+        env.VECTORIZE.query = AsyncMock(return_value=query_result)
+
+        results = await find_duplicates("redacted query text", "owasp/blt", env, embedding=[0.2] * 384)
+
+        mock_get_embedding.assert_not_awaited()
+        assert env.VECTORIZE.query.call_args[0][0] == [0.2] * 384
+        assert len(results) == 1
 
     @pytest.mark.asyncio
     @patch("src.vectorize_client.get_embedding", new_callable=AsyncMock)

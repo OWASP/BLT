@@ -143,7 +143,7 @@ async def index_report(
     repo_full_name: str,
     env: Any,
     db: Any,
-) -> None:
+) -> list[float] | None:
     """Embed redacted text and index it in Cloudflare Vectorize.
 
     1. Guards via ``assert_summarized_before_embedding`` (**first** call).
@@ -160,6 +160,11 @@ async def index_report(
         repo_full_name: Full repository name for metadata filtering.
         env: Cloudflare Worker environment with ``VECTORIZE`` binding.
         db: A Cloudflare D1 database handle.
+
+    Returns:
+        The embedding vector, so callers can reuse it for the duplicate
+        search instead of calling the sidecar again.  ``None`` if the
+        sidecar was unavailable.
     """
     # ── Gate: security invariant ──────────────────────────────────────────
     await assert_summarized_before_embedding(event_id, db)
@@ -187,7 +192,7 @@ async def index_report(
             )
         )
         await _transition_state(db, event_id, "embedded_pending", expected_status=current_status)
-        return  # Do NOT re-raise — Cron Trigger will retry.
+        return None  # Do NOT re-raise — Cron Trigger will retry.
 
     # ── Insert into Vectorize ─────────────────────────────────────────────
     now = datetime.now(timezone.utc).isoformat()
@@ -283,6 +288,7 @@ async def index_report(
         raise
 
     logger.info("Indexed event %s in Vectorize (repo=%s)", event_id, repo_full_name)
+    return embedding
 
 
 async def find_duplicates(
@@ -291,6 +297,7 @@ async def find_duplicates(
     env: Any,
     top_k: int = 20,
     include_shadow: bool = False,
+    embedding: list[float] | None = None,
 ) -> list[dict]:
     """Find semantically similar reports in the same repository.
 
@@ -299,6 +306,8 @@ async def find_duplicates(
         repo_full_name: Repository scope filter for the Vectorize query.
         env: Cloudflare Worker environment with ``VECTORIZE`` binding.
         top_k: Maximum number of nearest neighbours to retrieve.
+        embedding: Vector already computed for *redacted_text* (e.g. by
+            ``index_report``).  If ``None``, it is fetched from the sidecar.
 
     Returns:
         A list of dicts ``{"event_id": str, "score": float, "metadata": dict}``
@@ -308,11 +317,12 @@ async def find_duplicates(
         Returns an empty list on sidecar failure (degraded mode).
     """
     top_k = min(top_k, 20)
-    try:
-        embedding = await get_embedding(redacted_text, env)
-    except EmbeddingServiceError as exc:
-        logger.warning("Sidecar unavailable for duplicate search — returning empty: %s", exc)
-        return []
+    if embedding is None:
+        try:
+            embedding = await get_embedding(redacted_text, env)
+        except EmbeddingServiceError as exc:
+            logger.warning("Sidecar unavailable for duplicate search — returning empty: %s", exc)
+            return []
 
     try:
         options = {

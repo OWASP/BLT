@@ -148,6 +148,19 @@ class TestDetectDuplicates:
 
     @pytest.mark.asyncio
     @patch("src.duplicate_detector.find_duplicates", new_callable=AsyncMock)
+    async def test_passes_embedding_to_find_duplicates(self, mock_find_duplicates):
+        """A precomputed embedding is forwarded so the sidecar is not called again."""
+        mock_find_duplicates.return_value = []
+        db = _make_db(status="redaction_passed")
+
+        await detect_duplicates(
+            "evt-001", "redacted text", "owasp/blt", _make_env(), db, _make_do_stub(), embedding=[0.3] * 384
+        )
+
+        assert mock_find_duplicates.await_args.kwargs["embedding"] == [0.3] * 384
+
+    @pytest.mark.asyncio
+    @patch("src.duplicate_detector.find_duplicates", new_callable=AsyncMock)
     async def test_high_score_accepted_without_llm(self, mock_find_duplicates):
         """Score ≥ 0.85 is accepted as retrieval_only without calling the LLM."""
         mock_find_duplicates.return_value = [
