@@ -50,6 +50,16 @@
             "sig": "uVYb59bB29BZ1FbpxG_uCD7EFWv0Xlv8LPMHbb_QjRBkD66BWLW8HUx5mxtXFJV5Sud2gvcJYC0DBHLZQ4swDQ",
             "ts": 1792477949473,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "body": "@vanshika2720 you can't be assigned to this issue because you are already assigned to #27. Please open a pull request for it, or comment `/unassign` there, before taking another issue. \u003c!-- blt-assign:8368f61de9901feae72c --\u003e",
+            "id": "actions-1792477963433-8s0M82-x",
+            "sig": "XC_vpJnQPFDdNBuoRP3KgDTlaSmyCoP0Fkla1NAShyUBCoIm40gFk0qzFOY22NgbQORbPRXI4pghHf7w3MmDCQ",
+            "ts": 1792477963433,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -63,6 +73,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-safecloak: Shared screen hides the video of the host",
-    "updatedAt": 1792477949473,
+    "updatedAt": 1792477963433,
     "votes": 0
 }
