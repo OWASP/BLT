@@ -20,7 +20,7 @@ blt-netguardian	python	pip install -r requirements-dev.txt && python -m pytest -
 blt-netguardian-client	flutter	flutter pub get && flutter test
 blt-newsletter	python	pip install --group dev && python -m unittest discover -s tests
 blt-next	node	npm_install && npm run lint --if-present && npm test --if-present && python3 -m py_compile workers/main.py
-blt-ossh	node	python3 -m py_compile scripts/fetch_articles.py scripts/fetch_discord.py scripts/fetch_reddit.py && node --test 'scripts/actions/*.test.mjs' 'test/*.test.mjs'
+blt-ossh	node	python3 -m py_compile scripts/fetch_articles.py scripts/fetch_discord.py scripts/fetch_reddit.py scripts/fetch_research_papers.py && node --test 'scripts/actions/*.test.mjs' 'test/*.test.mjs'
 blt-owasp-bumper	node	python3 -m py_compile generate_repo_list.py && node --test 'test/*.test.mjs'
 blt-owasp-metadata	node	python3 -m py_compile scripts/scrape_metadata.py && node --test 'test/*.test.mjs'
 blt-owasp-projects	python	for f in index.html projects.html issues.html; do test -f public/$f || exit 1; done && for f in repo_status www_project_repos project_repos_links issues known_issue_ids; do python -m json.tool public/$f.json > /dev/null || exit 1; done && python -m py_compile scripts/*.py && node --test 'test/*.test.mjs'

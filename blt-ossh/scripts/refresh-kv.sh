@@ -8,8 +8,9 @@
 #    because KV, not git, holds the latest catalog and each fetch script replaces only its own
 #    section of the previous file. Without a KV copy yet, the checked-out file is the base; when
 #    KV cannot be read, the run stops so a stale base never replaces newer data.
-# 2. Runs fetch_articles.py (DEV.to), fetch_discord.py (only with DISCORD_BOT_TOKEN) and
-#    fetch_reddit.py. Each keeps its section when it fetched nothing or less than half as much.
+# 2. Runs fetch_articles.py (DEV.to), fetch_discord.py (only with DISCORD_BOT_TOKEN),
+#    fetch_reddit.py and fetch_research_papers.py (arXiv). Each keeps its section when it fetched
+#    nothing or less than half as much.
 # 3. Drops repos hosted under gitlab.com/owasp-blt (the group is closed; BLT lives on
 #    git.owaspblt.org) and writes the catalog to KV when it changed.
 # Nothing is committed and nothing is redeployed. Requires python3 (with requests), curl, jq.
@@ -42,6 +43,7 @@ if [[ -n "${DISCORD_BOT_TOKEN:-}" ]]; then
   "$PYTHON" scripts/fetch_discord.py || echo "warning: fetch_discord.py failed"
 fi
 "$PYTHON" scripts/fetch_reddit.py || echo "warning: fetch_reddit.py failed"
+"$PYTHON" scripts/fetch_research_papers.py || echo "warning: fetch_research_papers.py failed"
 
 if ! jq -e "$CATALOG_OK" "$OSSH_CATALOG_PATH" >/dev/null 2>&1; then
   echo "not writing data/ossh_catalog.json: not a catalog with repos" >&2

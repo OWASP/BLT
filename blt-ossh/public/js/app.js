@@ -180,6 +180,7 @@ function buildAllowedTagSet(catalog) {
   (catalog.communities || []).forEach((c) => addTags(c.tags));
   (catalog.discussion_channels || []).forEach((c) => addTags(c.tags));
   (catalog.articles || []).forEach((a) => addTags(a.tags));
+  (catalog.research_papers || []).forEach((p) => addTags(p.tags));
 
   (catalog.repos || []).forEach((r) => r.primary_language && s.add(normalizeTag(r.primary_language)));
   (catalog.communities || []).forEach((c) => c.primary_language && s.add(normalizeTag(c.primary_language)));
@@ -302,6 +303,7 @@ async function buildRecommendations(userData, repos) {
   const recommended_communities = recommendGeneric(catalog.communities, userTags, languageWeights, { topN: 6, usesLanguage: true });
   const recommended_discussion_channels = recommendGeneric(catalog.discussion_channels, userTags, languageWeights, { topN: 6, usesLanguage: false });
   const recommended_articles = recommendGeneric(catalog.articles, userTags, languageWeights, { topN: 8, usesLanguage: false });
+  const recommended_research_papers = recommendGeneric(catalog.research_papers, userTags, languageWeights, { topN: 6, usesLanguage: false });
 
   return {
     github_stats,
@@ -309,6 +311,7 @@ async function buildRecommendations(userData, repos) {
     recommended_repos,
     recommended_communities,
     recommended_articles,
+    recommended_research_papers,
     recommended_discussion_channels,
   };
 }
@@ -511,6 +514,52 @@ function displayResults(data) {
     `;
     articlesContainer.appendChild(articleCard);
   });
+
+  // Recommended Research Papers
+  const papersContainer = document.getElementById('recommended-research-papers');
+  if (papersContainer) {
+    papersContainer.innerHTML = '';
+
+    (data.recommended_research_papers || []).forEach(row => {
+      const paper = row?.item ? row.item : row;
+      const paperTitle = paper.title || '';
+      const paperAuthors = (paper.authors || []).slice(0, 2).join(', ') || 'Unknown';
+      const paperSummary = paper.summary || paper.abstract || '';
+      const paperUrl = sanitizeExternalUrl(paper.url || paper.pdf_url || '#');
+      const paperSource = paper.source || 'arXiv';
+      const published = (paper.published || paper.published_date || '').slice(0, 10);
+
+      const paperCard = document.createElement('div');
+      paperCard.className = 'surface-card rounded-xl p-5 hover:shadow-lg transition';
+      paperCard.innerHTML = `
+        <div class="flex items-start gap-3 mb-3">
+          <div class="flex-shrink-0 w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+            <i class="fas fa-graduation-cap text-purple-600 dark:text-purple-400"></i>
+          </div>
+          <div class="flex-1">
+            <h4 class="font-semibold text-gray-900 dark:text-white">${escapeHtml(paperTitle)}</h4>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <i class="fas fa-user mr-1"></i>${escapeHtml(paperAuthors)}
+            </p>
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-3">${escapeHtml(paperSummary.length > 200 ? paperSummary.substring(0, 200) + '...' : paperSummary)}</p>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
+          <span class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">
+            ${escapeHtml(paperSource)}
+          </span>
+          ${published ? `<span>${escapeHtml(published)}</span>` : ''}
+        </div>
+        ${renderTagChips(paper.tags || row?.matching_tags)}
+        ${renderScoreReason(row?.item ? row : null)}
+        <a href="${escapeHtml(paperUrl)}" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 font-semibold text-sm hover:underline mt-4">
+          Read Paper <i class="fas fa-external-link-alt ml-1"></i>
+        </a>
+      `;
+      papersContainer.appendChild(paperCard);
+    });
+  }
 
   // Discussion channels
   const channelsContainer = document.getElementById('discussion-channels');

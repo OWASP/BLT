@@ -1,6 +1,6 @@
 name: "blt-ossh: Update Catalog Data"
 # Ported from .github/workflows/blt-ossh--update-catalog.yml. Refreshes the articles, Discord
-# servers and Reddit communities of the catalog and writes it to the blt-ossh Worker's KV namespace
+# servers, Reddit communities and arXiv research papers of the catalog and writes it to the blt-ossh Worker's KV namespace
 # (scripts/refresh-kv.sh), which serves it at /data/ossh_catalog.json. Nothing is committed and
 # nothing is redeployed. The fetch stays here rather than in the Worker: it is over 50 requests.
 on:
@@ -18,7 +18,7 @@ jobs:
         working-directory: blt-ossh
     steps:
       - name: Set up Python
-        run: python3 -m venv .venv && .venv/bin/pip install -q requests
+        run: python3 -m venv .venv && .venv/bin/pip install -q requests defusedxml
       - name: Fetch the catalog and write it to KV
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}

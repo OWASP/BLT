@@ -71,7 +71,7 @@ fi
     assert.match(out, /would write data\/ossh_catalog\.json/); // the gitlab entry was dropped
     const written = JSON.parse(readFileSync(join(pub, "data", "ossh_catalog.json"), "utf8"));
     assert.deepEqual(written.repos, [{ url: "https://github.com/a/b" }]);
-    assert.deepEqual(readFileSync(join(dir, "ran"), "utf8").trim().split("\n"), ["scripts/fetch_articles.py", "scripts/fetch_reddit.py"]);
+    assert.deepEqual(readFileSync(join(dir, "ran"), "utf8").trim().split("\n"), ["scripts/fetch_articles.py", "scripts/fetch_reddit.py", "scripts/fetch_research_papers.py"]);
 
     // No KV copy yet: the checked-out file is the base. A KV copy that is not a catalog stops the run.
     out = run({ KV_GET_FROM: join(dir, "missing.json") });

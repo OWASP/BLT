@@ -39,6 +39,7 @@ OSSH (Open-Source Sorting Hat) is a tool that analyzes your GitHub profile and r
 - Open-source projects matching your tech stack
 - Developer communities and organizations
 - Curated learning resources and articles
+- Research papers from arXiv on topics relevant to your skills
 - Active discussion channels (Discord, Slack, Reddit, etc.)
 
 ### 🌙 Modern UI/UX
