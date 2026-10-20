@@ -112,12 +112,16 @@ export function buildEntry(body) {
           }`;
   const rulesValue = rulesRaw && rulesRaw !== NO_RESPONSE ? rulesRaw : "";
 
+  // Every value from the issue goes into the config as a JSON string literal. The config is a JS file
+  // that scripts/parse_hackathons_config.js evals (with the update-stats tokens in the environment)
+  // and browsers run, so a template literal here let `${...}` or a `\` before a backtick run code.
+
   const entry = `
           {
           slug: ${JSON.stringify(slug)},
           name: ${JSON.stringify(name)},
-          description: \`\n                ${description.replace(/`/g, "\\`")}\n            \`,
-          rules: \`\n                ${rulesValue.replace(/`/g, "\\`")}\n            \`,
+          description: ${JSON.stringify(description)},
+          rules: ${JSON.stringify(rulesValue)},
           startTime: ${JSON.stringify(startTime)},
           endTime: ${JSON.stringify(endTime)},
           ${providerLine}

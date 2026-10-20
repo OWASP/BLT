@@ -58,3 +58,23 @@ test("a sponsor is appended to the matching hackathon", () => {
   assert.match(addSponsor(CONFIG, "**Hackathon:** nope-nothing-matches\n**Sponsor Name / Company:** A\n**Sponsorship Amount:** 1").error, /No hackathon found/);
   assert.match(addSponsor(CONFIG, "").error, /missing/);
 });
+
+test("issue text cannot break out of the config's string literals", () => {
+  globalThis.__pwned = false;
+  const payloads = [
+    "${globalThis.__pwned = true}",
+    "\\`, pwned: (globalThis.__pwned = true), x: `",
+    "\"; globalThis.__pwned = true; \"",
+  ];
+  for (const payload of payloads) {
+    const built = buildEntry(form({ ...HACKATHON, Description: payload, "Rules (optional)": payload }));
+    const { config } = insertEntry(CONFIG, built.slug, built.entry);
+    const first = vm.runInNewContext(config + "\nHACKATHONS_CONFIG", { globalThis: {} }).hackathons[0];
+    assert.equal(first.description, payload);
+    assert.equal(first.pwned, undefined);
+    // Evaluated the way scripts/parse_hackathons_config.js does it.
+    const parsed = eval(`${config}\nHACKATHONS_CONFIG`).hackathons[0];
+    assert.equal(parsed.description, payload);
+  }
+  assert.equal(globalThis.__pwned, false);
+});
