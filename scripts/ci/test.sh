@@ -27,11 +27,21 @@ case "${1:-}" in
 esac
 [[ ${#projects[@]} -eq 0 ]] && { echo "no projects to test"; exit 0; }
 
+# Suites too big for a small runner. On a machine with under 3 GB of memory (the git.owaspblt.org
+# runner shares 1 GB with the website) they are skipped in --changed/--all runs, so they can't
+# push the site into swap; name them explicitly to run them anyway.
+HEAVY=(blt-core)
+mem_kb="$(awk '/^MemTotal:/ {print $2}' /proc/meminfo 2>/dev/null || echo 0)"
+low_memory=0; [[ "${mem_kb:-0}" -gt 0 && "${mem_kb}" -lt 3000000 ]] && low_memory=1
+
 passed=(); failed=(); skipped=()
 for p in "${projects[@]}"; do
   line="$(awk -F'\t' -v p="$p" '$1==p' "$TABLE")"
   [[ -z "$line" ]] && { echo "unknown project: $p" >&2; failed+=("$p"); continue; }
   tool="$(cut -f2 <<<"$line")"; cmd="$(cut -f3- <<<"$line")"
+  if [[ $low_memory -eq 1 && ( "${1:-}" == "--changed" || "${1:-}" == "--all" ) && " ${HEAVY[*]} " == *" $p "* ]]; then
+    echo "--- $p: SKIPPED (heavy suite; under 3 GB of memory here)"; skipped+=("$p"); continue
+  fi
   if ! command -v "$( [[ $tool == python ]] && echo python3 || ([[ $tool == rust ]] && echo cargo) || echo "$tool")" >/dev/null; then
     echo "--- $p: SKIPPED ($tool not installed)"; skipped+=("$p"); continue
   fi
