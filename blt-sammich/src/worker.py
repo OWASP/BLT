@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import csv
 import hashlib
@@ -4448,6 +4449,529 @@ async def process_due_reminders(env: Any, now: Optional[int] = None) -> Dict[str
     return summary
 
 
+# --- PR review asks ------------------------------------------------------------------
+# When someone posts a pull request link in #owasp-blt (PR_REVIEW_CHANNEL) and the PR is
+# open with no review by anyone but its author, sammich asks for a reviewer in the thread.
+# Messages without a PR link cost nothing. A message with links costs a token lookup, one
+# indexed dedupe read per link and, when sammich asks, one upsert; the forge/GitHub lookups
+# and the Slack post run after Slack has its 200 (ctx.waitUntil).
+
+PR_REVIEW_DEFAULT_CHANNEL = "owasp-blt"
+PR_REVIEW_MAX_LINKS = 3
+PR_REVIEW_DEDUPE_SECONDS = 86400
+PR_REVIEW_NUDGE_SECONDS = 86400
+PR_REVIEW_NUDGE_BATCH = 3
+FORGE_URL = "https://git.owaspblt.org"
+FORGE_REPO = "owasp-blt/BLT"
+FORGE_PULL_LEDGER = "forkmesh/pulls"
+_FORGE_REVIEW_FILE = re.compile(r"^\d+-review\.md$")
+_PR_LINK = re.compile(
+    r"https?://(?:"
+    r"git\.owaspblt\.org/(?:owasp-blt/)?BLT/pulls?/(?P<forge>\d+)"
+    r"|(?:www\.)?github\.com/(?P<owner>[A-Za-z0-9][A-Za-z0-9-]*)/(?P<repo>[A-Za-z0-9._-]+)/pull/(?P<github>\d+)"
+    r")(?![A-Za-z0-9_])",
+    re.IGNORECASE,
+)
+
+# Per-isolate cache: team_id -> the review channel's id, once one message proved it.
+_PR_REVIEW_CHANNEL_IDS: Dict[str, str] = {}
+# Channels already looked up that are not the review channel ("team:channel").
+_PR_REVIEW_OTHER_CHANNELS: set = set()
+
+
+def extract_pr_links(text: str, limit: int = PR_REVIEW_MAX_LINKS) -> List[Dict[str, Any]]:
+    """Forge and GitHub pull request links in a Slack message, deduplicated, at most limit."""
+    found: List[Dict[str, Any]] = []
+    seen = set()
+    for match in _PR_LINK.finditer(str(text or "")):
+        if match.group("forge"):
+            number = int(match.group("forge"))
+            link = {
+                "kind": "forge",
+                "repo": FORGE_REPO,
+                "number": number,
+                "url": "{0}/BLT/pulls/{1}".format(FORGE_URL, number),
+                "key": "forge:{0}#{1}".format(FORGE_REPO, number),
+            }
+        else:
+            owner, repo = match.group("owner"), match.group("repo")
+            if repo.lower().endswith(".git"):
+                repo = repo[:-4]
+            number = int(match.group("github"))
+            link = {
+                "kind": "github",
+                "owner": owner,
+                "repo": repo,
+                "number": number,
+                "url": "https://github.com/{0}/{1}/pull/{2}".format(owner, repo, number),
+                "key": "github:{0}/{1}#{2}".format(owner.lower(), repo.lower(), number),
+            }
+        if link["key"] in seen:
+            continue
+        seen.add(link["key"])
+        found.append(link)
+        if len(found) >= limit:
+            break
+    return found
+
+
+def parse_front_matter(text: Any) -> Dict[str, str]:
+    """The ``key: value`` lines between the leading ``---`` fences of a ledger file."""
+    lines = str(text or "").split("\n")
+    if not lines or lines[0].strip() != "---":
+        return {}
+    values: Dict[str, str] = {}
+    for line in lines[1:]:
+        if line.strip() == "---":
+            return values
+        key, sep, value = line.partition(":")
+        if sep:
+            values[key.strip()] = value.strip().strip('"')
+    return {}
+
+
+def _is_bot_name(name: str) -> bool:
+    return str(name or "").lower().endswith("[bot]")
+
+
+def _same_person(name_a: str, key_a: str, name_b: str, key_b: str) -> bool:
+    if key_a and key_b:
+        return key_a == key_b
+    if name_a and name_b:
+        return name_a.casefold() == name_b.casefold()
+    return True  # a review without an identity cannot prove it is someone else's
+
+
+def parse_forge_pull(number: int, files: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Review state of a forge pull from its ledger folder: {name: text} for pull.md and the
+    NNNN-review.md files. None when pull.md is missing or the pull is deleted."""
+    meta = parse_front_matter(files.get("pull.md"))
+    if not meta:
+        return None
+    status = str(meta.get("status") or "open").lower()
+    if status == "deleted":
+        return None
+    merged_at = str(meta.get("mergedAt") or "")
+    if status in ("merged", "closed-merged") or merged_at not in ("", "0", "null"):
+        state = "merged"
+    else:
+        state = "open" if status == "open" else "closed"
+    author = str(meta.get("authorName") or "")
+    author_key = str(meta.get("author") or "")
+    reviewers: List[str] = []
+    for name in sorted(files):
+        if not _FORGE_REVIEW_FILE.match(name):
+            continue
+        event = parse_front_matter(files.get(name))
+        if str(event.get("type") or "review").lower() != "review":
+            continue
+        reviewer = str(event.get("authorName") or "")
+        reviewer_key = str(event.get("author") or "")
+        if _is_bot_name(reviewer) or _same_person(author, author_key, reviewer, reviewer_key):
+            continue
+        reviewers.append(reviewer or reviewer_key)
+    return {
+        "number": int(number),
+        "title": str(meta.get("title") or ""),
+        "author": author or author_key[:12],
+        "state": state,
+        "draft": False,
+        "peer_reviewers": reviewers,
+    }
+
+
+def parse_github_pull(pull: Dict[str, Any], reviews: List[Dict[str, Any]]) -> Dict[str, Any]:
+    author = str((pull.get("user") or {}).get("login") or "")
+    reviewers: List[str] = []
+    for review in reviews or []:
+        if not isinstance(review, dict):
+            continue
+        user = review.get("user") or {}
+        login = str(user.get("login") or "")
+        if (
+            not login
+            or login.casefold() == author.casefold()
+            or _is_bot_name(login)
+            or str(user.get("type") or "") == "Bot"
+            or str(review.get("state") or "").upper() == "PENDING"
+        ):
+            continue
+        if login not in reviewers:
+            reviewers.append(login)
+    if pull.get("merged") or pull.get("merged_at"):
+        state = "merged"
+    else:
+        state = "open" if str(pull.get("state") or "") == "open" else "closed"
+    return {
+        "number": int(pull.get("number") or 0),
+        "title": str(pull.get("title") or ""),
+        "author": author,
+        "state": state,
+        "draft": bool(pull.get("draft")),
+        "peer_reviewers": reviewers,
+    }
+
+
+def pr_needs_peer_review(pr: Optional[Dict[str, Any]]) -> bool:
+    return bool(pr) and pr.get("state") == "open" and not pr.get("draft") and not pr.get("peer_reviewers")
+
+
+def pr_review_skip_reason(pr: Optional[Dict[str, Any]]) -> str:
+    if not pr:
+        return "unknown"
+    if pr.get("state") != "open":
+        return str(pr.get("state"))
+    return "draft" if pr.get("draft") else "reviewed"
+
+
+def _forge_blob_text(blob: Any) -> str:
+    if blob is None:
+        return ""
+    if isinstance(blob, str):
+        return blob
+    content = str(blob.get("content") or blob.get("text") or "")
+    if blob.get("encoding") == "base64":
+        try:
+            return base64.b64decode(content).decode("utf-8", "replace")
+        except ValueError:
+            return ""
+    return content
+
+
+async def forge_get(operation: str, params: List[Tuple[str, str]]) -> Optional[Dict[str, Any]]:
+    """One anonymous GET on the forge read API; None for 404 or a non-JSON answer."""
+    url = "{0}/api/repo/{1}/{2}?{3}".format(FORGE_URL, FORGE_REPO, operation, urlencode(params))
+    try:
+        ok, payload, status = await fetch_json(
+            url, headers={"Accept": "application/json", "User-Agent": "blt-sammich"}
+        )
+    except ValueError:
+        return None
+    if status == 404:
+        return None
+    if not ok:
+        raise RuntimeError("forge {0} answered {1}".format(operation, status))
+    return payload if isinstance(payload, dict) else None
+
+
+async def fetch_forge_pull(number: int) -> Optional[Dict[str, Any]]:
+    """Two subrequests (the folder listing and one blobs batch), three when the aggregate
+    ledger has not caught up with a new pull and its own forkmesh/pull/<n> ref is read."""
+    folder = ".forkmesh/pulls/{0}".format(int(number))
+    tree = await forge_get("tree", [("path", folder), ("ref", FORGE_PULL_LEDGER)])
+    if not (tree or {}).get("entries"):
+        tree = await forge_get("tree", [("path", folder), ("ref", "forkmesh/pull/{0}".format(int(number)))])
+    entries = (tree or {}).get("entries") or []
+    names = [str(e.get("name") or "") for e in entries if isinstance(e, dict) and e.get("type") == "blob"]
+    if "pull.md" not in names:
+        return None
+    ref = str(tree.get("commit") or FORGE_PULL_LEDGER)
+    wanted = ["pull.md"] + sorted(n for n in names if _FORGE_REVIEW_FILE.match(n))[:49]
+    data = await forge_get("blobs", [("path", "{0}/{1}".format(folder, n)) for n in wanted] + [("ref", ref)])
+    blobs = (data or {}).get("blobs") or {}
+    files = {n: _forge_blob_text(blobs.get("{0}/{1}".format(folder, n))) for n in wanted}
+    return parse_forge_pull(number, files)
+
+
+async def fetch_github_pull(env: Any, owner: str, repo: str, number: int) -> Optional[Dict[str, Any]]:
+    """The pull and, when it is open, its reviews: one or two subrequests. Needs GITHUB_TOKEN."""
+    token = str(env_value(env, "GITHUB_TOKEN", "") or "")
+    if not token:
+        return None
+    headers = {
+        "Authorization": "Bearer {0}".format(token),
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "blt-sammich",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    base = "https://api.github.com/repos/{0}/{1}/pulls/{2}".format(owner, repo, int(number))
+    ok, pull, _ = await fetch_json(base, headers=headers)
+    if not ok or not isinstance(pull, dict):
+        return None
+    reviews: Any = []
+    if str(pull.get("state") or "") == "open" and not pull.get("draft"):
+        ok, reviews, _ = await fetch_json(base + "/reviews?per_page=100", headers=headers)
+        if not ok or not isinstance(reviews, list):
+            return None
+    return parse_github_pull(pull, reviews)
+
+
+async def fetch_pr_review_state(env: Any, link: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    try:
+        if link["kind"] == "forge":
+            return await fetch_forge_pull(link["number"])
+        return await fetch_github_pull(env, link["owner"], link["repo"], link["number"])
+    except Exception as error:
+        log_exception_one_line(error, "pr_review_lookup_failed", {"pr": link.get("key", "")})
+        return None
+
+
+def pr_review_ask_text(pr: Dict[str, Any], link: Dict[str, Any], nudge: bool = False) -> str:
+    title = slack_escape(pr.get("title") or "PR #{0}".format(link["number"])).replace("|", "-")
+    author = slack_escape(pr.get("author") or "someone")
+    pr_link = "*<{0}|{1}>*".format(link["url"], title)
+    if nudge:
+        head = ":wave: Still looking for a reviewer: {0} by {1} has had no peer review for a day. Could someone take a look?".format(pr_link, author)
+    else:
+        head = ":eyes: {0} by {1} needs a peer review - could someone take a look? {2}".format(pr_link, author, link["url"])
+    if link["kind"] == "forge":
+        how = (
+            "_How to review: open the pull request on git.owaspblt.org, read the changes and leave a "
+            "review (approve, request changes or comment). Anyone except the author can review; you "
+            "do not need to be a maintainer._"
+        )
+    else:
+        how = (
+            "_How to review: open the pull request, read *Files changed* and submit a review (approve, "
+            "request changes or comment). Anyone except the author can review._"
+        )
+    return "{0}\n{1}".format(head, how)
+
+
+def pr_review_channel_setting(env: Any) -> Tuple[str, str]:
+    """(channel id, channel name) to watch; both empty when the feature is turned off."""
+    channel_id = str(env_value(env, "PR_REVIEW_CHANNEL_ID", "") or "").strip()
+    name = str(env_value(env, "PR_REVIEW_CHANNEL", PR_REVIEW_DEFAULT_CHANNEL) or "").strip().lstrip("#").lower()
+    if name in ("off", "none", "0", "false", "-"):
+        return "", ""
+    return channel_id, name
+
+
+def pr_review_candidate_links(env: Any, event: Dict[str, Any], team_id: str = "") -> List[Dict[str, Any]]:
+    """The PR links of a message sammich should look at; no I/O. Skips bots, edits and other
+    subtypes, DMs, channels already known not to be the review channel and, unless
+    PR_REVIEW_THREAD_REPLIES=1, thread replies."""
+    if event.get("type") != "message" or event.get("subtype") or is_bot_authored_message(event):
+        return []
+    channel_id = str(event.get("channel") or "")
+    if not channel_id or str(event.get("channel_type") or "") in ("im", "mpim") or channel_id.startswith("D"):
+        return []
+    thread_ts = str(event.get("thread_ts") or "")
+    if thread_ts and thread_ts != str(event.get("ts") or "") and str(
+        env_value(env, "PR_REVIEW_THREAD_REPLIES", "") or ""
+    ) not in ("1", "true", "yes"):
+        return []
+    configured_id, name = pr_review_channel_setting(env)
+    if configured_id:
+        if channel_id != configured_id:
+            return []
+    elif not name:
+        return []
+    else:
+        known = _PR_REVIEW_CHANNEL_IDS.get(team_id)
+        if known and channel_id != known:
+            return []
+        if "{0}:{1}".format(team_id, channel_id) in _PR_REVIEW_OTHER_CHANNELS:
+            return []
+    return extract_pr_links(str(event.get("text") or ""))
+
+
+async def is_pr_review_channel(env: Any, team_id: str, channel_id: str, token: str) -> bool:
+    """Whether channel_id is the configured channel. A name is resolved with one
+    conversations.info call the first time a PR link shows up in a channel, then cached for the
+    isolate (the channels table is not used: message events store the id as the name)."""
+    configured_id, name = pr_review_channel_setting(env)
+    if configured_id:
+        return channel_id == configured_id
+    if not name:
+        return False
+    known = _PR_REVIEW_CHANNEL_IDS.get(team_id)
+    if known:
+        return channel_id == known
+    cache_key = "{0}:{1}".format(team_id, channel_id)
+    if cache_key in _PR_REVIEW_OTHER_CHANNELS:
+        return False
+    ok, payload, _ = await fetch_json(
+        "https://slack.com/api/conversations.info?" + urlencode({"channel": channel_id}),
+        headers={"Authorization": "Bearer {0}".format(token)},
+    )
+    if not ok or not isinstance(payload, dict) or not payload.get("ok"):
+        return False
+    channel_name = str((payload.get("channel") or {}).get("name") or "").lower()
+    if channel_name == name:
+        _PR_REVIEW_CHANNEL_IDS[team_id] = channel_id
+        return True
+    _PR_REVIEW_OTHER_CHANNELS.add(cache_key)
+    return False
+
+
+PR_REVIEW_RECENT_QUERY = "SELECT asked_at FROM pr_review_asks WHERE team_id = ? AND pr_key = ? LIMIT 1"
+PR_REVIEW_CLAIM_QUERY = (
+    "INSERT INTO pr_review_asks (team_id, pr_key, app_id, channel_id, thread_ts, pr_url, asked_at, "
+    "nudge_due_at, nudged_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULLIF(?, 0), NULL) "
+    "ON CONFLICT(team_id, pr_key) DO UPDATE SET app_id = excluded.app_id, "
+    "channel_id = excluded.channel_id, thread_ts = excluded.thread_ts, pr_url = excluded.pr_url, "
+    "asked_at = excluded.asked_at, nudge_due_at = excluded.nudge_due_at, nudged_at = NULL "
+    "WHERE pr_review_asks.asked_at <= ?"
+)
+PR_REVIEW_NUDGE_DUE_QUERY = (
+    "SELECT team_id, pr_key, app_id, channel_id, thread_ts, pr_url FROM pr_review_asks "
+    "WHERE nudge_due_at IS NOT NULL AND nudge_due_at <= ? ORDER BY nudge_due_at LIMIT ?"
+)
+
+
+async def db_pr_review_asked_recently(env: Any, team_id: str, pr_key: str, now: int) -> bool:
+    row = result_first(await d1_run(env, PR_REVIEW_RECENT_QUERY, [team_id, pr_key]))
+    return bool(row) and int(row.get("asked_at") or 0) > now - PR_REVIEW_DEDUPE_SECONDS
+
+
+async def db_claim_pr_review_ask(
+    env: Any, team_id: str, app_id: str, link: Dict[str, Any], channel_id: str, thread_ts: str, now: int
+) -> bool:
+    """Record the ask unless one was made in the last 24 hours (atomic, so a retried or
+    concurrent delivery cannot ask twice). True when this call may post."""
+    nudge_off = str(env_value(env, "PR_REVIEW_NUDGE", "1") or "") in ("0", "false", "off", "no")
+    result = await d1_run(
+        env,
+        PR_REVIEW_CLAIM_QUERY,
+        [
+            team_id, link["key"], app_id, channel_id, thread_ts, link["url"], now,
+            0 if nudge_off else now + PR_REVIEW_NUDGE_SECONDS,  # 0 stores NULL (D1 binds None as '')
+            now - PR_REVIEW_DEDUPE_SECONDS,
+        ],
+    )
+    return int(_d1_meta(result).get("changes") or 0) > 0
+
+
+async def db_release_pr_review_ask(env: Any, team_id: str, pr_key: str) -> None:
+    """The post failed: let the next message about this PR try again."""
+    await d1_run(
+        env,
+        "UPDATE pr_review_asks SET asked_at = 0, nudge_due_at = NULL WHERE team_id = ? AND pr_key = ?",
+        [team_id, pr_key],
+    )
+
+
+async def post_thread_reply(token: str, channel_id: str, thread_ts: str, text: str) -> Tuple[bool, str]:
+    if not token:
+        return False, "missing_slack_token"
+    try:
+        ok, payload, status_code = await fetch_json(
+            "https://slack.com/api/chat.postMessage",
+            method="POST",
+            headers={
+                "Authorization": "Bearer {0}".format(token),
+                "Content-Type": "application/json; charset=utf-8",
+            },
+            body=json.dumps(
+                {
+                    "channel": channel_id,
+                    "thread_ts": thread_ts,
+                    "text": text,
+                    "unfurl_links": False,
+                    "unfurl_media": False,
+                }
+            ),
+        )
+    except Exception as error:
+        return False, "fetch_error: {0}".format(error)
+    if ok and isinstance(payload, dict) and payload.get("ok") is True:
+        return True, ""
+    error_text = payload.get("error") if isinstance(payload, dict) else ""
+    return False, str(error_text or "http_{0}".format(status_code))
+
+
+async def handle_pr_review_links(
+    env: Any,
+    event: Dict[str, Any],
+    links: List[Dict[str, Any]],
+    team_id: str = "",
+    app_id: str = "",
+    now: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Ask for a peer review in the message's thread for each linked PR that needs one."""
+    now = int(time.time()) if now is None else int(now)
+    channel_id = str(event.get("channel") or "")
+    thread_ts = str(event.get("thread_ts") or event.get("ts") or "")
+    summary: Dict[str, Any] = {"asked": [], "skipped": {}}
+    token = await workspace_slack_token(env, team_id=team_id, app_id=app_id)
+    if not token or not thread_ts:
+        summary["skipped"]["*"] = "missing_slack_token" if not token else "missing_ts"
+        return summary
+    if not await is_pr_review_channel(env, team_id, channel_id, token):
+        summary["skipped"]["*"] = "other_channel"
+        return summary
+    for link in links:
+        if await db_pr_review_asked_recently(env, team_id, link["key"], now):
+            summary["skipped"][link["key"]] = "asked_recently"
+            continue
+        pr = await fetch_pr_review_state(env, link)
+        if not pr_needs_peer_review(pr):
+            summary["skipped"][link["key"]] = pr_review_skip_reason(pr)
+            continue
+        if not await db_claim_pr_review_ask(env, team_id, app_id, link, channel_id, thread_ts, now):
+            summary["skipped"][link["key"]] = "asked_recently"
+            continue
+        sent, error = await post_thread_reply(token, channel_id, thread_ts, pr_review_ask_text(pr, link))
+        if sent:
+            summary["asked"].append(link["key"])
+        else:
+            summary["skipped"][link["key"]] = error
+            await db_release_pr_review_ask(env, team_id, link["key"])
+    log_json_event("pr_review_links_handled", {"team_id": team_id, "channel_id": channel_id, **summary})
+    return summary
+
+
+async def schedule_pr_review_asks(
+    env: Any, ctx: Any, event: Dict[str, Any], team_id: str = "", app_id: str = ""
+) -> bool:
+    """Hand a message's PR links to handle_pr_review_links after the response (waitUntil).
+    Returns whether anything was scheduled."""
+    links = pr_review_candidate_links(env, event, team_id)
+    if not links:
+        return False
+
+    async def deferred() -> None:
+        try:
+            await handle_pr_review_links(env, event, links, team_id=team_id, app_id=app_id)
+        except Exception as error:
+            log_exception_one_line(error, "pr_review_links_failed", {"team_id": team_id})
+
+    wait_until = getattr(ctx, "waitUntil", None) if ctx is not None else None
+    if wait_until is not None:
+        wait_until(asyncio.ensure_future(deferred()))
+    else:
+        await deferred()
+    return True
+
+
+async def process_pr_review_nudges(
+    env: Any, now: Optional[int] = None, limit: int = PR_REVIEW_NUDGE_BATCH
+) -> Dict[str, int]:
+    """The 24-hour follow-up, run by /__scheduled: one indexed read when nothing is due; per due
+    row, the PR lookup, a thread reply if it is still unreviewed, and one write."""
+    now = int(time.time()) if now is None else int(now)
+    summary = {"due": 0, "nudged": 0}
+    if limit <= 0:
+        return summary
+    rows = result_rows(await d1_run(env, PR_REVIEW_NUDGE_DUE_QUERY, [now, int(limit)]))
+    summary["due"] = len(rows)
+    tokens: Dict[Tuple[str, str], str] = {}
+    for row in rows:
+        team_id, app_id = str(row.get("team_id") or ""), str(row.get("app_id") or "")
+        links = extract_pr_links(str(row.get("pr_url") or ""), limit=1)
+        nudged = False
+        if links:
+            pr = await fetch_pr_review_state(env, links[0])
+            if pr_needs_peer_review(pr):
+                key = (team_id, app_id)
+                if key not in tokens:
+                    tokens[key] = await workspace_slack_token(env, team_id=team_id, app_id=app_id)
+                nudged, _ = await post_thread_reply(
+                    tokens[key], str(row.get("channel_id") or ""), str(row.get("thread_ts") or ""),
+                    pr_review_ask_text(pr, links[0], nudge=True),
+                )
+        await d1_run(
+            env,
+            "UPDATE pr_review_asks SET nudge_due_at = NULL, nudged_at = NULLIF(?, 0) WHERE team_id = ? AND pr_key = ?",
+            [now if nudged else 0, team_id, str(row.get("pr_key") or "")],
+        )
+        summary["nudged"] += 1 if nudged else 0
+    if rows:
+        log_json_event("pr_review_nudges_processed", summary)
+    return summary
+
+
 # blt-cron holds the account's cron trigger and calls POST /__scheduled through a
 # service binding, authenticated with the shared CRON_SECRET.
 CRON_DISPATCH_PATH = "/__scheduled"
@@ -4465,7 +4989,15 @@ async def handle_cron_dispatch(request: Any, env: Any) -> Any:
     except Exception as error:
         log_exception_one_line(error, "scheduled_reminders_failed")
         return json_response({"ok": False, "error": "reminders_failed"}, status=500)
-    return json_response({"ok": True, "reminders": summary})
+    # PR review follow-ups use what is left of the free plan's 50 subrequests: up to four each
+    # (three forge reads and a Slack post), after one per reminder.
+    nudge_limit = min(PR_REVIEW_NUDGE_BATCH, (REMINDER_DELIVERY_BATCH - int(summary.get("due") or 0)) // 4)
+    try:
+        nudges = await process_pr_review_nudges(env, limit=nudge_limit)
+    except Exception as error:
+        log_exception_one_line(error, "scheduled_pr_review_nudges_failed")
+        nudges = {"error": "pr_review_nudges_failed"}
+    return json_response({"ok": True, "reminders": summary, "pr_review_nudges": nudges})
 
 
 async def command_response(form: Dict[str, str], env: Any) -> Dict[str, Any]:
@@ -5457,7 +5989,9 @@ async def handle_channel_join_event(
     return {"ok": bool(send_result.get("ok")), "action": "channel_join_logged"}
 
 
-async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
+async def handle_event_payload(
+    payload: Dict[str, Any], env: Any, ctx: Any = None, retry_num: str = ""
+) -> Any:
     if payload.get("type") == "url_verification":
         return json_response({"challenge": payload.get("challenge", "")})
 
@@ -5519,6 +6053,14 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
         channel_id = event.get("channel", "")
         if is_bot_authored_message(event):
             return json_response({"ok": True})
+        # A Slack retry (X-Slack-Retry-Num) repeats a delivery that was already handled.
+        if not retry_num:
+            try:
+                await schedule_pr_review_asks(env, ctx, event, team_id=team_id, app_id=app_id)
+            except Exception as error:
+                log_exception_one_line(
+                    error, "pr_review_schedule_failed", {"team_id": team_id, "channel_id": channel_id}
+                )
         bot_user_id = ""
         try:
             bot_user_id = await db_get_workspace_bot_user_id(
@@ -6688,7 +7230,7 @@ async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
     )
 
 
-async def handle_request(request: Any, env: Any) -> Any:
+async def handle_request(request: Any, env: Any, ctx: Any = None) -> Any:
     parsed_url = urlparse(request.url)
     path = parsed_url.path or "/"
     normalized_path = path.rstrip("/") or "/"
@@ -6872,7 +7414,10 @@ async def handle_request(request: Any, env: Any) -> Any:
         )
         if normalized_path != "/slack/events":
             await record_activity(env, "event", payload)
-        return await handle_event_payload(payload, env)
+        retry_num = str(
+            request.headers.get("x-slack-retry-num") or request.headers.get("X-Slack-Retry-Num") or ""
+        )
+        return await handle_event_payload(payload, env, ctx=ctx, retry_num=retry_num)
 
     try:
         return await env.ASSETS.fetch(request)
@@ -6886,7 +7431,7 @@ async def handle_request(request: Any, env: Any) -> Any:
 class Default(WorkerEntrypoint):
     async def fetch(self, request: Any) -> Any:
         try:
-            return await handle_request(request, self.env)
+            return await handle_request(request, self.env, getattr(self, "ctx", None))
         except Exception as error:
             log_exception_one_line(error, "unhandled_fetch_exception")
             return build_response("Internal Server Error", status=500)

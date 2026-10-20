@@ -80,7 +80,7 @@ settings:
     bot_events:
       - app_home_opened
       - app_mention
-      - message.channels
+      - message.channels  # also PR review asks in #owasp-blt (with channels:history, channels:read, chat:write)
       - message.groups
       - message.im
       - message.mpim

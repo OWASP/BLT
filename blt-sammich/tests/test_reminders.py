@@ -505,7 +505,7 @@ def test_scheduled_sends_due_reminders(env, responses, slack, monkeypatch):
     add(env)
     monkeypatch.setattr(worker.time, "time", lambda: NOW)
     response = scheduled(env, secret="s3cret")
-    assert response == {"status": 200, "payload": {"ok": True, "reminders": {"due": 1, "sent": 1, "retry": 0, "failed": 0}}}
+    assert response == {"status": 200, "payload": {"ok": True, "reminders": {"due": 1, "sent": 1, "retry": 0, "failed": 0}, "pr_review_nudges": {"due": 0, "nudged": 0}}}
     assert env.DB.rows("SELECT status FROM reminders") == [{"status": "sent"}]
 
 

@@ -250,7 +250,7 @@ def test_post_slack_events_can_verify_with_database_signing_secret():
     async def fake_record_activity(env, activity_kind, payload):
         logged.append((activity_kind, payload))
 
-    async def fake_handle_event_payload(payload, env):
+    async def fake_handle_event_payload(payload, env, **kwargs):
         handled["payload"] = payload
         return {"ok": True, "handled": True}
 

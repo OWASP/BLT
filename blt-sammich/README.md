@@ -99,6 +99,17 @@ Sets a reminder that Sammich posts later: as a DM to you (the default) or anothe
 /setreminder cancel 12           # cancel reminder #12
 ```
 
+#### Peer review asks in `#owasp-blt`
+**Status:** ✅ Standalone Feature (Not in main BLT)
+
+When someone posts a pull request link in `#owasp-blt` (a forge link such as `https://git.owaspblt.org/BLT/pulls/12` or `/owasp-blt/BLT/pulls/12`, or a GitHub `github.com/<owner>/<repo>/pull/<n>` link), Sammich looks the PR up and, if it is open and nobody but its author has reviewed it, replies in the thread asking for a reviewer, with a short note on how to review.
+- Forge PRs are read anonymously from the `forkmesh/pulls` ledger branch (`.forkmesh/pulls/<n>/pull.md` and its `NNNN-review.md` files); GitHub PRs use `GITHUB_TOKEN` and are skipped without it
+- Silent for merged, closed, draft or already peer-reviewed PRs, and for bot messages, edits, DMs and thread replies
+- At most 3 links per message and one ask per PR per 24 hours (`pr_review_asks` table); Slack retries are ignored
+- A day after asking, the `/__scheduled` run checks again and posts one follow-up in the same thread if the PR is still unreviewed
+- Settings (Worker vars): `PR_REVIEW_CHANNEL` (channel name, default `owasp-blt`; `off` disables), `PR_REVIEW_CHANNEL_ID` (skip the name lookup), `PR_REVIEW_THREAD_REPLIES=1` (also look at thread replies), `PR_REVIEW_NUDGE=0` (no follow-up)
+- Slack app: the `message.channels` bot event, the `channels:history`, `channels:read` and `chat:write` scopes (all in `manifest.yaml`), and the bot invited to `#owasp-blt` (`/invite @OWASP BLT bot`)
+
 ### Main BLT Repository Commands
 
 The following commands are available in the main BLT repository but **NOT in BLT-Sammich**:
@@ -293,6 +304,8 @@ npx wrangler secret put CRON_SECRET
 ```
 
 Each call reads only the due reminders through the `(status, due_at)` index (at most 50 a call) and writes only the reminders it handled.
+
+The same call sends the 24-hour peer review follow-ups: one read through the partial `nudge_due_at` index, at most 3 a call, one write each.
 
 ### 9. Run the Bot
 ```bash
