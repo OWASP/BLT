@@ -41,6 +41,16 @@
             "target": "gitlab-issue-82716662-10",
             "ts": 1792463360742,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "body": "/assign",
+            "id": "comment-web-1792477794955",
+            "sig": "TGkAPUdrj8zwol34uowHOFj3O2j8KpHMkcfP54QWrkDICrQ6BCayz9JLmtCQwJXxTUXYVpTHPKcCno1i4UGKCg",
+            "ts": 1792477794955,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -55,6 +65,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-newsletter: fix: mobile responsiveness",
-    "updatedAt": 1792463360742,
+    "updatedAt": 1792477794955,
     "votes": 0
 }
