@@ -81,6 +81,34 @@ pub struct VulnerabilityForm {
 
 pub const VISION_ANALYZING_PLACEHOLDER: &str = "Analyzing image with Vision AI...";
 
+/// Strips common markdown tokens from Vision AI output so it reads cleanly in TUI text fields.
+///
+/// Removes heading markers (`#`), bold and inline-code markers (`**`, `` ` ``),
+/// and converts leading `- ` / `* ` bullets to `• `. `__` is kept, because identifiers
+/// such as `__proto__` are common in vulnerability reports.
+pub fn strip_markdown(text: &str) -> String {
+    text.lines()
+        .map(|line| {
+            let indent_len = line.len() - line.trim_start().len();
+            let (indent, mut rest) = line.split_at(indent_len);
+
+            let hashes = rest.len() - rest.trim_start_matches('#').len();
+            if hashes > 0 && (rest.len() == hashes || rest[hashes..].starts_with(' ')) {
+                rest = rest[hashes..].trim_start();
+            }
+
+            let mut out = String::from(indent);
+            if let Some(item) = rest.strip_prefix("- ").or_else(|| rest.strip_prefix("* ")) {
+                out.push_str("• ");
+                rest = item;
+            }
+            out.push_str(&rest.replace("**", "").replace('`', ""));
+            out
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 impl VulnerabilityForm {
     /// Returns a mutable reference to the string backing the currently active field.
     pub fn active_field_mut(&mut self) -> &mut String {
@@ -585,6 +613,21 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_strip_markdown() {
+        let input =
+            "## Summary\n**TITLE:** XSS in `search`\n- first step\n  * nested step\n#hashtag stays";
+        assert_eq!(
+            strip_markdown(input),
+            "Summary\nTITLE: XSS in search\n• first step\n  • nested step\n#hashtag stays"
+        );
+        assert_eq!(strip_markdown("plain text"), "plain text");
+        assert_eq!(
+            strip_markdown("Pollutes `__proto__` via **merge**"),
+            "Pollutes __proto__ via merge"
+        );
+    }
 
     #[test]
     fn test_app_initialization() {

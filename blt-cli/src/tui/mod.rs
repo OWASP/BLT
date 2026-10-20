@@ -99,6 +99,7 @@ where
                 }
                 AppEvent::VisionDraftComplete { result, success } => {
                     if success {
+                        let result = crate::app::strip_markdown(&result);
                         let mut title = String::new();
                         let mut description = String::new();
                         let mut in_desc = false;
@@ -133,7 +134,7 @@ where
                                 app.submit_form.description = clean_desc.to_string();
                             } else {
                                 app.submit_form.description = format!(
-                                    "{}\n\n### AI Vision Analysis:\n{}",
+                                    "{}\n\nAI Vision Analysis:\n{}",
                                     app.submit_form.description.trim(),
                                     clean_desc
                                 );
