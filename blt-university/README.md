@@ -77,6 +77,7 @@ Want to teach at BLT University?
 ├── scripts/                          Content validation and data refresh tools
 ├── tests/e2e/                        Cross-browser learner-flow tests and guide
 ├── tests/vulnerability_intel/        Vulnerability pipeline tests
+├── tests/site_output/               Generated-site output validator tests
 ├── tests/                            Jest functional and content tests
 ├── playwright.config.js              Cross-browser E2E configuration
 └── _config.yml                       Jekyll and site configuration
@@ -200,8 +201,12 @@ Chromium or extra Python packages that the runner does not have, so run them loc
   `pip install jsonschema==4.25.1 python-frontmatter==1.1.0 && python scripts/validate_labs.py`
 - Vulnerability data (when `_data/vulnerability_intel.json`, its schema or `scripts/vulnerability_intel/` change):
   `pip install "jsonschema[format-nongpl]==4.25.1" && python -B scripts/vulnerability_intel/validate.py && python -B -m unittest discover -s tests/vulnerability_intel -p 'test_*.py'`
-- Site build: `bundle install && bundle exec jekyll build -d public`. Commit the rebuilt `public/`; the production
-  deployment serves it as is.
+- Site build: build into a clean directory so pages and files removed from the source cannot linger in
+  `public/`, check the output, then replace `public/` with it and commit it; the production deployment serves
+  `public/` as is:
+  `bundle install && rm -rf _site && bundle exec jekyll build -d _site && python -B scripts/validate_site_output.py _site && rm -rf public && mv _site public`.
+  The validator fails on repository-only files (such as `package.json` or `tests/`) and on course, instructor or
+  lab pages without a matching source file; its tests are `python -B -m unittest discover -s tests/site_output -p 'test_*.py'`.
 - Learner journey: `npm ci && npm run test:e2e` (Playwright) against the build.
 
 ## Contributing
