@@ -53,6 +53,20 @@ test("hackerhouse polls the forge every 5 minutes, off the other jobs' minutes",
   assert.equal(perDay, 288);
 });
 
+test("blt-pool reads the forge pulls ledger every 20 minutes on its own minutes", () => {
+  const names = (iso) => dueJobs(Date.parse(iso)).map((j) => j.name);
+  const job = JOBS.find((j) => j.name === "blt-pool-leaderboard");
+  assert.equal(job.binding, "POOL");
+  assert.equal(job.task, "forge-leaderboard");
+  for (const iso of ["2026-10-18T04:06:00Z", "2026-10-18T04:26:00Z", "2026-10-18T04:46:00Z", "2026-10-18T00:06:00Z"]) {
+    assert.deepEqual(names(iso), ["blt-pool-leaderboard"], iso);
+  }
+  assert.ok(!names("2026-10-18T04:00:00Z").includes("blt-pool-leaderboard"));
+  const perDay = Array.from({ length: 1440 }, (_, m) => Date.parse("2026-10-18T00:00:00Z") + m * 60000)
+    .filter((t) => dueJobs(t).some((j) => j.name === "blt-pool-leaderboard")).length;
+  assert.equal(perDay, 72);
+});
+
 test("blt-sammich sends reminders every 5 minutes on a minute no other job uses", () => {
   const names = (iso) => dueJobs(Date.parse(iso)).map((j) => j.name);
   const job = JOBS.find((j) => j.name === "blt-sammich");

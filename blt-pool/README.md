@@ -11,11 +11,14 @@ This repository now serves two connected surfaces:
 - **`/unassign` command** — Comment `/unassign` to release an issue assignment so others can pick it up.
 - **Automatic unassignment** — A cron task runs every 2 hours to automatically unassign issues where the 8-hour deadline has passed without a linked pull request. The schedule (`0 */2 * * *`) now runs from the [blt-cron](../blt-cron) dispatcher Worker, which calls `POST /__scheduled` with the shared `CRON_SECRET` (set it with `wrangler secret put CRON_SECRET`); this Worker has no cron trigger of its own.
 - **`/leaderboard` command** — Comment `/leaderboard` on any issue or PR to see your rank in the monthly leaderboard.
-- **Monthly leaderboard** — Uses D1-backed event counters for accurate, scalable org-wide ranking (no per-request repo scanning). Automatically posted on PRs (when opened or merged) showing contributor rankings based on:
+- **Pull request leaderboard** — [pool.owaspblt.org/leaderboard](https://pool.owaspblt.org/leaderboard) (JSON: `/api/leaderboard?month=YYYY-MM`) ranks contributors per month from D1-backed counters:
   - Open PRs (+1 each)
   - Merged PRs (+10)
   - Closed PRs without merge (−2)
-  - PR Reviews (+5; sampled from recent merged PRs)
+  - PR Reviews (+5; first two reviewers per PR and month)
+  - Comments (+2; slash commands and CodeRabbit pings excluded)
+
+  Since the move to [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), the counters are fed by the forge's pulls ledger (`forkmesh/pulls` branch, read anonymously): blt-cron sends task `forge-leaderboard` every 20 minutes, and `src/services/forge_leaderboard.py` re-reads only pull folders whose git oid changed and applies only the difference to the counters. Forge accounts are mapped to names, avatars and GitHub logins with the README roster (`.forkmesh/contributors/contributors.json`), so a person's GitHub-era history (kept in the same tables) and forge activity add up. Each pull is attributed to the project folders it touches (else a `blt-x:` title prefix); bots are excluded. Responses are cached for 5 minutes. The GitHub webhook counters and the `/leaderboard` comment still work for any GitHub installation.
 - **Auto-close excess PRs** — PRs are automatically closed if the author has 50+ open PRs in the repository.
 - **Rank improvement congratulations** — When a PR is merged and the author's rank improves on the 6-month leaderboard, they receive a congratulatory message.
 - **BLT bug reporting** — When an issue is labeled as `bug`, `vulnerability`, or `security`, it is automatically reported to the [BLT API](https://git.owaspblt.org/BLT/BLT-API).

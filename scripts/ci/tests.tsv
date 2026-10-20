@@ -26,7 +26,7 @@ blt-owasp-metadata	node	python3 -m py_compile scripts/scrape_metadata.py && node
 blt-owasp-projects	python	for f in index.html projects.html issues.html; do test -f public/$f || exit 1; done && for f in repo_status www_project_repos project_repos_links issues known_issue_ids; do python -m json.tool public/$f.json > /dev/null || exit 1; done && python -m py_compile scripts/*.py && node --test 'test/*.test.mjs'
 blt-pages	python	python -m unittest discover -s tests -p 'test_*.py' && node --test tests/worker.test.mjs
 blt-panini	node	python3 -m py_compile scripts/update_slack_apps.py && node --test 'test/*.test.mjs'
-blt-pool	python	pip install pytest && python -m compileall -q src/worker.py && python -m pytest test_worker.py -q
+blt-pool	python	pip install pytest && python -m compileall -q src/worker.py src/services && python -m pytest test_worker.py test_forge_leaderboard.py -q
 blt-preflight	python	pip install -r requirements.txt -e . && python -m pytest -q
 blt-profiles	node	node --test 'test/*.test.mjs'
 # blt-safecloak: the Playwright tests need Chromium's system packages (sudo) and a 127.0.0.1 server, which the

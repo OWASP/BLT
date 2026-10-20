@@ -8,6 +8,8 @@ npx wrangler deploy
 
 Apply pending D1 migrations first with `bash scripts/run-migrations.sh` (it is not run by `wrangler deploy`).
 
+Migration `0002_forge_leaderboard.sql` (forge PR leaderboard) adds a column and two empty tables; apply it before deploying the code that reads `opened_prs`, then redeploy blt-cron so the `forge-leaderboard` task (every 20 minutes) starts.
+
 ## Why this matters
 
 Schema is managed via Wrangler migrations in `migrations/`. The worker no longer creates tables at runtime, so apply new migrations before deploying code that needs them.
