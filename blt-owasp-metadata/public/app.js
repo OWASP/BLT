@@ -182,7 +182,7 @@ function populateFieldFilter() {
         fields.map(field => {
             const count = state.matrixData.filter(row => hasData(row[field])).length;
             const percentage = ((count / state.matrixData.length) * 100).toFixed(1);
-            return `<option value="${field}">${formatColumnName(field)} (${count}, ${percentage}%)</option>`;
+            return `<option value="${escapeHtml(field)}">${escapeHtml(formatColumnName(field))} (${count}, ${percentage}%)</option>`;
         }).join('');
 }
 
@@ -199,9 +199,9 @@ function populateColumnToggles() {
         
         return `
         <div class="column-option">
-            <input type="checkbox" id="col-${field}" data-field="${field}" ${isChecked ? 'checked' : ''}>
-            <label for="col-${field}">
-                ${formatColumnName(field)} 
+            <input type="checkbox" id="col-${escapeHtml(field)}" data-field="${escapeHtml(field)}" ${isChecked ? 'checked' : ''}>
+            <label for="col-${escapeHtml(field)}">
+                ${escapeHtml(formatColumnName(field))} 
                 <span class="field-stats">${count} (${percentage}%)</span>
             </label>
         </div>
@@ -313,14 +313,18 @@ function renderTableHeader() {
     elements.tableHead.innerHTML = `
         <tr>
             ${visibleCols.map(col => `
-                <th data-column="${col}" 
+                <th data-column="${escapeHtml(col)}" 
                     class="${col === state.sortColumn ? `sort-${state.sortDirection}` : ''}"
-                    onclick="sortTable('${col}', '${col === state.sortColumn && state.sortDirection === 'asc' ? 'desc' : 'asc'}')">
-                    ${formatColumnName(col)}
+                    data-sort-direction="${col === state.sortColumn && state.sortDirection === 'asc' ? 'desc' : 'asc'}">
+                    ${escapeHtml(formatColumnName(col))}
                 </th>
             `).join('')}
         </tr>
     `;
+    // Column names are front-matter keys from the scraped repos: no inline handlers built from them.
+    elements.tableHead.querySelectorAll('th[data-column]').forEach(th => {
+        th.addEventListener('click', () => sortTable(th.dataset.column, th.dataset.sortDirection));
+    });
 }
 
 function renderTableBody(data) {
@@ -451,7 +455,7 @@ function formatColumnName(column) {
 }
 
 function escapeHtml(unsafe) {
-    if (!unsafe) return '';
+    if (unsafe == null || unsafe === '') return '';
     return String(unsafe)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
