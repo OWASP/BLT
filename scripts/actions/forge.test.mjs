@@ -22,6 +22,8 @@ async function withStub(fn) {
     requests.push({ method, url: pathname, auth: headers.get("authorization"), body: init.body ? JSON.parse(init.body) : null });
     const json = (status, value) => new Response(value, { status, headers: { "Content-Type": "application/json" } });
     if (pathname === "/api/actions/job/issues/404") return json(404, '{"error":"not found"}');
+    if (pathname === "/api/actions/job/issues/8/assignees") return json(404, '{"error":"not_found"}');
+    if (pathname.endsWith("/assignees")) return json(200, JSON.stringify({ ok: true, assignees: ["alice"] }));
     if (method === "GET") return json(200, JSON.stringify({ number: 7, title: "t", body: "b", state: "open", labels: ["profile"], author: "alice" }));
     return json(200, pathname.endsWith("/issues") ? '{"number":9}' : "{}");
   };
@@ -41,6 +43,11 @@ test("job API calls use the bearer token and documented paths", async () => {
     await forge.closeIssue(7);
     assert.deepEqual(await forge.createIssue({ title: "x" }), { number: 9 });
     await assert.rejects(forge.getIssue(404), /HTTP 404/);
+    assert.deepEqual((await forge.changeAssignees(7, { add: ["alice"] })).assignees, ["alice"]);
+    const missing = await forge.changeAssignees(8, { remove: ["bob"] }).catch((e) => e);
+    assert.equal(missing.status, 404);
+    assert.ok(forge.missingEndpoint(missing));
+    assert.ok(!forge.missingEndpoint(await forge.getIssue(404).catch((e) => e)));
     assert.deepEqual(requests.map((r) => `${r.method} ${r.url}`), [
       "GET /api/actions/job/issues/7",
       "POST /api/actions/job/issues/7/comments",
@@ -48,12 +55,17 @@ test("job API calls use the bearer token and documented paths", async () => {
       "POST /api/actions/job/issues/7/state",
       "POST /api/actions/job/issues",
       "GET /api/actions/job/issues/404",
+      "POST /api/actions/job/issues/7/assignees",
+      "POST /api/actions/job/issues/8/assignees",
+      "GET /api/actions/job/issues/404",
     ]);
     assert.ok(requests.every((r) => r.auth === "Bearer job-token"));
     assert.deepEqual(requests[1].body, { body: "hi" });
     assert.deepEqual(requests[2].body, { add: ["a"], remove: [] });
     assert.deepEqual(requests[3].body, { state: "closed" });
     assert.deepEqual(requests[4].body, { title: "x", body: "", labels: [] });
+    assert.deepEqual(requests[6].body, { add: ["alice"], remove: [] });
+    assert.deepEqual(requests[7].body, { add: [], remove: ["bob"] });
   });
 });
 

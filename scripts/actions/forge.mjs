@@ -34,7 +34,16 @@ async function api(method, path, body) {
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const text = await response.text();
-  if (!response.ok) throw new Error(`${method} ${path}: HTTP ${response.status} ${text.slice(0, 200)}`);
+  if (!response.ok) {
+    const error = new Error(`${method} ${path}: HTTP ${response.status} ${text.slice(0, 200)}`);
+    error.status = response.status;
+    try {
+      error.body = text ? JSON.parse(text) : null;
+    } catch {
+      error.body = null;
+    }
+    throw error;
+  }
   return text ? JSON.parse(text) : null;
 }
 
@@ -44,10 +53,15 @@ export const getIssue = (n) => api("GET", issuePath(n));
 export const comment = (n, body) => api("POST", `${issuePath(n)}/comments`, { body });
 export const changeLabels = (n, { add = [], remove = [] } = {}) =>
   api("POST", `${issuePath(n)}/labels`, { add, remove });
+export const changeAssignees = (n, { add = [], remove = [] } = {}) =>
+  api("POST", `${issuePath(n)}/assignees`, { add, remove });
 export const setState = (n, state) => api("POST", `${issuePath(n)}/state`, { state });
 export const closeIssue = (n) => setState(n, "closed");
 export const createIssue = ({ title, body = "", labels = [] }) =>
   api("POST", "/api/actions/job/issues", { title, body, labels });
+
+/** True when a job API error says the route does not exist (an instance older than the endpoint). */
+export const missingEndpoint = (error) => error?.status === 404 && error?.body?.error === "not_found";
 
 /** Label names from either [{name}] (event payload) or ["name"] (job API). */
 export function labelNames(issue) {

@@ -1,15 +1,19 @@
 name: "blt-action: /assign and /unassign"
 # Forge port of BLT-Action's comment commands (blt-action/src/index.js). A comment whose line starts
-# with /assign or /unassign assigns or unassigns the commenter (only themselves) on that issue:
-# blt-action/forge/assign.mjs appends a signed `assignees` event to the issue ledger, pushes it with
-# scripts/actions/commit-back.sh --rebuild, and replies through the job API with "@user ...", which
-# notifies the commenter. Rules, wording and setup: docs/workflows.md ("/assign and /unassign").
+# with /assign or /unassign assigns or unassigns the commenter (only themselves) on that issue.
+# blt-action/forge/assign.mjs acts only on a verified author (the event's comment.user.verified, set
+# when the forge bound the comment to the signed-in account; anything else gets a "sign in" reply),
+# changes the assignment through the job API (POST issues/<n>/assignees, which notifies the assignee)
+# and replies through the job API with "@user ...". On an instance without that endpoint it falls back
+# to a signed `assignees` ledger event pushed with scripts/actions/commit-back.sh --rebuild.
+# Rules, wording and setup: docs/workflows.md ("/assign and /unassign").
 #
 # Run by hand with an issue number to process the commands already in that issue's ledger (for
-# comments made before this workflow existed, or a run that failed).
+# comments made before this workflow existed, or a run that failed). Only ledger comments with
+# authorVerified: true count.
 #
-# Secret: BLT_TASKS_SEED, the blt-tasks[bot] Ed25519 seed (base64url or 64 hex). Only runs that change
-# an assignment need it; refusals are replies only.
+# Secret: BLT_TASKS_SEED, the blt-tasks[bot] Ed25519 seed (base64url or 64 hex). Only the ledger
+# fallback needs it; the job API path and refusals do not.
 on:
   issue_comment:
     types: [created]

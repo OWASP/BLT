@@ -26,7 +26,7 @@ function record(number, { assignees = [], status = "open", comments = [] } = {})
     authorName: "someone",
     events: [
       { attachments: [], author: "x", body: "b", id: `open-${number}`, sig: "s", title: "t", ts: 1, type: "open" },
-      ...comments.map(([id, login, body], i) => ({ attachments: [], author: `key-${login}`, authorName: login, body, id, sig: "s", ts: 10 + i, type: "comment" })),
+      ...comments.map(([id, login, body, verified = true], i) => ({ attachments: [], author: `key-${login}`, authorName: login, authorVerified: verified, body, id, sig: "s", ts: 10 + i, type: "comment" })),
     ],
     labels: [],
     number,
@@ -196,10 +196,14 @@ test("the open-assignment limit counts other open issues only", () => {
 });
 
 test("collectCommands reads issue_comment payloads and skips other actions", () => {
-  const event = { action: "created", issue: { number: 27 }, comment: { id: "c9", body: "/assign", user: { login: "alice" } } };
+  const event = { action: "created", issue: { number: 27 }, comment: { id: "c9", body: "/assign", user: { login: "alice", verified: true } } };
   assert.deepEqual(A.collectCommands({ root: "/nonexistent", event, name: "issue_comment" }), [
-    { number: 27, commentId: "c9", login: "alice", author: "", body: "/assign" },
+    { number: 27, commentId: "c9", login: "alice", author: "", verified: true, body: "/assign" },
   ]);
+  const unverified = { ...event, comment: { ...event.comment, user: { login: "alice" } } };
+  assert.equal(A.collectCommands({ root: "/nonexistent", event: unverified, name: "issue_comment" })[0].verified, false);
+  const spoofed = { ...event, comment: { ...event.comment, user: { login: "alice", verified: "true" } } };
+  assert.equal(A.collectCommands({ root: "/nonexistent", event: spoofed, name: "issue_comment" })[0].verified, false);
   assert.deepEqual(A.collectCommands({ root: "/nonexistent", event: { ...event, action: "edited" }, name: "issue_comment" }), []);
   assert.deepEqual(A.collectCommands({ root: "/nonexistent", event, name: "push" }), []);
 });
@@ -212,21 +216,79 @@ test("a comment without an account name gets a sign-in reply and no assignment",
   assert.match(A.replyFor(root, pending[0]), /need a signed-in account/);
 });
 
-test("the issue #27 ledger: vanshika2720's /assign assigns her", () => {
+test("an unverified comment never assigns the account it names", () => {
+  const root = ledger([[6, record(6, { comments: [["u1", "alice", "/assign", false]] })]]);
+  const commands = A.collectCommands({ root, issueOverride: 6 });
+  assert.equal(commands[0].verified, false);
+  const { pending, changed } = A.applyCommands({ root, commands, signer, log: quiet });
+  assert.equal(changed.length, 0);
+  assert.equal(pending[0].name, "");
+  const body = A.replyFor(root, pending[0]);
+  assert.match(body, /need a signed-in account/);
+  assert.deepEqual(notified(body), []);
+  const event = { action: "created", issue: { number: 6 }, comment: { id: "u2", body: "/assign", user: { login: "alice" } } };
+  const fromEvent = A.applyCommands({ root, commands: A.collectCommands({ root, event, name: "issue_comment" }), signer, log: quiet });
+  assert.equal(fromEvent.changed.length, 0);
+  assert.match(A.replyFor(root, fromEvent.pending[0]), /need a signed-in account/);
+});
+
+test("the issue #27 ledger predates verified authors, so its /assign is not applied again", () => {
   const live = join(REPO, ".forkmesh", "issues", "open", "27", "issue-27.json");
   const rec = JSON.parse(readFileSync(live, "utf8"));
   const root = ledger([[27, rec]]);
-  const commands = A.collectCommands({ root, issueOverride: 27 });
-  const cmd = commands.find((c) => c.commentId === "comment-web-1792476476195");
+  const cmd = A.collectCommands({ root, issueOverride: 27 }).find((c) => c.commentId === "comment-web-1792476476195");
   assert.ok(cmd, "the /assign comment is in the ledger");
-  const { pending } = A.applyCommands({ root, commands: [cmd], signer, log: quiet });
-  const after = JSON.parse(readFileSync(join(root, ".forkmesh/issues/open/27/issue-27.json"), "utf8"));
-  assert.deepEqual(after.assignees, ["vanshika2720"]);
-  assert.match(A.replyFor(root, pending[0]), /^@vanshika2720 you're assigned to this issue\./);
+  assert.equal(cmd.verified, false);
+  const before = readFileSync(join(root, ".forkmesh/issues/open/27/issue-27.json"), "utf8");
+  A.applyCommands({ root, commands: [cmd], signer, log: quiet });
+  assert.equal(readFileSync(join(root, ".forkmesh/issues/open/27/issue-27.json"), "utf8"), before);
+});
+
+function fakeClient({ missing = false, assignees = null } = {}) {
+  const calls = [];
+  return {
+    calls,
+    missingEndpoint: (e) => e?.status === 404 && e?.body?.error === "not_found",
+    async changeAssignees(number, change) {
+      calls.push([number, change]);
+      if (missing) throw Object.assign(new Error("HTTP 404"), { status: 404, body: { error: "not_found" } });
+      return { ok: true, assignees: assignees ?? change.add ?? [] };
+    },
+  };
+}
+
+test("assignThroughApi assigns and unassigns through the job API and keys every reply", async () => {
+  const comments = [
+    ["c1", "alice", "/assign"],
+    ["c2", "bob", "/assign"],
+    ["c3", "mallory", "/assign", false],
+    ["c4", "alice", "/unassign"],
+  ];
+  const root = ledger([[27, record(27, { comments })]]);
+  const before = readFileSync(join(root, ".forkmesh/issues/open/27/issue-27.json"), "utf8");
+  const client = fakeClient();
+  const replies = await A.assignThroughApi({ root, commands: A.collectCommands({ root, issueOverride: 27 }), client, log: quiet });
+  assert.deepEqual(client.calls, [[27, { add: ["alice"] }], [27, { remove: ["alice"] }]]);
+  assert.equal(replies.length, 4);
+  assert.match(replies[0].body, /^@alice you're assigned to this issue\./);
+  assert.match(replies[1].body, /^@bob this issue is already assigned to @alice\./);
+  assert.match(replies[2].body, /need a signed-in account/);
+  assert.deepEqual(notified(replies[2].body), []);
+  assert.match(replies[3].body, /^@alice you're unassigned/);
+  assert.ok(replies.every((r) => r.number === 27 && /<!-- blt-assign:[0-9a-f]{20} -->$/.test(r.body)));
+  assert.equal(readFileSync(join(root, ".forkmesh/issues/open/27/issue-27.json"), "utf8"), before);
+});
+
+test("assignThroughApi gives up without replying when the endpoint is missing", async () => {
+  const root = ledger([[27, record(27, { comments: [["c1", "alice", "/assign"]] })]]);
+  const client = fakeClient({ missing: true });
+  assert.equal(await A.assignThroughApi({ root, commands: A.collectCommands({ root, issueOverride: 27 }), client, log: quiet }), null);
+  const failing = { ...fakeClient(), async changeAssignees() { throw Object.assign(new Error("HTTP 429"), { status: 429, body: { error: "author_quota" } }); } };
+  await assert.rejects(A.assignThroughApi({ root, commands: A.collectCommands({ root, issueOverride: 27 }), client: failing, log: quiet }), /429/);
 });
 
 // End to end: an issue_comment event, a bare origin that moves meanwhile, and a stub job API.
-test("workflow run: pushes the signed assignment (rebuilt on a moved origin) and posts the @mention reply", async () => {
+test("workflow run on an instance without the assignees endpoint: pushes the signed assignment (rebuilt on a moved origin) and posts the @mention reply", async () => {
   const dir = mkdtempSync(join(tmpdir(), "assign-e2e-"));
   const git = (cwd, ...args) => execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@e", ...args], { cwd, encoding: "utf8" }).trim();
   const origin = join(dir, "origin.git");
@@ -265,12 +327,16 @@ test("workflow run: pushes the signed assignment (rebuilt on a moved origin) and
     req.on("data", (c) => (data += c));
     req.on("end", () => {
       posts.push({ url: req.url, auth: req.headers.authorization, body: JSON.parse(data || "null") });
+      if (req.url.endsWith("/assignees")) {
+        res.writeHead(404, { "Content-Type": "application/json" }).end('{"error":"not_found"}');
+        return;
+      }
       res.writeHead(201, { "Content-Type": "application/json" }).end('{"ok":true}');
     });
   });
   await new Promise((r) => server.listen(0, "127.0.0.1", r));
   const eventFile = join(dir, "event.json");
-  writeFileSync(eventFile, JSON.stringify({ action: "created", issue: { number: 27 }, comment: { id: "c1", body: "/assign", user: { login: "vanshika2720" } } }));
+  writeFileSync(eventFile, JSON.stringify({ action: "created", issue: { number: 27 }, comment: { id: "c1", body: "/assign", user: { login: "vanshika2720", verified: true } } }));
   const env = {
     PATH: process.env.PATH,
     HOME: dir,
@@ -295,8 +361,9 @@ test("workflow run: pushes the signed assignment (rebuilt on a moved origin) and
     assert.deepEqual(pushed.assignees, ["vanshika2720"]);
     assert.ok(pushed.events.some((e) => e.id === "c2"), "the concurrent comment survived");
     assert.ok(pushed.events.some((e) => e.type === "assignees" && e.authorName === "blt-tasks[bot]"));
-    assert.equal(posts.length, 1);
-    assert.equal(posts[0].url, "/api/actions/job/issues/27/comments");
+    assert.deepEqual(posts.map((p) => p.url), ["/api/actions/job/issues/27/assignees", "/api/actions/job/issues/27/comments"]);
+    assert.deepEqual(posts[0].body, { add: ["vanshika2720"], remove: [] });
+    posts.shift();
     assert.equal(posts[0].auth, "Bearer job-token");
     assert.match(posts[0].body.body, /^@vanshika2720 you're assigned to this issue\./);
     assert.deepEqual(notified(posts[0].body.body), ["vanshika2720"]);
@@ -365,16 +432,91 @@ test("spam guard: more than 3 /assign in an hour pauses /assign for 24 hours, an
   assert.equal(after, ok, "the pause ends after 24 hours");
 });
 
+test("userActivity counts verified /assign comments and markers only from the verified bot", () => {
+  const rec = record(1, {
+    comments: [
+      ["a1", "ana", "/assign"],
+      ["a2", "ana", "/assign", false],
+      ["m1", "mallory", `x ${A.refusalMarker("ana")} ${A.cooldownMarker("ana")}`],
+    ],
+  });
+  rec.events.push({ type: "comment", id: "b1", author: "k", authorName: "acme-actions", authorVerified: true, body: `no ${A.refusalMarker("ana")}`, sig: "s", ts: 40 });
+  const activity = A.userActivity(ledger([[1, rec]]), "ana");
+  assert.equal(activity.attempts.length, 1);
+  assert.equal(activity.lastRefusal, 40_000);
+  assert.equal(activity.lastCooldown, 0);
+});
+
 test("applyCommands: several refused /assign in one run get a single reply", () => {
   const root = ledger([
     [1, record(1, { assignees: ["ana"] })],
     [2, record(2, { comments: [["c2", "ana", "/assign"]] })],
     [3, record(3, { comments: [["c3", "ana", "/assign"]] })],
   ]);
-  const commands = [2, 3].map((n) => ({ number: n, commentId: `c${n}`, login: "ana", author: "", body: "/assign" }));
+  const commands = [2, 3].map((n) => ({ number: n, commentId: `c${n}`, login: "ana", author: "", verified: true, body: "/assign" }));
   const { pending, changed } = A.applyCommands({ root, commands, signer, now: 20_000, log: quiet });
   assert.equal(changed.length, 0);
   const replies = pending.map((p) => A.replyFor(root, p)).filter(Boolean);
   assert.equal(replies.length, 1);
   assert.ok(replies[0].includes("#1"));
+});
+
+test("workflow run through the job API: assigns there, pushes nothing, refuses an unverified author", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "assign-api-"));
+  const work = join(dir, "work");
+  mkdirSync(work);
+  for (const f of ["blt-action/forge/assign.mjs", "scripts/actions/forge.mjs", "scripts/actions/commit-back.sh"]) {
+    mkdirSync(dirname(join(work, f)), { recursive: true });
+    copyFileSync(join(REPO, f), join(work, f));
+  }
+  const issueDir = join(work, ".forkmesh/issues/open/27");
+  mkdirSync(issueDir, { recursive: true });
+  const file = join(issueDir, "issue-27.json");
+  writeFileSync(file, `${JSON.stringify(record(27), null, 4)}\n`);
+  const before = readFileSync(file, "utf8");
+  const posts = [];
+  const server = createServer((req, res) => {
+    let data = "";
+    req.on("data", (c) => (data += c));
+    req.on("end", () => {
+      const body = JSON.parse(data || "null");
+      posts.push({ url: req.url, auth: req.headers.authorization, body });
+      const answer = req.url.endsWith("/assignees") ? { ok: true, assignees: body.add, changed: true } : { ok: true };
+      res.writeHead(req.url.endsWith("/assignees") ? 200 : 201, { "Content-Type": "application/json" }).end(JSON.stringify(answer));
+    });
+  });
+  await new Promise((r) => server.listen(0, "127.0.0.1", r));
+  const run = (user) =>
+    new Promise((resolve) => {
+      const eventFile = join(dir, `event-${posts.length}.json`);
+      writeFileSync(eventFile, JSON.stringify({ action: "created", issue: { number: 27 }, comment: { id: `c-${posts.length}`, body: "/assign", user } }));
+      const env = {
+        PATH: process.env.PATH,
+        HOME: dir,
+        FORKMESH_EVENT: "issue_comment",
+        FORKMESH_EVENT_PATH: eventFile,
+        FORKMESH_API_URL: `http://127.0.0.1:${server.address().port}`,
+        FORKMESH_TOKEN: "job-token",
+      };
+      const child = spawn("node", ["blt-action/forge/assign.mjs"], { cwd: work, env });
+      let out = "";
+      child.stdout.on("data", (c) => (out += c));
+      child.stderr.on("data", (c) => (out += c));
+      child.on("close", (code) => resolve({ code, out }));
+    });
+  try {
+    let r = await run({ login: "alice" });
+    assert.equal(r.code, 0, r.out);
+    assert.deepEqual(posts.map((p) => p.url), ["/api/actions/job/issues/27/comments"]);
+    assert.match(posts[0].body.body, /need a signed-in account/);
+    r = await run({ login: "vanshika2720", verified: true });
+    assert.equal(r.code, 0, r.out);
+    assert.deepEqual(posts.slice(1).map((p) => p.url), ["/api/actions/job/issues/27/assignees", "/api/actions/job/issues/27/comments"]);
+    assert.deepEqual(posts[1].body, { add: ["vanshika2720"], remove: [] });
+    assert.ok(posts.every((p) => p.auth === "Bearer job-token"));
+    assert.match(posts[2].body.body, /^@vanshika2720 you're assigned to this issue\./);
+    assert.equal(readFileSync(file, "utf8"), before);
+  } finally {
+    server.close();
+  }
 });

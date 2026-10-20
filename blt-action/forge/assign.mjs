@@ -6,12 +6,17 @@
 //   ... --apply-only                                 change the ledger files only (no commit, no reply)
 //   ... --dry-run                                    print what would happen; write nothing
 //
-// The assignment is a signed `assignees` event (forkmesh-issue-event-v2, the same event the desktop
-// writes for an owner's assignee change) appended to .forkmesh/issues/open/<n>/issue-<n>.json together
-// with the record's `assignees`, signed by blt-tasks[bot] (seed: secret BLT_TASKS_SEED) and pushed with
-// scripts/actions/commit-back.sh --rebuild. The reply is posted through the job API
-// (scripts/actions/forge.mjs comment), because only the issue inbox raises notifications: the
-// `@user` at the start of the reply is what notifies the commenter.
+// Only a verified author counts: the event payload's comment.user.verified (or a ledger comment's
+// authorVerified, for workflow_dispatch) must be true, i.e. the forge bound the comment to the
+// signed-in account. Anything else gets the "sign in" reply and no assignment.
+//
+// The assignment goes through the job API (POST issues/<n>/assignees), which records it through the
+// issue inbox and sends the assignee the forge's "issue assigned" notification. On an instance without
+// that endpoint (HTTP 404 not_found) it falls back to a signed `assignees` event
+// (forkmesh-issue-event-v2) appended to .forkmesh/issues/open/<n>/issue-<n>.json, signed by
+// blt-tasks[bot] (seed: secret BLT_TASKS_SEED) and pushed with scripts/actions/commit-back.sh
+// --rebuild. The reply is posted through the job API (scripts/actions/forge.mjs comment); the
+// `@user` at the start of the reply notifies the commenter.
 //
 // The comment is read from the event JSON and never reaches a shell. Each command is keyed by
 // sha256(issue, comment id, login): the ledger event id `blt-assign-<key>` marks it applied and a
@@ -157,9 +162,10 @@ export function userActivity(root, name) {
     for (const c of ledgerComments(issue.record)) {
       const body = String(c.body || "");
       const ts = toMs(c.ts);
-      if (sameName(c.authorName || "", name) && parseCommand(body) === "assign") activity.attempts.push(ts);
-      if (body.includes(refused)) activity.lastRefusal = Math.max(activity.lastRefusal, ts);
-      if (body.includes(cooled)) activity.lastCooldown = Math.max(activity.lastCooldown, ts);
+      if (c.authorVerified === true && sameName(c.authorName || "", name) && parseCommand(body) === "assign") activity.attempts.push(ts);
+      const fromBot = c.authorVerified === true && isBot(c.authorName);
+      if (fromBot && body.includes(refused)) activity.lastRefusal = Math.max(activity.lastRefusal, ts);
+      if (fromBot && body.includes(cooled)) activity.lastCooldown = Math.max(activity.lastCooldown, ts);
     }
   }
   return activity;
@@ -305,7 +311,14 @@ export function writeIssue(issue) {
 
 // ---- commands ------------------------------------------------------------------------------------
 
-/** Commands to handle: [{number, commentId, login, body}], at most MAX_COMMANDS_PER_RUN. */
+/** The commenter's account name, or "" unless the forge verified the comment's author. */
+export function verifiedName(c) {
+  if (c?.verified !== true) return "";
+  const name = accountName(c.login);
+  return name && name !== String(c.author || "").toLowerCase() ? name : "";
+}
+
+/** Commands to handle: [{number, commentId, login, author, verified, body}], at most MAX_COMMANDS_PER_RUN. */
 export function collectCommands({ root, event, name, issueOverride }) {
   const dispatchIssue = Number(issueOverride || process.env.INPUT_ISSUE || event?.inputs?.issue || 0);
   if (name === "workflow_dispatch" || issueOverride) {
@@ -313,7 +326,14 @@ export function collectCommands({ root, event, name, issueOverride }) {
     const issue = loadIssue(root, dispatchIssue);
     if (!issue) throw new Error(`issue #${dispatchIssue} has no ledger file`);
     return ledgerComments(issue.record)
-      .map((c) => ({ number: dispatchIssue, commentId: String(c.id), login: c.authorName || c.author || "", author: c.author || "", body: c.body }))
+      .map((c) => ({
+        number: dispatchIssue,
+        commentId: String(c.id),
+        login: c.authorName || c.author || "",
+        author: c.author || "",
+        verified: c.authorVerified === true && Boolean(c.authorName),
+        body: c.body,
+      }))
       .filter((c) => parseCommand(c.body))
       .slice(0, MAX_COMMANDS_PER_RUN);
   }
@@ -321,7 +341,16 @@ export function collectCommands({ root, event, name, issueOverride }) {
   const comment = event.comment || {};
   const number = Number(event.issue?.number || 0);
   if (!number || event.issue?.pull_request) return [];
-  return [{ number, commentId: String(comment.id || ""), login: comment.user?.login || "", author: "", body: comment.body }];
+  return [
+    {
+      number,
+      commentId: String(comment.id || ""),
+      login: comment.user?.login || "",
+      author: "",
+      verified: comment.user?.verified === true,
+      body: comment.body,
+    },
+  ];
 }
 
 /**
@@ -349,15 +378,15 @@ export function applyCommands({ root, commands, signer, now = Date.now(), dryRun
       log(`${label}: issue has no ledger file yet, skipped`);
       continue;
     }
-    const name = accountName(c.login);
+    const name = verifiedName(c);
     const key = commandKey(c.number, c.commentId, c.login);
     if (replied(issue.record, key)) {
       log(`${label}: /${command} already handled`);
       continue;
     }
     const entry = { number: c.number, key, name, command, login: String(c.login) };
-    if (!name || name === String(c.author || "").toLowerCase()) {
-      log(`${label}: /${command} from a comment without an account name`);
+    if (!name) {
+      log(`${label}: /${command} from a comment without a verified account`);
       pending.push(entry);
       continue;
     }
@@ -386,13 +415,14 @@ export function applyCommands({ root, commands, signer, now = Date.now(), dryRun
   return { pending, changed: [...changed] };
 }
 
+export const signInReply = (command, key) =>
+  `Commands like \`/${command}\` need a signed-in account: sign in on git.owaspblt.org and comment again. ${replyMarker(key)}`;
+
 /** The reply text (with marker) for a pending command, from the ledger as it is now. */
 export function replyFor(root, entry) {
   const marker = replyMarker(entry.key);
   const issue = loadIssue(root, entry.number);
-  if (!entry.name) {
-    return `Commands like \`/${entry.command}\` need a signed-in account: sign in on git.owaspblt.org and comment again. ${marker}`;
-  }
+  if (!entry.name) return signInReply(entry.command, entry.key);
   if (!issue) return "";
   const applied = appliedEvent(issue.record, entry.key);
   if (applied) return `${appliedReply(applied, entry.name, issue)} ${marker}`;
@@ -406,6 +436,83 @@ export function replyFor(root, entry) {
   // A decision that would still change the ledger was not pushed (e.g. --apply-only): no reply.
   if (decision.change || !decision.reply) return "";
   return `${decision.reply} ${marker}`;
+}
+
+/**
+ * Handle the commands through the job API: decide each against the ledger (kept in memory, so later
+ * commands in the run see earlier changes), assign or unassign through `client.changeAssignees`, and
+ * return the replies to post as [{number, body}]. Returns null, having changed nothing, when the
+ * instance has no assignees endpoint, so the caller can fall back to the signed-ledger commit.
+ */
+export async function assignThroughApi({ root, commands, client, now = Date.now(), log = console.log }) {
+  const run = { refused: new Set(), cooled: new Set() };
+  const issues = new Map();
+  const load = (n) => {
+    if (!issues.has(n)) issues.set(n, loadIssue(root, n));
+    return issues.get(n);
+  };
+  const replies = [];
+  for (const c of commands) {
+    const command = parseCommand(c.body);
+    if (!command) continue;
+    const label = `#${c.number} comment ${c.commentId || "?"} by ${JSON.stringify(String(c.login).slice(0, 80))}`;
+    if (isBot(c.login)) {
+      log(`${label}: ignored (bot)`);
+      continue;
+    }
+    if (!c.commentId) {
+      log(`${label}: ignored (no comment id to deduplicate on)`);
+      continue;
+    }
+    const issue = load(c.number);
+    if (!issue) {
+      log(`${label}: issue has no ledger file yet, skipped`);
+      continue;
+    }
+    const key = commandKey(c.number, c.commentId, c.login);
+    if (replied(issue.record, key)) {
+      log(`${label}: /${command} already handled`);
+      continue;
+    }
+    const name = verifiedName(c);
+    if (!name) {
+      log(`${label}: /${command} from a comment without a verified account`);
+      replies.push({ number: c.number, body: signInReply(command, key) });
+      continue;
+    }
+    const applied = appliedEvent(issue.record, key);
+    if (applied) {
+      log(`${label}: /${command} already applied, reply pending`);
+      replies.push({ number: c.number, body: `${appliedReply(applied, name, issue)} ${replyMarker(key)}` });
+      continue;
+    }
+    const others = command === "assign" ? openAssignments(root, name, c.number) : [];
+    const decision = guard(decide({ command, name, issue, others }), {
+      command,
+      name,
+      activity: command === "assign" ? userActivity(root, name) : null,
+      now,
+      run,
+    });
+    if (decision.change) {
+      let answer;
+      try {
+        answer = await client.changeAssignees(c.number, command === "assign" ? { add: [name] } : { remove: [name] });
+      } catch (error) {
+        if (client.missingEndpoint?.(error)) {
+          log("the job API has no assignees endpoint; falling back to the signed ledger commit");
+          return null;
+        }
+        throw error;
+      }
+      issue.record.assignees = Array.isArray(answer?.assignees) ? answer.assignees.map(String) : decision.change.assignees;
+      log(`${label}: /${command} applied through the job API, assignees now ${JSON.stringify(issue.record.assignees)}`);
+    } else {
+      log(`${label}: /${command} refused or nothing to do`);
+    }
+    if (decision.reply) replies.push({ number: c.number, body: `${decision.reply} ${replyMarker(key)}` });
+  }
+  return replies;
 }
 
 export function loadSigner(env = process.env) {
@@ -429,6 +536,16 @@ async function main() {
   if (!commands.length) {
     console.log("no /assign or /unassign command to handle");
     return;
+  }
+  if (!dryRun && !applyOnly && process.env.BLT_ASSIGN_LEDGER !== "1") {
+    const replies = await assignThroughApi({ root, commands, client: forge });
+    if (replies) {
+      for (const reply of replies) {
+        await forge.comment(reply.number, reply.body);
+        console.log(`replied on #${reply.number}`);
+      }
+      return;
+    }
   }
   const signer = loadSigner() || (dryRun ? throwawaySigner() : null);
   const { pending, changed } = applyCommands({ root, commands, signer, dryRun });
