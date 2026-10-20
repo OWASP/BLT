@@ -219,6 +219,142 @@
           </div>
         </section>
 
+          <!-- Legal Basis -->
+        <div class="w-full mb-4">
+          <div class="border border-neutral-border rounded-xl bg-white shadow-md">
+              <div
+                class="border-b border-gray-100 px-4 py-3.5 flex items-center justify-between gap-3"
+              >
+                <h2 class="text-base font-extrabold text-gray-900 inline-flex items-center gap-2">
+                  <i class="fa-solid fa-scale-balanced text-primary" aria-hidden="true"></i>
+                  Legal Basis
+                </h2>
+              </div>
+              <div class="p-4 text-sm text-gray-600">
+                <p class="mb-3">
+                  SafeCloak consent tooling supports compliance workflows by providing:
+                </p>
+                <ul class="space-y-1.5" role="list">
+                  <li>
+                    <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>Explicit
+                    informed consent capture
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i
+                    >Cryptographic timestamps (SHA-256)
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i
+                    >Tamper-evident hash verification
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>Consent
+                    withdrawal mechanism
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i
+                    >Machine-readable export (JSON/CSV)
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i
+                    >Purpose-of-processing field
+                  </li>
+                </ul>
+                <p class="mt-3 italic">
+                  Note: this tool supports compliance practices but does not replace legal counsel.
+                </p>
+              </div>
+            </div>
+        </div>
+        <!-- Quick Templates -->
+        <div class="w-full mb-4">
+          <div class="border border-neutral-border rounded-xl bg-white shadow-md">
+              <div
+                class="border-b border-gray-100 px-4 py-3.5 flex items-center justify-between gap-3"
+              >
+                <h2 class="text-base font-extrabold text-gray-900 inline-flex items-center gap-2">
+                  <i class="fa-solid fa-bolt text-primary" aria-hidden="true"></i>
+                  Quick Templates
+                </h2>
+              </div>
+              <div class="p-4 flex flex-col gap-2">
+                <button
+                  class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50"
+                  onclick="
+                    recordTemplateConsent({
+                      type: 'given',
+                      name: 'All Participants',
+                      purpose: 'Video call recording',
+                      details: 'Explicit consent given before session start via in-app prompt',
+                    }).then((entry) => {
+                      if (entry && typeof renderConsentPage === 'function') {
+                        renderConsentPage();
+                      }
+                    })
+                  "
+                  aria-label="Record session consent"
+                >
+                  Session Consent (All)
+                </button>
+                <button
+                  class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50"
+                  onclick="
+                    recordTemplateConsent({
+                      type: 'given',
+                      name: 'All Participants',
+                      purpose: 'AI meeting notes',
+                      details: 'Consent to generate encrypted AI notes from meeting content',
+                    }).then((entry) => {
+                      if (entry && typeof renderConsentPage === 'function') {
+                        renderConsentPage();
+                      }
+                    })
+                  "
+                  aria-label="Record AI notes consent"
+                >
+                  Consent to AI Notes
+                </button>
+                <button
+                  class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50"
+                  onclick="
+                    recordTemplateConsent({
+                      type: 'recorded',
+                      name: 'System',
+                      purpose: 'Session metadata',
+                      details: 'Secure session initiated; all participants anonymized',
+                    }).then((entry) => {
+                      if (entry && typeof renderConsentPage === 'function') {
+                        renderConsentPage();
+                      }
+                    })
+                  "
+                  aria-label="Record session start"
+                >
+                  Session Started
+                </button>
+                <button
+                  class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50"
+                  onclick="
+                    recordTemplateConsent({
+                      type: 'withdrawn',
+                      name: 'Participant',
+                      purpose: 'Right to erasure',
+                      details:
+                        'Participant has withdrawn consent and requested data deletion (GDPR Art. 17)',
+                    }).then((entry) => {
+                      if (entry && typeof renderConsentPage === 'function') {
+                        renderConsentPage();
+                      }
+                    })
+                  "
+                  aria-label="Record consent withdrawal"
+                >
+                  Withdraw Consent (GDPR Art. 17)
+                </button>
+            </div>
+          </div>
+        </div>
+          <!-- Consent Form + Consent Log -->
         <div class="consent-layout">
           <section aria-label="Record new consent event" class="space-y-4">
             <div class="border border-neutral-border rounded-xl bg-white shadow-md">
@@ -321,140 +457,8 @@
                   </button>
                 </form>
               </div>
-            </div>
-
-            <div class="border border-neutral-border rounded-xl bg-white shadow-md">
-              <div
-                class="border-b border-gray-100 px-4 py-3.5 flex items-center justify-between gap-3"
-              >
-                <h2 class="text-base font-extrabold text-gray-900 inline-flex items-center gap-2">
-                  <i class="fa-solid fa-bolt text-primary" aria-hidden="true"></i>
-                  Quick Templates
-                </h2>
               </div>
-              <div class="p-4 flex flex-col gap-2">
-                <button
-                  class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50"
-                  onclick="
-                    recordTemplateConsent({
-                      type: 'given',
-                      name: 'All Participants',
-                      purpose: 'Video call recording',
-                      details: 'Explicit consent given before session start via in-app prompt',
-                    }).then((entry) => {
-                      if (entry && typeof renderConsentPage === 'function') {
-                        renderConsentPage();
-                      }
-                    })
-                  "
-                  aria-label="Record session consent"
-                >
-                  Session Consent (All)
-                </button>
-                <button
-                  class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50"
-                  onclick="
-                    recordTemplateConsent({
-                      type: 'given',
-                      name: 'All Participants',
-                      purpose: 'AI meeting notes',
-                      details: 'Consent to generate encrypted AI notes from meeting content',
-                    }).then((entry) => {
-                      if (entry && typeof renderConsentPage === 'function') {
-                        renderConsentPage();
-                      }
-                    })
-                  "
-                  aria-label="Record AI notes consent"
-                >
-                  Consent to AI Notes
-                </button>
-                <button
-                  class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50"
-                  onclick="
-                    recordTemplateConsent({
-                      type: 'recorded',
-                      name: 'System',
-                      purpose: 'Session metadata',
-                      details: 'Secure session initiated; all participants anonymized',
-                    }).then((entry) => {
-                      if (entry && typeof renderConsentPage === 'function') {
-                        renderConsentPage();
-                      }
-                    })
-                  "
-                  aria-label="Record session start"
-                >
-                  Session Started
-                </button>
-                <button
-                  class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50"
-                  onclick="
-                    recordTemplateConsent({
-                      type: 'withdrawn',
-                      name: 'Participant',
-                      purpose: 'Right to erasure',
-                      details:
-                        'Participant has withdrawn consent and requested data deletion (GDPR Art. 17)',
-                    }).then((entry) => {
-                      if (entry && typeof renderConsentPage === 'function') {
-                        renderConsentPage();
-                      }
-                    })
-                  "
-                  aria-label="Record consent withdrawal"
-                >
-                  Withdraw Consent (GDPR Art. 17)
-                </button>
-              </div>
-            </div>
-
-            <div class="border border-neutral-border rounded-xl bg-white shadow-md">
-              <div
-                class="border-b border-gray-100 px-4 py-3.5 flex items-center justify-between gap-3"
-              >
-                <h2 class="text-base font-extrabold text-gray-900 inline-flex items-center gap-2">
-                  <i class="fa-solid fa-scale-balanced text-primary" aria-hidden="true"></i>
-                  Legal Basis
-                </h2>
-              </div>
-              <div class="p-4 text-sm text-gray-600">
-                <p class="mb-3">
-                  SafeCloak consent tooling supports compliance workflows by providing:
-                </p>
-                <ul class="space-y-1.5" role="list">
-                  <li>
-                    <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>Explicit
-                    informed consent capture
-                  </li>
-                  <li>
-                    <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i
-                    >Cryptographic timestamps (SHA-256)
-                  </li>
-                  <li>
-                    <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i
-                    >Tamper-evident hash verification
-                  </li>
-                  <li>
-                    <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>Consent
-                    withdrawal mechanism
-                  </li>
-                  <li>
-                    <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i
-                    >Machine-readable export (JSON/CSV)
-                  </li>
-                  <li>
-                    <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i
-                    >Purpose-of-processing field
-                  </li>
-                </ul>
-                <p class="mt-3 italic">
-                  Note: this tool supports compliance practices but does not replace legal counsel.
-                </p>
-              </div>
-            </div>
           </section>
-
           <section aria-label="Consent event log">
             <div class="border border-neutral-border rounded-xl bg-white shadow-md h-full">
               <div
