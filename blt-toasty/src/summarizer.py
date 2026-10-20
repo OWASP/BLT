@@ -330,8 +330,9 @@ def build_triage_messages(
 def validate_triage_output(data: dict) -> tuple[bool, list[str]]:
     """Validate LLM output against the triage JSON schema.
 
-    Checks presence and types of all required fields, enforces
-    word limits on summary fields, and validates CWE format.
+    Checks presence and types of all required fields and validates CWE
+    format.  Over-long summary fields are not rejected here: ``summarize``
+    trims them to the word limits after validation.
 
     Args:
         data: The parsed JSON dict from the LLM response.
@@ -349,15 +350,11 @@ def validate_triage_output(data: dict) -> tuple[bool, list[str]]:
     es = data.get("executive_summary")
     if not isinstance(es, str) or not es.strip():
         errors.append("executive_summary: missing or not a non-empty string")
-    elif len(es.split()) > MAX_EXECUTIVE_WORDS:
-        errors.append(f"executive_summary: exceeds {MAX_EXECUTIVE_WORDS} words ({len(es.split())} found)")
 
     # --- reviewer_pack ---
     rp = data.get("reviewer_pack")
     if rp is not None and not isinstance(rp, str):
         errors.append("reviewer_pack: must be a string or null")
-    elif isinstance(rp, str) and len(rp.split()) > MAX_REVIEWER_WORDS:
-        errors.append(f"reviewer_pack: exceeds {MAX_REVIEWER_WORDS} words ({len(rp.split())} found)")
 
     # --- cwe_hints ---
     cwe = data.get("cwe_hints")
@@ -725,7 +722,7 @@ async def summarize(
         confidence = float(conf_raw) if conf_raw is not None else 0.0
         confidence = max(0.0, min(1.0, confidence))  # Clamp to [0.0, 1.0]
 
-        prompt_tokens = estimate_tokens(messages[0]["content"] + messages[1]["content"])
+        prompt_tokens = estimate_tokens("".join(m.get("content", "") for m in messages))
 
         summary = TriageSummary(
             event_id=event_id,

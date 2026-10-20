@@ -28,6 +28,7 @@ from src.summarizer import (
     MAX_EXECUTIVE_WORDS,
     MAX_INPUT_TOKENS,
     MAX_REPRO_STEPS,
+    MAX_REVIEWER_WORDS,
     REPRO_EXTRACTED,
     REPRO_INSUFFICIENT,
     REPRO_MISSING,
@@ -211,6 +212,18 @@ class TestValidateTriageOutput:
         is_valid, errors = validate_triage_output(data)
         assert is_valid is False
         assert any("confidence" in e for e in errors)
+
+    def test_over_long_summaries_are_not_rejected(self):
+        """Word limits are enforced by trimming in summarize(), not by validation."""
+        data = {
+            "executive_summary": " ".join(["word"] * (MAX_EXECUTIVE_WORDS + 50)),
+            "reviewer_pack": " ".join(["word"] * (MAX_REVIEWER_WORDS + 50)),
+            "cwe_hints": ["CWE-89"],
+            "confidence": 0.5,
+        }
+        is_valid, errors = validate_triage_output(data)
+        assert is_valid is True
+        assert errors == []
 
     def test_invalid_cwe_format_fails(self):
         data = {
@@ -473,6 +486,33 @@ class TestSummarize:
             result = await summarize("Report", env, db, do_stub, "evt-008")
 
         assert len(result.executive_summary.split()) <= MAX_EXECUTIVE_WORDS
+        # Trimmed, not rejected: the LLM analysis is kept instead of the fallback.
+        assert result.model_used != "fallback:truncation"
+        assert result.cwe_hints == ["CWE-79"]
+
+    @pytest.mark.asyncio
+    async def test_reviewer_pack_word_limit_trims_instead_of_fallback(self):
+        """Over-long reviewer pack is trimmed to MAX_REVIEWER_WORDS, keeping the LLM result."""
+        response = json.dumps(
+            {
+                "executive_summary": "Stored XSS in the comment form.",
+                "reviewer_pack": " ".join(["detail"] * (MAX_REVIEWER_WORDS + 100)),
+                "cwe_hints": ["CWE-79"],
+                "repro_steps": [],
+                "confidence": 0.8,
+            }
+        )
+
+        db = _make_mock_db(status="redaction_passed")
+        env = _make_mock_env()
+        do_stub = _make_mock_do_stub()
+
+        with patch("src.summarizer.call_llm", new_callable=AsyncMock, return_value=response):
+            result = await summarize("Report", env, db, do_stub, "evt-008b")
+
+        assert result.model_used != "fallback:truncation"
+        assert result.executive_summary == "Stored XSS in the comment form."
+        assert len(result.reviewer_pack.split()) <= MAX_REVIEWER_WORDS
 
     @pytest.mark.asyncio
     async def test_d1_insert_called(self):
