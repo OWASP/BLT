@@ -14,7 +14,9 @@ import hashlib
 import hmac as _hmac
 import importlib
 import json
+import os
 import sys
+import tempfile
 import types
 import unittest
 import urllib.parse
@@ -278,6 +280,7 @@ def _make_issue_payload(
     comment_user=None,
     sender=None,
     label=None,
+    issue_user=None,
 ):
     if assignees is None:
         assignees = []
@@ -287,6 +290,8 @@ def _make_issue_payload(
         comment_user = {"login": "alice", "type": "User"}
     if sender is None:
         sender = {"login": "alice", "type": "User"}
+    if issue_user is None:
+        issue_user = {"login": "alice", "type": "User"}
     issue = {
         "number": number,
         "state": state,
@@ -294,6 +299,7 @@ def _make_issue_payload(
         "labels": labels,
         "html_url": html_url,
         "title": title,
+        "user": issue_user,
     }
     if is_pr:
         issue["pull_request"] = {"url": "https://api.github.com/repos/test/test/pulls/1"}
@@ -345,7 +351,7 @@ class TestHandleAssign(unittest.TestCase):
         _run(_inner())
 
     def test_assigns_user_to_open_issue(self):
-        payload = _make_issue_payload()
+        payload = _make_issue_payload(labels=[{"name": "help wanted"}])
         comments, calls = [], []
         self._run_assign(payload, comments, calls)
         # Expect a POST to the assignees endpoint
@@ -354,6 +360,25 @@ class TestHandleAssign(unittest.TestCase):
             for method, path, *_ in calls
         ))
         self.assertTrue(any("assigned to this issue" in c for c in comments))
+
+    def test_does_not_assign_without_help_wanted_label(self):
+        payload = _make_issue_payload(labels=[])
+        comments, calls = [], []
+        mock_ensure = AsyncMock()
+        with patch.object(_worker, "_ensure_label_exists", new=mock_ensure):
+            self._run_assign(payload, comments, calls)
+        # Comment must mention the requester, @donnieblt, and the "help wanted" label
+        self.assertTrue(any("@alice" in c and "@donnieblt" in c and "help wanted" in c for c in comments))
+        # _ensure_label_exists must be called for the "needs-approval" label
+        mock_ensure.assert_called_once_with(
+            "OWASP-BLT", "TestRepo",
+            _worker.NEEDS_APPROVAL_LABEL, _worker.NEEDS_APPROVAL_LABEL_COLOR, "tok",
+        )
+        # The "needs-approval" label must be added to the issue via POST
+        self.assertTrue(any(
+            method == "POST" and "labels" in path and body == {"labels": ["needs-approval"]}
+            for method, path, _tok, body in calls
+        ))
 
     def test_does_not_assign_closed_issue(self):
         payload = _make_issue_payload(state="closed")
@@ -421,14 +446,276 @@ class TestHandleUnassign(unittest.TestCase):
         self.assertTrue(any("not currently assigned" in c for c in comments))
 
 
-class TestHandleIssueComment(unittest.TestCase):
-    """handle_issue_comment — routes /assign and /unassign commands"""
+class TestGetLastAssignRequester(unittest.TestCase):
+    """_get_last_assign_requester — finds the last human /assign commenter"""
 
-    def _run_comment(self, payload, assign_calls, unassign_calls):
+    def _run(self, api_pages, *, expected):
+        """Helper: pages is a list of comment lists returned page by page.
+        Each entry in api_pages is the list of comment dicts for that page.
+        """
+        page_index = [0]
+
+        async def _fake_api(method, path, token, body=None):
+            idx = page_index[0]
+            page_index[0] += 1
+            mock = MagicMock()
+            mock.status = 200
+            if idx < len(api_pages):
+                mock.text = AsyncMock(return_value=json.dumps(api_pages[idx]))
+            else:
+                mock.text = AsyncMock(return_value=json.dumps([]))
+            return mock
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=_fake_api)):
+                return await _worker._get_last_assign_requester("owner", "repo", 1, "tok")
+
+        result = _run(_inner())
+        self.assertEqual(result, expected)
+
+    def test_returns_login_of_last_assign_commenter(self):
+        comments = [
+            {"user": {"login": "bob", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([comments], expected="bob")
+
+    def test_returns_first_match_on_descending_page(self):
+        # Comments are returned newest-first; the first /assign found is the latest one.
+        comments = [
+            {"user": {"login": "charlie", "type": "User"}, "body": "/assign"},
+            {"user": {"login": "alice", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([comments], expected="charlie")
+
+    def test_skips_bot_comments(self):
+        comments = [
+            {"user": {"login": "some-bot[bot]", "type": "Bot"}, "body": "/assign"},
+            {"user": {"login": "alice", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([comments], expected="alice")
+
+    def test_skips_non_assign_comments(self):
+        comments = [
+            {"user": {"login": "alice", "type": "User"}, "body": "Just a comment"},
+            {"user": {"login": "bob", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([comments], expected="bob")
+
+    def test_returns_none_when_no_assign_comment(self):
+        comments = [
+            {"user": {"login": "alice", "type": "User"}, "body": "Just a comment"},
+        ]
+        self._run([comments], expected=None)
+
+    def test_returns_none_for_empty_comment_list(self):
+        self._run([[]], expected=None)
+
+    def test_paginates_until_assign_found(self):
+        # First page has 100 comments with no /assign; second page has one.
+        page1 = [
+            {"user": {"login": f"user{i}", "type": "User"}, "body": "hello"}
+            for i in range(100)
+        ]
+        page2 = [
+            {"user": {"login": "lateuser", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([page1, page2], expected="lateuser")
+
+    def test_returns_none_on_api_error(self):
+        async def _fail_api(*a, **kw):
+            mock = MagicMock()
+            mock.status = 500
+            return mock
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=_fail_api)):
+                return await _worker._get_last_assign_requester("owner", "repo", 1, "tok")
+
+        self.assertIsNone(_run(_inner()))
+
+
+class TestHandleApprove(unittest.TestCase):
+    """_approve — triage reviewer approves an issue for assignment"""
+
+    def _run_approve(self, payload, comments, github_calls, *, commenter="donnieblt", last_requester=None):
+        async def _inner():
+            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))):
+                    with patch.object(_worker, "_get_last_assign_requester", new=AsyncMock(return_value=last_requester)):
+                        await _worker._approve(
+                            payload["repository"]["owner"]["login"],
+                            payload["repository"]["name"],
+                            payload["issue"],
+                            commenter,
+                            "tok",
+                        )
+        _run(_inner())
+
+    def test_approve_adds_help_wanted_label_and_assigns_opener(self):
+        payload = _make_issue_payload(issue_user={"login": "alice", "type": "User"})
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls)
+        # Expect a POST to labels
+        self.assertTrue(any(
+            method == "POST" and "labels" in path
+            for method, path, *_ in calls
+        ))
+        # Expect a POST to assignees
+        self.assertTrue(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+        self.assertTrue(any("approved" in c for c in comments))
+
+    def test_approve_assigns_last_assign_requester_over_opener(self):
+        # When someone already said /assign before the approve, they should be
+        # assigned instead of the issue opener.
+        payload = _make_issue_payload(issue_user={"login": "alice", "type": "User"})
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls, last_requester="bob")
+        # bob (last requester) should be assigned, not alice (opener)
+        assign_calls = [
+            body for method, path, _tok, body in calls
+            if method == "POST" and "assignees" in path
+        ]
+        self.assertTrue(any("bob" in body.get("assignees", []) for body in assign_calls))
+        self.assertFalse(any("alice" in body.get("assignees", []) for body in assign_calls))
+        self.assertTrue(any("@bob" in c and "assigned" in c for c in comments))
+
+    def test_approve_rejected_for_non_reviewer(self):
+        payload = _make_issue_payload()
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls, commenter="randomuser")
+        self.assertEqual(calls, [])
+        self.assertTrue(any("Only @donnieblt can approve" in c for c in comments))
+
+    def test_approve_is_case_insensitive_for_reviewer(self):
+        payload = _make_issue_payload()
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls, commenter="DonnieBLT")
+        self.assertTrue(any(
+            method == "POST" and "labels" in path
+            for method, path, *_ in calls
+        ))
+
+    def test_approve_skips_assignment_when_no_opener(self):
+        payload = _make_issue_payload(issue_user={})
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls)
+        # Label should still be added
+        self.assertTrue(any(
+            method == "POST" and "labels" in path
+            for method, path, *_ in calls
+        ))
+        # No assignees POST since opener is unknown and no prior /assign
+        self.assertFalse(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+
+    def test_approve_does_not_assign_for_pull_request_comment(self):
+        # Simulate a PR thread by adding a pull_request key to the issue payload
+        payload = _make_issue_payload(issue_user={"login": "alice", "type": "User"})
+        payload["issue"]["pull_request"] = {"html_url": "https://example.com/pr/1"}
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls)
+        # No assignees POST should occur for PR comments
+        self.assertFalse(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+
+    def test_approve_does_not_assign_closed_issue(self):
+        payload = _make_issue_payload(
+            issue_user={"login": "alice", "type": "User"},
+            state="closed",
+        )
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls)
+        # Guardrail: closed issues should not be assigned
+        self.assertFalse(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+
+    def test_approve_respects_max_assignees_guardrail(self):
+        # Pre-populate the issue with several assignees to hit the max-assignees guardrail
+        payload = _make_issue_payload(issue_user={"login": "alice", "type": "User"})
+        payload["issue"]["assignees"] = [
+            {"login": "assignee1"},
+            {"login": "assignee2"},
+            {"login": "assignee3"},
+        ]
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls)
+        # Since the issue already has multiple assignees, _approve should not add more
+        self.assertFalse(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+class TestHandleDeny(unittest.TestCase):
+    """_deny — triage reviewer closes (denies) an issue"""
+
+    def _run_deny(self, payload, comments, github_calls, *, commenter="donnieblt"):
+        async def _inner():
+            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))):
+                    await _worker._deny(
+                        payload["repository"]["owner"]["login"],
+                        payload["repository"]["name"],
+                        payload["issue"],
+                        commenter,
+                        "tok",
+                    )
+        _run(_inner())
+
+    def test_deny_closes_open_issue(self):
+        payload = _make_issue_payload()
+        comments, calls = [], []
+        self._run_deny(payload, comments, calls)
+        self.assertTrue(any(
+            method == "PATCH" and f"/issues/{payload['issue']['number']}" in path
+            for method, path, *_ in calls
+        ))
+        self.assertTrue(any("denied" in c for c in comments))
+
+    def test_deny_rejected_for_non_reviewer(self):
+        payload = _make_issue_payload()
+        comments, calls = [], []
+        self._run_deny(payload, comments, calls, commenter="someuser")
+        self.assertEqual(calls, [])
+        self.assertTrue(any("Only @donnieblt can deny" in c for c in comments))
+
+    def test_deny_skips_already_closed_issue(self):
+        payload = _make_issue_payload(state="closed")
+        comments, calls = [], []
+        self._run_deny(payload, comments, calls)
+        self.assertFalse(any(method == "PATCH" for method, *_ in calls))
+        self.assertTrue(any("already closed" in c for c in comments))
+
+    def test_deny_is_case_insensitive_for_reviewer(self):
+        payload = _make_issue_payload()
+        comments, calls = [], []
+        self._run_deny(payload, comments, calls, commenter="DONNIEBLT")
+        self.assertTrue(any(method == "PATCH" for method, *_ in calls))
+
+
+class TestHandleIssueComment(unittest.TestCase):
+    """handle_issue_comment — routes /assign, /unassign, /approve, /deny commands"""
+
+    def _run_comment(self, payload, assign_calls, unassign_calls,
+                     approve_calls=None, deny_calls=None):
+        if approve_calls is None:
+            approve_calls = []
+        if deny_calls is None:
+            deny_calls = []
+
         async def _inner():
             with patch.object(_worker, "_assign", new=AsyncMock(side_effect=lambda *a: assign_calls.append(a))):
                 with patch.object(_worker, "_unassign", new=AsyncMock(side_effect=lambda *a: unassign_calls.append(a))):
-                    await _worker.handle_issue_comment(payload, "tok")
+                    with patch.object(_worker, "_approve", new=AsyncMock(side_effect=lambda *a: approve_calls.append(a))):
+                        with patch.object(_worker, "_deny", new=AsyncMock(side_effect=lambda *a: deny_calls.append(a))):
+                            await _worker.handle_issue_comment(payload, "tok")
         _run(_inner())
 
     def test_routes_assign_command(self):
@@ -461,6 +748,20 @@ class TestHandleIssueComment(unittest.TestCase):
         self._run_comment(payload, assigns, unassigns)
         self.assertEqual(assigns, [])
         self.assertEqual(unassigns, [])
+
+    def test_routes_approve_command(self):
+        payload = _make_issue_payload(comment_body="/approve")
+        assigns, unassigns, approves, denies = [], [], [], []
+        self._run_comment(payload, assigns, unassigns, approves, denies)
+        self.assertEqual(len(approves), 1)
+        self.assertEqual(len(denies), 0)
+
+    def test_routes_deny_command(self):
+        payload = _make_issue_payload(comment_body="/deny")
+        assigns, unassigns, approves, denies = [], [], [], []
+        self._run_comment(payload, assigns, unassigns, approves, denies)
+        self.assertEqual(len(approves), 0)
+        self.assertEqual(len(denies), 1)
 
 
 class TestHandleIssueOpened(unittest.TestCase):
@@ -503,6 +804,52 @@ class TestHandleIssueOpened(unittest.TestCase):
         comments, bugs = [], []
         self._run_opened(payload, comments, bugs)
         self.assertEqual(comments, [])
+
+    def test_skips_welcome_for_excluded_repo(self):
+        payload = _make_issue_payload(repo="BLT-Design-Contest")
+        comments, bugs = [], []
+        with patch.object(_worker, "_load_no_welcome_repos", return_value=["BLT-Design-Contest"]):
+            self._run_opened(payload, comments, bugs)
+        self.assertEqual(comments, [])
+        self.assertEqual(bugs, [])
+
+    def test_posts_welcome_for_non_excluded_repo(self):
+        payload = _make_issue_payload(repo="SomeOtherRepo")
+        comments, bugs = [], []
+        with patch.object(_worker, "_load_no_welcome_repos", return_value=["BLT-Design-Contest"]):
+            self._run_opened(payload, comments, bugs)
+        self.assertEqual(len(comments), 1)
+        self.assertIn("Thanks for opening this issue", comments[0])
+
+
+class TestLoadNoWelcomeRepos(unittest.TestCase):
+    """Tests for _load_no_welcome_repos YAML parser."""
+
+    def test_parses_repos_list(self):
+        content = "repos:\n  - BLT-Design-Contest\n  - AnotherRepo\n"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+            f.write(content)
+            tmp_path = f.name
+        try:
+            result = _worker._load_no_welcome_repos(tmp_path)
+            self.assertEqual(result, ["BLT-Design-Contest", "AnotherRepo"])
+        finally:
+            os.unlink(tmp_path)
+
+    def test_returns_empty_list_when_file_missing(self):
+        result = _worker._load_no_welcome_repos("/nonexistent/path/repos.yml")
+        self.assertEqual(result, [])
+
+    def test_ignores_comments_and_blank_lines(self):
+        content = "# comment\n\nrepos:\n  # another comment\n  - BLT-Design-Contest\n"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+            f.write(content)
+            tmp_path = f.name
+        try:
+            result = _worker._load_no_welcome_repos(tmp_path)
+            self.assertEqual(result, ["BLT-Design-Contest"])
+        finally:
+            os.unlink(tmp_path)
 
 
 class TestHandleIssueLabeled(unittest.TestCase):
@@ -601,11 +948,35 @@ class TestHandlePullRequestClosed(unittest.TestCase):
         self._run_closed(payload, comments)
         self.assertEqual(comments, [])
 
+    def test_tracks_stats_when_not_merged(self):
+        payload = _make_pr_payload(merged=False)
+
+        async def _inner():
+            with patch.object(_worker, "_track_pr_closed_in_d1", new=AsyncMock()) as track_mock:
+                with patch.object(_worker, "_post_merged_pr_combined_comment", new=AsyncMock()) as post_mock:
+                    await _worker.handle_pull_request_closed(payload, "tok", env=types.SimpleNamespace())
+            self.assertEqual(track_mock.await_count, 1)
+            self.assertEqual(post_mock.await_count, 0)
+
+        _run(_inner())
+
     def test_ignores_bot_merges(self):
         payload = _make_pr_payload(merged=True, sender={"login": "bot", "type": "Bot"})
         comments = []
         self._run_closed(payload, comments)
         self.assertEqual(comments, [])
+
+    def test_tracks_stats_even_when_sender_is_bot(self):
+        payload = _make_pr_payload(merged=True, sender={"login": "bot", "type": "Bot"})
+
+        async def _inner():
+            with patch.object(_worker, "_track_pr_closed_in_d1", new=AsyncMock()) as track_mock:
+                with patch.object(_worker, "_post_merged_pr_combined_comment", new=AsyncMock()) as post_mock:
+                    await _worker.handle_pull_request_closed(payload, "tok", env=types.SimpleNamespace())
+            self.assertEqual(track_mock.await_count, 1)
+            self.assertEqual(post_mock.await_count, 0)
+
+        _run(_inner())
 
 
 class TestSecretVarsStatusHtml(unittest.TestCase):
@@ -931,6 +1302,21 @@ class TestFormatLeaderboardComment(unittest.TestCase):
         # Should not highlight anyone
         self.assertNotIn("✨", result)
 
+    def test_uses_fixed_size_avatar_img_tag(self):
+        leaderboard_data = {
+            "sorted": [
+                {"login": "alice", "openPrs": 1, "mergedPrs": 2, "closedPrs": 0, "reviews": 0, "comments": 0, "total": 21},
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+
+        result = _format_leaderboard_comment("alice", leaderboard_data, "test-org")
+
+        self.assertIn("<img src=\"https://avatars.githubusercontent.com/alice?size=20&v=4\"", result)
+        self.assertIn("width=\"20\"", result)
+        self.assertIn("height=\"20\"", result)
+
 
 class TestFormatReviewerLeaderboardComment(unittest.TestCase):
     """Test reviewer leaderboard comment formatting"""
@@ -1003,7 +1389,7 @@ class TestFormatReviewerLeaderboardComment(unittest.TestCase):
         self.assertNotIn("`@alice`", result)
 
     def test_shows_pr_reviewer_outside_top5(self):
-        """PR reviewer ranked outside top 5 should still appear."""
+        """PR reviewer ranked outside top 5 should still appear centred in window."""
         data = {
             "sorted": [
                 {"login": f"user{i}", "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 10 - i, "comments": 0, "total": 50 - i * 5}
@@ -1014,6 +1400,66 @@ class TestFormatReviewerLeaderboardComment(unittest.TestCase):
         }
         result = _format_reviewer_leaderboard_comment(data, "test-org", pr_reviewers=["user6"])
         self.assertIn("user6", result)
+        # Only 5 rows shown; user0/user1 (top) should NOT appear since window is centred on user6
+        self.assertNotIn("`@user0`", result)
+        self.assertNotIn("`@user1`", result)
+
+    def test_reviewer_centred_window_shows_two_above_two_below(self):
+        """Reviewer in the middle of a large list: exactly 2 above and 2 below visible."""
+        logins = [f"u{i}" for i in range(10)]
+        data = {
+            "sorted": [
+                {"login": l, "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 10 - i, "comments": 0, "total": 50 - i * 5}
+                for i, l in enumerate(logins)
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        # Reviewer is u5 (index 5): window should be u3, u4, u5, u6, u7
+        result = _format_reviewer_leaderboard_comment(data, "test-org", pr_reviewers=["u5"])
+        self.assertIn("`@u3`", result)
+        self.assertIn("`@u4`", result)
+        self.assertIn("**`@u5`** ⭐", result)
+        self.assertIn("`@u6`", result)
+        self.assertIn("`@u7`", result)
+        # Rows outside the window should not appear
+        self.assertNotIn("`@u0`", result)
+        self.assertNotIn("`@u8`", result)
+        # Ellipsis rows should be shown above and below the window
+        self.assertIn("| … | … | … |", result)
+
+    def test_reviewer_at_top_shows_first_five(self):
+        """Reviewer ranked #1: window is top 5 with reviewer highlighted."""
+        logins = [f"u{i}" for i in range(10)]
+        data = {
+            "sorted": [
+                {"login": l, "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 10 - i, "comments": 0, "total": 50 - i * 5}
+                for i, l in enumerate(logins)
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        result = _format_reviewer_leaderboard_comment(data, "test-org", pr_reviewers=["u0"])
+        for i in range(5):
+            self.assertIn(f"u{i}", result)
+        self.assertNotIn("`@u5`", result)
+
+    def test_no_pr_reviewer_shows_top5(self):
+        """Without pr_reviewers, the top 5 are shown and nothing else."""
+        logins = [f"u{i}" for i in range(8)]
+        data = {
+            "sorted": [
+                {"login": l, "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 8 - i, "comments": 0, "total": 40 - i * 5}
+                for i, l in enumerate(logins)
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        result = _format_reviewer_leaderboard_comment(data, "test-org")
+        for i in range(5):
+            self.assertIn(f"u{i}", result)
+        self.assertNotIn("`@u5`", result)
+        self.assertNotIn("`@u6`", result)
 
 
 class TestPostReviewerLeaderboard(unittest.TestCase):
@@ -1296,6 +1742,11 @@ class TestPostMergedPrCombinedComment(unittest.TestCase):
         self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
         self.assertIn("pool.owaspblt.org", posted[0])
 
+    def test_combined_comment_contains_current_repository_link(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertIn("[test-org/test-repo](https://github.com/test-org/test-repo)", posted[0])
+
     def test_combined_comment_contains_contributor_leaderboard(self):
         posted, deleted = [], []
         self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
@@ -1321,7 +1772,7 @@ class TestPostMergedPrCombinedComment(unittest.TestCase):
         posted, deleted = [], []
         self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
         # Avatars should be present as inline images
-        self.assertIn("https://github.com/alice.png", posted[0])
+        self.assertIn("https://avatars.githubusercontent.com/alice?size=20&v=4", posted[0])
 
     def test_shows_top_five_when_author_not_in_leaderboard(self):
         data = {
@@ -1827,13 +2278,14 @@ class TestTrackingOperations(unittest.TestCase):
         mock_db = MagicMock()
         mock_stmt = AsyncMock()
         mock_stmt.bind = MagicMock(return_value=mock_stmt)
-        mock_stmt.run = AsyncMock(return_value={"success": True})
+        mock_stmt.run = AsyncMock(return_value={"meta": {"changes": 1}})
         mock_db.prepare.return_value = mock_stmt
         
         env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
         payload = {
             "repository": {"owner": {"login": "OWASP-BLT"}},
             "comment": {
+                "id": 98765,
                 "user": {"login": "alice", "type": "User"},
                 "body": "Great work!",
                 "created_at": "2024-03-05T12:00:00Z",
@@ -1846,12 +2298,238 @@ class TestTrackingOperations(unittest.TestCase):
         # Should have called prepare for monthly increment
         self.assertGreater(mock_db.prepare.call_count, 0)
 
+    async def _test_track_comment_redelivery_no_double_increment(self):
+        """Webhook redelivery with the same comment_id must NOT produce a second increment.
+
+        Delivery 1: INSERT reports changes=1  → _d1_inc_monthly is called once.
+        Delivery 2: INSERT reports changes=0  → function exits early; no second increment.
+        """
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}},
+            "comment": {
+                "id": 11111,
+                "user": {"login": "alice", "type": "User"},
+                "body": "Great work!",
+                "created_at": "2024-03-05T12:00:00Z",
+            },
+        }
+        # First delivery inserts a new row; second delivery hits the ON CONFLICT guard.
+        d1_run_mock = AsyncMock(side_effect=[
+            {"meta": {"changes": 1}},   # delivery 1 — INSERT succeeds
+            {"meta": {"changes": 0}},   # delivery 2 — INSERT ignored (duplicate)
+        ])
+        inc_mock = AsyncMock()
+
+        with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+            with patch.object(_worker, "_d1_run", new=d1_run_mock):
+                with patch.object(_worker, "_d1_inc_monthly", new=inc_mock):
+                    with patch.object(_worker, "console",
+                                      new=types.SimpleNamespace(log=lambda x: None,
+                                                                 error=lambda x: None)):
+                        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+                        await _worker._track_comment_in_d1(payload, env)   # delivery 1
+                        await _worker._track_comment_in_d1(payload, env)   # simulated redelivery
+
+        # Despite two deliveries, the counter must only increment once.
+        self.assertEqual(inc_mock.await_count, 1)
+
+    def test_track_comment_redelivery_no_double_increment(self):
+        _run(self._test_track_comment_redelivery_no_double_increment())
+
+    async def _test_track_comment_inc_monthly_failure_then_retry_succeeds(self):
+        """When _d1_inc_monthly raises, the compensation DELETE unblocks the next delivery.
+
+        Delivery 1: INSERT succeeds → _d1_inc_monthly raises
+                    → compensation DELETE restores the row → exception re-raised.
+        Delivery 2: INSERT succeeds again (row was deleted) → _d1_inc_monthly succeeds.
+
+        Net result: exactly one successful increment despite the transient failure.
+        """
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}},
+            "comment": {
+                "id": 22222,
+                "user": {"login": "bob", "type": "User"},
+                "body": "Nice fix!",
+                "created_at": "2024-04-01T10:00:00Z",
+            },
+        }
+        # _d1_run call order across both deliveries:
+        #   call 1 — delivery 1 INSERT (changes=1)
+        #   call 2 — compensation DELETE after _d1_inc_monthly raises
+        #   call 3 — delivery 2 INSERT (changes=1, since row was deleted)
+        d1_run_mock = AsyncMock(side_effect=[
+            {"meta": {"changes": 1}},   # delivery 1 INSERT
+            {"meta": {"changes": 1}},   # compensation DELETE
+            {"meta": {"changes": 1}},   # delivery 2 INSERT
+        ])
+        inc_mock = AsyncMock(side_effect=[Exception("transient DB error"), None])
+
+        with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+            with patch.object(_worker, "_d1_run", new=d1_run_mock):
+                with patch.object(_worker, "_d1_inc_monthly", new=inc_mock):
+                    with patch.object(_worker, "console",
+                                      new=types.SimpleNamespace(log=lambda x: None,
+                                                                 error=lambda x: None)):
+                        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+                        # Delivery 1 — _d1_inc_monthly raises; compensation DELETE must run.
+                        with self.assertRaises(Exception, msg="transient DB error"):
+                            await _worker._track_comment_in_d1(payload, env)
+
+                        # Delivery 2 (simulated redelivery) — must succeed end-to-end.
+                        await _worker._track_comment_in_d1(payload, env)
+
+        # Two _d1_inc_monthly calls: one failing, one succeeding.
+        self.assertEqual(inc_mock.await_count, 2)
+        # Three _d1_run calls: INSERT → compensation DELETE → INSERT.
+        self.assertEqual(d1_run_mock.await_count, 3)
+
+    def test_track_comment_inc_monthly_failure_then_retry_succeeds(self):
+        _run(self._test_track_comment_inc_monthly_failure_then_retry_succeeds())
+
+    async def _test_track_comment_ignores_commands(self):
+        """Slash commands should not be counted as comment leaderboard activity."""
+        mock_db = MagicMock()
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}},
+            "comment": {
+                "user": {"login": "alice", "type": "User"},
+                "body": "/leaderboard",
+                "created_at": "2024-03-05T12:00:00Z",
+            },
+        }
+
+        with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+            await _worker._track_comment_in_d1(payload, env)
+
+        self.assertEqual(mock_db.prepare.call_count, 0)
+
+    async def _test_track_pr_reopened_reverts_previous_close_credit(self):
+        """Reopening should remove prior close penalty and restore open PR count once."""
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}, "name": "test-repo"},
+            "pull_request": {
+                "number": 42,
+                "user": {"login": "alice", "type": "User"},
+            },
+        }
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+        with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+            with patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"state": "closed", "merged": 0, "closed_at": 1709596800})):
+                with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()) as monthly_mock:
+                    with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()) as open_mock:
+                        with patch.object(_worker, "_d1_run", new=AsyncMock()):
+                            await _worker._track_pr_reopened_in_d1(payload, env)
+
+        self.assertEqual(monthly_mock.await_count, 1)
+        monthly_args = monthly_mock.await_args.args
+        self.assertEqual(monthly_args[3], "alice")
+        self.assertEqual(monthly_args[4], "closed_prs")
+        self.assertEqual(monthly_args[5], -1)
+        self.assertEqual(open_mock.await_count, 1)
+        self.assertEqual(open_mock.await_args.args[3], 1)
+
+    async def _test_track_pr_reopened_idempotent_when_already_open(self):
+        """Duplicate reopened deliveries should not re-increment counters."""
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}, "name": "test-repo"},
+            "pull_request": {
+                "number": 42,
+                "user": {"login": "alice", "type": "User"},
+            },
+        }
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+        with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+            with patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"state": "open", "merged": 0, "closed_at": None})):
+                with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()) as monthly_mock:
+                    with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()) as open_mock:
+                        with patch.object(_worker, "_d1_run", new=AsyncMock()):
+                            await _worker._track_pr_reopened_in_d1(payload, env)
+
+        self.assertEqual(monthly_mock.await_count, 0)
+        self.assertEqual(open_mock.await_count, 0)
+
     def test_track_pr_opened(self):
         _run(self._test_track_pr_opened())
 
     def test_track_comment(self):
         _run(self._test_track_comment())
 
+    def test_track_comment_ignores_commands(self):
+        _run(self._test_track_comment_ignores_commands())
+
+    def test_track_pr_reopened_reverts_previous_close_credit(self):
+        _run(self._test_track_pr_reopened_reverts_previous_close_credit())
+
+    def test_track_pr_reopened_idempotent_when_already_open(self):
+        _run(self._test_track_pr_reopened_idempotent_when_already_open())
+
+class TestHandleIssueCommentCtxDefer(unittest.TestCase):
+    """handle_issue_comment — referral deferral: ctx=None (inline) and ctx provided (waitUntil)."""
+
+    def _make_referral_payload(self):
+        """Payload with a non-command body and an explicit comment id."""
+        payload = _make_issue_payload(comment_body="Hey `@carol` great contribution!")
+        payload["comment"]["id"] = 77777
+        return payload
+
+    async def _test_ctx_none_awaits_referral_inline(self):
+        """When ctx=None, _process_referral_mentions is awaited directly before returning.
+
+        This is the local-test / non-Cloudflare fallback path.
+        """
+        payload = self._make_referral_payload()
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+        referral_mock = AsyncMock()
+
+        with patch.object(_worker, "_track_comment_in_d1", new=AsyncMock()):
+            with patch.object(_worker, "_process_referral_mentions", new=referral_mock):
+                with patch.object(_worker, "console",
+                                  new=types.SimpleNamespace(log=lambda x: None,
+                                                             error=lambda x: None)):
+                    # Explicit ctx=None — must fall through to the inline await branch.
+                    await _worker.handle_issue_comment(payload, "tok", env=env, ctx=None)
+
+        # Referral processing must have been awaited synchronously.
+        referral_mock.assert_awaited_once()
+
+    async def _test_ctx_provided_schedules_waituntil(self):
+        """When ctx is provided, _process_referral_mentions is handed to ctx.waitUntil().
+
+        The referral coroutine must NOT have been awaited during the handler call itself —
+        it runs post-response in the Cloudflare Workers runtime.
+        """
+        payload = self._make_referral_payload()
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+        referral_mock = AsyncMock()
+
+        wait_until_calls = []
+        mock_ctx = types.SimpleNamespace(
+            waitUntil=lambda coro: wait_until_calls.append(coro)
+        )
+
+        with patch.object(_worker, "_track_comment_in_d1", new=AsyncMock()):
+            with patch.object(_worker, "_process_referral_mentions", new=referral_mock):
+                with patch.object(_worker, "console",
+                                  new=types.SimpleNamespace(log=lambda x: None,
+                                                             error=lambda x: None)):
+                    await _worker.handle_issue_comment(payload, "tok", env=env, ctx=mock_ctx)
+
+        # ctx.waitUntil must have been called exactly once …
+        self.assertEqual(len(wait_until_calls), 1,
+                         "ctx.waitUntil should be called once for the deferred referral coroutine")
+        # … and the referral mock must NOT have been awaited yet (deferred to post-response).
+        referral_mock.assert_not_awaited()
+
+    def test_ctx_none_awaits_referral_inline(self):
+        _run(self._test_ctx_none_awaits_referral_inline())
+
+    def test_ctx_provided_schedules_waituntil(self):
+        _run(self._test_ctx_provided_schedules_waituntil())
 
 # ---------------------------------------------------------------------------
 # Backfill double-counting prevention tests
@@ -1966,6 +2644,183 @@ class TestD1MentorAssignments(unittest.TestCase):
                 return await _worker._fetch_mentor_stats_from_d1(env, "OWASP-BLT")
         result = _run(_inner())
         self.assertEqual(result, {})
+
+    def test_fetch_mentor_stats_uses_github_api_when_token_provided(self):
+        """_fetch_mentor_stats_from_d1 fetches all-time counts from GitHub when token given."""
+        mock_db, stmt = self._make_mock_db()
+        # No cached rows — cache miss for all mentors.
+        stmt.all = AsyncMock(return_value={"results": []})
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+        mentors = [{"github_username": "alice"}, {"github_username": "bob"}]
+
+        # GitHub API responses: merged PRs then reviews for each mentor.
+        pr_alice = MagicMock()
+        pr_alice.status = 200
+        pr_alice.text = AsyncMock(return_value=json.dumps({"total_count": 42}))
+        rev_alice = MagicMock()
+        rev_alice.status = 200
+        rev_alice.text = AsyncMock(return_value=json.dumps({"total_count": 7}))
+        pr_bob = MagicMock()
+        pr_bob.status = 200
+        pr_bob.text = AsyncMock(return_value=json.dumps({"total_count": 15}))
+        rev_bob = MagicMock()
+        rev_bob.status = 200
+        rev_bob.text = AsyncMock(return_value=json.dumps({"total_count": 3}))
+
+        api_responses = [pr_alice, rev_alice, pr_bob, rev_bob]
+        call_index = {"i": 0}
+
+        async def _fake_github_api(method, path, token, body=None):
+            resp = api_responses[call_index["i"]]
+            call_index["i"] += 1
+            return resp
+
+        async def _inner():
+            with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                with patch.object(_worker, "_ensure_leaderboard_schema", return_value=None):
+                    with patch.object(_worker, "github_api", side_effect=_fake_github_api):
+                        with patch.object(
+                            _worker, "console",
+                            new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+                        ):
+                            return await _worker._fetch_mentor_stats_from_d1(
+                                env, "OWASP-BLT", mentors=mentors, token="fake-token"
+                            )
+
+        result = _run(_inner())
+        self.assertEqual(result["alice"]["merged_prs"], 42)
+        self.assertEqual(result["alice"]["reviews"], 7)
+        self.assertEqual(result["bob"]["merged_prs"], 15)
+        self.assertEqual(result["bob"]["reviews"], 3)
+
+    def test_fetch_mentor_stats_uses_cache_when_fresh(self):
+        """_fetch_mentor_stats_from_d1 returns cached values when they are still fresh."""
+        import time as _time
+        mock_db, stmt = self._make_mock_db()
+        now_ts = int(_time.time())
+        # Cache row is fresh (fetched 1 hour ago).
+        stmt.all = AsyncMock(return_value={
+            "results": [
+                {
+                    "github_username": "alice",
+                    "merged_prs": 99,
+                    "reviews": 11,
+                    "fetched_at": now_ts - 3600,
+                },
+            ]
+        })
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+        mentors = [{"github_username": "alice"}]
+
+        api_called = {"called": False}
+
+        async def _fake_github_api(method, path, token, body=None):
+            api_called["called"] = True
+            raise AssertionError("GitHub API should not be called when cache is fresh")
+
+        async def _inner():
+            with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                with patch.object(_worker, "_ensure_leaderboard_schema", return_value=None):
+                    with patch.object(_worker, "github_api", side_effect=_fake_github_api):
+                        with patch.object(
+                            _worker, "console",
+                            new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+                        ):
+                            return await _worker._fetch_mentor_stats_from_d1(
+                                env, "OWASP-BLT", mentors=mentors, token="fake-token"
+                            )
+
+        result = _run(_inner())
+        self.assertFalse(api_called["called"])
+        self.assertEqual(result["alice"]["merged_prs"], 99)
+        self.assertEqual(result["alice"]["reviews"], 11)
+
+    def test_fetch_mentor_stats_refetches_when_cache_stale(self):
+        """_fetch_mentor_stats_from_d1 re-fetches from GitHub when the cache is expired."""
+        import time as _time
+        mock_db, stmt = self._make_mock_db()
+        now_ts = int(_time.time())
+        # Cache row is stale (fetched 25 hours ago, TTL is 24 hours).
+        stmt.all = AsyncMock(return_value={
+            "results": [
+                {
+                    "github_username": "carol",
+                    "merged_prs": 1,
+                    "reviews": 0,
+                    "fetched_at": now_ts - 90000,
+                },
+            ]
+        })
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+        mentors = [{"github_username": "carol"}]
+
+        pr_resp = MagicMock()
+        pr_resp.status = 200
+        pr_resp.text = AsyncMock(return_value=json.dumps({"total_count": 20}))
+        rev_resp = MagicMock()
+        rev_resp.status = 200
+        rev_resp.text = AsyncMock(return_value=json.dumps({"total_count": 5}))
+
+        api_responses = [pr_resp, rev_resp]
+        call_index = {"i": 0}
+
+        async def _fake_github_api(method, path, token, body=None):
+            resp = api_responses[call_index["i"]]
+            call_index["i"] += 1
+            return resp
+
+        async def _inner():
+            with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                with patch.object(_worker, "_ensure_leaderboard_schema", return_value=None):
+                    with patch.object(_worker, "github_api", side_effect=_fake_github_api):
+                        with patch.object(
+                            _worker, "console",
+                            new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+                        ):
+                            return await _worker._fetch_mentor_stats_from_d1(
+                                env, "OWASP-BLT", mentors=mentors, token="fake-token"
+                            )
+
+        result = _run(_inner())
+        # Stale cache was bypassed — fresh GitHub values returned.
+        self.assertEqual(result["carol"]["merged_prs"], 20)
+        self.assertEqual(result["carol"]["reviews"], 5)
+
+    def test_fetch_mentor_stats_falls_back_to_d1_when_no_token(self):
+        """_fetch_mentor_stats_from_d1 falls back to D1 monthly aggregation with no token."""
+        mock_db, stmt = self._make_mock_db()
+        stmt.all = AsyncMock(return_value={
+            "results": [
+                {"user_login": "dave", "total_prs": 8, "total_reviews": 2},
+            ]
+        })
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+        mentors = [{"github_username": "dave"}]
+
+        api_called = {"called": False}
+
+        async def _fake_github_api(method, path, token, body=None):
+            api_called["called"] = True
+            raise AssertionError("GitHub API should not be called without a token")
+
+        async def _inner():
+            with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                with patch.object(_worker, "_ensure_leaderboard_schema", return_value=None):
+                    with patch.object(_worker, "github_api", side_effect=_fake_github_api):
+                        with patch.object(
+                            _worker, "console",
+                            new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+                        ):
+                            # No token provided — should skip GitHub API path.
+                            return await _worker._fetch_mentor_stats_from_d1(
+                                env, "OWASP-BLT", mentors=mentors, token=""
+                            )
+
+        result = _run(_inner())
+        self.assertFalse(api_called["called"])
+        self.assertIn("dave", result)
+        self.assertEqual(result["dave"]["merged_prs"], 8)
+        self.assertEqual(result["dave"]["reviews"], 2)
 
     def test_get_active_assignments_returns_list(self):
         """_d1_get_active_assignments returns active assignment rows."""
@@ -2682,10 +3537,259 @@ class TestBackfillReviewCredits(unittest.TestCase):
 
         _run(_inner())
 
+    def test_tracked_merged_prs_filtered_to_current_month(self):
+        """leaderboard_pr_state query for tracked merged PRs must include the month window filter."""
+        async def _inner():
+            mock_db = self._make_mock_db()
+            env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            # No PRs from the GitHub API for the current month.
+            open_prs = []
+            closed_prs = []
+
+            d1_all_calls = []  # (sql, params) tuples
+
+            async def _capturing_d1_all(db, sql, params=()):
+                d1_all_calls.append((sql, params))
+                return []
+
+            async def _mock_api(method, path, token, body=None):
+                if "state=open" in path:
+                    return self._make_api_response(open_prs)
+                if "state=closed" in path:
+                    return self._make_api_response(closed_prs)
+                return self._make_api_response([])
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_all", new=_capturing_d1_all):
+                        with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                            with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()):
+                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                    await _worker._backfill_repo_month_if_needed(
+                                        "OWASP-BLT", "test-repo", "tok", env,
+                                        month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                    )
+
+            # Find the _d1_all call for leaderboard_pr_state merged PR lookup.
+            pr_state_calls = [
+                (sql, params)
+                for sql, params in d1_all_calls
+                if "leaderboard_pr_state" in sql and "merged = 1" in sql
+            ]
+            self.assertTrue(
+                len(pr_state_calls) > 0,
+                "Expected a _d1_all call for leaderboard_pr_state merged PR lookup",
+            )
+            for sql, params in pr_state_calls:
+                self.assertIn(
+                    "closed_at", sql,
+                    "leaderboard_pr_state merged PR query must filter by closed_at",
+                )
+                self.assertIn(start_ts, params, "start_ts must be a param in the merged PR query")
+                self.assertIn(end_ts, params, "end_ts must be a param in the merged PR query")
+
+        _run(_inner())
+
+    def test_previous_month_tracked_prs_not_credited_in_current_month(self):
+        """PRs merged in a previous month must not generate review credits in the current month."""
+        async def _inner():
+            mock_db = self._make_mock_db()
+            env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            # No PRs visible from the GitHub API for the current month window.
+            open_prs = []
+            closed_prs = []  # No current-month merged PRs returned by API.
+
+            review_api_calls = []
+
+            async def _mock_api(method, path, token, body=None):
+                if "state=open" in path:
+                    return self._make_api_response(open_prs)
+                if "state=closed" in path:
+                    return self._make_api_response(closed_prs)
+                if "/reviews" in path:
+                    review_api_calls.append(path)
+                    return self._make_api_response([
+                        {"user": {"login": "bob", "type": "User"}, "state": "APPROVED"},
+                    ])
+                return self._make_api_response([])
+
+            monthly_inc_calls = []
+
+            async def _capturing_d1_all(db, sql, params=()):
+                # Return a previous-month merged PR only for the pr_state lookup.
+                if "leaderboard_pr_state" in sql and "merged = 1" in sql:
+                    # With the fix, start_ts/end_ts are passed so this row
+                    # would be excluded by the real D1 query.  Simulate correct
+                    # behaviour: the DB would return nothing for out-of-window rows.
+                    if start_ts in params and end_ts in params:
+                        return []
+                    # Without the fix the query had no date params; return the
+                    # out-of-window row to expose the bug.
+                    return [{"pr_number": 99, "author_login": "alice"}]
+                return []
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_all", new=_capturing_d1_all):
+                        with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                            with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock(
+                                side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field))
+                            )):
+                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                    await _worker._backfill_repo_month_if_needed(
+                                        "OWASP-BLT", "test-repo", "tok", env,
+                                        month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                    )
+
+            # With the fix applied, the previous-month PR should NOT generate review
+            # API calls or review credits because the DB query excludes it.
+            self.assertEqual(
+                len(review_api_calls), 0,
+                "Reviews must not be fetched for PRs merged outside the current month",
+            )
+            review_credits = [login for login, field in monthly_inc_calls if field == "reviews"]
+            self.assertEqual(
+                len(review_credits), 0,
+                "No review credits should be awarded for PRs from a previous month",
+            )
+
+        _run(_inner())
+
 
 # ---------------------------------------------------------------------------
 # Admin reset endpoint tests
 # ---------------------------------------------------------------------------
+
+
+class TestWebhookSecurityGuards(unittest.TestCase):
+    """Webhook auth fail-closed and health guard tests."""
+
+    def _make_webhook_request(self, body="{}", headers=None):
+        """Build a minimal webhook request object for worker route tests."""
+        req_headers = _HeadersStub(headers or {})
+        return types.SimpleNamespace(
+            method="POST",
+            url="https://example.com/api/github/webhooks",
+            headers=req_headers,
+            text=AsyncMock(return_value=body),
+        )
+
+    def _make_health_request(self):
+        """Build a minimal GET /health request object."""
+        return types.SimpleNamespace(
+            method="GET",
+            url="https://example.com/health",
+            headers=_HeadersStub({}),
+            text=AsyncMock(return_value=""),
+        )
+
+    def test_webhook_rejects_when_secret_missing(self):
+        """Webhook endpoint should fail closed when WEBHOOK_SECRET is not configured."""
+        async def _inner():
+            """Execute missing-secret webhook rejection assertions."""
+            req = self._make_webhook_request(
+                body=json.dumps({"action": "opened", "repository": {"full_name": "OWASP-BLT/BLT-GitHub-App"}}),
+                headers={
+                    "X-GitHub-Event": "issues",
+                    "X-GitHub-Delivery": "delivery-1",
+                },
+            )
+            env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem")
+
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.handle_webhook(req, env)
+
+            self.assertEqual(resp.status, 503)
+            payload = json.loads(resp.body)
+            self.assertEqual(payload.get("code"), "webhook_secret_missing")
+
+        _run(_inner())
+
+    def test_health_reports_degraded_when_webhook_secret_missing(self):
+        """/health should expose degraded status when webhook security config is incomplete."""
+        async def _inner():
+            """Execute health assertions for missing webhook secret."""
+            req = self._make_health_request()
+            env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem")
+
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            payload = json.loads(resp.body)
+            self.assertEqual(payload.get("status"), "degraded")
+            checks = payload.get("checks", {}).get("webhook_security", {}).get("checks", {})
+            self.assertTrue(checks.get("app_id_configured"))
+            self.assertTrue(checks.get("private_key_configured"))
+            self.assertFalse(checks.get("webhook_secret_configured"))
+
+        _run(_inner())
+
+    def test_health_reports_ok_when_webhook_security_ready(self):
+        """/health should report ok with real secret and degraded for whitespace-only secret."""
+        async def _inner():
+            """Execute ready and whitespace-secret health assertions."""
+            req = self._make_health_request()
+            env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem", WEBHOOK_SECRET="secret")
+
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            payload = json.loads(resp.body)
+            self.assertEqual(payload.get("status"), "ok")
+            self.assertTrue(payload.get("checks", {}).get("webhook_security", {}).get("ready"))
+
+            blank_env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem", WEBHOOK_SECRET="   ")
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                blank_resp = await _worker.on_fetch(req, blank_env)
+
+            self.assertEqual(blank_resp.status, 200)
+            blank_payload = json.loads(blank_resp.body)
+            self.assertEqual(blank_payload.get("status"), "degraded")
+            self.assertFalse(blank_payload.get("checks", {}).get("webhook_security", {}).get("ready"))
+
+        _run(_inner())
+
+    def test_health_reports_degraded_when_webhook_secret_blank(self):
+        """Blank WEBHOOK_SECRET should be treated as missing and emit structured rejection logs."""
+        async def _inner():
+            """Execute blank-secret health and webhook structured-log assertions."""
+            req = self._make_health_request()
+            env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem", WEBHOOK_SECRET="  ")
+            logs = []
+
+            console_stub = types.SimpleNamespace(
+                error=lambda x: logs.append(str(x)),
+                log=lambda x: logs.append(str(x)),
+            )
+            with patch.object(_worker, "console", new=console_stub):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            payload = json.loads(resp.body)
+            self.assertEqual(payload.get("status"), "degraded")
+            checks = payload.get("checks", {}).get("webhook_security", {}).get("checks", {})
+            self.assertFalse(checks.get("webhook_secret_configured"))
+
+            webhook_req = self._make_webhook_request(
+                body=json.dumps({"action": "opened", "repository": {"full_name": "OWASP-BLT/BLT-GitHub-App"}}),
+                headers={
+                    "X-GitHub-Event": "issues",
+                    "X-GitHub-Delivery": "delivery-blank-secret",
+                },
+            )
+            with patch.object(_worker, "console", new=console_stub):
+                webhook_resp = await _worker.on_fetch(webhook_req, env)
+
+            self.assertEqual(webhook_resp.status, 503)
+            self.assertTrue(any("rejected_missing_webhook_secret" in msg for msg in logs))
+
+        _run(_inner())
 
 
 class TestAdminResetLeaderboard(unittest.TestCase):
@@ -2847,6 +3951,44 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
         resp.text = AsyncMock(return_value="{}")
         return resp
 
+    def _empty_list_response(self):
+        """Return an empty JSON list — suitable for list endpoints like GET /comments."""
+        resp = MagicMock()
+        resp.status = 200
+        resp.text = AsyncMock(return_value="[]")
+        return resp
+
+    def _check_runs_list_response(self, check_runs=None):
+        """Return a check-runs listing with the given check-run objects (default empty)."""
+        resp = MagicMock()
+        resp.status = 200
+        resp.text = AsyncMock(return_value=json.dumps({"check_runs": check_runs or []}))
+        return resp
+
+    def _make_api_mock(self, api_calls=None, existing_check_run_id=None):
+        """Return an endpoint-aware async mock for github_api.
+
+        Routes:
+        - GET /comments (list)  → empty list response
+        - GET /check-runs (list) → check-runs list (optionally with an existing run)
+        - Everything else       → generic ok response ({})
+        """
+        def _side_effect(*args, **kwargs):
+            if api_calls is not None:
+                api_calls.append(args)
+            method, path = args[0], args[1]
+            # Comments list endpoint
+            if method == "GET" and "/comments" in path and "comments/" not in path:
+                return self._empty_list_response()
+            # Check-runs list endpoint
+            if method == "GET" and "/check-runs" in path and "check-runs/" not in path:
+                if existing_check_run_id is not None:
+                    run = {"id": existing_check_run_id, "name": _worker.UNRESOLVED_CONVERSATIONS_CHECK_NAME}
+                    return self._check_runs_list_response([run])
+                return self._check_runs_list_response()
+            return self._ok_response()
+        return AsyncMock(side_effect=_side_effect)
+
     def _payload(self):
         return _make_pr_payload(owner="acme", repo="widgets", number=7)
 
@@ -2883,11 +4025,7 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
-                with patch.object(
-                    _worker,
-                    "github_api",
-                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
-                ):
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls)):
                     await _worker.check_unresolved_conversations(self._payload(), "tok")
 
         _run(_inner())
@@ -2906,11 +4044,7 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
-                with patch.object(
-                    _worker,
-                    "github_api",
-                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
-                ):
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls)):
                     await _worker.check_unresolved_conversations(self._payload(), "tok")
 
         _run(_inner())
@@ -2931,6 +4065,10 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
             # Return existing labels for GET labels call
             if args[0] == "GET" and "/issues/" in args[1] and "/labels" in args[1] and "labels/" not in args[1]:
                 return self._labels_response(existing_labels)
+            if args[0] == "GET" and "/comments" in args[1] and "comments/" not in args[1]:
+                return self._empty_list_response()
+            if args[0] == "GET" and "/check-runs" in args[1] and "check-runs/" not in args[1]:
+                return self._check_runs_list_response()
             return self._ok_response()
 
         async def _inner():
@@ -2953,11 +4091,7 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
-                with patch.object(
-                    _worker,
-                    "github_api",
-                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
-                ):
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls)):
                     await _worker.check_unresolved_conversations(self._payload(), "tok")
 
         _run(_inner())
@@ -2978,11 +4112,7 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
-                with patch.object(
-                    _worker,
-                    "github_api",
-                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
-                ):
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls)):
                     await _worker.check_unresolved_conversations(self._payload(), "tok")
 
         _run(_inner())
@@ -2990,6 +4120,161 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
             any("unresolved-conversations: 3" in json.dumps(c) for c in api_calls),
             f"Expected label with count 3, calls: {api_calls}",
         )
+
+    def test_creates_failing_check_run_when_unresolved(self):
+        """When no existing check run exists, a new failing run is POSTed for unresolved threads."""
+        threads = [{"isResolved": False}, {"isResolved": True}]
+        api_calls = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls)):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        check_run_calls = [
+            c for c in api_calls
+            if c[0] == "POST" and "/check-runs" in c[1]
+        ]
+        self.assertTrue(len(check_run_calls) >= 1, f"Expected POST to check-runs, got {api_calls}")
+        body = check_run_calls[0][3]
+        self.assertEqual(body.get("conclusion"), "failure")
+        self.assertEqual(body.get("name"), _worker.UNRESOLVED_CONVERSATIONS_CHECK_NAME)
+        # Payload built via build_update_check_run_payloads must include completed_at
+        self.assertIn("completed_at", body)
+
+    def test_creates_passing_check_run_when_all_resolved(self):
+        """When no existing check run exists, a new passing run is POSTed when all resolved."""
+        threads = [{"isResolved": True}, {"isResolved": True}]
+        api_calls = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls)):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        check_run_calls = [
+            c for c in api_calls
+            if c[0] == "POST" and "/check-runs" in c[1]
+        ]
+        self.assertTrue(len(check_run_calls) >= 1, f"Expected POST to check-runs, got {api_calls}")
+        body = check_run_calls[0][3]
+        self.assertEqual(body.get("conclusion"), "success")
+        self.assertIn("completed_at", body)
+
+    def test_patches_existing_check_run_when_unresolved(self):
+        """When a check run already exists for this SHA, it should be PATCHed instead of POSTed."""
+        threads = [{"isResolved": False}]
+        api_calls = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                # Simulate an existing check run with id=101
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls, existing_check_run_id=101)):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        patch_calls = [c for c in api_calls if c[0] == "PATCH" and "/check-runs/101" in c[1]]
+        post_calls = [c for c in api_calls if c[0] == "POST" and "/check-runs" in c[1]]
+        self.assertTrue(len(patch_calls) >= 1, f"Expected PATCH to check-runs/101, got {api_calls}")
+        self.assertEqual(len(post_calls), 0, f"Should not POST a new check run when one exists, got {api_calls}")
+        body = patch_calls[0][3]
+        self.assertEqual(body.get("conclusion"), "failure")
+
+    def test_posts_comment_when_unresolved(self):
+        """A warning comment should be posted when there are unresolved threads."""
+        threads = [{"isResolved": False}]
+        comment_bodies = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(_worker, "github_api", new=self._make_api_mock()):
+                    with patch.object(
+                        _worker,
+                        "create_comment",
+                        new=AsyncMock(side_effect=lambda o, r, n, b, t: comment_bodies.append(b)),
+                    ):
+                        await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        self.assertTrue(len(comment_bodies) >= 1, "Expected a comment to be posted")
+        self.assertIn(_worker.UNRESOLVED_CONVERSATIONS_MARKER, comment_bodies[0])
+        self.assertIn("@alice", comment_bodies[0])
+        self.assertIn("1", comment_bodies[0])
+
+    def test_updates_existing_comment_when_unresolved(self):
+        """An existing marker comment should be PATCHed rather than creating a duplicate."""
+        threads = [{"isResolved": False}, {"isResolved": False}]
+        existing_comment = {"id": 42, "body": f"{_worker.UNRESOLVED_CONVERSATIONS_MARKER}\nold text"}
+        api_calls = []
+        comment_creates = []
+
+        async def mock_api(*args, **kwargs):
+            api_calls.append(args)
+            if args[0] == "GET" and "/comments" in args[1] and "comments/" not in args[1]:
+                resp = MagicMock()
+                resp.status = 200
+                resp.text = AsyncMock(return_value=json.dumps([existing_comment]))
+                return resp
+            if args[0] == "GET" and "/check-runs" in args[1] and "check-runs/" not in args[1]:
+                return self._check_runs_list_response()
+            return self._ok_response()
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
+                    with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda *a: comment_creates.append(a))):
+                        await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        patch_calls = [c for c in api_calls if c[0] == "PATCH" and "/comments/42" in c[1]]
+        self.assertTrue(len(patch_calls) >= 1, f"Expected PATCH to update comment, got {api_calls}")
+        self.assertEqual(len(comment_creates), 0, "Should not create a new comment when one exists")
+
+    def test_deletes_comment_when_all_resolved(self):
+        """The warning comment should be removed once all conversations are resolved."""
+        threads = [{"isResolved": True}]
+        existing_comment = {"id": 99, "body": f"{_worker.UNRESOLVED_CONVERSATIONS_MARKER}\nsome warning"}
+        api_calls = []
+
+        async def mock_api(*args, **kwargs):
+            api_calls.append(args)
+            if args[0] == "GET" and "/comments" in args[1] and "comments/" not in args[1]:
+                resp = MagicMock()
+                resp.status = 200
+                resp.text = AsyncMock(return_value=json.dumps([existing_comment]))
+                return resp
+            if args[0] == "GET" and "/check-runs" in args[1] and "check-runs/" not in args[1]:
+                return self._check_runs_list_response()
+            return self._ok_response()
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        delete_calls = [c for c in api_calls if c[0] == "DELETE" and "/comments/99" in c[1]]
+        self.assertTrue(len(delete_calls) >= 1, f"Expected DELETE for resolved comment, got {api_calls}")
+
+    def test_no_comment_posted_when_no_threads(self):
+        """No warning comment should be posted when there are no review threads."""
+        threads = []
+        comment_creates = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(_worker, "github_api", new=self._make_api_mock()):
+                    with patch.object(
+                        _worker,
+                        "create_comment",
+                        new=AsyncMock(side_effect=lambda *a: comment_creates.append(a)),
+                    ):
+                        await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        self.assertEqual(len(comment_creates), 0, "No comment should be posted when there are no threads")
 
 
 # ---------------------------------------------------------------------------
@@ -3802,6 +5087,21 @@ class TestHandleMentorUnassign(unittest.TestCase):
         self.assertTrue(any("assignees" in e for e in endpoints_called))
         self.assertTrue(any("cancelled" in c.lower() for c in comments))
 
+    def test_current_assignee_can_unmentor(self):
+        issue = {
+            "number": 7,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [{"login": "dave"}],
+            "user": {"login": "alice"},
+        }
+        api_calls, comments = [], []
+        # dave is an assignee but not the author or the mentor
+        self._run_unmentor(issue, "dave", "bob", api_calls, comments)
+        endpoints_called = [str(call) for call in api_calls]
+        self.assertTrue(any("labels/mentor-assigned" in e for e in endpoints_called))
+        self.assertTrue(any("assignees" in e for e in endpoints_called))
+        self.assertTrue(any("cancelled" in c.lower() for c in comments))
+
     def test_unrelated_user_cannot_unmentor(self):
         issue = {
             "number": 5,
@@ -4557,6 +5857,13 @@ class TestGenerateMentorRow(unittest.TestCase):
         html = _worker._generate_mentor_row(self._make_mentor(name="Alice Smith"))
         self.assertIn("Alice Smith", html)
 
+    def test_title_and_bio_rendered(self):
+        html = _worker._generate_mentor_row(
+            self._make_mentor(title="Security Mentor", bio="Helps with triage and first PRs.")
+        )
+        self.assertIn("Security Mentor", html)
+        self.assertIn("Helps with triage and first PRs.", html)
+
     def test_xss_in_name_escaped(self):
         # Verify that HTML special characters in name are escaped to prevent XSS.
         html = _worker._generate_mentor_row(self._make_mentor(name='<script>xss</script>'))
@@ -4594,17 +5901,17 @@ class TestGenerateMentorRow(unittest.TestCase):
 
     def test_stats_prs_shown_when_provided(self):
         html = _worker._generate_mentor_row(
-            self._make_mentor(), stats={"merged_prs": 42, "reviews": 7}
+            self._make_mentor(total_prs=42), stats={"reviews": 7}
         )
         self.assertIn("42", html)
         self.assertIn("7", html)
         self.assertIn("PRs", html)
-        self.assertIn("Reviews", html)
+        self.assertIn("reviews", html)
 
     def test_stats_not_shown_when_none(self):
         html = _worker._generate_mentor_row(self._make_mentor(), stats=None)
         # Should not contain PR/review stat headings when stats are absent
-        self.assertNotIn("Reviews", html)
+        self.assertNotIn("reviews", html)
         self.assertNotIn("PRs", html)
 
     def test_stats_zero_values_shown(self):
@@ -4613,7 +5920,7 @@ class TestGenerateMentorRow(unittest.TestCase):
         )
         # Zero stats are still displayed when the stats dict is provided
         self.assertIn("PRs", html)
-        self.assertIn("Reviews", html)
+        self.assertIn("reviews", html)
 
 
 class TestIndexHtml(unittest.TestCase):
@@ -4636,6 +5943,19 @@ class TestIndexHtml(unittest.TestCase):
         mentors = [{"name": "Bob Smith", "github_username": "bobsmith", "active": True, "status": "available"}]
         html = _worker._index_html(mentors)
         self.assertIn("Bob Smith", html)
+
+    def test_mentor_title_and_bio_appear_in_html(self):
+        mentors = [{
+            "name": "Bob Smith",
+            "github_username": "bobsmith",
+            "title": "AppSec Mentor",
+            "bio": "Focuses on secure code review and onboarding.",
+            "active": True,
+            "status": "available",
+        }]
+        html = _worker._index_html(mentors)
+        self.assertIn("AppSec Mentor", html)
+        self.assertIn("Focuses on secure code review and onboarding.", html)
 
     def test_referral_leaderboard_shown_when_referrals_exist(self):
         mentors = [
@@ -4667,17 +5987,49 @@ class TestIndexHtml(unittest.TestCase):
         mentors = [{"name": "Alice", "github_username": "alice", "active": True, "status": "available"}]
         html = _worker._index_html(mentors, mentor_stats={})
         # Stats headings should not appear when no stats are provided
-        self.assertNotIn("Reviews", html)
+        self.assertNotIn("reviews", html)
 
     def test_active_assignments_section_shown(self):
         """Active assignments section appears when assignments are provided."""
         assignments = [
-            {"org": "OWASP-BLT", "mentor_login": "alice", "issue_repo": "BLT", "issue_number": 42, "assigned_at": 1700000000},
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "bob", "issue_repo": "BLT", "issue_number": 42, "assigned_at": 1700000000},
         ]
         html = _worker._index_html([], active_assignments=assignments)
         self.assertIn("Active Mentor Assignments", html)
         self.assertIn("@alice", html)
+        self.assertIn("@bob", html)
         self.assertIn("OWASP-BLT/BLT#42", html)
+
+    def test_active_assignments_shows_time_ago(self):
+        """Active assignments card shows a 'Assigned X time ago' line."""
+        import time as _time
+        ts = int(_time.time()) - 3600  # 1 hour ago
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "", "issue_repo": "BLT", "issue_number": 1, "assigned_at": ts},
+        ]
+        html = _worker._index_html([], active_assignments=assignments)
+        self.assertIn("Assigned", html)
+        self.assertIn("hour", html)
+
+    def test_active_assignments_shows_comment_points(self):
+        """Comment points badge is rendered for mentor and mentee."""
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "bob", "issue_repo": "BLT", "issue_number": 1, "assigned_at": 1700000000},
+        ]
+        comment_stats = {"alice": 12, "bob": 5}
+        html = _worker._index_html([], active_assignments=assignments, assignment_comment_stats=comment_stats)
+        self.assertIn("12 pts", html)
+        self.assertIn("5 pts", html)
+
+    def test_active_assignments_no_mentee_hides_mentee_block(self):
+        """When mentee_login is empty no mentee section is rendered."""
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "", "issue_repo": "BLT", "issue_number": 1, "assigned_at": 1700000000},
+        ]
+        html = _worker._index_html([], active_assignments=assignments)
+        self.assertIn("@alice", html)
+        # No second avatar/link for a mentee username
+        self.assertNotIn("Mentee", html)
 
     def test_active_assignments_section_hidden_when_empty(self):
         """Active assignments section is hidden when no assignments exist."""
@@ -4687,7 +6039,7 @@ class TestIndexHtml(unittest.TestCase):
     def test_active_assignments_xss_escaped(self):
         """HTML special characters in mentor_login/issue_repo are escaped."""
         assignments = [
-            {"org": "OWASP-BLT", "mentor_login": '<script>xss</script>', "issue_repo": "BLT", "issue_number": 1, "assigned_at": 0},
+            {"org": "OWASP-BLT", "mentor_login": '<script>xss</script>', "mentee_login": "", "issue_repo": "BLT", "issue_number": 1, "assigned_at": 0},
         ]
         html = _worker._index_html([], active_assignments=assignments)
         self.assertNotIn("<script>xss</script>", html)
@@ -4895,6 +6247,84 @@ class TestOnFetchHomepage(unittest.TestCase):
         _run(_inner())
 
 
+class TestCorsPolicyOnFetch(unittest.TestCase):
+    """Minimal regression tests for PR-1 CORS policy on JSON routes."""
+
+    def _make_request(self, method="GET", path="/", body=None, headers=None):
+        req_headers = _HeadersStub(headers or {})
+        if isinstance(body, str):
+            body_text = body
+        elif body is None:
+            body_text = ""
+        else:
+            body_text = json.dumps(body)
+        return types.SimpleNamespace(
+            method=method,
+            url=f"https://example.com{path}",
+            headers=req_headers,
+            text=AsyncMock(return_value=body_text),
+        )
+
+    def test_health_includes_wildcard_cors_header(self):
+        async def _inner():
+            req = self._make_request(method="GET", path="/health")
+            env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem", WEBHOOK_SECRET="secret")
+
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            self.assertEqual(resp.headers.get("Access-Control-Allow-Origin"), "*")
+
+        _run(_inner())
+
+    def test_api_mentors_success_has_no_cors_header(self):
+        async def _inner():
+            req = self._make_request(
+                method="POST",
+                path="/api/mentors",
+                body={"name": "Jane", "github_username": "jane"},
+            )
+            env = types.SimpleNamespace()
+            with patch.object(_worker, "_handle_add_mentor", new=AsyncMock(return_value=_worker._json({"ok": True}, 201))):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 201)
+            self.assertIsNone(resp.headers.get("Access-Control-Allow-Origin"))
+
+        _run(_inner())
+
+    def test_webhook_response_has_no_cors_header(self):
+        async def _inner():
+            req = self._make_request(method="POST", path="/api/github/webhooks", body={"action": "opened"})
+            env = types.SimpleNamespace()
+            with patch.object(_worker, "handle_webhook", new=AsyncMock(return_value=_worker._json({"ok": True}, 200))):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            self.assertIsNone(resp.headers.get("Access-Control-Allow-Origin"))
+
+        _run(_inner())
+
+    def test_admin_reset_unauthorized_has_no_cors_header(self):
+        async def _inner():
+            req = self._make_request(
+                method="POST",
+                path="/admin/reset-leaderboard-month",
+                body={"org": "OWASP-BLT", "month_key": "2026-03"},
+                headers={"Authorization": "Bearer wrong-secret"},
+            )
+            env = types.SimpleNamespace(ADMIN_SECRET="test-secret", LEADERBOARD_DB=MagicMock())
+
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 401)
+            self.assertIsNone(resp.headers.get("Access-Control-Allow-Origin"))
+
+        _run(_inner())
+
+
 class TestHandleAddMentor(unittest.TestCase):
     """POST /api/mentors — inserts a new mentor into D1."""
 
@@ -4908,24 +6338,26 @@ class TestHandleAddMentor(unittest.TestCase):
         )
         return req
 
-    def _run_add(self, body: dict, db_raises=False):
+    def _run_add(self, body: dict, db_raises=False, gh_user_exists=True, existing_mentor=False):
         req = self._make_post_request(body)
         env = types.SimpleNamespace()
         captured = {}
 
         async def _inner():
             mock_db = MagicMock()
-            with patch.object(_worker, "_d1_binding", return_value=mock_db):
-                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
-                    if db_raises:
-                        with patch.object(_worker, "_d1_add_mentor", new=AsyncMock(side_effect=RuntimeError("db error"))):
-                            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
-                                resp = await _worker._handle_add_mentor(req, env)
-                    else:
-                        with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()) as mock_add:
-                            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
-                                resp = await _worker._handle_add_mentor(req, env)
-                            captured["add_args"] = mock_add.call_args
+            with patch.object(_worker, "_verify_gh_user_exists", new=AsyncMock(return_value=gh_user_exists)):
+                with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                    with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                        with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[{"github_username": body.get("github_username")}] if existing_mentor else [])):
+                            if db_raises:
+                                with patch.object(_worker, "_d1_add_mentor", new=AsyncMock(side_effect=RuntimeError("db error"))):
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                        resp = await _worker._handle_add_mentor(req, env)
+                            else:
+                                with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()) as mock_add:
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                        resp = await _worker._handle_add_mentor(req, env)
+                                    captured["add_args"] = mock_add.call_args
             return resp
 
         return _run(_inner()), captured
@@ -4954,6 +6386,13 @@ class TestHandleAddMentor(unittest.TestCase):
         resp, _ = self._run_add({"name": "Jane", "github_username": "jane"}, db_raises=True)
         self.assertEqual(resp.status, 500)
 
+    def test_duplicate_mentor_returns_409(self):
+        resp, _ = self._run_add({"name": "Jane", "github_username": "jane"}, existing_mentor=True)
+        self.assertEqual(resp.status, 409)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("already in the mentor pool", data["error"])
+
     def test_strips_at_prefix_from_username(self):
         resp, captured = self._run_add({"name": "Jane Doe", "github_username": "@janedoe"})
         self.assertEqual(resp.status, 201)
@@ -4961,6 +6400,526 @@ class TestHandleAddMentor(unittest.TestCase):
         data = _json.loads(resp.body)
         self.assertEqual(data["github_username"], "janedoe")
 
+    def test_title_and_bio_forwarded_to_d1(self):
+        resp, captured = self._run_add({
+            "name": "Jane Doe",
+            "github_username": "janedoe",
+            "title": "Security Mentor",
+            "bio": "Helps first-time contributors ship safely.",
+        })
+        self.assertEqual(resp.status, 201)
+        kwargs = captured["add_args"].kwargs
+        self.assertEqual(kwargs["title"], "Security Mentor")
+        self.assertEqual(kwargs["bio"], "Helps first-time contributors ship safely.")
+
+    # --- New strict-validation tests ---
+
+    def test_name_with_html_tag_returns_400(self):
+        """Display names containing HTML angle brackets must be rejected."""
+        resp, _ = self._run_add({"name": "<script>alert(1)</script>", "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("invalid characters", data["error"].lower())
+
+    def test_name_with_lt_char_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane<Doe", "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_with_gt_char_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane>Doe", "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_with_ampersand_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane & Doe", "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_with_double_quote_returns_400(self):
+        resp, _ = self._run_add({"name": 'Jane "Doe"', "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_too_long_returns_400(self):
+        resp, _ = self._run_add({"name": "A" * 101, "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_title_with_html_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "title": "<bad>"})
+        self.assertEqual(resp.status, 400)
+
+    def test_bio_with_html_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "bio": "<script>bad</script>"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_exactly_100_chars_accepted(self):
+        resp, _ = self._run_add({"name": "A" * 100, "github_username": "janedoe"})
+        self.assertEqual(resp.status, 201)
+
+    def test_github_user_not_found_returns_400(self):
+        """Usernames that do not exist on GitHub must be rejected."""
+        resp, _ = self._run_add(
+            {"name": "Jane Doe", "github_username": "janedoe"},
+            gh_user_exists=False,
+        )
+        self.assertEqual(resp.status, 400)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("not found", data["error"].lower())
+
+    def test_timezone_with_html_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "timezone": "<bad>"})
+        self.assertEqual(resp.status, 400)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("invalid characters", data["error"].lower())
+
+    def test_timezone_too_long_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "timezone": "A" * 61})
+        self.assertEqual(resp.status, 400)
+
+    def test_valid_timezone_accepted(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "timezone": "UTC+5:30"})
+        self.assertEqual(resp.status, 201)
+
+    def test_referred_by_not_found_returns_400(self):
+        """A referred_by username that does not exist on GitHub must be rejected."""
+        req = self._make_post_request({"name": "Jane Doe", "github_username": "janedoe", "referred_by": "ghostuser"})
+        env = types.SimpleNamespace()
+
+        async def _inner():
+            mock_db = MagicMock()
+            # github_username exists but referrer does not.
+            async def _fake_verify(username, env=None):
+                return username == "janedoe"
+            with patch.object(_worker, "_verify_gh_user_exists", new=_fake_verify):
+                with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                    with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                        with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()):
+                            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                return await _worker._handle_add_mentor(req, env)
+
+        resp = _run(_inner())
+        self.assertEqual(resp.status, 400)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("not found", data["error"].lower())
+
+    def test_invalid_referred_by_format_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "referred_by": "bad user!"})
+        self.assertEqual(resp.status, 400)
+
+
+class TestTimeAgo(unittest.TestCase):
+    """Tests for _time_ago helper function."""
+
+    def _ago(self, seconds):
+        import time as _time
+        return _worker._time_ago(int(_time.time()) - seconds)
+
+    def test_just_now(self):
+        self.assertEqual(self._ago(0), "just now")
+
+    def test_minutes(self):
+        result = self._ago(120)
+        self.assertIn("2 minute", result)
+
+    def test_one_minute(self):
+        result = self._ago(90)
+        self.assertIn("1 minute", result)
+
+    def test_hours(self):
+        result = self._ago(7200)
+        self.assertIn("2 hour", result)
+
+    def test_days(self):
+        result = self._ago(172800)
+        self.assertIn("2 day", result)
+
+    def test_months(self):
+        result = self._ago(86400 * 60)
+        self.assertIn("month", result)
+
+    def test_years(self):
+        result = self._ago(86400 * 400)
+        self.assertIn("year", result)
+
+
+# ---------------------------------------------------------------------------
+# Contributor Referral System tests
+# ---------------------------------------------------------------------------
+
+class TestExtractMentions(unittest.TestCase):
+    """_extract_mentions — parse @usernames from comment bodies."""
+
+    def test_single_mention(self):
+        result = _worker._extract_mentions("Hey @alice, can you look at this?")
+        self.assertEqual(result, ["alice"])
+
+    def test_multiple_mentions(self):
+        result = _worker._extract_mentions("@alice and @bob should review.")
+        self.assertEqual(result, ["alice", "bob"])
+
+    def test_deduplicates(self):
+        result = _worker._extract_mentions("@alice is great, thanks @alice!")
+        self.assertEqual(result, ["alice"])
+
+    def test_lowercases(self):
+        result = _worker._extract_mentions("Hello @Alice")
+        self.assertEqual(result, ["alice"])
+
+    def test_empty_body(self):
+        result = _worker._extract_mentions("")
+        self.assertEqual(result, [])
+
+    def test_no_mentions(self):
+        result = _worker._extract_mentions("No mentions here.")
+        self.assertEqual(result, [])
+
+    def test_ignores_email_addresses(self):
+        # email addresses should not be captured as mentions
+        result = _worker._extract_mentions("Contact user@example.com for help.")
+        self.assertEqual(result, [])
+
+    def test_valid_username_with_hyphens(self):
+        result = _worker._extract_mentions("Thanks @jane-doe for the PR!")
+        self.assertEqual(result, ["jane-doe"])
+
+
+class TestUserHasPriorActivity(unittest.TestCase):
+    """_user_has_prior_activity — fail-closed behavior on GitHub API errors."""
+
+    def _make_resp(self, status, body="{}"):
+        r = MagicMock()
+        r.status = status
+        r.text = AsyncMock(return_value=body)
+        return r
+
+    def test_returns_false_when_no_activity(self):
+        """Returns False when both search calls return empty results."""
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(
+                return_value=self._make_resp(200, '{"total_count": 0, "items": []}')
+            )):
+                return await _worker._user_has_prior_activity("acme", "newbie", "tok")
+        self.assertFalse(_run(_inner()))
+
+    def test_returns_true_when_author_has_issues(self):
+        """Returns True when the first search finds authored issues/PRs."""
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(
+                return_value=self._make_resp(200, '{"total_count": 1, "items": [{}]}')
+            )):
+                return await _worker._user_has_prior_activity("acme", "veteran", "tok")
+        self.assertTrue(_run(_inner()))
+
+    def test_fails_closed_on_403_first_call(self):
+        """A 403 on the first search call returns True (fail closed)."""
+        responses = [self._make_resp(403)]
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=responses)):
+                return await _worker._user_has_prior_activity("acme", "somebody", "tok")
+        self.assertTrue(_run(_inner()))
+
+    def test_fails_closed_on_403_second_call(self):
+        """A 403 on the comment-search call returns True (fail closed)."""
+        responses = [
+            self._make_resp(200, '{"total_count": 0, "items": []}'),
+            self._make_resp(403),
+        ]
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=responses)):
+                return await _worker._user_has_prior_activity("acme", "somebody", "tok")
+        self.assertTrue(_run(_inner()))
+
+    def test_fails_closed_on_429_rate_limit(self):
+        """A 429 (rate limit) on either search call returns True (fail closed)."""
+        responses = [self._make_resp(429)]
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=responses)):
+                return await _worker._user_has_prior_activity("acme", "somebody", "tok")
+        self.assertTrue(_run(_inner()))
+
+
+class TestFormatReferralRankComment(unittest.TestCase):
+    """_format_referral_rank_comment — builds congratulation comment body."""
+
+    def _leaderboard(self):
+        return [
+            ("alice", 5),
+            ("bob", 4),
+            ("carol", 3),
+            ("dave", 2),
+            ("eve", 1),
+        ]
+
+    def test_contains_referral_marker(self):
+        body = _worker._format_referral_rank_comment("alice", 5, self._leaderboard())
+        self.assertIn(_worker.REFERRAL_MARKER, body)
+
+    def test_contains_total_and_rank(self):
+        body = _worker._format_referral_rank_comment("alice", 5, self._leaderboard())
+        self.assertIn("Total referrals: **5**", body)
+        self.assertIn("Current rank: **#1**", body)
+
+    def test_rank_3_shows_neighbours(self):
+        body = _worker._format_referral_rank_comment("carol", 3, self._leaderboard())
+        self.assertIn("carol", body.lower())
+        # 2 above carol (alice, bob) and 2 below (dave, eve) should all appear
+        self.assertIn("@alice", body)
+        self.assertIn("@bob", body)
+        self.assertIn("@dave", body)
+        self.assertIn("@eve", body)
+
+    def test_rank_1_shows_top_rows_only(self):
+        body = _worker._format_referral_rank_comment("alice", 5, self._leaderboard())
+        # alice is first; only rows 1-3 expected in the window
+        self.assertIn("@alice", body)
+        self.assertIn("@bob", body)
+        self.assertIn("@carol", body)
+
+    def test_you_marker_on_referrer_row(self):
+        body = _worker._format_referral_rank_comment("carol", 3, self._leaderboard())
+        self.assertIn("← you", body)
+
+    def test_empty_leaderboard(self):
+        # Should not crash with an actual empty leaderboard
+        body = _worker._format_referral_rank_comment("alice", 1, [])
+        self.assertIn(":tada:", body)
+        self.assertIn("alice", body)
+        # No table rows should appear
+        self.assertNotIn("| 1 |", body)
+
+
+class TestProcessReferralMentions(unittest.TestCase):
+    """_process_referral_mentions — integration of mention detection + D1 + comment."""
+
+    def _make_db(self):
+        """Return a simple in-memory dict-based D1 mock."""
+        db = MagicMock()
+        db._store = []
+        return db
+
+    def _make_env(self, db):
+        env = MagicMock()
+        env.LEADERBOARD_DB = db
+        return env
+
+    def test_posts_comment_when_new_contributor_mentioned(self):
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+
+        async def mock_activity(owner, username, token):
+            return False
+
+        async def mock_record_referral(db_, org, referrer, referred, repo, number, mk):
+            return True
+
+        async def mock_count(db_, org, referrer, mk):
+            return 1
+
+        async def mock_leaderboard(db_, org, mk):
+            return [(referrer.lower(), 1)]
+
+        referrer = "alice"
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "_is_valid_human_referree", new=AsyncMock(return_value=True)):  # ✅ FIX
+                    with patch.object(_worker, "_user_has_prior_activity", new=mock_activity):
+                        with patch.object(_worker, "_d1_record_referral", new=mock_record_referral):
+                            with patch.object(_worker, "_d1_get_referral_count", new=mock_count):
+                                with patch.object(_worker, "_d1_get_referral_leaderboard", new=mock_leaderboard):
+                                    with patch.object(_worker, "create_comment",
+                                                    new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                                        await _worker._process_referral_mentions(
+                                            "OWASP-BLT", "BLT", 42, referrer,
+                                            "Welcome @newbie to the project!", "tok", env
+                                        )
+
+        _run(_inner())
+        self.assertEqual(len(comments), 1)
+
+    def test_no_comment_when_user_has_prior_activity(self):
+        """When the mentioned user is already active, no referral comment is posted."""
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+
+        async def mock_activity(owner, repo, username, token):
+            return True  # already has activity
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "_user_has_prior_activity", new=mock_activity):
+                    with patch.object(_worker, "create_comment",
+                                      new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                        await _worker._process_referral_mentions(
+                            "OWASP-BLT", "BLT", 42, "alice",
+                            "Hey @existinguser, check this out!", "tok", env
+                        )
+
+        _run(_inner())
+        self.assertEqual(comments, [])
+
+    def test_no_comment_when_no_env(self):
+        """Without an env, _process_referral_mentions should be a no-op."""
+        comments = []
+        called = []
+
+        async def _inner():
+            with patch.object(_worker, "create_comment",
+                              new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                with patch.object(_worker, "_user_has_prior_activity",
+                                  new=AsyncMock(side_effect=lambda *a: called.append(True) or False)):
+                    await _worker._process_referral_mentions(
+                        "OWASP-BLT", "BLT", 42, "alice",
+                        "Hello @newbie!", "tok", None  # env=None
+                    )
+
+        _run(_inner())
+        self.assertEqual(comments, [])
+        self.assertEqual(called, [])
+
+    def test_self_mention_is_ignored(self):
+        """A commenter mentioning themselves should not count as a referral."""
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+        activity_checks = []
+
+        async def mock_activity(owner, repo, username, token):
+            activity_checks.append(username)
+            return False
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "_user_has_prior_activity", new=mock_activity):
+                    with patch.object(_worker, "create_comment",
+                                      new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                        await _worker._process_referral_mentions(
+                            "OWASP-BLT", "BLT", 42, "alice",
+                            "I am @alice and I rock!", "tok", env
+                        )
+
+        _run(_inner())
+        # alice mentioning herself should not trigger activity check
+        self.assertNotIn("alice", activity_checks)
+        self.assertEqual(comments, [])
+
+    def test_no_comment_when_no_mentions(self):
+        """A comment with no @-mentions should not trigger any referral logic."""
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "create_comment",
+                                  new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                    await _worker._process_referral_mentions(
+                        "OWASP-BLT", "BLT", 42, "alice",
+                        "No mentions in this comment.", "tok", env
+                    )
+
+        _run(_inner())
+        self.assertEqual(comments, [])
+
+    def test_mentions_capped_at_max(self):
+        """Only MAX_REFERRAL_MENTIONS_PER_COMMENT unique mentions are checked per comment."""
+        checked = []
+        db = self._make_db()
+        env = self._make_env(db)
+
+        async def mock_activity(owner, repo, username, token):
+            checked.append(username)
+            return True  # treat all as active so no referral is recorded
+
+        # Build a body with more mentions than the cap.
+        cap = _worker.MAX_REFERRAL_MENTIONS_PER_COMMENT
+        extra = "@user" + " @user".join(str(i) for i in range(cap + 3))
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "_user_has_prior_activity", new=mock_activity):
+                    await _worker._process_referral_mentions(
+                        "OWASP-BLT", "BLT", 42, "alice", extra, "tok", env
+                    )
+
+        _run(_inner())
+        self.assertLessEqual(len(checked), cap)
+
+    def test_bot_mention_filtered_out(self):
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "_is_valid_human_referree", new=AsyncMock(return_value=False)):
+                    with patch.object(_worker, "create_comment",
+                                    new=AsyncMock(side_effect=lambda *a: comments.append(a))):
+                        await _worker._process_referral_mentions(
+                            "OWASP-BLT", "BLT", 42, "alice",
+                            "Hello @coderabbitai[bot]", "tok", env
+                        )
+
+        _run(_inner())
+        self.assertEqual(comments, [])
+
+    def test_mixed_mentions_only_human_processed(self):
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+
+        async def is_valid(user, token):
+            return user == "realuser"
+
+        async def mock_activity(owner, username, token):
+            return False
+
+        async def mock_record(*args):
+            return True
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "_is_valid_human_referree", new=is_valid):
+                    with patch.object(_worker, "_user_has_prior_activity", new=mock_activity):
+                        with patch.object(_worker, "_d1_record_referral", new=mock_record):
+                            with patch.object(_worker, "_d1_get_referral_count", new=AsyncMock(return_value=1)):
+                                with patch.object(_worker, "_d1_get_referral_leaderboard", new=AsyncMock(return_value=[])):
+                                    with patch.object(_worker, "create_comment",
+                                                    new=AsyncMock(side_effect=lambda *a: comments.append(a))):
+                                        await _worker._process_referral_mentions(
+                                            "OWASP-BLT", "BLT", 42, "alice",
+                                            "@realuser @botuser[bot]", "tok", env
+                                        )
+
+        _run(_inner())
+        self.assertEqual(len(comments), 1)
+
+    def test_org_mention_filtered(self):
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "_is_valid_human_referree", new=AsyncMock(return_value=False)):
+                    with patch.object(
+                        _worker,
+                        "create_comment",
+                        new=AsyncMock(side_effect=lambda *a: comments.append(a)),
+                    ):
+                        await _worker._process_referral_mentions(
+                            "OWASP-BLT", "BLT", 42, "alice",
+                            "Hey `@google` check this", "tok", env
+                        )
+
+        _run(_inner())
+        self.assertEqual(comments, [])
 
 class TestCronDispatch(unittest.TestCase):
     """POST /__scheduled — called by the blt-cron dispatcher Worker."""
