@@ -29,6 +29,17 @@
             "sig": "GrlZJjSZS2bSGUAtP44Yg_RBW7fX----WJMefLwAhvcjaac0w2p5kQHzyhQJYf1ESJJzyxwZRxtDr7xkGUfTBg",
             "ts": 1792461368786,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "### The video is off and the screen is shared\n\n![Screenshot_2026-06-13_174101](https://gitlab.com/-/project/82715642/uploads/fa59ca0b0cfab6f3cfc08edc9f591e3c/Screenshot_2026-06-13_174101.png)\n\n\n### The video is on and the screen is still shared\n\n![Screenshot_2026-06-13_174127](https://gitlab.com/-/project/82715642/uploads/99447a4c847f7e45879cd883ded21fc3/Screenshot_2026-06-13_174127.png)\n\n\n### The video is off and the screen is still shared, but the video got paused and the video is not replaced with hte shared screen\n![Screenshot_2026-06-13_174250](https://gitlab.com/-/project/82715642/uploads/439e5b62cb1a8a98e9af4604eb2bab89/Screenshot_2026-06-13_174250.png)\n\n---\n\nMoved from [owasp-blt/blt-safecloak#7](https://gitlab.com/owasp-blt/blt-safecloak/-/issues/7) (opened by @ananya-in-tech on 2026-06-14).\n\n**Discussion summary**\n\n- @Dhirenderchoudhary asked to take it, and @ananya-in-tech said it is open: raise a MR (now a pull request on the forge).",
+            "id": "gitlab-links-82715642-7",
+            "sig": "9uVxGuSjclZlJsxEla8oJhA30-U8egoAnJ17m6odNsemmdHpc4xNjeOpz1IHu2epmIxE-wWBuM13zsVbsKVKCA",
+            "target": "gitlab-issue-82715642-7",
+            "ts": 1792463360782,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-safecloak: When a host shares the screen and the video is turned on and then turned off, the video is not replaced by the shared screen the video gets paused but the shared screen get's disappeared",
-    "updatedAt": 1792461368786,
+    "updatedAt": 1792463360782,
     "votes": 0
 }

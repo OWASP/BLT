@@ -29,6 +29,17 @@
             "sig": "gYB09ksoFdly1-zO5xrILFWYS4nC67ABB9rCUWZ0NxdA0Xid_r3zxcEP95KO8vltIpt5lqNjYxKmWR5JQ5s9DA",
             "ts": 1792461368536,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "This is the umbrella for the BLT-Autopatch milestone plan. The Week 1 milestone (the original issue) is described first; the later milestones are tracked in the checklist below, each linking back to its GitLab issue (kept read-only in the archived group) for the full description.\n\n## Week 1: Worker Scaffold - Cloudflare Workers + D1 + Queues Setup\n\n**Milestone:** Week 1\n\nInitialize the Cloudflare Python Worker project for BLT-Autopatch.\n\n**Deliverables:**\n\n* Initialize Cloudflare Python Worker project with Wrangler\n* Set up `wrangler.toml` with D1, Queues, Cron bindings\n* Create D1 schema for `cvd_cases`, `patch_audit_log`, `repository_context` tables\n* Configure Cloudflare Queues for inter-worker communication\n* Set up Cloudflare Cron Triggers skeleton\n* Add logging and error handling infrastructure\n* Unit tests for D1 schema operations\n\n## Later milestones\n\n- [ ] Ingestion Adapters - BLT Issues + NetGuardian + NVD (was GitLab [owasp-blt/blt-autopatch#2](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/2))\n- [ ] Triage Engine — Severity/Confidence Routing + Context Extractor (was GitLab [owasp-blt/blt-autopatch#3](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/3))\n- [ ] LLM Patch Generation Pipeline (was GitLab [owasp-blt/blt-autopatch#4](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/4))\n- [ ] Static Analysis Validator — ruff + eslint + semgrep (was GitLab [owasp-blt/blt-autopatch#5](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/5))\n- [ ] Diff Sanity Checks + CONTRIBUTING.md Parser (was GitLab [owasp-blt/blt-autopatch#6](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/6))\n- [ ] Human Review Queue UI + 8 CWE Strategy Templates (was GitLab [owasp-blt/blt-autopatch#7](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/7))\n- [ ] CVD State Machine + Embargo Enforcement (was GitLab [owasp-blt/blt-autopatch#8](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/8))\n- [ ] Notification Engine + Advisory Generator (was GitLab [owasp-blt/blt-autopatch#9](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/9))\n- [ ] CVD Dashboard + End-to-End Validation (was GitLab [owasp-blt/blt-autopatch#10](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/10))\n- [ ] GitHub App + PR Submission + Fork Manager (was GitLab [owasp-blt/blt-autopatch#11](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/11))\n- [ ] BACON Reward Integration (was GitLab [owasp-blt/blt-autopatch#12](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/12))\n- [ ] BLT-MCP Integration + Release (was GitLab [owasp-blt/blt-autopatch#13](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/13))\n\n---\n\nMoved from [owasp-blt/blt-autopatch#1](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/1) (opened by @sidd786b on 2026-06-18).\n\n**Discussion summary**\n\n- This issue is now the umbrella for the BLT-Autopatch GSoC milestone plan (GitLab [blt-autopatch#1](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/1) to [blt-autopatch#13](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/13)); the milestone issues [blt-autopatch#2](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/2) to [blt-autopatch#13](https://gitlab.com/owasp-blt/blt-autopatch/-/issues/13) were closed in favour of the checklist above. As of the move, `blt-autopatch` is only a landing page; no Worker code has landed, and the one foundation MR ([blt-autopatch!2](https://gitlab.com/owasp-blt/blt-autopatch/-/merge_requests/2)) is being closed because it would break the live site.",
+            "id": "gitlab-links-82732429-1",
+            "sig": "qHFoeqhLHpV-ZHSKjvtnFjiOIsCbC8EcVzuYGP26L5WGs5MBoWpVIrW_q-8Qjnq_UCjgxwk92o7mX30MwyceDw",
+            "target": "gitlab-issue-82732429-1",
+            "ts": 1792463360532,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-autopatch: Milestone plan umbrella: Worker scaffold through BLT-MCP integration and release",
-    "updatedAt": 1792461368536,
+    "updatedAt": 1792463360532,
     "votes": 0
 }

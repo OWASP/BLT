@@ -29,6 +29,17 @@
             "sig": "ZgZhmHHUauWKDvDowx3hDGZYe7w44NOHs5guTTO91pW-ll04PyDh2kA7gfWkhAzatu7M_Aa2k0h72k6AKzRiAQ",
             "ts": 1792461368686,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "[!8](https://gitlab.com/owasp-blt/blt-mcp/-/merge_requests/8) added agent.md in this MR but it need to be updated\n\n---\n\nMoved from [owasp-blt/blt-mcp#5](https://gitlab.com/owasp-blt/blt-mcp/-/issues/5) (opened by @Nachiket_R on 2026-07-30).\n\n**Discussion summary**\n\n- Concrete drift: AGENT.md documents `add_comment(issue_id, text)`, the server defines `add_comment(issue_id, comment_text, confirmed=False)`. Check `draft_vision_issue` and `summarize_issue_context` are documented too.",
+            "id": "gitlab-links-82715256-5",
+            "sig": "VUYt8yHL2w9lFfwEPN0P5yg3Us3BXosnwvSkmCHLQIFrkYbW5zcQApudjBIjdpsM6WDYqb2mFlQUQknysbcYCg",
+            "target": "gitlab-issue-82715256-5",
+            "ts": 1792463360682,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mcp: Update Agent.md",
-    "updatedAt": 1792461368686,
+    "updatedAt": 1792463360682,
     "votes": 0
 }

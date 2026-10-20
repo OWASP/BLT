@@ -29,6 +29,17 @@
             "sig": "qtIe4dEoufbRvgpRHNuPt8DpDz1CiI2BCVI6ZmLKUKKW2M7H3qEV5HMdSCpursjc_KscVvXwf4kEdSlWGCQ2Bw",
             "ts": 1792461368646,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "## Summary\n\nMake BLT-Jobs transparent and trustworthy by showing how jobs/profiles move from Git submission to published data.\n\n## Scope\n\n- Maintainer review lifecycle.\n- GitLab label/state mapping.\n- Source traceability on public pages.\n- Board health/status page.\n- Static data loading reliability.\n\n## Acceptance criteria\n\n- [ ] Define lifecycle states: submitted, needs-info, approved, published, rejected, flagged, expired, archived.\n- [ ] Map states to GitLab labels and/or Markdown fields.\n- [ ] Display source issue/MR/commit links where available on job and seeker detail pages.\n- [ ] Add last generated/updated timestamps to relevant public pages.\n- [ ] Add a board health page showing counts, stale/expired listings, profiles, and validation status.\n- [ ] Fix homepage live sections so they use real generated data or polished fallbacks.\n- [ ] Avoid raw `Unable to load...` states on public pages.\n\n## Parent\n\nTracked by [#12](https://git.owaspblt.org/BLT/issues/12) (GitLab [owasp-blt/blt-jobs#2](https://gitlab.com/owasp-blt/blt-jobs/-/work_items/2))\n\n---\n\nMoved from [owasp-blt/blt-jobs#7](https://gitlab.com/owasp-blt/blt-jobs/-/issues/7) (opened by @mdkaifansari04 on 2026-06-07).",
+            "id": "gitlab-links-82715116-7",
+            "sig": "0lvwmauLbszwbuXA4_hjlhN8KNF1-RY7V7CCLfje3ztJgUaaDfSGy8FHBFvG_EFPmcBiwBU__Dq1pMMqQaEWBA",
+            "target": "gitlab-issue-82715116-7",
+            "ts": 1792463360642,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-jobs: Add maintainer review states, source traceability, and board health",
-    "updatedAt": 1792461368646,
+    "updatedAt": 1792463360642,
     "votes": 0
 }

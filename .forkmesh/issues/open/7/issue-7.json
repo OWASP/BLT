@@ -29,6 +29,17 @@
             "sig": "k-3xwF5RcGcKzYlD2OHg8NlJBmebms84Z5HTJ3R5mRKSHvwz9XglVKCokvWEpw5MNWt3MAkFJUMQ-Buii73jCQ",
             "ts": 1792461368556,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "Parent work item: [owasp-blt/blt-docs#1](https://gitlab.com/owasp-blt/blt-docs/-/work_items/1)\n\nThis child work item is part of the BLT-docs redesign and platform documentation hub umbrella.\n\n### Description\n\nModernize BLT-API documentation inside BLT-docs so it matches the current `/v2`, Cloudflare Workers, D1, route metadata, dashboard, API-key, and JWT direction.\n\n### Scope\n\n- Update `docs/repositories/blt-api.md`.\n- Prefer `/v2` routes in examples.\n- Document Cloudflare Workers Python runtime, D1 migrations, Wrangler, local dev, tests, API-key gate, JWT identity, route metadata, and dashboard usage.\n- Link to the GitLab BLT-API repo and dashboard route once confirmed.\n- Avoid changing `X-BLT-API-Key` semantics.\n\n### Acceptance criteria\n\n- [ ] BLT-API docs explain local setup, tests, Wrangler, D1 migrations, deployment, and route metadata.\n- [ ] Auth docs separate `X-BLT-API-Key` gate from JWT/session identity.\n- [ ] Route examples prefer `/v2/...`.\n- [ ] Dashboard/docs UX is documented as the preferred API exploration path.\n- [ ] No secrets or hard-coded live keys are added.\n- [ ] Build passes with `uvx --with-requirements requirements.txt mkdocs build --strict`.\n\n---\n\nMoved from [owasp-blt/blt-docs#5](https://gitlab.com/owasp-blt/blt-docs/-/issues/5) (opened by @mdkaifansari04 on 2026-06-04).",
+            "id": "gitlab-links-82716184-5",
+            "sig": "uEqwbESjRSVYyOyDHrpIjdxIgTbS8j4n5-rsBNMr7GyRjT263NsyB7t0_da2xQesRgNsBDzVGmg1cAjiURJ6Cg",
+            "target": "gitlab-issue-82716184-5",
+            "ts": 1792463360552,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-docs: Add BLT-API developer docs and dashboard handoff page",
-    "updatedAt": 1792461368556,
+    "updatedAt": 1792463360552,
     "votes": 0
 }

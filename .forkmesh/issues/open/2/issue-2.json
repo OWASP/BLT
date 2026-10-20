@@ -29,6 +29,17 @@
             "sig": "XNmYED_Y72NQvFmbVzDMa1ZrSTWMuDetZQIpe07lWG8OedfnbeLdWHojTsylSgJW-WKw07tec3aca8KGaEgQCw",
             "ts": 1792461368506,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "Parent work item: [blt-api#1](https://gitlab.com/owasp-blt/blt-api/-/issues/1)\n\nMirrored from historical GitHub issue: [OWASP-BLT/BLT-API#96](https://github.com/OWASP-BLT/BLT-API/issues/96)\n\n## Problem\nBLT-Jobs needs a canonical backend API path under BLT-API v2.\n\n## Route Direction\n- `GET /v2/jobs`\n- `GET /v2/jobs/{id}`\n- `POST /v2/jobs`\n- `PATCH /v2/jobs/{id}`\n- `POST /v2/jobs/{id}/view`\n- `GET /v2/organizations/{id}/jobs/stats`\n\n## Acceptance\n- [ ] Add a `jobs` migration and seed data.\n- [ ] Add list/detail/create/update/view/stats routes.\n- [ ] Public list shows only public active non-expired jobs.\n- [ ] Create/update requires organization permission.\n- [ ] Add focused tests and route metadata.\n\n---\n\nMoved from [owasp-blt/blt-api#6](https://gitlab.com/owasp-blt/blt-api/-/issues/6) (opened by @mdkaifansari04 on 2026-05-29).\n\n**Discussion summary**\n\n- Partly done: `/v2/jobs` list, create, update, `/view` and `/stats` exist, scoped to the creating user.\n- @Preetam-77 asked the review bot for a plan. It proposed extending, not replacing, the current handler: migration 0016 adding `organization_id` and `visibility`, legacy rows staying public, then organization permission checks and tests.",
+            "id": "gitlab-links-82682993-6",
+            "sig": "qkctyH8ND-2x71sG3ShnELaI4p7Qy-N0z3vO9NJvSBRuGslfm6m7Hn2u6SauFcjfxzA9Imt48kFq2woiXw0HDQ",
+            "target": "gitlab-issue-82682993-6",
+            "ts": 1792463360502,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-api: Add Jobs API for BLT-API v2",
-    "updatedAt": 1792461368506,
+    "updatedAt": 1792463360502,
     "votes": 0
 }

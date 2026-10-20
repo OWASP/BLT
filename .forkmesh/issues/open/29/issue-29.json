@@ -29,6 +29,17 @@
             "sig": "oibjgbevirfga62QSpcZqwuvJNTxIuriKE1_4DcFLyd9wuT_3PgXsyxBghHLAiFq80fTDrnLeB6qIGN_B_AbDw",
             "ts": 1792461368776,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "When the video is on and the screen is shared, the host's video is not visible any how, it can be shown with a small circle cutout on the top or bottom corner of the shared screen box, or the shared screen can completely separated from the user's video screen.\n\n![Screenshot 2026-06-13 174101.png](https://gitlab.com/-/project/82715642/uploads/995a44865b06030d556e04fd75e91dd6/Screenshot_2026-06-13_174101.png)\n\n---\n\nMoved from [owasp-blt/blt-safecloak#6](https://gitlab.com/owasp-blt/blt-safecloak/-/issues/6) (opened by @ananya-in-tech on 2026-06-14).",
+            "id": "gitlab-links-82715642-6",
+            "sig": "w9CxQpVEBnkyJ7Q_Jm1t6mKqjE31AKuusZSqVziGhYx--a1gHBeDK1s7YHa1fYZar0bus9irWVg_3WO10JocDA",
+            "target": "gitlab-issue-82715642-6",
+            "ts": 1792463360772,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-safecloak: Shared screen hides the video of the host",
-    "updatedAt": 1792461368776,
+    "updatedAt": 1792463360772,
     "votes": 0
 }

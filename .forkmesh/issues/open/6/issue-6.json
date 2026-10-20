@@ -29,6 +29,17 @@
             "sig": "82r0BaVsdGVtfREn9fALXYu_lGMsV3EzWYY2Czbd76SXAKBWYQmcyYyxKb8jMX-Az00ndbcqfGldSN5HH-mzDg",
             "ts": 1792461368546,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "The Severity and Bug Type fields in the submit form are free-text inputs, requiring users to type values like \"Critical\" or \"High\" manually. This is error-prone and slow.\n\n### **Current Behavior**\n\n* Severity and Bug Type are plain `String` fields in **`VulnerabilityForm`**\n* Users must type the exact severity string with no validation\n* Easy to mistype and too slow\n\n### **Expected Behavior**\n\n* When the Severity field is active, Up/Down arrows (or Left/Right) should cycle through: `Critical → High → Medium → Low`\n* When the Bug Type field is active, Up/Down should cycle through common categories: `XSS, SQL Injection, CSRF, IDOR, Authentication Bypass, Information Disclosure, Other`\n* The UI should show the current selection and hint that arrow keys cycle options\n\n---\n\nMoved from [owasp-blt/blt-mcp#13](https://gitlab.com/owasp-blt/blt-mcp/-/issues/13) (opened by @Nachiket_R on 2026-08-30).\n\n**Discussion summary**\n\n- Still open: `VulnerabilityForm.severity` is a `String` (blt-cli/src/app.rs:74). No MR covers it. The TUI lives in `blt-cli` now.",
+            "id": "gitlab-links-82715256-13",
+            "sig": "VclfKMuoORxN_CwR44Br8n8EheGYXx7_T3hNJPSap6w_AczRHsNUbHU0l17sQV0eHAns2JFIiMRAHJ6eim0iAw",
+            "target": "gitlab-issue-82715256-13",
+            "ts": 1792463360542,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cli: Replace free-text Severity and Bug Type fields with cycle-able selectors",
-    "updatedAt": 1792461368546,
+    "updatedAt": 1792463360542,
     "votes": 0
 }

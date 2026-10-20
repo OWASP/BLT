@@ -29,6 +29,17 @@
             "sig": "GD7ZbnLwgTS2mBcPod7qRT62O38Wo3Et5NESVPdg6vypqp3DpcJRIEdl5m4q1B-xYNk4K72FzHtRJVJPd7t3AQ",
             "ts": 1792461368696,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "![image.png](https://gitlab.com/-/project/82715256/uploads/ce8881ed65336ddc7901c47148e1d613/image.png)\n\n---\n\nMoved from [owasp-blt/blt-mcp#6](https://gitlab.com/owasp-blt/blt-mcp/-/issues/6) (opened by @Nachiket_R on 2026-07-30).\n\n**Discussion summary**\n\n- The screenshot shows the `BLT_VERIFY_SNAPSHOTS` comment in `.env.example` (lines 38-40), which is unchanged. The issue does not say what wording is wanted.",
+            "id": "gitlab-links-82715256-6",
+            "sig": "jTAGWjxL3Ycj0kznUXuf5tuFUOqjviyOsDVnQ5L0eYwSqd_os7uxA6MSjkLe6NFZYcYWdn_yOznPsXJD2V51AA",
+            "target": "gitlab-issue-82715256-6",
+            "ts": 1792463360692,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mcp: Fix wording here",
-    "updatedAt": 1792461368696,
+    "updatedAt": 1792463360692,
     "votes": 0
 }

@@ -30,6 +30,17 @@
             "sig": "MGDJC65W1Vwgl_8zMgpZwD7eZZP1TSuAvY7kIxi-s2TE4zZaumjWANZvvh8FyPd2bR0v21diQvn4DtArLY3UBQ",
             "ts": 1792461368836,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "Implement a notification integration to alert maintainers in Slack when a new issue is triaged by Toasty. The alert should include its CWE classification, severity score, whether it was quarantined for leaking PII, and any Toasty findings (such as whether it was flagged as a duplicate of an existing issue).\n\n---\n\nMoved from [owasp-blt/blt-toasty#54](https://gitlab.com/owasp-blt/blt-toasty/-/issues/54) (opened by @Ojaswa072 on 2026-08-31).\n\n**Discussion summary**\n\n- @Preetam-77 asked the review bot where the notification should be triggered; the bot outlined the triage data available (CWE, severity, PII quarantine, duplicates).\n- @ikgrscorporation offered a Slack Block Kit webhook notifier and opened GitLab MR [blt-toasty!31](https://gitlab.com/owasp-blt/blt-toasty/-/merge_requests/31).\n- The MR review closes [!31](https://gitlab.com/owasp-blt/blt-toasty/-/merge_requests/31): it is not wired into the pipeline and uses `urllib.request`/`os.getenv`, which do not work in Python Workers. A Workers-native notifier (`fetch`, `env`) is still wanted, and must not put unredacted titles in Slack.",
+            "id": "gitlab-links-82715729-54",
+            "sig": "vMJoWCrmuqg_HmnZ5dHqw1MeI2FsAwzszCjbHNNU_AifhAOKcaKjIkzROjQbwBspv_YUjTVAleWCYYsDMNUmBQ",
+            "target": "gitlab-issue-82715729-54",
+            "ts": 1792463360832,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -44,6 +55,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-toasty: Build Slack Notification Bot",
-    "updatedAt": 1792461368836,
+    "updatedAt": 1792463360832,
     "votes": 0
 }

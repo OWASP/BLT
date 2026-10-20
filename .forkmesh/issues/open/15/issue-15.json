@@ -29,6 +29,17 @@
             "sig": "VWz1wrFabPBCfkmydduipT-KGK7OVc8sCg8bIjbKaNJOUM0_9Z1J7z6ZMzk6jcfzlXcivRXZT5SD-Ktf-qFLDA",
             "ts": 1792461368636,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "## Summary\n\nUpgrade the Markdown data model so BLT-Jobs can support a serious Git-native platform while staying static and repository-backed.\n\n## Scope\n\n- Richer job frontmatter.\n- Richer seeker profile frontmatter.\n- New organization/company profile model.\n- Backward-compatible migration strategy.\n- Build script updates.\n- Validation script updates.\n\n## Acceptance criteria\n\n- [ ] Define expanded job fields for source platform, review status, provider links, remote mode, tags, skills, salary, expiry, verification, and application mode.\n- [ ] Define expanded seeker fields for Git username/platform, contact preference, availability, target roles, proof-of-work, and public-data choices.\n- [ ] Add `organizations/*.md` schema or document why it is deferred.\n- [ ] Update `scripts/build-jobs.js` to emit new fields while preserving current data.\n- [ ] Update `scripts/validate-jobs.js` or add validation coverage for required and recommended fields.\n- [ ] Update issue templates to match the schema.\n- [ ] Verify with `npm run build:jobs` and `npm run validate:jobs`.\n\n## Parent\n\nTracked by [#12](https://git.owaspblt.org/BLT/issues/12) (GitLab [owasp-blt/blt-jobs#2](https://gitlab.com/owasp-blt/blt-jobs/-/work_items/2))\n\n---\n\nMoved from [owasp-blt/blt-jobs#6](https://gitlab.com/owasp-blt/blt-jobs/-/issues/6) (opened by @mdkaifansari04 on 2026-06-07).\n\n**Discussion summary**\n\n- Partly done in [d6ec12ce23](https://git.owaspblt.org/BLT/commit/d6ec12ce239d94fe3a56476d91484b52cc9aa9d0) (build and validate scripts expanded). There is no `organizations/*.md` model yet, and the issue templates now live in `blt-jobs/issue-templates/`.",
+            "id": "gitlab-links-82715116-6",
+            "sig": "3aec-hexdqpcL-jM-EQaIr1jSVV5Qm3k1pwxUGRK26zG_99rvg8qrT7mu-GWBLT-rA4n2C4wCJ5huu0IUXl6Dw",
+            "target": "gitlab-issue-82715116-6",
+            "ts": 1792463360632,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-jobs: Expand Markdown schemas and validation for jobs, seekers, and organizations",
-    "updatedAt": 1792461368636,
+    "updatedAt": 1792463360632,
     "votes": 0
 }

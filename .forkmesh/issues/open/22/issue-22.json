@@ -29,6 +29,17 @@
             "sig": "o1B4-WoONSIe7-v2kkXJGLvr7rnY-qKqddODQiLNUleFvhhvKcfAy61LDLS-lpCL4aqkv4fwgHiouuh72aScAQ",
             "ts": 1792461368706,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "Post [!9](https://gitlab.com/owasp-blt/blt-mcp/-/merge_requests/9) merge please publish the MCP and TUI -\n\n1\\. Python MCP Server (`blt-mcp`) -\\> PyPI\n\nRun the following with `uv` to build and publish:\n\n`uv build`\n\n`uv publish --username __token__ --password <YOUR_PYPI_API_TOKEN>`\n\n---\n\n2\\. Rust TUI CLI (`blt-cli`) Binaries\n\n* Automated via GitLab CI : Push a version tag on `main` (e.g. `git tag v0.1.0 && git push origin v0.1.0`). The `.gitlab-ci.yml` pipeline will automatically cross-compile for Linux (x86_64, aarch64) & Windows (.exe), upload them to the package registry, and attach them to the GitLab Release page.\n* Manual Build (Fallback):\n\n  `cd blt-cli`\n\n  `cargo build --release`\n\n  \\# Output: blt-cli/target/release/blt-cli\n\n---\n\n3\\. CI/CD Verification\n\nThe **`.gitlab-ci.yml`** file has been updated and tested for multi-platform binary compilation and release asset publishing. Please check the CI/CD pipeline settings to confirm registry and token permissions. I wasn't certain whether automated macOS builds are currently supported in our GitLab runner pool (via GitLab macOS SaaS runners or \\`osxcross\\` toolchains). Currently, Linux and Windows builds are automated in \\`.gitlab-ci.yml\\`. Please take a look into that when convenient, and we can update the CI YAML accordingly!\n\nThank you!\n\n---\n\nMoved from [owasp-blt/blt-mcp#8](https://gitlab.com/owasp-blt/blt-mcp/-/issues/8) (opened by @Nachiket_R on 2026-08-18).\n\n**Discussion summary**\n\n- The `.gitlab-ci.yml` release pipeline described below was deleted in the GitLab retirement; there is no forge release workflow for blt-cli yet (only `.forkmesh/blt-extension--release.yml` exists for another project).\n- Owner action: publish `blt-mcp` to PyPI, and decide how blt-cli binaries are built and hosted now.",
+            "id": "gitlab-links-82715256-8",
+            "sig": "_fWi6TB2a96Z6LKO1VXxJ9bIsDgAOZjPZ0FIOM6KK-Z7Ndy8XV4o2yGm4em8nsiqp-FQIQtyLRc6Zwm4V3OPDg",
+            "target": "gitlab-issue-82715256-8",
+            "ts": 1792463360702,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mcp: Publish MCP and TUI",
-    "updatedAt": 1792461368706,
+    "updatedAt": 1792463360702,
     "votes": 0
 }

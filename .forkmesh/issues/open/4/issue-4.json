@@ -29,6 +29,17 @@
             "sig": "vk8A-vr58WexrtlvNBbfn0rn_Cuo0AsmuUhKDbwSn27RYpGmBaTjgd1JcbZgRu7lc7T78wnNfItpaMVSdQkKBg",
             "ts": 1792461368526,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "With [owasp-blt/blt-api!15](https://gitlab.com/owasp-blt/blt-api/-/merge_requests/15) merged, the D1 database is currently behind the migration files. Please apply the latest migrations to remote D1 instances so that the new schema fields are available.\n\n`npx wrangler d1 migrations apply blt-api --remote`\n\n---\n\nMoved from [owasp-blt/blt-api#15](https://gitlab.com/owasp-blt/blt-api/-/issues/15) (opened by @Nachiket_R on 2026-08-18).\n\n**Discussion summary**\n\n- The monorepo deploy does not apply D1 migrations, so this stays a manual step: `npx wrangler d1 migrations apply blt-api --remote` from `blt-api/`.",
+            "id": "gitlab-links-82682993-15",
+            "sig": "MYNnMNgxWcnoUzasOUa1rlyyM25CCD9S6g8fASPPq_MwOECNwc7UPl8qlWEDCpuqLyWtztTc8LOWen6vOHZsDQ",
+            "target": "gitlab-issue-82682993-15",
+            "ts": 1792463360522,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-api: Pending Migration",
-    "updatedAt": 1792461368526,
+    "updatedAt": 1792463360522,
     "votes": 0
 }

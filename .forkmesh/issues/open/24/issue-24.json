@@ -29,6 +29,17 @@
             "sig": "22n_b29I1q6TtseD2ZM4rDkqrSRHv0AGI1BrpBAEzJRQtFjZysVutvaTYyo5HgxPqzgyJtW9mg6J3kiYLwf5Cw",
             "ts": 1792461368726,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "The `draft_vision_issue` tool sends a vague prompt to the Cloudflare Vision AI model (LLaVA), which often produces unstructured, markdown-heavy, or hallucinated responses. The TUI then struggles to parse the output, resulting in messy descriptions in the submit form.\n\n### **Current Behavior**\n\n* The prompt in **`blt_mcp/server.py`** is generic: _\"Analyze this screenshot… Identify any bugs…\"_\n* LLaVA responds with inconsistent formatting sometimes markdown, sometimes extra sections, sometimes no `TITLE:` / `DESCRIPTION:` markers at all\n* The auto-filled form description looks garbled with raw `**`, `##`, bullet markers etc.\n\n### **Expected Behavior**\n\n* The prompt should explicitly instruct the model to respond in **plain text only** with a strict `TITLE:` / `DESCRIPTION:` format\n* The prompt should prohibit markdown formatting and extra sections\n* A fallback instruction should be included for when no issues are found\n\n---\n\nMoved from [owasp-blt/blt-mcp#10](https://gitlab.com/owasp-blt/blt-mcp/-/issues/10) (opened by @Nachiket_R on 2026-08-30).\n\n**Discussion summary**\n\n- Still open: the prompt in `blt_mcp/server.py` (around line 418) has no plain-text or no-markdown instruction and no fallback for \"no issues found\".",
+            "id": "gitlab-links-82715256-10",
+            "sig": "-LyczgnjEoXhUTO9cR6f6nXFuiGZQ3Xyio-3FFZcvEgfk6jBX6ANUVuKv7ajTmMTS00akX4Sw_G2Ayr5uhePAQ",
+            "target": "gitlab-issue-82715256-10",
+            "ts": 1792463360722,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mcp: Improve Vision AI prompt for structured, clean output",
-    "updatedAt": 1792461368726,
+    "updatedAt": 1792463360722,
     "votes": 0
 }

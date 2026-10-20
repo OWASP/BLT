@@ -29,6 +29,17 @@
             "sig": "_c9BDgRg29OsUUrBuer_Xexba9GZsIK-zNRyVDGDxYiSC2E0G6ZkYbIz60QqpPUxiYh30wCySZg1UlIvIBvwBw",
             "ts": 1792461368846,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "The following discussion from [!28](https://gitlab.com/owasp-blt/blt-vanish/-/merge_requests/28) should be addressed:\n\n- [ ] @DonnieBLT started a [discussion](https://gitlab.com/owasp-blt/blt-vanish/-/merge_requests/28#note_3697069952): \n\n    > this should be vanish\n\n---\n\nMoved from [owasp-blt/blt-vanish#3](https://gitlab.com/owasp-blt/blt-vanish/-/issues/3) (opened by @DonnieBLT on 2026-08-17).\n\n**Discussion summary**\n\n- @ananya-in-tech planned to finish the rename after the GSoC merges; the app was first built as SelfErase.\n- Now: the macOS product name is \"BLT Vanish\", but `SelfErase` remains in `blt-vanish/README.md`, `blt-vanish/data/schema.json` and `blt-vanish-flutter/lib` (`SelfEraseApp`).",
+            "id": "gitlab-links-82715404-3",
+            "sig": "-mtu0D5JItF0HlkRqmoD8mgsPamEIMQ6cVcJ-oywrlzPZ3B4pwt-ZMWpBnmC7AtC1JGYWrglmja7zbKY-4-pAQ",
+            "target": "gitlab-issue-82715404-3",
+            "ts": 1792463360842,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: Follow-up from \"feat: add macOS platform build configuration\"",
-    "updatedAt": 1792461368846,
+    "updatedAt": 1792463360842,
     "votes": 0
 }

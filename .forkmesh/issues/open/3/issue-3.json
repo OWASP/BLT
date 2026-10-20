@@ -29,6 +29,17 @@
             "sig": "QbcvLbH5dQfZDVkIvwzf232mFUw54OvDbWi_6tODh-chVuIkmytq7aLfI0aPmo_luB_CzX0aj19h_X-Ck1c5Cg",
             "ts": 1792461368516,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "Parent work item: [blt-api#1](https://gitlab.com/owasp-blt/blt-api/-/issues/1)\n\nMirrored from historical GitHub issue: [OWASP-BLT/BLT-API#100](https://github.com/OWASP-BLT/BLT-API/issues/100)\n\n## Problem\nPhase I should finish with verified behavior, usable seed data, and contributor-facing docs instead of manual-only testing.\n\n## Acceptance\n- [ ] Full test suite passes.\n- [ ] Seed data supports the new Jobs, Hackathons, Newsletter, and auth flows where relevant.\n- [ ] README/homepage docs include new routes.\n- [ ] Curl examples include `X-BLT-API-Key` and JWT where needed.\n- [ ] `/v2/routes` metadata reflects the final route set.\n- [ ] No anonymous-report endpoint is included in this phase.\n\n---\n\nMoved from [owasp-blt/blt-api#10](https://gitlab.com/owasp-blt/blt-api/-/issues/10) (opened by @mdkaifansari04 on 2026-05-29).",
+            "id": "gitlab-links-82682993-10",
+            "sig": "iEDx8VKUz4yU7AeFfVhWFuYWMo0_umluk9DAhriqrsp_aamailrcJcRDSJsUZ-W8rxtnIWO1LHQtTKnpXQV_Bg",
+            "target": "gitlab-issue-82682993-10",
+            "ts": 1792463360512,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-api: Add final Phase I tests, seed data, and docs pass",
-    "updatedAt": 1792461368516,
+    "updatedAt": 1792463360512,
     "votes": 0
 }

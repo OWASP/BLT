@@ -29,6 +29,17 @@
             "sig": "uhvxrGlc6IYifZkzVChtNuHHeZ1r4pUT5k4t6tIJU58iwkFDtESuD7GdmGZCMCOqvheiV_om__lNbZtg6l-2Cg",
             "ts": 1792461368756,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "![image.png](https://gitlab.com/-/project/82625134/uploads/6791f1f85d5c8438ab791543af293c0e/image.png)\n\n---\n\nMoved from [owasp-blt/blt-next#1](https://gitlab.com/owasp-blt/blt-next/-/issues/1) (opened by @DonnieBLT on 2026-05-30).\n\n**Discussion summary**\n\n- The screenshot showed the rows rendering outside the table and made-up researchers. The layout was fixed in [b7db18ab8d](https://git.owaspblt.org/BLT/commit/b7db18ab8d4b2a54eb74d6ea34dda100a2cc5f15).\n- Still wrong: `/api/leaderboard` serves the hardcoded `LEADERBOARD` list (workers/main.py:134), and the page says \"of 3500 researchers\" from a constant (main.js:632). It should read real data from BLT-API.",
+            "id": "gitlab-links-82625134-1",
+            "sig": "eZ9Nmh-_-Af3SkkWybd5AIVS4RDPYXHKOL3uyjgjVwRnOnxhiOxvMVSOyLdAiO3XgjdSo0xDmVXAqoyowcnpBg",
+            "target": "gitlab-issue-82625134-1",
+            "ts": 1792463360752,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-next: leaderboard showing wrong info",
-    "updatedAt": 1792461368756,
+    "updatedAt": 1792463360752,
     "votes": 0
 }

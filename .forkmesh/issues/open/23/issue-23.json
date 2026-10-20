@@ -29,6 +29,17 @@
             "sig": "1N6d7scOT5GIus80OSBR4Bk-zlDv_F1S8w3mQrxW1WlZv0E4uA5RjxrVnlyqNW4GQUxkPSEcdmODmcVVuYSvBg",
             "ts": 1792461368716,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "The current homepage is outdated and doesn't reflect the current status\n\n---\n\nMoved from [owasp-blt/blt-mcp#9](https://gitlab.com/owasp-blt/blt-mcp/-/issues/9) (opened by @Nachiket_R on 2026-08-30).",
+            "id": "gitlab-links-82715256-9",
+            "sig": "g3k-PokZ2GJHcedA5oJXRig5es7F1SiJk8e0iHwhSS0iti9a-dkB9yUAuP1m7ZEx4eY7zGa28b0Aj2LJn2l6Bg",
+            "target": "gitlab-issue-82715256-9",
+            "ts": 1792463360712,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -42,6 +53,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mcp: Update home page",
-    "updatedAt": 1792461368716,
+    "updatedAt": 1792463360712,
     "votes": 0
 }
