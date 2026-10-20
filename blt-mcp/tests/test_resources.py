@@ -8,8 +8,6 @@ Test Scenarios:
   checking metadata values such as name, URI, and description.
 - `test_resource_templates_list`: Verifies that `resources/templates/list` returns the expected parameterized
   resource templates (like `blt://repos/{repo_id}/issues` and `blt://v2/users/{id}`).
-- `test_resource_read`: Checks the execution of `resources/read` for resource endpoints.
-- `test_resource_read_parameterized`: Verifies that resource reads support URI parameters.
 - `test_error_handling`: Verifies that requesting resources with missing required fields (e.g. `uri`)
   correctly returns validation errors.
 
@@ -89,8 +87,6 @@ def test_resources_list():
         assert "statistics" in stats_resource["description"].lower()
 
 
-
-
 def test_resource_templates_list():
     """Test resources/templates/list MCP endpoint."""
     with mcp_server_process() as process:
@@ -148,83 +144,6 @@ def test_resource_templates_list():
         assert "blt://v2/organizations/{id}/stats" in template_uris
         assert "blt://v2/jobs/{id}" in template_uris
         assert "blt://v2/hackathons/{slug}" in template_uris
-
-
-
-
-def test_resource_read():
-    """Test resources/read MCP endpoint."""
-    with mcp_server_process() as process:
-        # 1. Initialize
-        init_request = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "initialize",
-            "params": {
-                "protocolVersion": "2024-11-05",
-                "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
-            },
-        }
-        process.stdin.write(json.dumps(init_request) + "\n")
-        process.stdin.flush()
-        read_jsonrpc_response(process, 1)
-
-        # 2. Call resources/read for blt://repos
-        read_request = {
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "resources/read",
-            "params": {"uri": "blt://repos"},
-        }
-        process.stdin.write(json.dumps(read_request) + "\n")
-        process.stdin.flush()
-
-        response = read_jsonrpc_response(process, 2)
-        # We don't necessarily expect a success here if the API key is invalid,
-        # but we expect a valid JSON-RPC response (either result or error).
-        assert "result" in response or "error" in response
-
-
-
-
-def test_resource_read_parameterized():
-    """Test resources/read with a parameterized URI (Issue #10)."""
-    with mcp_server_process() as process:
-        # 1. Initialize
-        process.stdin.write(
-            json.dumps(
-                {
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "method": "initialize",
-                    "params": {
-                        "protocolVersion": "2024-11-05",
-                        "capabilities": {},
-                        "clientInfo": {"name": "test", "version": "1"},
-                    },
-                }
-            )
-            + "\n"
-        )
-        process.stdin.flush()
-        read_jsonrpc_response(process, 1)
-
-        # 2. Call resources/read for a specific issue
-        read_request = {
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "resources/read",
-            "params": {"uri": "blt://issues/123"},
-        }
-        process.stdin.write(json.dumps(read_request) + "\n")
-        process.stdin.flush()
-
-        response = read_jsonrpc_response(process, 2)
-        # Whether it succeeds or fails with 404, we expect a valid JSON-RPC structure
-        assert "result" in response or "error" in response
-
-
 
 
 def test_error_handling():

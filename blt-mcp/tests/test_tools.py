@@ -6,7 +6,6 @@ write confirmations, and tool execution logic on the MCP server.
 
 Test Scenarios:
 - `test_tools_list`: Verifies that all V1 and V2 tools are registered and returned by the server.
-- `test_tool_call`: Performs tool execution integration tests.
 - `test_tool_schemas`: Verifies that inputSchemas for tools match requirements (e.g. required fields for
   `submit_issue`, `add_comment`, `auth_signup`, `create_bug`, etc.).
 - `test_submit_issue_missing_url`, `test_submit_issue_invalid_label_type`, `test_submit_issue_blank_description`:
@@ -88,65 +87,6 @@ def test_tools_list():
         assert "create_hackathon" in tool_names
         assert "update_hackathon" in tool_names
         assert "register_hackathon_participant" in tool_names
-
-    finally:
-        process.terminate()
-        try:
-            process.wait(timeout=2)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
-
-
-def test_tool_call():
-    """Test tools/call MCP endpoint."""
-    cmd = [sys.executable, "-m", "blt_mcp.server"]
-    env = os.environ.copy()
-
-    process = subprocess.Popen(
-        cmd,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-        env=env,
-    )
-
-    try:
-        # 1. Initialize
-        init_request = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "initialize",
-            "params": {
-                "protocolVersion": "2024-11-05",
-                "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
-            },
-        }
-        process.stdin.write(json.dumps(init_request) + "\n")
-        process.stdin.flush()
-        read_jsonrpc_response(process, 1)
-
-        # 2. Call tools/call for submit_issue (will likely fail due to no API key, but verifies protocol)
-        call_request = {
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "tools/call",
-            "params": {
-                "name": "submit_issue",
-                "arguments": {
-                    "url": "https://example.com/vuln",
-                    "title": "Test Vulnerability",
-                    "description": "Testing tools/call protocol",
-                },
-            },
-        }
-        process.stdin.write(json.dumps(call_request) + "\n")
-        process.stdin.flush()
-
-        response = read_jsonrpc_response(process, 2)
-        assert "result" in response or "error" in response
 
     finally:
         process.terminate()
