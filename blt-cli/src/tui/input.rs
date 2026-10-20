@@ -168,16 +168,22 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
                     if app.submit_form.active_field == FormField::Description
                         || app.submit_form.active_field == FormField::StepsToReproduce
                     {
-                        app.submit_form.active_field_mut().push('\n');
+                        app.submit_form.insert_char('\n');
                     } else {
                         app.submit_form.next_field();
                     }
                 }
+                KeyCode::Left => {
+                    app.submit_form.move_cursor_left();
+                }
+                KeyCode::Right => {
+                    app.submit_form.move_cursor_right();
+                }
                 KeyCode::Backspace => {
-                    app.submit_form.active_field_mut().pop();
+                    app.submit_form.backspace();
                 }
                 KeyCode::Char(c) => {
-                    app.submit_form.active_field_mut().push(c);
+                    app.submit_form.insert_char(c);
                 }
                 _ => {}
             }

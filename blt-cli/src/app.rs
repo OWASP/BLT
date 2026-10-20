@@ -77,6 +77,9 @@ pub struct VulnerabilityForm {
     pub steps_to_reproduce: String,
     pub screenshot_path: String,
     pub active_field: FormField,
+    /// Cursor position (in characters) and the field it belongs to.
+    /// `None`, or a position for a different field, means the end of the active field's text.
+    pub cursor: Option<(FormField, usize)>,
 }
 
 pub const VISION_ANALYZING_PLACEHOLDER: &str = "Analyzing image with Vision AI...";
@@ -146,6 +149,7 @@ impl VulnerabilityForm {
             FormField::StepsToReproduce => FormField::Screenshot,
             FormField::Screenshot => FormField::Title,
         };
+        self.cursor = None;
     }
 
     /// Moves `active_field` to the previous field in tab order, wrapping at the start.
@@ -159,7 +163,89 @@ impl VulnerabilityForm {
             FormField::StepsToReproduce => FormField::Description,
             FormField::Screenshot => FormField::StepsToReproduce,
         };
+        self.cursor = None;
     }
+
+    /// Returns the text of the given field.
+    pub fn field_value(&self, field: &FormField) -> &str {
+        match field {
+            FormField::Title => &self.title,
+            FormField::Url => &self.url,
+            FormField::Severity => &self.severity,
+            FormField::BugType => &self.bug_type,
+            FormField::Description => &self.description,
+            FormField::StepsToReproduce => &self.steps_to_reproduce,
+            FormField::Screenshot => &self.screenshot_path,
+        }
+    }
+
+    /// Returns the cursor position (in characters) within the active field, clamped to its length.
+    pub fn cursor_pos(&self) -> usize {
+        let len = self.field_value(&self.active_field).chars().count();
+        match &self.cursor {
+            Some((field, pos)) if *field == self.active_field => (*pos).min(len),
+            _ => len,
+        }
+    }
+
+    fn set_cursor(&mut self, pos: usize) {
+        let len = self.field_value(&self.active_field).chars().count();
+        self.cursor = if pos >= len {
+            None
+        } else {
+            Some((self.active_field.clone(), pos))
+        };
+    }
+
+    /// Moves the cursor one character to the left within the active field.
+    pub fn move_cursor_left(&mut self) {
+        let pos = self.cursor_pos();
+        self.set_cursor(pos.saturating_sub(1));
+    }
+
+    /// Moves the cursor one character to the right within the active field.
+    pub fn move_cursor_right(&mut self) {
+        let pos = self.cursor_pos();
+        self.set_cursor(pos + 1);
+    }
+
+    /// Inserts `c` at the cursor and moves the cursor past it.
+    pub fn insert_char(&mut self, c: char) {
+        let pos = self.cursor_pos();
+        let field = self.active_field_mut();
+        let at = byte_index(field, pos);
+        field.insert(at, c);
+        self.set_cursor(pos + 1);
+    }
+
+    /// Deletes the character before the cursor.
+    pub fn backspace(&mut self) {
+        let pos = self.cursor_pos();
+        if pos == 0 {
+            return;
+        }
+        let field = self.active_field_mut();
+        let at = byte_index(field, pos - 1);
+        field.remove(at);
+        self.set_cursor(pos - 1);
+    }
+
+    /// Returns the field's text for display, with a `█` cursor if it is the active field.
+    pub fn display_text(&self, field: &FormField) -> String {
+        let text = self.field_value(field);
+        if *field != self.active_field {
+            return text.to_string();
+        }
+        let at = byte_index(text, self.cursor_pos());
+        format!("{}█{}", &text[..at], &text[at..])
+    }
+}
+
+/// Converts a character position into a byte index into `text`.
+fn byte_index(text: &str, char_pos: usize) -> usize {
+    text.char_indices()
+        .nth(char_pos)
+        .map_or(text.len(), |(i, _)| i)
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -724,5 +810,74 @@ mod tests {
             app.scroll_up();
             assert_eq!(app.selected_issue_index, 0);
         }
+    }
+
+    #[test]
+    fn test_form_cursor_editing() {
+        let mut form = VulnerabilityForm::default();
+        for c in "XS in serch".chars() {
+            form.insert_char(c);
+        }
+        assert_eq!(form.cursor_pos(), 11);
+        assert_eq!(form.cursor, None); // at the end
+
+        // Fix "XS" -> "XSS": move to just after "XS" and insert.
+        for _ in 0..9 {
+            form.move_cursor_left();
+        }
+        form.insert_char('S');
+        assert_eq!(form.title, "XSS in serch");
+        assert_eq!(form.cursor_pos(), 3);
+
+        // Fix "serch" -> "search": move to just after "se".
+        for _ in 0..6 {
+            form.move_cursor_right();
+        }
+        form.insert_char('a');
+        assert_eq!(form.title, "XSS in search");
+        assert_eq!(form.display_text(&FormField::Title), "XSS in sea█rch");
+
+        // Backspace deletes the character before the cursor, not the last one.
+        form.backspace();
+        assert_eq!(form.title, "XSS in serch");
+        assert_eq!(form.cursor_pos(), 9);
+
+        // Cursor stops at both ends.
+        for _ in 0..50 {
+            form.move_cursor_left();
+        }
+        assert_eq!(form.cursor_pos(), 0);
+        form.backspace();
+        assert_eq!(form.title, "XSS in serch");
+        for _ in 0..50 {
+            form.move_cursor_right();
+        }
+        assert_eq!(form.cursor, None);
+    }
+
+    #[test]
+    fn test_form_cursor_multibyte_and_field_switch() {
+        let mut form = VulnerabilityForm {
+            title: "café 🐛".to_string(),
+            ..Default::default()
+        };
+        form.move_cursor_left();
+        form.move_cursor_left();
+        form.insert_char('!');
+        assert_eq!(form.title, "café! 🐛");
+        form.backspace();
+        form.backspace();
+        assert_eq!(form.title, "caf 🐛");
+
+        // Switching fields resets the cursor to the end of the new field.
+        form.url = "https://x".to_string();
+        form.next_field();
+        assert_eq!(form.cursor_pos(), 9);
+        assert_eq!(form.display_text(&FormField::Url), "https://x█");
+        assert_eq!(form.display_text(&FormField::Title), "caf 🐛");
+
+        // A position saved for another field is ignored.
+        form.cursor = Some((FormField::Title, 1));
+        assert_eq!(form.cursor_pos(), 9);
     }
 }

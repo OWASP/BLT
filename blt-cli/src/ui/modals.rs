@@ -353,11 +353,7 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
     } else {
         style_inactive
     };
-    let title_text = if *active == crate::app::FormField::Title {
-        format!("{}█", app.submit_form.title)
-    } else {
-        app.submit_form.title.clone()
-    };
+    let title_text = app.submit_form.display_text(&crate::app::FormField::Title);
     let title_p = Paragraph::new(title_text).block(
         Block::default()
             .borders(Borders::ALL)
@@ -372,11 +368,7 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
     } else {
         style_inactive
     };
-    let url_text = if *active == crate::app::FormField::Url {
-        format!("{}█", app.submit_form.url)
-    } else {
-        app.submit_form.url.clone()
-    };
+    let url_text = app.submit_form.display_text(&crate::app::FormField::Url);
     let url_p = Paragraph::new(url_text).block(
         Block::default()
             .borders(Borders::ALL)
@@ -391,11 +383,9 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
     } else {
         style_inactive
     };
-    let sev_text = if *active == crate::app::FormField::Severity {
-        format!("{}█", app.submit_form.severity)
-    } else {
-        app.submit_form.severity.clone()
-    };
+    let sev_text = app
+        .submit_form
+        .display_text(&crate::app::FormField::Severity);
     let sev_p = Paragraph::new(sev_text).block(
         Block::default()
             .borders(Borders::ALL)
@@ -410,11 +400,9 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
     } else {
         style_inactive
     };
-    let type_text = if *active == crate::app::FormField::BugType {
-        format!("{}█", app.submit_form.bug_type)
-    } else {
-        app.submit_form.bug_type.clone()
-    };
+    let type_text = app
+        .submit_form
+        .display_text(&crate::app::FormField::BugType);
     let type_p = Paragraph::new(type_text).block(
         Block::default()
             .borders(Borders::ALL)
@@ -429,11 +417,9 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
     } else {
         style_inactive
     };
-    let ss_text = if *active == crate::app::FormField::Screenshot {
-        format!("{}█", app.submit_form.screenshot_path)
-    } else {
-        app.submit_form.screenshot_path.clone()
-    };
+    let ss_text = app
+        .submit_form
+        .display_text(&crate::app::FormField::Screenshot);
     let ss_p = Paragraph::new(ss_text).block(
         Block::default()
             .borders(Borders::ALL)
@@ -448,11 +434,9 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
     } else {
         style_inactive
     };
-    let desc_text = if *active == crate::app::FormField::Description {
-        format!("{}█", app.submit_form.description)
-    } else {
-        app.submit_form.description.clone()
-    };
+    let desc_text = app
+        .submit_form
+        .display_text(&crate::app::FormField::Description);
     let desc_lines_count = desc_text.lines().count() as u16;
     let desc_inner_height = right_chunks[0].height.saturating_sub(2);
     let desc_scroll = if desc_lines_count > desc_inner_height {
@@ -477,11 +461,9 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
     } else {
         style_inactive
     };
-    let steps_text = if *active == crate::app::FormField::StepsToReproduce {
-        format!("{}█", app.submit_form.steps_to_reproduce)
-    } else {
-        app.submit_form.steps_to_reproduce.clone()
-    };
+    let steps_text = app
+        .submit_form
+        .display_text(&crate::app::FormField::StepsToReproduce);
     let steps_lines_count = steps_text.lines().count() as u16;
     let steps_inner_height = right_chunks[1].height.saturating_sub(2);
     let steps_scroll = if steps_lines_count > steps_inner_height {
@@ -516,6 +498,13 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
                 .add_modifier(Modifier::BOLD),
         ),
         Span::styled("Prev  │  ", Style::default().fg(BLT_TEXT_BODY)),
+        Span::styled(
+            "[←/→] ",
+            Style::default()
+                .fg(BLT_PRIMARY)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("Move Cursor  │  ", Style::default().fg(BLT_TEXT_BODY)),
         Span::styled(
             "[Ctrl+S] ",
             Style::default()
