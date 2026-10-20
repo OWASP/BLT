@@ -519,7 +519,23 @@ async def _d1_first(db, sql: str, params: tuple = ()):
     return rows[0] if rows else None
 
 
+_LEADERBOARD_SCHEMA_READY = False
+
+
 async def _ensure_leaderboard_schema(db) -> None:
+    """Create the leaderboard tables once per isolate.
+
+    Callers run on every request; repeating the CREATE ... IF NOT EXISTS batch cost ~7k
+    D1 queries a day.
+    """
+    global _LEADERBOARD_SCHEMA_READY
+    if _LEADERBOARD_SCHEMA_READY:
+        return
+    await _create_leaderboard_schema(db)
+    _LEADERBOARD_SCHEMA_READY = True
+
+
+async def _create_leaderboard_schema(db) -> None:
     """Create leaderboard tables if they do not exist."""
     await _d1_run(
         db,
