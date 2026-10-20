@@ -151,7 +151,7 @@ class ContributorQueries:
             "SELECT * FROM contributors ORDER BY score DESC, display_name ASC"
         ).all()
         rows = d1_rows(result)
-        return [_row_to_contributor(r) for r in rows]
+        return _valid_contributors(rows)
 
     async def list_top(self, limit: int, offset: int) -> tuple[list[Contributor], int]:
         count_result = await self._db.prepare(
@@ -163,7 +163,7 @@ class ContributorQueries:
             "SELECT * FROM contributors ORDER BY score DESC, display_name ASC LIMIT ? OFFSET ?"
         ).bind(limit, offset).all()
         rows = d1_rows(result)
-        return [_row_to_contributor(r) for r in rows], total
+        return _valid_contributors(rows), total
 
     async def stats(self) -> dict[str, int]:
         result = await self._db.prepare("""
@@ -388,6 +388,22 @@ def _row_to_event(row: Any) -> Event:
         contributor_id=UUID(contributor_id) if contributor_id else None,
         sequence_number=payload.get("sequence_number"),
     )
+
+
+def _valid_contributors(rows: Any) -> list[Contributor]:
+    """Parse contributor rows, skipping any that aren't valid.
+
+    One malformed row (a hand-inserted test row with a non-UUID id once did this)
+    must not make every event fail identity resolution.
+    """
+    contributors = []
+    for row in rows:
+        try:
+            contributors.append(_row_to_contributor(row))
+        except (KeyError, TypeError, ValueError):
+            logger.warning("skipping malformed contributor row",
+                           extra={"id": str(dict(row).get("id", ""))[:64]})
+    return contributors
 
 
 def _row_to_contributor(row: Any) -> Contributor:

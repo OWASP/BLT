@@ -208,3 +208,20 @@ async def test_health_state_upsert_and_get(db):
     comp = await q.get_component("queue_consumer")
     assert "last_processed_at" in comp
     assert "last_event_type" in comp
+
+
+@pytest.mark.asyncio
+async def test_list_all_skips_a_malformed_contributor_row(db):
+    q = ContributorQueries(db)
+    good = Contributor(id=uuid4(), display_name="Alice Example", usernames=["alice"])
+    await q.upsert(good)
+    # The old /d1-write debug endpoint inserted a row whose id is not a UUID.
+    await db.prepare(
+        "INSERT OR IGNORE INTO contributors (id, display_name) VALUES (?, ?)"
+    ).bind("test-001", "Test User").run()
+
+    listed = await q.list_all()
+    assert [c.id for c in listed] == [good.id]
+    top, total = await q.list_top(10, 0)
+    assert [c.id for c in top] == [good.id]
+    assert total == 2
