@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368625,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "## Summary\n\nRebuild the job/profile submission experience around Git-native artifacts instead of normal job-board forms.\n\nThe first provider remains GitLab. The flow should generate reviewable Markdown drafts and open GitLab issues or merge requests for maintainer review. GitHub/generic Git should be designed as future provider targets, not first-blocking implementation.\n\n## Scope\n\n- Post job from URL as draft generation, not crawler publishing.\n- Manual job Markdown draft generation.\n- Seeker profile Markdown draft generation.\n- GitLab issue template handoff.\n- Future MR/PR provider abstraction.\n- Clear non-technical copy explaining what happens after submit.\n\n## Acceptance criteria\n\n- [ ] Reword `public/add.html` and related homepage copy to emphasize reviewable Git submissions.\n- [ ] Add or plan a Markdown preview/copy flow for job and seeker submissions.\n- [ ] Keep GitLab issue templates as the first supported handoff.\n- [ ] Document advanced path: submit an MR adding `jobs/*.md` or `seekers/*.md` directly.\n- [ ] Remove product wording that implies random automatic fetching/publishing.\n- [ ] Explain maintainer review and CI processing before publication.\n\n## Parent\n\nTracked by #12: https://gitlab.com/owasp-blt/blt-jobs/-/work_items/2\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-jobs/-/issues/5 (opened by @mdkaifansari04 on 2026-06-07).\n\n**Discussion summary**\n\n- The GitLab issue-template handoff was replaced: templates are in `blt-jobs/issue-templates/` and submissions are processed by `.forkmesh/blt-jobs--process-submissions.yml`.",
+            "id": "gitlab-issue-82715116-5",
+            "sig": "zRv7GMf2gIz0T2729NzsGynwOFA9939ZT03yRcrZqhJ1QAYf1hvzVxDYZFuJHY0UdfR-gaRTrGJRq0BklLemBw",
+            "title": "blt-jobs: Rework job and profile submission into Git-native Markdown draft flows",
+            "ts": 1792461368625,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715116-5",
+            "labels": [
+                "blt-jobs"
+            ],
+            "sig": "fRnVdM5M4NlP7WztWQxf3KjVeB89BkoN3NjK9IVG-e0wqnOEzFOIl7wWyMDYdGDHy4Lj7wXivad3svlwetUuCQ",
+            "ts": 1792461368626,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-jobs"
+    ],
+    "milestone": "",
+    "number": 14,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-jobs: Rework job and profile submission into Git-native Markdown draft flows",
+    "updatedAt": 1792461368626,
+    "votes": 0
+}

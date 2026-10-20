@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368805,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "---\n\nMoved from https://gitlab.com/owasp-blt/blt-safecloak/-/issues/10 (opened by @DonnieBLT on 2026-06-14).\n\n**Discussion summary**\n\n- The homepage has a `curl -fsSL /install.sh | bash` command for Linux/macOS, which builds from source now that GitLab CI artifacts are gone. There are no prebuilt macOS or Windows downloads, and no forge release workflow for them.",
+            "id": "gitlab-issue-82715642-10",
+            "sig": "SOb7983sr0eZc3mY8ZIfow9jmzVE33OOeuXeUTStb6faDTObXlfarZW7WkQ_CQPtcyQVl4ae51nJkW4eITpnAw",
+            "title": "blt-safecloak: create a build for mac and windows and add them to the download area featured on the homepage",
+            "ts": 1792461368805,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715642-10",
+            "labels": [
+                "blt-safecloak"
+            ],
+            "sig": "1fsKwDhAIa55AVEpoah2If8yBSUYJUqmUd2OSdLtKPusvAUNTAIxR7YseBPnFl0WaPHr8O0GUBxeIN8PHYGwCQ",
+            "ts": 1792461368806,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-safecloak"
+    ],
+    "milestone": "",
+    "number": 32,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-safecloak: create a build for mac and windows and add them to the download area featured on the homepage",
+    "updatedAt": 1792461368806,
+    "votes": 0
+}

@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368765,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "To move the consent list on the left and the consent form on the right, and the consent form should be given more space in the section than the consent list. \n\n![Screenshot 2026-06-13 190824.png](https://gitlab.com/-/project/82715642/uploads/e71d418a7f7a065bcf1d52a73b6a7a94/Screenshot_2026-06-13_190824.png)\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-safecloak/-/issues/3 (opened by @ananya-in-tech on 2026-06-14).",
+            "id": "gitlab-issue-82715642-3",
+            "sig": "QGK-uFWScwflhW_mBw8VKRxsEtjeTSdPkCKC7hhucJpdPM_32JSAosFGgZDXqKMsCwRqmBOUhmaAVl4bBt5yCw",
+            "title": "blt-safecloak: Consent page rearrangement",
+            "ts": 1792461368765,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715642-3",
+            "labels": [
+                "blt-safecloak"
+            ],
+            "sig": "LutKxlpkFLTBisW6M9jUwOh_NqMT-BJgm0XR5rW9XnYrEFxI5GId5pJA2YcfO2t6AsYKwwI9tUIf-QX5pjweAg",
+            "ts": 1792461368766,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-safecloak"
+    ],
+    "milestone": "",
+    "number": 28,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-safecloak: Consent page rearrangement",
+    "updatedAt": 1792461368766,
+    "votes": 0
+}

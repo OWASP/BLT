@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368525,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "With https://gitlab.com/owasp-blt/blt-api/-/merge_requests/15 merged, the D1 database is currently behind the migration files. Please apply the latest migrations to remote D1 instances so that the new schema fields are available.\n\n`npx wrangler d1 migrations apply blt-api --remote`\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-api/-/issues/15 (opened by @Nachiket_R on 2026-08-18).\n\n**Discussion summary**\n\n- The monorepo deploy does not apply D1 migrations, so this stays a manual step: `npx wrangler d1 migrations apply blt-api --remote` from `blt-api/`.",
+            "id": "gitlab-issue-82682993-15",
+            "sig": "_C_C4ZUpiV58dd3u9e6vVUE6BaEQ3qunGi9Y3lJLSvCUP5DwkjdXqG6I5i_wrkxqXjvX-BjNiujE-CS98GGaDA",
+            "title": "blt-api: Pending Migration",
+            "ts": 1792461368525,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82682993-15",
+            "labels": [
+                "blt-api"
+            ],
+            "sig": "vk8A-vr58WexrtlvNBbfn0rn_Cuo0AsmuUhKDbwSn27RYpGmBaTjgd1JcbZgRu7lc7T78wnNfItpaMVSdQkKBg",
+            "ts": 1792461368526,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-api"
+    ],
+    "milestone": "",
+    "number": 4,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-api: Pending Migration",
+    "updatedAt": 1792461368526,
+    "votes": 0
+}

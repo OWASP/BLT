@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368725,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "The `draft_vision_issue` tool sends a vague prompt to the Cloudflare Vision AI model (LLaVA), which often produces unstructured, markdown-heavy, or hallucinated responses. The TUI then struggles to parse the output, resulting in messy descriptions in the submit form.\n\n### **Current Behavior**\n\n* The prompt in **`blt_mcp/server.py`** is generic: _\"Analyze this screenshot… Identify any bugs…\"_\n* LLaVA responds with inconsistent formatting sometimes markdown, sometimes extra sections, sometimes no `TITLE:` / `DESCRIPTION:` markers at all\n* The auto-filled form description looks garbled with raw `**`, `##`, bullet markers etc.\n\n### **Expected Behavior**\n\n* The prompt should explicitly instruct the model to respond in **plain text only** with a strict `TITLE:` / `DESCRIPTION:` format\n* The prompt should prohibit markdown formatting and extra sections\n* A fallback instruction should be included for when no issues are found\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-mcp/-/issues/10 (opened by @Nachiket_R on 2026-08-30).\n\n**Discussion summary**\n\n- Still open: the prompt in `blt_mcp/server.py` (around line 418) has no plain-text or no-markdown instruction and no fallback for \"no issues found\".",
+            "id": "gitlab-issue-82715256-10",
+            "sig": "CHAoqE8A-lxG6Mfnd1oBKV5GuSLhSmG_QikxtV65cvaPWmNJSqutTypPHIWmzYqsJMXyKtqNNyuSug_pDfToCA",
+            "title": "blt-mcp: Improve Vision AI prompt for structured, clean output",
+            "ts": 1792461368725,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715256-10",
+            "labels": [
+                "blt-mcp"
+            ],
+            "sig": "22n_b29I1q6TtseD2ZM4rDkqrSRHv0AGI1BrpBAEzJRQtFjZysVutvaTYyo5HgxPqzgyJtW9mg6J3kiYLwf5Cw",
+            "ts": 1792461368726,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-mcp"
+    ],
+    "milestone": "",
+    "number": 24,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-mcp: Improve Vision AI prompt for structured, clean output",
+    "updatedAt": 1792461368726,
+    "votes": 0
+}

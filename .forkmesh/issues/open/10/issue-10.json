@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368585,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "## Summary\n\nUpdate docs and UI copy so BLT-Hackathons reflects the current GitLab-first direction, generated-JSON stats model, and Cloudflare Pages deployment target while preserving GitHub support where true.\n\n## Scope\n\n- Remove or update stale GitHub-only wording.\n- Fix docs that still describe browser-live GitHub API stats as the core model.\n- Explain that generated JSON under `public/hackathon-data/` is the frontend data source.\n- Explain GitLab support and Cloudflare Pages clearly.\n- Keep GitHub support documented for GitHub-backed events.\n\n## Suggested files\n\n- Modify: `README.md`\n- Modify: `FEATURES.md`\n- Modify: `SETUP.md`\n- Modify: `TESTING.md`\n- Modify: `SUMMARY.md` or mark it historical\n- Modify: `AGENT.md` if source contracts change\n- Modify UI copy in `public/index.html`, `public/hackathon.html`, `public/js/index.js`, `public/js/main.js` as needed\n\n## Known stale areas\n\n- README still has GitHub Pages/GitHub Issues as primary in several places.\n- Some docs still describe browser/client-side GitHub API processing instead of generated JSON stats.\n- Support links should point to GitLab canonical project where appropriate.\n- `SUMMARY.md` describes an older architecture and may be better marked as historical.\n\n## Acceptance criteria\n\n- [ ] Docs name GitLab project `https://gitlab.com/owasp-blt/blt-hackathons` as canonical.\n- [ ] Docs name Cloudflare Pages as the deployment target.\n- [ ] Docs explain generated JSON stats under `public/hackathon-data/`.\n- [ ] GitHub support remains documented for GitHub-backed events.\n- [ ] GitHub-only setup instructions are either updated, moved to compatibility notes, or labeled historical.\n- [ ] UI copy avoids saying GitHub where the event/provider may be GitLab.\n- [ ] Search for stale phrases returns no unintentional matches.\n\n## Verification\n\nSearch for stale strings such as:\n\n```text\nGitHub Pages\nGitHub Issues\nGitHub API Integration\nclient-side processing\nreal-time updates\npull requests\n```\n\nReview each remaining match and keep only the ones that are intentionally about GitHub-backed events.\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-hackathons/-/issues/11 (opened by @mdkaifansari04 on 2026-06-07).\n\n**Discussion summary**\n\n- Still open: `README.md` keeps a \"Deployed on GitHub Pages\" badge and a \"Deploy to GitHub Pages\" section.\n- The canonical project is now the `blt-hackathons` folder of git.owaspblt.org/BLT, not gitlab.com; the acceptance criteria that name GitLab should name the forge instead.",
+            "id": "gitlab-issue-82715092-11",
+            "sig": "P823yeUwNTm-XWS8YkJ7Vle9j3FrP0sF6hT26rWAjUc2ksDkFq4ptQCEQujrFyGqQ5Ez1qJkUITvjrMEZyZBCw",
+            "title": "blt-hackathons: Clean stale GitHub-only docs and copy",
+            "ts": 1792461368585,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715092-11",
+            "labels": [
+                "blt-hackathons"
+            ],
+            "sig": "IKY-qTQV_xItHm0OdJmtxcBHv1kmY6v4wq2By_SvK80w539pa35YsFieDgBlLH7ExDpQgQ4_XvfyZde0ClGEDg",
+            "ts": 1792461368586,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-hackathons"
+    ],
+    "milestone": "",
+    "number": 10,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-hackathons: Clean stale GitHub-only docs and copy",
+    "updatedAt": 1792461368586,
+    "votes": 0
+}

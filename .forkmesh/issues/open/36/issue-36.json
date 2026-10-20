@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368845,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "The following discussion from !28 should be addressed:\n\n- [ ] @DonnieBLT started a [discussion](https://gitlab.com/owasp-blt/blt-vanish/-/merge_requests/28#note_3697069952): \n\n    > this should be vanish\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-vanish/-/issues/3 (opened by @DonnieBLT on 2026-08-17).\n\n**Discussion summary**\n\n- @ananya-in-tech planned to finish the rename after the GSoC merges; the app was first built as SelfErase.\n- Now: the macOS product name is \"BLT Vanish\", but `SelfErase` remains in `blt-vanish/README.md`, `blt-vanish/data/schema.json` and `blt-vanish-flutter/lib` (`SelfEraseApp`).",
+            "id": "gitlab-issue-82715404-3",
+            "sig": "1m69zEO8x0zvLjGK-mBXjN0MpZUO-G7AczRdcoh7Wu3QGDmH2NrGWXG9fiEWb9LBwLQ7bdOZ9txDwI94qxjgCQ",
+            "title": "blt-vanish: Follow-up from \"feat: add macOS platform build configuration\"",
+            "ts": 1792461368845,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715404-3",
+            "labels": [
+                "blt-vanish"
+            ],
+            "sig": "_c9BDgRg29OsUUrBuer_Xexba9GZsIK-zNRyVDGDxYiSC2E0G6ZkYbIz60QqpPUxiYh30wCySZg1UlIvIBvwBw",
+            "ts": 1792461368846,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-vanish"
+    ],
+    "milestone": "",
+    "number": 36,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-vanish: Follow-up from \"feat: add macOS platform build configuration\"",
+    "updatedAt": 1792461368846,
+    "votes": 0
+}

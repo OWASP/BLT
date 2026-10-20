@@ -1,0 +1,49 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368745,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "## Screenshot\n![image](https://gitlab.com/-/project/82716662/uploads/966ba54d0f2f8ceb473a86a15777f914/image.png)\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-newsletter/-/issues/10 (opened by @mdkaifansari04 on 2026-06-15).\n\n**Discussion summary**\n\n- The review bot listed the fixes in `public/dashboard.html`: add a top-bar menu button that toggles `.sidebar.active` (the sidebar is hidden at 768px and below, so navigation is unreachable on phones), and fix the mobile padding rule `body.px-8`.\n- Still true on main: nothing toggles `.sidebar.active`. Easy first issue.",
+            "id": "gitlab-issue-82716662-10",
+            "sig": "cEYIfgvL1rs4GRkzDHANBboa0ktc5Xg9WRTKDPFlSPmR0yevYfRNoezvqrWJszX7KjZORfe8xggdFh4vd1ZnBA",
+            "title": "blt-newsletter: fix: mobile responsiveness",
+            "ts": 1792461368745,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82716662-10",
+            "labels": [
+                "blt-newsletter",
+                "good first issue"
+            ],
+            "sig": "Gu0MZCKRmkYL8jc_43jXBQPu7EpnGsrT-4PMC7TbrOI0nn0DhixK5HtCbNybfOhce9RfBSy34OEAuTPGDSK_Cg",
+            "ts": 1792461368746,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-newsletter",
+        "good first issue"
+    ],
+    "milestone": "",
+    "number": 26,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-newsletter: fix: mobile responsiveness",
+    "updatedAt": 1792461368746,
+    "votes": 0
+}

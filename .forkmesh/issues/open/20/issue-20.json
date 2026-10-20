@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368685,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "!8 added agent.md in this MR but it need to be updated\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-mcp/-/issues/5 (opened by @Nachiket_R on 2026-07-30).\n\n**Discussion summary**\n\n- Concrete drift: AGENT.md documents `add_comment(issue_id, text)`, the server defines `add_comment(issue_id, comment_text, confirmed=False)`. Check `draft_vision_issue` and `summarize_issue_context` are documented too.",
+            "id": "gitlab-issue-82715256-5",
+            "sig": "kxAnstfgRB4Nmz_AWl3RjhBw1Lo_I3fmrO3v0w_ylwhjr65Th1Sk5V7fEWlCBMxiXBRp13ic-gcEVovClyRgDA",
+            "title": "blt-mcp: Update Agent.md",
+            "ts": 1792461368685,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715256-5",
+            "labels": [
+                "blt-mcp"
+            ],
+            "sig": "ZgZhmHHUauWKDvDowx3hDGZYe7w44NOHs5guTTO91pW-ll04PyDh2kA7gfWkhAzatu7M_Aa2k0h72k6AKzRiAQ",
+            "ts": 1792461368686,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-mcp"
+    ],
+    "milestone": "",
+    "number": 20,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-mcp: Update Agent.md",
+    "updatedAt": 1792461368686,
+    "votes": 0
+}

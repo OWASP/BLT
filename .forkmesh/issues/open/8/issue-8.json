@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368565,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "Parent work item: https://gitlab.com/owasp-blt/blt-docs/-/work_items/1\n\nThis child work item is part of the BLT-docs redesign and platform documentation hub umbrella.\n\n### Description\n\nDefine how BLT-docs should store, name, reference, and maintain screenshots and media for user/developer guide pages.\n\n### Scope\n\n- Define screenshot storage and naming convention under `docs/assets/`.\n- Add guidance for screenshots in user guides and dashboard-like pages.\n- Add alt-text requirements.\n- Add update workflow for screenshots after UI changes.\n\n### Acceptance criteria\n\n- [ ] Screenshot/media convention is documented.\n- [ ] Asset paths are stable under `docs/assets/`.\n- [ ] Alt-text and accessibility guidance is included.\n- [ ] Docs explain when screenshots should be updated.\n- [ ] Build passes with `uvx --with-requirements requirements.txt mkdocs build --strict`.\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-docs/-/issues/10 (opened by @mdkaifansari04 on 2026-06-04).\n\n**Discussion summary**\n\n- @Preetam-77 asked the review bot; it summarized the work as: store media under `docs/assets/`, stable paths and naming, alt-text rules, and when to refresh screenshots.\n- GitLab MR blt-docs!4 stopped after 10 lines inside an unclosed code fence and is being closed; the review suggests adding this as a section of `developer-guide/writing-docs.md`.",
+            "id": "gitlab-issue-82716184-10",
+            "sig": "uJl392s4TP0rsmGCO8I_MOfGK8T6Y1gbiTI-cgXxOmxmzP_YW9bD2ypm6kEZzltbP9jw6QY_BIKxdgafZqD-Aw",
+            "title": "blt-docs: Add screenshots/media system for user guides",
+            "ts": 1792461368565,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82716184-10",
+            "labels": [
+                "blt-docs"
+            ],
+            "sig": "_KEnNrEfpO0FBzg3XD2D7LZV_IQjSi9itE3CEQ07JDt1_6fxp6cBuSK-aP-6tWlmIUOk6k9E2QZ9mF6Z3sxmBw",
+            "ts": 1792461368566,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-docs"
+    ],
+    "milestone": "",
+    "number": 8,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-docs: Add screenshots/media system for user guides",
+    "updatedAt": 1792461368566,
+    "votes": 0
+}

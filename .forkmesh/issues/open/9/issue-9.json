@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368575,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "## Summary\n\nImprove the GSoC warmup experience around open participation, merge-request contributions, and the second activity/review leaderboard.\n\n## Scope\n\n- Make it clear that GSoC 2027 is open participation.\n- Explain what counts: merged GitLab merge requests and meaningful review/activity signals.\n- Keep two separate leaderboards for now: contribution leaderboard and activity/review leaderboard.\n- Do not add a composite points score in this phase.\n- Ensure leaderboard labels adapt to GitLab events.\n\n## Suggested files\n\n- Modify: `public/hackathon.html`\n- Modify: `public/js/main.js`\n- Modify: `public/js/index.js` if index cards summarize activity/reviews\n- Optional docs updates for scoring/rules.\n\n## UX requirements\n\n- Contribution leaderboard should be labeled around merged MRs for GitLab events.\n- Activity/review leaderboard should explain that useful human review/comment activity is tracked.\n- Empty state should encourage contributors to submit MRs and review others.\n- Rules should discourage spam, low-quality, bot-only, or copied work.\n- AI-assisted work should be allowed only when the contributor understands, tests, and owns the changes.\n\n## Acceptance criteria\n\n- [ ] GSoC 2027 detail page explains open participation.\n- [ ] GitLab events use `Merge Requests` / `MRs` in contribution labels.\n- [ ] The second leaderboard is labeled as activity/review, not another generic medal list.\n- [ ] Empty states explain how to get onto each leaderboard.\n- [ ] No composite scoring is introduced.\n- [ ] Review/activity data from generated JSON still renders correctly.\n- [ ] Existing GitHub events still render their leaderboards correctly.\n\n## Verification\n\nManual QA:\n\n- GitLab event with no contributors yet\n- GitLab event with generated review leaderboard data\n- GitHub event with existing PR/review data\n- mobile viewport\n- browser console\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-hackathons/-/issues/8 (opened by @mdkaifansari04 on 2026-06-07).\n\n**Discussion summary**\n\n- Partly in place: the event page already has a separate \"Review and activity leaderboard\".\n- Wording should now say pull requests on git.owaspblt.org (the GSoC 2027 warm-up uses the `forkmesh` provider), not GitLab merge requests.",
+            "id": "gitlab-issue-82715092-8",
+            "sig": "JQkufsIlhF9UcNM3j_4--3C7qg3F5kQ-S39ZM9JE1faUCYukuPWIhMFye_WZPhHDrCdwtBkmj5F8j6fknDwRDg",
+            "title": "blt-hackathons: Add open-participation MR and activity/review leaderboard UX",
+            "ts": 1792461368575,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715092-8",
+            "labels": [
+                "blt-hackathons"
+            ],
+            "sig": "pY1RPc55neuBXHVhRgRbFG0XMj7mZU2rpJe_341-mI053Vbxido7fwBex0H_ftRQCJYud_vEFR9FYQhJaqUFCw",
+            "ts": 1792461368576,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-hackathons"
+    ],
+    "milestone": "",
+    "number": 9,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-hackathons: Add open-participation MR and activity/review leaderboard UX",
+    "updatedAt": 1792461368576,
+    "votes": 0
+}

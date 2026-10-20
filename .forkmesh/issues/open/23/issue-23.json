@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368715,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "The current homepage is outdated and doesn't reflect the current status\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-mcp/-/issues/9 (opened by @Nachiket_R on 2026-08-30).",
+            "id": "gitlab-issue-82715256-9",
+            "sig": "SS1kH7_zrNA8VCAAxHyIPv2W7bIYZi7l_GjWDy8D8P5SeZ2ckArf7vt7nLyBHMuSeNTHzIdX2V8ZxI1ikm_nAw",
+            "title": "blt-mcp: Update home page",
+            "ts": 1792461368715,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715256-9",
+            "labels": [
+                "blt-mcp"
+            ],
+            "sig": "1N6d7scOT5GIus80OSBR4Bk-zlDv_F1S8w3mQrxW1WlZv0E4uA5RjxrVnlyqNW4GQUxkPSEcdmODmcVVuYSvBg",
+            "ts": 1792461368716,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-mcp"
+    ],
+    "milestone": "",
+    "number": 23,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-mcp: Update home page",
+    "updatedAt": 1792461368716,
+    "votes": 0
+}

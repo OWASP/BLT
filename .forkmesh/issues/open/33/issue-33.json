@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368815,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "# Purpose\n\nDeliver an enterprise-grade **AI Quality Gate** for BLT-Toasty, a distributed, fault-tolerant system that intercepts every pull request at the webhook edge, runs deterministic and AI-powered policy checks, and enforces a hard gate so that **CodeRabbit only triggers on quality-filtered PRs**. The system eliminates \\~40% of wasted LLM API spend and maintainer triage time caused by spam, noise, and guideline-violating PRs.\n\n# Phase Breakdown\n\n| Phase | Weeks | Hours | Child Issues |\n|-------|-------|-------|--------------|\n| Phase 0 — Hygiene & ADRs | 1 | 29 | blt-toasty#19 – blt-toasty#21 |\n| Phase 1 — CI Gate Skeleton | 2 | 29 | blt-toasty#22 – blt-toasty#24 |\n| Phase 2 — Ingress + Queues | 3–4 | 58 | blt-toasty#25 – blt-toasty#29 |\n| Phase 3 — Policy Engine + D1 | 5–6 | 58 | blt-toasty#30 – blt-toasty#34 |\n| Phase 4 — AI Layer | 7–9 | 87 | blt-toasty#35 – blt-toasty#41 |\n| Phase 5 — Dashboard & Ops | 10–12 | 89 | blt-toasty#42 – blt-toasty#48 |\n\n# Steps\n\nThe plan's step issues were not moved one by one; they are tracked here. Each one links back to its GitLab issue (kept read-only in the archived group) for the full description.\n\n- [ ] Docs: Architecture — Write and publish ADR set (ADR-01 through ADR-09) (was gitlab owasp-blt/blt-toasty#20)\n- [ ] Docs: Operations — Define SLO sheet and acceptance criteria (was gitlab owasp-blt/blt-toasty#21)\n- [ ] Feature: Webhook Ingress — CF KV idempotency dedup layer (was gitlab owasp-blt/blt-toasty#26)\n- [ ] Feature: Webhook Ingress — CF Queue job enqueue and 202 ACK (was gitlab owasp-blt/blt-toasty#27)\n- [ ] Feature: Gate Processor — CF Queue consumer Worker with retry & DLQ (was gitlab owasp-blt/blt-toasty#28)\n- [ ] Test: Ingress + Queues — Queue reliability integration test suite (was gitlab owasp-blt/blt-toasty#29)\n- [ ] Feature: Database — D1 schema migration and SQL helpers (was gitlab owasp-blt/blt-toasty#30)\n- [ ] Feature: Policy Engine — Deterministic rule framework (`engine.py`) (was gitlab owasp-blt/blt-toasty#31)\n- [ ] Feature: Policy Engine — Wire engine into queue consumer and post Check Runs (was gitlab owasp-blt/blt-toasty#32)\n- [ ] Feature: AI Gateway — LiteLLM provider integration in Workers (`providers.py`) (was gitlab owasp-blt/blt-toasty#35)\n- [ ] Feature: AI Gateway — Provider fallback chain logic (was gitlab owasp-blt/blt-toasty#36)\n- [ ] Test: AI Gateway — Provider switch integration test matrix (was gitlab owasp-blt/blt-toasty#37)\n- [ ] Feature: BYOK — Key management API Worker (`byok-api`) (was gitlab owasp-blt/blt-toasty#38)\n- [ ] Test: BYOK — Security checklist (10/10 controls) (was gitlab owasp-blt/blt-toasty#39)\n- [ ] Feature: RAG — Cloudflare Vectorize ingestion pipeline (was gitlab owasp-blt/blt-toasty#40)\n- [ ] Feature: RAG — Vectorize retrieval integration and grounded explanations (was gitlab owasp-blt/blt-toasty#41)\n- [ ] Feature: Dashboard — Cloudflare Pages project scaffold and Decision Feed (Screen 1) (was gitlab owasp-blt/blt-toasty#42)\n- [ ] Feature: Dashboard — Decision Trace Detail view (Screen 2) (was gitlab owasp-blt/blt-toasty#43)\n- [ ] Feature: Dashboard — BYOK Key Manager UI (Screen 3) (was gitlab owasp-blt/blt-toasty#44)\n- [ ] Feature: Dashboard — Cost & Token Analytics view (Screen 4) (was gitlab owasp-blt/blt-toasty#45)\n- [ ] Feature: Observability — Workers Analytics Engine integration (was gitlab owasp-blt/blt-toasty#46)\n- [ ] Feature: Operations — Shadow rollout, tuning, and quality analysis (was gitlab owasp-blt/blt-toasty#47)\n- [ ] Feature: Operations — Hard gate enforcement, launch checklist, and handoff (was gitlab owasp-blt/blt-toasty#48)\n\nThe GitHub-mirror-only steps (blt-toasty#22, blt-toasty#23, blt-toasty#24, blt-toasty#25, blt-toasty#33, blt-toasty#34: GitHub Actions workflows, Check Runs and branch protection) were dropped, because BLT pull requests now live on the forge, which has neither. The baseline audit (blt-toasty#19) was closed as obsolete.\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-toasty/-/issues/18 (opened by @aryanghai1205 on 2026-06-06).\n\n**Discussion summary**\n\n- No gate code has landed; only the README overview (Aryan Ghai, June 2026). The child issues have had no activity since June.\n- The AI Quality Gate plan targets the GitHub mirror (Actions, Check Runs, branch protection); BLT pull requests now live on git.owaspblt.org, so the gate needs re-targeting at forge pull requests (a `.forkmesh/` workflow on pull events); this issue tracks that work.\n- The GitHub-only children and the baseline audit were closed during the move; the remaining steps were closed in favour of the checklist above.",
+            "id": "gitlab-issue-82715729-18",
+            "sig": "BUDaKiyFJUpyKofSo85jE0wh1fQnxqNRhlPJd0W1yd6yQQ1nK6xZIQBflaRB9KjY6aNimlAD5KC6UyBhVPMUAw",
+            "title": "blt-toasty: Internship 2026: AI Quality Gate — Enterprise PR Gatekeeper for BLT-Toasty (350 hrs)",
+            "ts": 1792461368815,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715729-18",
+            "labels": [
+                "blt-toasty"
+            ],
+            "sig": "HnckKVC9_UZp3rTfOdj7JVTUrKhqjyhF-kBqh0uspxmoqcC69-RoqY_aOe0BfPCFtBMXR2UEg9ehoSbx8yV8CQ",
+            "ts": 1792461368816,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-toasty"
+    ],
+    "milestone": "",
+    "number": 33,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-toasty: Internship 2026: AI Quality Gate — Enterprise PR Gatekeeper for BLT-Toasty (350 hrs)",
+    "updatedAt": 1792461368816,
+    "votes": 0
+}

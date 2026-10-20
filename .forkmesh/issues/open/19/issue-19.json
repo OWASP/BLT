@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368675,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "## Summary\n\nAdd the final reliability and quality pass for the Git-native BLT-Jobs platform workstreams.\n\n## Scope\n\n- Static build reliability.\n- Data loading and fallback behavior.\n- Accessibility checks.\n- Responsive checks.\n- No-console-error manual QA.\n- CI/validation commands.\n\n## Acceptance criteria\n\n- [ ] `npm run build:jobs` passes.\n- [ ] `npm run validate:jobs` passes.\n- [ ] Homepage, jobs, job detail, seekers, seeker detail, saved jobs, and add/profile flows load without console errors.\n- [ ] Public pages use generated data correctly and have graceful fallbacks.\n- [ ] Keyboard navigation and focus states work for main interactions.\n- [ ] Mobile layouts are checked for filters, cards, nav, and submission flows.\n- [ ] Document manual QA checklist under `docs/`.\n\n## Parent\n\nTracked by #12: https://gitlab.com/owasp-blt/blt-jobs/-/work_items/2\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-jobs/-/issues/10 (opened by @mdkaifansari04 on 2026-06-07).",
+            "id": "gitlab-issue-82715116-10",
+            "sig": "ajTxMkPm3SsKhnni-aZpC6nrJHcl8SCHYjUiuHGMwV-rJxIEjD2lWvqi_JAKb4RYNsGv-QxR0n_-AVKkm5YxDg",
+            "title": "blt-jobs: QA Git-native platform reliability, accessibility, and static build flow",
+            "ts": 1792461368675,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715116-10",
+            "labels": [
+                "blt-jobs"
+            ],
+            "sig": "KW--4vfYzBOALNp0BI8XbJN0u5IEwqKeCJ3NWmzxnHLDK1d5EeEhG_xH7XPFUEMGdjPfyzkOppwPdNHP5UhNDw",
+            "ts": 1792461368676,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-jobs"
+    ],
+    "milestone": "",
+    "number": 19,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-jobs: QA Git-native platform reliability, accessibility, and static build flow",
+    "updatedAt": 1792461368676,
+    "votes": 0
+}

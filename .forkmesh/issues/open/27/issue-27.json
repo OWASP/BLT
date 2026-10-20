@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368755,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "![image.png](https://gitlab.com/-/project/82625134/uploads/6791f1f85d5c8438ab791543af293c0e/image.png)\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-next/-/issues/1 (opened by @DonnieBLT on 2026-05-30).\n\n**Discussion summary**\n\n- The screenshot showed the rows rendering outside the table and made-up researchers. The layout was fixed in b7db18ab8d.\n- Still wrong: `/api/leaderboard` serves the hardcoded `LEADERBOARD` list (workers/main.py:134), and the page says \"of 3500 researchers\" from a constant (main.js:632). It should read real data from BLT-API.",
+            "id": "gitlab-issue-82625134-1",
+            "sig": "RyI9lRNaY6Lfx8UcAJDgJn9ji2vcIgOty7RE_LTvRF_n1rPbJYdaZ5h1i1kuSfc58dmK_lycdvM-BrT3-ZmrBg",
+            "title": "blt-next: leaderboard showing wrong info",
+            "ts": 1792461368755,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82625134-1",
+            "labels": [
+                "blt-next"
+            ],
+            "sig": "uhvxrGlc6IYifZkzVChtNuHHeZ1r4pUT5k4t6tIJU58iwkFDtESuD7GdmGZCMCOqvheiV_om__lNbZtg6l-2Cg",
+            "ts": 1792461368756,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-next"
+    ],
+    "milestone": "",
+    "number": 27,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-next: leaderboard showing wrong info",
+    "updatedAt": 1792461368756,
+    "votes": 0
+}

@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368595,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "## Summary\n\nAdd and run a final verification pass for the BLT-Hackathons UI revamp, provider support, GSoC 2027 warmup config, docs, and deployment expectations.\n\n## Scope\n\n- Verify parser and generated JSON compatibility.\n- Run local static site checks.\n- Manually QA homepage and event detail pages.\n- Check mobile and dark mode.\n- Check browser console.\n- Check GitLab and GitHub provider links.\n- Check basic accessibility: keyboard focus, semantic headings, alt text, contrast, reduced broken links.\n\n## Suggested files\n\n- Modify: `TESTING.md`\n- Modify: `README.md` or `AGENT.md` if QA workflow changes\n- Fix frontend/docs files as issues are found.\n\n## Required commands\n\n```bash\npython -m py_compile fetch_stats.py\nnode scripts/parse_hackathons_config.js public/js/hackathons-config.js /tmp/hackathons-config-parsed.json\npython -m json.tool public/stats.json >/dev/null\npython -m json.tool public/hackathon-data/gsoc-2026-warmup.json >/dev/null\npython -m json.tool public/hackathon-data/gsoc-2026-warmup-summary.json >/dev/null\npython -m http.server 8000 --directory public\n```\n\n## Manual QA matrix\n\n- [ ] `/`\n- [ ] `/hackathon.html?slug=gsoc-2026-warmup`\n- [ ] `/hackathon.html?slug=gsoc-2027-warmup`\n- [ ] mobile viewport\n- [ ] dark mode\n- [ ] browser console has no errors\n- [ ] GitLab event links point to GitLab projects/issues/MRs\n- [ ] GitHub event links still point to GitHub repos/issues/PRs\n- [ ] empty sponsors/prizes state\n- [ ] missing generated JSON state\n- [ ] keyboard tab order\n- [ ] visible focus states\n- [ ] external links use `rel=\"noopener noreferrer\"`\n\n## Acceptance criteria\n\n- [ ] All required commands pass.\n- [ ] Manual QA matrix is completed and documented in the MR.\n- [ ] Mobile layout is usable.\n- [ ] Dark mode is readable.\n- [ ] No console errors on primary pages.\n- [ ] Provider links are correct for both GitLab and GitHub events.\n- [ ] Any remaining limitations are documented as follow-up issues.\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-hackathons/-/issues/12 (opened by @mdkaifansari04 on 2026-06-07).\n\n**Discussion summary**\n\n- The GitLab-specific checks (\"GitLab event links point to GitLab projects\") now apply to the `forkmesh` provider that the GSoC 2027 warm-up uses (2bc7daab38).",
+            "id": "gitlab-issue-82715092-12",
+            "sig": "0foYBr3G-cwhG6W2qOYypGXlij7_NQFo5keK7VWjiQTj8c7yVInwYbIzzKhVuxKMX1fqzBvNkRSCnImLk1pPBw",
+            "title": "blt-hackathons: Add final QA, accessibility, mobile, dark-mode, and provider-link checks",
+            "ts": 1792461368595,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715092-12",
+            "labels": [
+                "blt-hackathons"
+            ],
+            "sig": "kxTpvaLT1jyrGf5BbXyxUM8wCVDdKkWAj8ZsxFKY_2EIjKAFt7K_loRJrplv01GilvgVF3EXWCQdceDu4ICODA",
+            "ts": 1792461368596,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-hackathons"
+    ],
+    "milestone": "",
+    "number": 11,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-hackathons: Add final QA, accessibility, mobile, dark-mode, and provider-link checks",
+    "updatedAt": 1792461368596,
+    "votes": 0
+}

@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368615,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "## Summary\n\nTurn the current landing-page visual direction into the universal BLT-Jobs design system for every public page.\n\nIssue blt-jobs#1 already tracks the landing page UI. This issue extends that direction across jobs, job details, seekers, seeker profiles, saved jobs, contribution flows, board health, and future docs pages.\n\n## Scope\n\n- Reusable shell/header/footer.\n- BLT red primary action system.\n- Card, form, filter, badge, empty-state, and status patterns.\n- Git-native source/traceability components.\n- Responsive and accessible layouts.\n- Consistent dark/light mode behavior.\n\n## Acceptance criteria\n\n- [ ] Document the BLT-Jobs page/component design principles under `docs/`.\n- [ ] Reuse the current landing-page UI as the design foundation, not as a one-off page.\n- [ ] Define shared patterns for cards, buttons, filters, badges, source links, empty states, and footer.\n- [ ] Update all pages to follow the same shell and visual rhythm.\n- [ ] Replace raw broken states such as `Unable to load...` with polished fallbacks.\n- [ ] Verify responsive behavior and keyboard navigation on all primary pages.\n\n## Parent\n\nTracked by #12: https://gitlab.com/owasp-blt/blt-jobs/-/work_items/2\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-jobs/-/issues/4 (opened by @mdkaifansari04 on 2026-06-07).",
+            "id": "gitlab-issue-82715116-4",
+            "sig": "T6rxRgKI8ehd5hCkbH4brBFbDf7S-Zu18y44VAELIoN5IruhZibclKZ5F_9qJsYsXSUwh_JWRDvtr0cAA4wsCQ",
+            "title": "blt-jobs: Apply universal BLT-Jobs design system across all pages",
+            "ts": 1792461368615,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715116-4",
+            "labels": [
+                "blt-jobs"
+            ],
+            "sig": "uXDWCTaf4vZCCURGTBcKLtjrvn_mS319cyopkrJmcyDqIE_a2C34YCVpTZRah4fmpFq7Yi91TJvH9ZNYN-dlCQ",
+            "ts": 1792461368616,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-jobs"
+    ],
+    "milestone": "",
+    "number": 13,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-jobs: Apply universal BLT-Jobs design system across all pages",
+    "updatedAt": 1792461368616,
+    "votes": 0
+}

@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368775,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "When the video is on and the screen is shared, the host's video is not visible any how, it can be shown with a small circle cutout on the top or bottom corner of the shared screen box, or the shared screen can completely separated from the user's video screen.\n\n![Screenshot 2026-06-13 174101.png](https://gitlab.com/-/project/82715642/uploads/995a44865b06030d556e04fd75e91dd6/Screenshot_2026-06-13_174101.png)\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-safecloak/-/issues/6 (opened by @ananya-in-tech on 2026-06-14).",
+            "id": "gitlab-issue-82715642-6",
+            "sig": "YH3jv8KVUUINfVlX3cOcmplsyfOxJXYsu_2Zt6MRdk1w3tWry0GTkewehm0FZJ3QyDN2QS_c2Ig93vaQj97tDg",
+            "title": "blt-safecloak: Shared screen hides the video of the host",
+            "ts": 1792461368775,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715642-6",
+            "labels": [
+                "blt-safecloak"
+            ],
+            "sig": "oibjgbevirfga62QSpcZqwuvJNTxIuriKE1_4DcFLyd9wuT_3PgXsyxBghHLAiFq80fTDrnLeB6qIGN_B_AbDw",
+            "ts": 1792461368776,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-safecloak"
+    ],
+    "milestone": "",
+    "number": 29,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-safecloak: Shared screen hides the video of the host",
+    "updatedAt": 1792461368776,
+    "votes": 0
+}

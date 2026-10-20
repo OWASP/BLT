@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368535,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "This is the umbrella for the BLT-Autopatch milestone plan. The Week 1 milestone (the original issue) is described first; the later milestones are tracked in the checklist below, each linking back to its GitLab issue (kept read-only in the archived group) for the full description.\n\n## Week 1: Worker Scaffold - Cloudflare Workers + D1 + Queues Setup\n\n**Milestone:** Week 1\n\nInitialize the Cloudflare Python Worker project for BLT-Autopatch.\n\n**Deliverables:**\n\n* Initialize Cloudflare Python Worker project with Wrangler\n* Set up `wrangler.toml` with D1, Queues, Cron bindings\n* Create D1 schema for `cvd_cases`, `patch_audit_log`, `repository_context` tables\n* Configure Cloudflare Queues for inter-worker communication\n* Set up Cloudflare Cron Triggers skeleton\n* Add logging and error handling infrastructure\n* Unit tests for D1 schema operations\n\n## Later milestones\n\n- [ ] Ingestion Adapters - BLT Issues + NetGuardian + NVD (was gitlab owasp-blt/blt-autopatch#2)\n- [ ] Triage Engine — Severity/Confidence Routing + Context Extractor (was gitlab owasp-blt/blt-autopatch#3)\n- [ ] LLM Patch Generation Pipeline (was gitlab owasp-blt/blt-autopatch#4)\n- [ ] Static Analysis Validator — ruff + eslint + semgrep (was gitlab owasp-blt/blt-autopatch#5)\n- [ ] Diff Sanity Checks + CONTRIBUTING.md Parser (was gitlab owasp-blt/blt-autopatch#6)\n- [ ] Human Review Queue UI + 8 CWE Strategy Templates (was gitlab owasp-blt/blt-autopatch#7)\n- [ ] CVD State Machine + Embargo Enforcement (was gitlab owasp-blt/blt-autopatch#8)\n- [ ] Notification Engine + Advisory Generator (was gitlab owasp-blt/blt-autopatch#9)\n- [ ] CVD Dashboard + End-to-End Validation (was gitlab owasp-blt/blt-autopatch#10)\n- [ ] GitHub App + PR Submission + Fork Manager (was gitlab owasp-blt/blt-autopatch#11)\n- [ ] BACON Reward Integration (was gitlab owasp-blt/blt-autopatch#12)\n- [ ] BLT-MCP Integration + Release (was gitlab owasp-blt/blt-autopatch#13)\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-autopatch/-/issues/1 (opened by @sidd786b on 2026-06-18).\n\n**Discussion summary**\n\n- This issue is now the umbrella for the BLT-Autopatch GSoC milestone plan (GitLab blt-autopatch#1 to blt-autopatch#13); the milestone issues blt-autopatch#2 to blt-autopatch#13 were closed in favour of the checklist above. As of the move, `blt-autopatch` is only a landing page; no Worker code has landed, and the one foundation MR (blt-autopatch!2) is being closed because it would break the live site.",
+            "id": "gitlab-issue-82732429-1",
+            "sig": "ZeiJE0ktbO6s1B0lHSckAApqk70ErG5kH2DMjbUAa177J3XyGWYq41tLvrAzzC5EX0xcJdT58wzpat2Qc0opBg",
+            "title": "blt-autopatch: Milestone plan umbrella: Worker scaffold through BLT-MCP integration and release",
+            "ts": 1792461368535,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82732429-1",
+            "labels": [
+                "blt-autopatch"
+            ],
+            "sig": "gYB09ksoFdly1-zO5xrILFWYS4nC67ABB9rCUWZ0NxdA0Xid_r3zxcEP95KO8vltIpt5lqNjYxKmWR5JQ5s9DA",
+            "ts": 1792461368536,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-autopatch"
+    ],
+    "milestone": "",
+    "number": 5,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-autopatch: Milestone plan umbrella: Worker scaffold through BLT-MCP integration and release",
+    "updatedAt": 1792461368536,
+    "votes": 0
+}

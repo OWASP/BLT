@@ -1,0 +1,49 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368825,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "Currently, the webhook handler runs the entire triage pipeline (Embeddings + AI Summarization) synchronously before returning an HTTP 200 response to GitLab. Integrate Cloudflare Queues to ingest the payload immediately, allowing background consumers to process the heavy AI tasks asynchronously and handle automatic retries.\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-toasty/-/issues/53 (opened by @Ojaswa072 on 2026-08-31).\n\n**Discussion summary**\n\n- GitLab MR blt-toasty!33 (queues, leases, DLQ) was reviewed as close-and-resubmit: it conflicts with the removal of `gitlab_client`, migration 0010 and !35. It is the one change that wires triage up again; resubmit as a forge pull request.",
+            "id": "gitlab-issue-82715729-53",
+            "sig": "CM8dZCXGBJbAjEOc5XjhX7Y3Ecg5XLGXMTdJtpqGf0vBkZmDo1CatJTf4UPYWsTHSq1bv3o_khFQ9ObDAE7aAw",
+            "title": "blt-toasty: Decouple Webhook Ingress via Cloudflare Queues",
+            "ts": 1792461368825,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715729-53",
+            "labels": [
+                "blt-toasty",
+                "architecture"
+            ],
+            "sig": "Nd8CKFo7zGJc1o6_-XMyUI9_UQv7FCJgSrrPWoxOVWvv7F__8spHPHps8TYzMebEebIzaAqqxSubknfcfm_KAg",
+            "ts": 1792461368826,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-toasty",
+        "architecture"
+    ],
+    "milestone": "",
+    "number": 34,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-toasty: Decouple Webhook Ingress via Cloudflare Queues",
+    "updatedAt": 1792461368826,
+    "votes": 0
+}

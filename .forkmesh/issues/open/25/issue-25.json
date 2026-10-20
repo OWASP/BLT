@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368735,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "## Goal\n\nHarden BLT-Newsletter for production by completing privacy safeguards, migration helpers, QA, and cleanup of the old GitHub Actions/GitHub Issues flow.\n\n## Scope\n\n- Email encryption or final privacy hardening if not completed earlier.\n- Import/migration helper for legacy GitHub issue subscribers.\n- Bounce/suppression support if SendGrid events are included.\n- Compliance improvements such as visible unsubscribe footer and `List-Unsubscribe` headers.\n- Security headers/CSP review.\n- Accessibility, mobile, dark-mode, browser-console QA.\n- Documentation cleanup.\n- Deprecate or remove old GitHub Actions newsletter sender and GitHub Issues subscriber flow.\n\n## Acceptance criteria\n\n- [ ] No raw emails are logged or exposed through public APIs.\n- [ ] Unknown unsubscribe returns privacy-safe success.\n- [ ] Import tool has dry-run and dedupe behavior.\n- [ ] Every campaign email has a visible unsubscribe path.\n- [ ] Final dashboard works in light and dark mode.\n- [ ] Mobile dashboard and public pages are usable at 375px.\n- [ ] Browser console is clean for main flows.\n- [ ] README/IMPLEMENTATION/TESTING describe the final Cloudflare Worker/D1/Queue architecture.\n- [ ] Old GitHub Issues/GitHub Actions sender flow is removed or clearly deprecated.\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-newsletter/-/issues/7 (opened by @mdkaifansari04 on 2026-06-14).",
+            "id": "gitlab-issue-82716662-7",
+            "sig": "KelXE5t3jSHkbh-F5_wH617iE3T8kS-RzT3GbYvqTzKD8iuP2erZRgw1ib1akbduWoqCn7dELPmhiO30PWxeDg",
+            "title": "blt-newsletter: Slice 4: Privacy hardening, migration, QA, and legacy sender cleanup",
+            "ts": 1792461368735,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82716662-7",
+            "labels": [
+                "blt-newsletter"
+            ],
+            "sig": "7PAbonYNEksJpjst18ryoW-OqnZuTQaA5ejEPxpber753jPYTG4H71rEzHUzUe4ie6bCZN6P8PrcBtOXsZRpCg",
+            "ts": 1792461368736,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-newsletter"
+    ],
+    "milestone": "",
+    "number": 25,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-newsletter: Slice 4: Privacy hardening, migration, QA, and legacy sender cleanup",
+    "updatedAt": 1792461368736,
+    "votes": 0
+}

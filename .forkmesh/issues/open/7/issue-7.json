@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368555,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "Parent work item: https://gitlab.com/owasp-blt/blt-docs/-/work_items/1\n\nThis child work item is part of the BLT-docs redesign and platform documentation hub umbrella.\n\n### Description\n\nModernize BLT-API documentation inside BLT-docs so it matches the current `/v2`, Cloudflare Workers, D1, route metadata, dashboard, API-key, and JWT direction.\n\n### Scope\n\n- Update `docs/repositories/blt-api.md`.\n- Prefer `/v2` routes in examples.\n- Document Cloudflare Workers Python runtime, D1 migrations, Wrangler, local dev, tests, API-key gate, JWT identity, route metadata, and dashboard usage.\n- Link to the GitLab BLT-API repo and dashboard route once confirmed.\n- Avoid changing `X-BLT-API-Key` semantics.\n\n### Acceptance criteria\n\n- [ ] BLT-API docs explain local setup, tests, Wrangler, D1 migrations, deployment, and route metadata.\n- [ ] Auth docs separate `X-BLT-API-Key` gate from JWT/session identity.\n- [ ] Route examples prefer `/v2/...`.\n- [ ] Dashboard/docs UX is documented as the preferred API exploration path.\n- [ ] No secrets or hard-coded live keys are added.\n- [ ] Build passes with `uvx --with-requirements requirements.txt mkdocs build --strict`.\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-docs/-/issues/5 (opened by @mdkaifansari04 on 2026-06-04).",
+            "id": "gitlab-issue-82716184-5",
+            "sig": "4rLXc3Px3ed_RVJkXNTZ4dr3PuLc9dF813LvqgvBMv-k_yk9F_fN9NMvMrqUv_6ndg7XOCshCo7x2ABtP236Cw",
+            "title": "blt-docs: Add BLT-API developer docs and dashboard handoff page",
+            "ts": 1792461368555,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82716184-5",
+            "labels": [
+                "blt-docs"
+            ],
+            "sig": "k-3xwF5RcGcKzYlD2OHg8NlJBmebms84Z5HTJ3R5mRKSHvwz9XglVKCokvWEpw5MNWt3MAkFJUMQ-Buii73jCQ",
+            "ts": 1792461368556,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-docs"
+    ],
+    "milestone": "",
+    "number": 7,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-docs: Add BLT-API developer docs and dashboard handoff page",
+    "updatedAt": 1792461368556,
+    "votes": 0
+}

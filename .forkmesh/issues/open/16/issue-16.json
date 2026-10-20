@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368645,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "## Summary\n\nMake BLT-Jobs transparent and trustworthy by showing how jobs/profiles move from Git submission to published data.\n\n## Scope\n\n- Maintainer review lifecycle.\n- GitLab label/state mapping.\n- Source traceability on public pages.\n- Board health/status page.\n- Static data loading reliability.\n\n## Acceptance criteria\n\n- [ ] Define lifecycle states: submitted, needs-info, approved, published, rejected, flagged, expired, archived.\n- [ ] Map states to GitLab labels and/or Markdown fields.\n- [ ] Display source issue/MR/commit links where available on job and seeker detail pages.\n- [ ] Add last generated/updated timestamps to relevant public pages.\n- [ ] Add a board health page showing counts, stale/expired listings, profiles, and validation status.\n- [ ] Fix homepage live sections so they use real generated data or polished fallbacks.\n- [ ] Avoid raw `Unable to load...` states on public pages.\n\n## Parent\n\nTracked by #12: https://gitlab.com/owasp-blt/blt-jobs/-/work_items/2\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-jobs/-/issues/7 (opened by @mdkaifansari04 on 2026-06-07).",
+            "id": "gitlab-issue-82715116-7",
+            "sig": "OVaPlchwHOBPCpA0RDZQsxpj4Hgwoc_oPvjv6JFqKN-YNF3kqfF7NKXsWPGZqO_t_e_Ap01GJmJQHctjj0vvDQ",
+            "title": "blt-jobs: Add maintainer review states, source traceability, and board health",
+            "ts": 1792461368645,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715116-7",
+            "labels": [
+                "blt-jobs"
+            ],
+            "sig": "qtIe4dEoufbRvgpRHNuPt8DpDz1CiI2BCVI6ZmLKUKKW2M7H3qEV5HMdSCpursjc_KscVvXwf4kEdSlWGCQ2Bw",
+            "ts": 1792461368646,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-jobs"
+    ],
+    "milestone": "",
+    "number": 16,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-jobs: Add maintainer review states, source traceability, and board health",
+    "updatedAt": 1792461368646,
+    "votes": 0
+}

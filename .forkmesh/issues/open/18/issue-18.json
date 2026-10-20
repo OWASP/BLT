@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368665,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "## Summary\n\nDocument how BLT-Jobs can stay portable across Git-compatible hosting platforms while GitLab remains the first polished implementation.\n\n## Scope\n\n- Forking and mirroring model.\n- Upstream sync and conflict resolution.\n- GitHub issue/PR readiness plan.\n- Generic Git-compatible provider path.\n- Contributor and maintainer docs.\n\n## Acceptance criteria\n\n- [ ] Add docs explaining how forks/mirrors can contribute jobs/profiles upstream.\n- [ ] Document how a company could maintain jobs in its own repo and submit upstream changes.\n- [ ] Define GitHub support as a provider roadmap without blocking GitLab-first work.\n- [ ] Document local development, validation, and submission processing for contributors.\n- [ ] Keep docs human-first and concise; detailed implementation notes can live in this docs plan.\n\n## Parent\n\nTracked by #12: https://gitlab.com/owasp-blt/blt-jobs/-/work_items/2\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-jobs/-/issues/9 (opened by @mdkaifansari04 on 2026-06-07).\n\n**Discussion summary**\n\n- `docs/git-native-architecture.md` has a short \"Forking, mirroring, and upstream sync\" section; the full guide is still missing. The provider is now git.owaspblt.org rather than GitLab.",
+            "id": "gitlab-issue-82715116-9",
+            "sig": "cNGoL3HmjTLqfWqNmGzClusEYdy5LldWMdshAyle9gOpNFgbynweRkzsqmeNC4rdma9QkBlQL5FzpkIixKIxDg",
+            "title": "blt-jobs: Document federation, mirroring, GitHub readiness, and contributor workflow",
+            "ts": 1792461368665,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715116-9",
+            "labels": [
+                "blt-jobs"
+            ],
+            "sig": "l7xGHVSPwGz4vl-chZKP-HjJ4ur1KtPi_ZtRW6n2Ol1kAusGXGg6W_nyMD2LIFHFhhXci8a5Pqxn8UBnjKOHBg",
+            "ts": 1792461368666,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-jobs"
+    ],
+    "milestone": "",
+    "number": 18,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-jobs: Document federation, mirroring, GitHub readiness, and contributor workflow",
+    "updatedAt": 1792461368666,
+    "votes": 0
+}

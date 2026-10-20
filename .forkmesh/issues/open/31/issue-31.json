@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368795,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "---\n\nMoved from https://gitlab.com/owasp-blt/blt-safecloak/-/issues/9 (opened by @DonnieBLT on 2026-06-14).\n\n**Discussion summary**\n\n- Partly addressed: an install-command section exists. The text under it still says it \"downloads the latest CI build\", which is stale (install.sh builds from source now).",
+            "id": "gitlab-issue-82715642-9",
+            "sig": "teC17WiVLIFBmI-sNSero-58cdaIx_Tur4AZRD4JpSNVe_mkv0OG_ew3Da4VvyiU_xxGSpFW6VRdatRdVZi-BQ",
+            "title": "blt-safecloak: make the new safecloak chat / workspace app more prominent add a linux download button",
+            "ts": 1792461368795,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715642-9",
+            "labels": [
+                "blt-safecloak"
+            ],
+            "sig": "XVLh_kps425wpfd4q_tFKWytY3TMzFRICzc6DjDSrExJvpl9iX_16TsPCtIegYwM5_xzDSW4e4aTcYxIc-h4Bw",
+            "ts": 1792461368796,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-safecloak"
+    ],
+    "milestone": "",
+    "number": 31,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-safecloak: make the new safecloak chat / workspace app more prominent add a linux download button",
+    "updatedAt": 1792461368796,
+    "votes": 0
+}

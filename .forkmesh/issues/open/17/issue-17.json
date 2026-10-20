@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368655,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "## Summary\n\nDesign the future application flow without accidentally exposing sensitive applicant data in public Git.\n\nThe preferred initial model is conservative: external apply URLs, email/contact preferences, and public seeker profiles. Git-native application artifacts can be explored only with explicit public-data boundaries.\n\n## Scope\n\n- Minimal identity: Git username + email/contact preference.\n- Public seeker profile privacy rules.\n- Contact preference design.\n- Future `applications/<job-id>/<username>.md` model decision.\n- Application issue/MR flow risk assessment.\n\n## Acceptance criteria\n\n- [ ] Document what seeker data is public and what should not be collected.\n- [ ] Update profile template copy to warn that profiles are public Git data.\n- [ ] Prefer contact preferences/Git profiles over public email by default.\n- [ ] Define application options: external URL, email, issue-based, MR/PR-based, or deferred backend.\n- [ ] If a Git-native application file is proposed, define the minimal safe public fields.\n- [ ] Do not implement public application storage until the privacy decision is explicit.\n\n## Parent\n\nTracked by #12: https://gitlab.com/owasp-blt/blt-jobs/-/work_items/2\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-jobs/-/issues/8 (opened by @mdkaifansari04 on 2026-06-07).\n\n**Discussion summary**\n\n- `docs/git-native-architecture.md` already has an \"Applications policy\" section (external apply URL, no public application files yet).",
+            "id": "gitlab-issue-82715116-8",
+            "sig": "tiruItabamfdG1oMLmJxuTGY7V_PCDxLzKhuleD0_o_AWTgpHwGVdRwehO6IP4FAucSvzAfcScRjIuOeqgYUAQ",
+            "title": "blt-jobs: Design privacy-safe Git-native applications and seeker contact flows",
+            "ts": 1792461368655,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715116-8",
+            "labels": [
+                "blt-jobs"
+            ],
+            "sig": "0zhCoFw1s7-lMAC-SA7FjXK67GVoQX8fz9z_9BSqKQQT7AZPdU5nHTAH5Ghw96RYetZYcOXi_UovVKX40hfCBQ",
+            "ts": 1792461368656,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-jobs"
+    ],
+    "milestone": "",
+    "number": 17,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-jobs: Design privacy-safe Git-native applications and seeker contact flows",
+    "updatedAt": 1792461368656,
+    "votes": 0
+}

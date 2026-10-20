@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368545,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "The Severity and Bug Type fields in the submit form are free-text inputs, requiring users to type values like \"Critical\" or \"High\" manually. This is error-prone and slow.\n\n### **Current Behavior**\n\n* Severity and Bug Type are plain `String` fields in **`VulnerabilityForm`**\n* Users must type the exact severity string with no validation\n* Easy to mistype and too slow\n\n### **Expected Behavior**\n\n* When the Severity field is active, Up/Down arrows (or Left/Right) should cycle through: `Critical → High → Medium → Low`\n* When the Bug Type field is active, Up/Down should cycle through common categories: `XSS, SQL Injection, CSRF, IDOR, Authentication Bypass, Information Disclosure, Other`\n* The UI should show the current selection and hint that arrow keys cycle options\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-mcp/-/issues/13 (opened by @Nachiket_R on 2026-08-30).\n\n**Discussion summary**\n\n- Still open: `VulnerabilityForm.severity` is a `String` (blt-cli/src/app.rs:74). No MR covers it. The TUI lives in `blt-cli` now.",
+            "id": "gitlab-issue-82715256-13",
+            "sig": "FEeDTbutL4StFH0LktX4VIHiOoeJUKEDbtHbwLHUHyBycQoLj0DSNvI8rVpiHrIPaI3c5j1tVPuNG5gOce0fAg",
+            "title": "blt-cli: Replace free-text Severity and Bug Type fields with cycle-able selectors",
+            "ts": 1792461368545,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82715256-13",
+            "labels": [
+                "blt-cli"
+            ],
+            "sig": "82r0BaVsdGVtfREn9fALXYu_lGMsV3EzWYY2Czbd76SXAKBWYQmcyYyxKb8jMX-Az00ndbcqfGldSN5HH-mzDg",
+            "ts": 1792461368546,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-cli"
+    ],
+    "milestone": "",
+    "number": 6,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-cli: Replace free-text Severity and Bug Type fields with cycle-able selectors",
+    "updatedAt": 1792461368546,
+    "votes": 0
+}

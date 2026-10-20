@@ -1,0 +1,47 @@
+{
+    "assignees": [],
+    "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+    "authorName": "gitlab-import[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792461368515,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "body": "Parent work item: blt-api#1\n\nMirrored from historical GitHub issue: https://github.com/OWASP-BLT/BLT-API/issues/100\n\n## Problem\nPhase I should finish with verified behavior, usable seed data, and contributor-facing docs instead of manual-only testing.\n\n## Acceptance\n- [ ] Full test suite passes.\n- [ ] Seed data supports the new Jobs, Hackathons, Newsletter, and auth flows where relevant.\n- [ ] README/homepage docs include new routes.\n- [ ] Curl examples include `X-BLT-API-Key` and JWT where needed.\n- [ ] `/v2/routes` metadata reflects the final route set.\n- [ ] No anonymous-report endpoint is included in this phase.\n\n---\n\nMoved from https://gitlab.com/owasp-blt/blt-api/-/issues/10 (opened by @mdkaifansari04 on 2026-05-29).",
+            "id": "gitlab-issue-82682993-10",
+            "sig": "9cHFedZp0Kq7oRgReXapvkaUMjW809F-5gStfO2y8r4jK3ft1UnJ6wa4qTit956nEiPOMHBqzQytIQOGtHOZDQ",
+            "title": "blt-api: Add final Phase I tests, seed data, and docs pass",
+            "ts": 1792461368515,
+            "type": "open"
+        },
+        {
+            "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
+            "authorName": "gitlab-import[bot]",
+            "id": "gitlab-labels-82682993-10",
+            "labels": [
+                "blt-api"
+            ],
+            "sig": "QbcvLbH5dQfZDVkIvwzf232mFUw54OvDbWi_6tODh-chVuIkmytq7aLfI0aPmo_luB_CzX0aj19h_X-Ck1c5Cg",
+            "ts": 1792461368516,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-api"
+    ],
+    "milestone": "",
+    "number": 3,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-api: Add final Phase I tests, seed data, and docs pass",
+    "updatedAt": 1792461368516,
+    "votes": 0
+}
