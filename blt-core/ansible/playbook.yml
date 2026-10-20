@@ -11,7 +11,6 @@
     enable_remote_postgres: "{{ enable_remote_postgres | default(false) }}"
     postgres_host: "{{ postgres_host | default('127.0.0.1') }}"
     postgres_port: "{{ postgres_port | default('5432') }}"
-    poetry_version: "{{ poetry_version | default('1.8.5') }}"
   pre_tasks:
     - name: Update apt cache
       apt:
@@ -96,49 +95,16 @@
         state: latest
         virtualenv: "{{ venv_dir }}"
 
-    - name: Check if Poetry is installed
-      shell: command -v poetry
-      register: poetry_installed
-      ignore_errors: true
-      changed_when: false
+    - name: Install uv into the virtualenv
+      pip:
+        name: uv
+        state: latest
+        virtualenv: "{{ venv_dir }}"
 
-    - name: Install Poetry using official installer
-      shell: |
-        curl -sSL https://install.python-poetry.org | python3 - --version {{ poetry_version }}
-      args:
-        executable: /bin/bash
-      when: poetry_installed.rc != 0
-      environment:
-        POETRY_HOME: /opt/poetry
-
-    - name: Create Poetry bin symlink
-      file:
-        src: /opt/poetry/bin/poetry
-        dest: /usr/local/bin/poetry
-        state: link
-      when: poetry_installed.rc != 0
-
-    - name: Get Poetry path
-      shell: command -v poetry
-      register: poetry_path
-      changed_when: false
-
-    - name: Check if poetry-plugin-export is installed
-      shell: "{{ poetry_path.stdout }} self show plugins | grep -q poetry-plugin-export"
-      register: poetry_export_installed
-      ignore_errors: true
-      changed_when: false
-
-    - name: Install poetry-plugin-export for Poetry 2.0+
-      shell: "{{ poetry_path.stdout }} self add poetry-plugin-export"
-      args:
-        executable: /bin/bash
-      when: poetry_export_installed.rc != 0
-
-    - name: Install Python dependencies (poetry export)
+    - name: Install Python dependencies (uv export of uv.lock, main group only)
       shell: |
         TMPFILE=$(mktemp)
-        cd {{ app_dir }}/current && poetry export -f requirements.txt --without-hashes -o "$TMPFILE"
+        cd {{ app_dir }}/current && {{ venv_dir }}/bin/uv export --frozen --no-dev --no-emit-project --no-hashes -o "$TMPFILE"
         {{ venv_dir }}/bin/pip install -r "$TMPFILE"
         rm -f "$TMPFILE"
       args:

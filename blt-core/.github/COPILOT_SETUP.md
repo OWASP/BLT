@@ -25,7 +25,7 @@ The instructions are comprehensive and cover everything Copilot needs to know to
 
 This GitHub Actions workflow prepares the development environment before Copilot starts working. It:
 
-- ✅ Sets up Python 3.11 and Poetry
+- ✅ Sets up Python 3.11 and uv
 - ✅ Installs project dependencies with caching for faster setup
 - ✅ Configures PostgreSQL database
 - ✅ Installs and configures pre-commit hooks

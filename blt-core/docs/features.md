@@ -45,7 +45,7 @@ Seeded Content & Educational Features
 - Seeded "adventures" and tasks are created via website/management/commands/seed_adventures.py.
 
 Docs & Contribution
-- Contribution guide enforces Poetry, pre-commit, Black/isort/ruff, djLint, and JS console rule. Follow CONTRIBUTING.md for development workflow and CI rules.
+- Contribution guide enforces uv, pre-commit, Black/isort/ruff, djLint, and JS console rule. Follow CONTRIBUTING.md for development workflow and CI rules.
 
 How to verify implementation
 - UI cards: website/templates/features.html

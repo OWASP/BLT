@@ -36,6 +36,3 @@ all:
     
     # Uvicorn workers
     uvicorn_workers: 4
-    
-    # Poetry version (use "latest" or specific version like "1.8.5")
-    poetry_version: "1.8.5"

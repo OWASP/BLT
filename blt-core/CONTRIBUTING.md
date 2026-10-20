@@ -111,73 +111,45 @@ Before you start contributing, you'll need to set up your development environmen
 
 4. Access the application at [http://localhost:8000](http://localhost:8000)
 
-### Python Virtual Environment Setup
+### Python Virtual Environment Setup (uv)
 
+BLT manages its Python dependencies with [`uv`](https://docs.astral.sh/uv/). They are declared in
+`pyproject.toml` (`[project]` and the `dev` dependency group) and pinned in `uv.lock`.
 
-### Optional: Python Virtual Environment Setup using `uv`
-
-BLT can also be set up using [`uv`](https://github.com/astral-sh/uv), a fast Python package manager
-and virtual environment tool. This is an **optional** alternative to the Poetry-based setup
-described above.
-
-This option is useful for contributors who prefer faster dependency resolution and installation.
-
-#### Install `uv`
-
-> ⚠️ Note (Windows):  
+> ⚠️ Note (Windows):
 > On some Windows setups, `uv` may fail to auto-detect Python installations
-> due to registry or PATH resolution issues. In such cases, explicitly
-> specifying the Python interpreter or using Docker/Poetry is recommended.
+> due to registry or PATH resolution issues. In such cases, pass the interpreter
+> explicitly (`uv sync --python C:\path\to\python.exe`) or use Docker.
 
-
-```bash
-pip install uv
-```
-
-#### Set up the BLT project using `uv`
-
-From the project root, run:
-
-```bash
-uv sync
-```
-
-To start the development server:
-
-```bash
-uv run python manage.py migrate
-uv run python manage.py runserver
-```
-
-Open your browser at:
-http://localhost:8000
-
-
-1. Install Python 3.11.2 (using pyenv or another tool):
+1. Install uv:
 
    ```bash
-   pyenv install 3.11.2
+   pip install uv
    ```
 
-2. Set up Poetry and virtual environment:
+2. Install the dependencies (uv creates `.venv` with the Python version in `.python-version`,
+   downloading it if needed):
 
    ```bash
-   pip install poetry
-   poetry shell
-   poetry install
+   uv sync
    ```
 
 3. Set up the application:
 
    ```bash
-   python manage.py migrate
-   python3 manage.py loaddata website/fixtures/initial_data.json
-   python manage.py createsuperuser
-   python manage.py collectstatic
-   python manage.py runserver
+   uv run python manage.py migrate
+   uv run python manage.py loaddata website/fixtures/initial_data.json
+   uv run python manage.py createsuperuser
+   uv run python manage.py collectstatic
+   uv run python manage.py runserver
    ```
 
+   (Or `source .venv/bin/activate` once and drop the `uv run` prefix.)
+
 4. Access the application at [http://localhost:8000](http://localhost:8000)
+
+To add or update dependencies, use `uv add <package>` (`uv add --dev <package>` for dev tools)
+or `uv lock --upgrade-package <package>`, and commit both `pyproject.toml` and `uv.lock`.
 
 ### Populating Test Data for Local Development
 For faster local development and testing, the project provides a built-in Django management command to automatically populate the database with realistic sample data.
@@ -291,18 +263,18 @@ We use several tools to maintain code quality:
 - isort for import sorting
 - ruff for linting
 
-You can run these tools using Poetry:
+You can run these tools using uv:
 
 ```bash
-poetry run black .
-poetry run isort .
-poetry run ruff .
+uv run black .
+uv run isort .
+uv run ruff check .
 ```
 
 We also use pre-commit hooks to ensure code quality. Install them with:
 
 ```bash
-poetry run pre-commit install
+uv run pre-commit install
 ```
 
 ### JavaScript Code Standards

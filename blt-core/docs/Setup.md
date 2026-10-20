@@ -346,17 +346,18 @@ from the host machine.
 
 #### Setup correct python version
 
-Current supported python version is `3.11.2`. It can be installed using any tool of choice like `asdf`, `pyenv`, `hatch`.
+The project targets Python 3.11 (`requires-python = ">=3.11.2,<3.14"` in `pyproject.toml`). `uv sync` downloads a
+matching interpreter automatically if none is installed. To manage it yourself, use any tool of choice like `asdf`, `pyenv`, `hatch`.
 For this guide, we are using `pyenv`. Install pyenv by following instructions in its [Github Repo](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation)
 
 ```sh
-pyenv install 3.11.2
+pyenv install 3.11
 
 ```
 
 Note: Project root folder already contains `.python-version`, so pyenv can recognize the local version to use for the current project.
 
-#### Setup virtual environment using poetry
+#### Setup virtual environment using uv
 
 Ensure that `python -V` returns the correct python version for the project
 
@@ -374,14 +375,14 @@ sudo apt-get install postgresql
 # Or use Chocolatey: choco install postgresql
 
 # --- Setup Virtual Environment ---
-# Install Poetry
-pip install poetry
+# Install uv (https://docs.astral.sh/uv/getting-started/installation/)
+pip install uv
 
-# Activate virtual environment
-poetry shell
+# Create .venv and install the locked dependencies (including the dev group)
+uv sync
 
-# Install required dependencies
-poetry install
+# Activate virtual environment (or prefix each command below with `uv run`)
+source .venv/bin/activate
 
 # --- Project setup ---
 # Create tables in the database
@@ -419,11 +420,12 @@ If you run into issues during the setup, here are some common solutions:
 
 ### 1.Cannot install nltk, distlib, certifi
 
-The error message indicates that the package manager (Poetry) is unable to find installation candidates.
+The error message indicates that the package manager (uv) is unable to find installation candidates.
 Below are the temporary solutions.
 
 ```sh
-poetry cache clear --all pypi
+uv cache clean
+uv sync --refresh
 
 #For Docker method only
 docker-compose build --no-cache

@@ -126,34 +126,34 @@ then your setup is correct and no additional action is required:
 docker info | findstr OSType
 ```
 
-#### Using Poetry
+#### Using uv
 ```bash
-# Install Poetry
-pip install poetry
+# Install uv (see https://docs.astral.sh/uv/getting-started/installation/)
+pip install uv
 
-# 1. Install dependencies first (Creates the virtual environment)
-poetry install
+# 1. Install dependencies (creates .venv with the Python version from .python-version)
+uv sync
 
-# 2. Activate the virtual environment
-poetry shell
+# 2. Activate the virtual environment (or prefix commands with `uv run`)
+source .venv/bin/activate
 
 
 #### Beginner-Friendly Non-Docker Setup (Codespaces for Windows Beginners)
 
-Docker/virtualization issues on Windows? Use Poetry + SQLite in GitHub Codespaces (free cloud VS Code—no local compilation/virtualization problems!).
+Docker/virtualization issues on Windows? Use uv + SQLite in GitHub Codespaces (free cloud VS Code—no local compilation/virtualization problems!).
 
 1. Create Codespace on main branch.
 2. `cp .env.example .env`
-3. `poetry install` (add `poetry run pip install psutil` if errors)
+3. `pip install uv && uv sync`
 4. Edit `.env`:
    - `DATABASE_URL=sqlite:///db.sqlite3`
    - Add `SECRET_KEY=bengaluru2026-sharanyaa-random!@#`
    - Comment Postgres lines with `#`
    - Dummy: `OPENAI_API_KEY=dummy`
    - Keep `DEBUG=True`
-5. `poetry run python manage.py migrate`
-6. `poetry run python manage.py createsuperuser`
-7. Run on free port: `poetry run python manage.py runserver 0.0.0.0:8001`
+5. `uv run python manage.py migrate`
+6. `uv run python manage.py createsuperuser`
+7. Run on free port: `uv run python manage.py runserver 0.0.0.0:8001`
 8. Open port 8001 in Ports tab.
 
 Tested by complete beginner Sharanyaa from Bengaluru—app running perfectly in Codespaces on January 14, 2026! 🚀
@@ -174,11 +174,11 @@ For detailed setup instructions, see our [Contributing Guide](https://git.owaspb
 
 #### Beginner-Friendly Non-Docker Setup (Codespaces for Windows Beginners)
 
-Docker/virtualization issues on Windows? Use Poetry + SQLite in GitHub Codespaces (free cloud—no local problems!).
+Docker/virtualization issues on Windows? Use uv + SQLite in GitHub Codespaces (free cloud—no local problems!).
 
 1. Create Codespace on main branch.
 2. `cp .env.example .env`
-3. `poetry install` (add `poetry run pip install psutil` if "ModuleNotFound" errors)
+3. `pip install uv && uv sync`
 4. Edit `.env`:
    - `DATABASE_URL=sqlite:///db.sqlite3`
    - Add `SECRET_KEY=your-random-bengaluru2026!@#`

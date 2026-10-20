@@ -10,7 +10,7 @@ OWASP BLT is a Django-based web application for bug bounty management and securi
 - **Database**: PostgreSQL with Redis for caching
 - **Frontend**: Tailwind CSS, vanilla JavaScript (separate files)
 - **Real-time**: Django Channels with WebSocket support
-- **Package Management**: Poetry (NOT pip)
+- **Package Management**: uv (NOT pip)
 - **Code Quality**: pre-commit hooks, Black, isort, ruff, djLint
 
 ## Development Workflow
@@ -45,17 +45,17 @@ Django tests have been optimized for speed with the following improvements:
 
 **Quick tests (excludes slow Selenium tests):**
 ```bash
-poetry run python manage.py test --exclude-tag=slow --parallel --failfast
+uv run python manage.py test --exclude-tag=slow --parallel --failfast
 ```
 
 **Full test suite (includes all tests):**
 ```bash
-poetry run python manage.py test --parallel --failfast
+uv run python manage.py test --parallel --failfast
 ```
 
 **Single test or test file:**
 ```bash
-poetry run python manage.py test website.tests.test_api.APITests.test_specific_method
+uv run python manage.py test website.tests.test_api.APITests.test_specific_method
 ```
 
 #### Test Guidelines
@@ -67,10 +67,11 @@ poetry run python manage.py test website.tests.test_api.APITests.test_specific_m
 
 ### Dependency Management
 
-- **ALWAYS use Poetry**, never use pip directly
-- Add dependencies: `poetry add <package-name>`
-- Add dev dependencies: `poetry add --group dev <package-name>`
-- Update dependencies: `poetry update <package-name>`
+- **ALWAYS use uv**, never use pip directly
+- Add dependencies: `uv add <package-name>`
+- Add dev dependencies: `uv add --dev <package-name>`
+- Update dependencies: `uv lock --upgrade-package <package-name>`
+- Commit `pyproject.toml` and `uv.lock` together
 - Avoid installing packages that are not necessary
 
 ## Coding Standards
@@ -137,8 +138,8 @@ BLT/
 docker-compose up
 
 # Local development
-poetry shell
-poetry install
+uv sync
+source .venv/bin/activate
 python manage.py migrate
 python manage.py runserver
 ```
@@ -191,8 +192,8 @@ docker-compose down
 ```bash
 # 1. Set up environment
 cp .env.example .env
-poetry shell
-poetry install
+uv sync
+source .venv/bin/activate
 
 # 2. Set up database and collect static files
 python manage.py migrate
@@ -251,7 +252,7 @@ python manage.py runserver
 ## Summary of Key Rules
 
 ✅ **DO**:
-- Use Poetry for dependency management
+- Use uv for dependency management
 - Use Tailwind CSS for styling
 - Keep JavaScript in separate files
 - Run pre-commit before every commit

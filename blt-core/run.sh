@@ -15,7 +15,7 @@ fi
 
 # Run migrations
 echo "Checking and applying migrations..."
-poetry run python manage.py migrate
+uv run python manage.py migrate
 
 # Open browser after a short delay (in background)
 (
@@ -32,5 +32,5 @@ poetry run python manage.py migrate
   fi
 ) &
 
-# Run the application with SSL in poetry shell
-poetry run uvicorn blt.asgi:application --host 0.0.0.0 --port 8443 --ssl-keyfile ./ssl/key.pem --ssl-certfile ./ssl/cert.pem --log-level debug --reload --reload-include *.html
+# Run the application with SSL in the uv-managed environment
+uv run uvicorn blt.asgi:application --host 0.0.0.0 --port 8443 --ssl-keyfile ./ssl/key.pem --ssl-certfile ./ssl/cert.pem --log-level debug --reload --reload-include *.html
