@@ -98,7 +98,7 @@ Built by the community for the community, BLT makes it easy for security researc
 # Clone the repository
 
 git clone https://git.owaspblt.org/BLT.git
-cd BLT
+cd BLT/blt-core
 
 # Configure environment
 windows(powershell/command prompt): copy .env.example .env

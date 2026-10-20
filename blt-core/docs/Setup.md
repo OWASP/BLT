@@ -61,7 +61,7 @@ Before proceeding with any setup, you need to configure environment variables.
 
 ```sh
 # --- Move to project directory ---
-cd BLT
+cd BLT/blt-core
 
 cp .env.example .env
 ```
@@ -70,7 +70,7 @@ cp .env.example .env
 
 ```powershell
 # --- Move to project directory ---
-cd BLT
+cd BLT/blt-core
 
 # Using PowerShell
 Copy-Item .env.example .env
