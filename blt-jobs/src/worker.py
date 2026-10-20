@@ -211,8 +211,13 @@ def is_authenticated(request, env):
     if not token or "." not in token:
         return False
 
+    secret = session_secret(env)
+    if not secret:
+        # No secret configured: no cookie can be valid (a fixed fallback key would be public).
+        return False
+
     payload, signature = token.split(".", 1)
-    expected = sign(payload, session_secret(env))
+    expected = sign(payload, secret)
     if not timing_safe_equal(signature, expected):
         return False
 
@@ -224,7 +229,7 @@ def is_authenticated(request, env):
 
 
 def session_secret(env):
-    return env_value(env, "ADMIN_SESSION_SECRET", "") or env_value(env, "ADMIN_PASS", "") or "unset-admin-secret"
+    return env_value(env, "ADMIN_SESSION_SECRET", "") or env_value(env, "ADMIN_PASS", "")
 
 
 def sign(value, secret):

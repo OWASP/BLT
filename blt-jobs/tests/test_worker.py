@@ -76,5 +76,28 @@ class ServeActiveJobsTest(unittest.TestCase):
         self.assertIs(asyncio.run(worker.serve_active_jobs(FakeEnv(asset))), asset)
 
 
+class SessionSecretTest(unittest.TestCase):
+    class Request:
+        def __init__(self, cookie):
+            self.headers = {"Cookie": cookie}
+
+    class Env:
+        pass
+
+    def forged_cookie(self, secret):
+        payload = worker.base64_url_encode(json.dumps({"exp": 4102444800}).encode())
+        return f"{worker.SESSION_COOKIE}={payload}.{worker.sign(payload, secret)}"
+
+    def test_no_secret_means_no_valid_session(self):
+        request = self.Request(self.forged_cookie("unset-admin-secret"))
+        self.assertFalse(worker.is_authenticated(request, self.Env()))
+
+    def test_cookie_signed_with_the_configured_secret_is_accepted(self):
+        env = self.Env()
+        env.ADMIN_SESSION_SECRET = "s3cret"
+        self.assertTrue(worker.is_authenticated(self.Request(self.forged_cookie("s3cret")), env))
+        self.assertFalse(worker.is_authenticated(self.Request(self.forged_cookie("other")), env))
+
+
 if __name__ == "__main__":
     unittest.main()
