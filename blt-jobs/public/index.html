@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="scroll-smooth overflow-x-hidden">
+<html lang="en" class="scroll-smooth overflow-x-clip">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -219,13 +219,32 @@
       .mobile-toggle.active span:nth-child(3) {
         transform: translateY(-6px) rotate(-45deg);
       }
+
+      /* Minimal scrollbar for accessibility */
+      html {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(128, 128, 128, 0.3) transparent;
+      }
+
+      html::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      html::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      html::-webkit-scrollbar-thumb {
+        background: rgba(128, 128, 128, 0.3);
+        border-radius: 3px;
+      }
     </style>
   </head>
   <body
-    class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased transition-colors duration-300 selection:bg-red-100 selection:text-red-700 dark:bg-gray-950 dark:text-gray-100"
+    class="min-h-screen overflow-x-clip bg-gray-50 font-sans text-gray-900 antialiased transition-colors duration-300 selection:bg-red-100 selection:text-red-700 dark:bg-gray-950 dark:text-gray-100"
   >
     <header
-      class="fixed inset-x-0 top-0 z-50 overflow-x-hidden border-b border-black/5 bg-white/90 dark:border-white/10 dark:bg-gray-950/90 backdrop-blur-[18px]"
+      class="fixed inset-x-0 top-0 z-50 overflow-x-clip border-b border-black/5 bg-white/90 dark:border-white/10 dark:bg-gray-950/90 backdrop-blur-[18px]"
       id="site-header"
     >
       <div
@@ -383,7 +402,7 @@
     <main>
       <!-- ─── HERO ─────────────────────────────────────────────────────── -->
       <section
-        class="relative flex min-h-[34rem] overflow-x-hidden items-start justify-center px-4 pb-10 pt-36 max-md:min-h-[30rem] max-md:pb-8 max-md:pt-28"
+        class="relative flex min-h-[34rem] overflow-x-clip items-start justify-center px-4 pb-10 pt-36 max-md:min-h-[30rem] max-md:pb-8 max-md:pt-28"
         aria-label="Hero"
       >
         <div
