@@ -6,6 +6,7 @@ which is injected by the ASGI adapter (``asgi.fetch(app, request, env)``).
 
 from __future__ import annotations
 
+import json
 import logging
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request
@@ -69,7 +70,7 @@ async def gitlab_webhook(
         raise HTTPException(status_code=400, detail="Could not normalize payload")
 
     env = _get_env(request)
-    await env.PIPELINE_QUEUE.send(event.model_dump(mode="json"))
+    await env.PIPELINE_QUEUE.send(json.dumps(event.model_dump(mode="json")))
     return {"status": "accepted"}
 
 
@@ -159,11 +160,9 @@ async def status(request: Request) -> StatusResponse:
     db = env.HH_DB
     avatars = AvatarStateQueries(db)
     contributors = ContributorQueries(db)
-    events = EventQueries(db)
 
     occupancy = await avatars.occupancy()
     stats = await contributors.stats()
-    event_count = await events.count()
 
     return StatusResponse(
         data=StatusData(
@@ -199,28 +198,33 @@ async def health(request: Request) -> HealthResponse:
 
     event_count = await events.count()
     stats = await contributors.stats()
-    blt_bugs_cursor = await cursors.get("blt_bugs")
+    forge = await cursors.get_state("forge")
+    blt_bugs_cursor = await cursors.get("blt_bugs") if settings.blt_api_key else None
 
-    webhook_healthy = bool(settings.gitlab_webhook_secret)
-    gap_enabled = bool(settings.gitlab_api_token and settings.gitlab_tracked_project_ids)
-    blt_enabled = bool(settings.blt_api_key)
+    forge_state = (forge or {}).get("state") or {}
+    if forge is None:
+        forge_status = "pending"
+    elif forge_state.get("last_error"):
+        forge_status = "degraded"
+    else:
+        forge_status = "healthy"
 
     return HealthResponse(
-        status="healthy",
+        status="healthy" if forge_status != "degraded" else "degraded",
         components={
+            "forge_poller": {
+                "status": forge_status,
+                "last_poll_at": (forge or {}).get("last_polled_at"),
+                "last_event_at": forge_state.get("commit_at"),
+                "total_enqueued": (forge or {}).get("last_seen_id", 0),
+                "last_error": forge_state.get("last_error"),
+            },
             "gitlab_webhook": {
-                "status": "healthy" if webhook_healthy else "disabled",
+                "status": "healthy" if settings.gitlab_webhook_secret else "disabled",
                 "last_event_at": None,
             },
-            "gitlab_gap_detector": {
-                "status": "healthy" if gap_enabled else "disabled",
-                "last_poll_at": None,
-                "total_enqueued": 0,
-                "last_error": None,
-                "tracked_projects": len(settings.gitlab_tracked_project_ids.split(",")) if settings.gitlab_tracked_project_ids else 0,
-            },
             "blt_polling": {
-                "status": "healthy" if blt_enabled else "disabled",
+                "status": "healthy" if settings.blt_api_key else "disabled",
                 "last_poll_at": None,
                 "last_seen_bug_id": blt_bugs_cursor[0] if blt_bugs_cursor else 0,
                 "total_enqueued": 0,
@@ -284,34 +288,3 @@ async def state_snapshot(request: Request) -> StateResponse:
             generated_at=datetime.now(tz=timezone.utc).replace(microsecond=0),
         )
     )
-
-
-# ---------------------------------------------------------------------------
-# Test endpoints
-# ---------------------------------------------------------------------------
-
-@router.get("/d1-read")
-async def d1_read(request: Request) -> dict:
-    env = _get_env(request)
-    db = env.HH_DB
-    result = await db.prepare("SELECT 1 AS one").first()
-    if result is not None:
-        return dict(result.copy())
-    return {"one": None}
-
-
-@router.get("/d1-write")
-async def d1_write(request: Request) -> dict:
-    env = _get_env(request)
-    db = env.HH_DB
-    await db.prepare(
-        "INSERT OR IGNORE INTO contributors (id, display_name) VALUES (?, ?)"
-    ).bind("test-001", "Test User").run()
-    return {"inserted": True}
-
-
-@router.get("/queue-produce")
-async def queue_produce(request: Request) -> dict:
-    env = _get_env(request)
-    await env.PIPELINE_QUEUE.send({"hello": "world"})
-    return {"queued": True}

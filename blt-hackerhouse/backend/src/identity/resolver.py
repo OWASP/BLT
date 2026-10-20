@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from uuid import UUID, uuid4
 
 from core.fuzzy import levenshtein_distance, token_set_jaccard
-from models.contributor import Contributor
+from models.contributor import Contributor, platform_id_key
 from models.event import Event
 from models.identity import IdentityFlag, IdentityMapping, PlatformIdentity
 from storage import (
@@ -64,7 +64,14 @@ class IdentityResolver:
                 is_new=False,
             )
 
-        contributors = await self.contributors.list_all()
+        # A contributor already known on this platform is someone else (their
+        # own mapping would have matched in stage 1), so only people from the
+        # other platforms are fuzzy-match candidates.
+        own_key = platform_id_key(platform)
+        contributors = [
+            c for c in await self.contributors.list_all()
+            if own_key not in c.platform_ids
+        ]
         actor_lower = actor_name.lower()
 
         # Stage 2: Levenshtein ≤ 2 against known usernames
@@ -125,7 +132,7 @@ class IdentityResolver:
         flag = IdentityFlag(
             source_a=PlatformIdentity(platform=platform, user_id=platform_user_id),  # type: ignore[arg-type]
             source_b=PlatformIdentity(
-                platform="blt" if platform == "gitlab" else "gitlab",  # type: ignore[arg-type]
+                platform=_other_platform(contributor, platform),  # type: ignore[arg-type]
                 username=contributor.display_name,
             ),
             confidence=confidence,
@@ -152,7 +159,7 @@ class IdentityResolver:
             display_name=actor_name,
             usernames=[actor_name.lower()],
             aliases=[actor_name],
-            platform_ids={f"{platform}_id": platform_user_id},
+            platform_ids={platform_id_key(platform): platform_user_id},
             is_linked=False,
             score=0,
         )
@@ -178,3 +185,15 @@ class IdentityResolver:
             confidence=0.0,
             is_new=True,
         )
+
+
+_PLATFORMS = ("gitlab", "blt", "forge")
+
+
+def _other_platform(contributor: Contributor, platform: str) -> str:
+    """The platform the matched contributor was already known on (not ``platform``)."""
+    for key in contributor.platform_ids:
+        for candidate in _PLATFORMS:
+            if candidate != platform and key == platform_id_key(candidate):
+                return candidate
+    return next(p for p in _PLATFORMS if p != platform)

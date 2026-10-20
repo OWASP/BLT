@@ -548,7 +548,7 @@ body::after {
 
     <p class="terminal-subtitle">
       <span class="cmd-comment"># Real-time contributor visualization for OWASP BLT.</span><br>
-      <span class="cmd-comment"># Ingests GitLab + BLT events. Resolves identities. Broadcasts live.</span><br>
+      <span class="cmd-comment"># Polls git.owaspblt.org (plus BLT, optional GitLab webhook). Resolves identities. Broadcasts live.</span><br>
       <span class="cmd-comment"># All on Cloudflare Workers. Zero cold starts. Pure Python.</span>
     </p>
 
@@ -644,7 +644,7 @@ body::after {
       <div class="ft-card-body">
         <span class="cmd-prompt amber">SELECT</span> * <span class="cmd-keyword">FROM</span> events<br>
         &nbsp;&nbsp;<span class="cmd-comment">-- Paginated chronological feed</span><br>
-        &nbsp;&nbsp;<span class="cmd-comment">-- GitLab + BLT events unified</span><br>
+        &nbsp;&nbsp;<span class="cmd-comment">-- forge + BLT + GitLab events unified</span><br>
         &nbsp;&nbsp;<span class="cmd-keyword">ORDER BY</span> timestamp <span class="cmd-keyword">DESC</span>;<br>
       </div>
     </div>
@@ -711,10 +711,10 @@ body::after {
       <span class="pipeline-bar-title">pipeline.log</span>
     </div>
     <div class="pipeline-body">
-<span class="ts">[12:34:01]</span> <span class="tag">INFO</span>  <span class="src">webhook/gitlab</span>        received push event <span class="tag">#4812</span>
+<span class="ts">[12:34:01]</span> <span class="tag">INFO</span>  <span class="src">forge/poll</span>            new commit on main <span class="tag">b72e953</span>
 <span class="ts">[12:34:01]</span> <span class="tag">INFO</span>  <span class="proc">normalize</span>             event → unified model
 <span class="ts">[12:34:01]</span> <span class="tag">INFO</span>  <span class="proc">dedup</span>                 idempotency key: <span class="tag">ok</span>
-<span class="ts">[12:34:02]</span> <span class="tag">INFO</span>  <span class="proc">identity/resolve</span>      stage=exact <span class="tag">linked</span> alice ↔ gitlab:42
+<span class="ts">[12:34:02]</span> <span class="tag">INFO</span>  <span class="proc">identity/resolve</span>      stage=exact <span class="tag">linked</span> alice ↔ forge:alice
 <span class="ts">[12:34:02]</span> <span class="tag">INFO</span>  <span class="stor">d1/insert</span>             events <span class="tag">+1</span>, avatar_state updated
 <span class="ts">[12:34:02]</span> <span class="tag">INFO</span>  <span class="out">broadcast/ws</span>          → 12 clients · <span class="tag">floor_2/room_7</span>
 <span class="ts">[12:34:02]</span> <span class="tag">INFO</span>  <span class="out">leaderboard</span>           score delta <span class="tag">+5</span> for alice

@@ -18,12 +18,16 @@ class Settings(BaseSettings):
         env_file=".env" if os.environ.get("CI") else None,
     )
 
-    # --- GitLab ---
+    # --- Forge (git.owaspblt.org): the main source ---
+    forge_url: str = "https://git.owaspblt.org"
+    forge_repo: str = "owasp-blt/BLT"
+    forge_ref: str = "main"
+    forge_bot_authors: str = "owasp-blt-actions,forkmesh"
+    forge_backfill_days: int = 7
+    forge_max_events: int = 300
+
+    # --- GitLab webhook: optional external source ---
     gitlab_webhook_secret: str = ""
-    gitlab_api_token: str = ""
-    gitlab_tracked_project_ids: str = ""
-    gitlab_poll_interval_seconds: int = 90
-    gitlab_lookback_minutes: int = 30
 
     # --- WebSocket ---
     websocket_auth_token: str = ""
@@ -31,7 +35,6 @@ class Settings(BaseSettings):
     # --- BLT API ---
     blt_api_base_url: str = "https://api.owaspblt.org/v2"
     blt_api_key: str = ""
-    blt_poll_interval_seconds: int = 60
 
     # --- Logging ---
     log_level: str = "INFO"

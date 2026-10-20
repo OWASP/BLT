@@ -5,7 +5,37 @@
 
 Real-time contributor visualization platform for OWASP BLT — now running on **Cloudflare Workers**.
 
-HackerHouse is a realtime operational dashboard that ingests events from **GitLab** and **BLT**, normalizes them into a unified internal model, resolves contributor identity across platforms, and broadcasts live contributor movement to connected clients via WebSocket.
+HackerHouse is a realtime operational dashboard that ingests the BLT monorepo's activity from **git.owaspblt.org** (the forge), plus optional **BLT** and **GitLab webhook** events, normalizes them into a unified internal model, resolves contributor identity across platforms, and broadcasts live contributor movement to connected clients via WebSocket.
+
+## Sources
+
+| Source | `source` | How | Events |
+|--------|----------|-----|--------|
+| Forge: git.owaspblt.org, `owasp-blt/BLT` | `forge` | Polled every 5 minutes (blt-cron calls `POST /__scheduled`; `scheduled()` runs the same poll) | `commit_pushed` (new commits on `main`), `issue_opened`, `issue_closed`, `note_added` (issue and pull comments, reviews), `mr_opened`, `mr_merged` |
+| GitLab webhook (optional, external) | `gitlab` | `POST /webhook/gitlab` with `X-Gitlab-Token` = `GITLAB_WEBHOOK_SECRET` | `issue_opened`, `mr_opened`, `mr_merged`, `review_requested`, `pipeline_run`, `note_added` |
+| BLT API | `blt` | Normalizers only; the poller is not built (Phase 2) | `bug_bounty_submitted`, `bug_status_change`, `hunt_activity` |
+
+The forge poller (`backend/src/ingestion/forge_poller.py`) reads the public, anonymous API:
+`history?ref=main` (60 commits a page, paged by parent), the issue ledger
+`.forkmesh/issues/{open,closed}/<n>/issue-<n>.json` on `main` (`tree` + `blobs`, 50 files a request)
+and the pull ledger `.forkmesh/pulls/<n>/` on the `forkmesh/pulls` branch (a 404 means no pulls yet).
+A commit is attributed to a project folder by its `<folder>:` subject prefix (checked against the
+repository's top-level folders), otherwise to `BLT`. Bot authors (`FORGE_BOT_AUTHORS`, and names
+ending in `[bot]`) and merge commits are skipped.
+
+Its cursor is one `poll_cursors` row (`source = 'forge'`): the last commit sha and time, the git
+oids of the issue and pull folders, and the folder list. A run reads only what changed and writes
+the cursor only when it changed, so an idle run is 2 forge requests, 1 D1 read and no D1 writes.
+The first run imports the last `FORGE_BACKFILL_DAYS` (7) days, at most `FORGE_MAX_EVENTS` (300)
+events. A run stops at 40 forge requests (the free plan allows 50 subrequests) and continues on the
+next run. Each event carries a stable `dedup_key` (commit sha, issue event id, pull file), so the
+queue consumer's `INSERT OR IGNORE` on the idempotency key makes a repeated delivery a no-op.
+
+To see what a first run would import, without writing anywhere:
+
+```bash
+python backend/scripts/forge_dry_run.py
+```
 
 ---
 
@@ -18,7 +48,8 @@ Browser (static UI)  ←──  Cloudflare Workers Assets
         ├─ WebSocket ───►  Durable Object Broadcast Hub
         └─ HTTP fallback → /state endpoint
 
-GitLab Webhooks / Cron Pollers
+Forge poller (blt-cron → POST /__scheduled, every 5 min)
+GitLab webhook (optional)
         │
         └──► Cloudflare Queue → Pipeline Consumer → D1 + Broadcast
 ```
@@ -80,24 +111,34 @@ npx wrangler d1 create hackerhouse
 npx wrangler queues create pipeline-events
 
 # Set secrets
-npx wrangler secret put GITLAB_WEBHOOK_SECRET
-npx wrangler secret put GITLAB_API_TOKEN
-npx wrangler secret put BLT_API_KEY
+npx wrangler secret put CRON_SECRET            # the same value blt-cron has
+npx wrangler secret put GITLAB_WEBHOOK_SECRET  # optional: only for a GitLab webhook
+npx wrangler secret put BLT_API_KEY            # optional
 npx wrangler secret put WEBSOCKET_AUTH_TOKEN
 ```
 
 ### Deploy
 
 ```bash
-# Apply remote D1 migrations (first deploy, and before any deploy that adds a migration)
+# 1. Apply remote D1 migrations first (first deploy, and before any deploy that adds a migration).
+#    003_forge_source.sql rebuilds events and identity_mappings to allow source 'forge'.
 npx wrangler d1 migrations apply hackerhouse --remote
 
-# Deploy Worker
+# 2. Deploy the Worker
 uv run pywrangler deploy
+
+# 3. Deploy blt-cron (from the repository root), which calls POST /__scheduled every 5 minutes
+scripts/deploy.sh blt-cron
 ```
 
-A push to `main` deploys the Worker through the repository's Deploy workflow, which does not apply
-migrations. For staging, add `--env staging` to both commands.
+Code that writes `source = 'forge'` must not run before migration 003: the consumer's inserts
+would fail the CHECK constraint and the backfill would end in the queue's retries. A push to
+`main` deploys the Worker through the repository's Deploy workflow, which does not apply
+migrations, so apply them before merging. For staging, add `--env staging` to the commands.
+
+There is no `triggers` block in `wrangler.jsonc`: the account's only cron trigger is blt-cron's
+(see `blt-cron/README.md`). `CRON_SECRET` must be set on both Workers with the same value; without
+it `/__scheduled` answers 403.
 
 ---
 
@@ -107,21 +148,23 @@ Secrets (set via `wrangler secret put`):
 
 | Secret | Purpose |
 |--------|---------|
-| `GITLAB_WEBHOOK_SECRET` | Verifies incoming GitLab webhooks |
-| `GITLAB_API_TOKEN` | GitLab API access for gap detection (Phase 2) |
-| `BLT_API_KEY` | BLT-API authentication |
+| `CRON_SECRET` | Authenticates blt-cron's `POST /__scheduled` (`X-BLT-Cron-Secret`); same value as on blt-cron |
+| `GITLAB_WEBHOOK_SECRET` | Optional: verifies incoming GitLab webhooks |
+| `BLT_API_KEY` | Optional: BLT-API authentication (the BLT poller is Phase 2) |
 | `WEBSOCKET_AUTH_TOKEN` | Authenticates WebSocket connections |
 
 Vars (set in `wrangler.jsonc` → `vars`):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `FORGE_URL` | `https://git.owaspblt.org` | Forge instance |
+| `FORGE_REPO` | `owasp-blt/BLT` | Repository (`owner/name`) polled |
+| `FORGE_REF` | `main` | Branch whose commits become events |
+| `FORGE_BOT_AUTHORS` | `owasp-blt-actions,forkmesh` | Authors skipped (comma-separated; `*[bot]` is always skipped) |
+| `FORGE_BACKFILL_DAYS` | `7` | Window the first run (no cursor) imports |
+| `FORGE_MAX_EVENTS` | `300` | Most events one run enqueues (the newest are kept) |
 | `BLT_API_BASE_URL` | `https://api.owaspblt.org/v2` | BLT-API base URL |
-| `GITLAB_TRACKED_PROJECT_IDS` | `""` | Comma-separated project IDs for gap detection |
 | `LOG_LEVEL` | `INFO` | Python logging level |
-| `BLT_POLL_INTERVAL_SECONDS` | `60` | BLT polling interval |
-| `GITLAB_POLL_INTERVAL_SECONDS` | `90` | GitLab gap detection interval |
-| `GITLAB_LOOKBACK_MINUTES` | `30` | Gap detection lookback window |
 
 ---
 
@@ -150,16 +193,16 @@ blt-hackerhouse/
 │   │   ├── storage/
 │   │   │   ├── queries.py     # D1 native prepared statements (6 query classes)
 │   │   │   └── d1_utils.py    # D1 result conversion helpers
-│   │   ├── ingestion/         # GitLab webhook verification
-│   │   ├── normalization/     # GitLab + BLT event normalizers
+│   │   ├── ingestion/         # Forge poller, GitLab webhook verification
+│   │   ├── normalization/     # Forge, GitLab and BLT event normalizers
 │   │   ├── identity/          # 4-stage resolution pipeline
 │   │   ├── state/             # Room routing map
 │   │   ├── broadcast/         # Message builders + leaderboard scoring
 │   │   └── api/               # FastAPI REST routes
 │   ├── migrations/            # D1 SQL migrations
 │   ├── tests/
-│   │   └── unit/              # Unit tests (117 passing)
-│   └── scripts/               # Dev tooling
+│   │   └── unit/              # Unit tests (the in-memory D1 applies backend/migrations/)
+│   └── scripts/               # Dev tooling (forge_dry_run.py: print what the poller would import)
 ├── docs/                      # Specifications + planning artifacts
 └── spike-1-fastapi/           # Preflight spike results
 ```
@@ -176,7 +219,7 @@ D1 (SQLite-compatible) with 7 tables:
 | `identity_mappings` | Platform → contributor links |
 | `events` | Normalized event log |
 | `avatar_state` | Current room position per contributor |
-| `poll_cursors` | Polling cursor state |
+| `poll_cursors` | Polling cursor state (`forge`: JSON cursor in `metadata`) |
 | `dead_letter_queue` | Failed events (capped at 500) |
 | `health_state` | Durable health tracking (Phase 2) |
 
@@ -191,7 +234,8 @@ D1 (SQLite-compatible) with 7 tables:
 | `GET` | `/leaderboard` | Paginated contributor scores (`?page=1&per_page=20`) |
 | `GET` | `/status` | Room occupancy + identity stats + pipeline health |
 | `GET` | `/state` | HTTP polling fallback snapshot |
-| `POST` | `/webhook/gitlab` | GitLab webhook receiver (token-verified) |
+| `POST` | `/webhook/gitlab` | Optional GitLab webhook receiver (token-verified) |
+| `POST` | `/__scheduled` | Runs the forge poll; blt-cron only (`X-BLT-Cron-Secret`) |
 | `WS` | `/ws` | WebSocket endpoint (snapshot + live updates) |
 
 WebSocket message types: `snapshot`, `avatar_move`, `identity_flag`, `leaderboard_update`.
@@ -202,7 +246,8 @@ WebSocket message types: `snapshot`, `avatar_move`, `identity_flag`, `leaderboar
 
 | Feature | Status |
 |---------|--------|
-| GitLab webhook ingestion | ✅ |
+| Forge (git.owaspblt.org) poller | ✅ |
+| GitLab webhook ingestion (optional) | ✅ |
 | BLT REST polling adapter | Phase 2 |
 | Event deduplication | ✅ |
 | Unified Event schema | ✅ |
@@ -217,10 +262,9 @@ WebSocket message types: `snapshot`, `avatar_move`, `identity_flag`, `leaderboar
 | Status + health API | ✅ |
 | Exponential backoff retry | ✅ |
 | Dead letter handling | ✅ |
-| Gap detection (GitLab Events API) | Phase 2 |
 | Structured JSON logging | ✅ |
-| Queue consumer pipeline | Phase 2 |
-| Cron pollers (BLT + GitLab) | Phase 2 |
+| Queue consumer pipeline | ✅ |
+| BLT poller | Phase 2 |
 
 ---
 

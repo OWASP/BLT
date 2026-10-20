@@ -230,7 +230,7 @@ tailwind.config = {
               </div>
             </div>
             <div>
-              <p class="text-xs text-[var(--blt-text-muted)] mb-2">Total Contributors linked to GitLab accounts.</p>
+              <p class="text-xs text-[var(--blt-text-muted)] mb-2">Contributors linked across forge, BLT and GitLab identities.</p>
               <div class="flex gap-4">
                 <div class="flex items-center gap-1.5">
                   <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
@@ -287,10 +287,10 @@ tailwind.config = {
         <div class="hh-health-card" id="hc-webhook">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2.5">
-              <span class="hh-health-indicator online" data-hc-status="webhook"></span>
-              <span class="font-semibold text-sm text-[var(--blt-text)]">Webhook</span>
+              <span class="hh-health-indicator online" data-hc-status="gitlab_webhook"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">GitLab webhook (optional)</span>
             </div>
-            <span class="blt-status-badge blt-status-success text-[9px]" data-hc-badge="webhook">operational</span>
+            <span class="blt-status-badge blt-status-success text-[9px]" data-hc-badge="gitlab_webhook">--</span>
           </div>
           <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
             <div class="flex justify-between">
@@ -304,27 +304,27 @@ tailwind.config = {
           </div>
         </div>
 
-        <!-- Gap Detector -->
+        <!-- Forge poller -->
         <div class="hh-health-card">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2.5">
-              <span class="hh-health-indicator online" data-hc-status="gitlab_gap_detector"></span>
-              <span class="font-semibold text-sm text-[var(--blt-text)]">Gap Detector</span>
+              <span class="hh-health-indicator online" data-hc-status="forge_poller"></span>
+              <span class="font-semibold text-sm text-[var(--blt-text)]">Forge poller</span>
             </div>
-            <span class="blt-status-badge blt-status-success text-[9px]" data-hc-badge="gitlab_gap_detector">--</span>
+            <span class="blt-status-badge blt-status-success text-[9px]" data-hc-badge="forge_poller">--</span>
           </div>
           <div class="space-y-1.5 text-xs font-mono text-[var(--blt-text-muted)]">
             <div class="flex justify-between">
-              <span>Poll interval</span>
-              <span class="text-[var(--blt-text)]" id="hc-gap-interval">--</span>
+              <span>Source</span>
+              <span class="text-[var(--blt-text)]">git.owaspblt.org</span>
             </div>
             <div class="flex justify-between">
-              <span>Last poll</span>
-              <span class="text-[var(--blt-text)]" id="hc-gap-last">--</span>
+              <span>Last change</span>
+              <span class="text-[var(--blt-text)]" id="hc-forge-last">--</span>
             </div>
             <div class="flex justify-between">
-              <span>Tracked projects</span>
-              <span class="text-[var(--blt-text)]" id="hc-gap-projects">--</span>
+              <span>Events queued</span>
+              <span class="text-[var(--blt-text)]" id="hc-forge-total">--</span>
             </div>
           </div>
         </div>
@@ -584,7 +584,7 @@ tailwind.config = {
           fUp.textContent = 'Uptime: ' + hrs + 'h ' + min + 'm';
         }
 
-        var keys = ['gitlab_webhook', 'gitlab_gap_detector', 'blt_polling', 'database', 'websocket', 'identity_resolver'];
+        var keys = ['forge_poller', 'gitlab_webhook', 'blt_polling', 'database', 'websocket', 'identity_resolver'];
         keys.forEach(function(key) {
           var c = comps[key];
           if (!c) return;
@@ -606,11 +606,12 @@ tailwind.config = {
         var wh = comps.gitlab_webhook || {};
         document.getElementById('hc-webhook-last').textContent = wh.last_event_at ? 'seen' : 'none yet';
 
-        // Gap detector specific
-        var gap = comps.gitlab_gap_detector || {};
-        document.getElementById('hc-gap-last').textContent = gap.last_poll_at ? 'recent' : '--';
-        document.getElementById('hc-gap-interval').textContent = gap.status === 'disabled' ? 'disabled' : 'active';
-        document.getElementById('hc-gap-projects').textContent = gap.tracked_projects || 0;
+        // Forge poller specific
+        var forge = comps.forge_poller || {};
+        document.getElementById('hc-forge-last').textContent = forge.last_error
+          ? 'error'
+          : (forge.last_poll_at ? String(forge.last_poll_at).replace('T', ' ').slice(0, 16) + ' UTC' : 'not run yet');
+        document.getElementById('hc-forge-total').textContent = forge.total_enqueued || 0;
 
         // DB
         // (footer and sys status already updated above)

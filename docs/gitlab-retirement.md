@@ -134,7 +134,7 @@ Remove each one when its reader is switched. Then delete the Actions secret `GIT
 
 - `blt-gsoc`: `GITLAB_TOKEN`
 - `blt-toasty`: `GITLAB_ACCESS_TOKEN` (`GITLAB_WEBHOOK_SECRET` stays for external GitLab webhooks)
-- `blt-hackerhouse`: `GITLAB_WEBHOOK_SECRET`, `GITLAB_API_TOKEN`
+- `blt-hackerhouse`: `GITLAB_API_TOKEN` (unused; `GITLAB_WEBHOOK_SECRET` stays only if an external GitLab webhook is wanted)
 
 The "Ported from …/.gitlab-ci.yml" comments in five workflows are history and are harmless.
 
@@ -159,7 +159,7 @@ Replace them with forge wording and a neutral icon such as `fa-code-branch`.
 | blt-start | `public/index.html` (14, including the clone URL at `:292`); `README.md:70,146,163`. |
 | blt-design | `fa-gitlab` on forge "Contribute" buttons (17 files); placeholder `https://gitlab.com/...` in `inputs.html:25`. |
 | blt-monitor, blt-next, blt-api, blt-vanish, blt-cli, blt-mayo, blt-autopatch, blt-gitcaster, blt-owasp-metadata, blt-newsletter | One to nine labels or titles each ("Source code on GitLab" and similar). |
-| blt-hackerhouse | **Done**: link titles say "Source code". Its GitLab event ingestion is a product feature (below). |
+| blt-hackerhouse | **Done**: link titles say "Source code"; activity comes from the forge. Its GitLab webhook is an optional feature (below). |
 | blt-owasp-bumper, blt-owasp-projects | **Done**: the README tree shows the Worker layout. |
 | dot_github, coderabbit, blt-autopatch | **Done**: real READMEs. |
 | blt-ossh | **Done**: the `gitlab.com/owasp-blt/...` catalog entry is removed and filtered on every refresh (`scripts/refresh-kv.sh`). |
@@ -170,7 +170,7 @@ Replace them with forge wording and a neutral icon such as `fa-code-branch`.
 ### Keep (GitLab as a feature for external users)
 
 - **blt-preflight**: GitLab MR webhook adapter; makes no API calls to our group. Optionally add a forge pull-request adapter.
-- **blt-hackerhouse**: GitLab webhook ingestion (`/webhook/gitlab`). Either retarget it to forge events or keep it as an optional external source.
+- **blt-hackerhouse**: **Done**: its activity now comes from git.owaspblt.org (a forge poller, `source = 'forge'`: commits on `main`, the issue and pull ledgers; blt-cron calls it every 5 minutes). GitLab webhook ingestion (`/webhook/gitlab`) stays as an optional external source, off unless `GITLAB_WEBHOOK_SECRET` is set.
 - **blt-owasp-wich**: checks scanned repositories for `.gitlab-ci.yml`.
 - **blt-jobs** and **blt-profiles**: the `gitlab` profile field for seekers and users.
 - **blt-core**: tech-stack taxonomy.

@@ -16,6 +16,7 @@ from models.room import RoomMapEntry
 ROOM_MAP: Final[dict[str, RoomMapEntry]] = {
     # Floor 1: Operations and Infrastructure
     "issue_opened":         RoomMapEntry(floor=1, room="issue_triage_desk"),
+    "issue_closed":         RoomMapEntry(floor=1, room="issue_triage_desk"),
     "bug_bounty_submitted": RoomMapEntry(floor=1, room="bug_bounty_terminal"),
     "pipeline_run":         RoomMapEntry(floor=1, room="cicd_server_room"),
     "deploy_event":         RoomMapEntry(floor=1, room="deployment_control_center"),
@@ -23,6 +24,7 @@ ROOM_MAP: Final[dict[str, RoomMapEntry]] = {
     # Floor 2: Development Workspace
     "mr_opened":            RoomMapEntry(floor=2, room="merge_request_room"),
     "note_added":           RoomMapEntry(floor=2, room="contributor_workstations"),
+    "commit_pushed":        RoomMapEntry(floor=2, room="contributor_workstations"),
 
     # Floor 3: Review and Leadership
     "review_requested":     RoomMapEntry(floor=3, room="code_review_room"),

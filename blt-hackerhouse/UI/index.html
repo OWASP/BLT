@@ -655,7 +655,7 @@ tailwind.config = {
       container.appendChild(empty);
       return;
     }
-    var icons = {issue_opened: 'bug_report', mr_opened: 'merge', mr_merged: 'merge_type', pipeline_run: 'play_circle', bug_bounty_submitted: 'rewarded_ads', note_added: 'chat', review_requested: 'rate_review'};
+    var icons = {commit_pushed: 'commit', issue_opened: 'bug_report', issue_closed: 'check_circle', mr_opened: 'merge', mr_merged: 'merge_type', pipeline_run: 'play_circle', bug_bounty_submitted: 'rewarded_ads', note_added: 'chat', review_requested: 'rate_review'};
     var colors = ['#0ea5e9', '#f43f5e', '#22c55e'];
     recent.forEach(function(c) {
       var ev = (c.last_event || 'active').replace(/_/g, ' ');

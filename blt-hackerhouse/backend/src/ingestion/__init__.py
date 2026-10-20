@@ -1,7 +1,4 @@
-"""Ingestion layer: GitLab webhook helpers.
-
-Phase 2 will add poller functions for BLT and GitLab gap detection.
-"""
+"""Ingestion layer: the forge poller (``forge_poller``) and GitLab webhook helpers."""
 
 from .gitlab_webhook import verify_gitlab_signature, parse_event_type
 

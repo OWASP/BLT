@@ -14,7 +14,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
-Platform = Literal["gitlab", "blt"]
+Platform = Literal["gitlab", "blt", "forge"]
 
 
 class IdentityMapping(BaseModel):
@@ -31,7 +31,7 @@ class IdentityMapping(BaseModel):
     )
 
     platform: Platform = Field(
-        description="Platform this mapping represents: 'gitlab' or 'blt'.",
+        description="Platform this mapping represents: 'gitlab', 'blt' or 'forge'.",
     )
 
     platform_user_id: str = Field(
@@ -93,7 +93,7 @@ class PlatformIdentity(BaseModel):
     """A single platform identity reference used in IdentityFlag."""
 
     platform: Platform = Field(
-        description="'gitlab' or 'blt'.",
+        description="'gitlab', 'blt' or 'forge'.",
     )
 
     username: str | None = Field(

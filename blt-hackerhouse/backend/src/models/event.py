@@ -34,7 +34,7 @@ class Event(BaseModel):
 
     id: UUID = Field(default_factory=uuid4, description="UUID v4 generated at normalization time.")
 
-    source: Literal["gitlab", "blt"] = Field(
+    source: Literal["gitlab", "blt", "forge"] = Field(
         description="Platform that produced this event.",
     )
 
@@ -42,13 +42,14 @@ class Event(BaseModel):
         description=(
             "Internal event type: issue_opened, mr_opened, mr_merged, "
             "review_requested, pipeline_run, note_added, "
-            "bug_bounty_submitted, bug_status_change, hunt_activity, or unknown."
+            "bug_bounty_submitted, bug_status_change, hunt_activity, "
+            "commit_pushed, issue_closed, or unknown."
         ),
         min_length=1,
     )
 
     actor_id: str = Field(
-        description="Platform-native user identifier (GitLab user.id or BLT user.id).",
+        description="Platform-native user identifier (GitLab user.id, BLT user.id or forge author name).",
         min_length=1,
     )
 
@@ -85,7 +86,16 @@ class Event(BaseModel):
     @computed_field(description="Idempotency key for deduplication.")
     @property
     def idempotency_key(self) -> str:
-        """Derived key: ``source:event_type:actor_id:timestamp``."""
+        """Derived key: ``source:event_type:actor_id:timestamp``.
+
+        A source that has a stable id per occurrence (a commit sha, an issue
+        event id) puts it in ``metadata["dedup_key"]``; the key is then
+        ``source:event_type:<dedup_key>``, so two events in the same second
+        by the same author stay distinct and a re-poll is still a no-op.
+        """
+        dedup = self.metadata.get("dedup_key") if isinstance(self.metadata, dict) else None
+        if dedup:
+            return f"{self.source}:{self.event_type}:{dedup}"
         ts = self.timestamp.strftime("%Y-%m-%dT%H:%M:%SZ")
         return f"{self.source}:{self.event_type}:{self.actor_id}:{ts}"
 
@@ -112,6 +122,10 @@ class Event(BaseModel):
             "blt": {
                 "bug_bounty_submitted", "bug_status_change",
                 "hunt_activity", "unknown",
+            },
+            "forge": {
+                "commit_pushed", "issue_opened", "issue_closed",
+                "mr_opened", "mr_merged", "note_added", "unknown",
             },
         }
         allowed = valid.get(self.source, set())

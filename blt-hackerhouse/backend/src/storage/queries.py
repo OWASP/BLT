@@ -6,6 +6,7 @@ models using Cloudflare D1's native prepared-statement API.
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import datetime, timezone
 from typing import Any
@@ -64,10 +65,7 @@ class EventQueries:
     async def list_activity(self, page: int, per_page: int) -> tuple[list[Event], int]:
         offset = (page - 1) * per_page
 
-        total_result = await self._db.prepare(
-            "SELECT COUNT(*) AS total FROM events"
-        ).first()
-        total = d1_row(total_result).get("total", 0)
+        total = await self.count()
 
         result = await self._db.prepare("""
             SELECT * FROM events
@@ -79,8 +77,14 @@ class EventQueries:
         return events, total
 
     async def count(self) -> int:
+        """Number of stored events.
+
+        Events are never deleted, so the largest rowid is the count; reading it
+        costs one row on D1, where COUNT(*) reads every row (it backs /health,
+        which the status page polls every 30 seconds).
+        """
         result = await self._db.prepare(
-            "SELECT COUNT(*) AS c FROM events"
+            "SELECT COALESCE(MAX(rowid), 0) AS c FROM events"
         ).first()
         row = d1_row(result)
         return int(row.get("c", 0))
@@ -277,6 +281,32 @@ class CursorQueries:
             return None
         row = d1_row(result)
         return int(row["last_seen_id"]), row.get("last_polled_at")
+
+    async def get_state(self, source: str) -> dict[str, Any] | None:
+        """The cursor row with its ``metadata`` JSON decoded as ``state``."""
+        result = await self._db.prepare(
+            "SELECT last_seen_id, last_polled_at, metadata FROM poll_cursors WHERE source = ?"
+        ).bind(source).first()
+        row = d1_row(result)
+        if not row:
+            return None
+        state = loads_json(row.get("metadata"))
+        return {
+            "last_seen_id": int(row.get("last_seen_id") or 0),
+            "last_polled_at": row.get("last_polled_at"),
+            "state": state if isinstance(state, dict) else {},
+        }
+
+    async def save_state(self, source: str, state: dict[str, Any], last_seen_id: int = 0) -> None:
+        """Write the cursor row (one row written). Callers skip it when nothing changed."""
+        await self._db.prepare("""
+            INSERT INTO poll_cursors (source, last_seen_id, last_polled_at, metadata)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(source) DO UPDATE SET
+                last_seen_id   = excluded.last_seen_id,
+                last_polled_at = excluded.last_polled_at,
+                metadata       = excluded.metadata
+        """).bind(source, last_seen_id, utc_now_iso(), json.dumps(state, sort_keys=True, separators=(",", ":"))).run()
 
     async def upsert(self, source: str, last_seen_id: int) -> None:
         await self._db.prepare("""

@@ -12,6 +12,8 @@ SCORING_RULES: Final[dict[str, int]] = {
     "review_requested":      5,
     "hunt_activity":         5,
     "issue_opened":          3,
+    "commit_pushed":         2,
+    "issue_closed":          2,
     "mr_opened":             2,
     "pipeline_run":          2,   # success only — caller filters
     "note_added":            1,

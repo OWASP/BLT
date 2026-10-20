@@ -55,13 +55,47 @@ async def test_stage2_levenshtein_match(db):
     cq = ContributorQueries(db)
     await cq.upsert(contrib)
 
-    # "bobsmyth" is Levenshtein distance 1 from "bobsmith"
-    event = Event(source="gitlab", event_type="note_added", actor_id="999", actor_name="bobsmyth")
+    # "bobsmyth" (on BLT) is Levenshtein distance 1 from "bobsmith" (on GitLab)
+    event = Event(source="blt", event_type="hunt_activity", actor_id="999", actor_name="bobsmyth")
     result = await IdentityResolver(db).resolve(event)
     assert result.contributor_id == cid
     assert result.confidence == 0.75
     assert result.is_new is False
     assert result.flag is not None
+
+
+@pytest.mark.asyncio
+async def test_fuzzy_match_skips_people_on_the_same_platform(db):
+    """Two forge authors with similar names are two people, not one."""
+    cid = uuid4()
+    await ContributorQueries(db).upsert(Contributor(
+        id=cid, display_name="bobsmith", usernames=["bobsmith"], aliases=["bobsmith"],
+        platform_ids={"forge_username": "bobsmith"},
+    ))
+    event = Event(source="forge", event_type="commit_pushed", actor_id="bobsmyth", actor_name="bobsmyth")
+    result = await IdentityResolver(db).resolve(event)
+    assert result.contributor_id != cid
+    assert result.is_new is True
+    loaded = await ContributorQueries(db).get(result.contributor_id)
+    assert loaded.platform_ids == {"forge_username": "bobsmyth"}
+
+
+@pytest.mark.asyncio
+async def test_forge_author_links_to_a_gitlab_contributor(db):
+    cid = uuid4()
+    await ContributorQueries(db).upsert(Contributor(
+        id=cid, display_name="DonnieBLT", usernames=["donnieblt"], aliases=["DonnieBLT"],
+        platform_ids={"gitlab_id": "42"},
+    ))
+    event = Event(source="forge", event_type="commit_pushed", actor_id="DonnieBLT", actor_name="DonnieBLT")
+    result = await IdentityResolver(db).resolve(event)
+    assert result.contributor_id == cid
+    assert result.flag is not None
+    assert result.flag.source_a.platform == "forge"
+    assert result.flag.source_b.platform == "gitlab"
+    loaded = await ContributorQueries(db).get(cid)
+    assert loaded.platform_ids == {"gitlab_id": "42", "forge_username": "DonnieBLT"}
+    assert loaded.is_linked is True
 
 
 @pytest.mark.asyncio

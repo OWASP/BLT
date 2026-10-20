@@ -100,7 +100,7 @@ class IdentityFlagLink(BaseModel):
 class IdentityFlagSource(BaseModel):
     """A single platform identity reference in an identity flag."""
 
-    platform: Literal["gitlab", "blt"]
+    platform: Literal["gitlab", "blt", "forge"]
     username: str | None = None
     user_id: str | None = None
 

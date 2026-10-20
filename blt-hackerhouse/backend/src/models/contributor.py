@@ -81,8 +81,8 @@ class Contributor(BaseModel):
             self.updated_at = datetime.now(tz=timezone.utc).replace(microsecond=0)
 
     def add_platform_id(self, platform: str, platform_id: str) -> None:
-        """Record a platform-specific user ID."""
-        key = f"{platform}_id"
+        """Record a platform-specific user ID (``forge_username`` for the forge)."""
+        key = platform_id_key(platform)
         self.platform_ids[key] = str(platform_id)
         if len(self.platform_ids) >= 2:
             self.is_linked = True
@@ -94,6 +94,14 @@ class Contributor(BaseModel):
             raise ValueError("Score increment must be non-negative")
         self.score += points
         self.updated_at = datetime.now(tz=timezone.utc).replace(microsecond=0)
+
+
+def platform_id_key(platform: str) -> str:
+    """Key in ``platform_ids`` for a platform.
+
+    The forge (git.owaspblt.org) only exposes author names, so its key says so.
+    """
+    return "forge_username" if platform == "forge" else f"{platform}_id"
 
 
 class ContributorSnapshot(BaseModel):

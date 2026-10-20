@@ -37,10 +37,14 @@ logger = logging.getLogger(__name__)
 _accumulator = LeaderboardAccumulator()
 
 
-async def process_pipeline_event(event_dict: dict[str, Any], db, env) -> bool:
+async def process_pipeline_event(
+    event_dict: dict[str, Any], db, env, *, record_health: bool = True,
+) -> bool:
     """Run the full pipeline for one event from the queue.
 
     Returns True on success.  Let exceptions propagate for queue retries.
+    ``record_health=False`` skips the two health_state writes; the queue
+    handler records health once per batch instead of once per event.
     """
     # 1. Parse
     event = Event.model_validate(event_dict)
@@ -96,9 +100,8 @@ async def process_pipeline_event(event_dict: dict[str, Any], db, env) -> bool:
     await EventQueries(db).insert(event.with_contributor(result.contributor_id))
 
     # 8. Health metrics
-    health = HealthStateQueries(db)
-    await health.upsert("queue_consumer", "last_processed_at", utc_now_iso())
-    await health.upsert("queue_consumer", "last_event_type", event.event_type)
+    if record_health:
+        await record_consumer_health(db, event.event_type)
 
     logger.info(
         "pipeline event processed",
@@ -109,6 +112,12 @@ async def process_pipeline_event(event_dict: dict[str, Any], db, env) -> bool:
         },
     )
     return True
+
+
+async def record_consumer_health(db, event_type: str) -> None:
+    health = HealthStateQueries(db)
+    await health.upsert("queue_consumer", "last_processed_at", utc_now_iso())
+    await health.upsert("queue_consumer", "last_event_type", event_type)
 
 
 def _build_broadcast_body(event, result, room_entry, contributor) -> dict[str, Any]:
