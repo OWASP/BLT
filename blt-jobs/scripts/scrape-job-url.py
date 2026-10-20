@@ -9,14 +9,16 @@ Strategy (in order):
   5. Jina Reader API fallback    (r.jina.ai — handles JS-rendered pages)
 """
 
+import ipaddress
 import json
 import os
 import re
+import socket
 import sys
 from datetime import datetime
 from html import unescape
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 try:
     import requests
@@ -29,6 +31,55 @@ JOBS_DIR = Path(os.environ.get("BLT_JOBS_DIR", Path(__file__).resolve().parent.p
 HEADERS = {
     "User-Agent": "OWASP-BLT-Jobs-Bot/1.0 (https://git.owaspblt.org/BLT/BLT-Jobs)"
 }
+
+
+# ---------------------------------------------------------------------------
+# Outbound URL guard
+# ---------------------------------------------------------------------------
+# The URL comes from an issue anyone can open, and this script runs on the forge's Actions runner,
+# where the fetched page ends up in a published job file. Only fetch public hosts on the default
+# ports, and check every redirect hop, so an issue cannot read loopback, private-network or
+# cloud-metadata addresses through the runner.
+
+MAX_REDIRECTS = 5
+
+
+def is_public_url(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+        port = parsed.port
+    except ValueError:
+        return False
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        return False
+    if port is not None and port not in (80, 443):
+        return False
+    try:
+        infos = socket.getaddrinfo(parsed.hostname, port or (443 if parsed.scheme == "https" else 80))
+    except (socket.gaierror, UnicodeError, OSError):
+        return False
+    if not infos:
+        return False
+    for info in infos:
+        addr = ipaddress.ip_address(info[4][0].split("%", 1)[0])
+        if getattr(addr, "ipv4_mapped", None):
+            addr = addr.ipv4_mapped
+        if not addr.is_global or addr.is_multicast:
+            return False
+    return True
+
+
+def safe_get(url: str, **kwargs):
+    """requests.get that refuses non-public targets and follows redirects only to public URLs."""
+    for _ in range(MAX_REDIRECTS + 1):
+        if not is_public_url(url):
+            raise ValueError(f"refusing to fetch non-public URL: {url}")
+        r = requests.get(url, allow_redirects=False, **kwargs)
+        if r.is_redirect and r.headers.get("Location"):
+            url = urljoin(url, r.headers["Location"])
+            continue
+        return r
+    raise ValueError("too many redirects")
 
 
 # ---------------------------------------------------------------------------
@@ -314,7 +365,7 @@ def parse_json_ld(ld: dict, url: str) -> tuple[dict, str]:
 def scrape_static(url: str):
     """Fetch static HTML, try JSON-LD then heuristics. Returns None if page looks JS-rendered."""
     try:
-        r = requests.get(url, headers=HEADERS, timeout=15)
+        r = safe_get(url, headers=HEADERS, timeout=15)
         r.raise_for_status()
         soup = BeautifulSoup(r.text, "html.parser")
     except Exception as e:
@@ -484,6 +535,9 @@ def main():
     url = sys.argv[1].strip()
     if not url.startswith("http://") and not url.startswith("https://"):
         url = "https://" + url
+    if not is_public_url(url):
+        print(f"Refusing to scrape {url}: only public http(s) hosts on ports 80/443 are allowed.", file=sys.stderr)
+        sys.exit(1)
 
     fm, body = scrape_url(url)
 
