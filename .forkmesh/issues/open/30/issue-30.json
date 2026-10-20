@@ -40,6 +40,16 @@
             "target": "gitlab-issue-82715642-7",
             "ts": 1792463360782,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "body": "/assign",
+            "id": "comment-web-1792477964108",
+            "sig": "wlNJ6ElGyITVYY5LJLCE0vuAygNlHkWjIVpucvfNeJqc4q-kDRwGOB6Pqy2-z5oRrvek1XAGRtWjZjc7hoRkBQ",
+            "ts": 1792477964108,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +63,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-safecloak: When a host shares the screen and the video is turned on and then turned off, the video is not replaced by the shared screen the video gets paused but the shared screen get's disappeared",
-    "updatedAt": 1792463360782,
+    "updatedAt": 1792477964108,
     "votes": 0
 }
