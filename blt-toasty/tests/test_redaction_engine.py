@@ -404,6 +404,68 @@ class TestRedactionEngine:
         (statements,), _ = mock_db.batch.await_args
         assert len(statements) == result.entity_count
 
+    @staticmethod
+    def _recording_db():
+        """D1 mock that records every prepared SQL statement and its bind args."""
+
+        class AttrMeta:
+            changes = 1
+
+        class AttrResult:
+            meta = AttrMeta()
+
+        calls: list[tuple[str, tuple]] = []
+
+        def prepare(sql):
+            stmt = MagicMock()
+
+            def bind(*args):
+                calls.append((sql, args))
+                return stmt
+
+            stmt.bind = MagicMock(side_effect=bind)
+            stmt.first = AsyncMock(return_value={"status": "pending"})
+            stmt.run = AsyncMock(return_value=AttrResult())
+            return stmt
+
+        db = MagicMock()
+        db.prepare = MagicMock(side_effect=prepare)
+        db.batch = AsyncMock(return_value=[AttrResult(), AttrResult()])
+        return db, calls
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "text, secret",
+        [
+            ("Reporter: **bob**@example.com found the bug", "bob"),
+            ("Leaked host 10.0.**0**.1 in the logs", "10.0.0.1"),
+        ],
+    )
+    async def test_markdown_split_pii_quarantines_event(self, mock_env, text, secret):
+        """PII that Markdown hides from the first scan quarantines the event (fail closed)."""
+        db, calls = self._recording_db()
+
+        with pytest.raises(RedactionFailedError) as excinfo:
+            await redact(text, mock_env, "evt-residual", db)
+
+        sql = [c[0] for c in calls]
+        assert any("quarantined" in q for q in sql), "event was not quarantined"
+        assert not any("redaction_audit" in q for q in sql), "audit rows stored for a failed redaction"
+        assert not any(args and args[0] == "redaction_passed" for _, args in calls)
+        assert "Residual PII" in excinfo.value.reason
+        # The reason is stored in D1; it must name entity types, never the values.
+        assert secret not in excinfo.value.reason
+        assert all(secret not in str(a) for _, args in calls for a in args)
+
+    @pytest.mark.asyncio
+    async def test_redacted_placeholders_do_not_trip_residual_gate(self, mock_db, mock_env):
+        """``password=[PASSWORD]`` after redaction is not residual PII."""
+        result = await redact(
+            "**Login** with password=hunter2secret and admin@example.com", mock_env, "evt-ok", mock_db
+        )
+        assert "hunter2secret" not in result.redacted_text
+        assert "admin@example.com" not in result.redacted_text
+
 
 # ---------------------------------------------------------------------------
 # Security guard tests

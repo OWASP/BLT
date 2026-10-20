@@ -12,8 +12,10 @@ Pipeline stages
 1. **Markdown preprocessing** — extract plain text so PII hidden inside
    code fences, links, or image alt-text is visible to the scanner.
 2. **Native recognition** — run the regex-based recogniser engine against
-   *both* the original text and the preprocessed plain text, then merge
-   matches.
+   the original text, so offsets match the caller's input.  Then strip
+   Markdown from the redacted output and scan it again; any entity found
+   there escaped redaction (e.g. split by emphasis), so the event is
+   quarantined (residual-PII gate).
 3. **Confidence gate** — reject any match with confidence < 0.70 by
    quarantining the event.  (In practice, native patterns always return
    ≥ 0.95, so this gate exists as a safety net for future engine changes.)
@@ -112,21 +114,32 @@ async def redact(text: str, env: Any, event_id: str, db: Any) -> RedactionResult
         #
         # We scan the original text (not the preprocessed version) so that
         # byte offsets in the redaction map correspond to the caller's input.
-        # The preprocessed text is used as a secondary scan surface to catch
-        # PII that was hidden inside Markdown constructs; those matches are
-        # logged for auditing but the redaction itself operates on `text`.
+        # The preprocessed text is used by the residual-PII gate below.
         redacted_text, matches = apply_native_redaction(text)
 
-        # Secondary scan on preprocessed text (catches PII hidden in code
-        # fences / links that the original-text scan might miss because the
-        # regex anchors differ after markdown stripping).
+        # Residual-PII gate.  Markdown can split an entity so the scan of the
+        # original text misses it (``**bob**@example.com``).  Strip Markdown
+        # from the *redacted* output and scan again: anything found there was
+        # not redacted, so fail closed and quarantine the event.  The reason
+        # names entity types only, never the matched values.
         if plain_text != text:
-            secondary_matches = scan_text(plain_text)
-            if secondary_matches:
-                logger.info(
-                    "Secondary scan found %d additional entities in preprocessed text for event %s",
-                    len(secondary_matches),
-                    event_id,
+            redacted_plain = extract_plain_text(redacted_text)
+            residual = [
+                m
+                for m in scan_text(redacted_plain)
+                # A match that covers a placeholder (``password=[PASSWORD]``) is
+                # the recogniser seeing its own redaction, not leaked PII.
+                if not _TYPED_PLACEHOLDER.search(redacted_plain[m["start"] : m["end"]])
+            ]
+            if residual:
+                types = ", ".join(sorted({m["entity_type"] for m in residual}))
+                reason = f"Residual PII after Markdown stripping: {len(residual)} entities ({types})"
+                logger.warning("Quarantining event %s: %s", event_id, reason)
+                await _quarantine_event(db, event_id, reason)
+                raise RedactionFailedError(
+                    f"Residual PII found for event {event_id}",
+                    event_id=event_id,
+                    reason=reason,
                 )
 
         # Stage 3 — Confidence gate.
