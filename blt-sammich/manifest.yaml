@@ -46,6 +46,11 @@ features:
       url: https://sammich.owaspblt.org/slack/commands/
       description: Return the Slack app management URL
       should_escape: false
+    - command: /setreminder
+      url: https://sammich.owaspblt.org/slack/commands/
+      description: Set a reminder for yourself, a channel or a person
+      usage_hint: "[me|#channel|@user] in 30m | tomorrow 9am | at 14:30 <message> - or list, cancel <id>"
+      should_escape: true
 oauth_config:
   redirect_urls:
     - https://sammich.owaspblt.org/oauth/slack/callback

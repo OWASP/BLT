@@ -14,7 +14,7 @@ command = "./script/migrate.sh"
 [assets]
 directory = "./public"
 binding = "ASSETS"
-run_worker_first = ["/slack/*", "/oauth/*", "/api/*", "/health", "/logo-hit", "/admin-*"]
+run_worker_first = ["/slack/*", "/oauth/*", "/api/*", "/health", "/logo-hit", "/admin-*", "/__scheduled"]
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
 
@@ -38,3 +38,7 @@ binding = "DB"
 database_name = "blt-sammich"
 database_id = "409b2fbf-ee3d-4204-a65d-c6994861a8ce"
 migrations_dir = "migrations"
+
+# No cron trigger of its own: the blt-cron Worker calls POST /__scheduled every 5 minutes
+# (:04, :09, ...) to send due /setreminder reminders, authenticated with the CRON_SECRET
+# secret (npx wrangler secret put CRON_SECRET, the same value as on blt-cron).

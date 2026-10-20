@@ -33,6 +33,7 @@ SLACK_COMMAND_DEFINITIONS = [
     ("/discover [search term]", "Discover OWASP projects to work on"),
     ("/gsoc25 [technology, mentor, or project]", "Find OWASP GSoC project details"),
     ("/blt-welcome", "Send the BLT welcome message to yourself"),
+    ("/setreminder <when> <message>", "Set a reminder (`list`, `cancel <id>`)"),
     ("/blt", "Show Sammich command help"),
     ("/installed_apps", "List installed apps and logged activity"),
 ]
@@ -3895,6 +3896,578 @@ async def blt_welcome_response(form: Dict[str, str], env: Any) -> Dict[str, Any]
     }
 
 
+# --- /setreminder -----------------------------------------------------------------
+# Reminders live in the `reminders` table (migration 0021). blt-cron calls
+# POST /__scheduled every 5 minutes; process_due_reminders() reads only the due rows
+# through idx_reminders_status_due and posts each with its workspace's bot token.
+
+REMINDER_MAX_PENDING_PER_USER = 20
+REMINDER_MAX_AHEAD_SECONDS = 365 * 86400
+REMINDER_MAX_MESSAGE_CHARS = 1000
+REMINDER_MAX_ATTEMPTS = 3
+REMINDER_DELIVERY_BATCH = 50
+REMINDER_DEFAULT_HOUR = 9
+REMINDER_USAGE = (
+    "*Usage:* `/setreminder [me|#channel|@user] <when> <message>`\n"
+    "*When:* `in 30m`, `in 2h`, `in 3d`, `in 1h 30m`, `tomorrow 9am`, `today 17:00`, "
+    "`at 14:30`, `2026-12-01`, `2026-12-01 14:30`, `2026-12-01T14:30Z`\n"
+    "Times use your Slack time zone when Sammich knows it, otherwise UTC. "
+    "Reminders go out within 5 minutes of the time.\n"
+    "`/setreminder list` shows your pending reminders; `/setreminder cancel <id>` cancels one.\n"
+    "Limits: {0} pending reminders per person, up to 365 days ahead."
+).format(REMINDER_MAX_PENDING_PER_USER)
+
+_REMINDER_UNITS = {
+    "m": 60, "min": 60, "mins": 60, "minute": 60, "minutes": 60,
+    "h": 3600, "hr": 3600, "hrs": 3600, "hour": 3600, "hours": 3600,
+    "d": 86400, "day": 86400, "days": 86400,
+    "w": 604800, "wk": 604800, "wks": 604800, "week": 604800, "weeks": 604800,
+}
+_REMINDER_IN_PART = re.compile(
+    r"(\d{1,6})\s*(minutes|minute|mins|min|m|hours|hour|hrs|hr|h|days|day|d|weeks|week|wks|wk|w)"
+    r"(?![a-z])\s*(?:,\s*|and\s+)?",
+    re.IGNORECASE,
+)
+_REMINDER_TIME = (
+    r"(?:(?P<word>noon|midnight)|(?P<hour>\d{1,2})(?::(?P<minute>\d{2}))?\s*(?P<ampm>[ap]\.?m\.?)"
+    r"|(?P<hour24>\d{1,2}):(?P<minute24>\d{2}))"
+)
+_REMINDER_DAY = re.compile(
+    r"(?P<day>today|tomorrow|tmrw|tmr)(?:\s+(?:at\s+)?" + _REMINDER_TIME + r")?(?=\s|$)",
+    re.IGNORECASE,
+)
+_REMINDER_AT = re.compile(r"at\s+" + _REMINDER_TIME + r"(?=\s|$)", re.IGNORECASE)
+_REMINDER_ISO = re.compile(
+    r"(?P<y>\d{4})-(?P<mo>\d{2})-(?P<d>\d{2})"
+    r"(?:(?:T|\s+(?:at\s+)?)(?P<ih>\d{1,2}):(?P<imi>\d{2})(?::(?P<isec>\d{2}))?)?"
+    r"(?P<tz>Z|[+-]\d{2}:?\d{2})?(?=\s|$)",
+    re.IGNORECASE,
+)
+_SLACK_USER_ID = re.compile(r"^[UW][A-Z0-9]{1,20}$")
+_SLACK_CHANNEL_ID = re.compile(r"^[CG][A-Z0-9]{1,20}$")
+
+
+def _reminder_clock(match: Any) -> Tuple[int, int]:
+    """Hour and minute from a _REMINDER_TIME match; ValueError when out of range."""
+    word = (match.group("word") or "").lower()
+    if word == "noon":
+        return 12, 0
+    if word == "midnight":
+        return 0, 0
+    if match.group("hour24") is not None:
+        hour, minute = int(match.group("hour24")), int(match.group("minute24"))
+        if hour > 23 or minute > 59:
+            raise ValueError("`{0}` is not a valid time.".format(match.group(0).strip()))
+        return hour, minute
+    hour, minute = int(match.group("hour")), int(match.group("minute") or 0)
+    if not 1 <= hour <= 12 or minute > 59:
+        raise ValueError("`{0}` is not a valid time.".format(match.group(0).strip()))
+    is_pm = match.group("ampm").lower().startswith("p")
+    hour = hour % 12 + (12 if is_pm else 0)
+    return hour, minute
+
+
+def _local_to_utc(local: datetime, tz_offset: int) -> int:
+    return int(local.replace(tzinfo=timezone.utc).timestamp()) - int(tz_offset)
+
+
+def parse_reminder_when(text: str, now: int, tz_offset: int = 0) -> Tuple[int, str]:
+    """Parse the time at the start of `text`.
+
+    Returns (due_at as Unix seconds, the rest of the text). Wall-clock forms use
+    `tz_offset` (seconds east of UTC, Slack's users.tz_offset). Raises ValueError with
+    a message for the user.
+    """
+    text = str(text or "").strip()
+    lowered = text.lower()
+    local_now = datetime.fromtimestamp(int(now) + int(tz_offset), timezone.utc).replace(
+        tzinfo=None
+    )
+
+    if lowered.startswith("in ") or lowered == "in":
+        position, seconds, parts = 3, 0, 0
+        while True:
+            part = _REMINDER_IN_PART.match(text, position)
+            if not part:
+                break
+            seconds += int(part.group(1)) * _REMINDER_UNITS[part.group(2).lower()]
+            position, parts = part.end(), parts + 1
+        if not parts:
+            raise ValueError("I couldn't read the duration. Try `in 30m`, `in 2h` or `in 3d`.")
+        if seconds <= 0:
+            raise ValueError("The reminder time must be in the future.")
+        return int(now) + seconds, text[position:].strip()
+
+    match = _REMINDER_DAY.match(text)
+    if match:
+        day = match.group("day").lower()
+        has_time = bool(match.group("word") or match.group("hour") or match.group("hour24"))
+        if day == "today" and not has_time:
+            raise ValueError("Add a time to `today`, e.g. `today 5pm` or `today 17:00`.")
+        hour, minute = _reminder_clock(match) if has_time else (REMINDER_DEFAULT_HOUR, 0)
+        date = local_now.date() + timedelta(days=0 if day == "today" else 1)
+        local = datetime(date.year, date.month, date.day, hour, minute)
+        return _local_to_utc(local, tz_offset), text[match.end():].strip()
+
+    match = _REMINDER_AT.match(text)
+    if match:
+        hour, minute = _reminder_clock(match)
+        local = local_now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        if local <= local_now:
+            local += timedelta(days=1)
+        return _local_to_utc(local, tz_offset), text[match.end():].strip()
+
+    match = _REMINDER_ISO.match(text)
+    if match:
+        hour = int(match.group("ih")) if match.group("ih") else REMINDER_DEFAULT_HOUR
+        minute = int(match.group("imi") or 0)
+        second = int(match.group("isec") or 0)
+        try:
+            local = datetime(
+                int(match.group("y")), int(match.group("mo")), int(match.group("d")),
+                hour, minute, second,
+            )
+        except ValueError:
+            raise ValueError("`{0}` is not a valid date or time.".format(match.group(0)))
+        offset = tz_offset
+        zone = (match.group("tz") or "").upper()
+        if zone == "Z":
+            offset = 0
+        elif zone:
+            digits = zone[1:].replace(":", "")
+            hours, minutes = int(digits[:2]), int(digits[2:])
+            if hours > 14 or minutes > 59:
+                raise ValueError("`{0}` is not a valid UTC offset.".format(zone))
+            offset = (1 if zone[0] == "+" else -1) * (hours * 3600 + minutes * 60)
+        return _local_to_utc(local, offset), text[match.end():].strip()
+
+    raise ValueError(
+        "I couldn't read the time. Start with one of: `in 30m`, `in 2h`, `tomorrow 9am`, "
+        "`at 14:30` or `2026-12-01 14:30`."
+    )
+
+
+_SLACK_LINK_TOKEN = re.compile(r"<([^<>]*)>")
+
+
+def clean_reminder_text(text: str) -> str:
+    """Plain text for a reminder: Slack's escaped mentions and links become readable
+    text (so a stored reminder can't ping @here or a user group), &amp;/&lt;/&gt;
+    are unescaped, and control characters are dropped. Escape again on output."""
+
+    def readable(match: Any) -> str:
+        inner = match.group(1)
+        target, _, label = inner.partition("|")
+        if target.startswith("@"):
+            return "@" + (label or target[1:])
+        if target.startswith("#"):
+            return "#" + (label or target[1:])
+        if target.startswith("!"):
+            name = label or target[1:].split("^", 1)[0]
+            return name if name.startswith("@") else "@" + name
+        if label and label != target:
+            return "{0} ({1})".format(label, target)
+        return target
+
+    text = _SLACK_LINK_TOKEN.sub(readable, str(text or ""))
+    text = text.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&")
+    text = "".join(ch for ch in text if ch in "\n\t" or ord(ch) >= 32 and ord(ch) != 127)
+    return text.strip()
+
+
+def slack_escape(text: Any) -> str:
+    return str(text or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def parse_reminder_target(token: str) -> Optional[Tuple[str, str]]:
+    """('user'|'channel'|'me'|'channel_name'|'user_name', value) for a target token,
+    or None when the token is not a target."""
+    token = str(token or "").strip()
+    lowered = token.lower()
+    if lowered in ("me", "myself"):
+        return ("me", "")
+    match = re.match(r"^<([@#])([A-Z0-9]+)(?:\|[^<>]*)?>$", token)
+    if match:
+        kind = "user" if match.group(1) == "@" else "channel"
+        pattern = _SLACK_USER_ID if kind == "user" else _SLACK_CHANNEL_ID
+        if pattern.match(match.group(2)):
+            return (kind, match.group(2))
+        return None
+    if re.match(r"^#[a-z0-9][a-z0-9_-]{0,79}$", lowered):
+        return ("channel_name", lowered[1:])
+    if re.match(r"^@[\w.-]{1,80}$", token):
+        return ("user_name", token[1:])
+    return None
+
+
+def reminder_time_text(due_at: int) -> str:
+    """A Slack date token: shown in the reader's own time zone, UTC as the fallback."""
+    fallback = datetime.fromtimestamp(int(due_at), timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    return "<!date^{0}^{{date_short_pretty}} at {{time}}|{1}>".format(int(due_at), fallback)
+
+
+def reminder_target_text(target_type: str, target_id: str, user_id: str) -> str:
+    if target_type == "channel":
+        return "<#{0}>".format(target_id)
+    if target_id == user_id:
+        return "you"
+    return "<@{0}>".format(target_id)
+
+
+def ephemeral_text(text: str) -> Dict[str, Any]:
+    return {"response_type": "ephemeral", "text": text, "blocks": [make_section_block(text)]}
+
+
+async def db_get_user_tz_offset(env: Any, slack_user_id: str) -> Optional[int]:
+    """The user's Slack tz_offset from the users table (one indexed row), or None."""
+    row = result_first(
+        await d1_run(
+            env,
+            "SELECT tz, tz_offset FROM users WHERE slack_user_id = ? LIMIT 1",
+            [slack_user_id],
+        )
+    )
+    if not row or not str(row.get("tz") or ""):
+        return None
+    try:
+        return int(row.get("tz_offset") or 0)
+    except (TypeError, ValueError):
+        return None
+
+
+async def db_get_channel_id_by_name(env: Any, team_id: str, channel_name: str) -> str:
+    workspace = await db_get_workspace_by_team(env, team_id)
+    if not workspace:
+        return ""
+    row = result_first(
+        await d1_run(
+            env,
+            "SELECT channel_id FROM channels WHERE workspace_id = ? AND channel_name = ? LIMIT 1",
+            [workspace.get("id"), channel_name],
+        )
+    )
+    return str((row or {}).get("channel_id") or "")
+
+
+def _d1_meta(result: Dict[str, Any]) -> Dict[str, Any]:
+    meta = result.get("meta") if isinstance(result, dict) else None
+    return meta if isinstance(meta, dict) else {}
+
+
+async def db_insert_reminder(
+    env: Any,
+    team_id: str,
+    app_id: str,
+    user_id: str,
+    target_type: str,
+    target_id: str,
+    message: str,
+    due_at: int,
+    now: int,
+    max_pending: int = REMINDER_MAX_PENDING_PER_USER,
+) -> int:
+    """Insert a pending reminder unless the user already has `max_pending`.
+
+    One statement, so the limit holds under concurrent commands. Returns the new id,
+    or 0 when the limit was reached.
+    """
+    result = await d1_run(
+        env,
+        "INSERT INTO reminders (team_id, app_id, user_id, target_type, target_id, message, "
+        "due_at, status, attempts, last_error, created_at) "
+        "SELECT ?, ?, ?, ?, ?, ?, ?, 'pending', 0, '', ? "
+        "WHERE (SELECT COUNT(*) FROM reminders WHERE team_id = ? AND user_id = ? "
+        "AND status = 'pending') < ?",
+        [team_id, app_id, user_id, target_type, target_id, message, due_at, now,
+         team_id, user_id, max_pending],
+    )
+    meta = _d1_meta(result)
+    if not int(meta.get("changes") or 0):
+        return 0
+    return int(meta.get("last_row_id") or 0) or -1
+
+
+async def db_list_pending_reminders(
+    env: Any, team_id: str, user_id: str, limit: int = REMINDER_MAX_PENDING_PER_USER
+) -> List[Dict[str, Any]]:
+    return result_rows(
+        await d1_run(
+            env,
+            "SELECT id, target_type, target_id, message, due_at FROM reminders "
+            "WHERE team_id = ? AND user_id = ? AND status = 'pending' "
+            "ORDER BY due_at LIMIT ?",
+            [team_id, user_id, limit],
+        )
+    )
+
+
+async def db_cancel_reminder(env: Any, team_id: str, user_id: str, reminder_id: int) -> bool:
+    result = await d1_run(
+        env,
+        "UPDATE reminders SET status = 'cancelled' "
+        "WHERE id = ? AND team_id = ? AND user_id = ? AND status = 'pending'",
+        [reminder_id, team_id, user_id],
+    )
+    return int(_d1_meta(result).get("changes") or 0) > 0
+
+
+REMINDER_DUE_QUERY = (
+    "SELECT id, team_id, app_id, user_id, target_type, target_id, message, due_at, attempts "
+    "FROM reminders WHERE status = 'pending' AND due_at <= ? ORDER BY due_at LIMIT ?"
+)
+
+
+async def db_get_due_reminders(
+    env: Any, now: int, limit: int = REMINDER_DELIVERY_BATCH
+) -> List[Dict[str, Any]]:
+    return result_rows(await d1_run(env, REMINDER_DUE_QUERY, [now, limit]))
+
+
+async def db_mark_reminder_sent(env: Any, reminder_id: int, now: int) -> None:
+    await d1_run(
+        env,
+        "UPDATE reminders SET status = 'sent', attempts = attempts + 1, last_error = '', "
+        "sent_at = ? WHERE id = ? AND status = 'pending'",
+        [now, reminder_id],
+    )
+
+
+async def db_mark_reminder_attempt_failed(
+    env: Any, reminder_id: int, attempts: int, error: str
+) -> str:
+    """Record a failed attempt; the third one marks the reminder failed. Returns the status."""
+    status = "failed" if attempts >= REMINDER_MAX_ATTEMPTS else "pending"
+    await d1_run(
+        env,
+        "UPDATE reminders SET status = ?, attempts = ?, last_error = ? "
+        "WHERE id = ? AND status = 'pending'",
+        [status, attempts, str(error or "unknown_error")[:500], reminder_id],
+    )
+    return status
+
+
+async def setreminder_create(form: Dict[str, str], env: Any, text: str, now: int) -> Dict[str, Any]:
+    team_id = str(form.get("team_id") or "").strip()
+    user_id = str(form.get("user_id") or "").strip()
+    app_id = payload_app_id(form)
+
+    target_type, target_id = "user", user_id
+    first, _, remainder = text.partition(" ")
+    target = parse_reminder_target(first)
+    if target:
+        kind, value = target
+        text = remainder.strip()
+        if kind == "user":
+            target_type, target_id = "user", value
+        elif kind == "channel":
+            target_type, target_id = "channel", value
+        elif kind == "channel_name":
+            channel_id = await db_get_channel_id_by_name(env, team_id, value)
+            if not channel_id:
+                return ephemeral_text(
+                    "I don't know the channel `#{0}`. Pick it from Slack's autocomplete, "
+                    "and invite me to it if it's private.".format(slack_escape(value))
+                )
+            target_type, target_id = "channel", channel_id
+        elif kind == "user_name":
+            return ephemeral_text(
+                "I couldn't resolve `@{0}`. Pick the person from Slack's autocomplete.".format(
+                    slack_escape(value)
+                )
+            )
+
+    tz_offset = await db_get_user_tz_offset(env, user_id)
+    try:
+        due_at, message = parse_reminder_when(text, now, tz_offset or 0)
+    except ValueError as error:
+        return ephemeral_text("{0}\n\n{1}".format(error, REMINDER_USAGE))
+
+    message = clean_reminder_text(message)
+    if not message:
+        return ephemeral_text(
+            "What should I remind you about? Add a message after the time, "
+            "e.g. `/setreminder in 30m stand-up`."
+        )
+    if len(message) > REMINDER_MAX_MESSAGE_CHARS:
+        return ephemeral_text(
+            "The message is too long ({0} characters; the limit is {1}).".format(
+                len(message), REMINDER_MAX_MESSAGE_CHARS
+            )
+        )
+    if due_at <= now:
+        return ephemeral_text("That time has already passed. Pick a time in the future.")
+    if due_at - now > REMINDER_MAX_AHEAD_SECONDS:
+        return ephemeral_text("Reminders can be set at most 365 days ahead.")
+
+    reminder_id = await db_insert_reminder(
+        env, team_id, app_id, user_id, target_type, target_id, message, due_at, now
+    )
+    if not reminder_id:
+        return ephemeral_text(
+            "You already have {0} pending reminders, the limit. "
+            "Cancel one with `/setreminder cancel <id>` (see `/setreminder list`).".format(
+                REMINDER_MAX_PENDING_PER_USER
+            )
+        )
+    zone = "your Slack time zone" if tz_offset is not None else "UTC"
+    return ephemeral_text(
+        ":alarm_clock: Reminder{0} set for {1} ({2}), to {3}:\n>{4}\n"
+        "Cancel it with `/setreminder cancel {5}`.".format(
+            " #{0}".format(reminder_id) if reminder_id > 0 else "",
+            reminder_time_text(due_at),
+            zone,
+            reminder_target_text(target_type, target_id, user_id),
+            slack_escape(message).replace("\n", "\n>"),
+            reminder_id if reminder_id > 0 else "<id>",
+        )
+    )
+
+
+async def setreminder_response(form: Dict[str, str], env: Any, now: Optional[int] = None) -> Dict[str, Any]:
+    now = int(time.time()) if now is None else int(now)
+    team_id = str(form.get("team_id") or "").strip()
+    user_id = str(form.get("user_id") or "").strip()
+    text = re.sub(r"[ \t]+", " ", str(form.get("text") or "")).strip()
+    if not team_id or not user_id:
+        return ephemeral_text("I couldn't tell which workspace or user sent this command.")
+    command = text.split(" ", 1)[0].lower() if text else ""
+
+    if command in ("", "help", "-h", "--help"):
+        return ephemeral_text(REMINDER_USAGE)
+
+    if command == "list" and text.lower() == "list":
+        rows = await db_list_pending_reminders(env, team_id, user_id)
+        if not rows:
+            return ephemeral_text("You have no pending reminders. {0}".format(
+                "Set one with `/setreminder in 30m <message>`."
+            ))
+        lines = ["*Your pending reminders* ({0}/{1}):".format(len(rows), REMINDER_MAX_PENDING_PER_USER)]
+        for row in rows:
+            message = str(row.get("message") or "")
+            if len(message) > 80:
+                message = message[:79] + "…"
+            lines.append(
+                "• `#{0}` {1} to {2}: {3}".format(
+                    int(row.get("id") or 0),
+                    reminder_time_text(int(row.get("due_at") or 0)),
+                    reminder_target_text(
+                        str(row.get("target_type") or ""), str(row.get("target_id") or ""), user_id
+                    ),
+                    slack_escape(message).replace("\n", " "),
+                )
+            )
+        lines.append("Cancel one with `/setreminder cancel <id>`.")
+        return ephemeral_text("\n".join(lines))
+
+    if command in ("cancel", "delete", "remove"):
+        argument = text.split(" ", 1)[1].strip() if " " in text else ""
+        match = re.match(r"^#?(\d{1,12})$", argument)
+        if not match:
+            return ephemeral_text("Usage: `/setreminder cancel <id>`. `/setreminder list` shows the ids.")
+        reminder_id = int(match.group(1))
+        if await db_cancel_reminder(env, team_id, user_id, reminder_id):
+            return ephemeral_text("Cancelled reminder #{0}.".format(reminder_id))
+        return ephemeral_text(
+            "You have no pending reminder #{0}. `/setreminder list` shows yours.".format(reminder_id)
+        )
+
+    return await setreminder_create(form, env, text, now)
+
+
+def reminder_delivery_text(reminder: Dict[str, Any]) -> str:
+    message = slack_escape(reminder.get("message") or "")
+    creator = str(reminder.get("user_id") or "")
+    if reminder.get("target_type") == "user" and reminder.get("target_id") == creator:
+        return ":alarm_clock: *Reminder:* {0}".format(message)
+    return ":alarm_clock: *Reminder from <@{0}>:* {1}".format(creator, message)
+
+
+async def deliver_reminder(env: Any, reminder: Dict[str, Any], token: str) -> Tuple[bool, str]:
+    """Post one reminder with chat.postMessage. A user target posts to the app's DM
+    with that user (chat.postMessage accepts a user id as the channel)."""
+    if not token:
+        return False, "missing_slack_token"
+    text = reminder_delivery_text(reminder)
+    try:
+        ok, payload, status_code = await fetch_json(
+            "https://slack.com/api/chat.postMessage",
+            method="POST",
+            headers={
+                "Authorization": "Bearer {0}".format(token),
+                "Content-Type": "application/json; charset=utf-8",
+            },
+            body=json.dumps(
+                {
+                    "channel": str(reminder.get("target_id") or ""),
+                    "text": text,
+                    "blocks": [make_section_block(text)],
+                    "unfurl_links": False,
+                    "unfurl_media": False,
+                }
+            ),
+        )
+    except Exception as error:
+        return False, "fetch_error: {0}".format(error)
+    if ok and isinstance(payload, dict) and payload.get("ok") is True:
+        return True, ""
+    error_text = payload.get("error") if isinstance(payload, dict) else ""
+    return False, str(error_text or "http_{0}".format(status_code))
+
+
+async def process_due_reminders(env: Any, now: Optional[int] = None) -> Dict[str, int]:
+    """Send the due reminders (at most REMINDER_DELIVERY_BATCH a run, within the free
+    plan's 50 subrequests). One indexed read when nothing is due; one write per
+    reminder handled."""
+    now = int(time.time()) if now is None else int(now)
+    summary = {"due": 0, "sent": 0, "retry": 0, "failed": 0}
+    reminders = await db_get_due_reminders(env, now)
+    summary["due"] = len(reminders)
+    tokens: Dict[Tuple[str, str], str] = {}
+    for reminder in reminders:
+        team_id = str(reminder.get("team_id") or "")
+        app_id = str(reminder.get("app_id") or "")
+        key = (team_id, app_id)
+        if key not in tokens:
+            tokens[key] = await workspace_slack_token(env, team_id=team_id, app_id=app_id)
+        sent, error = await deliver_reminder(env, reminder, tokens[key])
+        reminder_id = int(reminder.get("id") or 0)
+        if sent:
+            await db_mark_reminder_sent(env, reminder_id, now)
+            summary["sent"] += 1
+            continue
+        attempts = int(reminder.get("attempts") or 0) + 1
+        status = await db_mark_reminder_attempt_failed(env, reminder_id, attempts, error)
+        summary["failed" if status == "failed" else "retry"] += 1
+        print(json.dumps(
+            {"level": "warn", "context": "reminder_delivery_failed", "reminder_id": reminder_id,
+             "team_id": team_id, "attempts": attempts, "status": status, "error": error},
+            separators=(",", ":"), sort_keys=True,
+        ))
+    if reminders:
+        print(json.dumps({"context": "reminders_processed", **summary}, separators=(",", ":"), sort_keys=True))
+    return summary
+
+
+# blt-cron holds the account's cron trigger and calls POST /__scheduled through a
+# service binding, authenticated with the shared CRON_SECRET.
+CRON_DISPATCH_PATH = "/__scheduled"
+
+
+async def handle_cron_dispatch(request: Any, env: Any) -> Any:
+    if str(request.method).upper() != "POST":
+        return json_response({"ok": False, "error": "Method not allowed"}, status=405)
+    expected = str(env_value(env, "CRON_SECRET", "") or "")
+    provided = str(request.headers.get("X-BLT-Cron-Secret") or request.headers.get("x-blt-cron-secret") or "")
+    if not expected or not hmac.compare_digest(provided.encode(), expected.encode()):
+        return json_response({"ok": False, "error": "Forbidden"}, status=403)
+    try:
+        summary = await process_due_reminders(env)
+    except Exception as error:
+        log_exception_one_line(error, "scheduled_reminders_failed")
+        return json_response({"ok": False, "error": "reminders_failed"}, status=500)
+    return json_response({"ok": True, "reminders": summary})
+
+
 async def command_response(form: Dict[str, str], env: Any) -> Dict[str, Any]:
     command_name = form.get("command", "")
     command_text = form.get("text", "")
@@ -3962,6 +4535,8 @@ async def command_response(form: Dict[str, str], env: Any) -> Dict[str, Any]:
             "text": summary,
             "blocks": [make_section_block(summary)],
         }
+    if command_name == "/setreminder":
+        return await setreminder_response(form, env)
     if command_name == "/blt-app-url":
         return blt_app_url_response(env)
     if command_name == "/blt":
@@ -6119,6 +6694,9 @@ async def handle_request(request: Any, env: Any) -> Any:
     normalized_path = path.rstrip("/") or "/"
     method = str(request.method).upper()
     configured_admin_path = admin_path(env)
+
+    if normalized_path == CRON_DISPATCH_PATH:
+        return await handle_cron_dispatch(request, env)
 
     if method == "GET" and normalized_path == "/health":
         return json_response({"ok": True, "service": "blt-sammich-worker"})

@@ -81,6 +81,24 @@ Finds repositories based on technology stack or programming language.
 /repo                          # Browse technologies
 ```
 
+#### `/setreminder [me|#channel|@user] <when> <message>`
+**Status:** ✅ Standalone Feature (Not in main BLT)
+
+Sets a reminder that Sammich posts later: as a DM to you (the default) or another person, or in a channel.
+- Times: `in 30m`, `in 2h`, `in 3d`, `in 1h 30m`, `tomorrow 9am`, `today 17:00`, `at 14:30`, `2026-12-01`, `2026-12-01 14:30`, `2026-12-01T14:30Z` (or `+02:00`)
+- Wall-clock times use your Slack time zone when Sammich has seen your profile, otherwise UTC
+- At most 20 pending reminders per person, up to 365 days ahead
+- Reminders go out within 5 minutes of the time: the `blt-cron` Worker calls `POST /__scheduled` every 5 minutes, which sends the due reminders with the workspace's own bot token
+
+**Usage:**
+```
+/setreminder in 30m stand-up
+/setreminder #general tomorrow 9am release notes are due
+/setreminder @alice at 14:30 review the PR
+/setreminder list                # your pending reminders and their ids
+/setreminder cancel 12           # cancel reminder #12
+```
+
 ### Main BLT Repository Commands
 
 The following commands are available in the main BLT repository but **NOT in BLT-Sammich**:
@@ -208,6 +226,7 @@ Go to **Slash Commands** and create:
 - `/ghissue` - URL: `https://your-server.com`
 - `/project` - URL: `https://your-server.com`
 - `/repo` - URL: `https://your-server.com`
+- `/setreminder` - URL: `https://your-server.com`, with **Escape channels, users, and links** turned on (`should_escape: true` in `manifest.yaml`) so `#channel` and `@user` targets arrive as ids
 
 ### 7. Install App to Workspace
 
@@ -264,6 +283,16 @@ Database schema lives in `migrations/`. Wrangler runs `script/migrate.sh` from t
 ```bash
 SKIP_D1_MIGRATIONS=1 wrangler deploy
 ```
+
+### Scheduled reminders
+
+Sammich has no cron trigger. The `blt-cron` Worker calls `POST /__scheduled` every 5 minutes (:04, :09, ...) through a service binding; the request must carry the `X-BLT-Cron-Secret` header matching the `CRON_SECRET` secret, set to the same value on both Workers:
+
+```bash
+npx wrangler secret put CRON_SECRET
+```
+
+Each call reads only the due reminders through the `(status, due_at)` index (at most 50 a call) and writes only the reminders it handled.
 
 ### 9. Run the Bot
 ```bash
@@ -350,6 +379,7 @@ This section documents each Slack command with purpose, example usage, and expec
 | `/ghissue [title]` | Create GitHub issue | `/ghissue Bug in login form` | BLT-Sammich only |
 | `/project [name]` | Find OWASP project info | `/project zap` | BLT-Sammich only |
 | `/repo [tech]` | Find repos by technology | `/repo python` | BLT-Sammich only |
+| `/setreminder [target] <when> <message>` | Set a reminder (`list`, `cancel <id>`) | `/setreminder in 30m stand-up` | BLT-Sammich only |
 | `/discover [term]` | Search all OWASP repos | `/discover security` | Main BLT only |
 
 ## 🧑‍💻 Local Development
@@ -425,6 +455,7 @@ For running tests and code formatting, see the [Development](#-development) sect
 - `/ghissue` - Issue creation from Slack
 - `/project` - OWASP projects database
 - `/repo` - Technology-based repository discovery
+- `/setreminder` - Reminders to yourself, a person or a channel
 - Plugin architecture for extensibility
 - Curated projects and repos JSON databases
 
