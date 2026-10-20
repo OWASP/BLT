@@ -24,26 +24,20 @@ RUN apt-get update \
     && ln -sf /usr/bin/chromium /usr/local/bin/google-chrome \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Poetry and dependencies (Pinned to 2.2.1 to fix CI/CD conflicts)
-RUN pip install --upgrade pip && \
-    pip install poetry==2.2.1
-RUN poetry config virtualenvs.create false
-COPY pyproject.toml poetry.lock* ./
-
-# Clean any existing httpx installation
-RUN pip uninstall -y httpx || true
-RUN pip install --upgrade pip
-# Install dependencies with Poetry
-RUN poetry install --no-root --no-interaction || \
-    (echo "First attempt failed, clearing Poetry cache..." && \
-     poetry cache clear pypi --all -n && \
-     sleep 5 && \
-     poetry install --no-root --no-interaction -vvv) || \
-    (echo "Second attempt failed, final retry..." && \
-     sleep 10 && \
-     poetry install --no-root --no-interaction -vvv)
-# Install additional Python packages
-RUN pip install opentelemetry-api opentelemetry-instrumentation
+# Install Python dependencies with uv into /opt/venv. The venv lives outside /blt so
+# docker-compose's `.:/blt` bind mount does not hide it.
+COPY --from=ghcr.io/astral-sh/uv:0.13.3 /uv /uvx /bin/
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
+    UV_PYTHON=/usr/local/bin/python3.11 \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+# INSTALL_DEV=true adds the dev group (debug toolbar, livereload) for DEBUG=True setups;
+# docker-compose.yml sets it for local development.
+ARG INSTALL_DEV=false
+COPY pyproject.toml uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    if [ "$INSTALL_DEV" = "true" ]; then uv sync --frozen; else uv sync --frozen --no-dev; fi
 
 # Stage 2: Runtime stage
 FROM python:3.11-slim-bookworm
@@ -51,9 +45,10 @@ FROM python:3.11-slim-bookworm
 ENV PYTHONUNBUFFERED=1
 WORKDIR /blt
 
-# Copy only necessary files from builder stage
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Copy the virtualenv from the builder stage and put it first on PATH
+COPY --from=builder /opt/venv /opt/venv
+ENV VIRTUAL_ENV=/opt/venv \
+    PATH="/opt/venv/bin:$PATH"
 
 # Install runtime system dependencies
 RUN apt-get update && \
@@ -75,4 +70,4 @@ RUN if [ -f /blt/.env ]; then dos2unix /blt/.env; fi
 RUN chmod +x /blt/scripts/entrypoint.sh
 
 ENTRYPOINT ["/blt/scripts/entrypoint.sh"]
-CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

@@ -18,7 +18,10 @@ services:
     restart: always
 
   app:
-    build: .
+    build:
+      context: .
+      args:
+        INSTALL_DEV: "true"
     depends_on:
       db:
         condition: service_healthy
@@ -38,7 +41,10 @@ services:
   init:
     profiles:
       - init
-    build: .
+    build:
+      context: .
+      args:
+        INSTALL_DEV: "true"
     depends_on:
       db:
         condition: service_healthy
