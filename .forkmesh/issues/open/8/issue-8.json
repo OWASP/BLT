@@ -40,6 +40,16 @@
             "target": "gitlab-issue-82716184-10",
             "ts": 1792463360562,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "body": "/assign",
+            "id": "comment-web-1792478013992",
+            "sig": "7ZisEMPbJfCtsWbb2agzoh2u4CeiVgyN8seMHQvDiWfrHRstCmK-bU7xylOp8s1N0V1rui-W_MvAPJHn_amNBA",
+            "ts": 1792478013992,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +63,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-docs: Add screenshots/media system for user guides",
-    "updatedAt": 1792463360562,
+    "updatedAt": 1792478013992,
     "votes": 0
 }
