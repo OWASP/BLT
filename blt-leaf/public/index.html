@@ -760,10 +760,21 @@
         const repoItemIdleClasses = ['border-slate-200', 'bg-white', 'hover:border-slate-300', 'hover:bg-slate-50', 'dark:border-slate-700', 'dark:bg-slate-800', 'dark:hover:border-slate-600', 'dark:hover:bg-slate-700'];
         const repoItemActiveClasses = ['active', 'border-[#f5b0b0]', 'bg-[#fff1f1]', 'dark:border-red-900', 'dark:bg-red-950/30'];
 
+        // Escapes for text and quoted attributes alike (the textContent/innerHTML trick left quotes
+        // alone, so a PR title could break out of title="...").
         function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+            return String(text == null ? '' : text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Only http(s) links become hrefs.
+        function safeHttpUrl(url) {
+            const value = String(url || '').trim();
+            return /^https?:\/\//i.test(value) ? value : '#';
         }
 
         function getRepoAvatarUrl(repo) {
@@ -1638,11 +1649,11 @@
                                     class="add-all-prs-btn text-slate-500 hover:text-[#BC0000] dark:hover:text-red-400 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                                     title="Import all PRs from this repository"
                                     aria-label="Import all pull requests from this repository"
-                                    data-repo-owner="${repo.repo_owner}"
-                                    data-repo-name="${repo.repo_name}">
+                                    data-repo-owner="${escapeHtml(repo.repo_owner)}"
+                                    data-repo-name="${escapeHtml(repo.repo_name)}">
                                     <i class="fas fa-plus text-base text-red-600 hover:text-red-700 transition-colors"></i>
                                 </button>
-                                <a href="https://github.com/${repo.repo_owner}/${repo.repo_name}/pulls"
+                                <a href="https://github.com/${encodeURIComponent(repo.repo_owner)}/${encodeURIComponent(repo.repo_name)}/pulls"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="text-slate-500 hover:text-[#BC0000] dark:hover:text-red-400 github-pr-link p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
@@ -2667,7 +2678,7 @@
                 </td>
                 <td class="px-2 py-3">
                     <div class="flex items-center gap-2 min-w-0">
-                        <a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" class="font-medium text-slate-900 hover:text-[#BC0000] dark:text-slate-100 dark:hover:text-red-400 truncate text-xs" title="${escapeHtml(pr.title)}">${escapeHtml(truncatedTitle)}</a>
+                        <a href="${escapeHtml(safeHttpUrl(pr.pr_url))}" target="_blank" rel="noopener noreferrer" class="font-medium text-slate-900 hover:text-[#BC0000] dark:text-slate-100 dark:hover:text-red-400 truncate text-xs" title="${escapeHtml(pr.title)}">${escapeHtml(truncatedTitle)}</a>
                     </div>
                 </td>
                 <td class="px-2 py-3 text-slate-600 dark:text-slate-400">

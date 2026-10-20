@@ -11,7 +11,7 @@
     "db:migrations:list": "wrangler d1 migrations list pr_tracker",
     "lint": "echo 'Linting not configured yet' && exit 0",
     "format:check": "echo 'Format checking not configured yet' && exit 0",
-    "test": "npm run test:cron && node test-data-display.js",
+    "test": "npm run test:cron && node test-data-display.js && node test-escape-html.js",
     "test:cron": "python3 -m unittest discover -s tests",
     "test:data-display": "node test-data-display.js"
   },
