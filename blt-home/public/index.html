@@ -46,11 +46,11 @@
         <div class="flex items-center gap-1.5 sm:gap-2">
           <a class="hidden rounded-md px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 md:inline-flex dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white" href="https://zero.owaspblt.org/">BLT-Zero</a>
           <a class="hidden items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:shadow-[0_10px_24px_-12px_rgba(220,38,38,0.8)] sm:inline-flex" href="https://next.owaspblt.org/pages/report-bug.html">Report Bug</a>
-          <div class="relative hidden md:block" id="apps-launcher">
+          <div class="relative" id="apps-launcher">
             <button class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white" id="apps-trigger" type="button" aria-expanded="false" aria-controls="apps-panel" aria-label="All BLT apps">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="5" r="2" /><circle cx="12" cy="5" r="2" /><circle cx="19" cy="5" r="2" /><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /><circle cx="5" cy="19" r="2" /><circle cx="12" cy="19" r="2" /><circle cx="19" cy="19" r="2" /></svg>
             </button>
-            <div class="apps-panel absolute right-0 top-full z-50 mt-3 hidden w-[26rem] max-w-[calc(100vw-2rem)] rounded-3xl border border-red-100 bg-white shadow-[0_25px_50px_-12px_rgba(254,202,202,0.6)] dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/50" id="apps-panel">
+            <div class="apps-panel absolute right-0 top-full z-50 mt-3 hidden w-[26rem] max-w-[calc(100vw-2rem)] max-md:fixed max-md:inset-x-4 max-md:top-[4.25rem] max-md:mt-0 max-md:w-auto max-md:max-w-none rounded-3xl border border-red-100 bg-white shadow-[0_25px_50px_-12px_rgba(254,202,202,0.6)] dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/50" id="apps-panel">
               <div class="flex items-center justify-between px-5 pb-1 pt-5">
                 <p class="m-0 text-sm font-semibold text-gray-900 dark:text-white">BLT apps</p>
                 <a href="#explore" class="text-xs font-medium text-red-600 hover:underline dark:text-red-400">Browse by category</a>

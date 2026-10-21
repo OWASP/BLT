@@ -116,7 +116,7 @@
     ".icon{display:flex;width:36px;height:36px;align-items:center;justify-content:center;border-radius:8px;color:#6b7280;transition:background .15s,color .15s}",
     ".icon:hover{background:#f3f4f6;color:#111827}",
     ".icon svg{display:block}",
-    ".apps{position:relative;display:none}",
+    ".apps{position:relative;display:block}",
     ".panel{position:absolute;right:0;top:100%;margin-top:12px;display:none;width:26rem;max-width:calc(100vw - 2rem);border-radius:24px;border:1px solid #fee2e2;background:#fff;box-shadow:0 25px 50px -12px rgba(254,202,202,.6)}",
     ".panel.open{display:block;animation:pin .18s ease-out}",
     "@keyframes pin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}",
@@ -144,7 +144,9 @@
     ".mobile a.mreport{margin-top:4px;background:#dc2626;color:#fff;text-align:center;font-weight:600;padding:8px 12px}",
     "@media (max-width:767px){.in{padding:12px 16px}}",
     "@media (min-width:640px){.right{gap:8px}.report{display:inline-flex}}",
-    "@media (min-width:768px){.zero{display:inline-flex}.apps{display:block}}",
+    "@media (min-width:768px){.zero{display:inline-flex}}",
+    // Phones: the panel spans the screen under the bar instead of hanging off the button.
+    "@media (max-width:767px){.panel{position:fixed;left:16px;right:16px;top:var(--blt-apps-top,68px);margin-top:0;width:auto;max-width:none}.scroll{max-height:calc(100vh - var(--blt-apps-top,68px) - 96px)}}",
     "@media (min-width:1024px){.links{display:flex}.burger,.mobile,.mobile.open{display:none}}",
     // dark
     ":host([dark]){color:#f3f4f6;color-scheme:dark}",
@@ -298,7 +300,12 @@
       [svg(null, 20, "0 0 24 24", dots)]);
     var apps = el("div", { class: "apps" }, [appsBtn, panel]);
     function setApps(open) {
-      if (open) buildApps();
+      if (open) {
+        buildApps();
+        // On phones the panel is fixed under the bar wherever the page has scrolled.
+        var bottom = Math.round(host.getBoundingClientRect().bottom);
+        panel.style.setProperty("--blt-apps-top", Math.max(bottom, 0) + 8 + "px");
+      }
       panel.classList.toggle("open", open);
       appsBtn.setAttribute("aria-expanded", String(open));
     }
