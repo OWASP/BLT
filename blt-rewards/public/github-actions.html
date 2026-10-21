@@ -5,30 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="GitHub Actions Integration for BACON - Automate blockchain rewards">
     <title>GitHub Actions - BACON</title>
+    <script>
+        // Before first paint: the saved theme (localStorage "theme", shared with the <blt-nav> bar), else the system preference.
+        (function () {
+            var saved = null;
+            try { saved = localStorage.getItem("theme"); } catch (e) { saved = null; }
+            var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+            document.documentElement.classList.toggle("dark", dark);
+        })();
+    </script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        'blt-red': '#E10101',
+                        'blt-red': '#dc2626',
                         'blt-red-hover': '#b91c1c',
                     },
                     fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
+                        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
                     },
                 }
             }
         }
     </script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
     </style>
+    <link rel="stylesheet" href="static/blt-theme.css">
 </head>
 <body class="bg-white">
     <!-- Navigation -->
@@ -36,7 +45,7 @@
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center gap-2">
-                    <img src="./static/images/logo.png" alt="BACON Logo" class="h-8 w-8">
+                    <img src="./static/images/blt-rewards-logo.svg" alt="BLT-Rewards logo" class="h-8 w-8">
                     <a href="index.html" class="text-xl font-bold text-gray-900">BACON</a>
                 </img>
                 <ul class="hidden md:flex items-center gap-6 text-sm font-medium">
@@ -319,7 +328,7 @@ jobs:
             <div class="grid md:grid-cols-3 gap-8">
                 <div>
                     <div class="flex items-center gap-2 mb-4">
-                        <img src="./static/images/logo.png" alt="BACON Logo" class="h-8 w-8">
+                        <img src="./static/images/blt-rewards-logo.svg" alt="BLT-Rewards logo" class="h-8 w-8">
                         <span class="text-lg font-bold text-gray-900">BACON</span>
                     </div>
                     <p class="text-gray-600 text-sm">Blockchain Assisted Contribution Network</p>

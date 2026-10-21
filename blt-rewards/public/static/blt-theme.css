@@ -1,0 +1,39 @@
+/* Dark mode for the BLT-Rewards pages (html.dark, set by the pre-paint script in each page's
+   <head> and by the theme toggle in the shared <blt-nav> bar). Remaps the light Tailwind
+   utilities the pages use onto the owaspblt.org dark palette: gray-950 page, gray-900 cards,
+   gray-800 borders, red-400 accents. */
+html.dark { color-scheme: dark; }
+html.dark body { background-color: #030712; color: #f3f4f6; }
+html.dark .bg-white,
+html.dark .hover\:bg-white:hover { background-color: #111827; }
+html.dark .bg-white\/95 { background-color: rgba(3, 7, 18, 0.92); }
+html.dark .bg-gray-50,
+html.dark .hover\:bg-gray-50:hover { background-color: #030712; }
+html.dark .bg-gray-100 { background-color: #1f2937; }
+html.dark .bg-gray-900 { background-color: #111827; }
+html.dark .bg-red-50 { background-color: rgba(127, 29, 29, 0.25); }
+html.dark .bg-orange-50,
+html.dark .bg-orange-100 { background-color: rgba(124, 45, 18, 0.3); }
+html.dark .bg-purple-50,
+html.dark .bg-purple-100 { background-color: rgba(76, 29, 149, 0.3); }
+html.dark .bg-blue-50 { background-color: rgba(30, 58, 138, 0.3); }
+html.dark .bg-yellow-50 { background-color: rgba(113, 63, 18, 0.3); }
+html.dark .from-gray-50 { --tw-gradient-from: #111827 var(--tw-gradient-from-position); }
+html.dark .from-red-50 { --tw-gradient-from: rgba(127, 29, 29, 0.25) var(--tw-gradient-from-position); }
+html.dark .from-orange-50 { --tw-gradient-from: rgba(124, 45, 18, 0.25) var(--tw-gradient-from-position); }
+html.dark .from-purple-50 { --tw-gradient-from: rgba(76, 29, 149, 0.25) var(--tw-gradient-from-position); }
+html.dark .to-white { --tw-gradient-to: #030712 var(--tw-gradient-to-position); }
+html.dark .border-gray-200,
+html.dark .border-gray-300 { border-color: #1f2937; }
+html.dark .border-orange-200 { border-color: rgba(194, 65, 12, 0.45); }
+html.dark .border-purple-200 { border-color: rgba(126, 34, 206, 0.45); }
+html.dark .border-blue-200 { border-color: rgba(29, 78, 216, 0.45); }
+html.dark .text-gray-900,
+html.dark .text-gray-800 { color: #f3f4f6; }
+html.dark .text-gray-700 { color: #d1d5db; }
+html.dark .text-gray-600 { color: #9ca3af; }
+html.dark .text-blt-red,
+html.dark .hover\:text-blt-red:hover { color: #f87171; }
+html.dark .hover\:bg-blt-red:hover { color: #ffffff; }
+html.dark .bg-gray-900 .text-gray-900,
+html.dark pre .text-gray-900 { color: #f3f4f6; }
