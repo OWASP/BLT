@@ -26,6 +26,7 @@ from events_store import (
     EventsStore,
     build_event_payload,
 )
+from js_fetch import fetch_init
 
 DEFAULT_LIMIT = 50
 MAX_LIMIT = 100
@@ -95,11 +96,11 @@ async def _js_fetch(url: str, method: str, headers: Mapping[str, str], body: byt
 
     resp = await fetch(
         url,
-        {
+        fetch_init({
             "method": method,
             "headers": dict(headers),
             "body": body.decode("utf-8"),
-        },
+        }),
     )
     text = await resp.text()
     return int(resp.status), str(text)

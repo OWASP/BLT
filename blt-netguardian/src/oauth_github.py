@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
 
 from d1_compat import d1_row, row_get
+from js_fetch import fetch_init
 
 GITHUB_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
 GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token"
@@ -182,7 +183,7 @@ async def _http_json(
         init: dict[str, Any] = {"method": method, "headers": dict(headers or {})}
         if body is not None:
             init["body"] = body.decode("utf-8")
-        resp = await fetch(url, init)
+        resp = await fetch(url, fetch_init(init))
         status = int(resp.status)
         text = await resp.text()
         try:

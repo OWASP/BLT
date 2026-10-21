@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Any, Mapping, Optional
 
 from d1_compat import row_get
+from js_fetch import fetch_init
 
 _FIELD = re.compile(r"^([A-Za-z][A-Za-z0-9-]*)\s*:\s*(.+?)\s*$")
 INTERESTING = frozenset(
@@ -101,7 +102,7 @@ async def fetch_text(url: str, *, fetch_impl: Any = None) -> tuple[int, str]:
     try:
         from js import fetch  # type: ignore[import-not-found]
 
-        resp = await fetch(url, {"method": "GET", "headers": {"User-Agent": "blt-netguardian-disclosure"}})
+        resp = await fetch(url, fetch_init({"method": "GET", "headers": {"User-Agent": "blt-netguardian-disclosure"}}))
         return int(resp.status), str(await resp.text())
     except ImportError:
         return await asyncio.to_thread(_urllib_get_text, url)

@@ -903,6 +903,11 @@
                 const blt = lastHealth && lastHealth.integrations && lastHealth.integrations.blt_api;
                 const label = blt && blt.configured ? 'BLT-API configured' : 'API live';
                 setConnected(true, label);
+                // Hide "Sign in with GitHub" when the Worker has no OAuth app configured.
+                const ghLink = document.getElementById('auth-github');
+                if (ghLink && lastHealth.auth && lastHealth.auth.github_oauth === false) {
+                    ghLink.style.display = 'none';
+                }
             } catch (_) {
                 lastHealth = null;
                 setConnected(false, 'Offline');

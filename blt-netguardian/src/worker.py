@@ -71,6 +71,7 @@ from install_sh import INSTALL_SH
 from get_client_page import GET_CLIENT_HTML
 from oauth_github import (
     current_session,
+    oauth_configured,
     handle_github_callback,
     logout_session,
     start_github_login,
@@ -612,6 +613,7 @@ class BLTWorker:
             'ingest': 'ready',
             'auth': {
                 'read_required': read_endpoints_require_auth(self.env),
+                'github_oauth': oauth_configured(self.env),
             },
             'integrations': {
                 'blt_api': {

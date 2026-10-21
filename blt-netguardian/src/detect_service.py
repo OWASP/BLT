@@ -8,6 +8,7 @@ import urllib.request
 from typing import Any, Mapping, Optional
 
 from detect.http_headers import scan_headers
+from js_fetch import fetch_init
 
 
 def _urllib_head_status_and_headers(url: str) -> tuple[int, dict[str, str]]:
@@ -30,7 +31,7 @@ async def _default_fetch(url: str) -> tuple[int, dict[str, str]]:
     try:
         from js import fetch  # type: ignore[import-not-found]
 
-        resp = await fetch(url, {"method": "GET", "headers": {"User-Agent": "blt-netguardian-detect"}})
+        resp = await fetch(url, fetch_init({"method": "GET", "headers": {"User-Agent": "blt-netguardian-detect"}}))
         status = int(resp.status)
         headers: dict[str, str] = {}
         try:

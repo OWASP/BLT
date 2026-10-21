@@ -8,6 +8,8 @@ import urllib.error
 import urllib.request
 from typing import Any, Awaitable, Callable, Mapping, Optional
 
+from js_fetch import fetch_init
+
 API_KEY_HEADER = "X-BLT-API-Key"
 
 _SEV_SCORE = {
@@ -139,11 +141,11 @@ async def _js_fetch_post_json(url: str, headers: Mapping[str, str], payload: dic
 
     hdrs = dict(headers)
     hdrs.setdefault("Content-Type", "application/json")
-    resp = await fetch(url, {
+    resp = await fetch(url, fetch_init({
         "method": "POST",
         "headers": hdrs,
         "body": json.dumps(payload),
-    })
+    }))
     status = int(resp.status)
     raw = await resp.text()
     try:

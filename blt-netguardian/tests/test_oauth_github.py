@@ -227,3 +227,15 @@ async def test_login_does_not_redirect_off_site_after_callback(env, db):
     )
     assert cb.status == 302
     assert cb.redirect_url == "/triage.html"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("secrets,expected", [
+    ({}, False),
+    ({"GITHUB_CLIENT_ID": "id"}, False),
+    ({"GITHUB_CLIENT_ID": "id", "GITHUB_CLIENT_SECRET": "s"}, True),
+])
+async def test_health_reports_whether_github_login_is_available(secrets, expected):
+    env = SimpleNamespace(AUTHENTICATE_READ_ENDPOINTS="false", **secrets)
+    resp = await BLTWorker(env).handle_request(FakeRequest("https://ng.example/api/health"))
+    assert parse_json(resp)["auth"]["github_oauth"] is expected
