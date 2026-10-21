@@ -1011,20 +1011,21 @@ class AdminService:
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{_escape(title)} | BLT-Pool Admin</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="/theme-init.js"></script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <link rel="stylesheet" href="/blt-pool-theme.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
   <script>
     tailwind.config = {{
+      darkMode: 'class',
       theme: {{
         extend: {{
           colors: {{
-            'blt-primary': '#E10101',
+            'blt-primary': '#dc2626',
             'blt-border': '#E5E5E5'
           }},
           fontFamily: {{
-            sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif']
+            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif']
           }}
         }}
       }}
@@ -1050,14 +1051,13 @@ class AdminService:
   <header data-admin-topbar class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
     <div class="mx-auto flex w-full max-w-[98vw] items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
       <a href="{self.admin_path}" class="flex items-center gap-3" aria-label="BLT-Pool admin home">
-        <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
+        <img src="/blt-pool-logo.svg" alt="BLT-Pool logo" class="h-10 w-10">
         <div>
-          <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">OWASP BLT</p>
           <h1 class="text-lg font-extrabold text-[#111827]">BLT-Pool Admin</h1>
         </div>
       </a>
       <div class="flex items-center gap-3">
-        <a href="/" class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:bg-[#feeae9] hover:text-[#E10101]">
+        <a href="/" class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#dc2626] hover:bg-[#feeae9] hover:text-[#dc2626]">
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
           Back to Pool
         </a>
@@ -1069,7 +1069,7 @@ class AdminService:
     <section class="overflow-visible rounded-3xl border border-[#E5E5E5] bg-white p-5 shadow-[0_14px_40px_rgba(225,1,1,0.10)] sm:p-6 lg:p-7">
       <div class="mb-8">
         <span class="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700">
-          <i class="fa-solid fa-shield-halved text-[#E10101]" aria-hidden="true"></i>
+          <i class="fa-solid fa-shield-halved text-[#dc2626]" aria-hidden="true"></i>
           Admin access
         </span>
         <h2 class="mt-4 text-3xl font-extrabold text-[#111827] sm:text-4xl">{_escape(title)}</h2>
@@ -1082,7 +1082,7 @@ class AdminService:
     <div class="w-full max-w-md overflow-hidden rounded-3xl border border-[#E5E5E5] bg-white shadow-[0_24px_80px_rgba(17,24,39,0.20)]">
       <div class="border-b border-[#E5E5E5] bg-gradient-to-r from-[#fff5f5] via-white to-[#fff1f1] px-6 py-5">
         <div class="flex items-start gap-4">
-          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#feeae9] text-[#E10101]">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#feeae9] text-[#dc2626]">
             <i class="fa-solid fa-triangle-exclamation text-lg" aria-hidden="true"></i>
           </div>
           <div class="min-w-0">
@@ -1098,7 +1098,7 @@ class AdminService:
         <button id="admin-confirm-cancel" type="button" class="inline-flex items-center justify-center rounded-md border border-[#E5E5E5] px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-white">
           Cancel
         </button>
-        <button id="admin-confirm-submit" type="button" class="inline-flex items-center justify-center gap-2 rounded-md bg-[#E10101] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700">
+        <button id="admin-confirm-submit" type="button" class="inline-flex items-center justify-center gap-2 rounded-md bg-[#dc2626] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700">
           <i class="fa-solid fa-check" aria-hidden="true"></i>
           Continue
         </button>
@@ -1612,7 +1612,7 @@ class AdminService:
                 <button
                   type="button"
                   id="admin-reset-sorting"
-                  class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:text-[#E10101]"
+                  class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#dc2626] hover:text-[#dc2626]"
                   title="Reset table sorting to original order">
                   <i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i>
                   Reset sorting
@@ -1624,7 +1624,7 @@ class AdminService:
                     data-confirm-title="Refresh PR counts?"
                     data-confirm-message="This will recalculate total lifetime PR counts for all mentors across OWASP-BLT repositories."
                     data-confirm-cta="<i class=&quot;fa-solid fa-rotate&quot; aria-hidden=&quot;true&quot;></i>Refresh counts"
-                    class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:text-[#E10101]">
+                    class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#dc2626] hover:text-[#dc2626]">
                     <i class="fa-solid fa-rotate" aria-hidden="true"></i>
                     Refresh PR counts
                   </button>
@@ -1648,7 +1648,7 @@ class AdminService:
                     data-confirm-title="Refresh review totals?"
                     data-confirm-message="This will recalculate total approved/changes-requested review counts for all mentors in OWASP-BLT."
                     data-confirm-cta="<i class=&quot;fa-solid fa-rotate&quot; aria-hidden=&quot;true&quot;></i>Refresh reviews"
-                    class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:text-[#E10101]">
+                    class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#dc2626] hover:text-[#dc2626]">
                     <i class="fa-solid fa-rotate" aria-hidden="true"></i>
                     Refresh reviews
                   </button>
@@ -1672,7 +1672,7 @@ class AdminService:
                     data-confirm-title="Refresh comment totals?"
                     data-confirm-message="This will recalculate total issue and PR comment counts for all mentors across OWASP-BLT repositories."
                     data-confirm-cta="<i class=&quot;fa-solid fa-rotate&quot; aria-hidden=&quot;true&quot;></i>Refresh comments"
-                    class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:text-[#E10101]">
+                    class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#dc2626] hover:text-[#dc2626]">
                     <i class="fa-solid fa-rotate" aria-hidden="true"></i>
                     Refresh comments
                   </button>
@@ -1742,7 +1742,7 @@ class AdminService:
                   <input name="active" type="checkbox" value="1" checked>
                   Published
                 </label>
-                <button type="submit" class="inline-flex items-center gap-2 rounded-md bg-[#E10101] px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-md bg-[#dc2626] px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700">
                   <i class="fa-solid fa-plus" aria-hidden="true"></i>
                   Add mentor
                 </button>
@@ -1832,7 +1832,7 @@ class AdminService:
         <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-title="{_escape(title).lower()}" data-bio="{_escape(bio).lower()}" data-active="{1 if active else 0}" data-created_at="{int(mentor.get('created_at') or 0)}" data-total_prs="{total_prs}" data-total_reviews="{total_reviews}" data-total_comments="{total_comments}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
           <td class="px-3 py-2">
             <div class="flex items-center gap-2">
-              <a href="https://github.com/{_escape(username)}" target="_blank" rel="noopener noreferrer" aria-label="Open @{_escape(username)} on GitHub" class="inline-flex h-8 w-8 shrink-0 overflow-hidden rounded-full border border-[#E5E5E5] bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E10101] focus-visible:ring-offset-2">
+              <a href="https://github.com/{_escape(username)}" target="_blank" rel="noopener noreferrer" aria-label="Open @{_escape(username)} on GitHub" class="inline-flex h-8 w-8 shrink-0 overflow-hidden rounded-full border border-[#E5E5E5] bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#dc2626] focus-visible:ring-offset-2">
                 <img src="https://github.com/{_escape(username)}.png" alt="{_escape(name)}" class="h-full w-full shrink-0 object-cover transition hover:opacity-90">
               </a>
               <span data-autosave-status data-state="idle" class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-gray-500">Idle</span>

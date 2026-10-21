@@ -18,23 +18,24 @@ GITHUB_PAGE_HTML = """\
   <meta name="description" content="BLT-Pool GitHub App for OWASP BLT. Automate issue assignment, leaderboard scoring, bug reporting, and contributor workflows.">
   <title>BLT-Pool GitHub App | OWASP BLT</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="/theme-init.js"></script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <link rel="stylesheet" href="/blt-pool-theme.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            "blt-primary": "#E10101",
+            "blt-primary": "#dc2626",
             "blt-primary-hover": "#b91c1c",
             "blt-border": "#E5E5E5",
             "blt-dark-base": "#111827",
             "blt-dark-surface": "#1F2937"
           },
           fontFamily: {
-            sans: ["Plus Jakarta Sans", "ui-sans-serif", "system-ui", "sans-serif"]
+            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif']
           },
           boxShadow: {
             "soft-red": "0 14px 40px rgba(225, 1, 1, 0.10)"
@@ -60,9 +61,8 @@ GITHUB_PAGE_HTML = """\
     <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
     <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
       <a href="/" class="flex items-center gap-3" aria-label="BLT-Pool home">
-        <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
+        <img src="/blt-pool-logo.svg" alt="BLT-Pool logo" class="h-10 w-10">
         <div>
-          <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">OWASP BLT</p>
           <h1 class="text-lg font-extrabold text-[#111827]">BLT-Pool</h1>
         </div>
       </a>
@@ -80,8 +80,8 @@ GITHUB_PAGE_HTML = """\
           Live
         </span>
         <a href="{{ADMIN_PATH}}"
-           class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:bg-[#feeae9] hover:text-[#E10101] focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
-          <i class="fa-solid fa-shield-halved text-[#E10101]" aria-hidden="true"></i>
+           class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#dc2626] hover:bg-[#feeae9] hover:text-[#dc2626] focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+          <i class="fa-solid fa-shield-halved text-[#dc2626]" aria-hidden="true"></i>
           Admin
         </a>
       </div>
@@ -109,7 +109,7 @@ GITHUB_PAGE_HTML = """\
               <i class="fa-brands fa-github" aria-hidden="true"></i>
               Add to GitHub Organization
             </a>
-            <a href="https://git.owaspblt.org/BLT/BLT-Pool" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-md border border-[#E10101] px-5 py-3 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+            <a href="https://git.owaspblt.org/BLT/BLT-Pool" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-md border border-[#dc2626] px-5 py-3 text-sm font-semibold text-[#dc2626] transition hover:bg-[#dc2626] hover:text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
               <i class="fa-solid fa-code" aria-hidden="true"></i>
               View Source
             </a>

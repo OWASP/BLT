@@ -5194,6 +5194,9 @@ _CALLBACK_HTML = """\
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BLT-Pool GitHub App — Installed!</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/theme-init.js"></script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <link rel="stylesheet" href="/blt-pool-theme.css">
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -5204,7 +5207,7 @@ _CALLBACK_HTML = """\
 <body class="min-h-screen flex items-center justify-center" style="background:#111827;color:#e5e7eb;">
   <div class="text-center rounded-xl p-12 max-w-md w-full mx-4" style="background:#1F2937;border:1px solid #374151;">
     <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style="background:rgba(225,1,1,0.1);">
-      <i class="fa-solid fa-circle-check text-3xl" style="color:#E10101;" aria-hidden="true"></i>
+      <i class="fa-solid fa-circle-check text-3xl" style="color:#dc2626;" aria-hidden="true"></i>
     </div>
     <h1 class="text-2xl font-bold text-white mb-4">Installation complete!</h1>
     <p class="leading-relaxed mb-6" style="color:#9ca3af;">
@@ -5215,7 +5218,7 @@ _CALLBACK_HTML = """\
       href="https://owaspblt.org"
       target="_blank"
       rel="noopener"
-      style="color:#E10101;"
+      style="color:#dc2626;"
       onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'"
     >
       Visit OWASP BLT <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
@@ -5428,7 +5431,7 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         ref_escaped = _html_mod.escape(referred_by)
         meta_parts.append(
             f'<a href="https://github.com/{ref_escaped}" target="_blank" rel="noopener" '
-            f'class="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-[#E10101] whitespace-nowrap" '
+            f'class="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-[#dc2626] whitespace-nowrap" '
             f'title="Referred by @{ref_escaped}">'
             f'<img src="https://github.com/{ref_escaped}.png" alt="{ref_escaped}" width="16" height="16" '
             f'class="h-4 w-4 aspect-square rounded-full border border-gray-200 object-cover">'
@@ -5441,7 +5444,7 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         + '</div>'
     )
 
-    title_row = f'<p class="mt-1 text-sm font-semibold text-[#E10101]">{title}</p>' if title else ''
+    title_row = f'<p class="mt-1 text-sm font-semibold text-[#dc2626]">{title}</p>' if title else ''
     bio_row = f'<p class="mt-3 text-sm leading-relaxed text-gray-600">{bio}</p>' if bio else ''
     skills_row = (
         '<div class="mt-3 flex flex-wrap gap-1">' + specialty_chips + '</div>'
@@ -5555,7 +5558,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                 <div class="min-w-0">
                   <p class="text-xs text-gray-400 leading-none">Mentee</p>
                   <a href="https://github.com/{mentee}" target="_blank" rel="noopener"
-                     class="text-sm font-semibold text-[#111827] hover:text-[#E10101] truncate block">
+                     class="text-sm font-semibold text-[#111827] hover:text-[#dc2626] truncate block">
                     @{mentee}
                   </a>
                 </div>
@@ -5571,16 +5574,16 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                   <div class="min-w-0">
                     <p class="text-xs text-gray-400 leading-none">Mentor</p>
                     <a href="https://github.com/{mentor}" target="_blank" rel="noopener"
-                       class="text-sm font-semibold text-[#111827] hover:text-[#E10101] truncate block">
+                       class="text-sm font-semibold text-[#111827] hover:text-[#dc2626] truncate block">
                       @{mentor}
                     </a>
                   </div>
-                  <span class="shrink-0 rounded-full bg-[#feeae9] px-2 py-0.5 text-xs font-semibold text-[#E10101]" title="Total comments">{mentor_comments} pts</span>
+                  <span class="shrink-0 rounded-full bg-[#feeae9] px-2 py-0.5 text-xs font-semibold text-[#dc2626]" title="Total comments">{mentor_comments} pts</span>
                 </div>
                 {mentee_html}
                 <a href="https://github.com/{org}/{repo}/issues/{number}"
                    target="_blank" rel="noopener"
-                   class="inline-flex items-center gap-1.5 rounded-full bg-[#feeae9] px-3 py-1 text-xs font-semibold text-[#E10101] hover:bg-red-100 transition shrink-0">
+                   class="inline-flex items-center gap-1.5 rounded-full bg-[#feeae9] px-3 py-1 text-xs font-semibold text-[#dc2626] hover:bg-red-100 transition shrink-0">
                   <i class="fa-brands fa-github text-xs" aria-hidden="true"></i>
                   {org}/{repo}#{number}
                 </a>
@@ -5594,7 +5597,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
         active_assignments_html = f'''
     <section id="active-assignments" class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
       <div class="mb-5 flex items-center gap-3">
-        <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#feeae9] text-[#E10101]">
+        <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#feeae9] text-[#dc2626]">
           <i class="fa-solid fa-link" aria-hidden="true"></i>
         </div>
         <div>
@@ -5614,18 +5617,18 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
         lb_items = "\n".join(
             f'''<li class="flex items-center justify-between gap-2 py-1.5 border-b border-[#E5E5E5] last:border-0">
               <a href="https://github.com/{ref}" target="_blank" rel="noopener"
-                 class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-[#E10101] truncate">
+                 class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-[#dc2626] truncate">
                 <img src="https://github.com/{ref}.png" alt="{ref}" class="h-6 w-6 rounded-full border border-[#E5E5E5]">
                 @{ref}
               </a>
-              <span class="shrink-0 rounded-full bg-[#feeae9] px-2 py-0.5 text-xs font-bold text-[#E10101]">{cnt}</span>
+              <span class="shrink-0 rounded-full bg-[#feeae9] px-2 py-0.5 text-xs font-bold text-[#dc2626]">{cnt}</span>
             </li>'''
             for ref, cnt in leaderboard_rows[:10]
         )
         leaderboard_html = f'''
         <section class="rounded-2xl border border-[#E5E5E5] bg-white p-6 h-fit sticky top-24">
           <div class="mb-4 flex items-center gap-2">
-            <div class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+            <div class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#feeae9] text-[#dc2626]">
               <i class="fa-solid fa-trophy text-sm" aria-hidden="true"></i>
             </div>
             <h3 class="text-lg font-bold text-[#111827]">Referral Leaderboard</h3>
@@ -5639,7 +5642,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
         leaderboard_html = '''
         <section class="rounded-2xl border border-[#E5E5E5] bg-white p-6 h-fit sticky top-24">
           <div class="mb-4 flex items-center gap-2">
-            <div class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+            <div class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#feeae9] text-[#dc2626]">
               <i class="fa-solid fa-trophy text-sm" aria-hidden="true"></i>
             </div>
             <h3 class="text-lg font-bold text-[#111827]">Referral Leaderboard</h3>
@@ -5655,22 +5658,23 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
   <meta name="description" content="BLT-Pool for OWASP BLT. Connect with mentors and install the BLT GitHub extension.">
   <title>BLT-Pool | OWASP BLT Mentor Directory</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="/theme-init.js"></script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <link rel="stylesheet" href="/blt-pool-theme.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
-  <link rel="icon" type="image/png" href="/logo-sm.png?v=3">
+  <link rel="icon" href="/blt-logo.svg" type="image/svg+xml">
   <script>
     tailwind.config = {{
+      darkMode: 'class',
       theme: {{
         extend: {{
           colors: {{
-            'blt-primary': '#E10101',
+            'blt-primary': '#dc2626',
             'blt-primary-hover': '#b91c1c',
             'blt-border': '#E5E5E5'
           }},
           fontFamily: {{
-            sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif']
+            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif']
           }}
         }}
       }}
@@ -5690,14 +5694,13 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
   <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
     <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
       <a href="/" class="flex items-center gap-3" aria-label="BLT-Pool home">
-        <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
+        <img src="/blt-pool-logo.svg" alt="BLT-Pool logo" class="h-10 w-10">
         <div>
-          <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">OWASP BLT</p>
           <h1 class="text-lg font-extrabold text-[#111827]">BLT-Pool</h1>
         </div>
       </a>
      <nav class="order-3 flex w-full items-center justify-center gap-0.5 rounded-xl border border-[#E5E5E5] bg-white p-1 sm:order-none sm:w-auto sm:justify-start" aria-label="Primary">
-        <a href="/" class="rounded-lg bg-[#feeae9] px-2 py-1.5 text-xs font-semibold text-[#E10101] sm:px-3 sm:py-2 sm:text-sm">Mentors</a>
+        <a href="/" class="rounded-lg bg-[#feeae9] px-2 py-1.5 text-xs font-semibold text-[#dc2626] sm:px-3 sm:py-2 sm:text-sm">Mentors</a>
         <a href="/leaderboard" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">Leaderboard</a>
         <a href="/github-app" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">GitHub App</a>
         <a href="https://owaspblt.org" target="_blank" rel="noopener" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">
@@ -5720,24 +5723,24 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
       <div class="grid gap-8 lg:grid-cols-2 lg:items-center">
         <div>
           <span class="mb-4 inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700">
-            <i class="fa-solid fa-users text-[#E10101]" aria-hidden="true"></i>
+            <i class="fa-solid fa-users text-[#dc2626]" aria-hidden="true"></i>
             Mentor directory for BLT contributors
           </span>
           <h2 class="text-3xl font-extrabold leading-tight text-[#111827] sm:text-5xl">
             Find your guide inside
-            <span class="text-[#E10101]">OWASP BLT-Pool</span>
+            <span class="text-[#dc2626]">OWASP BLT-Pool</span>
           </h2>
           <p class="mt-4 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg">
             Connect with mentors, get support for your first pull request, and keep contribution quality high with a practical community workflow.
           </p>
           <div class="mt-7 flex flex-wrap gap-3">
             <a href="https://owasp.slack.com/signup" target="_blank" rel="noopener"
-               class="inline-flex items-center gap-2 rounded-md bg-[#E10101] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+               class="inline-flex items-center gap-2 rounded-md bg-[#dc2626] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
               <i class="fa-brands fa-slack" aria-hidden="true"></i>
               Join OWASP Slack
             </a>
             <a href="/github-app"
-               class="inline-flex items-center gap-2 rounded-md border border-[#E10101] px-5 py-3 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+               class="inline-flex items-center gap-2 rounded-md border border-[#dc2626] px-5 py-3 text-sm font-semibold text-[#dc2626] transition hover:bg-[#dc2626] hover:text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
               <i class="fa-brands fa-github" aria-hidden="true"></i>
               Open GitHub App
             </a>
@@ -5786,21 +5789,21 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
       <h3 class="text-2xl font-bold text-[#111827]">How Mentor Matching Works</h3>
       <div class="mt-6 grid gap-5 md:grid-cols-3">
         <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-5">
-          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#dc2626]">
             <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
           </div>
           <h4 class="text-base font-bold text-[#111827]">1. Pick an issue</h4>
           <p class="mt-2 text-sm text-gray-600">Start with an issue tagged for contribution or mentor support.</p>
         </article>
         <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-5">
-          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#dc2626]">
             <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
           </div>
           <h4 class="text-base font-bold text-[#111827]">2. Get assigned</h4>
           <p class="mt-2 text-sm text-gray-600">Mentors are matched with healthy load balancing to avoid bottlenecks.</p>
         </article>
         <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-5">
-          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#dc2626]">
             <i class="fa-solid fa-comments" aria-hidden="true"></i>
           </div>
           <h4 class="text-base font-bold text-[#111827]">3. Build and review</h4>
@@ -5816,23 +5819,23 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
       </p>
       <div class="mt-5 grid gap-4 sm:grid-cols-2">
         <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-          <p class="font-mono text-sm font-bold text-[#E10101]">/mentor</p>
+          <p class="font-mono text-sm font-bold text-[#dc2626]">/mentor</p>
           <p class="mt-2 text-sm text-gray-600">Request a mentor for this issue. The bot auto-assigns the best available mentor from the pool.</p>
         </article>
         <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-          <p class="font-mono text-sm font-bold text-[#E10101]">/unmentor</p>
+          <p class="font-mono text-sm font-bold text-[#dc2626]">/unmentor</p>
           <p class="mt-2 text-sm text-gray-600">Cancel a mentor assignment. Use this to undo an accidental <code class="font-mono">/mentor</code> request. Available to the issue author or the assigned mentor.</p>
         </article>
         <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-          <p class="font-mono text-sm font-bold text-[#E10101]">/mentor-pause</p>
+          <p class="font-mono text-sm font-bold text-[#dc2626]">/mentor-pause</p>
           <p class="mt-2 text-sm text-gray-600">Pause your mentor availability. Use this when you need a break from accepting new mentees.</p>
         </article>
         <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-          <p class="font-mono text-sm font-bold text-[#E10101]">/handoff</p>
+          <p class="font-mono text-sm font-bold text-[#dc2626]">/handoff</p>
           <p class="mt-2 text-sm text-gray-600">Transfer this issue to another available mentor. The current mentor uses this to hand off cleanly.</p>
         </article>
         <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-          <p class="font-mono text-sm font-bold text-[#E10101]">/rematch</p>
+          <p class="font-mono text-sm font-bold text-[#dc2626]">/rematch</p>
           <p class="mt-2 text-sm text-gray-600">Request a different mentor for this issue. The bot re-runs matching to find a fresh assignment.</p>
         </article>
       </div>
@@ -5840,7 +5843,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
 
     <section id="join-mentor" class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
       <div class="mb-6 flex items-start gap-4">
-        <div class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#feeae9] text-[#E10101]">
+        <div class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#feeae9] text-[#dc2626]">
           <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
         </div>
         <div>
@@ -5853,19 +5856,19 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
       <form id="mentor-form" class="grid gap-4 sm:grid-cols-2" novalidate>
         <div>
           <label for="mf-name" class="mb-1 block text-sm font-semibold text-gray-700">
-            Display Name <span class="text-[#E10101]">*</span>
+            Display Name <span class="text-[#dc2626]">*</span>
           </label>
           <input id="mf-name" type="text" required autocomplete="name" placeholder="Jane Doe"
                  maxlength="100"
-                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none">
         </div>
         <div>
           <label for="mf-github" class="mb-1 block text-sm font-semibold text-gray-700">
-            GitHub Username <span class="text-[#E10101]">*</span>
+            GitHub Username <span class="text-[#dc2626]">*</span>
           </label>
           <input id="mf-github" type="text" required autocomplete="username" placeholder="janedoe"
                  maxlength="39" pattern="[a-zA-Z0-9]([a-zA-Z0-9\\-]{{0,37}}[a-zA-Z0-9])?"
-                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none">
         </div>
                 <div>
                     <label for="mf-title" class="mb-1 block text-sm font-semibold text-gray-700">
@@ -5873,7 +5876,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                     </label>
                     <input id="mf-title" type="text" placeholder="e.g. Senior Security Engineer"
                                  maxlength="120"
-                                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+                                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none">
                 </div>
                 <div>
                     <label for="mf-bio" class="mb-1 block text-sm font-semibold text-gray-700">
@@ -5881,7 +5884,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                     </label>
                     <textarea id="mf-bio" rows="3" placeholder="What do you mentor people on?"
                                         maxlength="500"
-                                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none"></textarea>
+                                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none"></textarea>
                 </div>
         <div class="sm:col-span-2">
           <label for="mf-specialties" class="mb-1 block text-sm font-semibold text-gray-700">
@@ -5889,14 +5892,14 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           </label>
           <input id="mf-specialties" type="text" placeholder="e.g. frontend, python, security, docs"
                  maxlength="300"
-                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none">
         </div>
         <div>
           <label for="mf-max" class="mb-1 block text-sm font-semibold text-gray-700">
             Max concurrent mentees
           </label>
           <input id="mf-max" type="number" min="1" max="10" value="3"
-                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none">
         </div>
         <div>
           <label for="mf-tz" class="mb-1 block text-sm font-semibold text-gray-700">
@@ -5904,7 +5907,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           </label>
           <input id="mf-tz" type="text" placeholder="e.g. UTC+5:30"
                  maxlength="60"
-                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none">
         </div>
                 <div>
                     <label for="mf-email" class="mb-1 block text-sm font-semibold text-gray-700">
@@ -5912,7 +5915,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                     </label>
                     <input id="mf-email" type="email" placeholder="e.g. mentor@example.com"
                                  maxlength="255"
-                                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+                                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none">
                 </div>
                 <div>
                     <label for="mf-slack" class="mb-1 block text-sm font-semibold text-gray-700">
@@ -5920,7 +5923,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                     </label>
                     <input id="mf-slack" type="text" placeholder="e.g. janedoe"
                                  maxlength="80"
-                                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+                                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none">
                 </div>
         <div class="sm:col-span-2">
           <label for="mf-referral" class="mb-1 block text-sm font-semibold text-gray-700">
@@ -5928,13 +5931,13 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           </label>
           <input id="mf-referral" type="text" placeholder="e.g. janedoe"
                  maxlength="39" pattern="[a-zA-Z0-9]([a-zA-Z0-9\\-]{{0,37}}[a-zA-Z0-9])?"
-                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none">
         </div>
-        <div id="mf-error" role="alert" class="hidden sm:col-span-2 text-sm font-semibold text-[#E10101]"></div>
+        <div id="mf-error" role="alert" class="hidden sm:col-span-2 text-sm font-semibold text-[#dc2626]"></div>
         <div id="mf-success" role="status" class="hidden sm:col-span-2 text-sm font-semibold text-green-600"></div>
         <div class="sm:col-span-2">
           <button id="mf-submit" type="submit"
-                  class="inline-flex items-center gap-2 rounded-md bg-[#E10101] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                  class="inline-flex items-center gap-2 rounded-md bg-[#dc2626] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
             <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
             Join the Mentor Pool
           </button>
@@ -6540,13 +6543,13 @@ def _leaderboard_html(data: dict) -> str:
             <td class="px-3 py-2 text-right text-sm">{u['closedPrs']}</td>
             <td class="px-3 py-2 text-right text-sm">{u['reviews']}</td>
             <td class="px-3 py-2 text-right text-sm">{u['comments']}</td>
-            <td class="px-3 py-2 text-right text-sm font-bold text-[#E10101]">{u['total']}</td>
+            <td class="px-3 py-2 text-right text-sm font-bold text-[#dc2626]">{u['total']}</td>
           </tr>""")
     if not rows:
         rows.append(
             '<tr><td colspan="9" class="px-3 py-10 text-center text-sm text-gray-500">'
             f'No pull request activity recorded for {esc(title_month)} yet. '
-            f'<a class="text-[#E10101] underline" href="{esc(data["forge"]["pulls_url"])}">Open a pull request</a> '
+            f'<a class="text-[#dc2626] underline" href="{esc(data["forge"]["pulls_url"])}">Open a pull request</a> '
             'on git.owaspblt.org to get on the board.</td></tr>'
         )
     pulls = []
@@ -6556,7 +6559,7 @@ def _leaderboard_html(data: dict) -> str:
         )
         pulls.append(f"""
           <li class="flex flex-wrap items-center gap-2 border-t border-[#E5E5E5] py-2 text-sm">
-            <a href="{esc(p['url'])}" target="_blank" rel="noopener" class="font-semibold text-[#E10101] hover:underline">#{p['number']}</a>
+            <a href="{esc(p['url'])}" target="_blank" rel="noopener" class="font-semibold text-[#dc2626] hover:underline">#{p['number']}</a>
             <span class="text-gray-900">{esc(p['title'])}</span>
             {projects}
             <span class="text-xs text-gray-500">by @{esc(p['author'])} · {esc(p['status'])}</span>
@@ -6576,21 +6579,23 @@ def _leaderboard_html(data: dict) -> str:
   <meta name="description" content="Monthly pull request leaderboard for OWASP BLT contributors on git.owaspblt.org.">
   <title>PR Leaderboard | BLT-Pool</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="/logo-sm.png?v=3">
-  <style>body {{ font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; background: #f8fafc; }}</style>
+  <script src="/theme-init.js"></script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <link rel="stylesheet" href="/blt-pool-theme.css">
+  <link rel="icon" href="/blt-logo.svg" type="image/svg+xml">
+  <style>body {{ font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f8fafc; }}</style>
 </head>
 <body class="min-h-screen text-gray-900 antialiased">
   <header class="border-b border-[#E5E5E5] bg-white">
     <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
       <a href="/" class="flex items-center gap-3">
-        <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
-        <div><p class="text-sm font-semibold uppercase tracking-wide text-gray-500">OWASP BLT</p>
+        <img src="/blt-pool-logo.svg" alt="BLT-Pool logo" class="h-10 w-10">
+        <div>
         <h1 class="text-lg font-extrabold">BLT-Pool</h1></div>
       </a>
       <nav class="flex gap-1 text-sm font-semibold">
         <a href="/" class="rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-50">Mentors</a>
-        <a href="/leaderboard" class="rounded-lg bg-[#feeae9] px-3 py-2 text-[#E10101]">Leaderboard</a>
+        <a href="/leaderboard" class="rounded-lg bg-[#feeae9] px-3 py-2 text-[#dc2626]">Leaderboard</a>
         <a href="{esc(data['forge']['pulls_url'])}" class="rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-50">Pull requests</a>
       </nav>
     </div>
@@ -6600,7 +6605,7 @@ def _leaderboard_html(data: dict) -> str:
       <div>
         <h2 class="text-2xl font-extrabold">Pull request leaderboard &middot; {esc(title_month)}</h2>
         <p class="mt-1 text-sm text-gray-600">Pull requests, reviews and comments on
-          <a class="text-[#E10101] underline" href="{esc(data['forge']['pulls_url'])}">git.owaspblt.org</a>, combined with each person's earlier GitHub activity.</p>
+          <a class="text-[#dc2626] underline" href="{esc(data['forge']['pulls_url'])}">git.owaspblt.org</a>, combined with each person's earlier GitHub activity.</p>
       </div>
       <div class="flex gap-2 text-sm">
         <a href="/leaderboard?month={prev_month}" class="rounded-lg border border-[#E5E5E5] bg-white px-3 py-1.5 hover:bg-gray-50">&larr; Previous</a>
@@ -6728,7 +6733,7 @@ async def on_fetch(request, env, ctx=None) -> Response:
 
     if path == CRON_DISPATCH_PATH:
         return await _handle_cron_dispatch(request, env)
-    if path == "/logo-sm.png" or path.endswith("logo-sm.png"):
+    if path in ("/blt-logo.svg", "/blt-pool-logo.svg"):
         return await env.ASSETS.fetch(request)
 
     admin_response = await AdminService(env).handle(request)

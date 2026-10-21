@@ -1,0 +1,51 @@
+/* Dark mode for the BLT-Pool pages (html.dark, set by /theme-init.js before paint and by the
+   theme toggle in the shared <blt-nav> bar). Remaps the light Tailwind utilities the Worker's
+   pages use onto the owaspblt.org dark palette: gray-950 page, gray-900 cards, gray-800
+   borders, red-400 accents. */
+html.dark { color-scheme: dark; }
+html.dark body { background: #030712; color: #f3f4f6; }
+html.dark .bg-white,
+html.dark .hover\:bg-white:hover { background-color: #111827; }
+html.dark .bg-white\/90 { background-color: rgba(3, 7, 18, 0.9); }
+html.dark .bg-gray-50,
+html.dark .bg-gray-50\/60,
+html.dark .hover\:bg-gray-50:hover,
+html.dark #admin-mentor-table thead th { background-color: #030712; }
+html.dark .bg-gray-100 { background-color: #1f2937; }
+html.dark .bg-gray-300 { background-color: #4b5563; }
+html.dark .bg-\[\#feeae9\],
+html.dark .hover\:bg-\[\#feeae9\]:hover,
+html.dark .bg-red-50,
+html.dark .hover\:bg-red-50:hover,
+html.dark .hover\:bg-red-100:hover { background-color: rgba(127, 29, 29, 0.3); }
+html.dark .bg-emerald-50 { background-color: rgba(6, 78, 59, 0.3); }
+html.dark .from-\[\#fff5f5\] { --tw-gradient-from: rgba(127, 29, 29, 0.2) var(--tw-gradient-from-position); }
+html.dark .to-\[\#fff1f1\] { --tw-gradient-to: #111827 var(--tw-gradient-to-position); }
+html.dark .border-\[\#E5E5E5\],
+html.dark .border-blt-border,
+html.dark .border-blt-border\/90,
+html.dark .border-gray-200,
+html.dark .border-gray-300,
+html.dark .divide-blt-border > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-\[\#E5E5E5\] > :not([hidden]) ~ :not([hidden]) { border-color: #1f2937; }
+html.dark .border-red-200 { border-color: rgba(185, 28, 28, 0.45); }
+html.dark .border-emerald-200 { border-color: rgba(4, 120, 87, 0.45); }
+html.dark .border-white { border-color: #111827; }
+html.dark .text-\[\#111827\],
+html.dark .text-blt-dark-base,
+html.dark .text-gray-900,
+html.dark .text-gray-800 { color: #f3f4f6; }
+html.dark .text-gray-700 { color: #d1d5db; }
+html.dark .text-gray-600,
+html.dark .text-gray-500 { color: #9ca3af; }
+html.dark .text-\[\#dc2626\],
+html.dark .hover\:text-\[\#dc2626\]:hover,
+html.dark .text-blt-primary,
+html.dark .text-red-600,
+html.dark .text-red-700 { color: #f87171; }
+html.dark .hover\:bg-\[\#dc2626\]:hover { color: #ffffff; }
+html.dark .text-emerald-700,
+html.dark .text-emerald-600 { color: #34d399; }
+html.dark input,
+html.dark select,
+html.dark textarea { background-color: #111827; color: #f3f4f6; }
