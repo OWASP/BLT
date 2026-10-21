@@ -276,48 +276,30 @@ button:disabled {
   font-weight: 600;
 }
 
+blt-nav:not(:defined) { display: block; min-height: 61px; }
+blt-nav:not(:defined) > * { display: none; }
+
+/* The shared BLT bar (sticky, 62px) sits above the dashboard. */
 .dashboard-shell {
   display: grid;
-  min-height: 100vh;
+  min-height: calc(100vh - 62px);
   grid-template-columns: 17.5rem minmax(0, 1fr);
   background: var(--background);
 }
 
 .dashboard-sidebar {
   position: sticky;
-  top: 0;
+  top: 62px;
   display: flex;
-  height: 100vh;
+  height: calc(100vh - 62px);
   flex-direction: column;
   border-right: 1px solid var(--border);
   background: var(--surface);
   padding: 1.5rem 1rem;
 }
 
-.dashboard-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
-  color: var(--text);
-  font-size: 0.9rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-}
-
-.dashboard-brand:hover {
-  color: var(--text);
-}
-
-.dashboard-brand-logo {
-  height: 2.4rem;
-  width: 2.4rem;
-  border-radius: 0.7rem;
-  object-fit: contain;
-}
-
 .sidebar-label {
-  margin: 2.5rem 0 0.55rem;
+  margin: 0.5rem 0 0.55rem;
   padding: 0 0.8rem;
   color: var(--muted-soft);
   font-size: 0.68rem;
@@ -364,10 +346,6 @@ button:disabled {
   content: "";
 }
 
-.sidebar-button {
-  cursor: pointer;
-}
-
 .dashboard-sidebar-footer {
   display: grid;
   gap: 0.25rem;
@@ -410,18 +388,8 @@ button:disabled {
   min-width: 0;
 }
 
-.dashboard-page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  padding: 1.35rem clamp(1.25rem, 4vw, 3rem);
-}
-
-.dashboard-page-header h1 {
-  margin: 0;
+.dashboard-page-title {
+  margin: 0 0 1.25rem;
   color: var(--text);
   font-size: clamp(1.5rem, 2vw, 2rem);
   font-weight: 750;
@@ -515,15 +483,13 @@ button:disabled {
 
   .sidebar-label,
   .dashboard-user-card,
-  .dashboard-sidebar-footer > .sidebar-item,
-  .dashboard-sidebar-footer > .sidebar-button {
+  .dashboard-sidebar-footer > .sidebar-item {
     display: none;
   }
 
   .dashboard-navigation {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.35rem;
-    margin-top: 1rem;
   }
 
   .sidebar-item {
@@ -540,9 +506,5 @@ button:disabled {
 
   .dashboard-sidebar-footer {
     display: none;
-  }
-
-  .dashboard-page-header {
-    align-items: flex-start;
   }
 }

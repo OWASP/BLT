@@ -139,27 +139,23 @@ export async function mountDashboardShell(pageId, { title, content }) {
   root.innerHTML = `
     <div class="dashboard-shell">
       <aside class="dashboard-sidebar" aria-label="Dashboard navigation">
-        <a class="dashboard-brand" href="/dashboard" aria-label="BLT Timer dashboard"><img class="dashboard-brand-logo" src="/assets/logo.svg" alt="" /><span>BLT<br />Timer</span></a>
         <p class="sidebar-label">Workspace</p>
         <nav class="dashboard-navigation">${navigationMarkup(pageId)}</nav>
         <div class="dashboard-sidebar-footer">
           <div class="dashboard-user-card"><span class="dashboard-avatar" data-user-initials>--</span><strong data-user-name>Loading</strong></div>
-          <button id="logout-button" class="sidebar-item sidebar-button" type="button"><span aria-hidden="true">⇥</span><span>Log out</span></button>
         </div>
       </aside>
       <div class="dashboard-main">
-        <header class="dashboard-page-header">
-          <div><h1>${title}</h1></div>
-          <span class="dashboard-avatar" data-user-initials aria-label="Signed in user">--</span>
-        </header>
         <main class="dashboard-page-content">
+          <h1 class="dashboard-page-title">${title}</h1>
           <div id="page-message" class="page-alert hidden" role="status" aria-live="polite"></div>
           ${content}
         </main>
       </div>
     </div>`;
 
-  document.querySelector('#logout-button').addEventListener('click', logout);
+  // Log out lives in the shared BLT bar (<blt-nav> in each dashboard page).
+  document.querySelector('#logout-button')?.addEventListener('click', logout);
 
   try {
     const { user } = await api('/api/me');

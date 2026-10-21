@@ -11,6 +11,9 @@
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   </head>
   <body class="min-h-screen bg-slate-50 font-sans text-slate-950 antialiased" data-dashboard-page="timer">
+    <blt-nav project="blt-timer-web" name="Timer" data-sticky>
+      <button id="logout-button" type="button" slot="actions">Log out</button>
+    </blt-nav>
     <div id="dashboard-root"></div>
     <script type="module" src="/timer-page.js"></script>
   </body>

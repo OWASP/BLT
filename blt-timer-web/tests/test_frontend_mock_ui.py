@@ -6,7 +6,6 @@ ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "public" / "index.html"
 LOGIN = ROOT / "public" / "login.html"
 DASHBOARD = ROOT / "public" / "dashboard.html"
-APP_JS = ROOT / "public" / "app.js"
 AUTH_JS = ROOT / "public" / "auth.js"
 DASHBOARD_JS = ROOT / "public" / "dashboard.js"
 STYLES = ROOT / "public" / "styles.css"
@@ -160,10 +159,24 @@ class FrontendProductionUITests(unittest.TestCase):
         self.assertIn("/api/me", shared)
         self.assertIn("window.location.href = '/login'", shared)
 
-    def test_dashboard_shell_uses_the_blt_logo_without_redundant_header_content(self):
+    def test_pages_use_the_shared_blt_bar_as_their_only_header(self):
+        index = INDEX.read_text()
+        self.assertIn('<blt-nav project="blt-timer-web" name="Timer" data-sticky>', index)
+        self.assertIn('<a href="/dashboard" slot="actions" data-primary>Start tracking</a>', index)
+        self.assertNotIn("<header", index)
+        self.assertNotIn('id="mobile-menu"', index)
+        self.assertIn('<blt-nav project="blt-timer-web" name="Timer">', LOGIN.read_text())
+        for path in [DASHBOARD, LOGS, HISTORY, SETTINGS]:
+            html = path.read_text()
+            self.assertIn('<blt-nav project="blt-timer-web" name="Timer" data-sticky>', html, path)
+            self.assertIn('<button id="logout-button" type="button" slot="actions">Log out</button>', html, path)
+
+    def test_dashboard_shell_has_no_second_header_row(self):
         shared = SHARED_DASHBOARD_JS.read_text()
 
-        self.assertIn('src="/assets/logo.svg"', shared)
+        self.assertNotIn("<header", shared)
+        self.assertNotIn("dashboard-brand", shared)
+        self.assertIn('<h1 class="dashboard-page-title">${title}</h1>', shared)
         self.assertNotIn('<span aria-hidden="true">⌂</span><span>Home</span>', shared)
         self.assertNotIn('<p class="section-kicker">BLT Timer</p>', shared)
         self.assertNotIn('<p>${subtitle}</p>', shared)

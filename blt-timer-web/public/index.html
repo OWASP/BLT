@@ -23,35 +23,14 @@
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   </head>
   <body class="min-h-screen bg-slate-50 font-sans text-slate-950 antialiased selection:bg-red-100 selection:text-red-700">
-    <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-        <a href="/" class="flex items-center gap-3" aria-label="BLT Timer home">
-          <img class="h-12 w-12" src="/assets/logo.svg" alt="BLT Timer logo" />
-          <span class="text-sm font-semibold tracking-tight text-slate-950">BLT Timer</span>
-        </a>
-        <nav class="hidden items-center gap-7 md:flex" aria-label="Primary navigation">
-          <a class="nav-link" href="#how-it-works">How it works</a>
-          <a class="nav-link" href="#features">Features</a>
-          <a class="nav-link" href="#privacy">Privacy</a>
-          <a class="nav-link" href="/dashboard">Dashboard</a>
-        </nav>
-        <div class="hidden items-center gap-3 md:flex">
-          <a class="btn-secondary" href="/login">Sign in</a>
-          <a class="btn-primary" href="/dashboard">Start tracking</a>
-        </div>
-        <button id="mobile-toggle" class="md:hidden rounded-md border border-slate-200 bg-white p-2 text-slate-600" type="button" aria-label="BLT Timer menu">
-          <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="10" cy="4" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="10" cy="16" r="1.6"/></svg>
-        </button>
-      </div>
-      <nav id="mobile-menu" class="hidden border-t border-slate-100 bg-white px-5 py-4 md:hidden" aria-label="Mobile navigation">
-        <div class="grid gap-3 text-sm">
-          <a class="nav-link" href="#how-it-works">How it works</a>
-          <a class="nav-link" href="#features">Features</a>
-          <a class="nav-link" href="#privacy">Privacy</a>
-          <a class="btn-primary w-full" href="/dashboard">Start tracking</a>
-        </div>
-      </nav>
-    </header>
+    <blt-nav project="blt-timer-web" name="Timer" data-sticky>
+      <a href="#how-it-works">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#privacy">Privacy</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/login" slot="actions">Sign in</a>
+      <a href="/dashboard" slot="actions" data-primary>Start tracking</a>
+    </blt-nav>
 
     <main>
       <section id="landing" class="mx-auto flex min-h-[43rem] max-w-7xl items-center px-5 pb-16 pt-12 lg:px-8 lg:pt-20">
@@ -284,6 +263,5 @@
       </nav>
     </footer>
 
-    <script src="/app.js"></script>
   </body>
 </html>
