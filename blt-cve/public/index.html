@@ -104,7 +104,7 @@
         background-position: center;
         background-size: cover;
         color: #ffffff;
-        padding: 3.25rem 1.5rem 4rem;
+        padding: 4.5rem 1.5rem 4rem;
       }
 
       .hero-inner,
@@ -113,28 +113,15 @@
         max-width: 1120px;
       }
 
-      .nav {
-        align-items: center;
-        display: flex;
-        gap: 1rem;
-        justify-content: space-between;
-        margin-bottom: 4.5rem;
+      blt-nav:not(:defined) {
+        display: block;
+        min-height: 61px;
       }
 
-      .brand {
-        font-size: 1rem;
-        font-weight: 800;
-        letter-spacing: 0;
+      blt-nav:not(:defined) > * {
+        display: none;
       }
 
-      .nav-links {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.85rem;
-        justify-content: flex-end;
-      }
-
-      .nav-links a,
       .button {
         align-items: center;
         border: 1px solid rgba(255, 255, 255, 0.35);
@@ -291,15 +278,10 @@
       }
 
       @media (max-width: 840px) {
-        .nav,
         .section-head,
         .entry {
           align-items: stretch;
           display: grid;
-        }
-
-        .nav-links {
-          justify-content: start;
         }
 
         .grid {
@@ -309,11 +291,7 @@
 
       @media (max-width: 560px) {
         .hero {
-          padding: 1.35rem 1rem 3.6rem;
-        }
-
-        .nav {
-          margin-bottom: 3rem;
+          padding: 2.5rem 1rem 3.6rem;
         }
 
         .main {
@@ -328,18 +306,14 @@
     </style>
   </head>
   <body>
+    <blt-nav project="blt-cve" name="CVE">
+      <a href="/index.json">Index</a>
+      <a href="/feed.json">Feed</a>
+      <a href="/docs/PROTOCOL.md">Protocol</a>
+    </blt-nav>
     <div class="shell">
       <header class="hero">
         <div class="hero-inner">
-          <nav class="nav" aria-label="Primary">
-            <div class="brand">BLT-CVE</div>
-            <div class="nav-links">
-              <a href="/index.json">Index</a>
-              <a href="/feed.json">Feed</a>
-              <a href="/docs/PROTOCOL.md">Protocol</a>
-            </div>
-          </nav>
-
           <h1>BLT-CVE Registry</h1>
           <p>
             A decentralized, federated, machine-readable vulnerability namespace
