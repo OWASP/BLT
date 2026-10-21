@@ -25,22 +25,8 @@
       background: var(--bg); color: var(--fg); line-height: 1.55;
     }
     a { color: var(--brand); }
-    header {
-      position: sticky; top: 0; z-index: 10;
-      border-bottom: 1px solid var(--border); background: var(--card);
-    }
-    .bar {
-      max-width: 56rem; margin: 0 auto; padding: 0.85rem 1rem;
-      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-    }
-    .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit; }
-    .brand img { width: 2rem; height: 2rem; }
-    .brand strong { display: block; font-size: 0.9rem; }
-    .brand span { display: block; font-size: 0.75rem; color: var(--muted); }
-    .back {
-      display: inline-block; border: 1px solid var(--brand); color: var(--brand);
-      text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 0.4rem; font-size: 0.85rem; font-weight: 600;
-    }
+    blt-nav:not(:defined) { display: block; min-height: 61px; }
+    blt-nav:not(:defined) > * { display: none; }
     main { max-width: 56rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
     .badge {
       display: inline-block; border: 1px solid #fecaca; background: #fef2f2; color: var(--brand);
@@ -79,18 +65,11 @@
   </style>
 </head>
 <body>
-  <header>
-    <div class="bar">
-      <a class="brand" href="../../../index.html" aria-label="BLT-GSoC home">
-        <img src="../../../logo.svg" alt="" width="32" height="32" style="border-radius:999px">
-        <div>
-          <strong>BLT-GSoC</strong>
-          <span>Google Summer of Code 2026</span>
-        </div>
-      </a>
-      <a class="back" href="../../../gsoc2026.html">GSoC 2026</a>
-    </div>
-  </header>
+  <blt-nav project="blt-gsoc" name="GSoC" data-sticky>
+    <a href="../../../index.html">Home</a>
+    <a href="../../../gsoc2026.html">GSoC 2026</a>
+    <a href="./" aria-current="page">NetGuardian</a>
+  </blt-nav>
 
   <main>
     <span class="badge">GSoC 2026 Work Product</span>

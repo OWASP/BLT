@@ -22,9 +22,8 @@
     * { box-sizing: border-box; }
     body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background:var(--bg); color:var(--fg); line-height:1.55; }
     a { color: var(--brand); }
-    header { position:sticky; top:0; z-index:10; border-bottom:1px solid var(--border); background:var(--card); }
-    header > div { max-width:56rem; margin:0 auto; padding:0.85rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
-    header img { width:2rem; height:2rem; }
+    blt-nav:not(:defined) { display:block; min-height:61px; }
+    blt-nav:not(:defined) > * { display:none; }
     main { max-width:56rem; margin:0 auto; padding:1.25rem 1rem 3rem; }
     h1 { font-size:1.6rem; line-height:1.25; margin:0.5rem 0 1rem; }
     h2 { font-size:1.15rem; color:var(--brand); margin:1.75rem 0 0.6rem; }
@@ -44,12 +43,11 @@
   </style>
 </head>
 <body>
-<header>
-  <div>
-    <a href="../../../index.html" style="display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:inherit"><img src="../../../logo.svg" alt="" width="32" height="32" style="border-radius:999px"><div><p style="margin:0;font-size:0.9rem;font-weight:800">BLT-GSoC</p><p style="margin:0;font-size:0.75rem;color:var(--muted)">GSoC 2026</p></div></a>
-    <a href="../../../gsoc2026.html" style="border:1px solid var(--brand);color:var(--brand);text-decoration:none;padding:0.4rem 0.75rem;border-radius:0.4rem;font-size:0.85rem;font-weight:600">GSoC 2026</a>
-  </div>
-</header>
+<blt-nav project="blt-gsoc" name="GSoC" data-sticky>
+  <a href="../../../index.html">Home</a>
+  <a href="../../../gsoc2026.html">GSoC 2026</a>
+  <a href="./">NetGuardian</a>
+</blt-nav>
 <main>
 <div class="nav">
   <a href="./">← Work product</a>

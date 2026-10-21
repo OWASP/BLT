@@ -425,76 +425,15 @@ button.inline-flex {
 }
 
 /* ============================================================
-   HAMBURGER ICON — ANIMATED (bars → X)
+   OWASP BLT BAR — keep its space and hide its links until blt-nav.js runs
    ============================================================ */
-.hamburger {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    width: 18px;
-    height: 13px;
-    flex-shrink: 0;
-}
-
-.hamburger-line {
+blt-nav:not(:defined) {
     display: block;
-    width: 100%;
-    height: 2px;
-    background-color: currentColor;
-    border-radius: 2px;
-    transition: transform 0.28s ease, opacity 0.2s ease;
-    transform-origin: center;
+    min-height: 61px;
 }
 
-/* Animate to X when open */
-.hamburger.is-open .hamburger-line:nth-child(1) {
-    transform: translateY(5.5px) rotate(45deg);
-}
-
-.hamburger.is-open .hamburger-line:nth-child(2) {
-    opacity: 0;
-    transform: scaleX(0);
-}
-
-.hamburger.is-open .hamburger-line:nth-child(3) {
-    transform: translateY(-5.5px) rotate(-45deg);
-}
-
-/* ============================================================
-   MOBILE DRAWER — SMOOTH SLIDE ANIMATION
-   ============================================================ */
-
-/* Always in the DOM — visibility controlled by class, not display */
-#mobile-drawer {
-    display: block !important;
-    pointer-events: none;
-    visibility: hidden;
-    transition: visibility 0s linear 0.3s;
-}
-
-#mobile-overlay {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.drawer-panel {
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Open state */
-#mobile-drawer.drawer-open {
-    pointer-events: all;
-    visibility: visible;
-    transition: visibility 0s linear 0s;
-}
-
-#mobile-drawer.drawer-open #mobile-overlay {
-    opacity: 1;
-}
-
-#mobile-drawer.drawer-open .drawer-panel {
-    transform: translateX(0);
+blt-nav:not(:defined) > * {
+    display: none;
 }
 
 /* ============================================================

@@ -50,24 +50,14 @@
 <body
     class="bg-[#fafafa] font-sans text-gray-900 antialiased transition-colors duration-200 dark:bg-dark-base dark:text-gray-100">
 
-    <header
-        class="sticky top-0 z-50 border-b border-neutral-border bg-white transition-colors duration-200 dark:border-gray-800 dark:bg-dark-surface">
-        <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-            <a href="./" class="flex items-center gap-3" aria-label="BLT-GSoC home">
-                <img src="./logo.svg" alt="" width="32" height="32" class="h-8 w-8 rounded-full">
-                <div>
-                    <p class="text-sm font-extrabold leading-none">BLT-GSoC</p>
-                    <p class="text-xs font-semibold text-gray-500">Google Summer of Code</p>
-                </div>
-            </a>
-
-            <div class="flex items-center gap-2">
-                <a href="./" class="hidden items-center justify-center rounded-md border border-[#dc2626] px-4 py-2 text-sm font-semibold text-[#dc2626] transition hover:bg-[#dc2626] hover:text-white sm:inline-flex">
-                    <i class="fa-solid fa-arrow-left mr-2" aria-hidden="true"></i>Back to Home
-                </a>
-            </div>
-        </div>
-    </header>
+    <blt-nav project="blt-gsoc" name="GSoC" data-sticky>
+        <a href="./">Home</a>
+        <a href="gsoc2026.html">GSoC 2026</a>
+        <a href="progress-tracker.html">Progress Tracker</a>
+        <a href="mentor-guide.html" aria-current="page">Mentor Guide</a>
+        <a href="pr-report.html">PR Analytics</a>
+        <a href="https://git.owaspblt.org/BLT/BLT-GSOC" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source Code</a>
+    </blt-nav>
 
     <main class="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
 
