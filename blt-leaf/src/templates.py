@@ -6,12 +6,22 @@ def get_404_html():
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>404 - Page Not Found | BLT-Leaf</title>
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <script>
+        (function () {
+            var saved = null;
+            try { saved = localStorage.getItem('theme'); } catch (e) {}
+            var dark = saved === 'dark' || (saved !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.classList.toggle('dark', dark);
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' };</script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 </head>
-<body class="flex h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300">
+<body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300">
    
 
     <main class="flex-1 flex flex-col items-center justify-center p-6 text-center">

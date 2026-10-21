@@ -33,6 +33,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 
 <body class="flex min-h-screen flex-col bg-white text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
@@ -43,7 +44,7 @@
         <div class="mx-auto flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
             <div class="flex items-center gap-3">
                 <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    <img width="26" src="./static/logo.png" alt="OWASP BLT-Leaf" onerror="this.style.display='none'" />
+                    <img width="26" height="26" src="./static/blt-leaf-logo.svg" alt="BLT-Leaf" onerror="this.style.display='none'" />
                     <span class="font-bold text-slate-900 dark:text-white text-sm tracking-tight">BLT-LEAF</span>
                 </a>
             </div>
@@ -58,11 +59,6 @@
                 <a href="https://git.owaspblt.org/BLT/BLT-Leaf" target="_blank"
                     class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
                     <i class="fab fa-github"></i>Source Code</a>
-                <button id="themeToggle"
-                    class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
-                    title="Toggle dark/light mode">
-                    <i class="fas fa-moon" id="themeIcon"></i>
-                </button>
             </nav>
         </div>
     </header>

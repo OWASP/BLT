@@ -308,6 +308,7 @@
             animation: pr-row-glide-in 0.25s ease-out forwards;
         }
     </style>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 
 <body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
@@ -318,14 +319,14 @@
                 <!-- First line: Logo and Hamburger Menu -->
                 <div class="flex items-center justify-between">
                     <a href="/" class="flex shrink-0 items-center gap-1.5 hover:opacity-80 transition-opacity">
-                        <img width="20" src="./static/logo.png" alt="Logo" onerror="this.style.display='none'" />
+                        <img width="20" height="20" src="./static/blt-leaf-logo.svg" alt="BLT-Leaf" onerror="this.style.display='none'" />
                         <h1 class="text-xs font-bold text-slate-900 dark:text-white">BLT-LEAF</h1>
                     </a>
                     
                     <button id="mobileMenuBtn" 
                         class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 focus:outline-none dark:text-slate-400 dark:hover:bg-slate-700" 
-                        aria-label="Toggle Menu">
-                        <i class="fas fa-bars text-lg" id="menuIcon"></i>
+                        aria-label="BLT-Leaf menu">
+                        <i class="fas fa-ellipsis-vertical text-lg" id="menuIcon"></i>
                     </button>
                 </div>
 
@@ -341,11 +342,6 @@
                                 class="flex flex-col items-center justify-center gap-2 rounded-xl p-3 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 dark:text-slate-300 dark:bg-slate-900/50 dark:hover:bg-slate-900 transition-colors">
                                 <i class="fas fa-sync-alt" id="autoRefreshIconMobile"></i>
                                 <span class="text-[10px] uppercase tracking-wider">Sync</span>
-                            </button>
-                            <button id="themeToggleMobile" 
-                                class="flex flex-col items-center justify-center gap-2 rounded-xl p-3 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 dark:text-slate-300 dark:bg-slate-900/50 dark:hover:bg-slate-900 transition-colors">
-                                <i class="fas fa-moon" id="themeIconMobile"></i>
-                                <span class="text-[10px] uppercase tracking-wider">Theme</span>
                             </button>
                         </div>
 
@@ -415,7 +411,7 @@
             <div class="hidden md:flex h-16 items-center justify-between">
                 <div class="flex items-center gap-4 lg:gap-6">
                     <a href="/" class="flex shrink-0 items-center gap-2 hover:opacity-80 transition-opacity">
-                        <img width="28" src="./static/logo.png" alt="Logo" onerror="this.style.display='none'" />
+                        <img width="28" height="28" src="./static/blt-leaf-logo.svg" alt="BLT-Leaf" onerror="this.style.display='none'" />
                         <h1 class="text-sm font-bold text-slate-900 dark:text-white sm:text-base">BLT-LEAF</h1>
                     </a>
 
@@ -460,10 +456,6 @@
                         class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600 transition-colors"
                         title="Toggle auto-refresh">
                         <i class="fas fa-sync-alt" id="autoRefreshIcon"></i>
-                    </button>
-                    <button id="themeToggle"
-                        class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600">
-                        <i class="fas fa-moon" id="themeIcon"></i>
                     </button>
                     <a href="/how-it-works.html"
                         class="inline-flex items-center gap-2 rounded-lg px-2 sm:px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
@@ -3403,11 +3395,11 @@
                 const isOpen = !drawer.classList.contains('hidden');
                 if (isOpen) {
                     drawer.classList.add('hidden');
-                    menuIcon.classList.replace('fa-times', 'fa-bars');
+                    menuIcon.classList.replace('fa-times', 'fa-ellipsis-vertical');
                     document.body.style.overflow = '';
                 } else {
                     drawer.classList.remove('hidden');
-                    menuIcon.classList.replace('fa-bars', 'fa-times');
+                    menuIcon.classList.replace('fa-ellipsis-vertical', 'fa-times');
                     document.body.style.overflow = 'hidden';
                 }
             }
