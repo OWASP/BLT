@@ -1,18 +1,4 @@
-// Dark mode toggle
-const darkToggle = document.getElementById('dark-toggle');
-const html = document.documentElement;
-
-// Check for saved theme preference or default to light mode
-const currentTheme = localStorage.getItem('theme') || 'light';
-if (currentTheme === 'dark') {
-  html.classList.add('dark');
-}
-
-darkToggle.addEventListener('click', () => {
-  html.classList.toggle('dark');
-  const theme = html.classList.contains('dark') ? 'dark' : 'light';
-  localStorage.setItem('theme', theme);
-});
+// Dark mode: js/theme-init.js applies the saved theme; the OWASP BLT top bar toggles it.
 
 // Form submission
 const form = document.getElementById('ossh-form');

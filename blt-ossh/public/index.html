@@ -19,20 +19,20 @@
             primary: '#dc2626',
             'primary-dark': '#b91c1c',
             'neutral-border': '#e5e7eb',
-            'dark-base': '#111827',
-            'dark-surface': '#1F2937'
+            'dark-base': '#030712',
+            'dark-surface': '#111827'
           },
           fontFamily: {
-            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif']
           }
         }
       }
     };
   </script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="static/ossh-logo.svg" />
+  <script src="js/theme-init.js"></script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 
   <link
     rel="stylesheet"
@@ -52,9 +52,9 @@
 
     .dark {
       --blt-primary: #ef4444;
-      --blt-border: #374151;
-      --blt-surface: #1F2937;
-      --blt-background: #111827;
+      --blt-border: #1f2937;
+      --blt-surface: #111827;
+      --blt-background: #030712;
     }
 
     body {
@@ -74,7 +74,7 @@
       background:
         radial-gradient(circle at 50% 10%, rgba(239, 68, 68, 0.12), transparent 50%),
         radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.08), transparent 40%),
-        linear-gradient(to bottom, #1F2937 0%, #111827 100%);
+        linear-gradient(to bottom, #111827 0%, #030712 100%);
     }
 
     .surface-card {
@@ -129,9 +129,9 @@
     <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
       <a href="./" class="flex items-center gap-3" aria-label="OSSH home">
         <img
-          src="static/logo.png"
-          alt="BLT logo"
-          class="h-9 w-9 rounded-lg object-contain"
+          src="static/ossh-logo.svg"
+          alt="OSSH logo"
+          class="h-9 w-9 rounded-full object-contain"
           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
         />
         <span class="hidden h-9 w-9 items-center justify-center rounded-lg bg-red-600 text-sm font-extrabold text-white">
@@ -144,15 +144,6 @@
       </a>
 
       <div class="flex items-center gap-3">
-        <button
-          id="dark-toggle"
-          class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-          aria-label="Toggle dark mode"
-          type="button"
-        >
-          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
-          <i class="fa-solid fa-sun hidden dark:inline-block" aria-hidden="true"></i>
-        </button>
         <a
           href="https://git.owaspblt.org/BLT/BLT-OSSH"
           target="_blank"
