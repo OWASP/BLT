@@ -339,9 +339,9 @@ def test_render_team_join_message_uses_team_template():
         "T04T40NHX",
     )
     assert "Welcome to the OWASP Slack Community, <@U123>!" in message
-    assert "#introductions" in message
-    assert "#contribute" in message
-    assert "#project-blt" in message
+    assert "<#C0AM75HCZU7>" in message  # #introductions
+    assert "<#C04DH8HEPTR>" in message  # #contribute
+    assert "<#C2FF0UVHU>" in message  # #project-blt
 
 
 def test_workspace_welcome_message_links_known_channels():
@@ -1207,6 +1207,7 @@ def test_record_activity_logs_slack_post_event_even_without_workspace():
     }
     env = _Env()
     setattr(env, "DB", object())
+    setattr(env, "EVENT_LOG_LEVEL", "all")  # these events are diagnostic: logged at "all" only
     worker.d1_run = fake_d1_run
     worker.SCHEMA_READY = False
     try:
@@ -1251,6 +1252,7 @@ def test_record_activity_logs_slack_post_when_workspace_lookup_fails():
     }
     env = _Env()
     setattr(env, "DB", object())
+    setattr(env, "EVENT_LOG_LEVEL", "all")  # these events are diagnostic: logged at "all" only
     worker.d1_run = fake_d1_run
     worker.SCHEMA_READY = False
     try:
@@ -1299,6 +1301,7 @@ def test_record_activity_logs_slash_command_fields():
     }
     env = _Env()
     setattr(env, "DB", object())
+    setattr(env, "EVENT_LOG_LEVEL", "all")  # these events are diagnostic: logged at "all" only
     worker.d1_run = fake_d1_run
     worker.SCHEMA_READY = False
     try:
@@ -1392,6 +1395,7 @@ def test_record_activity_stores_slack_user_and_channel_metadata():
     }
     env = _Env()
     setattr(env, "DB", object())
+    setattr(env, "EVENT_LOG_LEVEL", "all")  # these events are diagnostic: logged at "all" only
     worker.d1_run = fake_d1_run
     worker.SCHEMA_READY = False
     try:

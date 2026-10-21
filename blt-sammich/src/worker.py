@@ -11,7 +11,7 @@ import time
 import traceback
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
 from urllib.parse import parse_qs, urlencode, urlparse
 
 try:
@@ -307,40 +307,12 @@ PROJECT_DATA = load_json_file(ROOT_DIR / "data" / "projects.json")
 REPO_DATA = load_json_file(ROOT_DIR / "data" / "repos.json")
 APP_VERSION = load_text_file(ROOT_DIR / "VERSION") or "unknown"
 
-TEAM_WELCOME_MESSAGES = {
-    "T04T40NHX": """:tada: *Welcome to the OWASP Slack Community, <@{user_id}>!* :tada:
-
-We're thrilled to have you here! Whether you're new to OWASP or a long-time contributor, this Slack workspace is the perfect place to connect, collaborate, and stay informed about all things OWASP.
-
-:small_blue_diamond: *Get Involved:*
-* Introduce yourself in *#introductions* so the community can welcome you.
-* Check out the *#contribute* channel to find ways to get involved with OWASP projects and initiatives.
-* Explore individual project channels, such as *#project-blt* and *#project-cve-lite-cli*,  to dive into specific projects that interest you.
-* Join our chapter channels, named *#chapter-name*, to connect with local OWASP members in your area.
-
-:small_blue_diamond: *Stay Updated:*
-* Visit *#amplify* for the latest updates and announcements.
-* Follow *#external-activities* for news about OWASP's engagement with the wider security community.
-
-:small_blue_diamond: *Connect and Learn:*
-* *#jobs*: Looking for new opportunities? Check out the latest job postings here.
-* *#leaders*: Connect with OWASP leaders and stay informed about leadership activities.
-* *#project-committee*: Engage with the committee overseeing OWASP projects.
-* *#gsoc*: Stay updated on Google Summer of Code initiatives.
-* *#github-admins*: Get support and discuss issues related to OWASP's GitHub repositories.
-* *#learning*: Share and find resources to expand your knowledge in the field of application security.
-
-We're excited to see the amazing contributions you'll make. If you have any questions or need assistance, don't hesitate to ask. Let's work together to make software security visible and improve the security of the software we all rely on.
-
-Welcome aboard! :rocket:"""
-}
+# Welcome texts live in data/message-<team_id>-team_join.md (one source per workspace).
 
 
 def get_team_message_template(team_id: str, event_name: str) -> Optional[str]:
     if not team_id:
         return None
-    if event_name == "team_join" and team_id in TEAM_WELCOME_MESSAGES:
-        return TEAM_WELCOME_MESSAGES[team_id]
     template_path = ROOT_DIR / "data" / "message-{0}-{1}.md".format(team_id, event_name)
     return load_text_file(template_path)
 
@@ -940,6 +912,67 @@ def model_event_type_for_activity(activity_kind: str, payload: Dict[str, Any]) -
     return str(raw_type or activity_kind)
 
 
+# --- Event log policy -------------------------------------------------------------------
+# EVENT_LOG_LEVEL decides which rows reach the events table (D1 free plan: 100k row writes a
+# day account-wide, and each events row costs ~6-7 of them with its five indexes).
+#   "joins" (default): only what features read back. Team_Join feeds the join history and
+#     stats; Team_Join_Welcome is the welcome-DM outcome (dedupe, logo-hit verification);
+#     Channel_Join_Message feeds the admin's per-channel counts; oauth_callback records
+#     installs. Failed or errored rows of any type are kept too.
+#   "all": every Slack event, command, interaction and Slack API response, as before, for
+#     diagnosing whether commands run.
+EVENT_LOG_LEVEL_JOINS = "joins"
+EVENT_LOG_LEVEL_ALL = "all"
+FEATURE_EVENT_TYPES = frozenset(
+    {"Team_Join", "Team_Join_Welcome", "Channel_Join_Message", "oauth_callback"}
+)
+# Diagnostic types the retention job prunes (an IN list so it can use idx_events_type_created).
+DIAGNOSTIC_EVENT_TYPES = (
+    "Message",
+    "app_home_opened",
+    "Slack_API_Response",
+    "Interaction",
+    "Command",
+    "Channel_Join",
+    "App_Mention",
+    "member_joined_channel",
+    "Http_Request",
+    "unparseable_event",
+    "unparseable_interaction",
+)
+EVENT_RETENTION_DEFAULT_DAYS = 14
+EVENT_RETENTION_DEFAULT_BATCH = 100
+EVENT_RETENTION_MAX_BATCH = 500
+SLACK_EVENT_CLAIM_TTL_HOURS = 48
+
+
+def event_log_level(env: Any) -> str:
+    value = str(env_value(env, "EVENT_LOG_LEVEL", "") or "").strip().lower()
+    return EVENT_LOG_LEVEL_ALL if value == EVENT_LOG_LEVEL_ALL else EVENT_LOG_LEVEL_JOINS
+
+
+def should_log_event(env: Any, event_type: str, status: str = "success") -> bool:
+    if event_log_level(env) == EVENT_LOG_LEVEL_ALL:
+        return True
+    if str(status or "").lower() in ("failed", "error"):
+        return True
+    return str(event_type or "") in FEATURE_EVENT_TYPES
+
+
+def slack_response_summary(response: Any) -> Dict[str, Any]:
+    """The parts of a Slack API response worth keeping: not the echoed message and blocks."""
+    if not isinstance(response, dict):
+        return {}
+    summary = {
+        key: response.get(key)
+        for key in ("ok", "error", "warning", "needed", "provided", "ts", "channel")
+        if response.get(key) not in (None, "")
+    }
+    if isinstance(summary.get("channel"), dict):
+        summary["channel"] = str((summary["channel"] or {}).get("id") or "")
+    return summary
+
+
 def verify_slack_signature(
     signing_secret: str,
     timestamp: str,
@@ -1322,6 +1355,10 @@ async def record_activity(
         getattr(env, "DB")
     except Exception:
         return
+    # At the default level a diagnostic event costs nothing: no event row and none of the
+    # team/app/user/channel upserts below (each a D1 write on every Slack event).
+    if not should_log_event(env, model_event_type_for_activity(activity_kind, payload)):
+        return
 
     await ensure_schema(env)
     received_at = datetime.now(timezone.utc).isoformat()
@@ -1402,7 +1439,20 @@ async def record_activity(
                 "record_activity_user_upsert_failed",
                 {"team_id": team_id, "user_id": user_id},
             )
-    if workspace_id and channel_id:
+    if workspace_id and channel_id and not channel_metadata.get("metadata_json"):
+        # An event names a channel by id only. Upserting that would reset the member count,
+        # purpose and flags a conversations.list refresh stored, so only add unknown channels.
+        try:
+            await db_ensure_channel(
+                env, workspace_id, channel_id, channel_name or channel_id, team_id=team_id
+            )
+        except Exception as error:
+            log_exception_one_line(
+                error,
+                "record_activity_channel_upsert_failed",
+                {"workspace_id": workspace_id, "channel_id": channel_id},
+            )
+    elif workspace_id and channel_id:
         try:
             await db_upsert_channel(
                 env,
@@ -2383,6 +2433,23 @@ async def db_delete_workspace(env: Any, workspace_id: Any) -> bool:
     return True
 
 
+async def db_ensure_channel(
+    env: Any, workspace_id: Any, channel_id: str, channel_name: str, team_id: str = ""
+) -> bool:
+    """Insert a channel row unless one exists; an existing row (and its metadata) is untouched."""
+    await ensure_schema(env)
+    now = utc_now()
+    await d1_run(
+        env,
+        (
+            "INSERT INTO channels (workspace_id, team_id, channel_id, channel_name, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(team_id, channel_id) DO NOTHING"
+        ),
+        [workspace_id, team_id or "", channel_id, channel_name or channel_id, now, now],
+    )
+    return True
+
+
 async def db_upsert_channel(
     env: Any,
     workspace_id: Any,
@@ -2763,6 +2830,8 @@ async def db_log_event(
     slack_token: str = "",
     internal_error: str = "",
 ) -> bool:
+    if not should_log_event(env, event_type, status):
+        return False
     return await db_insert_event(
         env,
         workspace_id,
@@ -3142,6 +3211,80 @@ async def db_purge_events(env: Any, workspace_id: Any) -> Dict[str, Any]:
     return {"ok": True, "deleted": int(meta.get("changes") or 0)}
 
 
+async def db_claim_slack_event(
+    env: Any, event_id: str, team_id: str = "", event_type: str = ""
+) -> bool:
+    """True the first time a Slack event id is seen, False for a repeat delivery of it.
+
+    One insert into a primary key, so two deliveries racing each other (Slack retries after
+    3 seconds, often while the first is still sending the welcome) cannot both win. The rows
+    are ids only and prune_event_log drops them after SLACK_EVENT_CLAIM_TTL_HOURS.
+    """
+    if not event_id:
+        return True
+    await ensure_schema(env)
+    result = await d1_run(
+        env,
+        (
+            "INSERT INTO slack_event_claims (event_id, team_id, event_type, created_at) "
+            "VALUES (?, ?, ?, ?) ON CONFLICT(event_id) DO NOTHING"
+        ),
+        [event_id, team_id or "", event_type or "", utc_now()],
+    )
+    meta = (result or {}).get("meta") or {}
+    return int(meta.get("changes") or 0) > 0
+
+
+def env_int(env: Any, name: str, default: int, low: int, high: int) -> int:
+    try:
+        value = int(str(env_value(env, name, "") or "").strip() or default)
+    except ValueError:
+        value = default
+    return max(low, min(high, value))
+
+
+async def prune_event_log(env: Any, now: Optional[datetime] = None) -> Dict[str, Any]:
+    """Delete diagnostic events older than EVENT_RETENTION_DAYS, a small batch at a time.
+
+    Runs on the first cron dispatch of each hour (blt-cron calls every 5 minutes). A deleted
+    events row costs ~6-7 row writes with its indexes, so the default 100 rows an hour is
+    ~2,400 rows (~16k row writes) a day: the backlog drains over days without crowding the
+    account's 100k daily writes. EVENT_RETENTION_DAYS=0 turns it off.
+    """
+    current = now or datetime.fromtimestamp(time.time(), timezone.utc)
+    if current.minute >= 5:
+        return {"skipped": "not_top_of_hour"}
+    days = env_int(env, "EVENT_RETENTION_DAYS", EVENT_RETENTION_DEFAULT_DAYS, 0, 3650)
+    if days <= 0:
+        return {"skipped": "disabled"}
+    batch = env_int(
+        env, "EVENT_RETENTION_BATCH", EVENT_RETENTION_DEFAULT_BATCH, 1, EVENT_RETENTION_MAX_BATCH
+    )
+    await ensure_schema(env)
+    cutoff = (current - timedelta(days=days)).isoformat()
+    placeholders = ", ".join("?" for _ in DIAGNOSTIC_EVENT_TYPES)
+    result = await d1_run(
+        env,
+        (
+            "DELETE FROM events WHERE id IN (SELECT id FROM events WHERE event_type IN ({0}) "
+            "AND created_at < ? LIMIT ?)".format(placeholders)
+        ),
+        list(DIAGNOSTIC_EVENT_TYPES) + [cutoff, batch],
+    )
+    deleted = int(((result or {}).get("meta") or {}).get("changes") or 0)
+    claims_deleted = 0
+    try:
+        claims = await d1_run(
+            env,
+            "DELETE FROM slack_event_claims WHERE created_at < ?",
+            [(current - timedelta(hours=SLACK_EVENT_CLAIM_TTL_HOURS)).isoformat()],
+        )
+        claims_deleted = int(((claims or {}).get("meta") or {}).get("changes") or 0)
+    except Exception as error:
+        log_exception_one_line(error, "slack_event_claims_prune_failed")
+    return {"events_deleted": deleted, "claims_deleted": claims_deleted, "cutoff": cutoff}
+
+
 async def db_get_last_event_time(
     env: Any, workspace_id: Any, event_type: str
 ) -> str:
@@ -3205,7 +3348,8 @@ async def db_mark_join_message_verified_by_tracking(
             env,
             (
                 "SELECT id, request_data FROM events "
-                "WHERE event_type IN ('Channel_Join_Message', 'Team_Join', 'Team_Join_Welcome') "
+                # Only these two types carry a logo_tracking_id; Team_Join rows never match.
+                "WHERE event_type IN ('Channel_Join_Message', 'Team_Join_Welcome') "
                 "AND created_at >= ? AND request_data LIKE ? AND request_data LIKE ? "
                 "ORDER BY id DESC LIMIT 1"
             ),
@@ -3896,13 +4040,13 @@ async def blt_welcome_response(form: Dict[str, str], env: Any) -> Dict[str, Any]
                     "command": "/blt-welcome",
                     "logo_url": blt_logo_url(env),
                     "logo_tracking_id": logo_tracking_id,
-                    "slack_response": send_result,
+                    "slack_response": slack_response_summary(send_result),
                 },
                 separators=(",", ":"),
             ),
             channel_id=dm_channel,
             slack_team_id=team_id,
-            slack_response_data=json.dumps(send_result, sort_keys=True),
+            slack_response_data=json.dumps(slack_response_summary(send_result), sort_keys=True),
             webhook_body_type="slash_command",
             webhook_event_subtype="blt_welcome",
         )
@@ -4954,12 +5098,21 @@ async def schedule_pr_review_asks(
         except Exception as error:
             log_exception_one_line(error, "pr_review_links_failed", {"team_id": team_id})
 
+    await run_after_response(ctx, deferred)
+    return True
+
+
+async def run_after_response(ctx: Any, deferred: Callable[[], Awaitable[None]]) -> None:
+    """Run `deferred` after the response is sent (ctx.waitUntil), or now when there's no ctx.
+
+    Work handed to waitUntil keeps running when the client hangs up: Slack drops the connection
+    after 3 seconds, and the Workers runtime cancels a request's own work when it does.
+    """
     wait_until = getattr(ctx, "waitUntil", None) if ctx is not None else None
     if wait_until is not None:
         wait_until(asyncio.ensure_future(deferred()))
     else:
         await deferred()
-    return True
 
 
 async def process_pr_review_nudges(
@@ -5024,7 +5177,14 @@ async def handle_cron_dispatch(request: Any, env: Any) -> Any:
     except Exception as error:
         log_exception_one_line(error, "scheduled_pr_review_nudges_failed")
         nudges = {"error": "pr_review_nudges_failed"}
-    return json_response({"ok": True, "reminders": summary, "pr_review_nudges": nudges})
+    try:
+        retention = await prune_event_log(env)
+    except Exception as error:
+        log_exception_one_line(error, "scheduled_event_retention_failed")
+        retention = {"error": "event_retention_failed"}
+    return json_response(
+        {"ok": True, "reminders": summary, "pr_review_nudges": nudges, "event_retention": retention}
+    )
 
 
 async def command_response(form: Dict[str, str], env: Any) -> Dict[str, Any]:
@@ -5291,6 +5451,9 @@ async def log_slack_api_response(
     try:
         getattr(env, "DB")
     except Exception:
+        return
+    # Successful calls are diagnostic: skip them (and the workspace read) unless logging all.
+    if not should_log_event(env, "Slack_API_Response", "success" if ok else "error"):
         return
     workspace_id = None
     try:
@@ -5885,19 +6048,71 @@ async def handle_team_join_event(
                     "logo_tracking_id": logo_tracking_id,
                     "source_team_id": team_id,
                     "user_team_id": user_team_id,
-                    "slack_response": send_result,
+                    "slack_response": slack_response_summary(send_result),
                 },
                 separators=(",", ":"),
             ),
             channel_id=dm_channel,
             slack_team_id=effective_team_id,
-            slack_response_data=json.dumps(send_result, sort_keys=True),
+            slack_response_data=json.dumps(slack_response_summary(send_result), sort_keys=True),
             webhook_body_type="event_callback",
             webhook_event_id=event_id,
             webhook_event_time=str((envelope or {}).get("event_time") or ""),
             webhook_event_subtype="team_join",
         )
     return {"ok": bool(send_result.get("ok")), "action": "team_join_welcome_sent"}
+
+
+async def accept_team_join_delivery(
+    env: Any, ctx: Any, payload: Dict[str, Any], retry_num: str = ""
+) -> Any:
+    """Answer a team_join delivery at once and send the welcome after the response.
+
+    Before, the Team_Join row, the DM open and the post all ran before Slack got its 200.
+    That took over 3 seconds, so Slack retried (at ~3s, ~1min and ~5min) and each retry that
+    arrived before the first welcome was logged sent another DM; when Slack hung up, the
+    runtime could also cancel the first attempt part way. Now the event id is claimed first
+    (one atomic insert), repeats are dropped, and the work runs in waitUntil.
+    """
+    event_id = str(payload.get("event_id") or "").strip()
+    team_id = payload_team_id(payload)
+    try:
+        first_delivery = await db_claim_slack_event(env, event_id, team_id, "team_join")
+    except Exception as error:
+        # Without the claims table (migration not applied) fall back to the old behaviour.
+        log_exception_one_line(
+            error, "team_join_claim_failed", {"team_id": team_id, "event_id": event_id}
+        )
+        first_delivery = True
+    if not first_delivery:
+        log_json_event(
+            "team_join_duplicate_delivery",
+            {"team_id": team_id, "event_id": event_id, "retry_num": retry_num},
+        )
+        return json_response({"ok": True, "action": "duplicate_team_join_delivery"})
+
+    async def deferred() -> None:
+        try:
+            await record_activity(env, "event", payload)
+        except Exception as error:
+            log_exception_one_line(error, "team_join_record_failed", {"event_id": event_id})
+        try:
+            result = await handle_team_join_event(
+                env, payload.get("event") or {}, team_id=team_id, envelope=payload
+            )
+            if not result.get("ok"):
+                log_exception_one_line(
+                    RuntimeError(str(result.get("error") or "team_join_welcome_failed")),
+                    "team_join_welcome_failed",
+                    {"team_id": team_id, "event_id": event_id},
+                )
+        except Exception as error:
+            log_exception_one_line(
+                error, "team_join_welcome_failed", {"team_id": team_id, "event_id": event_id}
+            )
+
+    await run_after_response(ctx, deferred)
+    return json_response({"ok": True, "action": "team_join_accepted"})
 
 
 async def handle_channel_join_event(
@@ -6009,7 +6224,7 @@ async def handle_channel_join_event(
         ),
         channel_id=channel_id,
         slack_team_id=effective_team_id,
-        slack_response_data=json.dumps(send_result, sort_keys=True),
+        slack_response_data=json.dumps(slack_response_summary(send_result), sort_keys=True),
         webhook_body_type="event_callback",
         webhook_event_subtype="channel_join",
     )
@@ -7027,7 +7242,10 @@ def render_admin_html(
         <h1 class="text-3xl font-bold">BLT-Sammich Database Admin</h1>
         <p class="text-gray-500 text-sm">Browse, edit, create, and delete database records.</p>
       </div>
-      <a href="/" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50"><i class="fas fa-home"></i>Homepage</a>
+      <div class="flex gap-2">
+        <a href="{admin_url}?view=slack-apps" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50"><i class="fas fa-robot"></i>Slack app audit</a>
+        <a href="/" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50"><i class="fas fa-home"></i>Homepage</a>
+      </div>
     </div>
     {alert}
     {database_admin_html}
@@ -7040,11 +7258,333 @@ def render_admin_html(
     )
 
 
+# --- Slack app audit (read-only) -------------------------------------------------------
+# Lists the bots and apps installed in a workspace from what sammich's bot token can see:
+# users.list (bot and app users, with their app and bot ids; users:read) and auth.test (the
+# scopes of sammich's own token). Other apps' scopes and install dates need admin APIs
+# (team.integrationLogs, admin.apps.*) that a bot token can't call, so they're not shown.
+# Each app is matched against blt-panini's curated Slack app list and banned-app list.
+# Nothing in Slack is changed. A users.list page is up to 1000 members; the OWASP workspace
+# is ~48 pages, so the admin page walks the cursor a few pages per request.
+
+SLACK_APP_AUDIT_DEFAULT_TEAM_ID = "T04T40NHX"
+SLACK_APP_AUDIT_PAGES_PER_CALL = 5
+SLACK_APP_AUDIT_PAGE_SIZE = 1000
+SLACK_APP_AUDIT_STALE_DAYS = 730
+PANINI_DEFAULT_BASE_URL = "https://panini.owaspblt.org"
+PANINI_LISTS_TTL_SECONDS = 3600
+_panini_lists_cache: Dict[str, Any] = {"at": 0.0, "lists": None}
+SLACK_TEST_APP_NAME = re.compile(r"\b(test|testing|demo|untitled|sandbox)\b|^(my)?bot\d*$", re.I)
+
+
+def normalize_app_name(name: Any) -> str:
+    return re.sub(r"[^a-z0-9]", "", str(name or "").lower())
+
+
+def build_panini_indexes(
+    catalog: Any, banned: Any
+) -> Dict[str, Dict[str, Any]]:
+    """Index blt-panini's slack_apps.json by app id (from its slack.com/apps URL) and by name,
+    and banned_apps.json (active entries) by name, listing the countries."""
+    by_id: Dict[str, Any] = {}
+    by_name: Dict[str, Any] = {}
+    for app in catalog if isinstance(catalog, list) else []:
+        if not isinstance(app, dict):
+            continue
+        match = re.search(r"/apps/(A[A-Z0-9]+)", str(app.get("source_url") or ""))
+        if match:
+            by_id[match.group(1)] = app
+        key = normalize_app_name(app.get("app_name"))
+        if key:
+            by_name.setdefault(key, app)
+    banned_by_name: Dict[str, Any] = {}
+    for row in banned if isinstance(banned, list) else []:
+        fields = (row or {}).get("fields") if isinstance(row, dict) else None
+        if not isinstance(fields, dict) or not fields.get("is_active", True):
+            continue
+        key = normalize_app_name(fields.get("app_name"))
+        if not key:
+            continue
+        entry = banned_by_name.setdefault(key, {"countries": [], "reasons": []})
+        country = str(fields.get("country_name") or fields.get("country_code") or "")
+        if country and country not in entry["countries"]:
+            entry["countries"].append(country)
+        reason = str(fields.get("ban_reason") or "")
+        if reason and reason not in entry["reasons"]:
+            entry["reasons"].append(reason)
+    return {"by_id": by_id, "by_name": by_name, "banned": banned_by_name}
+
+
+def slack_app_audit_entry(
+    member: Dict[str, Any],
+    indexes: Dict[str, Dict[str, Any]],
+    own_app_ids: Tuple[str, ...] = (),
+    now_ts: Optional[float] = None,
+) -> Optional[Dict[str, Any]]:
+    """One audit row for a users.list member that is a bot or app user, else None."""
+    if not isinstance(member, dict):
+        return None
+    is_bot = bool(member.get("is_bot"))
+    is_app_user = bool(member.get("is_app_user"))
+    is_workflow_bot = bool(member.get("is_workflow_bot"))
+    if not (is_bot or is_app_user or is_workflow_bot) or member.get("id") == "USLACKBOT":
+        return None
+    profile = member.get("profile") if isinstance(member.get("profile"), dict) else {}
+    app_id = str(profile.get("api_app_id") or "").strip()
+    if app_id == "A00":  # Slack's placeholder for legacy custom bot integrations
+        app_id = ""
+    name = str(
+        member.get("real_name") or profile.get("real_name") or member.get("name") or ""
+    ).strip()
+    catalog = (indexes.get("by_id") or {}).get(app_id) or (indexes.get("by_name") or {}).get(
+        normalize_app_name(name)
+    )
+    banned = (indexes.get("banned") or {}).get(normalize_app_name(name)) or (
+        (indexes.get("banned") or {}).get(normalize_app_name((catalog or {}).get("app_name")))
+        if catalog
+        else None
+    )
+    updated_ts = int(member.get("updated") or 0)
+    current = now_ts if now_ts is not None else time.time()
+    deleted = bool(member.get("deleted"))
+    rating = str((catalog or {}).get("security_rating") or "").upper()
+
+    flags: List[str] = []
+    if banned:
+        flags.append("banned")
+    if rating in ("C", "D", "E", "F"):
+        flags.append("low_rating")
+    if not app_id:
+        flags.append("legacy_bot")
+    if not catalog and not is_workflow_bot:
+        flags.append("unknown")
+    if SLACK_TEST_APP_NAME.search(name):
+        flags.append("test_app")
+    if updated_ts and current - updated_ts > SLACK_APP_AUDIT_STALE_DAYS * 86400:
+        flags.append("stale")
+
+    if app_id and app_id in own_app_ids:
+        risk = "ours"
+    elif deleted:
+        risk = "inactive"
+    elif banned or rating in ("D", "E", "F") or "legacy_bot" in flags:
+        risk = "high"
+    elif "unknown" in flags or "test_app" in flags or rating == "C":
+        risk = "medium"
+    else:
+        risk = "low"
+    return {
+        "name": name,
+        "user_id": str(member.get("id") or ""),
+        "bot_id": str(profile.get("bot_id") or ""),
+        "app_id": app_id,
+        "kind": "workflow" if is_workflow_bot else ("app" if app_id else "legacy_bot"),
+        "deleted": deleted,
+        "profile_updated": (
+            datetime.fromtimestamp(updated_ts, timezone.utc).date().isoformat()
+            if updated_ts
+            else ""
+        ),
+        "slack_directory_url": "https://slack.com/apps/{0}".format(app_id) if app_id else "",
+        "catalog": (
+            {
+                key: catalog.get(key)
+                for key in (
+                    "app_name",
+                    "developer",
+                    "security_rating",
+                    "data_access",
+                    "verified",
+                    "permissions",
+                    "security_notes",
+                )
+            }
+            if catalog
+            else None
+        ),
+        "banned": banned,
+        "flags": flags,
+        "risk": risk,
+    }
+
+
+async def load_panini_lists(env: Any) -> Dict[str, Dict[str, Any]]:
+    """blt-panini's slack_apps.json and banned_apps.json, indexed; cached per isolate."""
+    now = time.time()
+    cached = _panini_lists_cache.get("lists")
+    if cached is not None and now - _panini_lists_cache["at"] < PANINI_LISTS_TTL_SECONDS:
+        return cached
+    base = str(env_value(env, "PANINI_BASE_URL", "") or PANINI_DEFAULT_BASE_URL).rstrip("/")
+    lists: Dict[str, Any] = {}
+    for key, path in (("catalog", "/slack_apps.json"), ("banned", "/banned_apps.json")):
+        try:
+            ok, payload, _ = await fetch_json(base + path)
+        except Exception as error:
+            log_exception_one_line(error, "panini_list_fetch_failed", {"path": path})
+            ok, payload = False, []
+        lists[key] = payload if ok else []
+    indexes = build_panini_indexes(lists.get("catalog"), lists.get("banned"))
+    indexes["counts"] = {
+        "catalog": len(lists.get("catalog") or []),
+        "banned": len(lists.get("banned") or []),
+    }
+    if indexes["counts"]["catalog"]:
+        _panini_lists_cache.update(at=now, lists=indexes)
+    return indexes
+
+
+async def slack_token_scopes(token: str) -> List[str]:
+    """The scopes granted to `token` (auth.test's x-oauth-scopes header)."""
+    if fetch is None or not token:
+        return []
+    response = await fetch(
+        "https://slack.com/api/auth.test",
+        _to_js_options({"method": "POST", "headers": {"Authorization": "Bearer " + token}}),
+    )
+    header = response.headers.get("x-oauth-scopes") or ""
+    return sorted(scope.strip() for scope in str(header).split(",") if scope.strip())
+
+
+async def slack_apps_audit_page(
+    env: Any, team_id: str, cursor: str = "", pages: int = SLACK_APP_AUDIT_PAGES_PER_CALL
+) -> Dict[str, Any]:
+    token = str(await db_get_workspace_bot_token(env, team_id=team_id) or "").strip()
+    if not token:
+        return {"ok": False, "error": "no_bot_token_for_team", "team_id": team_id}
+    workspace = await db_get_workspace_by_team(env, team_id)
+    own_app_ids = tuple(
+        value for value in (str((workspace or {}).get("app_id") or ""),) if value
+    )
+    indexes = await load_panini_lists(env)
+    result: Dict[str, Any] = {
+        "ok": True,
+        "team_id": team_id,
+        "apps": [],
+        "members_scanned": 0,
+        "next_cursor": "",
+        "panini": indexes.get("counts") or {},
+    }
+    if not cursor:
+        try:
+            result["own_token_scopes"] = await slack_token_scopes(token)
+        except Exception as error:
+            log_exception_one_line(error, "slack_audit_scopes_failed", {"team_id": team_id})
+    next_cursor = cursor
+    for _ in range(max(1, int(pages))):
+        query = {"limit": str(SLACK_APP_AUDIT_PAGE_SIZE)}
+        if next_cursor:
+            query["cursor"] = next_cursor
+        ok, payload, status = await fetch_json(
+            "https://slack.com/api/users.list?{0}".format(urlencode(query)),
+            headers={"Authorization": "Bearer {0}".format(token)},
+        )
+        if status == 429 or payload.get("error") == "ratelimited":
+            result["retry_after"] = 30
+            break
+        if not ok or not payload.get("ok"):
+            result.update(ok=False, error=str(payload.get("error") or "users_list_failed"))
+            break
+        members = payload.get("members") or []
+        result["members_scanned"] += len(members)
+        for member in members:
+            entry = slack_app_audit_entry(member, indexes, own_app_ids)
+            if entry:
+                result["apps"].append(entry)
+        next_cursor = str((payload.get("response_metadata") or {}).get("next_cursor") or "")
+        if not next_cursor:
+            break
+    result["next_cursor"] = next_cursor
+    return result
+
+
+def render_slack_apps_audit_html(env: Any, team_id: str) -> str:
+    """The audit page: it pages through the JSON endpoint and fills the table client-side."""
+    json_url = "{0}?{1}".format(
+        admin_path(env), urlencode({"view": "slack-apps", "format": "json", "team_id": team_id})
+    )
+    return (
+        "<!doctype html><html><head><meta charset='utf-8'>"
+        "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+        "<title>Slack app audit</title><style>"
+        "body{font:14px system-ui,sans-serif;margin:16px;color:#111;background:#fff}"
+        "table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid #ddd;padding:4px 6px;"
+        "text-align:left;vertical-align:top}th{position:sticky;top:0;background:#f5f5f5}"
+        ".high{background:#fde2e2}.medium{background:#fff4d6}.ours{background:#e2f0fd}"
+        ".inactive{color:#888}code{font-size:12px}small{color:#555}</style></head><body>"
+        "<p><a href='" + html_escape(admin_path(env)) + "'>&larr; Admin</a></p>"
+        "<h1>Slack app audit: " + html_escape(team_id) + "</h1>"
+        "<p>Read-only. Bots and apps from <code>users.list</code>, matched against blt-panini's "
+        "Slack app list and banned-app list. Install dates and other apps' scopes need Slack admin "
+        "APIs, which a bot token can't call. <em>Profile updated</em> is the bot user's last "
+        "profile change, not its install date.</p>"
+        "<p id='status'>Loading&hellip;</p><p id='scopes'></p>"
+        "<label><input type='checkbox' id='showInactive'> Show deleted bots</label> "
+        "<label><input type='checkbox' id='showLow' checked> Show low-risk and workflow bots</label>"
+        "<table><thead><tr><th>Risk</th><th>Name</th><th>Kind</th><th>App id</th>"
+        "<th>Profile updated</th><th>Flags</th><th>Panini</th></tr></thead><tbody id='rows'></tbody></table>"
+        "<script>(function(){"
+        "var url=" + json.dumps(json_url) + ",apps=[],order={high:0,medium:1,low:2,ours:3,inactive:4};"
+        "function cell(tr,text,href){var td=document.createElement('td');if(href){var a=document.createElement('a');"
+        "a.href=href;a.rel='noopener';a.target='_blank';a.textContent=text;td.appendChild(a);}else{td.textContent=text;}"
+        "tr.appendChild(td);}"
+        "function render(){var body=document.getElementById('rows');body.textContent='';"
+        "var inactive=document.getElementById('showInactive').checked,low=document.getElementById('showLow').checked;"
+        "apps.slice().sort(function(a,b){return (order[a.risk]-order[b.risk])||a.name.localeCompare(b.name);})"
+        ".forEach(function(a){if(a.risk==='inactive'&&!inactive)return;if((a.risk==='low')&&!low)return;"
+        "var tr=document.createElement('tr');tr.className=a.risk;cell(tr,a.risk);cell(tr,a.name);cell(tr,a.kind);"
+        "cell(tr,a.app_id,a.slack_directory_url);cell(tr,a.profile_updated);"
+        "cell(tr,a.flags.join(', ')+(a.banned?' (banned in: '+a.banned.countries.join(', ')+')':''));"
+        "var c=a.catalog;cell(tr,c?(c.app_name+' / rating '+(c.security_rating||'?')+' / data '+(c.data_access||'?')):'not listed');"
+        "body.appendChild(tr);});}"
+        "document.getElementById('showInactive').onchange=render;document.getElementById('showLow').onchange=render;"
+        "function page(cursor,scanned){fetch(url+(cursor?'&cursor='+encodeURIComponent(cursor):''),"
+        "{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(d){"
+        "if(!d.ok){document.getElementById('status').textContent='Error: '+(d.error||'unknown');return;}"
+        "if(d.own_token_scopes){document.getElementById('scopes').textContent='Sammich token scopes: '+d.own_token_scopes.join(', ');}"
+        "apps=apps.concat(d.apps);scanned+=d.members_scanned;render();"
+        "var counts={};apps.forEach(function(a){counts[a.risk]=(counts[a.risk]||0)+1;});"
+        "var summary=scanned+' members scanned, '+apps.length+' bots/apps: '+JSON.stringify(counts);"
+        "if(d.next_cursor){document.getElementById('status').textContent=summary+' (loading more"
+        "'+(d.retry_after?', rate limited, waiting '+d.retry_after+'s':'')+')';"
+        "setTimeout(function(){page(d.next_cursor,scanned);},(d.retry_after||15)*1000);}"
+        "else{document.getElementById('status').textContent=summary+' (done)';}"
+        "}).catch(function(e){document.getElementById('status').textContent='Error: '+e;});}"
+        "page('',0);})();</script></body></html>"
+    )
+
+
+async def handle_slack_apps_audit(request: Any, env: Any, params: Dict[str, List[str]]) -> Any:
+    team_id = str((params.get("team_id") or [""])[0] or "").strip() or str(
+        env_value(env, "SLACK_AUDIT_TEAM_ID", "") or SLACK_APP_AUDIT_DEFAULT_TEAM_ID
+    )
+    if not re.fullmatch(r"T[A-Z0-9]{2,20}", team_id):
+        return json_response({"ok": False, "error": "invalid_team_id"}, status=400)
+    if (params.get("format") or [""])[0] != "json":
+        return build_response(
+            render_slack_apps_audit_html(env, team_id),
+            content_type="text/html; charset=utf-8",
+            headers={"cache-control": "no-store"},
+        )
+    cursor = str((params.get("cursor") or [""])[0] or "")
+    try:
+        payload = await slack_apps_audit_page(env, team_id, cursor)
+    except Exception as error:
+        log_exception_one_line(error, "slack_apps_audit_failed", {"team_id": team_id})
+        payload = {"ok": False, "error": "audit_failed"}
+    return build_response(
+        json.dumps(payload),
+        content_type="application/json; charset=utf-8",
+        headers={"cache-control": "no-store"},
+    )
+
+
 async def handle_admin_get(request: Any, env: Any) -> Any:
     if not is_admin_request(request, env):
         return basic_auth_response()
     parsed_url = urlparse(request.url)
     params = parse_qs(parsed_url.query)
+    if (params.get("view") or [""])[0] == "slack-apps":
+        return await handle_slack_apps_audit(request, env, params)
     message = params.get("message", [""])[0]
     selected_table = params.get("table", ["teams"])[0]
     edit_pk = params.get("edit", [""])[0]
@@ -7440,6 +7980,19 @@ async def handle_request(request: Any, env: Any, ctx: Any = None) -> Any:
         signature = request.headers.get("x-slack-signature", "")
         if not verify_slack_signature(signing_secret, timestamp, body_text, signature):
             return build_response("Invalid Slack signature.", status=401)
+
+        event_object = parsed_events_payload.get("event")
+        if (
+            activity_kind == "event"
+            and isinstance(event_object, dict)
+            and event_object.get("type") == "team_join"
+        ):
+            return await accept_team_join_delivery(
+                env,
+                ctx,
+                parsed_events_payload,
+                retry_num=str(request.headers.get("x-slack-retry-num") or ""),
+            )
 
         if activity_kind:
             await record_activity(env, activity_kind, parsed_events_payload)

@@ -307,6 +307,21 @@ Each call reads only the due reminders through the `(status, due_at)` index (at 
 
 The same call sends the 24-hour peer review follow-ups: one read through the partial `nudge_due_at` index, at most 3 a call, one write each.
 
+The first call of each hour also prunes the event log: it deletes up to `EVENT_RETENTION_BATCH` (default 100, max 500) diagnostic events older than `EVENT_RETENTION_DAYS` (default 14; `0` turns pruning off), and team_join claims older than 48 hours. A deleted events row costs about 6-7 D1 row writes with its indexes.
+
+### Event logging
+
+`EVENT_LOG_LEVEL` (a plain var) decides what reaches the `events` table:
+
+- `joins` (default): only rows features read back — `Team_Join` (join history and stats), `Team_Join_Welcome` (welcome DM outcome, dedupe, logo-hit verification), `Channel_Join_Message` (admin per-channel counts), `oauth_callback` (installs) — plus failed or errored rows of any type.
+- `all`: also every message, App Home open, slash command, interaction and Slack API response, for diagnosing whether commands run.
+
+team_join deliveries are answered at once and the welcome is sent after the response (`ctx.waitUntil`). The event id is claimed first in `slack_event_claims`, so a Slack retry never sends a second welcome.
+
+### Slack app audit
+
+`<ADMIN_URL>?view=slack-apps` (same Basic auth as the admin) lists the bots and apps in the OWASP workspace (`team_id` query parameter for another one) from `users.list`, and matches each against blt-panini's `slack_apps.json` and `banned_apps.json` (`PANINI_BASE_URL`, default `https://panini.owaspblt.org`). Add `&format=json` for the JSON, one batch of up to 5 `users.list` pages per request (`next_cursor` continues). It is read-only. A bot token can't see other apps' scopes or install dates, so those come only from the Slack admin console.
+
 ### 9. Run the Bot
 ```bash
 poetry run python app.py
