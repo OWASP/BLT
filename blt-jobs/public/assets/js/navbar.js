@@ -60,11 +60,11 @@
   `;
 
   const navbarHtml = `
-    <nav class="border-b fixed w-full z-[100] border-slate-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900/95">
+    <nav class="border-b w-full border-slate-200 bg-white/95 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-950/95">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 items-center justify-between">
           <a href="./index.html" class="flex items-center gap-2 select-none">
-            <img src="assets/images/blt-logo.png" class="h-9 sm:h-10 w-auto" alt="OWASP BLT Logo" width="50" height="50" />
+            <img src="assets/images/blt-logo.svg" class="h-9 sm:h-10 w-auto" alt="" width="50" height="50" />
             <span class="text-xl font-bold text-slate-900 dark:text-white">BLT Jobs</span>
           </a>
           <div class="hidden sm:flex items-center gap-1">
@@ -72,12 +72,8 @@
             ${gitlabLinkHtml}
           </div>
           <div class="flex items-center gap-2">
-            <button id="theme-toggle" class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border-2 border-red-600 text-red-600 transition hover:bg-red-600 hover:text-white dark:border-red-500 dark:text-red-500 dark:hover:bg-red-600 dark:hover:text-white" aria-label="Toggle dark mode">
-              <i id="sun-icon" class="fas fa-sun text-xl absolute opacity-0 transition-all duration-300 -rotate-90 dark:opacity-100 dark:rotate-0"></i>
-              <i id="moon-icon" class="fas fa-moon text-xl absolute opacity-100 transition-all duration-300 rotate-0 dark:opacity-0 dark:rotate-90"></i>
-            </button>
-            <button id="mobile-menu-toggle" class="sm:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border-2 border-slate-200 text-slate-700 transition hover:bg-slate-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800" aria-label="Open menu" aria-controls="mobile-menu" aria-expanded="false">
-              <i class="fa-solid fa-bars text-lg" aria-hidden="true"></i>
+            <button id="mobile-menu-toggle" class="sm:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border-2 border-slate-200 text-slate-700 transition hover:bg-slate-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800" aria-label="BLT Jobs menu" aria-controls="mobile-menu" aria-expanded="false">
+              <i class="fa-solid fa-ellipsis text-lg" aria-hidden="true"></i>
             </button>
           </div>
         </div>
@@ -96,14 +92,18 @@
     </nav>
   `;
 
-  // Inject the navbar
+  // Inject the navbar. The placeholder sticks to the top (below the shared OWASP BLT bar,
+  // <blt-nav>, which scrolls away), so the page keeps the BLT Jobs links in view.
+  const STICKY = ["sticky", "top-0", "z-[100]"];
   const placeholder = document.getElementById("navbar-placeholder");
   if (placeholder) {
+    placeholder.classList.add(...STICKY);
     placeholder.innerHTML = navbarHtml;
   } else {
     // Fallback: prepend to body if no placeholder exists
     const div = document.createElement("div");
     div.id = "navbar-placeholder";
+    div.classList.add(...STICKY);
     div.innerHTML = navbarHtml;
     document.body.insertBefore(div, document.body.firstChild);
   }
