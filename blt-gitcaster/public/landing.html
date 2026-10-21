@@ -5,28 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLT GitHub Sportscaster - About</title>
 
+    <script src="_brand/theme-init.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        primary: '#E10101',
+                        primary: '#dc2626',
                         'neutral-border': '#E5E5E5',
-                        'dark-base': '#111827',
-                        'dark-surface': '#1F2937'
+                        'dark-base': '#030712',
+                        'dark-surface': '#111827'
                     },
                     fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif']
                     }
                 }
             }
         };
     </script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -36,34 +35,58 @@
 
     <style>
         :root {
-            --blt-primary: #E10101;
+            --blt-primary: #dc2626;
             --blt-primary-hover: #b91c1c;
-            --blt-outline-soft: #feeae9;
-            --blt-border: #E5E5E5;
+            --blt-outline-soft: #fef2f2;
+            --blt-border: #e5e7eb;
             --blt-text: #111827;
             --blt-muted: #6b7280;
             --blt-surface: #ffffff;
-            --blt-background: #fafafa;
+            --blt-background: #f9fafb;
+            --c-surface-a: rgba(255, 255, 255, 0.96);
+            --c-soft: #f9fafb;
+            --c-muted-bg: #f3f4f6;
+            --c-line-strong: #d1d5db;
+            --c-text2: #374151;
+            --c-text3: #4b5563;
+            --c-red-soft: #fef2f2;
+            --c-red-line: #fecaca;
+        }
+
+        /* Dark mode: html.dark, same contract as owaspblt.org and the <blt-nav> bar */
+        html.dark {
+            color-scheme: dark;
+            --blt-primary: #ef4444;
+            --blt-primary-hover: #dc2626;
+            --blt-outline-soft: rgba(127, 29, 29, 0.35);
+            --blt-border: #1f2937;
+            --blt-text: #f3f4f6;
+            --blt-muted: #9ca3af;
+            --blt-surface: #111827;
+            --blt-background: #030712;
+            --c-surface-a: rgba(17, 24, 39, 0.96);
+            --c-soft: #0b1120;
+            --c-muted-bg: #1f2937;
+            --c-line-strong: #374151;
+            --c-text2: #d1d5db;
+            --c-text3: #9ca3af;
+            --c-red-soft: rgba(127, 29, 29, 0.3);
+            --c-red-line: rgba(248, 113, 113, 0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             min-height: 100vh;
-            background:
-                radial-gradient(circle at 8% 4%, rgba(225, 1, 1, 0.08), transparent 36%),
-                radial-gradient(circle at 92% 0%, rgba(225, 1, 1, 0.05), transparent 32%),
-                var(--blt-background);
+            background: var(--blt-background);
             color: var(--blt-text);
         }
 
         .nav-bar {
-            position: fixed;
+            position: sticky;
             top: 0;
-            left: 0;
-            right: 0;
             z-index: 100;
-            background: rgba(255,255,255,0.95);
+            background: var(--c-surface-a);
             border-bottom: 1px solid var(--blt-border);
             backdrop-filter: blur(8px);
             display: flex;
@@ -119,14 +142,14 @@
             padding: 0.55rem 1.1rem;
             font-weight: 700;
             font-size: 0.9rem;
-            background: #fff;
+            background: var(--blt-surface);
             color: var(--blt-primary);
             transition: all 0.2s ease;
             cursor: pointer;
             text-decoration: none;
         }
 
-        .btn-outline:hover { background: var(--blt-primary); color: #fff; }
+        .btn-outline:hover { background: var(--blt-primary); color: var(--blt-surface); }
 
         .feature-grid {
             display: grid;
@@ -146,7 +169,7 @@
 
         .feature-card, .info-card {
             border: 1px solid var(--blt-border);
-            background: #fff;
+            background: var(--blt-surface);
             border-radius: 0.85rem;
             padding: 1.25rem;
             box-shadow: 0 4px 12px rgba(17, 24, 39, 0.05);
@@ -161,7 +184,7 @@
         footer {
             text-align: center;
             padding: 2rem 1rem;
-            color: #6b7280;
+            color: var(--blt-muted);
             font-size: 0.85rem;
             border-top: 1px solid var(--blt-border);
             margin-top: 2rem;
@@ -170,6 +193,8 @@
         footer a { color: var(--blt-primary); text-decoration: none; }
         footer a:hover { text-decoration: underline; }
     </style>
+    <link rel="stylesheet" href="_brand/blt-dark.css">
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 <body class="font-sans text-gray-900 antialiased">
 
@@ -191,7 +216,7 @@
         </div>
     </nav>
 
-    <main class="pt-24 pb-10">
+    <main class="pt-8 pb-10">
 
         <!-- Hero Section -->
         <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-10">
