@@ -18,11 +18,9 @@ The advisory stays private until a maintainer publishes it.
 
 **Never** report a vulnerability in a public issue, pull request, discussion, Slack channel or AI chat.
 
-<!-- TODO(owner): BLT has no verified security email address. The repo mentions several that may not be
-     monitored: security@owaspblt.org (blt-next, blt-safecloak), security@blt.owasp.org (blt-owasp-wich),
-     security@owasp.org (blt-preflight, blt-newsletter; OWASP Foundation-wide) and blt-support@owasp.org
-     (blt-legacy). Pick one, confirm it is monitored, then list it here as the fallback channel. BLT-Zero
-     (https://zero.owaspblt.org) can then deliver encrypted reports to it. -->
+If you can't use the forge, email **[support@owaspblt.org](mailto:support@owaspblt.org)** with "Security" in
+the subject, and we'll open a private advisory for you. Send only a short description first; we'll arrange
+a private channel for the details.
 
 ## What to include
 

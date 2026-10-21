@@ -9,6 +9,7 @@
 | Report a conduct problem | Follow [CODE_OF_CONDUCT.md](https://git.owaspblt.org/BLT/blob/CODE_OF_CONDUCT.md) |
 | Learn how to contribute | [CONTRIBUTING.md](https://git.owaspblt.org/BLT/blob/CONTRIBUTING.md) |
 | Read the user and developer docs | [docs.owaspblt.org](https://docs.owaspblt.org/) and each project folder's README |
+| Reach the maintainers privately | [support@owaspblt.org](mailto:support@owaspblt.org) |
 
 Before asking, search existing [issues](https://git.owaspblt.org/BLT/issues) and check the project's README.
 When you ask, include the project, what you did, what you expected and what happened (logs, screenshots,

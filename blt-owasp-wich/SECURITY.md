@@ -15,7 +15,7 @@ We take security vulnerabilities seriously. If you discover a security issue in 
 ### How to Report
 
 1. **Do NOT** create a public GitHub issue for security vulnerabilities
-2. Email the OWASP BLT team at: security@blt.owasp.org
+2. Email the OWASP BLT team at: support@owaspblt.org
 3. Include:
    - Description of the vulnerability
    - Steps to reproduce
@@ -65,4 +65,4 @@ When using OWASP-Wich:
 
 ## Questions?
 
-For security-related questions, contact: security@blt.owasp.org
+For security-related questions, contact: support@owaspblt.org

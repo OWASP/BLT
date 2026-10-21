@@ -328,7 +328,7 @@ tests/
 - All sensitive data is encrypted client-side before transmission.
 - Server acts as a signaling relay only; no persistent storage of communication content.
 - Consent verification is integrated into call workflows.
-- If you find a vulnerability, please report it privately to [security@owaspblt.org](mailto:security@owaspblt.org) before public disclosure.
+- If you find a vulnerability, please report it privately to [support@owaspblt.org](mailto:support@owaspblt.org) before public disclosure.
 
 ## Contributing
 

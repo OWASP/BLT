@@ -161,7 +161,7 @@ if (location.protocol !== 'https:') {
 ## Reporting Security Issues
 
 If you discover a security vulnerability, please report it to:
-- Email: security@owaspblt.org
+- Email: support@owaspblt.org
 - GitHub Security Advisory (private)
 
 **Do NOT** create public issues for security vulnerabilities.
