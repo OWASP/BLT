@@ -93,20 +93,11 @@ PAGE_HEAD = """<!DOCTYPE html>
             color: var(--text);
         }
         a { color: var(--accent-text); }
-        header {
-            background-color: var(--surface);
-            border-bottom: 1px solid var(--border);
-            padding: 16px;
-            text-align: center;
-        }
-        header img {
-            vertical-align: middle;
-            margin-right: 10px;
-        }
-        header h1 {
-            display: inline;
+        blt-nav:not(:defined) { display: block; min-height: 61px; }
+        blt-nav:not(:defined) > * { display: none; }
+        main h1 {
             font-size: 24px;
-            vertical-align: middle;
+            margin: 12px 0 8px;
         }
         main {
             padding: 20px;
@@ -154,11 +145,11 @@ PAGE_HEAD = """<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <header>
-        <img src="/logo.svg" alt="Tomato" width="40" height="40">
-        <h1>BLT Tomato - this is an OWASP BLT project created to help other OWASP projects.</h1>
-    </header>
+    <blt-nav project="blt-tomato" name="Tomato">
+        <a href="https://git.owaspblt.org/BLT/BLT-Tomato" slot="actions">Source</a>
+    </blt-nav>
     <main>
+        <h1>BLT Tomato - this is an OWASP BLT project created to help other OWASP projects.</h1>
         <p>The following OWASP projects are seeking funding and have a funding.yml file:</p>
         <ul>
 """
