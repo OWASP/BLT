@@ -13,7 +13,7 @@ run_worker_first = true
 # Environment variables
 [vars]
 ENVIRONMENT = "production"
-AUTHENTICATE_READ_ENDPOINTS = "false"
+AUTHENTICATE_READ_ENDPOINTS = "true"
 NG_DEFAULT_ORG = "org-demo"
 # Flutter web (localhost:8888) + hosted triage on netguardian.owaspblt.org.
 CORS_ALLOWED_ORIGINS = "https://netguardian.owaspblt.org,http://localhost:8888,http://127.0.0.1:8888"
@@ -24,7 +24,7 @@ CORS_ALLOWED_ORIGINS = "https://netguardian.owaspblt.org,http://localhost:8888,h
 NG_SELF_SCAN_TARGETS = "owaspblt.org api.owaspblt.org git.owaspblt.org netguardian.owaspblt.org"
 # NG_SELF_SCAN_INTERVAL_HOURS = "24"   # 1..720
 # NG_SELF_SCAN_MAX_PER_RUN = "1"       # 1..3
-# NG_SELF_SCAN_ORG = "org-demo"        # defaults to NG_DEFAULT_ORG
+NG_SELF_SCAN_ORG = "owasp-blt"         # private: readable with an owasp-blt org token (NG_ORG_API_TOKENS)
 # Set via wrangler secret (production/staging):
 #   CRON_SECRET          = shared with blt-cron (set)
 #   NG_ORG_API_TOKENS    = {"<triage/queue token>":"org-demo"}  (triage writes, queue writes)
