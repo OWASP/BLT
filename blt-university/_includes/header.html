@@ -1,5 +1,5 @@
 <header
-  class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm"
+  class="sticky inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900"
   id="site-header"
 >
   <div
@@ -11,9 +11,9 @@
       aria-label="BLT University home"
     >
       <img
-        src="{{ '/assets/images/blt-university-logo.png' | relative_url }}"
+        src="{{ '/assets/images/blt-university-logo.svg' | relative_url }}"
         alt="BLT University logo"
-        class="h-12 sm:h-14"
+        class="h-12 w-12 rounded-full sm:h-14 sm:w-14"
       />
       <div class="flex flex-col">
         <span class="text-sm font-semibold uppercase tracking-wide">BLT UNIVERSITY</span>
@@ -57,18 +57,16 @@
       class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-lg:flex"
       id="mobile-toggle"
       type="button"
-      aria-label="Toggle menu"
+      aria-label="BLT University menu"
       aria-expanded="false"
       aria-controls="mobile-menu"
     >
-      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
-      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
-      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <svg class="h-5 w-5 text-gray-600 dark:text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
     </button>
   </div>
 
   <nav
-    class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white px-6 py-4"
+    class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-800 dark:bg-gray-900"
     id="mobile-menu"
     aria-label="Mobile navigation"
   >
