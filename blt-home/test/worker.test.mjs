@@ -200,7 +200,7 @@ test("blt-next paths 308 to next.owaspblt.org with path and query", async () => 
 });
 
 test("legacy Django paths 308 to blt-next's /legacy page with the original path and query", async () => {
-  const L = "https://next.owaspblt.org/legacy?from=";
+  const L = "https://next.owaspblt.org/moved?from=";
   const cases = {
     "/issue/1234/": L + "%2Fissue%2F1234%2F",
     "/profile/alice/": L + "%2Fprofile%2Falice%2F",
@@ -235,5 +235,5 @@ test("nothing redirects to the retired legacy host", () => {
 test("segment matching is exact", () => {
   assert.equal(redirectTarget("https://owaspblt.org/issues-archive"), "https://next.owaspblt.org/issues-archive");
   assert.equal(redirectTarget("https://owaspblt.org/api/leaderboard"), "https://next.owaspblt.org/api/leaderboard");
-  assert.equal(redirectTarget("https://owaspblt.org/api/v2/x"), "https://next.owaspblt.org/legacy?from=%2Fapi%2Fv2%2Fx");
+  assert.equal(redirectTarget("https://owaspblt.org/api/v2/x"), "https://next.owaspblt.org/moved?from=%2Fapi%2Fv2%2Fx");
 });

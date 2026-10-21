@@ -5,7 +5,7 @@
 //   /_home/*, a few root files -> static assets from public/ (a prefix neither blt-next nor legacy uses)
 //   /api/home-stats   -> live numbers, cached for 15 minutes
 //   legacy Django paths (/issue/1/, /profile/x/, /api/v1/, ... see legacy.js)
-//                     -> 308 to next.owaspblt.org/legacy?from=<path + query, URL-encoded>
+//                     -> 308 to next.owaspblt.org/moved?from=<path + query, URL-encoded>
 //   anything else     -> 308 to the same path on blt-next (next.owaspblt.org),
 //                        so old owaspblt.org links (/pages/report-bug.html, /api/stats, ...) keep working.
 
