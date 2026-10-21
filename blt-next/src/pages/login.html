@@ -27,44 +27,19 @@
   <script src="../assets/js/theme-init.js"></script>
   <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <script src="../assets/js/main.js" type="module" defer></script>
-  <style>body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }</style>
+  <style>blt-nav:not(:defined) { display: block; min-height: 62px; } blt-nav:not(:defined) > * { display: none; } body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }</style>
 </head>
 
 <body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased transition-colors min-h-screen flex flex-col">
-  <header class="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800 transition-colors" role="banner">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <nav class="flex items-center justify-between h-12" role="navigation" aria-label="Main navigation">
-        <a href="../index.html" class="flex items-center text-base font-bold tracking-tight text-gray-900 dark:text-gray-100">BLT-<span class="text-red-600 dark:text-red-400">Next</span></a>
-        <ul class="hidden md:flex items-center gap-1 list-none m-0 p-0">
-          <li><a href="../index.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Home</a></li>
-          <li><a href="report-bug.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Report Bug</a></li>
-          <li><a href="leaderboard.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Leaderboard</a></li>
-          <li><a href="projects.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Projects</a></li>
-          <li><a href="about.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">About</a></li>
-        </ul>
-        <div class="hidden md:flex items-center gap-2">
-          <a href="login.html" class="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors">Login</a>
-          <a href="signup.html" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">Sign Up</a>
-        </div>
-        <button class="md:hidden p-2 text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" id="mobileMenuBtn" aria-label="BLT-Next menu" aria-expanded="false" aria-controls="mobileMenu">
-          <i class="fa-solid fa-ellipsis text-base" aria-hidden="true"></i>
-        </button>
-      </nav>
-      <div id="mobileMenu" class="hidden md:hidden pb-4 border-t border-[#E5E5E5] dark:border-gray-800 dark:bg-gray-900 absolute top-full left-0 w-full z-40 px-4 bg-white shadow-lg" aria-hidden="true">
-        <ul class="flex flex-col gap-1 pt-3 list-none m-0 p-0">
-          <li><a href="../index.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Home</a></li>
-          <li><a href="report-bug.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Report Bug</a></li>
-          <li><a href="leaderboard.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Leaderboard</a></li>
-          <li><a href="projects.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Projects</a></li>
-          <li><a href="about.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">About</a></li>
-        </ul>
-        <div class="flex gap-3 mt-3">
-          <a href="login.html" class="flex-1 px-4 py-2 text-sm font-medium text-center text-red-600 dark:text-red-400 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors">Login</a>
-          <a href="signup.html" class="flex-1 px-4 py-2 text-sm font-medium text-center text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">Sign Up</a>
-        </div>
-      </div>
-    </div>
-  </header>
+  <blt-nav project="blt-next" name="Next" home="../index.html" current="auto" data-sticky>
+    <a href="../index.html">Home</a>
+    <a href="report-bug.html">Report Bug</a>
+    <a href="leaderboard.html">Leaderboard</a>
+    <a href="projects.html">Projects</a>
+    <a href="about.html">About</a>
+    <a id="loginBtn" href="login.html" slot="actions">Login</a>
+    <a id="signupBtn" href="signup.html" slot="actions" data-primary>Sign Up</a>
+  </blt-nav>
 
 <main role="main" class="flex-1 flex items-center justify-center py-16 px-4 sm:px-6">
     <div class="w-full max-w-md">

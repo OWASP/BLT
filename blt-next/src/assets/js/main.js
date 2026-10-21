@@ -461,6 +461,7 @@ function updateUIForAuth() {
             signupBtn.href = '#';
             signupBtn.classList.remove('btn-primary');
             signupBtn.classList.add('btn-secondary');
+            signupBtn.removeAttribute('data-primary'); // a plain button in the shared bar
             signupBtn.onclick = async (e) => {
                 e.preventDefault();
                 await auth.logout();
@@ -480,6 +481,7 @@ function updateUIForAuth() {
             signupBtn.href = authPagePath('signup');
             signupBtn.classList.remove('btn-secondary');
             signupBtn.classList.add('btn-primary');
+            signupBtn.setAttribute('data-primary', ''); // the red button in the shared bar
             signupBtn.onclick = null;
         }
     }
