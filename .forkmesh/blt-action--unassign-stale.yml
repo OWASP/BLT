@@ -1,0 +1,21 @@
+name: "blt-action: release stale /assign claims"
+# Forge port of the stale-assignment unassign that BLT-Action (blt-action/src/index.js) and BLT-Pool's
+# 2-hourly GitHub sweep used to do (issue #38: /assign belongs to BLT-Action alone). Once a day,
+# blt-action/forge/stale.mjs reads the open issues' ledger in this checkout and the forge's pull
+# request ledger (anonymous GETs), then, through the job API:
+# - warns an assignee who claimed an issue (by /assign or the web claim) and has had no pull
+#   request and no comment on it for 6 days;
+# - unassigns them at 7 days, once the warning is at least 20 hours old, and says so.
+# Assignments a maintainer made for someone else are never released. Nothing is committed.
+# Rules: docs/workflows.md ("Stale claims"). Preview with: node blt-action/forge/stale.mjs --dry-run
+on:
+  schedule:
+    - cron: "53 5 * * *"
+  workflow_dispatch:
+jobs:
+  unassign-stale:
+    runs-on: runner
+    timeout-minutes: 5
+    steps:
+      - name: Warn, then release stale claims
+        run: node blt-action/forge/stale.mjs

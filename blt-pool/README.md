@@ -7,9 +7,8 @@ A GitHub App that integrates [OWASP BLT](https://owaspblt.org) services into Git
 
 This repository now serves two connected surfaces:
 
-- **`/assign` command** — Comment `/assign` on any issue to be automatically assigned to it. Assignments expire after 8 hours if no linked PR is submitted.
-- **`/unassign` command** — Comment `/unassign` to release an issue assignment so others can pick it up.
-- **Automatic unassignment** — A cron task runs every 2 hours to automatically unassign issues where the 8-hour deadline has passed without a linked pull request. The schedule (`0 */2 * * *`) now runs from the [blt-cron](../blt-cron) dispatcher Worker, which calls `POST /__scheduled` with the shared `CRON_SECRET` (set it with `wrangler secret put CRON_SECRET`); this Worker has no cron trigger of its own.
+- **`/assign` and `/unassign`** — Handled by [BLT-Action](../blt-action) on git.owaspblt.org (`blt-action/forge/assign.mjs`), which also releases stale claims (`blt-action/forge/stale.mjs`). This app ignores both commands, and its 2-hourly GitHub stale-assignment sweep was removed (issue #38). `/approve` still assigns the last person who commented `/assign`.
+- **Scheduled task** — The only scheduled run is the forge leaderboard sync below: the [blt-cron](../blt-cron) dispatcher Worker calls `POST /__scheduled` with `task: "forge-leaderboard"` and the shared `CRON_SECRET` (set it with `wrangler secret put CRON_SECRET`); this Worker has no cron trigger of its own.
 - **`/leaderboard` command** — Comment `/leaderboard` on any issue or PR to see your rank in the monthly leaderboard.
 - **Pull request leaderboard** — [pool.owaspblt.org/leaderboard](https://pool.owaspblt.org/leaderboard) (JSON: `/api/leaderboard?month=YYYY-MM`) ranks contributors per month from D1-backed counters:
   - Open PRs (+1 each)

@@ -1,0 +1,5 @@
+{
+  "name": "MY-GSOC-TOOL",
+  "about": "Dashboard for Google Summer of Code students that gathers their GitHub contributions, blog posts, mentor feedback and milestones on one page.",
+  "website": "https://gsoc-tool.owaspblt.org/"
+}

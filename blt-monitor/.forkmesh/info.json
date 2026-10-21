@@ -1,0 +1,5 @@
+{
+  "name": "BLT-Monitor",
+  "about": "Website monitor on Cloudflare Python Workers: checks availability and keywords every twenty minutes, keeps recent history in Workers KV and alerts Slack.",
+  "website": "https://monitor.owaspblt.org/"
+}

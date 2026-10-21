@@ -1,0 +1,5 @@
+{
+  "name": "BLT-MCP",
+  "about": "MCP (Model Context Protocol) server that gives AI agents and IDEs structured access to OWASP BLT: log bugs, triage issues and query data.",
+  "website": "https://mcp.owaspblt.org/"
+}

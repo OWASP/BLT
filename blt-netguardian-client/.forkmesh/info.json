@@ -1,0 +1,4 @@
+{
+  "name": "BLT-NetGuardian-Client",
+  "about": "Flutter client for BLT NetGuardian: queue and track security scan tasks, register targets and review discovered vulnerabilities."
+}

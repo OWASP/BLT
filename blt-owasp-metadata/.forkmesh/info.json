@@ -1,0 +1,5 @@
+{
+  "name": "BLT-OWASP-Metadata",
+  "about": "Collects and standardizes metadata for OWASP projects and chapters from the front matter of their index.md files, with a browsable dashboard.",
+  "website": "https://metadata.owaspblt.org/"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "BLT-Waypoint",
+  "about": "Live dashboard of the OWASP BLT projects: commits, issues, pull requests and live site of every folder in this monorepo.",
+  "website": "https://waypoint.owaspblt.org/"
+}

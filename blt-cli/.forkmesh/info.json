@@ -1,0 +1,4 @@
+{
+  "name": "BLT-CLI",
+  "about": "Terminal (TUI) client for OWASP BLT, written in Rust with Ratatui: browse and triage issues, follow bug hunts and submit vulnerability reports, directly against the BLT API or through BLT-MCP."
+}

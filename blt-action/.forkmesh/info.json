@@ -1,0 +1,4 @@
+{
+  "name": "BLT-Action",
+  "about": "Issue automation for BLT: /assign and /unassign on git.owaspblt.org issues and the daily release of stale claims (forge workflows), plus the original GitHub Action for other repositories."
+}

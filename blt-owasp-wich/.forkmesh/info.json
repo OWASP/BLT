@@ -1,0 +1,5 @@
+{
+  "name": "BLT-OWASP-Wich",
+  "about": "Browser-based checker that scores a GitHub repository against 100 OWASP compliance points in 10 categories.",
+  "website": "https://wich.owaspblt.org/"
+}

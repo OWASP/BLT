@@ -1,0 +1,5 @@
+{
+  "name": "BLT-Jobs",
+  "about": "Git-native job board for the OWASP BLT ecosystem: job listings and seeker profiles are Markdown files in this folder, published as a static site.",
+  "website": "https://jobs.owaspblt.org/"
+}

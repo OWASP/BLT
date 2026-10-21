@@ -34,7 +34,7 @@ test("cron matching", () => {
 
 test("due jobs at the top of an even hour", () => {
   const names = dueJobs(Date.parse("2026-10-18T04:00:30Z")).map((j) => j.name).sort();
-  assert.deepEqual(names, ["blt-leaf", "blt-lettuce", "blt-monitor", "blt-netguardian", "blt-pool", "blt-sizzle"]);
+  assert.deepEqual(names, ["blt-leaf", "blt-lettuce", "blt-monitor", "blt-netguardian", "blt-sizzle"]);
   const quiet = dueJobs(Date.parse("2026-10-18T04:08:00Z")).map((j) => j.name);
   assert.deepEqual(quiet, []);
   assert.ok(!dueJobs(Date.parse("2026-10-18T04:30:00Z")).some((j) => j.name === "blt-lettuce"));
@@ -64,6 +64,11 @@ test("hackerhouse polls the forge every 5 minutes, off the other jobs' minutes",
   const perDay = Array.from({ length: 1440 }, (_, m) => Date.parse("2026-10-18T00:00:00Z") + m * 60000)
     .filter((t) => dueJobs(t).some((j) => j.name === "hackerhouse")).length;
   assert.equal(perDay, 288);
+});
+
+test("blt-pool only runs its forge leaderboard task (no GitHub stale-assignment sweep)", () => {
+  const pool = JOBS.filter((j) => j.binding === "POOL");
+  assert.deepEqual(pool.map((j) => j.task), ["forge-leaderboard"]);
 });
 
 test("blt-pool reads the forge pulls ledger every 20 minutes on its own minutes", () => {

@@ -5,7 +5,6 @@
 // those Workers refresh their data in chunks to stay under the free plan's
 // 50 subrequests per invocation and stop once the day's refresh is done.
 export const JOBS = [
-  { name: "blt-pool", binding: "POOL", cron: "0 */2 * * *" },
   // PR leaderboard: reads the git.owaspblt.org pulls ledger every 20 minutes (:06, :26, :46, a
   // minute no other job uses). An idle run is 1-2 GETs and 1 D1 read.
   { name: "blt-pool-leaderboard", binding: "POOL", cron: "6-59/20 * * * *", task: "forge-leaderboard" },
@@ -28,3 +27,6 @@ export const JOBS = [
 // blt-gsoc-stats (task "gsoc2026-stats", 02:17-02:31) was removed the same day: it counted activity on
 // the old OWASP-BLT/* GitHub repos, which are frozen copies now, so its numbers could not change.
 // /js/gsoc2026_stats.generated.js keeps serving the last stored data.
+// blt-pool (every 2 hours, no task) was removed on 2026-10-20 (issue #38): it swept every GitHub App
+// installation for stale /assign claims on the frozen OWASP-BLT/* GitHub repos. /assign is BLT-Action's
+// alone now (blt-action/forge/), which also releases stale claims on git.owaspblt.org.

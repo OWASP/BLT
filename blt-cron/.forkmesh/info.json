@@ -1,0 +1,4 @@
+{
+  "name": "BLT-Cron",
+  "about": "Cloudflare Worker that holds the account's only cron trigger and runs every BLT Worker's scheduled job on that job's own schedule, through service bindings."
+}
