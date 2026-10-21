@@ -116,6 +116,8 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
+      blt-nav:not(:defined) { display: block; min-height: 61px; }
+      blt-nav:not(:defined) > * { display: none; }
     </style>
   </head>
   <body
@@ -209,158 +211,16 @@
       </symbol>
     </svg>
 
-    <!-- Header -->
-    <header
-      class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-dark-surface/95"
-    >
-      <div
-        class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:px-6 lg:px-8"
-      >
-        <a
-          href="/"
-          class="flex min-w-0 shrink-0 items-center gap-3"
-          aria-label="BLT-Pages home"
-        >
-          <img
-            src="/static/blt-pages-logo.svg"
-            alt="BLT-Pages logo"
-            class="h-8 w-8 shrink-0 rounded-md object-contain"
-            style="background-color: transparent"
-            onerror="
-              this.classList.add('hidden');
-              this.nextElementSibling.classList.remove('hidden');
-            "
-          />
-          <span
-            class="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary text-sm font-extrabold text-white"
-            >B</span
-          >
-          <div class="min-w-0">
-            <p
-              class="whitespace-nowrap text-sm font-extrabold leading-none dark:text-gray-100"
-            >BLT-Pages</p>
-            <p
-              class="hidden whitespace-nowrap text-xs font-semibold text-gray-500 dark:text-gray-400 xl:block"
-            >Bug reporting &amp; leaderboard</p>
-          </div>
-        </a>
-
-        <div
-          class="hidden min-w-0 flex-1 items-center justify-end gap-4 lg:flex xl:gap-6"
-        >
-          <nav
-            class="flex shrink-0 items-center gap-4 xl:gap-6"
-            aria-label="Main navigation"
-          >
-            <a
-              href="index.html#features"
-              class="whitespace-nowrap text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors"
-              >Features</a
-            >
-            <a
-              href="leaderboard.html"
-              class="whitespace-nowrap text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors"
-              >Leaderboard</a
-            >
-            <a
-              href="leaders.html"
-              class="whitespace-nowrap text-sm font-semibold text-primary underline underline-offset-4"
-              >Leaders</a
-            >
-            <a
-              href="https://git.owaspblt.org/BLT/tree/main/blt-pages"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center whitespace-nowrap text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors"
-            >
-              <svg class="fa-icon mr-1" aria-hidden="true">
-                <use href="#fa-code-branch"></use></svg
-              >Source
-            </a>
-          </nav>
-
-          <a
-            href="https://git.owaspblt.org/BLT/issues/new"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex shrink-0 items-center whitespace-nowrap rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 xl:px-4"
-          >
-            <svg class="fa-icon mr-2" aria-hidden="true">
-              <use href="#fa-bug"></use></svg
-            >Report Bug
-          </a>
-
-          <!-- divider -->
-          <div
-            class="h-6 w-px bg-neutral-border dark:bg-gray-700 shrink-0"
-          ></div>
-
-          <!-- Nominating and voting happen on git.owaspblt.org; sign in there. -->
-          <a
-            href="https://git.owaspblt.org/login"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex shrink-0 items-center gap-2 rounded-md border border-neutral-border px-3 py-2 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors whitespace-nowrap"
-          >
-            <svg class="fa-icon" aria-hidden="true">
-              <use href="#fa-code-branch"></use></svg
-            >Sign in to vote
-          </a>
-        </div>
-
-        <div class="flex shrink-0 items-center gap-2">
-          <button
-            id="mobile-menu-toggle"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 lg:hidden"
-            aria-label="BLT-Pages menu"
-            aria-expanded="false"
-            type="button"
-          >
-            <svg class="fa-icon" viewBox="0 0 448 512" aria-hidden="true"><path fill="currentColor" d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <div
-        id="mobile-menu"
-        class="hidden border-t border-neutral-border bg-white px-4 py-4 dark:border-gray-700 dark:bg-dark-surface lg:hidden"
-      >
-        <nav class="space-y-3" aria-label="Mobile navigation">
-          <a
-            href="index.html"
-            class="block text-sm font-semibold dark:text-gray-200"
-            >Home</a
-          >
-          <a
-            href="leaderboard.html"
-            class="block text-sm font-semibold dark:text-gray-200"
-            >Leaderboard</a
-          >
-          <a
-            href="leaders.html"
-            class="block text-sm font-semibold text-primary"
-            >Leaders</a
-          >
-          <a
-            href="https://git.owaspblt.org/BLT/tree/main/blt-pages"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="block text-sm font-semibold dark:text-gray-200"
-            >Source</a
-          >
-          <a
-            href="https://git.owaspblt.org/login"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center gap-2 rounded-md border border-neutral-border px-3 py-2 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:text-gray-300"
-          >
-            <svg class="fa-icon" aria-hidden="true">
-              <use href="#fa-code-branch"></use></svg
-            >Sign in to vote
-          </a>
-        </nav>
-      </div>
-    </header>
+    <blt-nav project="blt-pages" name="Pages" current="auto" data-sticky>
+      <a href="index.html#features">Features</a>
+      <a href="index.html#how-it-works">How it works</a>
+      <a href="leaderboard.html">Leaderboard</a>
+      <a href="leaders.html">Leaders</a>
+      <a href="https://git.owaspblt.org/BLT/tree/main/blt-pages" target="_blank" rel="noopener noreferrer">Source</a>
+      <!-- Nominating and voting happen on git.owaspblt.org; sign in there. -->
+      <a href="https://git.owaspblt.org/login" slot="actions" target="_blank" rel="noopener noreferrer">Sign in to vote</a>
+      <a href="https://git.owaspblt.org/BLT/issues/new" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Report Bug</a>
+    </blt-nav>
 
     <!-- Hero -->
     <div

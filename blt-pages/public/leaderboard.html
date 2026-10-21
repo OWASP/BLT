@@ -83,6 +83,8 @@
             box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
             transition: all 0.3s ease;
         }
+        blt-nav:not(:defined) { display: block; min-height: 61px; }
+        blt-nav:not(:defined) > * { display: none; }
     </style>
 </head>
 
@@ -129,68 +131,14 @@
         </symbol>
     </svg>
 
-    <header
-        class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-dark-surface/95">
-        <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-            <a href="/" class="flex items-center gap-3" aria-label="BLT-Pages home">
-                <img src="/static/blt-pages-logo.svg" alt="BLT-Pages logo" class="h-8 w-8 rounded-md object-contain"
-                    style="background-color:transparent"
-                    onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
-                <span
-                    class="hidden h-9 w-9 items-center justify-center rounded-md bg-primary text-sm font-extrabold text-white">B</span>
-                <div>
-                    <p class="text-sm font-extrabold leading-none dark:text-gray-100">BLT-Pages</p>
-                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">Bug reporting &amp; leaderboard</p>
-                </div>
-            </a>
-
-            <nav class="hidden items-center gap-6 md:flex" aria-label="Main navigation">
-                <a href="index.html#features"
-                    class="section-link text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors">Features</a>
-                <a href="index.html#how-it-works"
-                    class="section-link text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors">How
-                    it works</a>
-                <a href="leaderboard.html"
-                    class="section-link text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors text-primary underline underline-offset-4">Leaderboard</a>
-                <a href="leaders.html"
-                    class="section-link text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors">Leaders</a>
-                <a href="https://git.owaspblt.org/BLT/tree/main/blt-pages" target="_blank" rel="noopener noreferrer"
-                    class="section-link text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors">
-                    <svg class="fa-icon mr-1" aria-hidden="true">
-                        <use href="#fa-code-branch"></use>
-                    </svg>Source
-                </a>
-            </nav>
-
-            <div class="flex items-center gap-2">
-                <a href="https://git.owaspblt.org/BLT/issues/new" target="_blank"
-                    rel="noopener noreferrer"
-                    class="hidden rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 sm:inline-flex">
-                    <svg class="fa-icon mr-2" aria-hidden="true">
-                        <use href="#fa-bug"></use>
-                    </svg>Report Bug
-                </a>
-                <button id="mobile-menu-toggle"
-                    class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 md:hidden"
-                    aria-label="BLT-Pages menu" aria-expanded="false" type="button">
-                    <svg class="fa-icon" viewBox="0 0 448 512" aria-hidden="true"><path fill="currentColor" d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/></svg>
-                </button>
-            </div>
-        </div>
-
-        <div id="mobile-menu"
-            class="hidden border-t border-neutral-border bg-white px-4 py-4 dark:border-gray-700 dark:bg-dark-surface md:hidden">
-            <nav class="flex flex-col gap-4">
-                <a href="index.html" class="text-base font-semibold dark:text-gray-200">Home</a>
-                <a href="index.html#features" class="text-base font-semibold dark:text-gray-200">Features</a>
-                <a href="index.html#how-it-works" class="text-base font-semibold dark:text-gray-200">How it works</a>
-                <a href="leaderboard.html" class="text-base font-semibold text-primary">Leaderboard</a>
-                <a href="leaders.html" class="text-base font-semibold dark:text-gray-200">Leaders</a>
-                <a href="https://git.owaspblt.org/BLT/tree/main/blt-pages" target="_blank" rel="noopener noreferrer"
-                    class="text-base font-semibold dark:text-gray-200">Source</a>
-            </nav>
-        </div>
-    </header>
+    <blt-nav project="blt-pages" name="Pages" current="auto" data-sticky>
+      <a href="index.html#features">Features</a>
+      <a href="index.html#how-it-works">How it works</a>
+      <a href="leaderboard.html">Leaderboard</a>
+      <a href="leaders.html">Leaders</a>
+      <a href="https://git.owaspblt.org/BLT/tree/main/blt-pages" target="_blank" rel="noopener noreferrer">Source</a>
+      <a href="https://git.owaspblt.org/BLT/issues/new" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Report Bug</a>
+    </blt-nav>
 
     <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div class="mb-12 text-center">

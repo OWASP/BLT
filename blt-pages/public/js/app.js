@@ -9,7 +9,6 @@
 ──────────────────────────────────────────────────────────── */
 document.addEventListener("DOMContentLoaded", () => {
   initDarkMode();
-  initMobileMenu();
   initAnonymousToggle();
   loadLeaderboard();
   loadRecentBugs();
@@ -33,44 +32,6 @@ function initDarkMode() {
   window.addEventListener("blt-theme-change", (e) => {
     bltCapture("dark_mode_toggled", { to_dark: !!(e.detail && e.detail.dark), page: "homepage" });
   });
-}
-
-/* ────────────────────────────────────────────────────────────
-   Mobile Menu
-──────────────────────────────────────────────────────────── */
-function initMobileMenu() {
-  const toggle = document.getElementById("mobile-menu-toggle");
-  const menu = document.getElementById("mobile-menu");
-  if (!toggle || !menu) return;
-
-  const desktopBreakpoint = window.matchMedia("(min-width: 1024px)");
-  const syncMenuState = () => {
-    if (desktopBreakpoint.matches) {
-      menu.classList.add("hidden");
-      toggle.setAttribute("aria-expanded", "false");
-    }
-  };
-
-  toggle.addEventListener("click", () => {
-    const open = menu.classList.toggle("hidden");
-    toggle.setAttribute("aria-expanded", String(!open));
-  });
-
-  if (typeof desktopBreakpoint.addEventListener === "function") {
-    desktopBreakpoint.addEventListener("change", syncMenuState);
-  } else {
-    desktopBreakpoint.addListener(syncMenuState);
-  }
-
-  // Close when a nav link is clicked
-  menu.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", () => {
-      menu.classList.add("hidden");
-      toggle.setAttribute("aria-expanded", "false");
-    });
-  });
-
-  syncMenuState();
 }
 
 /* ────────────────────────────────────────────────────────────

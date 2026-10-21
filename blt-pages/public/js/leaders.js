@@ -22,26 +22,10 @@ const profileFor = (login) => `${FORGE_ORIGIN}/@${encodeURIComponent(String(logi
 
 /* ── Bootstrap ── */
 document.addEventListener('DOMContentLoaded', () => {
-  initMobileMenu();
   initTabs();
   loadLeadersData();
   document.getElementById('footer-year').textContent = new Date().getFullYear();
 });
-
-/* ── Mobile Menu ── */
-function initMobileMenu() {
-  const toggle = document.getElementById('mobile-menu-toggle');
-  const menu = document.getElementById('mobile-menu');
-  if (!toggle || !menu) return;
-  toggle.addEventListener('click', () => {
-    const isNowHidden = menu.classList.toggle('hidden');
-    toggle.setAttribute('aria-expanded', String(!isNowHidden));
-  });
-  menu.querySelectorAll('a').forEach(l => l.addEventListener('click', () => {
-    menu.classList.add('hidden');
-    toggle.setAttribute('aria-expanded', 'false');
-  }));
-}
 
 /* ── Tabs ── */
 function initTabs() {
