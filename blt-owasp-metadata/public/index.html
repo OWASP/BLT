@@ -11,33 +11,21 @@
 </head>
 
 <body>
-  <!-- header -->
-  <header class="header">
-    <div class="header-content">
-      <h1 class="title">OWASP Metadata Explorer</h1>
-      <div class="header-stats" id="stats">Loading repositories...</div>
-    </div>
-    <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Metadata" target="_blank" rel="noopener" class="btn" style="display: inline-flex; align-items: center; gap: 4px;" title="View source code">
-      📦 Source code
-    </a>
-    <button class="btn" onclick="window.location.href='charts.html'" style="display: inline-flex; align-items: center; gap: 4px;">
-      📊 Analytics
-    </button>
-    <button class="btn" onclick="window.location.href='diagram.html'" style="display: inline-flex; align-items: center; gap: 4px;">
-      🗺️ Diagram
-    </button>
-    <button class="btn" onclick="window.location.href='mermaid-diagram.html'" style="display: inline-flex; align-items: center; gap: 4px;">
-      🔄 SDLC Diagram
-    </button>
-    <div class="header-actions">
-      <button class="btn" id="toggle-filters">Filters</button>
-      <button class="btn" id="toggle-columns">Columns</button>
-      <button class="btn" id="export-btn">Export CSV</button>
-    </div>
-  </header>
+  <blt-nav project="blt-owasp-metadata" name="Metadata" current="auto" data-sticky>
+    <a href="index.html">Explorer</a>
+    <a href="charts.html">Analytics</a>
+    <a href="diagram.html">Wayfinder</a>
+    <a href="mermaid-diagram.html">SDLC</a>
+    <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Metadata" slot="actions" data-primary target="_blank" rel="noopener">Source code</a>
+  </blt-nav>
+
 
   <!-- control bar -->
   <div class="control-bar">
+    <div class="page-title">
+      <h1 class="title">OWASP Metadata Explorer</h1>
+      <div class="header-stats" id="stats">Loading repositories...</div>
+    </div>
     <div class="search-container">
       <input type="text" id="search" placeholder="Search repositories..." class="search-input">
       <div class="results-count" id="row-count">0</div>
@@ -45,6 +33,9 @@
     <div class="view-controls">
       <button class="btn btn-sm" id="sort-asc">Sort A-Z</button>
       <button class="btn btn-sm" id="sort-desc">Sort Z-A</button>
+      <button class="btn btn-sm" id="toggle-filters">Filters</button>
+      <button class="btn btn-sm" id="toggle-columns">Columns</button>
+      <button class="btn btn-sm" id="export-btn">Export CSV</button>
     </div>
   </div>
 
