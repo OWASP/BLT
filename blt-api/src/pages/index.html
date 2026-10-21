@@ -52,8 +52,12 @@
     <link rel="stylesheet" href="/_brand/blt-dark.css" />
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <style>
-      .mobile-menu.open {
-        display: flex;
+      blt-nav:not(:defined) {
+        display: block;
+        min-height: 61px;
+      }
+      blt-nav:not(:defined) > * {
+        display: none;
       }
       .dot-field {
         background-image: radial-gradient(
@@ -170,124 +174,14 @@
   <body
     class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
   >
-    <header
-      class="sticky inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
-      id="site-header"
-    >
-      <div
-        class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-md:px-4"
-      >
-        <a
-          href="/"
-          class="inline-flex items-center gap-2.5"
-          aria-label="BLT API home"
-        >
-          <img src="/blt-api.svg" alt="BLT API logo" width="56" height="56" class="h-12 w-12 sm:h-14 sm:w-14" />
-          <div class="flex flex-col">
-            <span class="text-sm font-semibold tracking-tight">BLT API</span>
-          </div>
-        </a>
-
-        <nav
-          class="hidden items-center gap-7 md:flex"
-          aria-label="Primary navigation"
-        >
-          <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
-            href="#docs"
-            >Docs</a
-          >
-          <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
-            href="#endpoints"
-            >Endpoints</a
-          >
-          <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
-            href="[[API_BASE_URL]]/health"
-            >Health</a
-          >
-          <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
-            href="https://git.owaspblt.org/BLT/BLT-API"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Source</a
-          >
-        </nav>
-
-        <div class="hidden items-center gap-3 md:flex">
-          <a
-            class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
-            href="[[API_BASE_URL]]/health"
-            >Check health</a
-          >
-          <a
-            class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
-            href="[[API_BASE_URL]]/dashboard"
-            >View docs</a
-          >
-        </div>
-
-        <button
-          class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-row items-center justify-center gap-[3px] border-0 bg-transparent max-md:flex"
-          id="mobile-toggle"
-          type="button"
-          aria-label="BLT API menu"
-          aria-expanded="false"
-          aria-controls="mobile-menu"
-        >
-          <span
-            class="block h-1 w-1 rounded-full bg-gray-600 dark:bg-gray-300"
-          ></span>
-          <span
-            class="block h-1 w-1 rounded-full bg-gray-600 dark:bg-gray-300"
-          ></span>
-          <span
-            class="block h-1 w-1 rounded-full bg-gray-600 dark:bg-gray-300"
-          ></span>
-        </button>
-      </div>
-
-      <nav
-        class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur-md"
-        id="mobile-menu"
-        aria-label="Mobile navigation"
-      >
-        <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
-          href="#docs"
-          >Docs</a
-        >
-        <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
-          href="#endpoints"
-          >Endpoints</a
-        >
-        <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
-          href="[[API_BASE_URL]]/health"
-          >Health</a
-        >
-        <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
-          href="https://git.owaspblt.org/BLT/BLT-API"
-          target="_blank"
-          rel="noopener noreferrer"
-          >Source</a
-        >
-        <a
-          class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
-          href="[[API_BASE_URL]]/health"
-          >Check health</a
-        >
-        <a
-          class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
-          href="[[API_BASE_URL]]/dashboard"
-          >View docs</a
-        >
-      </nav>
-    </header>
+    <blt-nav project="blt-api" name="API" data-sticky>
+      <a href="#docs">Docs</a>
+      <a href="#endpoints">Endpoints</a>
+      <a href="[[API_BASE_URL]]/health">Health</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-API" target="_blank" rel="noopener noreferrer">Source</a>
+      <a href="[[API_BASE_URL]]/health" slot="actions">Check health</a>
+      <a href="[[API_BASE_URL]]/dashboard" slot="actions" data-primary>View docs</a>
+    </blt-nav>
 
     <main>
       <section
@@ -711,28 +605,5 @@
       </section>
     </main>
 
-    <script>
-      (function () {
-        var mobileToggle = document.getElementById("mobile-toggle");
-        var mobileMenu = document.getElementById("mobile-menu");
-
-        if (mobileToggle && mobileMenu) {
-          mobileToggle.addEventListener("click", function () {
-            var open = !mobileMenu.classList.contains("open");
-            mobileMenu.classList.toggle("open", open);
-            mobileToggle.classList.toggle("active", open);
-            mobileToggle.setAttribute("aria-expanded", String(open));
-          });
-
-          mobileMenu.querySelectorAll("a").forEach(function (link) {
-            link.addEventListener("click", function () {
-              mobileMenu.classList.remove("open");
-              mobileToggle.classList.remove("active");
-              mobileToggle.setAttribute("aria-expanded", "false");
-            });
-          });
-        }
-      })();
-    </script>
   </body>
 </html>

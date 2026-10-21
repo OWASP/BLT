@@ -91,12 +91,69 @@
   <body
     class="overflow-x-hidden bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors"
   >
+    <blt-nav project="blt-api" name="API" home="/">
+      <a href="/">Overview</a>
+      <a href="/dashboard" aria-current="page">Explorer</a>
+      <a href="[[API_BASE_URL]]/health">Health</a>
+      <button
+        id="mobileNavToggle"
+        type="button"
+        class="md:hidden"
+        aria-label="BLT API route menu"
+        aria-controls="sidebar"
+        aria-expanded="false"
+      >
+        Routes
+      </button>
+      <button
+        id="accountOpenButton"
+        type="button"
+        slot="actions"
+        class="inline-flex items-center gap-2"
+        aria-haspopup="menu"
+        aria-controls="profileMenu"
+        aria-expanded="false"
+      >
+        <span
+          id="accountAvatar"
+          class="flex h-5 w-5 flex-none items-center justify-center rounded-full bg-red-50 text-[10px] font-bold text-red-700 ring-1 ring-red-100 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30"
+          aria-hidden="true"
+          >👤</span
+        >
+        <span id="accountStatusChip" class="max-w-[9rem] truncate sm:max-w-none"
+          >Sign up / Sign in</span
+        >
+      </button>
+    </blt-nav>
+    <div
+      id="profileMenu"
+      class="absolute right-4 top-[58px] z-[1100] hidden w-56 rounded-xl border border-gray-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900"
+      role="menu"
+      aria-label="Profile menu"
+    >
+      <button
+        id="openProfileModalButton"
+        type="button"
+        class="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
+        role="menuitem"
+      >
+        Profile & API keys
+      </button>
+      <button
+        id="menuSignOutButton"
+        type="button"
+        class="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-red-700 transition hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10"
+        role="menuitem"
+      >
+        Sign out
+      </button>
+    </div>
     <div
       class="flex min-h-screen flex-col overflow-x-hidden md:h-[calc(100vh-61px)] md:min-h-0 md:flex-row md:overflow-hidden"
     >
       <aside
         id="sidebar"
-        class="fixed inset-0 z-40 hidden md:flex w-full flex-none flex-col overflow-hidden border-r border-gray-200 bg-gray-50 dark:border-slate-800 dark:bg-slate-900 md:static md:z-auto md:w-64"
+        class="fixed inset-0 z-[1050] hidden md:flex w-full flex-none flex-col overflow-hidden border-r border-gray-200 bg-gray-50 dark:border-slate-800 dark:bg-slate-900 md:static md:z-auto md:w-64"
       >
         <div
           class="flex items-center gap-3 border-b border-gray-200 p-3 dark:border-slate-800 md:p-2"
@@ -183,98 +240,18 @@
       <div
         class="flex min-w-0 flex-1 flex-col overflow-visible md:overflow-hidden"
       >
-        <header
-          class="flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 md:px-8 md:py-4"
-        >
-          <button
-            id="mobileNavToggle"
-            type="button"
-            class="inline-flex h-10 w-10 flex-none items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 md:hidden"
-            aria-label="BLT API route menu"
-            aria-controls="sidebar"
-            aria-expanded="false"
-          >
-            <svg
-              class="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="3"
-                d="M5 12h.01M12 12h.01M19 12h.01"
-              ></path>
-            </svg>
-          </button>
-          <h2
-            id="pageTitle"
-            class="min-w-0 flex-1 truncate text-lg font-bold sm:text-xl md:text-2xl"
-          >
-            BLT API Dashboard
-          </h2>
-          <div class="ml-auto flex flex-none items-center gap-2 sm:gap-3">
-            <a
-              href="[[API_BASE_URL]]/health"
-              class="hidden px-3 py-2 text-sm rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500 md:inline-flex"
-            >
-              Health
-            </a>
-            <div class="relative">
-              <button
-                id="accountOpenButton"
-                type="button"
-                class="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                aria-haspopup="menu"
-                aria-controls="profileMenu"
-                aria-expanded="false"
-              >
-                <span
-                  id="accountAvatar"
-                  class="flex h-7 w-7 items-center justify-center rounded-full bg-red-50 text-xs font-bold text-red-700 ring-1 ring-red-100 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30"
-                  aria-hidden="true"
-                  >👤</span
-                >
-                <span
-                  id="accountStatusChip"
-                  class="max-w-[9rem] truncate sm:max-w-none"
-                  >Sign up / Sign in</span
-                >
-              </button>
-              <div
-                id="profileMenu"
-                class="absolute right-0 z-40 mt-2 hidden w-56 rounded-xl border border-gray-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900"
-                role="menu"
-                aria-label="Profile menu"
-              >
-                <button
-                  id="openProfileModalButton"
-                  type="button"
-                  class="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  role="menuitem"
-                >
-                  Profile & API keys
-                </button>
-                <button
-                  id="menuSignOutButton"
-                  type="button"
-                  class="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-red-700 transition hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10"
-                  role="menuitem"
-                >
-                  Sign out
-                </button>
-              </div>
-            </div>
-          </div>
-        </header>
 
         <main
           class="flex min-h-0 flex-1 flex-col gap-4 overflow-visible p-4 md:flex-row md:gap-6 md:overflow-hidden md:p-8"
         >
           <div class="min-w-0 flex-1 overflow-visible md:overflow-y-auto">
             <div class="space-y-4 md:pr-2">
+              <h1
+                id="pageTitle"
+                class="min-w-0 truncate text-lg font-bold sm:text-xl md:text-2xl"
+              >
+                BLT API Dashboard
+              </h1>
               <section
                 class="grid gap-3 md:grid-cols-3"
                 aria-label="API status"
@@ -543,7 +520,7 @@
     <!-- ── Auth Modal (sign in / create account) ──────────────────────── -->
     <div
       id="authModal"
-      class="fixed inset-0 z-50 hidden flex items-start justify-center overflow-y-auto p-3 py-6 sm:items-center sm:p-4 sm:pt-12"
+      class="fixed inset-0 z-[1100] hidden flex items-start justify-center overflow-y-auto p-3 py-6 sm:items-center sm:p-4 sm:pt-12"
       role="dialog"
       aria-modal="true"
       aria-labelledby="authModalTitle"
@@ -807,7 +784,7 @@
     <!-- ── Profile Modal (signed-in users) ────────────────────────────── -->
     <div
       id="profileModal"
-      class="fixed inset-0 z-50 hidden flex items-start justify-center overflow-y-auto p-3 py-6 sm:items-center sm:p-4"
+      class="fixed inset-0 z-[1100] hidden flex items-start justify-center overflow-y-auto p-3 py-6 sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="profileModalTitle"
@@ -4071,8 +4048,9 @@
         elements.refreshHealthButton.addEventListener("click", loadHealth);
         elements.refreshStatsButton.addEventListener("click", loadStats);
         // ── Header account button ─────────────────────────────────────────
-        elements.accountOpenButton.addEventListener("click", function (event) {
-          event.stopPropagation();
+        elements.accountOpenButton.addEventListener("click", function () {
+          // No stopPropagation: the shared bar closes its menu on this click, and the
+          // outside-click handler below ignores clicks on this button.
           if (sessionToken) {
             elements.profileMenu.classList.toggle("hidden");
           } else {

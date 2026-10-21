@@ -54,7 +54,9 @@ class TestHomepageHandler:
         assert "Build with" in content
         assert "Everything you need to test a route" in content
         assert "The dashboard keeps route docs" in content
-        assert 'src="/blt-api.svg"' in content
+        # One header: the project's symbol and links come from the shared bar.
+        assert '<blt-nav project="blt-api" name="API"' in content
+        assert 'id="mobile-menu"' not in content
         assert 'src="/blt-api.png"' not in content
 
     @pytest.mark.asyncio
@@ -186,7 +188,11 @@ class TestDashboardHandler:
         assert 'id="mobileNavToggle"' in content
         assert 'aria-controls="sidebar"' in content
         assert "hidden md:flex" in content
-        assert "fixed inset-0 z-40" in content
+        # Full-screen route catalog on phones sits above the shared bar (z-index 1000).
+        assert "fixed inset-0 z-[1050]" in content
+        # One header: the route menu button and account button live in the shared bar.
+        assert '<blt-nav project="blt-api" name="API"' in content
+        assert "<header" not in content
         # The theme toggle lives in the shared OWASP BLT bar (<blt-nav>), not in this page.
         assert "id=\"mobileThemeToggle\"" not in content
         assert "mobileHealthLink" in content
