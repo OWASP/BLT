@@ -1,20 +1,37 @@
 """
-Scheduled notification handler for daily check-in reminders.
-This script is triggered by Cloudflare Workers cron triggers.
+Scheduled daily check-in reminders.
+
+blt-cron calls POST /__scheduled every 15 minutes (see blt-cron/src/jobs.js), and main.py
+passes the event here. Each run:
+
+1. loads users with reminders on;
+2. works out, in each user's own timezone, whether their reminder time has come today
+   and today is one of their reminder days (reminders.reminder_due);
+3. skips users who already checked in today;
+4. claims the day by setting users.last_reminder_date with a conditional UPDATE, so two
+   runs (or a repeated DST hour) can never send twice;
+5. sends email and/or Slack, each retried at most once, and records the outcome.
 """
 
-from js import fetch, Date
-import json
 import base64
+import json
 import logging
 import sys
+from datetime import datetime, timezone
+
+from email_service import EmailService, http_post, mask_emails
+from reminders import reminder_due, render_reminder_email
+from url_safety import is_slack_webhook_url
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
+# One consolidated Slack message per org, once a day at this UTC hour (ORG_NOTIFICATION_HOUR).
+DEFAULT_ORG_HOUR = 9
+
 
 def _decrypt_simple(encrypted_data):
-    """Simple base64 decryption matching the placeholder in main.py"""
+    """Mirror of main.decrypt_data (base64 payload after an 'iv:' prefix)."""
     if not encrypted_data:
         return ''
     try:
@@ -26,408 +43,274 @@ def _decrypt_simple(encrypted_data):
         return encrypted_data
 
 
-async def send_slack_notification(webhook_url, user_email, checkin_url):
-    """Send Slack notification to user"""
-    message = {
-        "text": "🔔 Daily Check-in Reminder",
+def _rows(result_proxy):
+    result = result_proxy.to_py() if hasattr(result_proxy, 'to_py') else result_proxy
+    if isinstance(result, dict):
+        return result.get('results', []) or []
+    return []
+
+
+def _changes(result_proxy):
+    result = result_proxy.to_py() if hasattr(result_proxy, 'to_py') else result_proxy
+    if isinstance(result, dict):
+        if 'changes' in result:
+            return int(result.get('changes') or 0)
+        meta = result.get('meta')
+        if isinstance(meta, dict):
+            return int(meta.get('changes') or 0)
+    return 0
+
+
+def _event_time(event):
+    """UTC datetime for this run: the dispatcher's scheduledTime, else now."""
+    try:
+        ms = int(getattr(event, 'scheduledTime', None))
+        return datetime.fromtimestamp(ms / 1000, tz=timezone.utc)
+    except (TypeError, ValueError, OverflowError, OSError):
+        return datetime.now(timezone.utc)
+
+
+def app_url(env):
+    host = str(getattr(env, 'APP_URL', '') or getattr(env, 'WORKER_HOST', '') or '').strip()
+    if not host:
+        return "https://sizzle.owaspblt.org"
+    if not host.startswith("http://") and not host.startswith("https://"):
+        host = "https://" + host
+    return host.rstrip("/")
+
+
+def reminder_email_address(user):
+    """Address for reminder email: a verified sign-in email, else the GitHub email on file."""
+    email = str(user.get('email') or '').strip()
+    if email and int(user.get('email_verified') or 0) == 1:
+        return email
+    legacy = _decrypt_simple(user.get('encrypted_email') or '').strip()
+    if legacy and '@' in legacy:
+        return legacy
+    return ''
+
+
+def slack_reminder_message(checkin_url, settings_url, test=False):
+    title = "Test reminder" if test else "Daily check-in reminder"
+    return {
+        "text": f"{title}: time for your daily check-in {checkin_url}",
         "blocks": [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*Good morning! Time for your daily check-in* ✨\n\nTake a moment to reflect on your progress and plan your day."
-                }
-            },
-            {
-                "type": "divider"
-            },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "*What to include:*\n• What you accomplished previously\n• Your plans for today\n• Any blockers or challenges\n• How you're feeling"
-                }
-            },
-            {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "📝 Fill Check-in Form",
-                            "emoji": True
-                        },
-                        "style": "primary",
-                        "url": checkin_url,
-                        "action_id": "checkin_button"
-                    }
-                ]
-            }
-        ]
-    }
-    
-    try:
-        response = await fetch(webhook_url, {
-            "method": "POST",
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps(message)
-        })
-        return response.ok
-    except Exception as e:
-        logger.error("Error sending Slack notification: %s", e)
-        return False
-
-
-async def send_email_notification(email, user_name, checkin_url, env):
-    """Send email notification to user"""
-    
-    # Check if email provider is configured
-    if not hasattr(env, 'EMAIL_API_KEY') or not env.EMAIL_API_KEY:
-        logger.warning("Email notifications not configured: EMAIL_API_KEY missing")
-        return False
-    
-    email_provider = getattr(env, 'EMAIL_PROVIDER', 'sendgrid')
-    
-    # Email HTML template
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-            body {{
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-            }}
-            .header {{
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 30px;
-                border-radius: 10px 10px 0 0;
-                text-align: center;
-            }}
-            .content {{
-                background: #f9fafb;
-                padding: 30px;
-                border-radius: 0 0 10px 10px;
-            }}
-            .button {{
-                display: inline-block;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 14px 30px;
-                text-decoration: none;
-                border-radius: 8px;
-                font-weight: 600;
-                margin: 20px 0;
-            }}
-            .checklist {{
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                margin: 20px 0;
-            }}
-            .checklist-item {{
-                padding: 8px 0;
-            }}
-            .footer {{
-                text-align: center;
-                color: #666;
-                font-size: 12px;
-                margin-top: 30px;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <h1>📝 Daily Check-in Reminder</h1>
-            <p>Time to reflect and plan your day</p>
-        </div>
-        <div class="content">
-            <p>Good morning!</p>
-            <p>It's time for your daily check-in. Take a few minutes to document your progress and set your intentions for today.</p>
-            
-            <div class="checklist">
-                <h3>What to include:</h3>
-                <div class="checklist-item">✓ What you accomplished previously</div>
-                <div class="checklist-item">✓ Your plans for today</div>
-                <div class="checklist-item">✓ Any blockers or challenges</div>
-                <div class="checklist-item">✓ How you're feeling</div>
-            </div>
-            
-            <center>
-                <a href="{checkin_url}" class="button">Fill Check-in Form</a>
-            </center>
-            
-            <p style="margin-top: 30px; font-size: 14px; color: #666;">
-                This reminder was sent to you based on your notification preferences. 
-                You can update your settings anytime in the app.
-            </p>
-        </div>
-        <div class="footer">
-            <p>BLT Sizzle Check-in App</p>
-            <p>You're receiving this because you enabled email notifications</p>
-        </div>
-    </body>
-    </html>
-    """
-    
-    text_content = f"""
-    Daily Check-in Reminder
-    
-    Good morning!
-    
-    It's time for your daily check-in. Take a few minutes to document your progress and set your intentions for today.
-    
-    What to include:
-    - What you accomplished previously
-    - Your plans for today
-    - Any blockers or challenges
-    - How you're feeling
-    
-    Click here to fill out your check-in: {checkin_url}
-    
-    ---
-    BLT Sizzle Check-in App
-    """
-    
-    # Send via configured provider
-    if email_provider == 'sendgrid':
-        return await send_via_sendgrid(email, html_content, text_content, env)
-    elif email_provider == 'mailgun':
-        return await send_via_mailgun(email, html_content, text_content, env)
-    else:
-        logger.warning("Unsupported email provider: %s", email_provider)
-        return False
-
-
-async def send_via_sendgrid(to_email, html_content, text_content, env):
-    """Send email via SendGrid API"""
-    url = "https://api.sendgrid.com/v3/mail/send"
-    
-    data = {
-        "personalizations": [
-            {
-                "to": [{"email": to_email}]
-            }
+            {"type": "section", "text": {"type": "mrkdwn", "text": (
+                f"*{title}*\nTake a few minutes to note what you finished, what you plan "
+                "to do today, and anything blocking you."
+            )}},
+            {"type": "actions", "elements": [{
+                "type": "button",
+                "text": {"type": "plain_text", "text": "Fill in today's check-in"},
+                "style": "primary",
+                "url": checkin_url,
+                "action_id": "checkin_button",
+            }]},
+            {"type": "context", "elements": [{"type": "mrkdwn", "text": f"<{settings_url}|Change reminder settings>"}]},
         ],
-        "from": {
-            "email": env.EMAIL_FROM if hasattr(env, 'EMAIL_FROM') else "noreply@example.com",
-            "name": "BLT Sizzle Check-in"
-        },
-        "subject": "📝 Daily Check-in Reminder",
-        "content": [
-            {
-                "type": "text/plain",
-                "value": text_content
-            },
-            {
-                "type": "text/html",
-                "value": html_content
-            }
-        ]
     }
-    
-    try:
-        response = await fetch(url, {
-            "method": "POST",
-            "headers": {
-                "Authorization": f"Bearer {env.EMAIL_API_KEY}",
-                "Content-Type": "application/json"
-            },
-            "body": json.dumps(data)
-        })
-        return response.ok
-    except Exception as e:
-        logger.error("Error sending via SendGrid: %s", e)
-        return False
 
 
-async def send_via_mailgun(to_email, html_content, text_content, env):
-    """Send email via Mailgun API"""
-    domain = env.EMAIL_DOMAIN if hasattr(env, 'EMAIL_DOMAIN') else "mg.example.com"
-    url = f"https://api.mailgun.net/v3/{domain}/messages"
-    
-    form_data = {
-        "from": f"BLT Sizzle Check-in <{env.EMAIL_FROM if hasattr(env, 'EMAIL_FROM') else 'noreply@example.com'}>",
-        "to": to_email,
-        "subject": "📝 Daily Check-in Reminder",
-        "text": text_content,
-        "html": html_content
-    }
-    
-    try:
-        # Mailgun uses basic auth
-        import base64
-        from urllib.parse import urlencode
-        auth = base64.b64encode(f"api:{env.EMAIL_API_KEY}".encode()).decode()
-        
-        # Properly URL-encode form data
-        encoded_body = urlencode(form_data)
-        
-        response = await fetch(url, {
-            "method": "POST",
-            "headers": {
-                "Authorization": f"Basic {auth}",
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            "body": encoded_body
-        })
-        return response.ok
-    except Exception as e:
-        logger.error("Error sending via Mailgun: %s", e)
-        return False
+async def send_slack(webhook_url, message, post=None, max_attempts=2):
+    """POST to a Slack webhook (hooks.slack.com only), retrying a transient failure once."""
+    if not is_slack_webhook_url(webhook_url):
+        return {"success": False, "status": 0, "attempts": 0, "error": "Slack webhook URL is not allowed."}
+    post = post or http_post
+    status = 0
+    for attempt in range(1, max_attempts + 1):
+        status, _ = await post(webhook_url, {"Content-Type": "application/json"}, json.dumps(message))
+        if 200 <= status < 300:
+            return {"success": True, "status": status, "attempts": attempt, "error": ""}
+        if not (status in (0, 408, 429) or status >= 500):
+            break
+    return {"success": False, "status": status, "attempts": attempt, "error": f"Slack returned status {status}."}
+
+
+async def send_reminder(env, user, local_date, email_service=None, slack_post=None, test=False):
+    """Send one user's reminder on every channel they turned on. Returns per-channel results."""
+    base = app_url(env)
+    results = {}
+    if int(user.get('email_notifications') or 0) == 1:
+        address = reminder_email_address(user)
+        if address:
+            service = email_service or EmailService.from_env(env)
+            subject, html_body, text_body = render_reminder_email(
+                base,
+                display_name=_decrypt_simple(user.get('encrypted_display_name') or ''),
+                local_date=local_date,
+                notification_time=user.get('notification_time') or '09:00',
+                days=user.get('notification_days'),
+                tz_name=user.get('timezone') or 'UTC',
+            )
+            if test:
+                subject = "Test: " + subject
+            results['email'] = await service.send_email(
+                address, subject, html_body, text_content=text_body,
+                custom_args={"purpose": "test_reminder" if test else "daily_reminder", "app": "sizzle"},
+            )
+            if not results['email'].get('success'):
+                logger.error(
+                    "Reminder email failed: user=%s provider=%s status=%s attempts=%s error=%s detail=%s",
+                    user.get('user_id'), results['email'].get('provider'), results['email'].get('status'),
+                    results['email'].get('attempts'), results['email'].get('error'),
+                    mask_emails(results['email'].get('detail')),
+                )
+        else:
+            results['email'] = {"success": False, "status": 0, "attempts": 0,
+                                "error": "No email address on file."}
+            logger.warning("Reminder email skipped: user=%s has no email address on file", user.get('user_id'))
+    slack_url = _decrypt_simple(user.get('encrypted_slack_webhook_url') or '').strip()
+    if slack_url:
+        message = slack_reminder_message(base + "/app", base + "/settings", test=test)
+        results['slack'] = await send_slack(slack_url, message, post=slack_post)
+        if not results['slack'].get('success'):
+            logger.error("Reminder Slack post failed: user=%s status=%s attempts=%s",
+                         user.get('user_id'), results['slack'].get('status'), results['slack'].get('attempts'))
+    return results
+
+
+def has_channel(user):
+    if int(user.get('email_notifications') or 0) == 1:
+        return True
+    return bool(_decrypt_simple(user.get('encrypted_slack_webhook_url') or '').strip())
+
+
+USERS_SQL = """
+    SELECT user_id, email, email_verified, encrypted_email, encrypted_display_name,
+           encrypted_slack_webhook_url, notification_time, notification_days, timezone,
+           email_notifications, last_reminder_date
+    FROM users
+    WHERE notification_enabled = 1
+      AND COALESCE(status, 'active') = 'active'
+      AND (email_notifications = 1
+           OR (encrypted_slack_webhook_url IS NOT NULL AND encrypted_slack_webhook_url != ''))
+"""
+
+CLAIM_SQL = """
+    UPDATE users
+    SET last_reminder_date = ?, last_reminder_status = 'sending', last_reminder_at = CURRENT_TIMESTAMP
+    WHERE user_id = ? AND (last_reminder_date IS NULL OR last_reminder_date != ?)
+"""
+
+
+async def run_user_reminders(env, now_utc, email_service=None, slack_post=None):
+    """Send every reminder due at now_utc. Returns a summary dict (for logs and tests)."""
+    db = env.sizzle_db
+    users = _rows(await db.prepare(USERS_SQL).all())
+    summary = {"checked": len(users), "due": 0, "sent": 0, "failed": 0, "skipped_checked_in": 0}
+    for user in users:
+        user_id = user.get('user_id')
+        try:
+            due, local_date, _reason = reminder_due(
+                now_utc, user.get('timezone') or 'UTC', user.get('notification_time') or '09:00',
+                user.get('notification_days'), user.get('last_reminder_date'),
+            )
+            if not due or not has_channel(user):
+                continue
+            summary["due"] += 1
+            checked_in = await db.prepare(
+                "SELECT 1 AS found FROM checkins WHERE user_id = ? AND checkin_date = ? LIMIT 1"
+            ).bind(user_id, local_date).first()
+            if checked_in:
+                summary["skipped_checked_in"] += 1
+                continue
+            claim = await db.prepare(CLAIM_SQL).bind(local_date, user_id, local_date).run()
+            if _changes(claim) != 1:
+                continue  # another run claimed today's reminder
+            results = await send_reminder(env, user, local_date, email_service=email_service, slack_post=slack_post)
+            ok = [r.get('success') for r in results.values()]
+            status = 'sent' if ok and all(ok) else ('partial' if any(ok) else 'failed')
+            summary["sent" if status != 'failed' else "failed"] += 1
+            await db.prepare(
+                "UPDATE users SET last_reminder_status = ? WHERE user_id = ?"
+            ).bind(status, user_id).run()
+            logger.info("Reminder %s: user=%s local_date=%s channels=%s", status, user_id, local_date,
+                        ",".join(f"{k}:{'ok' if v.get('success') else v.get('status')}" for k, v in results.items()))
+        except Exception as e:
+            summary["failed"] += 1
+            logger.error("Error processing reminder for %s: %s", user_id, mask_emails(e))
+    return summary
 
 
 async def handle_scheduled(event, env):
-    """
-    Handle scheduled cron trigger.
-    This function is called by Cloudflare Workers cron.
-    """
+    """Run one scheduler tick (called through POST /__scheduled by blt-cron)."""
+    now_utc = _event_time(event)
+    logger.info("Running scheduled task at %s UTC", now_utc.strftime("%H:%M"))
     try:
-        # Get current time in UTC
-        iso_str = Date.new().toISOString()
-        current_hour = int(iso_str.split('T')[1].split(':')[0])
-        current_minute = int(iso_str.split(':')[1])
-        logger.info("Running scheduled task at %02d:%02d UTC", current_hour, current_minute)
-        
-
-        
-        # Query users - use encrypted column names
-        result_proxy = await env.sizzle_db.prepare("""
-            SELECT user_id, encrypted_email, encrypted_slack_webhook_url,
-                   notification_time, timezone, email_notifications, notification_enabled
-            FROM users
-            WHERE notification_enabled = 1
-        """).all()
-        
-        result = result_proxy.to_py() if hasattr(result_proxy, 'to_py') else result_proxy
-        users = result.get('results', []) if isinstance(result, dict) else []
-        
-        if not users:
-            logger.info("No users with notifications enabled")
-            return
-        
-        checkin_url = f"https://{env.WORKER_HOST}" if hasattr(env, 'WORKER_HOST') else "https://your-worker.workers.dev"
-        
-        for user in users:
-            try:
-                # Decrypt PII
-                slack_url = _decrypt_simple(user.get('encrypted_slack_webhook_url', ''))
-                email = _decrypt_simple(user.get('encrypted_email', ''))
-
-                notif_hour, notif_minute = map(int, user['notification_time'].split(':'))
-                
-                # Check if we are within the notification window
-                if current_hour == notif_hour and abs(current_minute - notif_minute) < 30:
-                    # 1. Send Check-in Reminder
-                    if slack_url:
-                        await send_slack_notification(slack_url, user['user_id'], checkin_url)
-                    
-                    if email and user['email_notifications'] == 1:
-                        await send_email_notification(email, user['user_id'], checkin_url, env)
-                            
-            except Exception as e:
-                logger.error("Error processing user %s: %s", user['user_id'], e)
-                continue
-
-        # Org-level notifications
-        await handle_org_notifications(env, current_hour, current_minute, checkin_url)
-        
-        logger.info("Scheduled task complete")
+        summary = await run_user_reminders(env, now_utc)
+        logger.info("Reminders: %s", summary)
     except Exception as e:
-        logger.error("Error in scheduled handler: %s", e, exc_info=True)
+        logger.error("Error in reminder run: %s", mask_emails(e), exc_info=True)
+    await handle_org_notifications(env, now_utc)
+    logger.info("Scheduled task complete")
 
 
-async def handle_org_notifications(env, current_hour, current_minute, checkin_url):
-    """Send one consolidated Slack reminder per org for members who haven't checked in today"""
+async def handle_org_notifications(env, now_utc, post=None):
+    """One consolidated Slack reminder per org for members who haven't checked in today.
+
+    Runs only in the first 15-minute slot of ORG_NOTIFICATION_HOUR (UTC), which the
+    15-minute cron hits exactly once a day.
+    """
     try:
-        # Default org notification hour is 9am UTC; override with ORG_NOTIFICATION_HOUR env var
-        org_hour = int(getattr(env, 'ORG_NOTIFICATION_HOUR', '9'))
-        if not (current_hour == org_hour and current_minute < 30):
+        try:
+            org_hour = int(getattr(env, 'ORG_NOTIFICATION_HOUR', '') or DEFAULT_ORG_HOUR)
+        except ValueError:
+            org_hour = DEFAULT_ORG_HOUR
+        if not (now_utc.hour == org_hour and now_utc.minute < 15):
             return
 
-        today = Date.new().toISOString().split('T')[0]
-
-        orgs_proxy = await env.sizzle_db.prepare("""
-            SELECT id, github_org_name, encrypted_slack_webhook_url
+        today = now_utc.date().isoformat()
+        base = app_url(env)
+        orgs = _rows(await env.sizzle_db.prepare("""
+            SELECT id, COALESCE(name, github_org_name) AS org_name, encrypted_slack_webhook_url
             FROM organizations
             WHERE encrypted_slack_webhook_url IS NOT NULL
               AND encrypted_slack_webhook_url != ''
-        """).all()
-
-        orgs_result = orgs_proxy.to_py() if hasattr(orgs_proxy, 'to_py') else orgs_proxy
-        orgs = orgs_result.get('results', []) if isinstance(orgs_result, dict) else []
+        """).all())
 
         for org in orgs:
             try:
-                slack_url = _decrypt_simple(org.get('encrypted_slack_webhook_url', ''))
-                if not slack_url:
+                slack_url = _decrypt_simple(org.get('encrypted_slack_webhook_url', '')).strip()
+                if not is_slack_webhook_url(slack_url):
                     continue
 
-                # Members who haven't submitted an org-tagged check-in today
-                pending_proxy = await env.sizzle_db.prepare("""
+                pending = _rows(await env.sizzle_db.prepare("""
                     SELECT uo.user_id
                     FROM user_organizations uo
                     WHERE uo.org_id = ?
+                      AND COALESCE(uo.status, 'approved') = 'approved'
                       AND uo.user_id NOT IN (
                           SELECT user_id FROM checkins
                           WHERE org_id = ? AND checkin_date = ?
                       )
                     ORDER BY uo.user_id
-                """).bind(org['id'], org['id'], today).all()
-
-                pending_result = pending_proxy.to_py() if hasattr(pending_proxy, 'to_py') else pending_proxy
-                pending = pending_result.get('results', []) if isinstance(pending_result, dict) else []
+                """).bind(org['id'], org['id'], today).all())
 
                 if not pending:
                     continue
 
-                member_list = '\n'.join(f'\u2022 @{m["user_id"]}' for m in pending)
-
+                member_list = '\n'.join(f'• @{m["user_id"]}' for m in pending)
                 message = {
-                    "text": f"\U0001f4cb Daily check-in reminder for {org['github_org_name']}",
+                    "text": f"Daily check-in reminder for {org['org_name']}",
                     "blocks": [
-                        {
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": (
-                                    f"*Daily Check-in Reminder \u2014 {org['github_org_name']}* \U0001f4cb\n\n"
-                                    f"The following members haven't checked in for this org today:\n"
-                                    f"{member_list}"
-                                )
-                            }
-                        },
-                        {
-                            "type": "actions",
-                            "elements": [
-                                {
-                                    "type": "button",
-                                    "text": {"type": "plain_text", "text": "\U0001f4dd Submit Check-in"},
-                                    "style": "primary",
-                                    "url": checkin_url,
-                                    "action_id": "checkin_button"
-                                }
-                            ]
-                        }
-                    ]
+                        {"type": "section", "text": {"type": "mrkdwn", "text": (
+                            f"*Daily check-in reminder: {org['org_name']}*\n\n"
+                            f"These members haven't checked in for this org today:\n{member_list}"
+                        )}},
+                        {"type": "actions", "elements": [{
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": "Submit check-in"},
+                            "style": "primary",
+                            "url": base + "/app",
+                            "action_id": "checkin_button",
+                        }]},
+                    ],
                 }
-
-                await fetch(slack_url, {
-                    "method": "POST",
-                    "headers": {"Content-Type": "application/json"},
-                    "body": json.dumps(message)
-                })
-
+                result = await send_slack(slack_url, message, post=post)
+                if not result.get('success'):
+                    logger.error("Org Slack reminder failed: org=%s status=%s", org.get('org_name'), result.get('status'))
             except Exception as e:
-                logger.error("Error sending org notification for %s: %s", org.get('github_org_name'), e)
+                logger.error("Error sending org notification for %s: %s", org.get('org_name'), e)
 
     except Exception as e:
         logger.error("Error in org notifications: %s", e, exc_info=True)

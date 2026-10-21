@@ -6,6 +6,18 @@
   <title>Settings | BLT Sizzle</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/styles/sizzle-dashboard.css" />
+  <style>
+    .day-toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+    .day-toggle { position: relative; }
+    .day-toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .day-toggle span { display: inline-block; min-width: 46px; padding: 8px 10px; text-align: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14px; cursor: pointer; user-select: none; }
+    .day-toggle input:checked + span { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .day-toggle input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
+    .day-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .day-presets button { padding: 4px 10px; font-size: 13px; }
+    .field-note { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .field-note.warn { color: var(--warning); }
+  </style>
 </head>
 <body>
   <div class="sizzle-shell">
@@ -41,9 +53,31 @@
     <form id="settingsForm" class="grid" style="margin-top:16px">
       <label class="form-field"><span>Timezone</span><select id="timezoneSelect" name="timezone" class="select"><option value="UTC">UTC</option></select></label>
       <label class="form-field"><span>Reminder time</span><input id="notificationTime" name="notificationTime" class="input" type="time" value="09:00" /></label>
-      <label class="form-field"><span>Email reminders</span><select id="emailNotifications" name="emailNotifications" class="select"><option value="1">Enabled</option><option value="0">Disabled</option></select></label>
+      <fieldset class="form-field" id="reminderDays" style="border:0;padding:0;margin:0">
+        <legend><span>Reminder days</span></legend>
+        <div class="day-toggles">
+          <label class="day-toggle"><input type="checkbox" name="notificationDays" value="1" checked /><span>Mon</span></label>
+          <label class="day-toggle"><input type="checkbox" name="notificationDays" value="2" checked /><span>Tue</span></label>
+          <label class="day-toggle"><input type="checkbox" name="notificationDays" value="3" checked /><span>Wed</span></label>
+          <label class="day-toggle"><input type="checkbox" name="notificationDays" value="4" checked /><span>Thu</span></label>
+          <label class="day-toggle"><input type="checkbox" name="notificationDays" value="5" checked /><span>Fri</span></label>
+          <label class="day-toggle"><input type="checkbox" name="notificationDays" value="6" checked /><span>Sat</span></label>
+          <label class="day-toggle"><input type="checkbox" name="notificationDays" value="7" checked /><span>Sun</span></label>
+        </div>
+        <div class="day-presets">
+          <button type="button" class="btn btn-secondary" data-days="1,2,3,4,5">Weekdays</button>
+          <button type="button" class="btn btn-secondary" data-days="1,2,3,4,5,6">Mon&ndash;Sat</button>
+          <button type="button" class="btn btn-secondary" data-days="1,2,3,4,5,6,7">Every day</button>
+        </div>
+      </fieldset>
+      <label class="form-field"><span>Email reminders</span><select id="emailNotifications" name="emailNotifications" class="select"><option value="1">Enabled</option><option value="0">Disabled</option></select>
+        <span id="reminderEmailNote" class="field-note"></span></label>
       <label class="form-field"><span>Slack webhook URL</span><input id="slackWebhookUrl" name="slackWebhookUrl" class="input" placeholder="https://hooks.slack.com/services/..." /></label>
-      <button class="btn btn-primary" type="submit">Save Settings</button>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-primary" type="submit">Save Settings</button>
+        <button class="btn btn-secondary" type="button" id="testReminder">Send test reminder</button>
+      </div>
+      <p id="lastReminder" class="field-note"></p>
     </form>
   </article>
   <article class="card card-pad"><h2>Timezone clarity</h2><p class="page-description">Choose an IANA timezone such as <strong>Asia/Kolkata</strong>, <strong>America/New_York</strong>, or <strong>Europe/London</strong>. The backend validates the selected value before saving.</p><span class="status-badge status-approved">Connected</span></article>
@@ -89,17 +123,68 @@
         document.getElementById('notificationTime').value = data.notificationTime || '09:00';
         document.getElementById('emailNotifications').value = String(data.emailNotifications ?? 0);
         document.getElementById('slackWebhookUrl').value = data.slackWebhookUrl || '';
+        setDays(Array.isArray(data.notificationDays) ? data.notificationDays : [1, 2, 3, 4, 5, 6, 7]);
+        const note = document.getElementById('reminderEmailNote');
+        if (data.reminderEmail) {
+          note.className = 'field-note';
+          note.textContent = 'Reminders go to ' + data.reminderEmail + '.';
+        } else {
+          note.className = 'field-note warn';
+          note.textContent = 'No verified email address on file, so email reminders cannot be delivered.';
+        }
+        if (data.lastReminderDate) {
+          document.getElementById('lastReminder').textContent =
+            'Last reminder: ' + data.lastReminderDate + ' (' + (data.lastReminderStatus || 'unknown') + ')';
+        }
       } catch (error) {
         await loadTimezoneOptions('UTC');
         showToast('Settings could not be loaded. Showing safe defaults.');
       }
     }
 
+    function dayInputs() {
+      return Array.from(document.querySelectorAll('input[name="notificationDays"]'));
+    }
+
+    function setDays(days) {
+      const wanted = new Set(days.map((d) => String(d)));
+      dayInputs().forEach((input) => { input.checked = wanted.has(input.value); });
+    }
+
+    function selectedDays() {
+      return dayInputs().filter((input) => input.checked).map((input) => Number(input.value));
+    }
+
+    document.querySelectorAll('.day-presets [data-days]').forEach((button) => {
+      button.addEventListener('click', () => setDays(button.getAttribute('data-days').split(',')));
+    });
+
+    document.getElementById('testReminder').addEventListener('click', async (event) => {
+      const button = event.currentTarget;
+      button.disabled = true;
+      try {
+        const response = await fetch('/api/notification/test', { method: 'POST' });
+        const data = await response.json().catch(() => ({}));
+        if (data.channels) {
+          const parts = Object.entries(data.channels).map(([channel, result]) =>
+            channel + ': ' + (result.success ? 'sent' : (result.error || 'failed')));
+          showToast(parts.join(' / '));
+        } else {
+          showToast(data.error || (response.ok ? 'Test reminder sent.' : 'Test reminder could not be sent.'));
+        }
+      } finally {
+        button.disabled = false;
+      }
+    });
+
     document.getElementById('settingsForm').addEventListener('submit', async (event) => {
       event.preventDefault();
+      const days = selectedDays();
+      if (!days.length) { showToast('Choose at least one reminder day.'); return; }
       const payload = {
         timezone: timezoneSelect.value,
         notificationTime: document.getElementById('notificationTime').value,
+        notificationDays: days,
         emailNotifications: document.getElementById('emailNotifications').value,
         slackWebhookUrl: document.getElementById('slackWebhookUrl').value.trim()
       };

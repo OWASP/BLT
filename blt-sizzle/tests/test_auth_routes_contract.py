@@ -32,7 +32,7 @@ class TestOtpAuthRouteContract(unittest.TestCase):
             "build_session_cookie",
             "build_clear_session_cookie",
             "normalize_email",
-            "SendGridEmailService",
+            "EmailService",
             "render_otp_email",
         ]:
             self.assertIn(name, self.source)
@@ -84,11 +84,12 @@ class TestOtpAuthRouteContract(unittest.TestCase):
         self.assertLess(auth_session_pos, legacy_session_pos)
         self.assertIn("session_hash(session_token", self.source)
 
-    def test_request_otp_uses_sendgrid_service_and_never_returns_otp(self):
+    def test_request_otp_uses_configured_email_service_and_never_returns_otp(self):
         start = self.source.index("async def handle_auth_request_otp")
         end = self.source.index("async def handle_auth_verify_otp")
         body = self.source[start:end]
-        self.assertIn("SendGridEmailService", body)
+        self.assertIn("EmailService.from_env(env)", body)
+        self.assertIn("SUPPORTED_PROVIDERS", body)
         self.assertIn("render_otp_email", body)
         self.assertIn("hash_otp", body)
         self.assertIn("INSERT INTO email_otps", body)

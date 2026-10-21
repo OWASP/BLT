@@ -10,10 +10,6 @@ import re
 import sys
 from datetime import datetime, date, timedelta, timezone
 from urllib.parse import urlparse
-try:
-    from zoneinfo import ZoneInfo
-except Exception:
-    ZoneInfo = None
 
 from auth_utils import (
     build_clear_session_cookie,
@@ -27,7 +23,9 @@ from auth_utils import (
     verify_otp,
     verify_password,
 )
-from email_service import SendGridEmailService, render_otp_email
+from email_service import SUPPORTED_PROVIDERS, EmailService, mask_emails, render_otp_email
+from reminders import DEFAULT_DAYS, normalize_days, parse_days, to_local
+from scheduler import reminder_email_address, send_reminder
 from timezones import all_timezones, is_valid_timezone
 from url_safety import is_slack_webhook_url
 
@@ -594,12 +592,10 @@ def safe_text(value, limit=4000):
 
 def today_for_timezone(timezone_name):
     timezone_name = timezone_name if is_valid_timezone(timezone_name) else "UTC"
-    if ZoneInfo:
-        try:
-            return datetime.now(ZoneInfo(timezone_name)).date().isoformat()
-        except Exception:
-            pass
-    return date.today().isoformat()
+    try:
+        return to_local(datetime.now(timezone.utc), timezone_name).date().isoformat()
+    except Exception:
+        return datetime.now(timezone.utc).date().isoformat()
 
 
 async def get_approved_org_membership(request, env, org_slug):
@@ -1075,8 +1071,8 @@ async def handle_get_settings(request, env):
             return json_error("Unauthorized", 401)
 
         result_proxy = await env.sizzle_db.prepare("""
-            SELECT email, encrypted_email, notification_time, timezone, encrypted_slack_webhook_url,
-                   email_notifications
+            SELECT email, email_verified, encrypted_email, notification_time, notification_days, timezone,
+                   encrypted_slack_webhook_url, email_notifications, last_reminder_date, last_reminder_status
             FROM users
             WHERE user_id = ?
         """).bind(user_id).first()
@@ -1094,10 +1090,14 @@ async def handle_get_settings(request, env):
 
         return json_response({
             "email": email,
+            "reminderEmail": reminder_email_address(result),
             "notificationTime": result.get('notification_time') or '09:00',
+            "notificationDays": list(parse_days(result.get('notification_days'))),
             "timezone": timezone,
             "slackWebhookUrl": slack_url,
             "emailNotifications": int(result.get('email_notifications') or 0),
+            "lastReminderDate": result.get('last_reminder_date'),
+            "lastReminderStatus": result.get('last_reminder_status'),
         })
     except Exception as e:
         logger.error("Error getting settings: %s", e, exc_info=True)
@@ -1120,6 +1120,11 @@ async def handle_save_settings(request, env):
         except ValueError:
             return json_error("Invalid notification time", 400)
 
+        try:
+            notification_days = normalize_days(data.get('notificationDays', DEFAULT_DAYS))
+        except ValueError as e:
+            return json_error(str(e), 400)
+
         timezone = str(data.get('timezone') or 'UTC').strip()
         if not is_valid_timezone(timezone):
             return json_error("Invalid timezone", 400)
@@ -1133,83 +1138,85 @@ async def handle_save_settings(request, env):
 
         await env.sizzle_db.prepare("""
             UPDATE users
-            SET notification_time = ?, timezone = ?, encrypted_slack_webhook_url = ?,
+            SET notification_time = ?, notification_days = ?, timezone = ?, encrypted_slack_webhook_url = ?,
                 email_notifications = ?, updated_at = CURRENT_TIMESTAMP
             WHERE user_id = ?
-        """).bind(notification_time, timezone, encrypted_slack_webhook_url, email_notifications, user_id).run()
+        """).bind(notification_time, notification_days, timezone, encrypted_slack_webhook_url,
+                  email_notifications, user_id).run()
 
-        return json_response({"success": True})
+        return json_response({"success": True, "notificationDays": list(parse_days(notification_days))})
     except Exception as e:
         logger.error("Error saving settings: %s", e, exc_info=True)
         return json_error("Settings could not be saved", 500)
 
 
+def _public_send_result(result):
+    """Per-channel result for the API: status and a short reason, never config or keys."""
+    return {
+        "success": bool(result.get("success")),
+        "status": int(result.get("status") or 0),
+        "attempts": int(result.get("attempts") or 0),
+        "provider": result.get("provider") or "",
+        "error": result.get("error") or "",
+        "detail": mask_emails(result.get("detail") or ""),
+    }
+
+
 async def handle_test_notification(request, env):
-    """Send a test notification to the session user's own Slack webhook."""
+    """Send a test reminder to the session user's own email and Slack webhook.
+
+    Identity comes from the session only, and the Slack URL must still be a
+    hooks.slack.com webhook. Rate-limited per user so it can't be used to spam.
+    """
     try:
-        url = URL.new(request.url)
         # Identity comes from the session, never from the request (it used to trust ?userId=).
         user_id = await get_session_user(request, env)
         if not user_id:
             return json_error("Unauthorized", 401)
-        
-        # Get user settings
+
         result_proxy = await env.sizzle_db.prepare("""
-            SELECT encrypted_slack_webhook_url
+            SELECT user_id, email, email_verified, encrypted_email, encrypted_display_name,
+                   encrypted_slack_webhook_url, notification_time, notification_days, timezone,
+                   email_notifications, last_test_notification_at
             FROM users
             WHERE user_id = ?
         """).bind(user_id).first()
 
         if not result_proxy:
-            return Response.new(json.dumps({"error": "User not found"}),
-                              {"status": 404, "headers": {"Content-Type": "application/json"}})
+            return json_error("User not found", 404)
 
-        result = result_proxy.to_py()
+        user = result_proxy.to_py() if hasattr(result_proxy, 'to_py') else result_proxy
         encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
-        slack_webhook_url = await decrypt_data(result['encrypted_slack_webhook_url'] or '', encryption_key)
+        slack_webhook_url = await decrypt_data(user.get('encrypted_slack_webhook_url') or '', encryption_key)
+        if slack_webhook_url and not is_slack_webhook_url(slack_webhook_url):
+            slack_webhook_url = ''
+            user['encrypted_slack_webhook_url'] = ''
+        # The test always tries email when an address is on file, even if daily email is off.
+        user['email_notifications'] = 1 if reminder_email_address(user) else int(user.get('email_notifications') or 0)
+        if not reminder_email_address(user) and not slack_webhook_url:
+            return json_error("No email address or Slack webhook on file to test", 400)
 
-        # Send Slack notification if webhook is configured (and still a Slack webhook URL)
-        if slack_webhook_url and is_slack_webhook_url(slack_webhook_url):
-            # ... slack logic ...
-            slack_message = {
-                "text": "🔔 Test Notification",
-                "blocks": [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "*Time for your daily check-in!* ✨\n\nClick the link below to fill out your check-in form."
-                        }
-                    },
-                    {
-                        "type": "actions",
-                        "elements": [
-                            {
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "📝 Fill Check-in Form"
-                                },
-                                "url": url.origin
-                            }
-                        ]
-                    }
-                ]
-            }
-            
-            try:
-                await fetch(slack_webhook_url, {
-                    "method": "POST",
-                    "headers": {"Content-Type": "application/json"},
-                    "body": json.dumps(slack_message)
-                })
-            except Exception as e:
-                logger.error("Error sending Slack notification: %s", e)
-        
-        return Response.new(json.dumps({"success": True, "message": "Test notification sent"}),
-                          {"headers": {"Content-Type": "application/json"}})
+        claim = await env.sizzle_db.prepare("""
+            UPDATE users SET last_test_notification_at = CURRENT_TIMESTAMP
+            WHERE user_id = ? AND (last_test_notification_at IS NULL
+                                   OR last_test_notification_at < datetime('now', '-1 minute'))
+        """).bind(user_id).run()
+        if d1_changes(claim) != 1:
+            return json_error("Please wait a minute before sending another test reminder.", 429)
+
+        local_date = today_for_timezone(user.get('timezone') or 'UTC')
+        results = await send_reminder(env, user, local_date, test=True)
+        public = {channel: _public_send_result(result) for channel, result in results.items()}
+        logger.info("Test reminder for %s: %s", user_id,
+                    ",".join(f"{k}:{v['status']}:{v['success']}" for k, v in public.items()))
+        ok = any(item["success"] for item in public.values())
+        return json_response({
+            "success": ok,
+            "message": "Test reminder sent" if ok else "Test reminder could not be sent",
+            "channels": public,
+        }, 200 if ok else 502)
     except Exception as e:
-        logger.error("Error sending test notification: %s", e, exc_info=True)
+        logger.error("Error sending test notification: %s", mask_emails(e), exc_info=True)
         return json_error("Test notification could not be sent", 500)
 
 
@@ -1246,7 +1253,7 @@ def get_first_env_value(env, *names, default=""):
 
 def get_email_config(env):
     """Return email provider config, supporting current and legacy SendGrid env names."""
-    provider = get_env_value(env, "EMAIL_PROVIDER", "sendgrid").lower()
+    provider = str(get_env_value(env, "EMAIL_PROVIDER", "sendgrid")).strip().lower()
     return {
         "provider": provider,
         "api_key": get_first_env_value(env, "EMAIL_API_KEY", "SENDGRID_API_KEY"),
@@ -1557,10 +1564,10 @@ async def send_email_otp_code(env, email, purpose, subject):
         email_domain(email),
         purpose,
     )
-    if email_config["provider"] != "sendgrid":
+    if email_config["provider"] not in SUPPORTED_PROVIDERS:
         return {"success": False, "status": 503, "provider": email_config["provider"], "error": "Email service provider is not supported"}
     if not email_config["api_key"] or not email_config["from_email"]:
-        return {"success": False, "status": 503, "provider": "sendgrid", "error": "Email service is not configured"}
+        return {"success": False, "status": 503, "provider": email_config["provider"], "error": "Email service is not configured"}
 
     otp_secret = get_auth_secret(env, "OTP_SECRET")
     recent_proxy = await env.sizzle_db.prepare("""
@@ -1569,7 +1576,7 @@ async def send_email_otp_code(env, email, purpose, subject):
     """).bind(email, purpose).first()
     recent = recent_proxy.to_py() if hasattr(recent_proxy, "to_py") else (recent_proxy or {})
     if int(recent.get("recent_count") or 0) >= 5:
-        return {"success": False, "status": 429, "provider": "sendgrid", "error": "Too many verification codes requested. Please try again later."}
+        return {"success": False, "status": 429, "provider": email_config["provider"], "error": "Too many verification codes requested. Please try again later."}
 
     latest_proxy = await env.sizzle_db.prepare("""
         SELECT id FROM email_otps
@@ -1577,7 +1584,7 @@ async def send_email_otp_code(env, email, purpose, subject):
         ORDER BY id DESC LIMIT 1
     """).bind(email, purpose).first()
     if latest_proxy:
-        return {"success": False, "status": 429, "provider": "sendgrid", "error": "Please wait before requesting another verification code."}
+        return {"success": False, "status": 429, "provider": email_config["provider"], "error": "Please wait before requesting another verification code."}
 
     otp = generate_otp()
     otp_digest = hash_otp(email, otp, purpose, otp_secret)
@@ -1598,7 +1605,7 @@ async def send_email_otp_code(env, email, purpose, subject):
     otp_id_row = otp_id_proxy.to_py() if hasattr(otp_id_proxy, "to_py") else otp_id_proxy
     otp_id = otp_id_row.get("id") if isinstance(otp_id_row, dict) else None
 
-    service = SendGridEmailService(email_config["api_key"], email_config["from_email"], email_config["from_name"])
+    service = EmailService.from_env(env)
     send_result = await service.send_email(
         email,
         subject,
@@ -1641,7 +1648,7 @@ async def handle_auth_request_otp(request, env):
             email_domain(email_config["from_email"]),
             email_domain(email),
         )
-        if email_config["provider"] != "sendgrid":
+        if email_config["provider"] not in SUPPORTED_PROVIDERS:
             logger.warning("Unsupported email provider configured for OTP: %s", email_config["provider"])
             return json_error("Email service provider is not supported", 503)
         if not email_config["api_key"] or not email_config["from_email"]:
@@ -1690,11 +1697,7 @@ async def handle_auth_request_otp(request, env):
         """).bind(email).first()
         otp_id = (otp_id_proxy.to_py() if hasattr(otp_id_proxy, "to_py") else otp_id_proxy).get("id")
 
-        service = SendGridEmailService(
-            email_config["api_key"],
-            email_config["from_email"],
-            email_config["from_name"],
-        )
+        service = EmailService.from_env(env)
         send_result = await service.send_email(
             email,
             "Your BLT Sizzle verification code",
@@ -2037,10 +2040,15 @@ async def handle_auth_callback(request, env):
                 if isinstance(em, dict) and em.get('primary') and em.get('verified'):
                     primary_email = em.get('email', '')
                     break
-            if not primary_email and emails_data:
-                first = emails_data[0]
-                if isinstance(first, dict):
-                    primary_email = first.get('email', '')
+            if not primary_email:
+                for em in emails_data:
+                    if isinstance(em, dict) and em.get('verified') and em.get('email'):
+                        primary_email = em.get('email', '')
+                        break
+        if not primary_email:
+            # Reminder email needs an address; the upsert below keeps any stored one.
+            logger.warning("GitHub returned no verified email for %s (status %s)",
+                           user_data.get('login'), getattr(emails_response, 'status', '?'))
 
         github_id = str(user_data.get('id', ''))
         login = user_data.get('login', '')
@@ -2057,7 +2065,7 @@ async def handle_auth_callback(request, env):
             VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
             ON CONFLICT(user_id) DO UPDATE SET
                 github_id = excluded.github_id,
-                encrypted_email = excluded.encrypted_email,
+                encrypted_email = COALESCE(NULLIF(excluded.encrypted_email, ''), users.encrypted_email),
                 encrypted_display_name = excluded.encrypted_display_name,
                 updated_at = CURRENT_TIMESTAMP
         """).bind(user_id, github_id, encrypted_email, encrypted_display_name).run()

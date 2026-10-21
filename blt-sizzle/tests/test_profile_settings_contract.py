@@ -78,5 +78,35 @@ class TestProfileSettingsContract(unittest.TestCase):
         self.assertNotIn("mockSave('Profile saved in Phase 1 mock UI')", html)
 
 
+class TestReminderDaysContract(unittest.TestCase):
+    def setUp(self):
+        self.source = MAIN.read_text()
+        self.settings = SETTINGS.read_text()
+
+    def body(self, start, end):
+        return self.source[self.source.index(start):self.source.index(end)]
+
+    def test_settings_page_has_day_toggles_and_presets(self):
+        values = re.findall(r'<input type="checkbox" name="notificationDays" value="(\d)"', self.settings)
+        self.assertEqual(values, ["1", "2", "3", "4", "5", "6", "7"])
+        self.assertIn('data-days="1,2,3,4,5,6">Mon&ndash;Sat', self.settings)
+        self.assertIn("notificationDays: days", self.settings)
+        self.assertIn("/api/notification/test", self.settings)
+        self.assertNotIn("innerHTML = 'Reminders go to", self.settings)
+
+    def test_settings_api_validates_and_stores_days(self):
+        save = self.body("async def handle_save_settings", "def _public_send_result")
+        self.assertIn("normalize_days(data.get('notificationDays'", save)
+        self.assertIn("notification_days = ?", save)
+        get = self.body("async def handle_get_settings", "async def handle_save_settings")
+        self.assertIn('"notificationDays": list(parse_days(', get)
+
+    def test_test_reminder_is_session_bound_and_rate_limited(self):
+        body = self.body("async def handle_test_notification", "async def handle_debug_db")
+        self.assertIn("get_session_user(request, env)", body)
+        self.assertIn("last_test_notification_at < datetime('now', '-1 minute')", body)
+        self.assertIn("send_reminder(env, user, local_date, test=True)", body)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

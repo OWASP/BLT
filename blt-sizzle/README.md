@@ -88,9 +88,11 @@ Required or commonly used values:
 | `ENCRYPTION_KEY` | Secret used for encrypted app data |
 | `OTP_SECRET` | Secret used to hash verification codes |
 | `SESSION_SECRET` | Secret used to hash session tokens |
-| `EMAIL_PROVIDER` | Currently `sendgrid` |
-| `EMAIL_API_KEY` | SendGrid API key |
-| `EMAIL_FROM` | Sender email address |
+| `EMAIL_PROVIDER` | `sendgrid` (default), `resend`, `mailgun` or `mailtrap` |
+| `EMAIL_API_KEY` | API key for that provider |
+| `EMAIL_FROM` | Sender address (`noreply@example.org` or `Name <noreply@example.org>`) |
+| `EMAIL_DOMAIN` | Mailgun only: sending domain (defaults to the `EMAIL_FROM` domain) |
+| `EMAIL_API_BASE` | Mailgun only: `https://api.eu.mailgun.net` for EU accounts |
 | `EMAIL_FROM_NAME` | Sender display name |
 | `DEFAULT_TIMEZONE` | Default timezone for new users |
 
@@ -106,10 +108,21 @@ npx wrangler secret put EMAIL_API_KEY
 
 Non-secret values such as `EMAIL_FROM`, `EMAIL_FROM_NAME`, `APP_URL`, and `DEFAULT_TIMEZONE` can live in Worker vars.
 
-## SendGrid setup and debugging
+## Daily reminders
 
-1. Verify the sender identity or domain in SendGrid.
-2. Set `EMAIL_PROVIDER=sendgrid`.
+blt-cron calls `POST /__scheduled` every 15 minutes. Each user picks a reminder time, a timezone
+and reminder days (Mon-Sun toggles on `/settings`); the reminder goes out on the first run at or
+after that local time (up to two hours late if runs are missed), at most once per local day
+(`users.last_reminder_date` is claimed before sending), and not if the user already checked in
+that day. Email and Slack sends are retried at most once; failures are logged with the provider
+status but never the API key, and `users.last_reminder_status` records `sent`, `partial` or
+`failed`. "Send test reminder" on `/settings` sends one to the signed-in user (once a minute) and
+shows each channel's result, which is the quickest way to check the email setup after a deploy.
+
+## Email setup and debugging (SendGrid and others)
+
+1. Verify the sender identity or domain with the provider (SendGrid, Resend, Mailgun or Mailtrap).
+2. Set `EMAIL_PROVIDER` (for example `sendgrid`).
 3. Set `EMAIL_API_KEY` as a Cloudflare secret.
 4. Set `EMAIL_FROM` to the verified sender.
 5. Run the signup flow locally or on the deployed Worker.
