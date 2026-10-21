@@ -820,6 +820,8 @@ def generate_html(ideas, overlap_matrix):
       }}
       #ideas-table tbody td.oneliner {{ max-width: none; }}
     }}
+    blt-nav:not(:defined) {{ display: block; min-height: 61px; }}
+    blt-nav:not(:defined) > * {{ display: none; }}
     /* ── Dark mode (html.dark, set by the theme script / OWASP BLT top bar) ── */
     html.dark {{ color-scheme: dark; --blt-neutral-border: #1f2937; }}
     html.dark body {{
@@ -859,36 +861,14 @@ def generate_html(ideas, overlap_matrix):
   </style>
 </head>
 <body class="font-sans antialiased">
-  <header class="border-b border-neutral-border bg-white/95 backdrop-blur">
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
-      <a href="{REPO_URL}" target="_blank" class="btn-link flex items-center gap-3" aria-label="BLT Ideas repository">
-        <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
-          <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
-        </span>
-        <span class="block">
-          <span class="block text-base font-extrabold text-gray-900">BLT Ideas</span>
-          <span class="block text-xs font-medium text-gray-500">OWASP BLT Extension Planning Hub</span>
-        </span>
-      </a>
-      <div class="flex items-center gap-2 sm:gap-3">
-        <a
-          href="{REPO_URL}"
-          target="_blank"
-          class="btn-link inline-flex items-center gap-2 rounded-md border border-[var(--blt-primary)] px-4 py-2 text-sm font-semibold text-[var(--blt-primary)] transition hover:bg-[var(--blt-primary)] hover:text-white"
-        >
-          <i class="fa-brands fa-github" aria-hidden="true"></i>
-          <span>Repository</span>
-        </a>
-        <a
-          href="#ideas-overview"
-          class="btn-link inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
-        >
-          <i class="fa-solid fa-list-check" aria-hidden="true"></i>
-          <span>Explore Ideas</span>
-        </a>
-      </div>
-    </div>
-  </header>
+  <blt-nav project="blt-ideas" name="Ideas">
+    <a href="#landing">Overview</a>
+    <a href="#project-groups">Project Groups</a>
+    <a href="#ideas-overview">Feature Catalog</a>
+    <a href="#overlap-matrix">Overlap Matrix</a>
+    <a href="{REPO_URL}" slot="actions" target="_blank" rel="noopener noreferrer">Repository</a>
+    <a href="#ideas-overview" slot="actions" data-primary>Explore Ideas</a>
+  </blt-nav>
 
   <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <div class="grid gap-8 lg:grid-cols-12">
