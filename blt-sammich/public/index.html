@@ -35,6 +35,13 @@
           transform: rotate(360deg);
         }
       }
+      blt-nav:not(:defined) {
+        display: block;
+        min-height: 61px;
+      }
+      blt-nav:not(:defined) > * {
+        display: none;
+      }
       .trophy-gold {
         color: #ffd700;
       }
@@ -47,25 +54,14 @@
     </style>
   </head>
   <body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center">
-            <img src="/static/sammich-logo.svg" alt="BLT-Sammich logo" class="h-8 w-8 mr-2 rounded-full" />
-            <h1 class="text-xl font-bold text-gray-900 whitespace-nowrap" id="nav-title">BLT-Sammich</h1>
-          </div>
-          <div class="flex items-center space-x-4">
-            <a class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-3 sm:py-3 sm:px-5 rounded-lg" href="/install-slack" aria-label="Install to Workspace">
-              <button><i class="fab fa-slack sm:mr-2"></i><span class="hidden sm:inline"> Install to Workspace</span></button>
-            </a>
-            <a class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 sm:py-3 sm:px-5 rounded-lg" href="https://git.owaspblt.org/BLT/BLT-Sammich" target="_blank" rel="noopener noreferrer" aria-label="Contribute">
-              <button><i class="fab fa-github sm:mr-2"></i><span class="hidden sm:inline"> Contribute</span></button>
-            </a>
-          </div>
-        </div>
-      </div>
-    </nav>
+    <blt-nav project="blt-sammich" name="Sammich">
+      <a href="#connections">Connections</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#commands">Commands</a>
+      <a href="#getting-started">Getting started</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-Sammich" target="_blank" rel="noopener noreferrer" slot="actions">Contribute</a>
+      <a href="/install-slack" slot="actions" data-primary>Install to Workspace</a>
+    </blt-nav>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -122,7 +118,7 @@
       </section>
 
       <!-- How It Works -->
-      <section class="bg-white rounded-lg shadow p-6 mb-8">
+      <section class="bg-white rounded-lg shadow p-6 mb-8" id="how-it-works">
         <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">How It Works</h2>
         <div class="grid md:grid-cols-3 gap-6">
           <div class="text-center">
@@ -150,7 +146,7 @@
       </section>
 
       <!-- Available Commands -->
-      <section class="bg-white rounded-lg shadow p-6 mb-8">
+      <section class="bg-white rounded-lg shadow p-6 mb-8" id="commands">
         <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Available Commands</h2>
         <div class="grid md:grid-cols-2 gap-6">
           <!-- Contributors Command -->
@@ -267,7 +263,7 @@
       </section>
 
       <!-- Getting Started -->
-      <section class="bg-white rounded-lg shadow p-6 mb-8">
+      <section class="bg-white rounded-lg shadow p-6 mb-8" id="getting-started">
         <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Getting Started</h2>
         <div class="max-w-4xl mx-auto">
           <div class="grid md:grid-cols-2 gap-8">

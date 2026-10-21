@@ -7370,6 +7370,7 @@ def render_admin_html(
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body class="bg-gray-50 text-gray-900">
+  <blt-nav project="blt-sammich" name="Sammich"></blt-nav>
   <main class="w-full px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
       <div>
