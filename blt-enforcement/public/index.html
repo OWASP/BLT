@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BLT Enforcement — IP &amp; Trademark Defense</title>
+  <script>
+    // Before first paint: the saved OWASP BLT theme (localStorage "theme"), else the system preference.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("theme"); } catch (e) { saved = null; }
+      var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", dark);
+    })();
+  </script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script>
@@ -12,7 +22,7 @@
       theme: {
         extend: {
           colors: {
-            brand: { DEFAULT: '#E10101', hover: '#b91c1c' },
+            brand: { DEFAULT: '#dc2626', hover: '#b91c1c' },
             surface: { dark: '#1F2937', base: '#111827' },
             sidebar: { active: '#feeae9' }
           }
@@ -27,23 +37,23 @@
   <header class="bg-white dark:bg-gray-800 border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
       <a href="index.html" class="flex items-center gap-2 font-bold text-lg text-gray-900 dark:text-white">
-        <span class="text-[#E10101] text-xl"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
-        BLT <span class="text-[#E10101]">Enforcement</span>
+        <span class="text-[#dc2626] text-xl"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+        BLT <span class="text-[#dc2626]">Enforcement</span>
       </a>
       <nav class="hidden sm:flex items-center gap-6 text-sm font-medium">
-        <a href="index.html" class="text-[#E10101] border-b-2 border-[#E10101] pb-0.5">Dashboard</a>
-        <a href="trademark-check.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">Trademark Check</a>
-        <a href="repo-compare.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">Repo Compare</a>
+        <a href="index.html" class="text-[#dc2626] border-b-2 border-[#dc2626] pb-0.5">Dashboard</a>
+        <a href="trademark-check.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors">Trademark Check</a>
+        <a href="repo-compare.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors">Repo Compare</a>
       </nav>
-      <button id="menuToggle" class="sm:hidden text-gray-500 dark:text-gray-400 hover:text-[#E10101]" aria-label="Toggle menu">
-        <i class="fa-solid fa-bars text-lg" aria-hidden="true"></i>
+      <button id="menuToggle" class="sm:hidden text-gray-500 dark:text-gray-400 hover:text-[#dc2626]" aria-label="BLT Enforcement menu">
+        <i class="fa-solid fa-ellipsis text-lg" aria-hidden="true"></i>
       </button>
     </div>
     <!-- Mobile nav -->
     <div id="mobileNav" class="hidden sm:hidden border-t border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 flex flex-col gap-3 text-sm font-medium">
-      <a href="index.html" class="text-[#E10101]">Dashboard</a>
-      <a href="trademark-check.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">Trademark Check</a>
-      <a href="repo-compare.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">Repo Compare</a>
+      <a href="index.html" class="text-[#dc2626]">Dashboard</a>
+      <a href="trademark-check.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626]">Trademark Check</a>
+      <a href="repo-compare.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626]">Repo Compare</a>
     </div>
   </header>
 
@@ -58,7 +68,7 @@
     <!-- Stat cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
       <div class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-5 flex items-start gap-4">
-        <span class="w-10 h-10 rounded-lg bg-[#feeae9] flex items-center justify-center text-[#E10101] flex-shrink-0">
+        <span class="w-10 h-10 rounded-lg bg-[#feeae9] flex items-center justify-center text-[#dc2626] flex-shrink-0">
           <i class="fa-solid fa-registered" aria-hidden="true"></i>
         </span>
         <div>
@@ -67,7 +77,7 @@
         </div>
       </div>
       <div class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-5 flex items-start gap-4">
-        <span class="w-10 h-10 rounded-lg bg-[#feeae9] flex items-center justify-center text-[#E10101] flex-shrink-0">
+        <span class="w-10 h-10 rounded-lg bg-[#feeae9] flex items-center justify-center text-[#dc2626] flex-shrink-0">
           <i class="fa-solid fa-code-compare" aria-hidden="true"></i>
         </span>
         <div>
@@ -76,7 +86,7 @@
         </div>
       </div>
       <div class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-5 flex items-start gap-4">
-        <span class="w-10 h-10 rounded-lg bg-[#feeae9] flex items-center justify-center text-[#E10101] flex-shrink-0">
+        <span class="w-10 h-10 rounded-lg bg-[#feeae9] flex items-center justify-center text-[#dc2626] flex-shrink-0">
           <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>
         </span>
         <div>
@@ -93,18 +103,18 @@
       <!-- Trademark Check card -->
       <div class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-6 flex flex-col gap-4">
         <div class="flex items-center gap-3">
-          <span class="w-10 h-10 rounded-lg bg-[#feeae9] flex items-center justify-center text-[#E10101]">
+          <span class="w-10 h-10 rounded-lg bg-[#feeae9] flex items-center justify-center text-[#dc2626]">
             <i class="fa-solid fa-registered text-lg" aria-hidden="true"></i>
           </span>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Trademark Check</h3>
         </div>
         <p class="text-gray-500 dark:text-gray-400 text-sm flex-1">Search and verify trademark registrations, check name conflicts, review international trademark databases, and assess potential infringement risks for your brand or product name.</p>
         <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-          <li class="flex items-center gap-2"><i class="fa-solid fa-check text-[#E10101] text-xs" aria-hidden="true"></i> USPTO &amp; international database search</li>
-          <li class="flex items-center gap-2"><i class="fa-solid fa-check text-[#E10101] text-xs" aria-hidden="true"></i> Conflict detection by class &amp; jurisdiction</li>
-          <li class="flex items-center gap-2"><i class="fa-solid fa-check text-[#E10101] text-xs" aria-hidden="true"></i> Phonetic similarity analysis</li>
+          <li class="flex items-center gap-2"><i class="fa-solid fa-check text-[#dc2626] text-xs" aria-hidden="true"></i> USPTO &amp; international database search</li>
+          <li class="flex items-center gap-2"><i class="fa-solid fa-check text-[#dc2626] text-xs" aria-hidden="true"></i> Conflict detection by class &amp; jurisdiction</li>
+          <li class="flex items-center gap-2"><i class="fa-solid fa-check text-[#dc2626] text-xs" aria-hidden="true"></i> Phonetic similarity analysis</li>
         </ul>
-        <a href="trademark-check.html" class="inline-flex items-center justify-center gap-2 rounded-md bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101] focus:ring-offset-2">
+        <a href="trademark-check.html" class="inline-flex items-center justify-center gap-2 rounded-md bg-[#dc2626] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:ring-offset-2">
           Open Trademark Check <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
         </a>
       </div>
@@ -112,18 +122,18 @@
       <!-- Repo Compare card -->
       <div class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-6 flex flex-col gap-4">
         <div class="flex items-center gap-3">
-          <span class="w-10 h-10 rounded-lg bg-[#feeae9] flex items-center justify-center text-[#E10101]">
+          <span class="w-10 h-10 rounded-lg bg-[#feeae9] flex items-center justify-center text-[#dc2626]">
             <i class="fa-solid fa-code-compare text-lg" aria-hidden="true"></i>
           </span>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Repository Comparison</h3>
         </div>
         <p class="text-gray-500 dark:text-gray-400 text-sm flex-1">Compare two GitHub repositories to identify code similarities, detect potential license violations, and flag copied or derived works that may infringe on your intellectual property.</p>
         <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-          <li class="flex items-center gap-2"><i class="fa-solid fa-check text-[#E10101] text-xs" aria-hidden="true"></i> Side-by-side license comparison</li>
-          <li class="flex items-center gap-2"><i class="fa-solid fa-check text-[#E10101] text-xs" aria-hidden="true"></i> Dependency &amp; attribution audit</li>
-          <li class="flex items-center gap-2"><i class="fa-solid fa-check text-[#E10101] text-xs" aria-hidden="true"></i> Fork &amp; similarity detection via GitHub API</li>
+          <li class="flex items-center gap-2"><i class="fa-solid fa-check text-[#dc2626] text-xs" aria-hidden="true"></i> Side-by-side license comparison</li>
+          <li class="flex items-center gap-2"><i class="fa-solid fa-check text-[#dc2626] text-xs" aria-hidden="true"></i> Dependency &amp; attribution audit</li>
+          <li class="flex items-center gap-2"><i class="fa-solid fa-check text-[#dc2626] text-xs" aria-hidden="true"></i> Fork &amp; similarity detection via GitHub API</li>
         </ul>
-        <a href="repo-compare.html" class="inline-flex items-center justify-center gap-2 rounded-md bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101] focus:ring-offset-2">
+        <a href="repo-compare.html" class="inline-flex items-center justify-center gap-2 rounded-md bg-[#dc2626] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:ring-offset-2">
           Open Repo Compare <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
         </a>
       </div>
@@ -147,7 +157,7 @@
             aria-label="Trademark search term"
           />
         </div>
-        <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-md bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101] focus:ring-offset-2">
+        <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-md bg-[#dc2626] hover:bg-red-700 text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:ring-offset-2">
           <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search
         </button>
       </form>
@@ -158,12 +168,12 @@
   <!-- Footer -->
   <footer class="mt-16 border-t border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500 dark:text-gray-400">
-      <span>© 2025 <a href="https://owasp.org" class="text-[#E10101] hover:underline" target="_blank" rel="noopener noreferrer">OWASP BLT</a> — IP &amp; Trademark Enforcement</span>
+      <span>© 2025 <a href="https://owasp.org" class="text-[#dc2626] hover:underline" target="_blank" rel="noopener noreferrer">OWASP BLT</a> — IP &amp; Trademark Enforcement</span>
       <div class="flex gap-4">
-        <a href="https://git.owaspblt.org/BLT/BLT-Enforcement" class="hover:text-[#E10101] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+        <a href="https://git.owaspblt.org/BLT/BLT-Enforcement" class="hover:text-[#dc2626] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
           <i class="fa-brands fa-github text-lg" aria-hidden="true"></i>
         </a>
-        <a href="https://owasp.org" class="hover:text-[#E10101] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="OWASP website">
+        <a href="https://owasp.org" class="hover:text-[#dc2626] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="OWASP website">
           <i class="fa-solid fa-globe text-lg" aria-hidden="true"></i>
         </a>
       </div>

@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Repository Compare — BLT Enforcement</title>
+  <script>
+    // Before first paint: the saved OWASP BLT theme (localStorage "theme"), else the system preference.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("theme"); } catch (e) { saved = null; }
+      var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", dark);
+    })();
+  </script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script>
@@ -12,7 +22,7 @@
       theme: {
         extend: {
           colors: {
-            brand: { DEFAULT: '#E10101', hover: '#b91c1c' },
+            brand: { DEFAULT: '#dc2626', hover: '#b91c1c' },
             surface: { dark: '#1F2937', base: '#111827' },
             sidebar: { active: '#feeae9' }
           }
@@ -27,22 +37,22 @@
   <header class="bg-white dark:bg-gray-800 border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
       <a href="index.html" class="flex items-center gap-2 font-bold text-lg text-gray-900 dark:text-white">
-        <span class="text-[#E10101] text-xl"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
-        BLT <span class="text-[#E10101]">Enforcement</span>
+        <span class="text-[#dc2626] text-xl"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+        BLT <span class="text-[#dc2626]">Enforcement</span>
       </a>
       <nav class="hidden sm:flex items-center gap-6 text-sm font-medium">
-        <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">Dashboard</a>
-        <a href="trademark-check.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">Trademark Check</a>
-        <a href="repo-compare.html" class="text-[#E10101] border-b-2 border-[#E10101] pb-0.5">Repo Compare</a>
+        <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors">Dashboard</a>
+        <a href="trademark-check.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors">Trademark Check</a>
+        <a href="repo-compare.html" class="text-[#dc2626] border-b-2 border-[#dc2626] pb-0.5">Repo Compare</a>
       </nav>
-      <button id="menuToggle" class="sm:hidden text-gray-500 dark:text-gray-400 hover:text-[#E10101]" aria-label="Toggle menu">
-        <i class="fa-solid fa-bars text-lg" aria-hidden="true"></i>
+      <button id="menuToggle" class="sm:hidden text-gray-500 dark:text-gray-400 hover:text-[#dc2626]" aria-label="BLT Enforcement menu">
+        <i class="fa-solid fa-ellipsis text-lg" aria-hidden="true"></i>
       </button>
     </div>
     <div id="mobileNav" class="hidden sm:hidden border-t border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 flex flex-col gap-3 text-sm font-medium">
-      <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">Dashboard</a>
-      <a href="trademark-check.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">Trademark Check</a>
-      <a href="repo-compare.html" class="text-[#E10101]">Repo Compare</a>
+      <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626]">Dashboard</a>
+      <a href="trademark-check.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626]">Trademark Check</a>
+      <a href="repo-compare.html" class="text-[#dc2626]">Repo Compare</a>
     </div>
   </header>
 
@@ -54,7 +64,7 @@
         <p class="px-4 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Compare</p>
         <ul>
           <li>
-            <a href="#compare-form" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-[#feeae9] text-[#E10101] border-l-2 border-[#E10101]">
+            <a href="#compare-form" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-[#feeae9] text-[#dc2626] border-l-2 border-[#dc2626]">
               <i class="fa-solid fa-code-compare w-4" aria-hidden="true"></i> Repository Inputs
             </a>
           </li>
@@ -62,22 +72,22 @@
         <p class="px-4 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Report</p>
         <ul>
           <li>
-            <a href="#overview" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+            <a href="#overview" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#dc2626] transition-colors">
               <i class="fa-solid fa-chart-pie w-4" aria-hidden="true"></i> Overview
             </a>
           </li>
           <li>
-            <a href="#license-audit" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+            <a href="#license-audit" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#dc2626] transition-colors">
               <i class="fa-solid fa-scale-balanced w-4" aria-hidden="true"></i> License Audit
             </a>
           </li>
           <li>
-            <a href="#file-similarity" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+            <a href="#file-similarity" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#dc2626] transition-colors">
               <i class="fa-solid fa-file-code w-4" aria-hidden="true"></i> File Similarity
             </a>
           </li>
           <li>
-            <a href="#fork-history" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+            <a href="#fork-history" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#dc2626] transition-colors">
               <i class="fa-solid fa-code-fork w-4" aria-hidden="true"></i> Fork History
             </a>
           </li>
@@ -85,12 +95,12 @@
         <p class="px-4 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Resources</p>
         <ul class="pb-2">
           <li>
-            <a href="https://choosealicense.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+            <a href="https://choosealicense.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#dc2626] transition-colors">
               <i class="fa-solid fa-arrow-up-right-from-square w-4" aria-hidden="true"></i> Choose a License
             </a>
           </li>
           <li>
-            <a href="https://spdx.org/licenses/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+            <a href="https://spdx.org/licenses/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#dc2626] transition-colors">
               <i class="fa-solid fa-arrow-up-right-from-square w-4" aria-hidden="true"></i> SPDX License List
             </a>
           </li>
@@ -104,7 +114,7 @@
       <!-- Page heading -->
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <i class="fa-solid fa-code-compare text-[#E10101]" aria-hidden="true"></i>
+          <i class="fa-solid fa-code-compare text-[#dc2626]" aria-hidden="true"></i>
           Repository Comparison
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Compare two GitHub repositories to detect code similarities, license incompatibilities, and potential intellectual property violations.</p>
@@ -119,7 +129,7 @@
             <!-- Repo A -->
             <div>
               <label for="repoA" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Repository A <span class="text-[#E10101]" aria-hidden="true">*</span>
+                Repository A <span class="text-[#dc2626]" aria-hidden="true">*</span>
               </label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
@@ -142,7 +152,7 @@
             <!-- Repo B -->
             <div>
               <label for="repoB" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Repository B <span class="text-[#E10101]" aria-hidden="true">*</span>
+                Repository B <span class="text-[#dc2626]" aria-hidden="true">*</span>
               </label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
@@ -163,20 +173,20 @@
           <!-- Options row -->
           <div class="flex flex-wrap gap-5 pt-1">
             <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-              <input type="checkbox" id="optLicense" checked class="h-4 w-4 rounded border-gray-400 accent-[#E10101] focus:ring-[#E10101]" />
-              <i class="fa-solid fa-scale-balanced text-[#E10101] text-xs" aria-hidden="true"></i> License comparison
+              <input type="checkbox" id="optLicense" checked class="h-4 w-4 rounded border-gray-400 accent-[#dc2626] focus:ring-[#dc2626]" />
+              <i class="fa-solid fa-scale-balanced text-[#dc2626] text-xs" aria-hidden="true"></i> License comparison
             </label>
             <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-              <input type="checkbox" id="optFiles" checked class="h-4 w-4 rounded border-gray-400 accent-[#E10101] focus:ring-[#E10101]" />
-              <i class="fa-solid fa-file-code text-[#E10101] text-xs" aria-hidden="true"></i> File structure similarity
+              <input type="checkbox" id="optFiles" checked class="h-4 w-4 rounded border-gray-400 accent-[#dc2626] focus:ring-[#dc2626]" />
+              <i class="fa-solid fa-file-code text-[#dc2626] text-xs" aria-hidden="true"></i> File structure similarity
             </label>
             <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-              <input type="checkbox" id="optForks" checked class="h-4 w-4 rounded border-gray-400 accent-[#E10101] focus:ring-[#E10101]" />
-              <i class="fa-solid fa-code-fork text-[#E10101] text-xs" aria-hidden="true"></i> Fork &amp; parent detection
+              <input type="checkbox" id="optForks" checked class="h-4 w-4 rounded border-gray-400 accent-[#dc2626] focus:ring-[#dc2626]" />
+              <i class="fa-solid fa-code-fork text-[#dc2626] text-xs" aria-hidden="true"></i> Fork &amp; parent detection
             </label>
             <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-              <input type="checkbox" id="optDeps" class="h-4 w-4 rounded border-gray-400 accent-[#E10101] focus:ring-[#E10101]" />
-              <i class="fa-solid fa-box text-[#E10101] text-xs" aria-hidden="true"></i> Dependency audit
+              <input type="checkbox" id="optDeps" class="h-4 w-4 rounded border-gray-400 accent-[#dc2626] focus:ring-[#dc2626]" />
+              <i class="fa-solid fa-box text-[#dc2626] text-xs" aria-hidden="true"></i> Dependency audit
             </label>
           </div>
 
@@ -205,14 +215,14 @@
           <div class="flex flex-wrap gap-3 pt-1">
             <button
               type="submit"
-              class="inline-flex items-center gap-2 rounded-md bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101] focus:ring-offset-2"
+              class="inline-flex items-center gap-2 rounded-md bg-[#dc2626] hover:bg-red-700 text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:ring-offset-2"
             >
               <i class="fa-solid fa-code-compare" aria-hidden="true"></i> Compare Repositories
             </button>
             <button
               type="reset"
               id="clearBtn"
-              class="inline-flex items-center gap-2 rounded-md border border-[#E10101] text-[#E10101] hover:bg-[#E10101] hover:text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101] focus:ring-offset-2"
+              class="inline-flex items-center gap-2 rounded-md border border-[#dc2626] text-[#dc2626] hover:bg-[#dc2626] hover:text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:ring-offset-2"
             >
               <i class="fa-solid fa-xmark" aria-hidden="true"></i> Clear
             </button>
@@ -222,13 +232,13 @@
 
       <!-- Loading -->
       <div id="loadingState" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-10 flex flex-col items-center gap-3 text-gray-400" aria-live="polite">
-        <i class="fa-solid fa-spinner fa-spin text-3xl text-[#E10101]" aria-hidden="true"></i>
+        <i class="fa-solid fa-spinner fa-spin text-3xl text-[#dc2626]" aria-hidden="true"></i>
         <p class="text-sm" id="loadingMsg">Fetching repository data from GitHub API…</p>
       </div>
 
       <!-- Error -->
       <div id="errorState" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-900 p-6 flex items-start gap-3" role="alert">
-        <i class="fa-solid fa-circle-exclamation text-[#E10101] mt-0.5" aria-hidden="true"></i>
+        <i class="fa-solid fa-circle-exclamation text-[#dc2626] mt-0.5" aria-hidden="true"></i>
         <div>
           <p class="text-sm font-semibold text-gray-900 dark:text-white">Comparison failed</p>
           <p id="errorMsg" class="text-sm text-gray-500 dark:text-gray-400 mt-0.5"></p>
@@ -240,7 +250,7 @@
       <!-- Overview -->
       <section id="overview" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700" aria-live="polite">
         <div class="px-6 py-4 border-b border-[#E5E5E5] dark:border-gray-700 flex items-center gap-2">
-          <i class="fa-solid fa-chart-pie text-[#E10101]" aria-hidden="true"></i>
+          <i class="fa-solid fa-chart-pie text-[#dc2626]" aria-hidden="true"></i>
           <h2 class="text-base font-semibold text-gray-900 dark:text-white">Comparison Overview</h2>
         </div>
         <div class="p-6">
@@ -254,7 +264,7 @@
       <!-- License Audit -->
       <section id="license-audit" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700">
         <div class="px-6 py-4 border-b border-[#E5E5E5] dark:border-gray-700 flex items-center gap-2">
-          <i class="fa-solid fa-scale-balanced text-[#E10101]" aria-hidden="true"></i>
+          <i class="fa-solid fa-scale-balanced text-[#dc2626]" aria-hidden="true"></i>
           <h2 class="text-base font-semibold text-gray-900 dark:text-white">License Audit</h2>
         </div>
         <div class="p-6 space-y-4" id="licenseContent"></div>
@@ -263,7 +273,7 @@
       <!-- File Similarity -->
       <section id="file-similarity" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700">
         <div class="px-6 py-4 border-b border-[#E5E5E5] dark:border-gray-700 flex items-center gap-2">
-          <i class="fa-solid fa-file-code text-[#E10101]" aria-hidden="true"></i>
+          <i class="fa-solid fa-file-code text-[#dc2626]" aria-hidden="true"></i>
           <h2 class="text-base font-semibold text-gray-900 dark:text-white">File Structure Similarity</h2>
         </div>
         <div class="p-6" id="fileContent"></div>
@@ -272,7 +282,7 @@
       <!-- Fork History -->
       <section id="fork-history" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700">
         <div class="px-6 py-4 border-b border-[#E5E5E5] dark:border-gray-700 flex items-center gap-2">
-          <i class="fa-solid fa-code-fork text-[#E10101]" aria-hidden="true"></i>
+          <i class="fa-solid fa-code-fork text-[#dc2626]" aria-hidden="true"></i>
           <h2 class="text-base font-semibold text-gray-900 dark:text-white">Fork &amp; Parent Detection</h2>
         </div>
         <div class="p-6" id="forkContent"></div>
@@ -284,12 +294,12 @@
   <!-- Footer -->
   <footer class="border-t border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-gray-800 mt-auto">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500 dark:text-gray-400">
-      <span>© 2025 <a href="https://owasp.org" class="text-[#E10101] hover:underline" target="_blank" rel="noopener noreferrer">OWASP BLT</a> — IP &amp; Trademark Enforcement</span>
+      <span>© 2025 <a href="https://owasp.org" class="text-[#dc2626] hover:underline" target="_blank" rel="noopener noreferrer">OWASP BLT</a> — IP &amp; Trademark Enforcement</span>
       <div class="flex gap-4">
-        <a href="https://git.owaspblt.org/BLT/BLT-Enforcement" class="hover:text-[#E10101] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+        <a href="https://git.owaspblt.org/BLT/BLT-Enforcement" class="hover:text-[#dc2626] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
           <i class="fa-brands fa-github text-lg" aria-hidden="true"></i>
         </a>
-        <a href="https://owasp.org" class="hover:text-[#E10101] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="OWASP website">
+        <a href="https://owasp.org" class="hover:text-[#dc2626] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="OWASP website">
           <i class="fa-solid fa-globe text-lg" aria-hidden="true"></i>
         </a>
       </div>
@@ -447,7 +457,7 @@
       if (fileSim >= 60 || compat === false) {
         riskLevel = 'High Risk';
         riskColor = 'border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/20';
-        riskIcon  = 'fa-triangle-exclamation text-[#E10101]';
+        riskIcon  = 'fa-triangle-exclamation text-[#dc2626]';
         riskText  = 'Significant similarity or license incompatibility detected. A legal review is strongly recommended.';
       } else if (fileSim >= 30 || compat === null) {
         riskLevel = 'Medium Risk';
@@ -467,7 +477,7 @@
           <div class="rounded-lg border border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4 space-y-2">
             <div class="flex items-center gap-2">
               <i class="fa-brands fa-github text-gray-400" aria-hidden="true"></i>
-              <a href="${esc(safeUrl(r.html_url))}" class="text-[#E10101] hover:underline font-semibold text-sm" target="_blank" rel="noopener noreferrer">${esc(r.full_name)}</a>
+              <a href="${esc(safeUrl(r.html_url))}" class="text-[#dc2626] hover:underline font-semibold text-sm" target="_blank" rel="noopener noreferrer">${esc(r.full_name)}</a>
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">${esc(r.description || 'No description provided.')}</p>
             <div class="flex flex-wrap gap-2 text-xs">
@@ -503,7 +513,7 @@
       const compatHtml = compat === true
         ? '<span class="text-green-600 font-semibold"><i class="fa-solid fa-circle-check mr-1" aria-hidden="true"></i>Compatible</span>'
         : compat === false
-        ? '<span class="text-[#E10101] font-semibold"><i class="fa-solid fa-circle-xmark mr-1" aria-hidden="true"></i>Incompatible</span>'
+        ? '<span class="text-[#dc2626] font-semibold"><i class="fa-solid fa-circle-xmark mr-1" aria-hidden="true"></i>Incompatible</span>'
         : '<span class="text-yellow-600 font-semibold"><i class="fa-solid fa-circle-question mr-1" aria-hidden="true"></i>Unclear — verify manually</span>';
 
       document.getElementById('licenseContent').innerHTML = `
@@ -513,8 +523,8 @@
             <p class="font-semibold text-gray-900 dark:text-white">${esc(dataA.info.full_name)}</p>
             <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${licenseBadgeColor(licA)}">${esc(licA)}</span>
             <ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mt-2">
-              <li><i class="fa-solid fa-${infoA.copyleft ? 'circle-xmark text-[#E10101]' : 'circle-check text-green-500'} mr-1" aria-hidden="true"></i>${infoA.copyleft ? 'Copyleft (share-alike required)' : 'No copyleft'}</li>
-              <li><i class="fa-solid fa-${infoA.commercial ? 'circle-check text-green-500' : 'circle-xmark text-[#E10101]'} mr-1" aria-hidden="true"></i>${infoA.commercial ? 'Commercial use allowed' : 'Commercial use restricted'}</li>
+              <li><i class="fa-solid fa-${infoA.copyleft ? 'circle-xmark text-[#dc2626]' : 'circle-check text-green-500'} mr-1" aria-hidden="true"></i>${infoA.copyleft ? 'Copyleft (share-alike required)' : 'No copyleft'}</li>
+              <li><i class="fa-solid fa-${infoA.commercial ? 'circle-check text-green-500' : 'circle-xmark text-[#dc2626]'} mr-1" aria-hidden="true"></i>${infoA.commercial ? 'Commercial use allowed' : 'Commercial use restricted'}</li>
               <li><i class="fa-solid fa-tag text-gray-400 mr-1" aria-hidden="true"></i>${esc(infoA.type || 'Unknown type')}</li>
             </ul>
           </div>
@@ -523,8 +533,8 @@
             <p class="font-semibold text-gray-900 dark:text-white">${esc(dataB.info.full_name)}</p>
             <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${licenseBadgeColor(licB)}">${esc(licB)}</span>
             <ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mt-2">
-              <li><i class="fa-solid fa-${infoB.copyleft ? 'circle-xmark text-[#E10101]' : 'circle-check text-green-500'} mr-1" aria-hidden="true"></i>${infoB.copyleft ? 'Copyleft (share-alike required)' : 'No copyleft'}</li>
-              <li><i class="fa-solid fa-${infoB.commercial ? 'circle-check text-green-500' : 'circle-xmark text-[#E10101]'} mr-1" aria-hidden="true"></i>${infoB.commercial ? 'Commercial use allowed' : 'Commercial use restricted'}</li>
+              <li><i class="fa-solid fa-${infoB.copyleft ? 'circle-xmark text-[#dc2626]' : 'circle-check text-green-500'} mr-1" aria-hidden="true"></i>${infoB.copyleft ? 'Copyleft (share-alike required)' : 'No copyleft'}</li>
+              <li><i class="fa-solid fa-${infoB.commercial ? 'circle-check text-green-500' : 'circle-xmark text-[#dc2626]'} mr-1" aria-hidden="true"></i>${infoB.commercial ? 'Commercial use allowed' : 'Commercial use restricted'}</li>
               <li><i class="fa-solid fa-tag text-gray-400 mr-1" aria-hidden="true"></i>${esc(infoB.type || 'Unknown type')}</li>
             </ul>
           </div>
@@ -546,7 +556,7 @@
       const onlyA = filesA.filter(f => !filesB.includes(f)).slice(0, 8);
       const onlyB = filesB.filter(f => !filesA.includes(f)).slice(0, 8);
 
-      const barColor = sim >= 60 ? 'bg-[#E10101]' : sim >= 30 ? 'bg-yellow-400' : 'bg-green-500';
+      const barColor = sim >= 60 ? 'bg-[#dc2626]' : sim >= 30 ? 'bg-yellow-400' : 'bg-green-500';
 
       document.getElementById('fileContent').innerHTML = `
         <div class="space-y-4">
@@ -564,7 +574,7 @@
           <div>
             <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Common files (top ${commonFiles.length})</p>
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-1">
-              ${commonFiles.map(f => `<li class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 rounded px-2 py-1"><i class="fa-solid fa-file-code text-[#E10101] text-[10px]" aria-hidden="true"></i><code class="truncate font-mono">${esc(f)}</code></li>`).join('')}
+              ${commonFiles.map(f => `<li class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 rounded px-2 py-1"><i class="fa-solid fa-file-code text-[#dc2626] text-[10px]" aria-hidden="true"></i><code class="truncate font-mono">${esc(f)}</code></li>`).join('')}
             </ul>
           </div>` : ''}
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -603,7 +613,7 @@
           <i class="fa-solid fa-triangle-exclamation text-yellow-500 mt-0.5" aria-hidden="true"></i>
           <div>
             <p class="text-sm font-semibold text-gray-900 dark:text-white">Both repositories share the same parent fork</p>
-            <p class="text-sm text-gray-600 dark:text-gray-300 mt-0.5">Parent: <a href="https://github.com/${a.parent.full_name}" class="text-[#E10101] hover:underline" target="_blank" rel="noopener noreferrer">${a.parent.full_name}</a></p>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mt-0.5">Parent: <a href="https://github.com/${a.parent.full_name}" class="text-[#dc2626] hover:underline" target="_blank" rel="noopener noreferrer">${a.parent.full_name}</a></p>
           </div>
         </div>`;
       }
@@ -611,7 +621,7 @@
       [{ label: 'A', info: a }, { label: 'B', info: b }].forEach(function(item) {
         const r = item.info;
         html += `<div class="rounded-lg border border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
-          <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Repository ${item.label} — <a href="${esc(safeUrl(r.html_url))}" class="text-[#E10101] hover:underline" target="_blank" rel="noopener noreferrer">${esc(r.full_name)}</a></p>
+          <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Repository ${item.label} — <a href="${esc(safeUrl(r.html_url))}" class="text-[#dc2626] hover:underline" target="_blank" rel="noopener noreferrer">${esc(r.full_name)}</a></p>
           <div class="flex flex-wrap gap-3 text-sm">
             <span class="flex items-center gap-1.5 ${r.fork ? 'text-yellow-600' : 'text-green-600'}">
               <i class="fa-solid ${r.fork ? 'fa-code-fork' : 'fa-house'} text-xs" aria-hidden="true"></i>
@@ -619,7 +629,7 @@
             </span>
             ${r.fork && r.parent ? `<span class="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
               <i class="fa-solid fa-turn-up text-xs text-gray-400" aria-hidden="true"></i>
-              Forked from <a href="${r.parent.html_url}" class="text-[#E10101] hover:underline ml-1" target="_blank" rel="noopener noreferrer">${r.parent.full_name}</a>
+              Forked from <a href="${r.parent.html_url}" class="text-[#dc2626] hover:underline ml-1" target="_blank" rel="noopener noreferrer">${r.parent.full_name}</a>
             </span>` : ''}
             <span class="text-gray-500 dark:text-gray-400 text-xs">Created: ${new Date(r.created_at).toLocaleDateString()}</span>
             <span class="text-gray-500 dark:text-gray-400 text-xs">Updated: ${new Date(r.updated_at).toLocaleDateString()}</span>

@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trademark Check — BLT Enforcement</title>
+  <script>
+    // Before first paint: the saved OWASP BLT theme (localStorage "theme"), else the system preference.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("theme"); } catch (e) { saved = null; }
+      var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", dark);
+    })();
+  </script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script>
@@ -12,7 +22,7 @@
       theme: {
         extend: {
           colors: {
-            brand: { DEFAULT: '#E10101', hover: '#b91c1c' },
+            brand: { DEFAULT: '#dc2626', hover: '#b91c1c' },
             surface: { dark: '#1F2937', base: '#111827' },
             sidebar: { active: '#feeae9' }
           }
@@ -27,22 +37,22 @@
   <header class="bg-white dark:bg-gray-800 border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
       <a href="index.html" class="flex items-center gap-2 font-bold text-lg text-gray-900 dark:text-white">
-        <span class="text-[#E10101] text-xl"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
-        BLT <span class="text-[#E10101]">Enforcement</span>
+        <span class="text-[#dc2626] text-xl"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+        BLT <span class="text-[#dc2626]">Enforcement</span>
       </a>
       <nav class="hidden sm:flex items-center gap-6 text-sm font-medium">
-        <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">Dashboard</a>
-        <a href="trademark-check.html" class="text-[#E10101] border-b-2 border-[#E10101] pb-0.5">Trademark Check</a>
-        <a href="repo-compare.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">Repo Compare</a>
+        <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors">Dashboard</a>
+        <a href="trademark-check.html" class="text-[#dc2626] border-b-2 border-[#dc2626] pb-0.5">Trademark Check</a>
+        <a href="repo-compare.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors">Repo Compare</a>
       </nav>
-      <button id="menuToggle" class="sm:hidden text-gray-500 dark:text-gray-400 hover:text-[#E10101]" aria-label="Toggle menu">
-        <i class="fa-solid fa-bars text-lg" aria-hidden="true"></i>
+      <button id="menuToggle" class="sm:hidden text-gray-500 dark:text-gray-400 hover:text-[#dc2626]" aria-label="BLT Enforcement menu">
+        <i class="fa-solid fa-ellipsis text-lg" aria-hidden="true"></i>
       </button>
     </div>
     <div id="mobileNav" class="hidden sm:hidden border-t border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 flex flex-col gap-3 text-sm font-medium">
-      <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">Dashboard</a>
-      <a href="trademark-check.html" class="text-[#E10101]">Trademark Check</a>
-      <a href="repo-compare.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">Repo Compare</a>
+      <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626]">Dashboard</a>
+      <a href="trademark-check.html" class="text-[#dc2626]">Trademark Check</a>
+      <a href="repo-compare.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626]">Repo Compare</a>
     </div>
   </header>
 
@@ -54,7 +64,7 @@
         <p class="px-4 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Search</p>
         <ul>
           <li>
-            <a href="#search" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-[#feeae9] text-[#E10101] border-l-2 border-[#E10101]">
+            <a href="#search" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-[#feeae9] text-[#dc2626] border-l-2 border-[#dc2626]">
               <i class="fa-solid fa-magnifying-glass w-4" aria-hidden="true"></i> Search Trademarks
             </a>
           </li>
@@ -62,17 +72,17 @@
         <p class="px-4 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Analysis</p>
         <ul>
           <li>
-            <a href="#results" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+            <a href="#results" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#dc2626] transition-colors">
               <i class="fa-solid fa-list w-4" aria-hidden="true"></i> Results
             </a>
           </li>
           <li>
-            <a href="#similarity" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+            <a href="#similarity" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#dc2626] transition-colors">
               <i class="fa-solid fa-chart-bar w-4" aria-hidden="true"></i> Similarity Score
             </a>
           </li>
           <li>
-            <a href="#guide" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+            <a href="#guide" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#dc2626] transition-colors">
               <i class="fa-solid fa-book w-4" aria-hidden="true"></i> How to Read Results
             </a>
           </li>
@@ -80,17 +90,17 @@
         <p class="px-4 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Resources</p>
         <ul class="pb-2">
           <li>
-            <a href="https://tmsearch.uspto.gov" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+            <a href="https://tmsearch.uspto.gov" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#dc2626] transition-colors">
               <i class="fa-solid fa-arrow-up-right-from-square w-4" aria-hidden="true"></i> USPTO TESS
             </a>
           </li>
           <li>
-            <a href="https://www.wipo.int/branddb/en/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+            <a href="https://www.wipo.int/branddb/en/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#dc2626] transition-colors">
               <i class="fa-solid fa-arrow-up-right-from-square w-4" aria-hidden="true"></i> WIPO Global Brand DB
             </a>
           </li>
           <li>
-            <a href="https://euipo.europa.eu/eSearch/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+            <a href="https://euipo.europa.eu/eSearch/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#dc2626] transition-colors">
               <i class="fa-solid fa-arrow-up-right-from-square w-4" aria-hidden="true"></i> EUIPO eSearch
             </a>
           </li>
@@ -104,7 +114,7 @@
       <!-- Page heading -->
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <i class="fa-solid fa-registered text-[#E10101]" aria-hidden="true"></i>
+          <i class="fa-solid fa-registered text-[#dc2626]" aria-hidden="true"></i>
           Trademark Check
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Search for existing trademark registrations and assess potential conflicts with your brand or product name.</p>
@@ -118,7 +128,7 @@
           <!-- Term input -->
           <div>
             <label for="tmTerm" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Search Term <span class="text-[#E10101]" aria-hidden="true">*</span>
+              Search Term <span class="text-[#dc2626]" aria-hidden="true">*</span>
             </label>
             <div class="relative">
               <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
@@ -173,7 +183,7 @@
             <input
               id="tmPhonetic"
               type="checkbox"
-              class="h-4 w-4 rounded border-gray-400 text-[#E10101] accent-[#E10101] focus:ring-[#E10101]"
+              class="h-4 w-4 rounded border-gray-400 text-[#dc2626] accent-[#dc2626] focus:ring-[#dc2626]"
             />
             <label for="tmPhonetic" class="text-sm text-gray-700 dark:text-gray-300">Include phonetic / sound-alike matches</label>
           </div>
@@ -182,14 +192,14 @@
           <div class="flex flex-wrap gap-3 pt-1">
             <button
               type="submit"
-              class="inline-flex items-center gap-2 rounded-md bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101] focus:ring-offset-2"
+              class="inline-flex items-center gap-2 rounded-md bg-[#dc2626] hover:bg-red-700 text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:ring-offset-2"
             >
               <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search Trademarks
             </button>
             <button
               type="reset"
               id="clearBtn"
-              class="inline-flex items-center gap-2 rounded-md border border-[#E10101] text-[#E10101] hover:bg-[#E10101] hover:text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101] focus:ring-offset-2"
+              class="inline-flex items-center gap-2 rounded-md border border-[#dc2626] text-[#dc2626] hover:bg-[#dc2626] hover:text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#dc2626] focus:ring-offset-2"
             >
               <i class="fa-solid fa-xmark" aria-hidden="true"></i> Clear
             </button>
@@ -201,13 +211,13 @@
       <section id="results" aria-live="polite" aria-atomic="true">
         <!-- Loading state (hidden by default) -->
         <div id="loadingState" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-10 flex flex-col items-center gap-3 text-gray-400">
-          <i class="fa-solid fa-spinner fa-spin text-3xl text-[#E10101]" aria-hidden="true"></i>
+          <i class="fa-solid fa-spinner fa-spin text-3xl text-[#dc2626]" aria-hidden="true"></i>
           <p class="text-sm">Searching trademark databases…</p>
         </div>
 
         <!-- Error state (hidden by default) -->
         <div id="errorState" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-900 p-6 flex items-start gap-3">
-          <i class="fa-solid fa-circle-exclamation text-[#E10101] mt-0.5" aria-hidden="true"></i>
+          <i class="fa-solid fa-circle-exclamation text-[#dc2626] mt-0.5" aria-hidden="true"></i>
           <div>
             <p class="text-sm font-semibold text-gray-900 dark:text-white">Search failed</p>
             <p id="errorMsg" class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Please try again.</p>
@@ -218,7 +228,7 @@
         <div id="resultsPanel" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700">
           <div class="px-6 py-4 border-b border-[#E5E5E5] dark:border-gray-700 flex items-center justify-between">
             <h2 class="text-base font-semibold text-gray-900 dark:text-white">
-              Results for <span id="resultsTermLabel" class="text-[#E10101]"></span>
+              Results for <span id="resultsTermLabel" class="text-[#dc2626]"></span>
             </h2>
             <span id="resultsBadge" class="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-2.5 py-0.5 font-medium"></span>
           </div>
@@ -254,7 +264,7 @@
       <!-- How to read results guide -->
       <section id="guide" class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-6">
         <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-circle-info text-[#E10101]" aria-hidden="true"></i>
+          <i class="fa-solid fa-circle-info text-[#dc2626]" aria-hidden="true"></i>
           How to Interpret Results
         </h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
@@ -269,7 +279,7 @@
             <p class="text-gray-500 dark:text-gray-400 mt-1">Similarity 40–70%. Potential conflicts in related classes. Thorough legal review recommended.</p>
           </div>
           <div class="rounded-lg bg-gray-50 dark:bg-gray-900 border border-[#E5E5E5] dark:border-gray-700 p-4">
-            <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#E10101] mr-1.5 align-middle" aria-hidden="true"></span>
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#dc2626] mr-1.5 align-middle" aria-hidden="true"></span>
             <span class="font-semibold text-gray-900 dark:text-white">High Risk</span>
             <p class="text-gray-500 dark:text-gray-400 mt-1">Similarity &gt; 70%. Existing registered marks conflict. Use may constitute infringement.</p>
           </div>
@@ -286,12 +296,12 @@
   <!-- Footer -->
   <footer class="border-t border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-gray-800 mt-auto">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500 dark:text-gray-400">
-      <span>© 2025 <a href="https://owasp.org" class="text-[#E10101] hover:underline" target="_blank" rel="noopener noreferrer">OWASP BLT</a> — IP &amp; Trademark Enforcement</span>
+      <span>© 2025 <a href="https://owasp.org" class="text-[#dc2626] hover:underline" target="_blank" rel="noopener noreferrer">OWASP BLT</a> — IP &amp; Trademark Enforcement</span>
       <div class="flex gap-4">
-        <a href="https://git.owaspblt.org/BLT/BLT-Enforcement" class="hover:text-[#E10101] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+        <a href="https://git.owaspblt.org/BLT/BLT-Enforcement" class="hover:text-[#dc2626] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
           <i class="fa-brands fa-github text-lg" aria-hidden="true"></i>
         </a>
-        <a href="https://owasp.org" class="hover:text-[#E10101] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="OWASP website">
+        <a href="https://owasp.org" class="hover:text-[#dc2626] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="OWASP website">
           <i class="fa-solid fa-globe text-lg" aria-hidden="true"></i>
         </a>
       </div>
@@ -332,7 +342,7 @@
     }
 
     function riskBadge(score) {
-      if (score >= 70) return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700"><span class="w-1.5 h-1.5 rounded-full bg-[#E10101]"></span>High</span>`;
+      if (score >= 70) return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700"><span class="w-1.5 h-1.5 rounded-full bg-[#dc2626]"></span>High</span>`;
       if (score >= 40) return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700"><span class="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>Medium</span>`;
       return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Low</span>`;
     }
@@ -391,7 +401,7 @@
             tr.className = 'hover:bg-gray-50 dark:hover:bg-gray-900/40 transition-colors';
             tr.innerHTML = `
               <td class="px-6 py-3 font-semibold">
-                <a href="${r.file}" class="text-[#E10101] hover:underline" target="_blank" rel="noopener noreferrer">${r.mark}</a>
+                <a href="${r.file}" class="text-[#dc2626] hover:underline" target="_blank" rel="noopener noreferrer">${r.mark}</a>
               </td>
               <td class="px-6 py-3 text-gray-600 dark:text-gray-300">${r.owner}</td>
               <td class="px-6 py-3 text-gray-600 dark:text-gray-300">Class ${r.class}</td>
@@ -400,7 +410,7 @@
               <td class="px-6 py-3">
                 <div class="flex items-center gap-2">
                   <div class="w-20 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                    <div class="h-full rounded-full ${r.score >= 70 ? 'bg-[#E10101]' : r.score >= 40 ? 'bg-yellow-400' : 'bg-green-500'}" style="width:${r.score}%"></div>
+                    <div class="h-full rounded-full ${r.score >= 70 ? 'bg-[#dc2626]' : r.score >= 40 ? 'bg-yellow-400' : 'bg-green-500'}" style="width:${r.score}%"></div>
                   </div>
                   ${riskBadge(r.score)}
                 </div>
@@ -417,11 +427,11 @@
           simSection.classList.remove('hidden');
           simContent.innerHTML = `
             <div class="flex items-center justify-between text-sm mb-1">
-              <span class="font-medium text-gray-700 dark:text-gray-300">Highest similarity to "<span class="text-[#E10101]">${results[0].mark}</span>"</span>
+              <span class="font-medium text-gray-700 dark:text-gray-300">Highest similarity to "<span class="text-[#dc2626]">${results[0].mark}</span>"</span>
               <span class="font-bold text-gray-900 dark:text-white">${maxScore}%</span>
             </div>
             <div class="w-full h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-              <div class="h-full rounded-full transition-all duration-700 ${maxScore >= 70 ? 'bg-[#E10101]' : maxScore >= 40 ? 'bg-yellow-400' : 'bg-green-500'}" style="width:${maxScore}%"></div>
+              <div class="h-full rounded-full transition-all duration-700 ${maxScore >= 70 ? 'bg-[#dc2626]' : maxScore >= 40 ? 'bg-yellow-400' : 'bg-green-500'}" style="width:${maxScore}%"></div>
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">${
               maxScore >= 70
