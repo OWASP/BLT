@@ -1,13 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="5 5 190 190">
-  <defs>
-    <linearGradient id="lettuce-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#991B1B;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  <circle cx="100" cy="100" r="90" fill="url(#lettuce-grad)"/>
-  <path d="M70 100 Q70 70 100 70 Q130 70 130 100 Q130 130 100 130 Q70 130 70 100 Z" fill="white"/>
-  <path d="M85 85 Q95 90 105 85" stroke="#DC2626" stroke-width="2" fill="none"/>
-  <path d="M85 100 Q95 105 105 100" stroke="#DC2626" stroke-width="2" fill="none"/>
-  <path d="M85 115 Q95 120 105 115" stroke="#DC2626" stroke-width="2" fill="none"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img"><title>BLT-Lettuce</title><circle cx="32" cy="32" r="30" fill="#dc2626"/><path fill="#f0fdf4" d="M15 40c-3-5-2.5-11 1-15-.5-4 2-7.5 6-8 1.5-3.5 5-5.5 8.5-4.5L32 13l1.5-.5c3.5-1 7 1 8.5 4.5 4 .5 6.5 4 6 8 3.5 4 4 10 1 15z"/><path fill="#4ade80" d="M32 52c-10 0-17-6.5-17-15.5 0-4.5 1.6-8 4-10.5 2 4.5 5.2 8 9 10.5 3 2 4 7.5 4 15.5z"/><path fill="#22c55e" d="M32 52c10 0 17-6.5 17-15.5 0-4.5-1.6-8-4-10.5-2 4.5-5.2 8-9 10.5-3 2-4 7.5-4 15.5z"/><path fill="#bbf7d0" d="M32 50c-5-5-7-12-5.5-19 .8-3.6 2.6-6.6 5.5-9 2.9 2.4 4.7 5.4 5.5 9 1.5 7-.5 14-5.5 19z"/><g fill="none" stroke="#15803d" stroke-width="1.8" stroke-linecap="round"><path d="M32 26v20M32 32l-3-2.5M32 38l-3.5-2.5M32 32l3-2.5M32 38l3.5-2.5"/><path d="M20 33c2.5 4 5.5 7 9 9M44 33c-2.5 4-5.5 7-9 9" opacity=".7"/></g></svg>
