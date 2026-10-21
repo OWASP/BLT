@@ -1,18 +1,21 @@
 /* BLT Nexus - Cybersecurity Ambassador Program */
 :root {
-    --primary: #e63946;
-    --primary-dark: #c1121f;
-    --secondary: #1d3557;
-    --secondary-light: #457b9d;
-    --accent: #f4a261;
-    --bg: #f8f9fa;
+    color-scheme: light;
+    --primary: #dc2626;
+    --primary-dark: #b91c1c;
+    --secondary: #111827;
+    --secondary-light: #4b5563;
+    --accent: #f59e0b;
+    --bg: #f9fafb;
     --surface: #ffffff;
-    --text: #212529;
-    --text-muted: #6c757d;
-    --border: #dee2e6;
+    --text: #111827;
+    --text-muted: #4b5563;
+    --border: #e5e7eb;
+    --heading: #111827;
+    --band: #111827;
     --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     --shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.15);
-    --radius: 12px;
+    --radius: 16px;
     --radius-sm: 6px;
   }
   
@@ -23,8 +26,8 @@
   }
   
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-      Ubuntu, sans-serif;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
@@ -32,7 +35,8 @@
   
   /* ── Navigation ── */
   nav {
-    background: var(--secondary);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
     padding: 0 2rem;
     display: flex;
     align-items: center;
@@ -41,7 +45,6 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
   
   .nav-brand {
@@ -49,20 +52,15 @@
     align-items: center;
     gap: 0.6rem;
     text-decoration: none;
-    color: #fff;
+    color: var(--text);
     font-size: 1.25rem;
     font-weight: 700;
     letter-spacing: 0.5px;
   }
   
-  .nav-brand .logo-badge {
-    background: var(--primary);
-    color: #fff;
-    font-size: 0.85rem;
-    font-weight: 800;
-    padding: 2px 8px;
-    border-radius: 4px;
-    letter-spacing: 1px;
+  .nav-brand img {
+    width: 32px;
+    height: 32px;
   }
   
   .nav-links {
@@ -72,19 +70,19 @@
   }
   
   .nav-links a {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-muted);
     text-decoration: none;
     font-size: 0.9rem;
     transition: color 0.2s;
   }
   
   .nav-links a:hover {
-    color: #fff;
+    color: var(--primary);
   }
   
   /* ── Hero ── */
   .hero {
-    background: linear-gradient(135deg, var(--secondary) 0%, #0d1b2a 100%);
+    background: linear-gradient(135deg, #111827 0%, #030712 100%);
     color: #fff;
     padding: 5rem 2rem 4rem;
     text-align: center;
@@ -107,9 +105,9 @@
   
   .hero-badge {
     display: inline-block;
-    background: rgba(230, 57, 70, 0.2);
-    border: 1px solid rgba(230, 57, 70, 0.5);
-    color: #ff8fa3;
+    background: rgba(220, 38, 38, 0.2);
+    border: 1px solid rgba(220, 38, 38, 0.5);
+    color: #f87171;
     font-size: 0.78rem;
     font-weight: 600;
     letter-spacing: 1.5px;
@@ -166,7 +164,7 @@
   .btn-primary:hover {
     background: var(--primary-dark);
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(230, 57, 70, 0.4);
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
   }
   
   .btn-outline {
@@ -230,7 +228,7 @@
   .section-header h2 {
     font-size: 1.7rem;
     font-weight: 700;
-    color: var(--secondary);
+    color: var(--heading);
   }
   
   .section-header p {
@@ -357,7 +355,7 @@
   .card-title-group h3 {
     font-size: 1.05rem;
     font-weight: 700;
-    color: var(--secondary);
+    color: var(--heading);
     line-height: 1.2;
   }
   
@@ -573,7 +571,7 @@
   .about-section h2 {
     font-size: 1.4rem;
     font-weight: 700;
-    color: var(--secondary);
+    color: var(--heading);
     margin-bottom: 0.75rem;
   }
   
@@ -618,7 +616,7 @@
   .step-text h4 {
     font-size: 0.93rem;
     font-weight: 700;
-    color: var(--secondary);
+    color: var(--heading);
     margin-bottom: 2px;
   }
   
@@ -631,7 +629,7 @@
   
   /* ── CTA Banner ── */
   .cta-banner {
-    background: linear-gradient(135deg, var(--secondary) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, #111827 0%, var(--primary-dark) 100%);
     border-radius: var(--radius);
     padding: 2.5rem;
     text-align: center;
@@ -653,7 +651,7 @@
   
   /* ── Footer ── */
   footer {
-    background: var(--secondary);
+    background: var(--band);
     color: rgba(255, 255, 255, 0.6);
     text-align: center;
     padding: 2rem;
@@ -708,3 +706,34 @@
       padding: 3.5rem 1rem 3rem;
     }
   }
+/* ── Dark mode (class "dark" on <html>: theme-init.js and the shared <blt-nav> toggle) ── */
+html.dark {
+    color-scheme: dark;
+    --primary: #ef4444;
+    --primary-dark: #dc2626;
+    --secondary: #374151;
+    --secondary-light: #9ca3af;
+    --bg: #030712;
+    --surface: #111827;
+    --text: #f3f4f6;
+    --text-muted: #9ca3af;
+    --border: #1f2937;
+    --heading: #f3f4f6;
+    --band: #000000;
+    --shadow: 0 0 0 1px #1f2937;
+    --shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+html.dark #search {
+    background: #111827;
+    color: var(--text);
+}
+html.dark .category-badge {
+    background: rgba(156, 163, 175, 0.14);
+    color: #d1d5db;
+}
+html.dark .category-bug-bounty { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+html.dark .category-scanning { background: rgba(6, 182, 212, 0.15); color: #67e8f9; }
+html.dark .category-ctf { background: rgba(34, 197, 94, 0.15); color: #86efac; }
+html.dark .category-platform { background: rgba(168, 85, 247, 0.15); color: #d8b4fe; }
+html.dark .category-framework { background: rgba(249, 115, 22, 0.15); color: #fdba74; }
+html.dark .category-community { background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
