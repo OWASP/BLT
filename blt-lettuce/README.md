@@ -156,6 +156,10 @@ BLT-Lettuce is now **fully powered by a Cloudflare Python Worker** (`src/worker.
 | `/webhook` | POST | Slack webhook for events |
 | `/stats` | GET | Returns statistics JSON |
 | `/health` | GET | Health check endpoint |
+| `/health/welcome` | GET | OWASP welcome health (503 when failing; see below) |
+| `/welcome-logo?tid=` | GET | Tracked footer logo of a welcome DM (records the first open) |
+| `/admin/welcomes` | GET | Welcome delivery report (HTTP Basic; `?format=json`) |
+| `/api/community-stats` | GET | OWASP joins per day (30 days) and channels with the most members |
 
 ### Slack App Setup
 
@@ -213,6 +217,107 @@ Stats are workspace-specific and use optimistic locking to handle concurrent upd
 - Replay attacks are prevented with timestamp checking (5-minute window)
 - The bot ignores its own messages to prevent loops
 - Error messages are sanitized to avoid exposing internal details
+
+## OWASP welcome bot
+
+Lettuce welcomes new members of the OWASP Slack workspace (`T04T40NHX`). The code is
+`src/lettuce/welcome_bot.py`; the text is `src/lettuce/messages/T04T40NHX-team_join.txt`
+(a `.txt` inside `src/`, because Wrangler bundles text modules from `src/` but not `.md`
+files or anything outside `src/`). blt-sammich sent this welcome before; BLT-project
+workspaces and commands stay with sammich.
+
+**How a join is handled.** `/webhook` checks the Slack signature, then a `team_join` from a
+workspace in `WELCOME_TEAM_IDS` goes to `welcome_bot.accept_team_join`:
+
+1. One `team_joins` row is inserted. Its partial unique index on `event_id` is the event
+   claim: a Slack retry inserts nothing and is answered `duplicate`.
+2. Slack gets its 200 at once; the DM is sent after the response (`ctx.waitUntil`).
+3. `conversations.open`, then `chat.postMessage` with the BLT logo beside the text and a
+   tracked logo (`/welcome-logo?tid=<96 random bits>`) in the footer. Each call is retried
+   once on a rate limit, 5xx or network error.
+4. The row gets `sent` (with `delivered_at` when Slack returns a message ts) or `failed`
+   with the Slack error code. The first load of the footer logo sets `opened_at`.
+
+Bots, deleted users and anyone welcomed in the last 30 days are recorded as `skipped`.
+Logs are one JSON line (`[welcome] {...}`) with ids and Slack error codes, never tokens.
+
+**Settings.**
+
+| Name | Kind | Default | Meaning |
+|------|------|---------|---------|
+| `WELCOME_ENABLED` | secret | off | `true` sends welcome DMs. Off: joins are recorded (`disabled`), nobody is DMed. |
+| `WELCOME_TEAM_IDS` | var | `T04T40NHX` | Workspaces handled by the welcome bot (comma-separated). |
+| `WELCOME_SLACK_TOKEN` | secret | none | Only needed when lettuce isn't installed through `/workspace/add`; the install's token in `workspaces` comes first. |
+| `ADMIN_USERNAME`, `ADMIN_PASSWORD` | secrets | none | HTTP Basic for `/admin/welcomes`. Unset: the report always answers 401. |
+
+`WELCOME_ENABLED` is a secret, not a `[vars]` entry, so a later deploy can't switch the
+welcome back off. Set it with `npx wrangler secret put WELCOME_ENABLED`.
+
+**Health.** `/health/welcome` reports the last join, the last delivered welcome, the last
+24 hours (joins, eligible, delivered, failed, rate) and the last `auth.test`. With the
+welcome on it answers **503** (`"status": "welcome-unhealthy"` and a `problems` list) when:
+joins older than 10 minutes arrived in 24 h and none was delivered; 5 or more eligible joins
+and under 50 % delivered; `auth.test` failed or the token is for another workspace; no
+`auth.test` in 3 hours (the cron stopped); or the message file didn't load. Otherwise 200
+with `welcome-healthy`. With the welcome off it answers 200 `welcome-disabled` and still
+lists the problems. blt-monitor's `lettuce_owasp_welcome` check looks for `welcome-healthy`.
+
+**Cron** (blt-cron calls `/__scheduled` hourly): `auth.test` with the OWASP token, stored in
+`welcome_state`; once a day, `conversations.list` (public, not archived) for the channels with
+the most members, kept as one `welcome_state` row and shown at the end of the welcome
+("Most Active Channels", the 5 biggest) and in `/api/community-stats`. Lettuce's per-channel
+scan, `users.list` member count, missing-GitHub-org alert and inactivity alert skip welcome
+workspaces, and their events don't write `Webhook_Received` rows.
+
+**D1 cost.** A welcomed join is one INSERT (about 5 row writes with indexes) and one UPDATE;
+an open is one more UPDATE. The cron adds about 25 writes a day. Migration
+`007_owasp_welcome.sql` only creates new tables.
+
+### Cut-over from sammich
+
+1. Apply the migration (`npx wrangler d1 migrations apply blt-lettuce --remote`) and deploy
+   lettuce, blt-sammich and blt-monitor. Nothing changes yet: lettuce's welcome is off and
+   sammich's is on.
+2. Install lettuce in the OWASP workspace (owner checklist below). Lettuce now records OWASP
+   joins as `disabled`; check `/admin/welcomes` shows them, and within an hour
+   `/health/welcome` shows `"slack_auth": {"ok": true, ...}`.
+3. In the same minute:
+   `cd blt-lettuce && echo true | npx wrangler secret put WELCOME_ENABLED` and
+   `cd blt-sammich && echo false | npx wrangler secret put WELCOME_ENABLED`.
+4. Watch the next joins in `/admin/welcomes` (status `sent`, delivered) and
+   `/health/welcome` (`welcome-healthy`). Then set `"enabled": true` on
+   `lettuce_owasp_welcome` in `blt-monitor/public/monitors.json` and deploy blt-monitor.
+
+Only the bot with `WELCOME_ENABLED` on sends, even while both apps receive `team_join`.
+A join that arrives between the two `secret put` commands can be welcomed by both or by
+neither; with about 40-60 joins a day that is unlikely, and a missed one shows in
+`/admin/welcomes`.
+
+**Rollback:** `echo false | npx wrangler secret put WELCOME_ENABLED` in blt-lettuce and
+`echo true | npx wrangler secret put WELCOME_ENABLED` in blt-sammich (or delete both secrets:
+the defaults are lettuce off, sammich on), and set the monitor back to `"enabled": false`.
+
+### Owner checklist (Slack)
+
+- **Lettuce app** (api.slack.com/apps, app `A076K2SA7PG`):
+  - Event Subscriptions: Request URL `https://lettuce.owaspblt.org/webhook` shows Verified,
+    and `team_join` is under bot events.
+  - OAuth & Permissions: the redirect URL `https://lettuce.owaspblt.org/callback` is listed.
+  - Manage Distribution: public distribution is on. The app is installed only in the BLT
+    workspace today; unless OWASP is its home workspace, it can't be installed there without
+    distribution.
+- **Install in OWASP:** an OWASP workspace admin opens `https://lettuce.owaspblt.org/workspace/add`
+  while signed in to the OWASP workspace and approves. The bot scopes requested are
+  `channels:read, chat:write, users:read, team:read, im:write, im:read, im:history`, plus
+  the user scopes `identity.basic, identity.email, identity.team`. If OWASP requires app
+  approval, approve Lettuce in the workspace admin settings first. The install stores the
+  OWASP bot token in lettuce's D1 `workspaces` table; there is no token to copy by hand.
+- **Lettuce secrets** (already set: `SIGNING_SECRET`, `SLACK_TOKEN`, `SLACK_CLIENT_ID`,
+  `SLACK_CLIENT_SECRET`, `CRON_SECRET`, `BASE_URL`): add `ADMIN_USERNAME` and
+  `ADMIN_PASSWORD` for the report. `WELCOME_ENABLED` is set at the cut-over.
+- **blt-monitor:** it has no `SLACK_WEBHOOK_URL` secret, so its failures currently alert
+  nobody. Create an incoming webhook for the alert channel and set it with
+  `npx wrangler secret put SLACK_WEBHOOK_URL` in blt-monitor.
 
 ---
 

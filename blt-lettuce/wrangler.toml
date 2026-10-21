@@ -19,6 +19,9 @@ migrations_dir = "./migrations"
 
 [vars]
 VERSION = "2.0.0"
+# The OWASP welcome (README "OWASP welcome bot"): WELCOME_TEAM_IDS defaults to "T04T40NHX" in
+# code. WELCOME_ENABLED is deliberately not a var here: it is a secret
+# (`npx wrangler secret put WELCOME_ENABLED`), so a deploy can't undo the cut-over.
 
 # Cron ("* * * * *", every minute) now runs from the blt-cron dispatcher Worker,
 # which calls POST /__scheduled through a service binding with the CRON_SECRET

@@ -41,6 +41,7 @@ from lettuce.html_templates import (
     get_workspace_detail_html,
     html_escape,
 )
+from lettuce import welcome_bot
 from lettuce.sentry import get_sentry, init_sentry
 
 # ---------------------------------------------------------------------------
@@ -502,7 +503,7 @@ async def db_get_workspaces_with_activity_markers(env):
         rows = _rows(
             await env.DB.prepare(
                 "SELECT "
-                "w.id, w.team_name, w.access_token, w.created_at, "
+                "w.id, w.team_id, w.team_name, w.access_token, w.created_at, "
                 # Newest-first walks of the (workspace_id, created_at) and
                 # (workspace_id, event_type, created_at) indexes read a row or two;
                 # MAX() over != read every event in the workspace.
@@ -675,6 +676,12 @@ async def run_workspace_metrics_sync(env):
         ws_id = ws.get("id")
         if not ws_id:
             continue
+        # Welcome workspaces (OWASP) are skipped: thousands of channels would mean a D1
+        # query per channel and users.list paging past the subrequest limit, and the
+        # GitHub-org/invite alert is for BLT project workspaces. welcome_bot keeps their
+        # channel stats in one row instead.
+        if welcome_bot.is_welcome_team(env, ws.get("team_id")):
+            continue
 
         processed += 1
         ws_token = ws.get("access_token") or getattr(env, "SLACK_TOKEN", None)
@@ -737,6 +744,9 @@ async def run_inactivity_monitor(env):
     for ws in workspaces:
         ws_id = ws.get("id")
         if not ws_id:
+            continue
+        # Welcome workspaces have /health/welcome (watched by blt-monitor) instead.
+        if welcome_bot.is_welcome_team(env, ws.get("team_id")):
             continue
         checked += 1
 
@@ -5110,8 +5120,11 @@ async def report_404_to_sentry(env, path, method, detail=""):
 # ===========================================================================
 
 
-async def handle_request(request, env):
-    """Main entry point for the Cloudflare Worker."""
+async def handle_request(request, env, ctx=None):
+    """Main entry point for the Cloudflare Worker.
+
+    ctx (the ExecutionContext) lets the OWASP welcome run after the response (waitUntil).
+    """
     url = request.url
     method = request.method
 
@@ -5252,7 +5265,11 @@ async def handle_request(request, env):
             if ws:
                 ws_id_val = ws.get("id") if isinstance(ws, dict) else None
                 try:
-                    if ws_id_val and bot_token:
+                    if (
+                        ws_id_val
+                        and bot_token
+                        and not welcome_bot.is_welcome_team(env, team_id)
+                    ):
                         channels_scanned = int(
                             await scan_workspace_channels(env, ws_id_val, bot_token)
                             or 0
@@ -6576,6 +6593,32 @@ async def handle_request(request, env):
                 ):
                     return _json_response({"error": "Invalid signature"}, 401)
 
+            # OWASP welcome (welcome_bot): claim, answer within Slack's 3 seconds, DM after
+            # the response. Runs before the debug logging below, which would print the new
+            # member's profile and write a Webhook_Received row for every join.
+            if body_json.get("type") == "event_callback":
+                _welcome_event = body_json.get("event") or {}
+                _welcome_team = _resolve_team_id_from_payload(body_json, _welcome_event)
+                if isinstance(_welcome_event, dict) and isinstance(
+                    _welcome_event.get("user"), dict
+                ):
+                    _welcome_team = (
+                        str(_welcome_event["user"].get("team_id") or "").strip()
+                        or _welcome_team
+                    )
+                if _obj_get(
+                    _welcome_event, "type"
+                ) == "team_join" and welcome_bot.is_welcome_team(env, _welcome_team):
+                    return _json_response(
+                        await welcome_bot.accept_team_join(
+                            env,
+                            ctx,
+                            body_json,
+                            _welcome_team,
+                            retry_num=str(request.headers.get("X-Slack-Retry-Num") or ""),
+                        )
+                    )
+
             try:
                 event = body_json.get("event", {})
                 header_snapshot = {
@@ -6761,7 +6804,9 @@ async def handle_request(request, env):
             event_type = event.get("type")
 
             # Persist full inbound webhook payload metadata for workspace activity/debugging.
-            if team_id:
+            # Not for welcome workspaces (OWASP): a row per DM or event there would spend the
+            # account's shared D1 writes on diagnostics.
+            if team_id and not welcome_bot.is_welcome_team(env, team_id):
                 try:
                     ws_for_webhook = await db_get_workspace_by_team(env, team_id)
                 except Exception:
@@ -6959,6 +7004,53 @@ async def handle_request(request, env):
         except Exception:
             pass
         return Response.new("", {"status": 404})
+
+    # ------------------------------------------------------------------ #
+    #  OWASP welcome: health, tracked logo, admin report, public stats   #
+    # ------------------------------------------------------------------ #
+    if pathname == "/health/welcome" and method in ("GET", "HEAD"):
+        team_id = welcome_bot.welcome_team_ids(env)[0]
+        status, body = await welcome_bot.health(env, team_id)
+        return _json_response(body, status)
+
+    if pathname == welcome_bot.WELCOME_LOGO_PATH and method in ("GET", "HEAD"):
+        await welcome_bot.record_logo_hit(
+            env,
+            welcome_bot.query_param(_parsed.query, "tid"),
+            request.headers.get("User-Agent") or "",
+        )
+        h = Headers.new()
+        h.set("Location", welcome_bot.logo_redirect_target(env))
+        h.set("Cache-Control", "no-store")
+        return Response.new("", {"status": 302, "headers": h})
+
+    if pathname == "/admin/welcomes" and method == "GET":
+        if not welcome_bot.admin_authorized(env, request.headers.get("Authorization")):
+            h = Headers.new()
+            h.set("WWW-Authenticate", 'Basic realm="BLT-Lettuce Admin"')
+            h.set("Cache-Control", "no-store")
+            return Response.new("Authentication required.", {"status": 401, "headers": h})
+        team_id = welcome_bot.query_param(_parsed.query, "team_id") or (
+            welcome_bot.welcome_team_ids(env)[0]
+        )
+        if not welcome_bot.is_welcome_team(env, team_id):
+            return _json_response({"ok": False, "error": "Not a welcome team"}, 404)
+        try:
+            report = await welcome_bot.welcome_report(env, team_id)
+        except Exception as e:
+            welcome_bot.log("welcome_report_failed", error=type(e).__name__)
+            return _html_response("<h1>Welcome report failed</h1>", 500)
+        if welcome_bot.query_param(_parsed.query, "format") == "json":
+            return _json_response(report)
+        return _html_response(welcome_bot.render_report_html(report))
+
+    if pathname == "/api/community-stats" and method == "GET":
+        team_id = welcome_bot.welcome_team_ids(env)[0]
+        try:
+            return _json_response(await welcome_bot.community_stats(env, team_id))
+        except Exception as e:
+            welcome_bot.log("community_stats_failed", error=type(e).__name__)
+            return _json_response({"ok": False, "error": "unavailable"}, 503)
 
     # ------------------------------------------------------------------ #
     #  GET /health                                                        #
@@ -7191,7 +7283,7 @@ class Default(WorkerEntrypoint):
             # Store env globally to avoid passing through multiple call levels
             _current_env = self.env
             # Call handler - it will access _current_env as needed
-            response = await handle_request(request, self.env)
+            response = await handle_request(request, self.env, getattr(self, "ctx", None))
             return _attach_security_headers(response)
         except Exception as e:
             # Report error to Sentry
@@ -7265,6 +7357,12 @@ class Default(WorkerEntrypoint):
             # Fallback for runtimes that do not expose scheduledTime.
             if minute is None:
                 run_inactivity = True
+
+            # OWASP welcome: auth.test for /health/welcome, channel stats once a day.
+            try:
+                await welcome_bot.run_welcome_cron(env)
+            except Exception as welcome_err:
+                welcome_bot.log("welcome_cron_failed", error=type(welcome_err).__name__)
 
             if run_metrics:
                 try:
