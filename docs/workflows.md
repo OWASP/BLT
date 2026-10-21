@@ -30,7 +30,7 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 
 | File | Source | Triggers | Secrets |
 | --- | --- | --- | --- |
-| `ci.yml` | GitHub `ci.yml` | push (any branch): `scripts/ci/test.sh --changed $FORKMESH_BEFORE`; dispatch input `projects` (default `all`) | none |
+| `ci.yml` | GitHub `ci.yml` | push (any branch): `scripts/ci/test.sh --changed $FORKMESH_BEFORE`; pull request into `main`: `--changed $FORKMESH_BASE_SHA` (the folders the pull request changes); dispatch input `projects` (default `all`) | none |
 | `deploy.yml` | new | push to main: `scripts/deploy.sh --changed $FORKMESH_BEFORE` (folders in `scripts/deploy/projects.tsv`); dispatch input `project` (a name, several space-separated, or `all`) | CF |
 | `readme.yml` | GitHub `readme.yml` | push to main (any path; Projects, Deploying and Contributors), `17 6 * * *` (also refreshes Blog Posts); commits `README.md` and `.forkmesh/contributors/` | `GH_API_TOKEN` (optional) |
 | `blt-action--assign.yml` | BLT-Action `/assign`, `/unassign` | issue comments (created) starting a line with `/assign` or `/unassign`; dispatch input `issue` (process the commands already in that issue). Verified authors only. Assigns through the job API (falls back to committing a signed ledger event on an older instance) and replies through the job API | `BLT_TASKS_SEED` (fallback only) |
@@ -286,6 +286,26 @@ this server:
 - `blt-safecloak` runs `playwright install --with-deps`, which needs sudo.
 
 Run these on a machine with the toolchain: `scripts/ci/test.sh <project>`.
+
+### Pull requests
+
+Every open pull request into `main` runs `ci.yml` on its newest commit, and the result shows on the
+pull request (Checks row and Checks tab) and in the Actions tab.
+
+- The workflow is always the one on `main`; edits to `.forkmesh/` in the pull request are not used.
+  A pull request that changes `.forkmesh/` waits for a maintainer even when its author is trusted.
+- Runs get no secrets, no job token and no push access. They run in the runner's sandbox like every
+  other job.
+- Runs start by themselves for maintainers (organization owners and writers) and for contributors a
+  maintainer marked with **Always run for @name** on a pull request. Everyone else's run waits:
+  a maintainer reads the change and presses **Approve and run** (that approval covers that commit
+  only; a new push needs a new approval). The author sees that nothing is needed from them.
+- Remove a contributor from the trusted list with **Stop running automatically** on the Checks tab of
+  one of their pull requests.
+
+CI is not a required check for merging. Required checks on this forge need signed results that the
+server's runner does not produce yet, and on the 1 GB server heavy suites (`blt-legacy`) and
+projects without a toolchain are skipped, so a green run is advice, not a gate.
 
 ## Not ported
 
