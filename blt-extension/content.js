@@ -36,7 +36,6 @@ function aa(a) {
     });
     c.keyup(b).keydown(b).keypress(b).change(b).change()
 };
-window._gaq = window._gaq || [];
 
 function v(a, b) {
     this.x = this.y = 0;
@@ -1635,23 +1634,10 @@ function Ga(a) {
         }
     }
 };
-var Ha = function(a) {
-    (function() {
-        window._gaq.push(["_setAccount", a]);
-        window._gaq.push(["_trackPageview"]);
-        var b = document.createElement("script");
-        b.type = "text/javascript";
-        b.async = !0;
-        b.src = "https://ssl.google-analytics.com/ga.js";
-        var c = document.getElementsByTagName("script")[0];
-        c.parentNode.insertBefore(b, c)
-    })();
-    return {
-        N: function(a, c, d, f, h) {
-            window._gaq.push(["_trackEvent", a, c, d, f, h])
-        }
-    }
-}("UA-53060756-1");
+var Ha = {
+    // Event tracking was Google Universal Analytics (retired); it is gone.
+    N: function() {}
+};
 
 function Ia() {
     function a(a) {

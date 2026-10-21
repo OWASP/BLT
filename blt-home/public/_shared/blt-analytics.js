@@ -26,7 +26,7 @@
   window.__bltAnalytics = true;
 
   var FORGE = "https://git.owaspblt.org";
-  var KEY = "";
+  var KEY = "fma_f8a936bc82c76d4a864efffd57fab240cda30475";
 
   // A page may define a queueing stub before this loads; its calls are kept:
   //   window.bltTrack = window.bltTrack || function () { (window.bltTrack.q = window.bltTrack.q || []).push([].slice.call(arguments)); };

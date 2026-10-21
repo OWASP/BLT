@@ -20,7 +20,7 @@ function n() {
   g.versionInt = parseInt(g.version);
   return g;
 }
-;window._gaq = window._gaq || [];
+;
 var q = {L:function(a) {
   return a + Math.random();
 }, ca:function(a) {
@@ -370,21 +370,9 @@ function Y(a, b) {
   return g;
 }
 ;var D = "upload_screenshot", X = "upload_started", O = "upload_progress", S = "upload_success", U = "upload_failed", A = "open_screenshot_link", C = "copy_screenshot_link", B = "cancel_upload", R = "search_google";
-var Q = function(a) {
-  (function() {
-    window._gaq.push(["_setAccount", a]);
-    window._gaq.push(["_trackPageview"]);
-    var b = document.createElement("script");
-    b.type = "text/javascript";
-    b.async = !0;
-    b.src = "https://ssl.google-analytics.com/ga.js";
-    var g = document.getElementsByTagName("script")[0];
-    g.parentNode.insertBefore(b, g);
-  })();
-  return{e:function(a, g, k, l, t) {
-    window._gaq.push(["_trackEvent", a, g, k, l, t]);
-  }};
-}("-------"), z = function() {
+var Q = {e:function() {
+  // Event tracking was Google Universal Analytics (retired); it is gone.
+}}, z = function() {
   function a(a) {
     a.clipboardData.setData("text/plain", c);
     a.preventDefault();

@@ -22,7 +22,7 @@ Do not commit secrets to `wrangler.toml`. Configure secrets and environment-spec
 
 ## Environment variables
 
-`mkdocs.yml` references `GOOGLE_ANALYTICS_KEY` as an environment variable for Google Analytics configuration. Do not place a literal analytics key in `mkdocs.yml` or any committed file.
+The docs site needs no environment variables to build. Page analytics come from the shared OWASP BLT top bar (the forge's own analytics, loaded from `owaspblt.org/_shared/`), so there is no analytics key to configure here.
 
 ## Custom domains
 
@@ -38,4 +38,4 @@ Do not commit secrets to `wrangler.toml`. Configure secrets and environment-spec
 
 ## Troubleshooting
 
-If deployment output is missing pages, run the strict build locally and check `mkdocs.yml` navigation paths. If analytics is not active, confirm `GOOGLE_ANALYTICS_KEY` is configured in the deployment environment without committing the value. If the deployed site serves stale content, confirm the latest build completed and that Cloudflare is serving the expected static assets directory.
+If deployment output is missing pages, run the strict build locally and check `mkdocs.yml` navigation paths. If the deployed site serves stale content, confirm the latest build completed and that Cloudflare is serving the expected static assets directory.
