@@ -603,15 +603,11 @@ def _bug_json(data, status, request, cache=False):
 def _bug_result_html(title, message_html, status, link=None):
     """Small page for a report posted without JavaScript."""
     extra = f'<p><a href="{html_escape(link)}">View your report</a></p>' if link else ''
-    page = NOT_FOUND_HTML.replace('Page not found | OWASP BLT', html_escape(title) + ' | OWASP BLT')
-    body = (f'<main><h1 style="font-size:2rem">{html_escape(title)}</h1><p>{message_html}</p>{extra}'
-            '<p><a href="/pages/report-bug.html">Report another bug</a> &middot; <a href="/">Home</a></p></main>')
-    page = page[:page.index('<main>')] + body + page[page.index('</main>') + len('</main>'):]
-    js_headers = Headers.new()
-    js_headers.set('Content-Type', 'text/html; charset=utf-8')
-    js_headers.set('Cache-Control', 'no-store')
-    apply_security_headers(js_headers)
-    return Response.new(page, status=status, headers=js_headers)
+    body = (f'<h1 style="font-size:2rem">{html_escape(title)}</h1><p>{message_html}</p>{extra}'
+            '<p><a href="/pages/report-bug.html">Report another bug</a> &middot; <a href="/">Home</a></p>')
+    response = _html_response(_page(html_escape(title), body), status)
+    response.headers.set('Cache-Control', 'no-store')
+    return response
 
 
 def _bug_error(request, err):
