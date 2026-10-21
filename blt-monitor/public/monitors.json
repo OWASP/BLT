@@ -1,5 +1,12 @@
 [
   {
+    "id": "git_owaspblt",
+    "name": "BLT Forge (git.owaspblt.org)",
+    "url": "https://git.owaspblt.org/api/repo/owasp-blt/BLT/stats",
+    "keyword": "commitCount",
+    "enabled": true
+  },
+  {
     "id": "api_owaspblt",
     "name": "BLT API",
     "url": "https://api.owaspblt.org",

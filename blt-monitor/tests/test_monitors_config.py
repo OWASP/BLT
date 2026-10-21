@@ -24,3 +24,12 @@ def test_owasp_welcome_monitor():
     monitor = next(m for m in MONITORS if m["id"] == "lettuce_owasp_welcome")
     assert monitor["url"] == "https://lettuce.owaspblt.org/health/welcome"
     assert monitor["keyword"] == "welcome-healthy"
+
+
+def test_forge_monitor_reads_git_data():
+    """The forge check reads repository stats, which need the git backend, so it fails when the
+    web app is up but its git gateway is not (HTTP 503 mirror_unavailable)."""
+    monitor = next(m for m in MONITORS if m["id"] == "git_owaspblt")
+    assert monitor["url"] == "https://git.owaspblt.org/api/repo/owasp-blt/BLT/stats"
+    assert monitor["keyword"] == "commitCount"
+    assert monitor["enabled"] is True
