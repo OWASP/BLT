@@ -35,9 +35,8 @@ const navigation = [
   // },
 ];
 
-// The mobile open state and its toggle button live in Layout, so the button sits in the sticky
-// page header below the shared <blt-nav> bar instead of floating over it.
-export default function Sidebar({ mobileOpen, setMobileOpen }) {
+// Wide screens only: on phones these links are in the shared OWASP BLT bar's menu (BarLinks).
+export default function Sidebar() {
   const location = useLocation();
 
   const navContent = (
@@ -82,7 +81,6 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
                   <NavLink
                     key={item.path}
                     to={item.path}
-                    onClick={() => setMobileOpen(false)}
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-150 ${
                       isActive
                         ? 'bg-nav-active font-semibold text-brand'
@@ -115,28 +113,8 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
   );
 
   return (
-    <>
-      {/* Mobile overlay */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm lg:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
-
-      {/* Mobile sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-neutral-border bg-white transition-transform duration-300 lg:hidden ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        {navContent}
-      </aside>
-
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:flex lg:w-72 lg:flex-col border-r border-neutral-border bg-white">
-        {navContent}
-      </aside>
-    </>
+    <aside className="hidden lg:flex lg:w-72 lg:flex-col border-r border-neutral-border bg-white">
+      {navContent}
+    </aside>
   );
 }

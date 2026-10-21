@@ -1,6 +1,7 @@
 import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
+import BarLinks from './components/BarLinks';
 import Home from './pages/Home';
 import AccessDenied from './components/AccessDenied';
 import { useAuth } from './hooks/useAuth';
@@ -22,6 +23,7 @@ function AuthGate({ children }) {
 export default function App() {
   return (
     <HashRouter>
+      <BarLinks />
       <Routes>
         {/* Public landing page — no sidebar, no auth gate */}
         <Route path="/" element={<Home />} />

@@ -166,42 +166,6 @@ function CopyButton({ text }) {
 export default function Home() {
   return (
     <div className="min-h-screen">
-      {/* ── Navbar ─────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 border-b border-neutral-border glass">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="flex items-center gap-3 transition-opacity hover:opacity-80"
-          >
-            <img src="/logo.svg" alt="BLT-Toasty" className="h-9 w-9" />
-            <span className="text-lg font-extrabold text-dark-base">
-              BLT-Toasty
-            </span>
-          </button>
-
-          <div className="hidden items-center gap-8 md:flex">
-            <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-gray-600 transition-colors hover:text-brand">
-              Features
-            </button>
-            <button onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-gray-600 transition-colors hover:text-brand">
-              How It Works
-            </button>
-            <button onClick={() => document.getElementById('quick-start')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-gray-600 transition-colors hover:text-brand">
-              Quick Start
-            </button>
-            <Link to="/dashboard" className="btn-primary">
-              Open Dashboard
-              <ArrowRight size={14} />
-            </Link>
-          </div>
-
-          {/* Mobile CTA */}
-          <Link to="/dashboard" className="btn-primary md:hidden">
-            Dashboard
-            <ArrowRight size={14} />
-          </Link>
-        </div>
-      </nav>
 
       {/* ── Hero Section ───────────────────────────────────────────── */}
       <section className="relative overflow-hidden pb-16 pt-20 lg:pb-24 lg:pt-28">

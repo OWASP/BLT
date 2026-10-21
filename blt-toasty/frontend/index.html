@@ -18,9 +18,12 @@
       })();
     </script>
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+    <style>blt-nav:not(:defined){display:block;min-height:62px}blt-nav:not(:defined)>*{display:none}</style>
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   </head>
   <body class="min-h-screen overflow-x-hidden font-sans text-dark-base antialiased">
+    <!-- The one header: the shared OWASP BLT bar; the app renders its links into it (BarLinks.jsx). -->
+    <blt-nav project="blt-toasty" name="Toasty" home="/#/" data-sticky></blt-nav>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
