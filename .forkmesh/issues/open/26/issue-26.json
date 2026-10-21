@@ -107,6 +107,17 @@
             "sig": "yqtNKoIH3zc8AsaJtjI4T7f1WYjaURyehZVmRyVEZPRc4XhI5QgL3lZqKjYMR_ZnADe67R_TnS9RbubyQe0FAg",
             "ts": 1792553488557,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "authorVerified": true,
+            "body": "sry @navodit I haven't seen this you can work on it.",
+            "id": "comment-web-1792554578270",
+            "sig": "HB2M1wwD0P9aMrvw9k_h0Q9z95Q-Dfwnwwl7dgoCK3VpzNtsjavq_omSbDsVnt0ggTdQ08tUJh4o_c95HnIhCA",
+            "ts": 1792554578270,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -121,6 +132,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-newsletter: fix: mobile responsiveness",
-    "updatedAt": 1792553488557,
+    "updatedAt": 1792554578270,
     "votes": 0
 }
