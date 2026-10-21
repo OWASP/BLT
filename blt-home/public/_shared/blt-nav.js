@@ -22,7 +22,8 @@
 //   name="X"          the project's short name next to its symbol (default: from APPS, "BLT-" dropped)
 //   home="/"          where the project's symbol and name link to (default "/")
 //   current="auto"    mark the child link to this page (same path) with aria-current="page",
-//                     unless the site's own code marks one
+//                     unless the site's own code marks one; aria-current="false" on a child
+//                     keeps it unmarked (e.g. a user-name link to the same page)
 //   Children: <a> or <button>. slot="actions" puts one on the right; data-primary makes it the
 //   red button. aria-current="page" (or class "active") marks the current page. A child the site
 //   hides (hidden, class "hidden", display:none) stays hidden. The bar sets their look; site
@@ -595,9 +596,11 @@
     function markCurrent() {
       if (opt(host, "current") !== "auto") return;
       var kids = Array.prototype.slice.call(host.querySelectorAll("a[href]"));
-      if (kids.some(function (a) { return a.hasAttribute("aria-current") && !a.hasAttribute("data-blt-current"); })) return;
+      var mine = function (a) { return a.hasAttribute("data-blt-current"); };
+      if (kids.some(function (a) { return !mine(a) && a.hasAttribute("aria-current") && a.getAttribute("aria-current") !== "false"; })) return;
       var here = normPath(location.pathname);
       kids.forEach(function (a) {
+        if (!mine(a) && a.getAttribute("aria-current") === "false") return; // never this one
         var match = false;
         try {
           var u = new URL(a.getAttribute("href"), location.href);
