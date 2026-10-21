@@ -53,18 +53,7 @@
       referrerpolicy="no-referrer"
     />
     <style>
-      .mobile-menu.open {
-        display: flex;
-      }
-      .mobile-toggle.active span:nth-child(1) {
-        transform: translateY(6px) rotate(45deg);
-      }
-      .mobile-toggle.active span:nth-child(2) {
-        opacity: 0;
-      }
-      .mobile-toggle.active span:nth-child(3) {
-        transform: translateY(-6px) rotate(-45deg);
-      }
+      blt-nav:not(:defined){display:block;min-height:61px}blt-nav:not(:defined)>*{display:none}
       .dot-field {
         background-image: radial-gradient(
           rgba(17, 24, 39, 0.18) 1px,
@@ -198,116 +187,14 @@
   <body
     class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
   >
-    <!-- Site header (sticky, below the shared OWASP BLT bar) -->
-    <header
-      class="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
-      id="site-header"
-    >
-      <div
-        class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-md:px-4"
-      >
-        <a
-          href="/"
-          class="inline-flex items-center gap-2.5"
-          aria-label="BLT Newsletter home"
-        >
-          <img
-            src="./static/images/logo.svg"
-            alt=""
-            class="h-10 w-10"
-          />
-          <span class="text-sm font-semibold tracking-tight text-gray-900"
-            >BLT Newsletter</span
-          >
-        </a>
-
-        <nav
-          class="hidden items-center gap-7 md:flex"
-          aria-label="Primary navigation"
-        >
-          <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
-            href="#what-you-get"
-            >What you get</a
-          >
-          <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
-            href="#how-it-works"
-            >How it works</a
-          >
-          <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
-            href="#stats"
-            >Stats</a
-          >
-          <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
-            href="https://git.owaspblt.org/BLT/BLT-Newsletter"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Source</a
-          >
-        </nav>
-
-        <div class="hidden items-center gap-3 md:flex">
-          <a
-            class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
-            href="#subscribe"
-            >Subscribe</a
-          >
-          <a
-            class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
-            href="/dashboard"
-            >Admin</a
-          >
-        </div>
-
-        <button
-          class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-md:flex"
-          id="mobile-toggle"
-          type="button"
-          aria-label="BLT Newsletter menu"
-          aria-expanded="false"
-          aria-controls="mobile-menu"
-        >
-          <i class="fa-solid fa-ellipsis text-lg text-gray-600" aria-hidden="true"></i>
-        </button>
-      </div>
-
-      <nav
-        class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur-md"
-        id="mobile-menu"
-        aria-label="Mobile navigation"
-      >
-        <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
-          href="#what-you-get"
-          >What you get</a
-        >
-        <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
-          href="#how-it-works"
-          >How it works</a
-        >
-        <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
-          href="#stats"
-          >Stats</a
-        >
-        <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
-          href="https://git.owaspblt.org/BLT/BLT-Newsletter"
-          target="_blank"
-          rel="noopener noreferrer"
-          >Source</a
-        >
-        <a
-          class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
-          href="#subscribe"
-          >Subscribe</a
-        >
-      </nav>
-    </header>
+    <blt-nav project="blt-newsletter" name="Newsletter" data-sticky>
+      <a href="#what-you-get">What you get</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#stats">Stats</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-Newsletter" target="_blank" rel="noopener noreferrer">Source</a>
+      <a href="/dashboard" slot="actions">Admin</a>
+      <a href="#subscribe" slot="actions" data-primary>Subscribe</a>
+    </blt-nav>
 
     <main>
       <!-- Hero -->
@@ -1020,27 +907,6 @@
       // Footer year
       document.getElementById("footer-year").textContent =
         new Date().getFullYear();
-
-      // Mobile nav toggle
-      (function () {
-        var mobileToggle = document.getElementById("mobile-toggle");
-        var mobileMenu = document.getElementById("mobile-menu");
-        if (mobileToggle && mobileMenu) {
-          mobileToggle.addEventListener("click", function () {
-            var open = !mobileMenu.classList.contains("open");
-            mobileMenu.classList.toggle("open", open);
-            mobileToggle.classList.toggle("active", open);
-            mobileToggle.setAttribute("aria-expanded", String(open));
-          });
-          mobileMenu.querySelectorAll("a").forEach(function (link) {
-            link.addEventListener("click", function () {
-              mobileMenu.classList.remove("open");
-              mobileToggle.classList.remove("active");
-              mobileToggle.setAttribute("aria-expanded", "false");
-            });
-          });
-        }
-      })();
 
       // Newsletter form — subscription is stored by the Worker backend
       const form = document.getElementById("newsletter-form");

@@ -118,27 +118,24 @@
         border-radius: 4px;
         margin: 1rem 0;
       }
+      blt-nav:not(:defined){display:block;min-height:61px}blt-nav:not(:defined)>*{display:none}
     </style>
       <link rel="stylesheet" href="/static/blt-dark.css" />
   </head>
   <body class="docs-page bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white border-b border-gray-200">
+    <blt-nav project="blt-newsletter" name="Newsletter">
+      <a href="/docs" aria-current="page">Docs</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/#subscribe" slot="actions" data-primary>Subscribe</a>
+    </blt-nav>
+
+    <!-- Page title -->
+    <section class="bg-white border-b border-gray-200">
       <div class="max-w-4xl mx-auto px-6 py-8">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg border border-red-100 bg-white shadow-sm">
-              <img src="./static/images/logo.svg" alt="" class="h-9 w-9" />
-            </div>
-            <h1 class="text-3xl font-bold">BLT Newsletter</h1>
-          </div>
-          <a href="/" class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition">
-            <i class="fa-solid fa-home mr-2"></i>Home
-          </a>
-        </div>
+        <h1 class="text-3xl font-bold mb-4">BLT Newsletter</h1>
         <p class="text-gray-600">Admin Dashboard Documentation</p>
       </div>
-    </header>
+    </section>
 
     <!-- Main Content -->
     <main class="max-w-4xl mx-auto px-6 py-12">

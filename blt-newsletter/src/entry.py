@@ -2168,7 +2168,7 @@ def html_response(title, message, status=200):
         "html.dark{color-scheme:dark}html.dark body{background:#030712;color:#f3f4f6}"
         "html.dark main{background:#111827;border-color:#1f2937;box-shadow:none}"
         "html.dark h1{color:#f87171}html.dark p{color:#9ca3af}</style></head>"
-        "<body><div class='page'><main><h1>" + escape_html_text(title) + "</h1><p>" + escape_html_text(message) + "</p>"
+        "<body><blt-nav project='blt-newsletter' name='Newsletter'></blt-nav><div class='page'><main><h1>" + escape_html_text(title) + "</h1><p>" + escape_html_text(message) + "</p>"
         "<p><a href='/' style='color:#dc2626;font-weight:600'>Return to BLT Newsletter</a></p>"
         "</main></div></body></html>"
     )

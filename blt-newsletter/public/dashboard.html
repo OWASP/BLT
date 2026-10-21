@@ -361,10 +361,17 @@
           max-width: 100%;
         }
       }
+      blt-nav:not(:defined){display:block;min-height:61px}blt-nav:not(:defined)>*{display:none}
     </style>
       <link rel="stylesheet" href="/static/blt-dark.css" />
   </head>
   <body class="antialiased flex h-screen flex-col overflow-hidden">
+    <blt-nav project="blt-newsletter" name="Newsletter">
+      <a href="/dashboard" aria-current="page">Dashboard</a>
+      <a href="/docs">Docs</a>
+      <button id="admin-avatar-initials" type="button" slot="actions" title="Signed-in admin">…</button>
+      <button type="button" slot="actions" onclick="logout()">Logout</button>
+    </blt-nav>
     <!-- Dashboard Shell -->
     <div id="dashboard-shell" class="flex min-h-0 flex-1 overflow-hidden">
       <!-- Sidebar -->
@@ -419,21 +426,13 @@
 
       <!-- Main Content -->
       <div class="flex-1 flex flex-col overflow-hidden">
-        <!-- Topbar -->
-        <header class="border-b px-8 py-4 flex items-center justify-between flex-none transition-colors" style="border-bottom-color: var(--border-light); background-color: var(--surface-light);">
-          <div class="flex-1">
+        <!-- Pages Container -->
+        <div class="flex-1 overflow-y-auto">
+          <!-- Page title (set by navigateTo) -->
+          <div class="px-8 pt-8">
             <h1 id="page-title" class="text-xl font-semibold" style="color: var(--text-primary-light);">Overview</h1>
             <p id="page-desc" class="text-sm" style="color: var(--text-muted-light);">Monitor newsletter health and activity</p>
           </div>
-          <div class="flex items-center gap-4">
-            <button id="admin-avatar-initials" class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-semibold cursor-pointer" title="Signed-in admin">
-              …
-            </button>
-          </div>
-        </header>
-
-        <!-- Pages Container -->
-        <div class="flex-1 overflow-y-auto">
           <!-- Overview Page -->
           <div id="overview-page" class="page active p-8">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
