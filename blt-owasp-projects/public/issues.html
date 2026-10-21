@@ -154,6 +154,7 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="safe-html.js"></script>
     <script>
         function luminance(hex) {
             const r = parseInt(hex.substr(0, 2), 16) / 255;
@@ -165,18 +166,11 @@
         function labelHtml(labels) {
             if (!labels || labels.length === 0) return '';
             return labels.map(function (lbl) {
-                const bg = '#' + lbl.color;
-                const fg = luminance(lbl.color) > 0.4 ? '#000' : '#fff';
+                const color = safeHexColor(lbl.color);
+                const bg = '#' + color;
+                const fg = luminance(color) > 0.4 ? '#000' : '#fff';
                 return `<span class="label-badge" style="background-color:${bg};color:${fg}">${escapeHtml(lbl.name)}</span>`;
             }).join('');
-        }
-
-        function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
         }
 
         function formatDate(iso) {
@@ -187,32 +181,36 @@
 
         function generateIssueData(issues) {
             return issues.map(function (issue) {
-                const repoShort = issue.repo.replace('OWASP/', '');
-                const repoUrl = `https://github.com/${issue.repo}`;
+                const repo = String(issue.repo || '');
+                const repoShort = repo.replace('OWASP/', '');
+                const repoUrl = 'https://github.com/' + repo.split('/').map(encodeURIComponent).join('/');
+                const issueUrl = safeHref(issue.html_url);
                 const stateHtml = issue.state === 'open'
                     ? `<span class="state-open">open</span>`
                     : `<span class="state-closed">closed</span>`;
 
                 return {
-                    number: `<a href="${issue.html_url}" target="_blank" title="${escapeHtml(issue.html_url)}">#${issue.number}</a>`,
+                    number: issueUrl
+                        ? `<a href="${escapeHtml(issueUrl)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(issueUrl)}">#${escapeHtml(issue.number)}</a>`
+                        : `#${escapeHtml(issue.number)}`,
                     number_sort: issue.number,
-                    repo: `<a href="${repoUrl}" target="_blank">${escapeHtml(repoShort)}</a>`,
+                    repo: linkHtml(repoUrl, repoShort),
                     repo_sort: repoShort,
-                    title: `<a href="${issue.html_url}" target="_blank" title="${escapeHtml(issue.title)}">${escapeHtml(issue.title)}</a>`,
+                    title: issueUrl
+                        ? `<a href="${escapeHtml(issueUrl)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(issue.title)}">${escapeHtml(issue.title)}</a>`
+                        : escapeHtml(issue.title),
                     state: stateHtml,
-                    author: issue.author_url
-                        ? `<a href="${issue.author_url}" target="_blank">${escapeHtml(issue.author)}</a>`
-                        : escapeHtml(issue.author),
+                    author: linkHtml(issue.author_url, issue.author),
                     labels: labelHtml(issue.labels),
                     labels_sort: (issue.labels || []).map(l => l.name).join(', '),
                     assignees: (issue.assignees || []).map(a =>
-                        `<a href="https://github.com/${a}" target="_blank">${escapeHtml(a)}</a>`
+                        linkHtml(`https://github.com/${encodeURIComponent(String(a))}`, a)
                     ).join(', '),
                     assignees_sort: (issue.assignees || []).join(', '),
                     milestone: escapeHtml(issue.milestone || ''),
-                    created_at: formatDate(issue.created_at),
-                    updated_at: formatDate(issue.updated_at),
-                    comments: issue.comments,
+                    created_at: escapeHtml(formatDate(issue.created_at)),
+                    updated_at: escapeHtml(formatDate(issue.updated_at)),
+                    comments: escapeHtml(issue.comments),
                 };
             });
         }

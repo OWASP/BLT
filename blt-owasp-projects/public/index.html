@@ -47,38 +47,23 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="safe-html.js"></script>
     <script>
-        function generateProjectData(projects) {
-            const projectsData = projects.map(project => {
+        // Every field is escaped: DataTables renders cell strings as HTML, and the values come from
+        // OWASP project metadata and the GitHub API.
+        const TEXT_FIELDS = ["name", "created", "updated", "build", "title", "level", "type", "region",
+            "pitch", "meetup-group", "github_status", "last_commit", "date_released", "release_version",
+            "committers", "stars", "top_language", "license", "forks", "prs", "issues"];
 
-                return {
-                    "name": project.name,
-                    "repo_name": `<a href="${project.codeurl}" target="_blank">${project.repo_name}</a>`,
-                    "url": `<a href="${project.url}" target="_blank">${project.url}</a>`,
-                    "created": project.created,
-                    "updated": project.updated,
-                    "build": project.build,
-                    "codeurl": `<a href="${project.codeurl}" target="_blank">${project.codeurl}</a>`,
-                    "title": project.title,
-                    "level": project.level,
-                    "type": project.type,
-                    "region": project.region,
-                    "pitch": project.pitch,
-                    "meetup-group": project["meetup-group"],
-                    "github_status": project.github_status,
- 		    "last_commit": project.last_commit,
-                    "date_released": project.date_released,
-                    "release_version": project.release_version,
-                    "committers": project.committers,
-                    "stars": project.stars,
-                    "top_language": project.top_language,
-                    "license": project.license,
-                    "forks": project.forks,
-                    "prs": project.prs,
-                    "issues": project.issues,
-                };
+        function generateProjectData(projects) {
+            return projects.map(project => {
+                const row = {};
+                for (const field of TEXT_FIELDS) row[field] = escapeHtml(project[field]);
+                row.repo_name = linkHtml(project.codeurl, project.repo_name);
+                row.url = linkHtml(project.url);
+                row.codeurl = linkHtml(project.codeurl);
+                return row;
             });
-            return projectsData;
         }
 
         async function loadRepoStatus() {

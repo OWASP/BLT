@@ -96,6 +96,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script src="safe-html.js"></script>
     <script>
         function getColor(minDate, maxDate, date) {
             const range = maxDate - minDate;
@@ -126,22 +127,22 @@
                 const pushedColor = getColor(minDate, maxDate, pushedDate);
 
                 return {
-                    "project_name": `<a href="https://owasp.org/${project.name}" target="_blank">${project.name}</a>`,
+                    "project_name": linkHtml(`https://owasp.org/${encodeURIComponent(String(project.name))}`, project.name),
                     "created_at": {
-                        "display": new Date(project.created_at).toLocaleString(),
+                        "display": escapeHtml(new Date(project.created_at).toLocaleString()),
                         "timestamp": createdDate
                     },
                     "updated_at": {
-                        "display": new Date(project.updated_at).toLocaleString(),
+                        "display": escapeHtml(new Date(project.updated_at).toLocaleString()),
                         "timestamp": updatedDate
                     },
                     "pushed_at": {
-                        "display": new Date(project.pushed_at).toLocaleString(),
+                        "display": escapeHtml(new Date(project.pushed_at).toLocaleString()),
                         "timestamp": pushedDate
                     },
-                    "stars": project.stargazers_count,
-                    "forks": project.forks_count,
-                    "issues": project.open_issues_count,
+                    "stars": escapeHtml(project.stargazers_count),
+                    "forks": escapeHtml(project.forks_count),
+                    "issues": escapeHtml(project.open_issues_count),
                     "created_color": createdColor,
                     "updated_color": updatedColor,
                     "pushed_color": pushedColor,
