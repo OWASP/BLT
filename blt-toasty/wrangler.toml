@@ -33,6 +33,15 @@ run_worker_first = ["/api/*", "/health", "/mcp/*", "/admin/*", "/conversations/*
 crons = []
 
 
+# D1: shared with blt-timer-web in "blt-apps" (no table names overlap); each app
+# tracks its own migrations in its own table.
+[[d1_databases]]
+binding = "DB"
+database_name = "blt-apps"
+database_id = "540fc4ae-6347-43fd-b6da-1fcc4eb219d9"
+migrations_dir = "migrations"
+migrations_table = "d1_migrations_toasty"
+
 # Environment variables
 [env.production]
 name = "toasty-backend-prod"
@@ -42,8 +51,9 @@ FASTEMBED_URL = "https://fastembed.internal"
 
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "toasty-db"
-database_id = "00000000-0000-0000-0000-000000000001"
+database_name = "blt-apps"
+database_id = "540fc4ae-6347-43fd-b6da-1fcc4eb219d9"
+migrations_table = "d1_migrations_toasty"
 
 [[env.production.durable_objects.bindings]]
 name = "CONVERSATION_DO"
