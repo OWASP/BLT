@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BLT Contributor Start Page</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <script src="/theme-init.js"></script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -14,12 +17,12 @@
         extend: {
           colors: {
             blt: {
-              primary:   '#E10101',
+              primary:   '#dc2626', /* red-600, as on owaspblt.org */
               hover:     '#b91c1c', /* red-700 */
-              sidebar:   '#feeae9',
-              border:    '#E5E5E5',
-              dark:      '#111827',
-              surface:   '#1F2937',
+              sidebar:   '#fee2e2', /* red-100 */
+              border:    '#e5e7eb', /* gray-200 */
+              dark:      '#030712', /* gray-950: dark page */
+              surface:   '#111827', /* gray-900: dark cards, header, footer */
             }
           }
         }
@@ -48,13 +51,11 @@
   <header class="sticky top-0 z-50 bg-white dark:bg-blt-surface border-b border-blt-border dark:border-gray-700 shadow-sm">
     <div class="max-w-screen-xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
 
-      <!-- Logo + wordmark -->
-      <a href="#" class="flex items-center gap-2 shrink-0" aria-label="BLT Home">
-        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-blt-primary text-white text-sm font-extrabold tracking-tight select-none">
-          BLT
-        </span>
+      <!-- Project logo + name (the OWASP BLT brand is in the top bar above) -->
+      <a href="#" class="flex items-center gap-2 shrink-0" aria-label="BLT-Start home">
+        <img src="/logo.svg" alt="" width="36" height="36" class="w-9 h-9" />
         <span class="hidden sm:inline font-bold text-lg text-gray-900 dark:text-white">
-          Bug Logging Tool
+          BLT-Start
         </span>
       </a>
 
@@ -117,7 +118,7 @@
           <ul class="space-y-0.5">
             <li>
               <a href="#welcome" class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
-                 bg-blt-sidebar text-blt-primary" aria-current="page">
+                 bg-blt-sidebar text-blt-primary dark:bg-red-900/30 dark:text-red-400" aria-current="page">
                 <i class="fa-solid fa-house w-4 text-center" aria-hidden="true"></i>
                 Welcome
               </a>
@@ -935,7 +936,7 @@ git rebase upstream/main</code></pre>
       const sections = document.querySelectorAll('section[id]');
       const navLinks = document.querySelectorAll('aside nav a[href^="#"]');
 
-      const activeClasses   = ['bg-blt-sidebar', 'text-blt-primary'];
+      const activeClasses   = ['bg-blt-sidebar', 'text-blt-primary', 'dark:bg-red-900/30', 'dark:text-red-400'];
       const inactiveClasses = ['text-gray-700', 'dark:text-gray-300',
                                'hover:bg-blt-sidebar', 'hover:text-blt-primary',
                                'dark:hover:bg-gray-700'];
