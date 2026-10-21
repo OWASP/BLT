@@ -14,7 +14,7 @@
    "first": "2023-04-08",
    "last": "2026-10-18",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Lettuce",
     "BLT-Leaf",
     "BLT-Pool",
@@ -52,7 +52,6 @@
     "BLT-Design",
     "BLT-Dash",
     "BLT-Docs",
-    "BLT",
     "BLT-Ketchup",
     "BLT-Next",
     "BLT-OWASP-Bumper",
@@ -91,7 +90,7 @@
    "first": "2025-10-14",
    "last": "2026-10-20",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-MCP",
     "BLT-CLI",
     "BLT-Action",
@@ -104,7 +103,6 @@
     "BLT-Extension",
     "BLT-Ideas",
     "BLT-Panini",
-    "BLT",
     "BLT-Hackathons",
     "BLT-Monitor",
     "BLT-Newsletter",
@@ -128,7 +126,7 @@
    "last": "2026-08-19",
    "projects": [
     "BLT-API",
-    "BLT-Core",
+    "BLT",
     "MY-GSOC-TOOL",
     "BLT-SafeCloak",
     "BLT-Design",
@@ -139,7 +137,6 @@
     "BLT-Sizzle",
     "BLT-Rewards",
     "BLT-Hackathons",
-    "BLT",
     "BLT-Jobs",
     "BLT-OSSH",
     "BLT-Sammich",
@@ -172,7 +169,7 @@
    "first": "2018-06-24",
    "last": "2023-04-07",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Flutter"
    ],
    "avatar": ".forkmesh/contributors/git-samuel-rosado.png",
@@ -191,7 +188,6 @@
    "first": "2016-08-28",
    "last": "2017-09-08",
    "projects": [
-    "BLT-Core",
     "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-conrad-kroone.png",
@@ -210,11 +206,10 @@
    "first": "2025-11-19",
    "last": "2026-10-20",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-NetGuardian",
     "BLT-Jobs",
     "BLT-Ideas",
-    "BLT",
     "BLT-GSOC",
     "MY-GSOC-TOOL",
     "BLT-Byte",
@@ -236,7 +231,7 @@
    "first": "2023-09-30",
    "last": "2026-03-15",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Lettuce",
     "BLT-Action",
     "BLT-Flutter",
@@ -261,7 +256,7 @@
    "first": "2025-12-08",
    "last": "2026-10-20",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Pool",
     "BLT-Action",
     "BLT-OSSH",
@@ -287,14 +282,13 @@
    "first": "2025-12-30",
    "last": "2026-10-20",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Preflight",
     "BLT-Leaf",
     "BLT-Jobs",
     "BLT-Ideas",
     "BLT-Pages",
     "BLT-GSOC",
-    "BLT",
     "BLT-Hackathons",
     "BLT-Pool"
    ],
@@ -314,7 +308,7 @@
    "first": "2024-02-28",
    "last": "2024-11-05",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Lettuce",
     "BLT-Sammich"
    ],
@@ -334,7 +328,7 @@
    "first": "2025-12-03",
    "last": "2026-03-31",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-NetGuardian",
     "BLT-Leaf",
     "BLT-Ideas"
@@ -355,10 +349,9 @@
    "first": "2025-11-01",
    "last": "2026-08-29",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-University",
     "BLT-Leaf",
-    "BLT",
     "BLT-Ideas",
     "BLT-Pages",
     "BLT-GSOC",
@@ -380,7 +373,6 @@
    "first": "2022-06-11",
    "last": "2024-02-29",
    "projects": [
-    "BLT-Core",
     "BLT",
     "BLT-Rewards",
     "BLT-Action",
@@ -402,7 +394,7 @@
    "first": "2025-11-07",
    "last": "2026-04-21",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Jobs",
     "BLT-Action",
     "BLT-Pages",
@@ -426,7 +418,6 @@
    "first": "2017-06-03",
    "last": "2017-09-11",
    "projects": [
-    "BLT-Core",
     "BLT"
    ],
    "avatar": ".forkmesh/contributors/mohitanand001.png",
@@ -449,7 +440,7 @@
     "BLT-SafeCloak",
     "BLT-Leaf",
     "BLT-API",
-    "BLT-Core",
+    "BLT",
     "BLT-GSOC",
     "BLT-Pool",
     "BLT-Rewards"
@@ -470,7 +461,7 @@
    "first": "2017-06-02",
    "last": "2017-09-08",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/jajodiaraghav.png",
    "avatar_kind": "downloaded",
@@ -488,7 +479,6 @@
    "first": "2026-02-12",
    "last": "2026-03-14",
    "projects": [
-    "BLT-Core",
     "BLT",
     "BLT-API"
    ],
@@ -532,7 +522,7 @@
    "first": "2025-02-28",
    "last": "2026-01-03",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/rinkitadhana.png",
    "avatar_kind": "downloaded",
@@ -550,7 +540,7 @@
    "first": "2024-10-30",
    "last": "2025-09-05",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Action",
     "BLT-Flutter",
     "BLT-Rewards"
@@ -571,7 +561,7 @@
    "first": "2017-05-28",
    "last": "2018-08-13",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/souravbadami.png",
    "avatar_kind": "downloaded",
@@ -589,7 +579,6 @@
    "first": "2023-09-16",
    "last": "2025-04-15",
    "projects": [
-    "BLT-Core",
     "BLT",
     "BLT-Flutter"
    ],
@@ -634,7 +623,7 @@
    "last": "2026-06-17",
    "projects": [
     "BLT-Pool",
-    "BLT-Core",
+    "BLT",
     "BLT-Rewards",
     "BLT-Toasty"
    ],
@@ -655,7 +644,7 @@
    "last": "2023-08-22",
    "projects": [
     "BLT-Flutter",
-    "BLT-Core",
+    "BLT",
     "BLT-Action"
    ],
    "avatar": ".forkmesh/contributors/letsintegreat.png",
@@ -674,7 +663,7 @@
    "first": "2018-03-04",
    "last": "2020-08-29",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/srahulbadami.png",
    "avatar_kind": "downloaded",
@@ -692,9 +681,8 @@
    "first": "2026-02-11",
    "last": "2026-03-08",
    "projects": [
-    "BLT-Core",
-    "BLT-API",
     "BLT",
+    "BLT-API",
     "BLT-MCP"
    ],
    "avatar": ".forkmesh/contributors/kunal241207.png",
@@ -713,7 +701,7 @@
    "first": "2025-03-02",
    "last": "2026-02-20",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/igennova.png",
    "avatar_kind": "downloaded",
@@ -751,7 +739,7 @@
    "first": "2023-11-17",
    "last": "2026-02-15",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Toasty",
     "BLT-Action"
    ],
@@ -771,10 +759,9 @@
    "first": "2025-12-02",
    "last": "2026-03-18",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Ideas",
-    "BLT-GSOC",
-    "BLT"
+    "BLT-GSOC"
    ],
    "avatar": ".forkmesh/contributors/shhazzz.png",
    "avatar_kind": "downloaded",
@@ -792,7 +779,7 @@
    "first": "2025-02-14",
    "last": "2026-04-17",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Leaf",
     "BLT-API",
     "BLT-OSSH",
@@ -834,7 +821,7 @@
    "last": "2024-08-19",
    "projects": [
     "BLT-Flutter",
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/uttkarsh-raj.png",
    "avatar_kind": "downloaded",
@@ -852,7 +839,7 @@
    "first": "2025-03-02",
    "last": "2026-03-03",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/gojo-satorou-v7.png",
    "avatar_kind": "downloaded",
@@ -871,7 +858,7 @@
    "last": "2024-07-26",
    "projects": [
     "BLT-Lettuce",
-    "BLT-Core",
+    "BLT",
     "BLT-Sammich"
    ],
    "avatar": ".forkmesh/contributors/arkid15r.png",
@@ -890,9 +877,8 @@
    "first": "2026-02-06",
    "last": "2026-02-23",
    "projects": [
-    "BLT-Core",
-    "BLT-Leaf",
     "BLT",
+    "BLT-Leaf",
     "BLT-Lettuce"
    ],
    "avatar": ".forkmesh/contributors/adityagupta716.png",
@@ -911,7 +897,7 @@
    "first": "2017-07-08",
    "last": "2017-09-05",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/sid22.png",
    "avatar_kind": "downloaded",
@@ -929,7 +915,7 @@
    "first": "2025-11-15",
    "last": "2026-03-05",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/haroon0x.png",
    "avatar_kind": "downloaded",
@@ -949,7 +935,7 @@
    "projects": [
     "BLT-SafeCloak",
     "BLT-API",
-    "BLT-Core",
+    "BLT",
     "BLT-Pages",
     "BLT-MCP"
    ],
@@ -969,7 +955,7 @@
    "first": "2024-11-15",
    "last": "2025-03-09",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Action"
    ],
    "avatar": ".forkmesh/contributors/tsu-ki.png",
@@ -988,7 +974,7 @@
    "first": "2016-07-09",
    "last": "2018-01-09",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-martti-sasi.png",
    "avatar_kind": "identicon",
@@ -1025,7 +1011,7 @@
    "last": "2021-09-06",
    "projects": [
     "BLT-Flutter",
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/ankit2001.png",
    "avatar_kind": "downloaded",
@@ -1043,7 +1029,7 @@
    "first": "2024-01-28",
    "last": "2024-04-20",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/haniljain.png",
    "avatar_kind": "downloaded",
@@ -1081,7 +1067,7 @@
    "first": "2017-05-25",
    "last": "2017-06-11",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/roboneet.png",
    "avatar_kind": "downloaded",
@@ -1099,7 +1085,7 @@
    "first": "2026-03-01",
    "last": "2026-05-04",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-OSSH",
     "BLT-Rewards",
     "BLT-Hackathons",
@@ -1141,7 +1127,7 @@
    "first": "2025-11-27",
    "last": "2025-12-20",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/somyabaran.png",
    "avatar_kind": "downloaded",
@@ -1159,7 +1145,7 @@
    "first": "2026-02-14",
    "last": "2026-05-05",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-University",
     "BLT-GSOC"
    ],
@@ -1179,7 +1165,7 @@
    "first": "2024-12-10",
    "last": "2025-12-05",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/nitinawari.png",
    "avatar_kind": "downloaded",
@@ -1198,7 +1184,7 @@
    "last": "2023-04-06",
    "projects": [
     "BLT-Flutter",
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/solo-daemon.png",
    "avatar_kind": "downloaded",
@@ -1234,7 +1220,7 @@
    "first": "2023-11-24",
    "last": "2024-01-07",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/errorassassin.png",
    "avatar_kind": "downloaded",
@@ -1274,7 +1260,7 @@
    "projects": [
     "BLT-Pool",
     "BLT-Monitor",
-    "BLT-Core",
+    "BLT",
     "BLT-GSOC"
    ],
    "avatar": ".forkmesh/contributors/devalprime.png",
@@ -1293,7 +1279,7 @@
    "first": "2021-02-23",
    "last": "2023-03-31",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-joseph-m-davis.png",
    "avatar_kind": "identicon",
@@ -1330,7 +1316,7 @@
    "first": "2024-07-27",
    "last": "2025-03-03",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Flutter"
    ],
    "avatar": ".forkmesh/contributors/drvcodenta.png",
@@ -1349,9 +1335,8 @@
    "first": "2026-01-18",
    "last": "2026-07-02",
    "projects": [
-    "BLT-Core",
-    "BLT-Ideas",
     "BLT",
+    "BLT-Ideas",
     "BLT-Byte",
     "BLT-GSOC",
     "BLT-Hackathons",
@@ -1391,7 +1376,7 @@
    "first": "2025-11-22",
    "last": "2026-02-22",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/snigdhachoudhury.png",
    "avatar_kind": "downloaded",
@@ -1409,7 +1394,7 @@
    "first": "2026-01-21",
    "last": "2026-03-01",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/yashvardhanvashistha.png",
    "avatar_kind": "downloaded",
@@ -1427,7 +1412,7 @@
    "first": "2026-01-08",
    "last": "2026-01-22",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-vinamra-vaswani.png",
    "avatar_kind": "identicon",
@@ -1445,7 +1430,7 @@
    "first": "2023-08-25",
    "last": "2024-04-22",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/thedudeontitan.png",
    "avatar_kind": "downloaded",
@@ -1467,7 +1452,7 @@
     "BLT-Design",
     "BLT-Next",
     "BLT-Preflight",
-    "BLT-Core",
+    "BLT",
     "BLT-Hackathons",
     "BLT-Jobs",
     "BLT-University"
@@ -1506,7 +1491,7 @@
    "first": "2025-11-15",
    "last": "2025-11-16",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/tia-ani.png",
    "avatar_kind": "downloaded",
@@ -1544,7 +1529,7 @@
    "first": "2023-02-09",
    "last": "2023-05-17",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/co-decode.png",
    "avatar_kind": "downloaded",
@@ -1562,7 +1547,7 @@
    "first": "2023-08-12",
    "last": "2024-11-21",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/prakhar-shankar.png",
    "avatar_kind": "downloaded",
@@ -1580,7 +1565,7 @@
    "first": "2026-01-15",
    "last": "2026-01-23",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/codexanu.png",
    "avatar_kind": "downloaded",
@@ -1599,7 +1584,7 @@
    "last": "2021-04-15",
    "projects": [
     "BLT-Flutter",
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/sparsh1212.png",
    "avatar_kind": "downloaded",
@@ -1617,7 +1602,7 @@
    "first": "2024-11-09",
    "last": "2025-01-26",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/apoorvapendse.png",
    "avatar_kind": "downloaded",
@@ -1635,7 +1620,7 @@
    "first": "2018-03-22",
    "last": "2018-03-22",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-abdelkader.png",
    "avatar_kind": "identicon",
@@ -1653,7 +1638,7 @@
    "first": "2025-12-08",
    "last": "2026-02-02",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Ideas"
    ],
    "avatar": ".forkmesh/contributors/ankit-singh-dot.png",
@@ -1672,7 +1657,7 @@
    "first": "2025-03-08",
    "last": "2025-11-20",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/razzasid.png",
    "avatar_kind": "downloaded",
@@ -1690,7 +1675,7 @@
    "first": "2025-03-25",
    "last": "2025-04-07",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/himanshu-639.png",
    "avatar_kind": "downloaded",
@@ -1726,7 +1711,7 @@
    "first": "2025-12-13",
    "last": "2026-10-20",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Action",
     "BLT-CLI",
     "BLT-Next",
@@ -1748,7 +1733,7 @@
    "first": "2024-01-26",
    "last": "2024-03-21",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/atharva-gawas.png",
    "avatar_kind": "downloaded",
@@ -1768,7 +1753,7 @@
    "projects": [
     "BLT-Toasty",
     "BLT-CLI",
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/saurabhyadav0.png",
    "avatar_kind": "downloaded",
@@ -1843,7 +1828,7 @@
    "first": "2024-01-22",
    "last": "2024-02-04",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/kr-2003.png",
    "avatar_kind": "downloaded",
@@ -1861,7 +1846,6 @@
    "first": "2025-12-05",
    "last": "2026-01-29",
    "projects": [
-    "BLT-Core",
     "BLT"
    ],
    "avatar": ".forkmesh/contributors/kittenbytes.png",
@@ -1880,7 +1864,7 @@
    "first": "2025-12-04",
    "last": "2025-12-14",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/manikandanchandran.png",
    "avatar_kind": "downloaded",
@@ -1898,7 +1882,7 @@
    "first": "2021-06-01",
    "last": "2022-03-13",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Flutter"
    ],
    "avatar": ".forkmesh/contributors/spiderxm.png",
@@ -1936,7 +1920,7 @@
    "first": "2025-10-12",
    "last": "2025-10-15",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/yajush-afk.png",
    "avatar_kind": "downloaded",
@@ -1990,7 +1974,7 @@
    "first": "2026-03-01",
    "last": "2026-03-01",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/dhruv7539.png",
    "avatar_kind": "downloaded",
@@ -2008,7 +1992,7 @@
    "first": "2025-03-31",
    "last": "2026-03-15",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Pool"
    ],
    "avatar": ".forkmesh/contributors/rahulnegi20.png",
@@ -2027,7 +2011,7 @@
    "first": "2025-02-12",
    "last": "2025-04-15",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/cicada0007.png",
    "avatar_kind": "downloaded",
@@ -2045,7 +2029,7 @@
    "first": "2025-12-23",
    "last": "2025-12-23",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/shreyashbrn.png",
    "avatar_kind": "downloaded",
@@ -2063,7 +2047,7 @@
    "first": "2023-10-30",
    "last": "2023-10-30",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/hurrrsh.png",
    "avatar_kind": "downloaded",
@@ -2081,7 +2065,7 @@
    "first": "2026-05-06",
    "last": "2026-10-20",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Jobs"
    ],
    "avatar": ".forkmesh/contributors/c0d3h01.png",
@@ -2100,7 +2084,7 @@
    "first": "2023-10-17",
    "last": "2023-12-18",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/mattsilverio.png",
    "avatar_kind": "downloaded",
@@ -2138,7 +2122,7 @@
    "first": "2025-02-22",
    "last": "2025-03-02",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/samyak003.png",
    "avatar_kind": "downloaded",
@@ -2175,7 +2159,7 @@
    "first": "2022-12-22",
    "last": "2023-01-22",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/pixawna.png",
    "avatar_kind": "downloaded",
@@ -2193,7 +2177,7 @@
    "first": "2026-02-23",
    "last": "2026-02-23",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/abhinavexists.png",
    "avatar_kind": "downloaded",
@@ -2229,7 +2213,7 @@
    "first": "2025-12-06",
    "last": "2025-12-06",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/happypeepo.png",
    "avatar_kind": "downloaded",
@@ -2247,7 +2231,7 @@
    "first": "2023-02-21",
    "last": "2023-02-28",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/kej-r03.png",
    "avatar_kind": "downloaded",
@@ -2265,7 +2249,7 @@
    "first": "2025-11-11",
    "last": "2025-11-11",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/krishiv-mahajan.png",
    "avatar_kind": "downloaded",
@@ -2283,7 +2267,7 @@
    "first": "2023-10-19",
    "last": "2023-11-01",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/0xmanthan.png",
    "avatar_kind": "downloaded",
@@ -2301,7 +2285,7 @@
    "first": "2024-07-11",
    "last": "2024-07-13",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Action"
    ],
    "avatar": ".forkmesh/contributors/nikhil25803.png",
@@ -2359,7 +2343,7 @@
    "first": "2017-02-25",
    "last": "2017-02-26",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/rtgdk.png",
    "avatar_kind": "downloaded",
@@ -2377,7 +2361,7 @@
    "first": "2026-02-05",
    "last": "2026-03-04",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/skyvanguard.png",
    "avatar_kind": "downloaded",
@@ -2396,7 +2380,7 @@
    "last": "2021-04-06",
    "projects": [
     "BLT-Flutter",
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-wendy-wallace.png",
    "avatar_kind": "identicon",
@@ -2414,7 +2398,7 @@
    "first": "2025-03-02",
    "last": "2025-03-06",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Extension"
    ],
    "avatar": ".forkmesh/contributors/adimail.png",
@@ -2454,7 +2438,7 @@
    "last": "2026-04-20",
    "projects": [
     "BLT-SafeCloak",
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/chaimaekit.png",
    "avatar_kind": "downloaded",
@@ -2472,7 +2456,7 @@
    "first": "2023-08-23",
    "last": "2023-08-24",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/daemon-reconfig.png",
    "avatar_kind": "downloaded",
@@ -2509,7 +2493,7 @@
    "first": "2026-02-25",
    "last": "2026-02-25",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/gayathri2006-cmd.png",
    "avatar_kind": "downloaded",
@@ -2527,7 +2511,7 @@
    "first": "2026-01-08",
    "last": "2026-02-22",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/jigyasurajput.png",
    "avatar_kind": "downloaded",
@@ -2545,7 +2529,7 @@
    "first": "2023-01-03",
    "last": "2023-02-07",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/manishbisht777.png",
    "avatar_kind": "downloaded",
@@ -2584,7 +2568,7 @@
    "last": "2024-10-19",
    "projects": [
     "BLT-Action",
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/sagnik3788.png",
    "avatar_kind": "downloaded",
@@ -2602,7 +2586,7 @@
    "first": "2016-09-12",
    "last": "2016-09-15",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-santosh-bazuin.png",
    "avatar_kind": "identicon",
@@ -2640,7 +2624,7 @@
    "first": "2025-12-17",
    "last": "2025-12-17",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-vanshikadahaliya.png",
    "avatar_kind": "identicon",
@@ -2658,7 +2642,7 @@
    "first": "2025-02-19",
    "last": "2025-02-25",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/vidipsingh.png",
    "avatar_kind": "downloaded",
@@ -2676,7 +2660,7 @@
    "first": "2026-03-04",
    "last": "2026-03-06",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-vishnu.png",
    "avatar_kind": "identicon",
@@ -2694,7 +2678,6 @@
    "first": "2026-01-17",
    "last": "2026-01-18",
    "projects": [
-    "BLT-Core",
     "BLT"
    ],
    "avatar": ".forkmesh/contributors/yadneshx17.png",
@@ -2749,7 +2732,7 @@
    "first": "2023-06-21",
    "last": "2023-06-27",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/abhayguptas.png",
    "avatar_kind": "downloaded",
@@ -2822,7 +2805,7 @@
    "first": "2026-01-26",
    "last": "2026-01-26",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/gurleen-kansray.png",
    "avatar_kind": "downloaded",
@@ -2840,7 +2823,7 @@
    "first": "2024-12-11",
    "last": "2024-12-15",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/harsh3dev.png",
    "avatar_kind": "downloaded",
@@ -2858,7 +2841,7 @@
    "first": "2023-12-20",
    "last": "2024-01-28",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/deus1704.png",
    "avatar_kind": "downloaded",
@@ -2876,7 +2859,7 @@
    "first": "2024-11-21",
    "last": "2024-11-24",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/kapilsareen.png",
    "avatar_kind": "downloaded",
@@ -2894,7 +2877,7 @@
    "first": "2025-02-16",
    "last": "2025-03-04",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/kaushik-shahare.png",
    "avatar_kind": "downloaded",
@@ -2948,7 +2931,7 @@
    "first": "2025-11-19",
    "last": "2025-11-20",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/kris70lesgo.png",
    "avatar_kind": "downloaded",
@@ -3002,7 +2985,7 @@
    "first": "2025-11-26",
    "last": "2025-11-26",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/mohammedanasnathani.png",
    "avatar_kind": "downloaded",
@@ -3020,7 +3003,7 @@
    "first": "2026-02-16",
    "last": "2026-02-16",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/mujeeb-mughal1.png",
    "avatar_kind": "downloaded",
@@ -3056,7 +3039,7 @@
    "first": "2025-11-10",
    "last": "2025-11-28",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/nileshpahari.png",
    "avatar_kind": "downloaded",
@@ -3074,7 +3057,7 @@
    "first": "2024-08-14",
    "last": "2024-08-14",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/npxpatel.png",
    "avatar_kind": "downloaded",
@@ -3092,7 +3075,7 @@
    "first": "2026-03-02",
    "last": "2026-03-02",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/norhan-gamal25.png",
    "avatar_kind": "downloaded",
@@ -3110,7 +3093,7 @@
    "first": "2024-10-23",
    "last": "2024-11-06",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/mrimmortal09.png",
    "avatar_kind": "downloaded",
@@ -3128,7 +3111,7 @@
    "first": "2017-02-03",
    "last": "2017-02-04",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/ordersys.png",
    "avatar_kind": "downloaded",
@@ -3146,7 +3129,7 @@
    "first": "2016-12-12",
    "last": "2016-12-12",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/rafen.png",
    "avatar_kind": "downloaded",
@@ -3164,8 +3147,8 @@
    "first": "2026-03-28",
    "last": "2026-04-14",
    "projects": [
-    "BLT-API",
-    "BLT-Core"
+    "BLT",
+    "BLT-API"
    ],
    "avatar": ".forkmesh/contributors/rimjhim-codes.png",
    "avatar_kind": "downloaded",
@@ -3183,7 +3166,7 @@
    "first": "2023-03-10",
    "last": "2023-03-17",
    "projects": [
-    "BLT-Core",
+    "BLT",
     "BLT-Flutter"
    ],
    "avatar": ".forkmesh/contributors/snowkluster.png",
@@ -3220,8 +3203,7 @@
    "first": "2026-03-26",
    "last": "2026-03-26",
    "projects": [
-    "BLT",
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/samrithashree.png",
    "avatar_kind": "downloaded",
@@ -3257,7 +3239,7 @@
    "first": "2026-01-14",
    "last": "2026-01-15",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/sharanyaa30.png",
    "avatar_kind": "downloaded",
@@ -3275,7 +3257,7 @@
    "first": "2023-06-21",
    "last": "2023-06-27",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/shubham-200315.png",
    "avatar_kind": "downloaded",
@@ -3293,7 +3275,7 @@
    "first": "2025-11-10",
    "last": "2025-11-16",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/devsuryansh.png",
    "avatar_kind": "downloaded",
@@ -3311,7 +3293,7 @@
    "first": "2017-01-30",
    "last": "2017-07-14",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/tarachris.png",
    "avatar_kind": "downloaded",
@@ -3329,7 +3311,7 @@
    "first": "2025-04-04",
    "last": "2025-04-15",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-voidoid1977.png",
    "avatar_kind": "identicon",
@@ -3347,7 +3329,7 @@
    "first": "2025-04-04",
    "last": "2025-04-15",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/dotnetdork.png",
    "avatar_kind": "downloaded",
@@ -3365,7 +3347,7 @@
    "first": "2018-01-09",
    "last": "2018-01-09",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-yorick.png",
    "avatar_kind": "identicon",
@@ -3383,7 +3365,7 @@
    "first": "2026-04-02",
    "last": "2026-04-02",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/aarush289.png",
    "avatar_kind": "downloaded",
@@ -3419,7 +3401,7 @@
    "first": "2025-03-04",
    "last": "2025-03-04",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/nasredeenabdulhaleem.png",
    "avatar_kind": "downloaded",
@@ -3437,7 +3419,7 @@
    "first": "2016-12-28",
    "last": "2016-12-28",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/abelradac.png",
    "avatar_kind": "downloaded",
@@ -3455,7 +3437,7 @@
    "first": "2026-04-30",
    "last": "2026-04-30",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/agentgoose32.png",
    "avatar_kind": "downloaded",
@@ -3473,7 +3455,7 @@
    "first": "2025-07-16",
    "last": "2025-07-16",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/elsheikh21.png",
    "avatar_kind": "downloaded",
@@ -3491,7 +3473,7 @@
    "first": "2022-04-06",
    "last": "2022-04-06",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/akankshsinhaa.png",
    "avatar_kind": "downloaded",
@@ -3509,7 +3491,7 @@
    "first": "2026-02-04",
    "last": "2026-02-04",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/captain-t2004.png",
    "avatar_kind": "downloaded",
@@ -3563,7 +3545,7 @@
    "first": "2026-04-09",
    "last": "2026-04-09",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/anukalp2804.png",
    "avatar_kind": "downloaded",
@@ -3581,7 +3563,7 @@
    "first": "2026-04-11",
    "last": "2026-04-11",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/ai-chan-0411.png",
    "avatar_kind": "downloaded",
@@ -3617,7 +3599,7 @@
    "first": "2025-11-09",
    "last": "2025-11-09",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/aryanbhargava18.png",
    "avatar_kind": "downloaded",
@@ -3695,7 +3677,7 @@
    "first": "2026-05-23",
    "last": "2026-05-23",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/vanta722.png",
    "avatar_kind": "downloaded",
@@ -3713,7 +3695,7 @@
    "first": "2026-04-26",
    "last": "2026-04-26",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/cypher-cp0.png",
    "avatar_kind": "downloaded",
@@ -3749,7 +3731,7 @@
    "first": "2026-05-22",
    "last": "2026-05-22",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/devvoza.png",
    "avatar_kind": "downloaded",
@@ -3767,7 +3749,7 @@
    "first": "2025-12-02",
    "last": "2025-12-02",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/draniwal.png",
    "avatar_kind": "downloaded",
@@ -3785,7 +3767,7 @@
    "first": "2024-12-13",
    "last": "2024-12-13",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/dhruvkrishnavaid.png",
    "avatar_kind": "downloaded",
@@ -3803,7 +3785,7 @@
    "first": "2026-04-17",
    "last": "2026-04-17",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/mystic-06.png",
    "avatar_kind": "downloaded",
@@ -3821,7 +3803,7 @@
    "first": "2026-05-10",
    "last": "2026-05-10",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/draxilion.png",
    "avatar_kind": "downloaded",
@@ -3857,7 +3839,7 @@
    "first": "2026-05-10",
    "last": "2026-05-10",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/cloudfaye.png",
    "avatar_kind": "downloaded",
@@ -3875,7 +3857,7 @@
    "first": "2026-05-11",
    "last": "2026-05-11",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/filipkov04.png",
    "avatar_kind": "downloaded",
@@ -3893,7 +3875,7 @@
    "first": "2026-05-20",
    "last": "2026-05-20",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/devrobbin.png",
    "avatar_kind": "downloaded",
@@ -3929,7 +3911,7 @@
    "first": "2024-08-04",
    "last": "2024-08-04",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/gauravloj.png",
    "avatar_kind": "downloaded",
@@ -3947,7 +3929,7 @@
    "first": "2026-03-23",
    "last": "2026-03-23",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/giftidris4-spec.png",
    "avatar_kind": "downloaded",
@@ -3965,7 +3947,7 @@
    "first": "2026-02-02",
    "last": "2026-02-02",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/gitcuber369.png",
    "avatar_kind": "downloaded",
@@ -3983,7 +3965,7 @@
    "first": "2017-10-08",
    "last": "2017-10-08",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/gomgam.png",
    "avatar_kind": "downloaded",
@@ -4037,7 +4019,7 @@
    "first": "2025-03-03",
    "last": "2025-03-03",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/iitzirfan.png",
    "avatar_kind": "downloaded",
@@ -4091,7 +4073,7 @@
    "first": "2026-04-02",
    "last": "2026-04-02",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/jitpatro.png",
    "avatar_kind": "downloaded",
@@ -4109,7 +4091,7 @@
    "first": "2026-03-28",
    "last": "2026-03-28",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/mkamrul9.png",
    "avatar_kind": "downloaded",
@@ -4127,7 +4109,7 @@
    "first": "2026-05-13",
    "last": "2026-05-13",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-kia.png",
    "avatar_kind": "identicon",
@@ -4145,7 +4127,7 @@
    "first": "2026-04-02",
    "last": "2026-04-02",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/krauzx.png",
    "avatar_kind": "downloaded",
@@ -4163,7 +4145,7 @@
    "first": "2023-02-18",
    "last": "2023-02-18",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/manice18.png",
    "avatar_kind": "downloaded",
@@ -4181,7 +4163,7 @@
    "first": "2026-04-15",
    "last": "2026-04-15",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/mberic.png",
    "avatar_kind": "downloaded",
@@ -4217,7 +4199,7 @@
    "first": "2023-09-01",
    "last": "2023-09-01",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/officialarmannqureshi.png",
    "avatar_kind": "downloaded",
@@ -4235,7 +4217,7 @@
    "first": "2026-04-11",
    "last": "2026-04-11",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/neel-pandya.png",
    "avatar_kind": "downloaded",
@@ -4253,7 +4235,7 @@
    "first": "2025-02-21",
    "last": "2025-02-21",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/space-techy.png",
    "avatar_kind": "downloaded",
@@ -4271,7 +4253,7 @@
    "first": "2026-03-30",
    "last": "2026-03-30",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/nithinskumar866.png",
    "avatar_kind": "downloaded",
@@ -4289,7 +4271,7 @@
    "first": "2026-05-11",
    "last": "2026-05-11",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/olli-dev.png",
    "avatar_kind": "downloaded",
@@ -4307,7 +4289,7 @@
    "first": "2026-04-03",
    "last": "2026-04-03",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/one-kash.png",
    "avatar_kind": "downloaded",
@@ -4325,7 +4307,7 @@
    "first": "2025-05-03",
    "last": "2025-05-03",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/nitish-naik.png",
    "avatar_kind": "downloaded",
@@ -4343,7 +4325,7 @@
    "first": "2026-05-11",
    "last": "2026-05-11",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/pawankalhansh.png",
    "avatar_kind": "downloaded",
@@ -4361,7 +4343,7 @@
    "first": "2026-05-24",
    "last": "2026-05-24",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/phiphuc.png",
    "avatar_kind": "downloaded",
@@ -4379,7 +4361,7 @@
    "first": "2025-10-07",
    "last": "2025-10-07",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/piyushrathoree.png",
    "avatar_kind": "downloaded",
@@ -4397,7 +4379,7 @@
    "first": "2023-02-20",
    "last": "2023-02-20",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-polaris.png",
    "avatar_kind": "identicon",
@@ -4415,7 +4397,7 @@
    "first": "2026-04-05",
    "last": "2026-04-05",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/prachi9506.png",
    "avatar_kind": "downloaded",
@@ -4433,7 +4415,7 @@
    "first": "2026-03-26",
    "last": "2026-03-26",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/agarwalpranav0711.png",
    "avatar_kind": "downloaded",
@@ -4451,7 +4433,7 @@
    "first": "2023-03-27",
    "last": "2023-03-27",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/pranav-leo.png",
    "avatar_kind": "downloaded",
@@ -4469,7 +4451,7 @@
    "first": "2026-04-05",
    "last": "2026-04-05",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/py-huang.png",
    "avatar_kind": "downloaded",
@@ -4505,7 +4487,7 @@
    "first": "2023-10-22",
    "last": "2023-10-22",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/rafael-gc.png",
    "avatar_kind": "downloaded",
@@ -4523,7 +4505,7 @@
    "first": "2026-01-12",
    "last": "2026-01-12",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/raj-chatarmin.png",
    "avatar_kind": "downloaded",
@@ -4541,7 +4523,7 @@
    "first": "2026-01-03",
    "last": "2026-01-03",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/rajgupta36.png",
    "avatar_kind": "downloaded",
@@ -4577,7 +4559,7 @@
    "first": "2026-05-11",
    "last": "2026-05-11",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/rcloudso.png",
    "avatar_kind": "downloaded",
@@ -4595,7 +4577,7 @@
    "first": "2026-05-15",
    "last": "2026-05-15",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-renjk.png",
    "avatar_kind": "identicon",
@@ -4613,7 +4595,7 @@
    "first": "2026-01-08",
    "last": "2026-01-08",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/rishab87.png",
    "avatar_kind": "downloaded",
@@ -4631,7 +4613,7 @@
    "first": "2025-02-28",
    "last": "2025-02-28",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/redk22.png",
    "avatar_kind": "downloaded",
@@ -4649,7 +4631,7 @@
    "first": "2026-04-14",
    "last": "2026-04-14",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/samarth1907.png",
    "avatar_kind": "downloaded",
@@ -4667,7 +4649,7 @@
    "first": "2023-03-09",
    "last": "2023-03-09",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-sami-hakola.png",
    "avatar_kind": "identicon",
@@ -4685,7 +4667,7 @@
    "first": "2026-04-26",
    "last": "2026-04-26",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-santos.png",
    "avatar_kind": "identicon",
@@ -4703,7 +4685,7 @@
    "first": "2025-02-28",
    "last": "2025-02-28",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/itsarthak.png",
    "avatar_kind": "downloaded",
@@ -4721,7 +4703,7 @@
    "first": "2023-09-02",
    "last": "2023-09-02",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/pandey-saurabhp.png",
    "avatar_kind": "downloaded",
@@ -4739,7 +4721,7 @@
    "first": "2023-03-30",
    "last": "2023-03-30",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-shaomai.png",
    "avatar_kind": "identicon",
@@ -4757,7 +4739,7 @@
    "first": "2025-02-28",
    "last": "2025-02-28",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/shashwat-srivastav.png",
    "avatar_kind": "downloaded",
@@ -4883,7 +4865,7 @@
    "first": "2026-02-27",
    "last": "2026-02-27",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/sriram-b-srivatsa.png",
    "avatar_kind": "downloaded",
@@ -4901,7 +4883,7 @@
    "first": "2025-04-24",
    "last": "2025-04-24",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/sudhirpal.png",
    "avatar_kind": "downloaded",
@@ -4919,7 +4901,7 @@
    "first": "2026-04-12",
    "last": "2026-04-12",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/swastikkaushal1.png",
    "avatar_kind": "downloaded",
@@ -4937,7 +4919,7 @@
    "first": "2026-05-16",
    "last": "2026-05-16",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-thanh-nguyen.png",
    "avatar_kind": "identicon",
@@ -4955,7 +4937,7 @@
    "first": "2023-10-28",
    "last": "2023-10-28",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/tacticalprice.png",
    "avatar_kind": "downloaded",
@@ -4973,7 +4955,7 @@
    "first": "2023-10-28",
    "last": "2023-10-28",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-ujjwal-rajput.png",
    "avatar_kind": "identicon",
@@ -4991,7 +4973,7 @@
    "first": "2026-05-11",
    "last": "2026-05-11",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/varora02.png",
    "avatar_kind": "downloaded",
@@ -5009,7 +4991,7 @@
    "first": "2024-11-20",
    "last": "2024-11-20",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/1010varun.png",
    "avatar_kind": "downloaded",
@@ -5045,7 +5027,7 @@
    "first": "2023-02-04",
    "last": "2023-02-04",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/vineetttt.png",
    "avatar_kind": "downloaded",
@@ -5063,7 +5045,7 @@
    "first": "2026-05-16",
    "last": "2026-05-16",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/singhvishalkr.png",
    "avatar_kind": "downloaded",
@@ -5081,7 +5063,7 @@
    "first": "2026-05-20",
    "last": "2026-05-20",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/wcj007.png",
    "avatar_kind": "downloaded",
@@ -5117,7 +5099,7 @@
    "first": "2026-05-12",
    "last": "2026-05-12",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/wuchiwuchi.png",
    "avatar_kind": "downloaded",
@@ -5153,7 +5135,7 @@
    "first": "2026-05-15",
    "last": "2026-05-15",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-ydd039.png",
    "avatar_kind": "identicon",
@@ -5171,7 +5153,7 @@
    "first": "2026-02-26",
    "last": "2026-02-26",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/noobmaster69-san.png",
    "avatar_kind": "downloaded",
@@ -5189,7 +5171,7 @@
    "first": "2026-05-14",
    "last": "2026-05-14",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/zp6.png",
    "avatar_kind": "downloaded",
@@ -5207,7 +5189,7 @@
    "first": "2026-04-05",
    "last": "2026-04-05",
    "projects": [
-    "BLT-Core"
+    "BLT"
    ],
    "avatar": ".forkmesh/contributors/git-surface-pro.png",
    "avatar_kind": "identicon",
