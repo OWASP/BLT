@@ -96,19 +96,9 @@
       background-clip: text;
     }
 
-    /* Animated underline for nav links */
-    .nav-link::after {
-      content: '';
-      display: block;
-      height: 2px;
-      background: #dc2626;
-      transform: scaleX(0);
-      transition: transform 0.2s ease;
-    }
-
-    .nav-link:hover::after {
-      transform: scaleX(1);
-    }
+    blt-nav:not(:defined) { display: block; min-height: 61px; }
+    blt-nav:not(:defined) > * { display: none; }
+    html { scroll-padding-top: 62px; }
 
     /* Dark mode (html.dark, set by the OWASP BLT bar); gray utilities are in _brand/blt-dark.css */
     html.dark .border-neutral-border { border-color: #1f2937; }
@@ -123,74 +113,14 @@
 
 <body class="font-sans bg-white text-gray-900 antialiased">
 
-  <!-- ═══════════════════════════════════════ NAVBAR ═══════════════════════════════════════ -->
-  <header class="sticky top-0 z-50 bg-white border-b border-neutral-border shadow-sm">
-    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
-      <div class="flex items-center justify-between h-16">
-
-        <!-- Logo -->
-        <a href="#" class="flex items-center gap-2 group" aria-label="BLT-MCP home">
-          <img src="logo.svg" alt="" class="w-8 h-8 rounded-full" width="32" height="32" />
-          <span class="font-bold text-lg text-gray-900 group-hover:text-primary transition-colors">
-            BLT<span class="text-primary">-MCP</span>
-          </span>
-        </a>
-
-        <!-- Desktop nav -->
-        <ul class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-700" role="list">
-          <li><a href="#features" class="nav-link hover:text-primary transition-colors pb-0.5">Features</a></li>
-          <li><a href="#how-it-works" class="nav-link hover:text-primary transition-colors pb-0.5">How It Works</a></li>
-          <li><a href="#quick-start" class="nav-link hover:text-primary transition-colors pb-0.5">Quick Start</a></li>
-          <li><a href="#api-reference" class="nav-link hover:text-primary transition-colors pb-0.5">API</a></li>
-        </ul>
-
-        <!-- CTA buttons -->
-        <div class="hidden md:flex items-center gap-3">
-          <a href="https://git.owaspblt.org/BLT/BLT-MCP" target="_blank" rel="noopener noreferrer"
-            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border border-primary text-primary rounded-md hover:bg-primary hover:text-white transition-colors duration-150">
-            <i class="fa-brands fa-github" aria-hidden="true"></i>Source Code</a>
-          <a href="#quick-start"
-            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-primary text-white rounded-md hover:bg-primary-hover transition-colors duration-150">
-            Get Started
-          </a>
-        </div>
-
-        <!-- Mobile menu button -->
-        <button id="mobile-menu-btn" type="button"
-          class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-primary hover:bg-gray-100 transition-colors"
-          aria-controls="mobile-menu" aria-expanded="false" aria-label="BLT-MCP menu">
-          <i class="fa-solid fa-ellipsis text-lg" aria-hidden="true"></i>
-        </button>
-      </div>
-
-      <!-- Mobile menu -->
-      <div id="mobile-menu" class="hidden md:hidden pb-4" role="menu">
-        <ul class="flex flex-col gap-1 text-sm font-medium text-gray-700" role="list">
-          <li><a href="#features"
-              class="block px-3 py-2 rounded-md hover:bg-gray-50 hover:text-primary transition-colors"
-              role="menuitem">Features</a></li>
-          <li><a href="#how-it-works"
-              class="block px-3 py-2 rounded-md hover:bg-gray-50 hover:text-primary transition-colors"
-              role="menuitem">How It Works</a></li>
-          <li><a href="#quick-start"
-              class="block px-3 py-2 rounded-md hover:bg-gray-50 hover:text-primary transition-colors"
-              role="menuitem">Quick Start</a></li>
-          <li><a href="#api-reference"
-              class="block px-3 py-2 rounded-md hover:bg-gray-50 hover:text-primary transition-colors"
-              role="menuitem">API</a></li>
-          <li class="pt-2 flex gap-2">
-            <a href="https://git.owaspblt.org/BLT/BLT-MCP" target="_blank" rel="noopener noreferrer"
-              class="flex-1 text-center px-4 py-2 border border-primary text-primary rounded-md hover:bg-primary hover:text-white transition-colors text-sm font-medium">
-              <i class="fa-brands fa-github mr-1" aria-hidden="true"></i>Source Code</a>
-            <a href="#quick-start"
-              class="flex-1 text-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors text-sm font-medium">
-              Get Started
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-  </header>
+  <blt-nav project="blt-mcp" name="MCP" data-sticky>
+    <a href="#features">Features</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="#quick-start">Quick Start</a>
+    <a href="#api-reference">API</a>
+    <a href="https://git.owaspblt.org/BLT/BLT-MCP" slot="actions" target="_blank" rel="noopener noreferrer">Source Code</a>
+    <a href="#quick-start" slot="actions" data-primary>Get Started</a>
+  </blt-nav>
 
   <main>
 
@@ -895,33 +825,6 @@
       </div>
     </div>
   </footer>
-
-  <!-- Mobile menu toggle script -->
-  <script>
-    const btn = document.getElementById('mobile-menu-btn');
-    const menu = document.getElementById('mobile-menu');
-
-    btn.addEventListener('click', () => {
-      const expanded = btn.getAttribute('aria-expanded') === 'true';
-      btn.setAttribute('aria-expanded', String(!expanded));
-      menu.classList.toggle('hidden');
-      // Toggle icon
-      const icon = btn.querySelector('i');
-      icon.classList.toggle('fa-ellipsis');
-      icon.classList.toggle('fa-xmark');
-    });
-
-    // Close mobile menu on link click
-    menu.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        menu.classList.add('hidden');
-        btn.setAttribute('aria-expanded', 'false');
-        const icon = btn.querySelector('i');
-        icon.classList.add('fa-ellipsis');
-        icon.classList.remove('fa-xmark');
-      });
-    });
-  </script>
 
 </body>
 
