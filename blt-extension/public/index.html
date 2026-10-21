@@ -8,17 +8,31 @@
       name="description"
       content="BLT Extension helps you capture evidence, track job applications, scan trademarked words, and improve GitHub PR workflow from one Chrome extension."
     />
+    <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="icon" href="blt-logo.svg" type="image/svg+xml" />
+    <script>
+      // Before first paint: saved theme ("theme" in localStorage, shared with the OWASP BLT bar), else the system preference.
+      (function () {
+        var saved = null;
+        try { saved = localStorage.getItem("theme"); } catch (e) { saved = null; }
+        var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
+        darkMode: "class",
         theme: {
           extend: {
             fontFamily: {
-              sans: ["Manrope", "system-ui", "sans-serif"],
-              display: ["Sora", "system-ui", "sans-serif"],
+              sans: ["ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", '"Segoe UI"', "Roboto", '"Helvetica Neue"', "Arial", "sans-serif"],
+              display: ["ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", '"Segoe UI"', "Roboto", '"Helvetica Neue"', "Arial", "sans-serif"],
+              mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
             },
             colors: {
-              primary: "#E10101",
+              primary: "#dc2626",
             },
             boxShadow: {
               card: "0 12px 30px rgba(17, 24, 39, 0.08)",
@@ -27,23 +41,56 @@
         },
       };
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Sora:wght@600;700;800&amp;display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <style>
       :root {
-        --blt-primary: #E10101;
-        --blt-neutral-border: #E5E5E5;
-        --blt-dark-base: #111827;
-        --blt-dark-surface: #1F2937;
+        --blt-primary: #dc2626;
+        --blt-neutral-border: #e5e7eb;
+        --blt-dark-base: #030712;
+        --blt-dark-surface: #111827;
       }
 
       .mesh-bg {
-        background-image: radial-gradient(circle at 18% 18%, rgba(225, 1, 1, 0.12) 0, transparent 34%),
-          radial-gradient(circle at 80% 10%, rgba(239, 68, 68, 0.12) 0, transparent 36%),
-          linear-gradient(180deg, #ffffff 0%, #fff8f8 48%, #ffffff 100%);
+        background-color: #ffffff;
       }
+
+      html.dark .mesh-bg {
+        background-color: var(--blt-dark-base);
+      }
+
+      html.dark .blt-btn-outline {
+        background-color: transparent;
+        border-color: #ef4444;
+        color: #f87171;
+      }
+
+      html.dark .blt-btn-outline:hover {
+        background-color: var(--blt-primary);
+        border-color: var(--blt-primary);
+        color: #ffffff;
+      }
+
+      html.dark .blt-link {
+        color: #f87171;
+      }
+
+      /* Dark mode for the page's light surfaces, keyed off html.dark like owaspblt.org. */
+      html.dark body { background-color: var(--blt-dark-base); color: #f3f4f6; }
+      html.dark .bg-white, html.dark .bg-\[\#fcfcfc\], html.dark .bg-\[\#fffafa\], html.dark .bg-\[\#fafafa\], html.dark .bg-slate-50 { background-color: var(--blt-dark-surface); }
+      html.dark section.bg-white { background-color: var(--blt-dark-base); }
+      html.dark .bg-white\/95 { background-color: rgb(3 7 18 / 0.95); }
+      html.dark .bg-\[\#fff9f9\], html.dark .from-slate-50 { background-color: var(--blt-dark-base); background-image: none; }
+      html.dark .border-\[\#E5E5E5\], html.dark .border-slate-300, html.dark .border-gray-400 { border-color: #1f2937; }
+      html.dark .border-red-200 { border-color: rgb(127 29 29 / 0.6); }
+      html.dark .bg-red-50, html.dark .bg-\[\#feeae9\] { background-color: rgb(127 29 29 / 0.3); }
+      html.dark .text-primary { color: #f87171; }
+      html.dark .text-slate-900, html.dark .text-slate-800 { color: #f3f4f6; }
+      html.dark .text-slate-700, html.dark .text-slate-600 { color: #d1d5db; }
+      html.dark .text-slate-500, html.dark .text-slate-400 { color: #9ca3af; }
+      html.dark .bg-slate-100 { background-color: #1f2937; }
+      html.dark .rounded.bg-slate-50 { background-color: #1f2937; }
+      html.dark input { background-color: var(--blt-dark-base); color: #f3f4f6; }
+      html.dark .shadow-card { box-shadow: none; }
 
       .blt-btn-primary {
         background-color: var(--blt-primary);
@@ -91,13 +138,13 @@
       }
     </style>
   </head>
-  <body class="bg-[#fcfcfc] text-slate-900 antialiased">
+  <body class="bg-gray-50 text-slate-900 antialiased">
     <header class="sticky top-0 z-50 border-b border-[#E5E5E5] bg-white/95 backdrop-blur">
       <nav class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
         <a href="#top" class="flex items-center gap-3">
-          <img src="img/logo.png" alt="OWASP BLT Extension logo" class="h-9 w-9" />
+          <img src="logo.svg" alt="BLT-Extension logo" class="h-9 w-9" />
           <div>
-            <p class="font-display text-sm font-bold tracking-tight">OWASP BLT Extension</p>
+            <p class="font-display text-sm font-bold tracking-tight">BLT-Extension</p>
             <p class="text-xs text-slate-500">Chrome extension for bug and job workflows</p>
           </div>
         </a>
@@ -397,7 +444,7 @@
         <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <div class="flex items-center gap-2">
-              <img src="logo.png" alt="BLT Logo" class="h-8 w-8" />
+              <img src="blt-logo.svg" alt="OWASP BLT logo" class="h-8 w-8" />
               <span class="font-bold text-slate-900">OWASP BLT</span>
             </div>
             <p class="mt-4 text-sm text-slate-600">

@@ -2,22 +2,38 @@
 <html>
 <head>
     <title>OWASP BLT Menu</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="utf-8">
     <style>
         :root {
-            --primary-color: #0d6efd;
-            --hover-color: #0b5ed7;
+            color-scheme: light dark;
+            --primary-color: #dc2626;
+            --hover-color: #b91c1c;
             --bg-color: #ffffff;
-            --text-color: #1a1a1a;
+            --text-color: #111827;
+            --muted-color: #6b7280;
+            --title-color: #374151;
             --border-color: #e5e7eb;
-            --secondary-bg: #f8f9fa;
+            --secondary-bg: #f9fafb;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #dc2626;
+                --hover-color: #ef4444;
+                --bg-color: #030712;
+                --text-color: #f3f4f6;
+                --muted-color: #9ca3af;
+                --title-color: #d1d5db;
+                --border-color: #1f2937;
+                --secondary-bg: #111827;
+            }
         }
 
         body {
             width: 280px;
             margin: 0;
             padding: 16px;
-            font-family: 'Inter', sans-serif;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
         }
@@ -31,15 +47,25 @@
 
         .popup-header h1 {
             margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             font-size: 18px;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: -0.01em;
             color: var(--text-color);
+        }
+
+        .popup-header h1 img {
+            width: 28px;
+            height: 28px;
         }
 
         .popup-header p {
             margin: 4px 0 0;
             font-size: 12px;
-            color: #6b7280;
+            color: var(--muted-color);
         }
 
         .section-title {
@@ -47,12 +73,13 @@
             font-weight: 600;
             margin-bottom: 6px;
             margin-top: 10px;
-            color: #374151;
+            color: var(--title-color);
         }
 
         .menu-section {
             background: var(--secondary-bg);
-            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             padding: 8px;
             margin-bottom: 12px;
         }
@@ -62,7 +89,7 @@
             padding: 12px;
             margin: 4px 0;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             background-color: var(--bg-color);
             cursor: pointer;
             font-size: 14px;
@@ -81,15 +108,17 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .menu-button:hover img {
-            filter: brightness(0) invert(1);
-        }
-
-        .menu-button img {
+        .menu-button .icon {
             width: 18px;
             height: 18px;
             margin-right: 12px;
-            transition: all 0.2s ease;
+            flex-shrink: 0;
+            color: var(--primary-color);
+            transition: color 0.2s ease;
+        }
+
+        .menu-button:hover .icon {
+            color: #ffffff;
         }
 
         .menu-button span {
@@ -110,21 +139,21 @@
             border-top: 1px solid var(--border-color);
             text-align: center;
             font-size: 11px;
-            color: #6b7280;
+            color: var(--muted-color);
         }
     </style>
 </head>
 <body>
     <div class="popup-header">
-        <h1>Job Application Tools</h1>
-        <p>Track and manage your job applications</p>
+        <h1><img src="img/blt-logo.svg" alt="" width="28" height="28"><span>OWASP BLT</span></h1>
+        <p>Job Application Tools: track and manage your job applications</p>
     </div>
 
     <div class="menu-section">
         <div class="section-title">General Tools</div>
 
         <button id="screenshotBtn" class="menu-button">
-            <img src="img/icon19.png" alt="Screenshot">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
             <span>Take Screenshot</span>
             <svg class="icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M9 5l7 7-7 7"/>
@@ -132,7 +161,7 @@
         </button>
 
         <button id="jobTrackingBtn" class="menu-button">
-            <img src="img/icon19.png" alt="Job Tracking">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5h6v2"/></svg>
             <span>Job Tracking Dashboard</span>
             <svg class="icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M9 5l7 7-7 7"/>
@@ -145,7 +174,7 @@
         <div class="section-title">Trademark Tools</div>
 
         <button id="runScanBtn" class="menu-button">
-            <img src="img/icon19.png" alt="Trademark Scanner">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>
             <span>Run Trademark Scanner</span>
             <svg class="icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M9 5l7 7-7 7"/>

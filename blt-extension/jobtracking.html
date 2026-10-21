@@ -2,50 +2,55 @@
 <html data-theme="light">
 <head>
     <title>Job Application Tracker</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="utf-8">
     <style>
         :root[data-theme="light"] {
             --bg-primary: #ffffff;
-            --bg-secondary: #f8f9fa;
-            --text-primary: #1a1a1a;
-            --text-secondary: #6c757d;
-            --border-color: #dee2e6;
-            --accent-color: #0d6efd;
-            --hover-color: #0b5ed7;
-            --danger-color: #dc3545;
+            --bg-secondary: #f9fafb;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --accent-color: #dc2626;
+            --hover-color: #b91c1c;
+            --danger-color: #b91c1c;
             --success-color: #198754;
             --warning-color: #ffc107;
             --info-color: #0dcaf0;
             --modal-bg: #ffffff;
             --input-bg: #ffffff;
-            --input-text: #1a1a1a;
-            --input-border: #dee2e6;
-            --table-header-bg: #f8f9fa;
-            --table-header-text: #1a1a1a;
+            --input-text: #111827;
+            --input-border: #d1d5db;
+            --table-header-bg: #f9fafb;
+            --table-header-text: #111827;
+            --selected-bg: rgba(220, 38, 38, 0.08);
+            --selected-hover-bg: rgba(220, 38, 38, 0.14);
         }
 
         :root[data-theme="dark"] {
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #2d2d2d;
-            --text-primary: #ffffff;
-            --text-secondary: #ced4da;
-            --border-color: #404040;
-            --accent-color: #0d6efd;
-            --hover-color: #0b5ed7;
-            --danger-color: #dc3545;
+            color-scheme: dark;
+            --bg-primary: #111827;
+            --bg-secondary: #030712;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --border-color: #1f2937;
+            --accent-color: #dc2626;
+            --hover-color: #ef4444;
+            --danger-color: #b91c1c;
             --success-color: #198754;
             --warning-color: #ffc107;
             --info-color: #0dcaf0;
-            --modal-bg: #2d2d2d;
-            --input-bg: #1a1a1a;
-            --input-text: #ffffff;
-            --input-border: #404040;
-            --table-header-bg: #2d2d2d;
-            --table-header-text: #ffffff;
+            --modal-bg: #111827;
+            --input-bg: #030712;
+            --input-text: #f3f4f6;
+            --input-border: #374151;
+            --table-header-bg: #1f2937;
+            --table-header-text: #f3f4f6;
+            --selected-bg: rgba(239, 68, 68, 0.12);
+            --selected-hover-bg: rgba(239, 68, 68, 0.2);
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
             padding: 20px;
             background: var(--bg-secondary);
@@ -58,8 +63,9 @@
             margin: 0 auto;
             background: var(--bg-primary);
             padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         .header {
@@ -77,11 +83,37 @@
             gap: 16px;
         }
 
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .brand img {
+            width: 28px;
+            height: 28px;
+        }
+
+        .brand-sep {
+            width: 1px;
+            height: 28px;
+            background: var(--border-color);
+        }
+
+        .header-title h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
         .theme-toggle {
             padding: 8px;
             border-radius: 50%;
             border: none;
             background: var(--bg-secondary);
+            color: var(--text-primary);
             cursor: pointer;
             width: 40px;
             height: 40px;
@@ -95,7 +127,7 @@
             background: var(--accent-color);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             margin: 0 4px;
             transition: background-color 0.2s ease;
@@ -115,7 +147,7 @@
         }
 
         .btn-danger:hover {
-            background: #bb2d3b;
+            background: #991b1b;
         }
 
         table {
@@ -127,7 +159,7 @@
         th, td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--border-color);
         }
 
         th {
@@ -258,11 +290,11 @@
         }
 
         .selected-row {
-            background-color: rgba(13, 110, 253, 0.1);
+            background-color: var(--selected-bg);
         }
 
         .selected-row:hover {
-            background-color: rgba(13, 110, 253, 0.2);
+            background-color: var(--selected-hover-bg);
         }
 
         .bulk-actions {
@@ -275,8 +307,10 @@
     <div class="container">
         <div class="header">
             <div class="header-title">
+                <span class="brand"><img src="img/blt-logo.svg" alt="" width="28" height="28">OWASP BLT</span>
+                <span class="brand-sep" aria-hidden="true"></span>
                 <h1>Job Applications</h1>
-                <button class="theme-toggle" id="themeToggle">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>

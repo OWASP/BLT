@@ -8,15 +8,16 @@
   "description": "OWASP BLT lets you get points, track jobs, and manage applications. This extension can read and change site information to capture screenshots, scan for trademarks, and track job applications on LinkedIn and Wellfound.",
 
   "icons": {
-    "19": "img/icon19.png",
-    "38": "img/icon38.png",
+    "16": "img/icon16.png",
+    "32": "img/icon32.png",
+    "48": "img/icon48.png",
     "128": "img/icon128.png"
   },
 
   "action": {
     "default_icon": {
-      "19": "img/icon19.png",
-      "38": "img/icon38.png"
+      "16": "img/icon16.png",
+      "32": "img/icon32.png"
     },
     "default_title": "OWASP BLT-Extension",
     "default_popup": "popup.html"
