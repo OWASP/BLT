@@ -5691,31 +5691,11 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
 </head>
 <body class="min-h-screen font-sans text-gray-900 antialiased">
 
-  <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
-    <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-      <a href="/" class="flex items-center gap-3" aria-label="BLT-Pool home">
-        <img src="/blt-pool-logo.svg" alt="BLT-Pool logo" class="h-10 w-10">
-        <div>
-          <h1 class="text-lg font-extrabold text-[#111827]">BLT-Pool</h1>
-        </div>
-      </a>
-     <nav class="order-3 flex w-full items-center justify-center gap-0.5 rounded-xl border border-[#E5E5E5] bg-white p-1 sm:order-none sm:w-auto sm:justify-start" aria-label="Primary">
-        <a href="/" class="rounded-lg bg-[#feeae9] px-2 py-1.5 text-xs font-semibold text-[#dc2626] sm:px-3 sm:py-2 sm:text-sm">Mentors</a>
-        <a href="/leaderboard" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">Leaderboard</a>
-        <a href="/github-app" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">GitHub App</a>
-        <a href="https://owaspblt.org" target="_blank" rel="noopener" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">
-          OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
-        </a>
-      </nav>
-      <div class="order-2 flex items-center gap-2 sm:order-none">
-        <span role="status" aria-label="Service status: Operational"
-              class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-          <i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i>
-          Live
-        </span>
-      </div>
-    </div>
-  </header>
+  <blt-nav project="blt-pool" name="Pool" data-sticky>
+    <a href="/" aria-current="page">Mentors</a>
+    <a href="/leaderboard">Leaderboard</a>
+    <a href="/github-app">GitHub App</a>
+  </blt-nav>
 
   <main class="mx-auto flex-1 w-full max-w-7xl space-y-10 px-4 py-10 sm:px-6 lg:px-8">
 
@@ -6586,20 +6566,12 @@ def _leaderboard_html(data: dict) -> str:
   <style>body {{ font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f8fafc; }}</style>
 </head>
 <body class="min-h-screen text-gray-900 antialiased">
-  <header class="border-b border-[#E5E5E5] bg-white">
-    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-      <a href="/" class="flex items-center gap-3">
-        <img src="/blt-pool-logo.svg" alt="BLT-Pool logo" class="h-10 w-10">
-        <div>
-        <h1 class="text-lg font-extrabold">BLT-Pool</h1></div>
-      </a>
-      <nav class="flex gap-1 text-sm font-semibold">
-        <a href="/" class="rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-50">Mentors</a>
-        <a href="/leaderboard" class="rounded-lg bg-[#feeae9] px-3 py-2 text-[#dc2626]">Leaderboard</a>
-        <a href="{esc(data['forge']['pulls_url'])}" class="rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-50">Pull requests</a>
-      </nav>
-    </div>
-  </header>
+  <blt-nav project="blt-pool" name="Pool" data-sticky>
+    <a href="/">Mentors</a>
+    <a href="/leaderboard" aria-current="page">Leaderboard</a>
+    <a href="/github-app">GitHub App</a>
+    <a href="{esc(data['forge']['pulls_url'])}" slot="actions">Pull requests</a>
+  </blt-nav>
   <main class="mx-auto max-w-6xl px-4 py-8">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>

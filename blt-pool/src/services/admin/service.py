@@ -997,9 +997,10 @@ class AdminService:
         return Response.new("", status=302, headers=Headers.new(headers.items()))
 
     def _shell(self, title: str, content: str, user: str = "", subtitle: str = "") -> str:
+        # Signed-in user, shown on the right of the shared OWASP BLT bar.
         auth_chip = (
-            f'<div class="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] '
-            f'bg-white px-3 py-1 text-xs font-semibold text-gray-600">Basic Auth as @{_escape(user)}</div>'
+            f'<a href="{self.admin_path}" slot="actions" aria-current="false" '
+            f'title="Signed in with Basic Auth">@{_escape(user)}</a>'
             if user
             else ""
         )
@@ -1048,23 +1049,12 @@ class AdminService:
   </style>
 </head>
 <body class="min-h-screen font-sans text-gray-900 antialiased">
-  <header data-admin-topbar class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
-    <div class="mx-auto flex w-full max-w-[98vw] items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
-      <a href="{self.admin_path}" class="flex items-center gap-3" aria-label="BLT-Pool admin home">
-        <img src="/blt-pool-logo.svg" alt="BLT-Pool logo" class="h-10 w-10">
-        <div>
-          <h1 class="text-lg font-extrabold text-[#111827]">BLT-Pool Admin</h1>
-        </div>
-      </a>
-      <div class="flex items-center gap-3">
-        <a href="/" class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#dc2626] hover:bg-[#feeae9] hover:text-[#dc2626]">
-          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-          Back to Pool
-        </a>
-        {auth_chip}
-      </div>
-    </div>
-  </header>
+  <blt-nav data-admin-topbar project="blt-pool" name="Pool" data-sticky>
+    <a href="/">Mentors</a>
+    <a href="/leaderboard">Leaderboard</a>
+    <a href="{self.admin_path}" aria-current="page">Admin</a>
+    {auth_chip}
+  </blt-nav>
   <main class="mx-auto w-full max-w-[98vw] px-4 py-8 sm:px-6 lg:px-8">
     <section class="overflow-visible rounded-3xl border border-[#E5E5E5] bg-white p-5 shadow-[0_14px_40px_rgba(225,1,1,0.10)] sm:p-6 lg:p-7">
       <div class="mb-8">

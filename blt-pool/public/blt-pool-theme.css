@@ -3,6 +3,10 @@
    pages use onto the owaspblt.org dark palette: gray-950 page, gray-900 cards, gray-800
    borders, red-400 accents. */
 html.dark { color-scheme: dark; }
+
+/* The shared bar's links are its children; hide them until the bar has loaded. */
+blt-nav:not(:defined) { display: block; min-height: 62px; }
+blt-nav:not(:defined) > * { display: none; }
 html.dark body { background: #030712; color: #f3f4f6; }
 html.dark .bg-white,
 html.dark .hover\:bg-white:hover { background-color: #111827; }
