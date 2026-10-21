@@ -16,7 +16,7 @@ visual dashboard with a compact list view and detailed monitor pages.
 - Checks for specific keywords in website content
 - Maintains the latest 30 checks in Workers KV for each monitor
 - Visual dashboard with response time charts
-- Slack notifications for downtime and missing keywords
+- Downtime and recovery alerts to a forge chat channel (or Slack)
 - Deployable on Cloudflare Python Workers with static assets
 - Configurable websites and keywords via `monitors.json`
 
@@ -25,7 +25,15 @@ visual dashboard with a compact list view and detailed monitor pages.
 `lettuce_owasp_welcome` fetches `https://lettuce.owaspblt.org/health/welcome`, which answers
 503 when the OWASP Slack welcome is failing and contains `welcome-healthy` only when it works
 (see blt-lettuce's README, "OWASP welcome bot"). It ships with `"enabled": false` and is turned
-on after the welcome cut-over. Alerts need the `SLACK_WEBHOOK_URL` secret, which isn't set yet.
+on after the welcome cut-over.
+
+### Alerts
+
+Alerts go to the public `#blt-alerts` chat channel on git.owaspblt.org through the channel's
+incoming webhook, stored as the `ALERT_WEBHOOK_URL` Worker secret. A message is posted only when a
+monitor goes down or comes back, not on every failed check. A Slack incoming webhook in
+`SLACK_WEBHOOK_URL` still works when `ALERT_WEBHOOK_URL` is unset. `POST /api/test-alert` (with the
+API token) sends a test message.
 
 ## Dashboard Structure
 
@@ -37,12 +45,9 @@ on after the welcome cut-over. Alerts need the `SLACK_WEBHOOK_URL` secret, which
 
 1. **Clone or fork the [source code](https://git.owaspblt.org/BLT/BLT-Monitor)**
 
-2. **Configure Slack Webhook (Optional)**:
-   - Go to your Slack workspace
-   - Create a new Slack App (https://api.slack.com/apps)
-   - Enable Incoming Webhooks
-   - Create a new webhook URL
-   - Copy the webhook URL
+2. **Configure an alert webhook (optional)**:
+   - On the forge, open the chat channel for alerts, add an incoming webhook and copy its URL
+     (it is shown once). A Slack incoming webhook URL works too.
 
 3. **Deploy the Cloudflare Python Worker**:
    - Install [uv](https://docs.astral.sh/uv/) and Node.js
@@ -71,9 +76,9 @@ on after the welcome cut-over. Alerts need the `SLACK_WEBHOOK_URL` secret, which
      ```bash
      npx wrangler secret put CRON_SECRET
      ```
-   - Optionally store the Slack webhook as a Worker secret:
+   - Optionally store the alert webhook as a Worker secret:
      ```bash
-     npx wrangler secret put SLACK_WEBHOOK_URL
+     npx wrangler secret put ALERT_WEBHOOK_URL
      ```
    - For Cloudflare Workers Builds connected to a git repository, clear the optional
      build command under **Settings > Build** and keep the deploy command as
@@ -135,7 +140,7 @@ Once set up, the monitor will:
   - Time since last check
   - Inline sparkline chart showing recent response times
 - Click any monitor card to view detailed information
-- Send Slack notifications when:
+- Post an alert to #blt-alerts on the forge when a monitor goes down or comes back:
   - A website is down
   - A specified keyword is not found
 - Maintain recent response time and keyword status history for each monitor
@@ -169,7 +174,7 @@ trigger an immediate monitor run.
 
 - If dashboard data is not updating, check the blt-cron Worker's logs and this
   Worker's logs in the Cloudflare dashboard, and that `CRON_SECRET` matches
-- Ensure the optional Slack webhook URL is set as a Worker secret
+- For alerts, check that the `ALERT_WEBHOOK_URL` Worker secret is set (`POST /api/test-alert`)
 - Check that the target website allows automated monitoring
 - Verify the keyword exists in the website content
 - Check if the website's content is dynamically loaded (which might not be detected)

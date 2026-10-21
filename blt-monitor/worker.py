@@ -59,11 +59,13 @@ class Default(WorkerEntrypoint):
             results = await self.run_monitors(shard)
             return Response.json({"results": results, "shard": shard, "shards": HISTORY_SHARDS})
 
-        if path == "/api/test-slack" and request.method == "POST":
+        if path in ("/api/test-alert", "/api/test-slack") and request.method == "POST":
             if not self.is_authorized(request):
                 return Response.json({"error": "Unauthorized"}, status=401)
-            if not await self.send_slack("Slack webhook test successful."):
-                return Response.json({"error": "Slack webhook is not configured"}, status=400)
+            if not self.alert_webhook_url():
+                return Response.json({"error": "Alert webhook is not configured"}, status=400)
+            if not await self.send_alert("BLT Monitor: test alert. Alerts reach this channel."):
+                return Response.json({"error": "Alert webhook rejected the message"}, status=502)
 
             return Response.json({"sent": True})
 
@@ -136,13 +138,15 @@ class Default(WorkerEntrypoint):
             if self.monitor_shard(monitor_id) != shard:
                 continue
 
+            previous = (histories.get(monitor_id) or [{}])[-1].get("status", "")
             result = await self.check_monitor(monitor)
             self.add_history_entry(histories, monitor_id, result)
-            results.append({"id": monitor_id, **result})
+            results.append({"id": monitor_id, "previous_status": previous, **result})
 
         await self.save_histories(shard, histories, env)
-        await self.notify_failures(monitors, results, env)
-        return results
+        await self.notify_changes(monitors, results, env)
+        return [{key: value for key, value in result.items() if key != "previous_status"}
+                for result in results]
 
     async def load_monitors(self, env=None):
         env = env or self.env
@@ -212,38 +216,56 @@ class Default(WorkerEntrypoint):
         await self.save_histories(shard, histories)
         return history
 
-    async def notify_failures(self, monitors, results, env=None):
-        env = env or self.env
-        webhook_url = getattr(env, "SLACK_WEBHOOK_URL", "")
-        failed_ids = {result["id"] for result in results if result["status"] == "failure"}
-        if not webhook_url or not failed_ids:
-            return
+    @staticmethod
+    def alert_lines(monitors, results):
+        """Lines for monitors that went down or came back since their last check.
 
-        failed_monitors = [
-            f"- {monitor['name']} ({monitor['url']})"
-            for monitor in monitors
-            if monitor.get("id") in failed_ids
-        ]
-        await self.send_slack(
-            "Website Monitor Alert\n"
-            "One or more monitors detected issues:\n"
-            + "\n".join(failed_monitors),
+        A site that stays down is reported once, not on every run.
+        """
+        names = {monitor.get("id"): monitor for monitor in monitors}
+        down, recovered = [], []
+        for result in results:
+            monitor = names.get(result["id"]) or {}
+            label = f"{monitor.get('name', result['id'])} ({monitor.get('url', '')})"
+            if result["status"] == "failure" and result.get("previous_status") != "failure":
+                down.append(f"- DOWN: {label}")
+            elif result["status"] == "success" and result.get("previous_status") == "failure":
+                recovered.append(f"- Back up: {label}")
+        return down + recovered
+
+    def alert_webhook_url(self, env=None):
+        env = env or self.env
+        # ALERT_WEBHOOK_URL is a forge chat channel's incoming webhook; it takes
+        # the same {"text": ...} body as a Slack incoming webhook, which still
+        # works as SLACK_WEBHOOK_URL.
+        return str(getattr(env, "ALERT_WEBHOOK_URL", "") or getattr(env, "SLACK_WEBHOOK_URL", "") or "")
+
+    async def notify_changes(self, monitors, results, env=None):
+        lines = self.alert_lines(monitors, results)
+        if not lines or not self.alert_webhook_url(env):
+            return
+        await self.send_alert(
+            "BLT Monitor\n" + "\n".join(lines) + "\nhttps://monitor.owaspblt.org/",
             env,
         )
 
-    async def send_slack(self, message, env=None):
-        env = env or self.env
-        webhook_url = getattr(env, "SLACK_WEBHOOK_URL", "")
+    async def send_alert(self, message, env=None):
+        webhook_url = self.alert_webhook_url(env)
         if not webhook_url:
             return False
-
-        await fetch(
-            webhook_url,
-            method="POST",
-            headers={"Content-Type": "application/json"},
-            body=json.dumps({"text": message}),
-        )
-        return True
+        try:
+            response = await fetch(
+                webhook_url,
+                method="POST",
+                headers={"Content-Type": "application/json"},
+                body=json.dumps({"text": message}),
+            )
+        except Exception as error:
+            print(f"Alert delivery failed: {error}")
+            return False
+        if not response.ok:
+            print(f"Alert webhook answered HTTP {response.status}")
+        return bool(response.ok)
 
     async def load_history(self, monitor_id):
         histories = await self.load_histories(self.monitor_shard(monitor_id))
