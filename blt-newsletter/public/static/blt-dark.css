@@ -1,0 +1,72 @@
+/* Dark mode for BLT Newsletter: class "dark" on <html>, set before first paint by
+   /static/theme-init.js and by the shared OWASP BLT bar (<blt-nav>) toggle, which saves
+   localStorage "theme". Maps the light colours these pages use onto the owaspblt.org dark
+   palette (gray-950 page, gray-900 cards, gray-800 borders). */
+html.dark { color-scheme: dark; }
+
+/* Dashboard tokens (the names say "light"; in dark mode they carry the dark values). */
+html.dark {
+  --background-light: #030712;
+  --surface-light: #111827;
+  --text-primary-light: #f3f4f6;
+  --text-secondary-light: #e5e7eb;
+  --text-muted-light: #9ca3af;
+  --border-light: #1f2937;
+}
+
+html.dark body { background: #030712; color: #f3f4f6; }
+
+/* Tailwind utilities used on these pages */
+html.dark .bg-white,
+html.dark .bg-white\/90,
+html.dark .bg-white\/95 { background-color: #111827; }
+html.dark .bg-white\/40 { background-color: rgba(17, 24, 39, 0.6); }
+html.dark .bg-gray-50:not(body) { background-color: #0b1220; }
+html.dark .hover\:bg-gray-50:hover,
+html.dark .hover\:bg-gray-100:hover { background-color: #1f2937; }
+html.dark .text-gray-950,
+html.dark .text-gray-900 { color: #f3f4f6; }
+html.dark .text-gray-700 { color: #d1d5db; }
+html.dark .text-gray-600,
+html.dark .text-gray-500 { color: #9ca3af; }
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-gray-300,
+html.dark .border-black\/5,
+html.dark .border-b,
+html.dark .border-t,
+html.dark .border-r { border-color: #1f2937; }
+html.dark .bg-red-50,
+html.dark .hover\:bg-red-50:hover { background-color: rgba(220, 38, 38, 0.12); }
+html.dark .border-red-100,
+html.dark .border-red-200 { border-color: rgba(248, 113, 113, 0.3); }
+html.dark .text-red-600 { color: #f87171; }
+html.dark .bg-green-50 { background-color: rgba(34, 197, 94, 0.12); }
+html.dark .border-green-200 { border-color: rgba(34, 197, 94, 0.3); }
+html.dark .bg-blue-50 { background-color: rgba(59, 130, 246, 0.12); }
+html.dark .border-blue-200 { border-color: rgba(59, 130, 246, 0.3); }
+
+/* Landing page (index.html) hand-written colours */
+html.dark .dot-field { background-image: radial-gradient(rgba(243, 244, 246, 0.12) 1px, transparent 1px); }
+html.dark .feature-divider::before { background: linear-gradient(to right, transparent, #374151); }
+html.dark .feature-divider::after { background: linear-gradient(to left, transparent, #374151); }
+html.dark .wave-dots i { background: #4b5563; }
+html.dark .hero-stat strong { color: #f3f4f6; }
+html.dark #site-footer { background-color: #000; border-color: #1f2937; }
+
+/* Login / signup / docs page styles */
+html.dark .login-card,
+html.dark .setup-card,
+html.dark .section,
+html.dark .feature-card { background: #111827; border-color: #1f2937; color: #f3f4f6; }
+html.dark .input-field { background: #030712; border-color: #374151; color: #f3f4f6; }
+html.dark body.docs-page h1,
+html.dark body.docs-page h2,
+html.dark body.docs-page h3 { color: #f3f4f6; }
+html.dark body.docs-page p,
+html.dark body.docs-page li { color: #9ca3af; }
+html.dark body.docs-page code { background: #1f2937; border-color: #374151; color: #f87171; }
+html.dark .highlight { background: rgba(220, 38, 38, 0.12); }
+html.dark .toast,
+html.dark .modal,
+html.dark .sheet { background-color: #111827; border-color: #1f2937; color: #f3f4f6; }

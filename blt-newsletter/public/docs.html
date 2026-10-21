@@ -9,12 +9,8 @@
       content="Learn how to use the BLT Newsletter Admin Dashboard"
     />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <script src="/static/theme-init.js"></script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -24,7 +20,7 @@
     />
     <style>
       * {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       }
 
       body {
@@ -123,15 +119,16 @@
         margin: 1rem 0;
       }
     </style>
+      <link rel="stylesheet" href="/static/blt-dark.css" />
   </head>
-  <body class="bg-gray-50">
+  <body class="docs-page bg-gray-50">
     <!-- Header -->
     <header class="bg-white border-b border-gray-200">
       <div class="max-w-4xl mx-auto px-6 py-8">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3">
             <div class="flex h-10 w-10 items-center justify-center rounded-lg border border-red-100 bg-white shadow-sm">
-              <img src="./static/images/logo.png" alt="BLT Logo" class="h-9 w-9" />
+              <img src="./static/images/logo.svg" alt="" class="h-9 w-9" />
             </div>
             <h1 class="text-3xl font-bold">BLT Newsletter</h1>
           </div>

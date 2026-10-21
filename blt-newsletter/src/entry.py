@@ -2156,14 +2156,21 @@ def html_response(title, message, status=200):
         "<!doctype html><html><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width, initial-scale=1'>"
         "<title>" + escape_html_text(title) + "</title>"
-        "<style>body{font-family:Inter,Arial,sans-serif;background:#f8fafc;color:#0f172a;"
-        "display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0;padding:24px}"
-        "main{max-width:520px;background:white;border:1px solid #e2e8f0;border-radius:12px;"
+        # Theme + the shared OWASP BLT bar, as on the static pages (public/static/theme-init.js).
+        "<script src='/static/theme-init.js'></script>"
+        "<script src='https://owaspblt.org/_shared/blt-nav.js' defer></script>"
+        "<style>body{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',"
+        "Roboto,'Helvetica Neue',Arial,sans-serif;background:#f9fafb;color:#111827;margin:0}"
+        ".page{display:flex;min-height:80vh;align-items:center;justify-content:center;padding:24px}"
+        "main{max-width:520px;background:white;border:1px solid #e5e7eb;border-radius:16px;"
         "box-shadow:0 24px 80px rgba(15,23,42,.12);padding:32px}"
-        "h1{margin:0 0 12px;color:#dc2626}p{line-height:1.6;color:#475569}</style></head>"
-        "<body><main><h1>" + escape_html_text(title) + "</h1><p>" + escape_html_text(message) + "</p>"
+        "h1{margin:0 0 12px;color:#dc2626}p{line-height:1.6;color:#4b5563}"
+        "html.dark{color-scheme:dark}html.dark body{background:#030712;color:#f3f4f6}"
+        "html.dark main{background:#111827;border-color:#1f2937;box-shadow:none}"
+        "html.dark h1{color:#f87171}html.dark p{color:#9ca3af}</style></head>"
+        "<body><div class='page'><main><h1>" + escape_html_text(title) + "</h1><p>" + escape_html_text(message) + "</p>"
         "<p><a href='/' style='color:#dc2626;font-weight:600'>Return to BLT Newsletter</a></p>"
-        "</main></body></html>"
+        "</main></div></body></html>"
     )
     return Response.new(
         body,
