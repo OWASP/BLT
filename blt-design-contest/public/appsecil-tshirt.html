@@ -17,7 +17,7 @@
       theme: {
         extend: {
           colors: {
-            brand: '#E10101',
+            brand: '#dc2626',
           },
         },
       },
@@ -32,21 +32,23 @@
 
   <!-- Minimal custom overrides -->
   <style>
-    :root { --brand: #E10101; }
+    :root { --brand: #dc2626; }
     *:focus-visible {
       outline: 2px solid var(--brand);
       outline-offset: 2px;
     }
   </style>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 
-<body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen
+<body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen
              flex flex-col font-sans antialiased">
 
   <!-- ── Skip to content ── -->
   <a href="#contest-appsecil-tshirt"
      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
-            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white
+            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#dc2626] focus:text-white
             focus:rounded-md focus:font-medium">
     Skip to content
   </a>
@@ -54,33 +56,32 @@
   <!-- ══════════════════════════════════════════
        HEADER / NAV
   ══════════════════════════════════════════ -->
-  <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700
+  <header class="bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800
                  sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
 
         <!-- Logo / Brand -->
         <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
-          <span class="inline-flex items-center justify-center w-8 h-8 rounded-md
-                       bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
+          <img src="/logo.svg" alt="" class="w-8 h-8" width="32" height="32" />
           <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
-            Design Contests
+            BLT Design Contests
           </span>
         </a>
 
         <!-- Centre nav links -->
         <div class="hidden md:flex items-center gap-6 text-sm font-medium">
           <a href="index.html"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors
                     inline-flex items-center gap-1.5">
             <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
           </a>
           <span class="text-gray-300 dark:text-gray-600">|</span>
-          <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold">
+          <span class="inline-flex items-center gap-1.5 text-[#dc2626] font-semibold">
             <i class="fa-solid fa-shirt" aria-hidden="true"></i> AppSecIL 2026 T-Shirt Design Contest
           </span>
           <a href="https://git.owaspblt.org/BLT/issues?label=blt-design-contest" target="_blank" rel="noopener"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors
                     inline-flex items-center gap-1">
             <i class="fa-solid fa-list-check" aria-hidden="true"></i> Issues
           </a>
@@ -89,21 +90,13 @@
         <!-- CTA -->
         <a href="https://git.owaspblt.org/BLT/blob/main/blt-design-contest/issue-templates/appsecil-tshirt-submission.md"
            target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+           class="inline-flex items-center gap-2 bg-[#dc2626] hover:bg-red-700
                   text-white text-sm font-semibold px-4 py-2 rounded-md
                   transition-colors shrink-0">
           <i class="fa-solid fa-plus" aria-hidden="true"></i>
           <span>Submit Design</span>
         </a>
 
-        <!-- Dark-mode toggle -->
-        <button id="theme-toggle" type="button"
-                class="p-2 rounded-md text-gray-500 dark:text-gray-400
-                       hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                aria-label="Toggle dark mode">
-          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
-          <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
-        </button>
 
       </nav>
     </div>
@@ -121,22 +114,22 @@
       </p>
 
       
-      <p class="mb-6 text-sm text-gray-500 dark:text-gray-400"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> Entries marked <strong>GitLab archive</strong> were submitted on gitlab.com before the BLT GitLab group closed; their vote counts are final. New entries and votes live on <a href="https://git.owaspblt.org/BLT/issues?label=blt-design-contest" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">git.owaspblt.org</a>.</p>
+      <p class="mb-6 text-sm text-gray-500 dark:text-gray-400"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> Entries marked <strong>GitLab archive</strong> were submitted on gitlab.com before the BLT GitLab group closed; their vote counts are final. New entries and votes live on <a href="https://git.owaspblt.org/BLT/issues?label=blt-design-contest" target="_blank" rel="noopener" class="text-[#dc2626] hover:underline">git.owaspblt.org</a>.</p>
       
     <div id="contest-appsecil-tshirt" class="contest-panel" role="tabpanel" aria-labelledby="tab-appsecil-tshirt">
 
       <!-- Contest info bar -->
-      <div class="mb-6 p-5 bg-white dark:bg-[#1F2937] rounded-xl border border-[#E5E5E5] dark:border-gray-700">
+      <div class="mb-6 p-5 bg-white dark:bg-gray-900 rounded-xl border border-[#E5E5E5] dark:border-gray-800">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <i class="fa-solid fa-shirt text-[#E10101]" aria-hidden="true"></i>
+              <i class="fa-solid fa-shirt text-[#dc2626]" aria-hidden="true"></i>
               AppSecIL 2026 T-Shirt Design Contest
             </h2>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Israel&#x27;s premier application security event is back! OWASP AppSec Israel is one of the leading cybersecurity conferences in the region, bringing together experts, professionals, and enthusiasts from around the world. Join 1,000+ developers, DevOps engineers, architects, security specialists, product leaders, and other industry professionals dedicated to advancing the future of application security. Whether you build, secure, or manage software, this event is designed for you. Hear from top speakers sharing the latest security insights. Join hands-on sessions and network with leading industry experts. A diverse audience awaits you: security and cyber defense professionals, developers, software engineers, researchers, industry leaders, and executives.</p>
             <div class="mt-2 flex items-center gap-4 text-sm font-medium flex-wrap">
               
-              <span class="inline-flex items-center gap-1 text-[#E10101]">
+              <span class="inline-flex items-center gap-1 text-[#dc2626]">
                 <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends April 12, 2026
               </span>
               <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
@@ -146,17 +139,17 @@
             </div>
             <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
               To enter, copy the <a href="https://git.owaspblt.org/BLT/blob/main/blt-design-contest/issue-templates/appsecil-tshirt-submission.md" target="_blank" rel="noopener"
-              class="text-[#E10101] hover:underline font-medium">submission template</a> into a
+              class="text-[#dc2626] hover:underline font-medium">submission template</a> into a
               <a href="https://git.owaspblt.org/BLT/issues/new" target="_blank" rel="noopener"
-              class="text-[#E10101] hover:underline font-medium">new issue</a> on git.owaspblt.org
+              class="text-[#dc2626] hover:underline font-medium">new issue</a> on git.owaspblt.org
               titled <code>[blt-design-contest] [AppSecIL] ...</code>. To vote, open a submission's
               issue and press Vote (signed in), or comment <code>+1</code>.
             </p>
-            <div class="mt-3 text-sm text-gray-500 dark:text-gray-400">Submit via BLT below, or use the <a href="https://docs.google.com/forms/d/e/1FAIpQLSej8eFeNBeUhOyKmDffvv9y0QLIoWCgt6szrFVZjxDaY-8VOw/viewform" target="_blank" rel="noopener" class="text-[#E10101] hover:underline font-medium">official Google Form</a> as an alternative.</div>
+            <div class="mt-3 text-sm text-gray-500 dark:text-gray-400">Submit via BLT below, or use the <a href="https://docs.google.com/forms/d/e/1FAIpQLSej8eFeNBeUhOyKmDffvv9y0QLIoWCgt6szrFVZjxDaY-8VOw/viewform" target="_blank" rel="noopener" class="text-[#dc2626] hover:underline font-medium">official Google Form</a> as an alternative.</div>
           </div>
           <a href="https://git.owaspblt.org/BLT/blob/main/blt-design-contest/issue-templates/appsecil-tshirt-submission.md"
              target="_blank" rel="noopener"
-             class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+             class="inline-flex items-center gap-2 bg-[#dc2626] hover:bg-red-700
                     text-white text-sm font-semibold px-4 py-2 rounded-md
                     transition-colors shrink-0">
             <i class="fa-solid fa-plus" aria-hidden="true"></i>
@@ -170,7 +163,7 @@
         <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">Sort:</span>
         <button id="sort-votes-appsecil-tshirt" type="button"
                 class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
-                       text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
+                       text-gray-700 dark:text-gray-200 hover:border-[#dc2626] hover:text-[#dc2626]
                        text-sm font-semibold px-4 py-2 rounded-md transition-colors"
                 aria-pressed="false"
                 data-sort="votes" data-contest="appsecil-tshirt">
@@ -179,7 +172,7 @@
         </button>
         <button id="sort-comments-appsecil-tshirt" type="button"
                 class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
-                       text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
+                       text-gray-700 dark:text-gray-200 hover:border-[#dc2626] hover:text-[#dc2626]
                        text-sm font-semibold px-4 py-2 rounded-md transition-colors"
                 aria-pressed="false"
                 data-sort="comments" data-contest="appsecil-tshirt">
@@ -192,8 +185,8 @@
       <div id="cards-grid-appsecil-tshirt"
            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         
-    <article class="group relative bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
-                    border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+    <article class="group relative bg-white dark:bg-gray-900 rounded-2xl shadow-sm border
+                    border-[#E5E5E5] dark:border-gray-800 overflow-hidden
                     flex flex-col hover:shadow-md transition-shadow"
              data-votes="0"
              data-comments="1"
@@ -220,16 +213,16 @@
         <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <img src="https://git.owaspblt.org/api/accounts/donnieblt/avatar" alt="" class="w-6 h-6 rounded-full" aria-hidden="true" />
           <a href="https://git.owaspblt.org/@DonnieBLT" target="_blank" rel="noopener"
-             class="text-[#E10101] hover:underline font-medium">DonnieBLT</a>
+             class="text-[#dc2626] hover:underline font-medium">DonnieBLT</a>
         </div>
         <!-- Last comment -->
-        <div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500"><img src="https://avatars.githubusercontent.com/in/1159228?v=4" alt="owasp-blt[bot]'s avatar" class="w-5 h-5 rounded-full shrink-0" /><span>1 comment · <a href="https://github.com/apps/owasp-blt" target="_blank" rel="noopener" class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">owasp-blt[bot]</a>: 👋 Thanks for opening this issue, @DonnieBLT!
+        <div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500"><img src="https://avatars.githubusercontent.com/in/1159228?v=4" alt="owasp-blt[bot]'s avatar" class="w-5 h-5 rounded-full shrink-0" /><span>1 comment · <a href="https://github.com/apps/owasp-blt" target="_blank" rel="noopener" class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#dc2626] transition-colors">owasp-blt[bot]</a>: 👋 Thanks for opening this issue, @DonnieBLT!
 
 Our team will review it shortly. In the meantime:
 - If you&#x27;d like to wo…</span></div>
         <!-- Footer: votes + design link -->
         <div class="flex items-center justify-between gap-2 flex-wrap pt-2
-                    border-t border-[#E5E5E5] dark:border-gray-700">
+                    border-t border-[#E5E5E5] dark:border-gray-800">
           <div class="flex items-center gap-2 flex-wrap" aria-label="Votes">
             <span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5" title="Final GitLab vote count (archived)"><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <span>0</span><span class="sr-only"> votes</span></span><span class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> GitLab archive</span>
           </div>
@@ -241,8 +234,8 @@ Our team will review it shortly. In the meantime:
       </div>
     </article>
 
-    <article class="group relative bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
-                    border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+    <article class="group relative bg-white dark:bg-gray-900 rounded-2xl shadow-sm border
+                    border-[#E5E5E5] dark:border-gray-800 overflow-hidden
                     flex flex-col hover:shadow-md transition-shadow"
              data-votes="0"
              data-comments="1"
@@ -269,16 +262,16 @@ Our team will review it shortly. In the meantime:
         <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <img src="https://git.owaspblt.org/api/accounts/donnieblt/avatar" alt="" class="w-6 h-6 rounded-full" aria-hidden="true" />
           <a href="https://git.owaspblt.org/@DonnieBLT" target="_blank" rel="noopener"
-             class="text-[#E10101] hover:underline font-medium">DonnieBLT</a>
+             class="text-[#dc2626] hover:underline font-medium">DonnieBLT</a>
         </div>
         <!-- Last comment -->
-        <div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500"><img src="https://avatars.githubusercontent.com/in/1159228?v=4" alt="owasp-blt[bot]'s avatar" class="w-5 h-5 rounded-full shrink-0" /><span>1 comment · <a href="https://github.com/apps/owasp-blt" target="_blank" rel="noopener" class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">owasp-blt[bot]</a>: 👋 Thanks for opening this issue, @DonnieBLT!
+        <div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500"><img src="https://avatars.githubusercontent.com/in/1159228?v=4" alt="owasp-blt[bot]'s avatar" class="w-5 h-5 rounded-full shrink-0" /><span>1 comment · <a href="https://github.com/apps/owasp-blt" target="_blank" rel="noopener" class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#dc2626] transition-colors">owasp-blt[bot]</a>: 👋 Thanks for opening this issue, @DonnieBLT!
 
 Our team will review it shortly. In the meantime:
 - If you&#x27;d like to wo…</span></div>
         <!-- Footer: votes + design link -->
         <div class="flex items-center justify-between gap-2 flex-wrap pt-2
-                    border-t border-[#E5E5E5] dark:border-gray-700">
+                    border-t border-[#E5E5E5] dark:border-gray-800">
           <div class="flex items-center gap-2 flex-wrap" aria-label="Votes">
             <span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5" title="Final GitLab vote count (archived)"><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <span>0</span><span class="sr-only"> votes</span></span><span class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> GitLab archive</span>
           </div>
@@ -290,8 +283,8 @@ Our team will review it shortly. In the meantime:
       </div>
     </article>
 
-    <article class="group relative bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
-                    border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+    <article class="group relative bg-white dark:bg-gray-900 rounded-2xl shadow-sm border
+                    border-[#E5E5E5] dark:border-gray-800 overflow-hidden
                     flex flex-col hover:shadow-md transition-shadow"
              data-votes="0"
              data-comments="1"
@@ -318,16 +311,16 @@ Our team will review it shortly. In the meantime:
         <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <img src="https://git.owaspblt.org/api/accounts/donnieblt/avatar" alt="" class="w-6 h-6 rounded-full" aria-hidden="true" />
           <a href="https://git.owaspblt.org/@DonnieBLT" target="_blank" rel="noopener"
-             class="text-[#E10101] hover:underline font-medium">DonnieBLT</a>
+             class="text-[#dc2626] hover:underline font-medium">DonnieBLT</a>
         </div>
         <!-- Last comment -->
-        <div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500"><img src="https://avatars.githubusercontent.com/in/1159228?v=4" alt="owasp-blt[bot]'s avatar" class="w-5 h-5 rounded-full shrink-0" /><span>1 comment · <a href="https://github.com/apps/owasp-blt" target="_blank" rel="noopener" class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">owasp-blt[bot]</a>: 👋 Thanks for opening this issue, @DonnieBLT!
+        <div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500"><img src="https://avatars.githubusercontent.com/in/1159228?v=4" alt="owasp-blt[bot]'s avatar" class="w-5 h-5 rounded-full shrink-0" /><span>1 comment · <a href="https://github.com/apps/owasp-blt" target="_blank" rel="noopener" class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#dc2626] transition-colors">owasp-blt[bot]</a>: 👋 Thanks for opening this issue, @DonnieBLT!
 
 Our team will review it shortly. In the meantime:
 - If you&#x27;d like to wo…</span></div>
         <!-- Footer: votes + design link -->
         <div class="flex items-center justify-between gap-2 flex-wrap pt-2
-                    border-t border-[#E5E5E5] dark:border-gray-700">
+                    border-t border-[#E5E5E5] dark:border-gray-800">
           <div class="flex items-center gap-2 flex-wrap" aria-label="Votes">
             <span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5" title="Final GitLab vote count (archived)"><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <span>0</span><span class="sr-only"> votes</span></span><span class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> GitLab archive</span>
           </div>
@@ -348,29 +341,29 @@ Our team will review it shortly. In the meantime:
   <!-- ══════════════════════════════════════════
        FOOTER
   ══════════════════════════════════════════ -->
-  <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+  <footer class="bg-white dark:bg-gray-900 border-t border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8
                 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm
                 text-gray-500 dark:text-gray-400">
       <p>
         &copy; 2026
         <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
-           class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+           class="text-[#dc2626] hover:underline font-medium">OWASP BLT</a>.
         Content licensed under
         <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener"
-           class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+           class="text-[#dc2626] hover:underline">CC BY 4.0</a>.
       </p>
       <div class="flex items-center gap-4">
         <a href="index.html"
-           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+           class="hover:text-[#dc2626] transition-colors inline-flex items-center gap-1">
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
         </a>
         <a href="https://git.owaspblt.org/BLT/tree/main/blt-design-contest" target="_blank" rel="noopener"
-           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+           class="hover:text-[#dc2626] transition-colors inline-flex items-center gap-1">
           <i class="fa-solid fa-code" aria-hidden="true"></i> Source
         </a>
         <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
-           class="hover:text-[#E10101] transition-colors">OWASP BLT</a>
+           class="hover:text-[#dc2626] transition-colors">OWASP BLT</a>
       </div>
     </div>
   </footer>
@@ -379,8 +372,6 @@ Our team will review it shortly. In the meantime:
        SCRIPTS
   ══════════════════════════════════════════ -->
   <script>
-    // Dark-mode toggle
-    const toggle = document.getElementById('theme-toggle');
     const html = document.documentElement;
 
     // Initialise from localStorage or system preference
@@ -390,10 +381,6 @@ Our team will review it shortly. In the meantime:
       html.classList.add('dark');
     }
 
-    toggle.addEventListener('click', () => {
-      html.classList.toggle('dark');
-      localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
-    });
 
     // Sort buttons — work independently per contest panel
     const sortState = {};
@@ -401,7 +388,7 @@ Our team will review it shortly. In the meantime:
     function resetSortBtn(btn) {
       if (!btn) return;
       btn.setAttribute('aria-pressed', 'false');
-      btn.classList.remove('border-[#E10101]', 'text-[#E10101]');
+      btn.classList.remove('border-[#dc2626]', 'text-[#dc2626]');
       btn.classList.add('border-gray-300', 'dark:border-gray-600', 'text-gray-700', 'dark:text-gray-200');
     }
 
@@ -424,8 +411,8 @@ Our team will review it shortly. In the meantime:
         resetSortBtn(otherBtn);
 
         btn.setAttribute('aria-pressed', String(!isActive));
-        btn.classList.toggle('border-[#E10101]', !isActive);
-        btn.classList.toggle('text-[#E10101]', !isActive);
+        btn.classList.toggle('border-[#dc2626]', !isActive);
+        btn.classList.toggle('text-[#dc2626]', !isActive);
         btn.classList.toggle('border-gray-300', isActive);
         btn.classList.toggle('dark:border-gray-600', isActive);
         btn.classList.toggle('text-gray-700', isActive);

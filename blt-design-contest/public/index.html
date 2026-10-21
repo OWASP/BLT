@@ -17,7 +17,7 @@
       theme: {
         extend: {
           colors: {
-            brand: '#E10101',
+            brand: '#dc2626',
           },
         },
       },
@@ -32,21 +32,23 @@
 
   <!-- Minimal custom overrides -->
   <style>
-    :root { --brand: #E10101; }
+    :root { --brand: #dc2626; }
     *:focus-visible {
       outline: 2px solid var(--brand);
       outline-offset: 2px;
     }
   </style>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 
-<body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen
+<body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen
              flex flex-col font-sans antialiased">
 
   <!-- ── Skip to content ── -->
   <a href="#contests"
      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
-            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white
+            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#dc2626] focus:text-white
             focus:rounded-md focus:font-medium">
     Skip to content
   </a>
@@ -54,32 +56,31 @@
   <!-- ══════════════════════════════════════════
        HEADER / NAV
   ══════════════════════════════════════════ -->
-  <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700
+  <header class="bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800
                  sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
 
         <!-- Logo / Brand -->
         <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
-          <span class="inline-flex items-center justify-center w-8 h-8 rounded-md
-                       bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
+          <img src="/logo.svg" alt="" class="w-8 h-8" width="32" height="32" />
           <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
-            Design Contests
+            BLT Design Contests
           </span>
         </a>
 
         <!-- Centre nav links -->
         <div class="hidden md:flex items-center gap-6 text-sm font-medium">
           <a href="#contests"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">
+             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors">
             Contests
           </a>
           <a href="#how-it-works"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">
+             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors">
             How it works
           </a>
           <a href="https://git.owaspblt.org/BLT/issues?label=blt-design-contest" target="_blank" rel="noopener"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors
                     inline-flex items-center gap-1">
             <i class="fa-solid fa-list-check" aria-hidden="true"></i> Issues
           </a>
@@ -88,21 +89,13 @@
         <!-- CTA -->
         <a href="https://git.owaspblt.org/BLT/blob/main/blt-design-contest/issue-templates/README.md"
            target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+           class="inline-flex items-center gap-2 bg-[#dc2626] hover:bg-red-700
                   text-white text-sm font-semibold px-4 py-2 rounded-md
                   transition-colors shrink-0">
           <i class="fa-solid fa-plus" aria-hidden="true"></i>
           <span>Submit Design</span>
         </a>
 
-        <!-- Dark-mode toggle -->
-        <button id="theme-toggle" type="button"
-                class="p-2 rounded-md text-gray-500 dark:text-gray-400
-                       hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                aria-label="Toggle dark mode">
-          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
-          <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
-        </button>
 
       </nav>
     </div>
@@ -111,9 +104,9 @@
   <!-- ══════════════════════════════════════════
        HERO
   ══════════════════════════════════════════ -->
-  <section class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700">
+  <section class="bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-      <span class="inline-block mb-4 bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+      <span class="inline-block mb-4 bg-[#fef2f2] dark:bg-red-900/30 text-[#dc2626]
                    text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
         Open to Everyone
       </span>
@@ -130,24 +123,24 @@
   <!-- ══════════════════════════════════════════
        HOW IT WORKS
   ══════════════════════════════════════════ -->
-  <section id="how-it-works" class="bg-gray-50 dark:bg-[#111827]">
+  <section id="how-it-works" class="bg-gray-50 dark:bg-gray-950">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       <h2 class="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-10">
         How it works
       </h2>
       <ol class="grid sm:grid-cols-3 gap-8" role="list">
         <li class="flex flex-col items-center text-center gap-3">
-          <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+          <span class="w-12 h-12 rounded-full bg-[#fef2f2] dark:bg-red-900/30 text-[#dc2626]
                        flex items-center justify-center text-xl font-black">1</span>
           <h3 class="font-semibold text-gray-900 dark:text-gray-100">Submit your design</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
             Open a new issue on git.owaspblt.org and paste the contest's
-            <a href="https://git.owaspblt.org/BLT/blob/main/blt-design-contest/issue-templates/README.md" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">submission template</a>
+            <a href="https://git.owaspblt.org/BLT/blob/main/blt-design-contest/issue-templates/README.md" target="_blank" rel="noopener" class="text-[#dc2626] hover:underline">submission template</a>
             into it — no prior experience needed. Add a preview image, a short description, and a link to your design.
           </p>
         </li>
         <li class="flex flex-col items-center text-center gap-3">
-          <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+          <span class="w-12 h-12 rounded-full bg-[#fef2f2] dark:bg-red-900/30 text-[#dc2626]
                        flex items-center justify-center text-xl font-black">2</span>
           <h3 class="font-semibold text-gray-900 dark:text-gray-100">Everyone votes</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -156,7 +149,7 @@
           </p>
         </li>
         <li class="flex flex-col items-center text-center gap-3">
-          <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+          <span class="w-12 h-12 rounded-full bg-[#fef2f2] dark:bg-red-900/30 text-[#dc2626]
                        flex items-center justify-center text-xl font-black">3</span>
           <h3 class="font-semibold text-gray-900 dark:text-gray-100">Showcase updates</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -171,7 +164,7 @@
   <!-- ══════════════════════════════════════════
        CONTESTS OVERVIEW
   ══════════════════════════════════════════ -->
-  <section id="contests" class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+  <section id="contests" class="bg-white dark:bg-gray-900 border-t border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
@@ -189,15 +182,15 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
         
         <a href="blt-tshirt.html"
-           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
-                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
-          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+           class="group block bg-white dark:bg-gray-900 rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-800 overflow-hidden
+                  hover:shadow-lg hover:border-[#dc2626] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#dc2626] to-red-400"></div>
           <div class="p-6 sm:p-7">
             <div class="flex items-start gap-4 mb-4">
-              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+              <div class="w-14 h-14 rounded-xl bg-[#fef2f2] dark:bg-red-900/30
                           flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-shirt text-2xl text-[#E10101]" aria-hidden="true"></i>
+                <i class="fa-solid fa-shirt text-2xl text-[#dc2626]" aria-hidden="true"></i>
               </div>
               <div class="min-w-0">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">BLT T-Shirt Design Contest</h3>
@@ -206,20 +199,20 @@
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">Design a T-shirt or apparel for OWASP BLT.</p>
             <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
-              <span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $25 prize</span>
+              <span class="inline-flex items-center gap-1.5 text-[#dc2626]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $25 prize</span>
               <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                 <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ended March 1, 2026
               </span>
             </div>
             <div class="flex items-center justify-between pt-4
-                        border-t border-[#E5E5E5] dark:border-gray-700">
+                        border-t border-[#E5E5E5] dark:border-gray-800">
               <div>
-                <p class="text-2xl font-black text-[#E10101]">34</p>
+                <p class="text-2xl font-black text-[#dc2626]">34</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
                   submissions
                 </p>
               </div>
-              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+              <span class="inline-flex items-center gap-1.5 text-[#dc2626] font-semibold text-sm
                            group-hover:gap-2.5 transition-all duration-200">
                 View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </span>
@@ -227,15 +220,15 @@
           </div>
         </a>
         <a href="blt-logo.html"
-           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
-                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
-          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+           class="group block bg-white dark:bg-gray-900 rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-800 overflow-hidden
+                  hover:shadow-lg hover:border-[#dc2626] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#dc2626] to-red-400"></div>
           <div class="p-6 sm:p-7">
             <div class="flex items-start gap-4 mb-4">
-              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+              <div class="w-14 h-14 rounded-xl bg-[#fef2f2] dark:bg-red-900/30
                           flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-brush text-2xl text-[#E10101]" aria-hidden="true"></i>
+                <i class="fa-solid fa-brush text-2xl text-[#dc2626]" aria-hidden="true"></i>
               </div>
               <div class="min-w-0">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">BLT Logo Contest</h3>
@@ -244,20 +237,20 @@
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">Design a new logo for OWASP BLT and all its repositories.</p>
             <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
-              <span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $25 prize</span>
+              <span class="inline-flex items-center gap-1.5 text-[#dc2626]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $25 prize</span>
               <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                 <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends April 15, 2026
               </span>
             </div>
             <div class="flex items-center justify-between pt-4
-                        border-t border-[#E5E5E5] dark:border-gray-700">
+                        border-t border-[#E5E5E5] dark:border-gray-800">
               <div>
-                <p class="text-2xl font-black text-[#E10101]">2</p>
+                <p class="text-2xl font-black text-[#dc2626]">2</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
                   submissions
                 </p>
               </div>
-              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+              <span class="inline-flex items-center gap-1.5 text-[#dc2626] font-semibold text-sm
                            group-hover:gap-2.5 transition-all duration-200">
                 View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </span>
@@ -265,15 +258,15 @@
           </div>
         </a>
         <a href="blt-homepage.html"
-           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
-                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
-          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+           class="group block bg-white dark:bg-gray-900 rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-800 overflow-hidden
+                  hover:shadow-lg hover:border-[#dc2626] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#dc2626] to-red-400"></div>
           <div class="p-6 sm:p-7">
             <div class="flex items-start gap-4 mb-4">
-              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+              <div class="w-14 h-14 rounded-xl bg-[#fef2f2] dark:bg-red-900/30
                           flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-house text-2xl text-[#E10101]" aria-hidden="true"></i>
+                <i class="fa-solid fa-house text-2xl text-[#dc2626]" aria-hidden="true"></i>
               </div>
               <div class="min-w-0">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">BLT Homepage Design</h3>
@@ -282,20 +275,20 @@
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">Design the new homepage for the OWASP BLT website.</p>
             <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
-              <span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $25 prize</span>
+              <span class="inline-flex items-center gap-1.5 text-[#dc2626]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $25 prize</span>
               <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                 <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends April 15, 2026
               </span>
             </div>
             <div class="flex items-center justify-between pt-4
-                        border-t border-[#E5E5E5] dark:border-gray-700">
+                        border-t border-[#E5E5E5] dark:border-gray-800">
               <div>
-                <p class="text-2xl font-black text-[#E10101]">2</p>
+                <p class="text-2xl font-black text-[#dc2626]">2</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
                   submissions
                 </p>
               </div>
-              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+              <span class="inline-flex items-center gap-1.5 text-[#dc2626] font-semibold text-sm
                            group-hover:gap-2.5 transition-all duration-200">
                 View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </span>
@@ -303,15 +296,15 @@
           </div>
         </a>
         <a href="blt-video-meme.html"
-           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
-                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
-          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+           class="group block bg-white dark:bg-gray-900 rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-800 overflow-hidden
+                  hover:shadow-lg hover:border-[#dc2626] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#dc2626] to-red-400"></div>
           <div class="p-6 sm:p-7">
             <div class="flex items-start gap-4 mb-4">
-              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+              <div class="w-14 h-14 rounded-xl bg-[#fef2f2] dark:bg-red-900/30
                           flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-circle-play text-2xl text-[#E10101]" aria-hidden="true"></i>
+                <i class="fa-solid fa-circle-play text-2xl text-[#dc2626]" aria-hidden="true"></i>
               </div>
               <div class="min-w-0">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">BLT Video Meme</h3>
@@ -320,20 +313,20 @@
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">Design a meme video for OWASP BLT.</p>
             <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
-              <span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $10 prize</span>
+              <span class="inline-flex items-center gap-1.5 text-[#dc2626]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $10 prize</span>
               <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                 <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends April 15, 2026
               </span>
             </div>
             <div class="flex items-center justify-between pt-4
-                        border-t border-[#E5E5E5] dark:border-gray-700">
+                        border-t border-[#E5E5E5] dark:border-gray-800">
               <div>
-                <p class="text-2xl font-black text-[#E10101]">4</p>
+                <p class="text-2xl font-black text-[#dc2626]">4</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
                   submissions
                 </p>
               </div>
-              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+              <span class="inline-flex items-center gap-1.5 text-[#dc2626] font-semibold text-sm
                            group-hover:gap-2.5 transition-all duration-200">
                 View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </span>
@@ -341,15 +334,15 @@
           </div>
         </a>
         <a href="blt-welcome-video.html"
-           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
-                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
-          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+           class="group block bg-white dark:bg-gray-900 rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-800 overflow-hidden
+                  hover:shadow-lg hover:border-[#dc2626] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#dc2626] to-red-400"></div>
           <div class="p-6 sm:p-7">
             <div class="flex items-start gap-4 mb-4">
-              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+              <div class="w-14 h-14 rounded-xl bg-[#fef2f2] dark:bg-red-900/30
                           flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-photo-film text-2xl text-[#E10101]" aria-hidden="true"></i>
+                <i class="fa-solid fa-photo-film text-2xl text-[#dc2626]" aria-hidden="true"></i>
               </div>
               <div class="min-w-0">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">BLT Welcome Video</h3>
@@ -358,20 +351,20 @@
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">Design a welcome video for beginners giving a walkthrough explanation of the OWASP BLT ecosystem.</p>
             <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
-              <span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $20 prize</span>
+              <span class="inline-flex items-center gap-1.5 text-[#dc2626]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $20 prize</span>
               <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                 <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends April 15, 2026
               </span>
             </div>
             <div class="flex items-center justify-between pt-4
-                        border-t border-[#E5E5E5] dark:border-gray-700">
+                        border-t border-[#E5E5E5] dark:border-gray-800">
               <div>
-                <p class="text-2xl font-black text-[#E10101]">0</p>
+                <p class="text-2xl font-black text-[#dc2626]">0</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
                   submissions
                 </p>
               </div>
-              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+              <span class="inline-flex items-center gap-1.5 text-[#dc2626] font-semibold text-sm
                            group-hover:gap-2.5 transition-all duration-200">
                 View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </span>
@@ -379,15 +372,15 @@
           </div>
         </a>
         <a href="appsecil-tshirt.html"
-           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
-                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
-          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+           class="group block bg-white dark:bg-gray-900 rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-800 overflow-hidden
+                  hover:shadow-lg hover:border-[#dc2626] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#dc2626] to-red-400"></div>
           <div class="p-6 sm:p-7">
             <div class="flex items-start gap-4 mb-4">
-              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+              <div class="w-14 h-14 rounded-xl bg-[#fef2f2] dark:bg-red-900/30
                           flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-shirt text-2xl text-[#E10101]" aria-hidden="true"></i>
+                <i class="fa-solid fa-shirt text-2xl text-[#dc2626]" aria-hidden="true"></i>
               </div>
               <div class="min-w-0">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">AppSecIL 2026 T-Shirt Design Contest</h3>
@@ -402,14 +395,14 @@
               </span>
             </div>
             <div class="flex items-center justify-between pt-4
-                        border-t border-[#E5E5E5] dark:border-gray-700">
+                        border-t border-[#E5E5E5] dark:border-gray-800">
               <div>
-                <p class="text-2xl font-black text-[#E10101]">3</p>
+                <p class="text-2xl font-black text-[#dc2626]">3</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
                   submissions
                 </p>
               </div>
-              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+              <span class="inline-flex items-center gap-1.5 text-[#dc2626] font-semibold text-sm
                            group-hover:gap-2.5 transition-all duration-200">
                 View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </span>
@@ -424,14 +417,14 @@
   <!-- ══════════════════════════════════════════
        RECENT SUBMISSIONS
   ══════════════════════════════════════════ -->
-  <section id="recent-submissions" class="bg-gray-50 dark:bg-[#111827] border-t border-[#E5E5E5] dark:border-gray-700">
+  <section id="recent-submissions" class="bg-gray-50 dark:bg-gray-950 border-t border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       <div class="flex items-center justify-between gap-4 mb-8">
         <div>
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-8">
             <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Submissions</h2>
             <a href="show-all-entries.html"
-              class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+              class="inline-flex items-center gap-1.5 text-[#dc2626] font-semibold text-sm
                       self-start sm:self-auto whitespace-nowrap
                       hover:gap-2.5 transition-all duration-200">
               View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
@@ -445,81 +438,81 @@
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
         
-        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
-                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+        <article class="group bg-white dark:bg-gray-900 rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-800 overflow-hidden
+                       hover:shadow-lg hover:border-[#dc2626] transition-all duration-200"
                  data-contest="appsecil-tshirt">
-          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <div class="h-1.5 bg-gradient-to-r from-[#dc2626] to-red-400"></div>
           <a href="assets/entries/4f7302f2-8cdf-4ef2-acc2-9b8d8dde8eca.png" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="assets/entries/4f7302f2-8cdf-4ef2-acc2-9b8d8dde8eca.png" alt="concept 3 preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
           <div class="p-5 flex flex-col gap-3">
             <div class="flex items-center justify-between gap-2 flex-wrap">
-              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">AppSecIL 2026 T-Shirt Design Contest</span>
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#fef2f2] dark:bg-red-900/30 text-[#dc2626]">AppSecIL 2026 T-Shirt Design Contest</span>
               <span class="text-xs text-gray-400 dark:text-gray-500">
                 <time class="sub-date" datetime="2026-04-05T05:04:31Z">2026-04-05</time>
               </span>
             </div>
             <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
               <a href="assets/entries/4f7302f2-8cdf-4ef2-acc2-9b8d8dde8eca.png" target="_blank" rel="noopener"
-                 class="hover:text-[#E10101] transition-colors">concept 3</a>
+                 class="hover:text-[#dc2626] transition-colors">concept 3</a>
             </h3>
             <div class="flex items-center justify-between gap-3 pt-2
-                        border-t border-[#E5E5E5] dark:border-gray-700">
+                        border-t border-[#E5E5E5] dark:border-gray-800">
               <a href="appsecil-tshirt.html"
-                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#dc2626] transition-colors">
                 Open Contest
               </a>
               <span class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> GitLab #107 (archived)</span>
             </div>
           </div>
         </article>
-        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
-                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+        <article class="group bg-white dark:bg-gray-900 rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-800 overflow-hidden
+                       hover:shadow-lg hover:border-[#dc2626] transition-all duration-200"
                  data-contest="appsecil-tshirt">
-          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <div class="h-1.5 bg-gradient-to-r from-[#dc2626] to-red-400"></div>
           <a href="assets/entries/ba44667a-2498-4973-9691-34d97afba40e.png" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="assets/entries/ba44667a-2498-4973-9691-34d97afba40e.png" alt="concept 2 preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
           <div class="p-5 flex flex-col gap-3">
             <div class="flex items-center justify-between gap-2 flex-wrap">
-              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">AppSecIL 2026 T-Shirt Design Contest</span>
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#fef2f2] dark:bg-red-900/30 text-[#dc2626]">AppSecIL 2026 T-Shirt Design Contest</span>
               <span class="text-xs text-gray-400 dark:text-gray-500">
                 <time class="sub-date" datetime="2026-04-05T05:03:27Z">2026-04-05</time>
               </span>
             </div>
             <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
               <a href="assets/entries/ba44667a-2498-4973-9691-34d97afba40e.png" target="_blank" rel="noopener"
-                 class="hover:text-[#E10101] transition-colors">concept 2</a>
+                 class="hover:text-[#dc2626] transition-colors">concept 2</a>
             </h3>
             <div class="flex items-center justify-between gap-3 pt-2
-                        border-t border-[#E5E5E5] dark:border-gray-700">
+                        border-t border-[#E5E5E5] dark:border-gray-800">
               <a href="appsecil-tshirt.html"
-                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#dc2626] transition-colors">
                 Open Contest
               </a>
               <span class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> GitLab #106 (archived)</span>
             </div>
           </div>
         </article>
-        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
-                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+        <article class="group bg-white dark:bg-gray-900 rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-800 overflow-hidden
+                       hover:shadow-lg hover:border-[#dc2626] transition-all duration-200"
                  data-contest="appsecil-tshirt">
-          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <div class="h-1.5 bg-gradient-to-r from-[#dc2626] to-red-400"></div>
           <a href="assets/entries/54d06450-0945-46fe-8efb-8afe5a6665e8.png" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="assets/entries/54d06450-0945-46fe-8efb-8afe5a6665e8.png" alt="blue shirt preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
           <div class="p-5 flex flex-col gap-3">
             <div class="flex items-center justify-between gap-2 flex-wrap">
-              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">AppSecIL 2026 T-Shirt Design Contest</span>
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#fef2f2] dark:bg-red-900/30 text-[#dc2626]">AppSecIL 2026 T-Shirt Design Contest</span>
               <span class="text-xs text-gray-400 dark:text-gray-500">
                 <time class="sub-date" datetime="2026-04-05T04:47:18Z">2026-04-05</time>
               </span>
             </div>
             <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
               <a href="assets/entries/54d06450-0945-46fe-8efb-8afe5a6665e8.png" target="_blank" rel="noopener"
-                 class="hover:text-[#E10101] transition-colors">blue shirt</a>
+                 class="hover:text-[#dc2626] transition-colors">blue shirt</a>
             </h3>
             <div class="flex items-center justify-between gap-3 pt-2
-                        border-t border-[#E5E5E5] dark:border-gray-700">
+                        border-t border-[#E5E5E5] dark:border-gray-800">
               <a href="appsecil-tshirt.html"
-                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#dc2626] transition-colors">
                 Open Contest
               </a>
               <span class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> GitLab #105 (archived)</span>
@@ -533,25 +526,25 @@
   <!-- ══════════════════════════════════════════
        FOOTER
   ══════════════════════════════════════════ -->
-  <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+  <footer class="bg-white dark:bg-gray-900 border-t border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8
                 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm
                 text-gray-500 dark:text-gray-400">
       <p>
         &copy; 2026
         <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
-           class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+           class="text-[#dc2626] hover:underline font-medium">OWASP BLT</a>.
         Content licensed under
         <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener"
-           class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+           class="text-[#dc2626] hover:underline">CC BY 4.0</a>.
       </p>
       <div class="flex items-center gap-4">
         <a href="https://git.owaspblt.org/BLT/tree/main/blt-design-contest" target="_blank" rel="noopener"
-           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+           class="hover:text-[#dc2626] transition-colors inline-flex items-center gap-1">
           <i class="fa-solid fa-code" aria-hidden="true"></i> Source
         </a>
         <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
-           class="hover:text-[#E10101] transition-colors">OWASP BLT</a>
+           class="hover:text-[#dc2626] transition-colors">OWASP BLT</a>
       </div>
     </div>
   </footer>
@@ -560,8 +553,6 @@
        SCRIPTS
   ══════════════════════════════════════════ -->
   <script>
-    // Dark-mode toggle
-    const toggle = document.getElementById('theme-toggle');
     const html = document.documentElement;
 
     // Initialise from localStorage or system preference
@@ -571,10 +562,6 @@
       html.classList.add('dark');
     }
 
-    toggle.addEventListener('click', () => {
-      html.classList.toggle('dark');
-      localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
-    });
 
     // Format submission dates in user's local timezone; cap any future dates to today
     (function () {

@@ -444,7 +444,7 @@ def build_card(issue: dict, title_prefix: str = TITLE_PREFIX) -> str:
             count_text = f'{comment_count} comment{"s" if comment_count != 1 else ""} · ' if comment_count > 0 else ''
             count_label = (
                 f'<a href="{issue_url}" target="_blank" rel="noopener" '
-                f'class="hover:text-[#E10101] transition-colors">{count_text}</a>'
+                f'class="hover:text-[#dc2626] transition-colors">{count_text}</a>'
                 if issue_url else count_text
             )
             comment_block = (
@@ -452,7 +452,7 @@ def build_card(issue: dict, title_prefix: str = TITLE_PREFIX) -> str:
                 f'{c_avatar_img}'
                 f'<span>{count_label}'
                 f'<a href="{c_url}" target="_blank" rel="noopener" '
-                f'class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">'
+                f'class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#dc2626] transition-colors">'
                 f'{c_login}</a>: {c_body_escaped}</span>'
                 f'</div>'
             )
@@ -460,8 +460,8 @@ def build_card(issue: dict, title_prefix: str = TITLE_PREFIX) -> str:
         comment_block = (
             f'<a href="{issue_url}" target="_blank" rel="noopener" '
             f'class="inline-flex items-center gap-1.5 text-xs '
-            f'text-gray-400 dark:text-gray-500 hover:text-[#E10101] '
-            f'dark:hover:text-[#E10101] transition-colors" '
+            f'text-gray-400 dark:text-gray-500 hover:text-[#dc2626] '
+            f'dark:hover:text-[#dc2626] transition-colors" '
             f'aria-label="Be the first to comment on the issue">'
             f'<i class="fa-regular fa-comment" aria-hidden="true"></i>'
             f'Be the first to comment!</a>'
@@ -482,11 +482,11 @@ def build_card(issue: dict, title_prefix: str = TITLE_PREFIX) -> str:
     else:
         vote_html = (
             f'<a href="{issue_url}" target="_blank" rel="noopener" '
-            f'class="{pill} hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-[#E10101] transition-colors" '
+            f'class="{pill} hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-[#dc2626] transition-colors" '
             f'aria-label="{votes} {vote_word}. Vote on the issue">'
             f'<i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <span>{votes}</span></a>'
             f'<a href="{issue_url}" target="_blank" rel="noopener" '
-            f'class="text-xs text-gray-400 dark:text-gray-500 hover:text-[#E10101] transition-colors">'
+            f'class="text-xs text-gray-400 dark:text-gray-500 hover:text-[#dc2626] transition-colors">'
             f'Vote on the issue</a>'
         )
 
@@ -513,7 +513,7 @@ def build_card(issue: dict, title_prefix: str = TITLE_PREFIX) -> str:
     if design_url:
         design_link = (
             f'<a href="{design_url}" target="_blank" rel="noopener" '
-            f'   class="text-[#E10101] hover:underline text-sm inline-flex items-center gap-1">'
+            f'   class="text-[#dc2626] hover:underline text-sm inline-flex items-center gap-1">'
             f'  <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>'
             f'  View Design</a>'
         )
@@ -525,13 +525,13 @@ def build_card(issue: dict, title_prefix: str = TITLE_PREFIX) -> str:
         issue_button = (
             f'<a href="{issue_url}" target="_blank" rel="noopener" '
             f'class="inline-flex items-center gap-1 text-sm font-medium '
-            f'border border-[#E10101] text-[#E10101] rounded-md px-3 py-1 '
-            f'hover:bg-[#E10101] hover:text-white transition-colors" '
+            f'border border-[#dc2626] text-[#dc2626] rounded-md px-3 py-1 '
+            f'hover:bg-[#dc2626] hover:text-white transition-colors" '
             f'aria-label="View issue #{number}">'
             f'<i class="fa-solid fa-code-branch" aria-hidden="true"></i> Issue</a>'
         )
         title_html = (f'<a href="{issue_url}" target="_blank" rel="noopener" '
-                      f'class="hover:text-[#E10101] transition-colors">{title}</a>')
+                      f'class="hover:text-[#dc2626] transition-colors">{title}</a>')
 
     # Category badge colour
     cat_colour = {
@@ -560,8 +560,8 @@ def build_card(issue: dict, title_prefix: str = TITLE_PREFIX) -> str:
     number_label = f"GitLab #{number}" if archived else f"#{number}"
 
     return f"""
-    <article class="group relative bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
-                    border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+    <article class="group relative bg-white dark:bg-gray-900 rounded-2xl shadow-sm border
+                    border-[#E5E5E5] dark:border-gray-800 overflow-hidden
                     flex flex-col hover:shadow-md transition-shadow{winner_ring}"
              data-votes="{votes}"
              data-comments="{comment_count}"
@@ -588,13 +588,13 @@ def build_card(issue: dict, title_prefix: str = TITLE_PREFIX) -> str:
         <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           {'<img src="' + author_avatar + '" alt="" class="w-6 h-6 rounded-full" aria-hidden="true" />' if author_avatar else '<i class="fa-solid fa-user-circle text-lg" aria-hidden="true"></i>'}
           <a href="{author_url}" target="_blank" rel="noopener"
-             class="text-[#E10101] hover:underline font-medium">{author_login}</a>
+             class="text-[#dc2626] hover:underline font-medium">{author_login}</a>
         </div>
         <!-- Last comment -->
         {comment_block}
         <!-- Footer: votes + design link -->
         <div class="flex items-center justify-between gap-2 flex-wrap pt-2
-                    border-t border-[#E5E5E5] dark:border-gray-700">
+                    border-t border-[#E5E5E5] dark:border-gray-800">
           <div class="flex items-center gap-2 flex-wrap" aria-label="Votes">
             {vote_html}
           </div>
@@ -623,7 +623,7 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
     google_form_url = html.escape(contest.get("google_form_url", ""))
 
     prize_html = (
-        f'<span class="inline-flex items-center gap-1 text-[#E10101]">'
+        f'<span class="inline-flex items-center gap-1 text-[#dc2626]">'
         f'<i class="fa-solid fa-trophy" aria-hidden="true"></i> {prize} prize</span>'
         if prize else ""
     )
@@ -631,7 +631,7 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
         f'<div class="mt-3 text-sm text-gray-500 dark:text-gray-400">'
         f'Submit via BLT below, or use the '
         f'<a href="{google_form_url}" target="_blank" rel="noopener"'
-        f' class="text-[#E10101] hover:underline font-medium">official Google Form</a>'
+        f' class="text-[#dc2626] hover:underline font-medium">official Google Form</a>'
         f" as an alternative.</div>"
         if google_form_url else ""
     )
@@ -641,7 +641,7 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
     else:
         cards_html = (
             '<div class="col-span-full text-center py-20 text-gray-500 dark:text-gray-400">'
-            f'<i class="{icon} text-5xl mb-4 block text-[#E10101]" aria-hidden="true"></i>'
+            f'<i class="{icon} text-5xl mb-4 block text-[#dc2626]" aria-hidden="true"></i>'
             '<p class="text-lg font-medium">No submissions yet — be the first!</p>'
             '<p class="mt-2 text-sm">Click <strong>Add Entry</strong> to get started.</p>'
             '</div>'
@@ -668,17 +668,17 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
     <div id="contest-{cid}" class="contest-panel" role="tabpanel" aria-labelledby="tab-{cid}">
 
       <!-- Contest info bar -->
-      <div class="mb-6 p-5 bg-white dark:bg-[#1F2937] rounded-xl border border-[#E5E5E5] dark:border-gray-700">
+      <div class="mb-6 p-5 bg-white dark:bg-gray-900 rounded-xl border border-[#E5E5E5] dark:border-gray-800">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <i class="{icon} text-[#E10101]" aria-hidden="true"></i>
+              <i class="{icon} text-[#dc2626]" aria-hidden="true"></i>
               {name}
             </h2>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>
             <div class="mt-2 flex items-center gap-4 text-sm font-medium flex-wrap">
               {prize_html}
-              <span class="inline-flex items-center gap-1 text-[#E10101]">
+              <span class="inline-flex items-center gap-1 text-[#dc2626]">
                 <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_label} {deadline_display}
               </span>
               <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
@@ -688,9 +688,9 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
             </div>
             <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
               To enter, copy the <a href="{submit_url}" target="_blank" rel="noopener"
-              class="text-[#E10101] hover:underline font-medium">submission template</a> into a
+              class="text-[#dc2626] hover:underline font-medium">submission template</a> into a
               <a href="{NEW_ISSUE_URL}" target="_blank" rel="noopener"
-              class="text-[#E10101] hover:underline font-medium">new issue</a> on git.owaspblt.org
+              class="text-[#dc2626] hover:underline font-medium">new issue</a> on git.owaspblt.org
               titled <code>[blt-design-contest] {title_prefix} ...</code>. To vote, open a submission's
               issue and press Vote (signed in), or comment <code>+1</code>.
             </p>
@@ -698,7 +698,7 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
           </div>
           <a href="{submit_url}"
              target="_blank" rel="noopener"
-             class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+             class="inline-flex items-center gap-2 bg-[#dc2626] hover:bg-red-700
                     text-white text-sm font-semibold px-4 py-2 rounded-md
                     transition-colors shrink-0">
             <i class="fa-solid fa-plus" aria-hidden="true"></i>
@@ -712,7 +712,7 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
         <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">Sort:</span>
         <button id="sort-votes-{cid}" type="button"
                 class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
-                       text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
+                       text-gray-700 dark:text-gray-200 hover:border-[#dc2626] hover:text-[#dc2626]
                        text-sm font-semibold px-4 py-2 rounded-md transition-colors"
                 aria-pressed="false"
                 data-sort="votes" data-contest="{cid}">
@@ -721,7 +721,7 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
         </button>
         <button id="sort-comments-{cid}" type="button"
                 class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
-                       text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
+                       text-gray-700 dark:text-gray-200 hover:border-[#dc2626] hover:text-[#dc2626]
                        text-sm font-semibold px-4 py-2 rounded-md transition-colors"
                 aria-pressed="false"
                 data-sort="comments" data-contest="{cid}">
@@ -799,32 +799,32 @@ def summary_card(item: dict, aspect: str = "aspect-square") -> str:
         issue_button = (
             f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
             f'class="inline-flex items-center gap-1 text-sm font-medium '
-            f'border border-[#E10101] text-[#E10101] rounded-md px-3 py-1 '
-            f'hover:bg-[#E10101] hover:text-white transition-colors">'
+            f'border border-[#dc2626] text-[#dc2626] rounded-md px-3 py-1 '
+            f'hover:bg-[#dc2626] hover:text-white transition-colors">'
             f'<i class="fa-solid fa-code-branch" aria-hidden="true"></i> Issue</a>'
         )
     return f"""
-        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
-                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+        <article class="group bg-white dark:bg-gray-900 rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-800 overflow-hidden
+                       hover:shadow-lg hover:border-[#dc2626] transition-all duration-200"
                  data-contest="{item["contest_id"]}">
-          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <div class="h-1.5 bg-gradient-to-r from-[#dc2626] to-red-400"></div>
           {preview_block}
           <div class="p-5 flex flex-col gap-3">
             <div class="flex items-center justify-between gap-2 flex-wrap">
-              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">{item["contest_name"]}</span>
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#fef2f2] dark:bg-red-900/30 text-[#dc2626]">{item["contest_name"]}</span>
               <span class="text-xs text-gray-400 dark:text-gray-500">
                 <time class="sub-date" datetime="{item["submitted_iso"]}">{item["submitted_fallback"]}</time>
               </span>
             </div>
             <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
               <a href="{item["link"]}" target="_blank" rel="noopener"
-                 class="hover:text-[#E10101] transition-colors">{item["title"]}</a>
+                 class="hover:text-[#dc2626] transition-colors">{item["title"]}</a>
             </h3>
             <div class="flex items-center justify-between gap-3 pt-2
-                        border-t border-[#E5E5E5] dark:border-gray-700">
+                        border-t border-[#E5E5E5] dark:border-gray-800">
               <a href="{item["contest_url"]}"
-                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#dc2626] transition-colors">
                 Open Contest
               </a>
               {issue_button}
@@ -876,15 +876,15 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
 
         contest_cards_html += f"""
         <a href="{page_url}"
-           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
-                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
-          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+           class="group block bg-white dark:bg-gray-900 rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-800 overflow-hidden
+                  hover:shadow-lg hover:border-[#dc2626] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#dc2626] to-red-400"></div>
           <div class="p-6 sm:p-7">
             <div class="flex items-start gap-4 mb-4">
-              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+              <div class="w-14 h-14 rounded-xl bg-[#fef2f2] dark:bg-red-900/30
                           flex items-center justify-center shrink-0">
-                <i class="{icon} text-2xl text-[#E10101]" aria-hidden="true"></i>
+                <i class="{icon} text-2xl text-[#dc2626]" aria-hidden="true"></i>
               </div>
               <div class="min-w-0">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">{cname}</h3>
@@ -893,20 +893,20 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">{cdesc}</p>
             <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
-              {'<span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> ' + cprize + ' prize</span>' if cprize else ''}
+              {'<span class="inline-flex items-center gap-1.5 text-[#dc2626]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> ' + cprize + ' prize</span>' if cprize else ''}
               <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                 <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_text}
               </span>
             </div>
             <div class="flex items-center justify-between pt-4
-                        border-t border-[#E5E5E5] dark:border-gray-700">
+                        border-t border-[#E5E5E5] dark:border-gray-800">
               <div>
-                <p class="text-2xl font-black text-[#E10101]">{ctotal}</p>
+                <p class="text-2xl font-black text-[#dc2626]">{ctotal}</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
                   submission{'' if ctotal == 1 else 's'}
                 </p>
               </div>
-              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+              <span class="inline-flex items-center gap-1.5 text-[#dc2626] font-semibold text-sm
                            group-hover:gap-2.5 transition-all duration-200">
                 View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </span>
@@ -919,8 +919,8 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
         recent_cards_html = "".join(summary_card(item, "aspect-video") for item in latest_three)
     else:
         recent_cards_html = (
-            '<div class="md:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm '
-            'border border-[#E5E5E5] dark:border-gray-700 p-6 text-center '
+            '<div class="md:col-span-3 bg-white dark:bg-gray-900 rounded-2xl shadow-sm '
+            'border border-[#E5E5E5] dark:border-gray-800 p-6 text-center '
             'text-sm text-gray-500 dark:text-gray-400">'
             'No recent submissions available.'
             '</div>'
@@ -948,7 +948,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       theme: {{
         extend: {{
           colors: {{
-            brand: '#E10101',
+            brand: '#dc2626',
           }},
         }},
       }},
@@ -963,21 +963,23 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
 
   <!-- Minimal custom overrides -->
   <style>
-    :root {{ --brand: #E10101; }}
+    :root {{ --brand: #dc2626; }}
     *:focus-visible {{
       outline: 2px solid var(--brand);
       outline-offset: 2px;
     }}
   </style>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 
-<body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen
+<body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen
              flex flex-col font-sans antialiased">
 
   <!-- ── Skip to content ── -->
   <a href="#contests"
      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
-            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white
+            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#dc2626] focus:text-white
             focus:rounded-md focus:font-medium">
     Skip to content
   </a>
@@ -985,32 +987,31 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
   <!-- ══════════════════════════════════════════
        HEADER / NAV
   ══════════════════════════════════════════ -->
-  <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700
+  <header class="bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800
                  sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
 
         <!-- Logo / Brand -->
         <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
-          <span class="inline-flex items-center justify-center w-8 h-8 rounded-md
-                       bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
+          <img src="/logo.svg" alt="" class="w-8 h-8" width="32" height="32" />
           <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
-            Design Contests
+            BLT Design Contests
           </span>
         </a>
 
         <!-- Centre nav links -->
         <div class="hidden md:flex items-center gap-6 text-sm font-medium">
           <a href="#contests"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">
+             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors">
             Contests
           </a>
           <a href="#how-it-works"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">
+             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors">
             How it works
           </a>
           <a href="{ISSUES_URL}" target="_blank" rel="noopener"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors
                     inline-flex items-center gap-1">
             <i class="fa-solid fa-list-check" aria-hidden="true"></i> Issues
           </a>
@@ -1019,21 +1020,13 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
         <!-- CTA -->
         <a href="{first_submit_url}"
            target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+           class="inline-flex items-center gap-2 bg-[#dc2626] hover:bg-red-700
                   text-white text-sm font-semibold px-4 py-2 rounded-md
                   transition-colors shrink-0">
           <i class="fa-solid fa-plus" aria-hidden="true"></i>
           <span>Submit Design</span>
         </a>
 
-        <!-- Dark-mode toggle -->
-        <button id="theme-toggle" type="button"
-                class="p-2 rounded-md text-gray-500 dark:text-gray-400
-                       hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                aria-label="Toggle dark mode">
-          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
-          <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
-        </button>
 
       </nav>
     </div>
@@ -1042,9 +1035,9 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
   <!-- ══════════════════════════════════════════
        HERO
   ══════════════════════════════════════════ -->
-  <section class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700">
+  <section class="bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-      <span class="inline-block mb-4 bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+      <span class="inline-block mb-4 bg-[#fef2f2] dark:bg-red-900/30 text-[#dc2626]
                    text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
         Open to Everyone
       </span>
@@ -1061,24 +1054,24 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
   <!-- ══════════════════════════════════════════
        HOW IT WORKS
   ══════════════════════════════════════════ -->
-  <section id="how-it-works" class="bg-gray-50 dark:bg-[#111827]">
+  <section id="how-it-works" class="bg-gray-50 dark:bg-gray-950">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       <h2 class="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-10">
         How it works
       </h2>
       <ol class="grid sm:grid-cols-3 gap-8" role="list">
         <li class="flex flex-col items-center text-center gap-3">
-          <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+          <span class="w-12 h-12 rounded-full bg-[#fef2f2] dark:bg-red-900/30 text-[#dc2626]
                        flex items-center justify-center text-xl font-black">1</span>
           <h3 class="font-semibold text-gray-900 dark:text-gray-100">Submit your design</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
             Open a new issue on git.owaspblt.org and paste the contest's
-            <a href="{TEMPLATES_URL}/README.md" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">submission template</a>
+            <a href="{TEMPLATES_URL}/README.md" target="_blank" rel="noopener" class="text-[#dc2626] hover:underline">submission template</a>
             into it — no prior experience needed. Add a preview image, a short description, and a link to your design.
           </p>
         </li>
         <li class="flex flex-col items-center text-center gap-3">
-          <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+          <span class="w-12 h-12 rounded-full bg-[#fef2f2] dark:bg-red-900/30 text-[#dc2626]
                        flex items-center justify-center text-xl font-black">2</span>
           <h3 class="font-semibold text-gray-900 dark:text-gray-100">Everyone votes</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -1087,7 +1080,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
           </p>
         </li>
         <li class="flex flex-col items-center text-center gap-3">
-          <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
+          <span class="w-12 h-12 rounded-full bg-[#fef2f2] dark:bg-red-900/30 text-[#dc2626]
                        flex items-center justify-center text-xl font-black">3</span>
           <h3 class="font-semibold text-gray-900 dark:text-gray-100">Showcase updates</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -1102,7 +1095,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
   <!-- ══════════════════════════════════════════
        CONTESTS OVERVIEW
   ══════════════════════════════════════════ -->
-  <section id="contests" class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+  <section id="contests" class="bg-white dark:bg-gray-900 border-t border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
@@ -1127,14 +1120,14 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
   <!-- ══════════════════════════════════════════
        RECENT SUBMISSIONS
   ══════════════════════════════════════════ -->
-  <section id="recent-submissions" class="bg-gray-50 dark:bg-[#111827] border-t border-[#E5E5E5] dark:border-gray-700">
+  <section id="recent-submissions" class="bg-gray-50 dark:bg-gray-950 border-t border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       <div class="flex items-center justify-between gap-4 mb-8">
         <div>
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-8">
             <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Submissions</h2>
             <a href="show-all-entries.html"
-              class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+              class="inline-flex items-center gap-1.5 text-[#dc2626] font-semibold text-sm
                       self-start sm:self-auto whitespace-nowrap
                       hover:gap-2.5 transition-all duration-200">
               View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
@@ -1155,25 +1148,25 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
   <!-- ══════════════════════════════════════════
        FOOTER
   ══════════════════════════════════════════ -->
-  <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+  <footer class="bg-white dark:bg-gray-900 border-t border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8
                 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm
                 text-gray-500 dark:text-gray-400">
       <p>
         &copy; {datetime.now(timezone.utc).year}
         <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
-           class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+           class="text-[#dc2626] hover:underline font-medium">OWASP BLT</a>.
         Content licensed under
         <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener"
-           class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+           class="text-[#dc2626] hover:underline">CC BY 4.0</a>.
       </p>
       <div class="flex items-center gap-4">
         <a href="{PROJECT_URL}" target="_blank" rel="noopener"
-           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+           class="hover:text-[#dc2626] transition-colors inline-flex items-center gap-1">
           <i class="fa-solid fa-code" aria-hidden="true"></i> Source
         </a>
         <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
-           class="hover:text-[#E10101] transition-colors">OWASP BLT</a>
+           class="hover:text-[#dc2626] transition-colors">OWASP BLT</a>
       </div>
     </div>
   </footer>
@@ -1182,8 +1175,6 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
        SCRIPTS
   ══════════════════════════════════════════ -->
   <script>
-    // Dark-mode toggle
-    const toggle = document.getElementById('theme-toggle');
     const html = document.documentElement;
 
     // Initialise from localStorage or system preference
@@ -1193,10 +1184,6 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       html.classList.add('dark');
     }}
 
-    toggle.addEventListener('click', () => {{
-      html.classList.toggle('dark');
-      localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
-    }});
 
     // Format submission dates in user's local timezone; cap any future dates to today
     (function () {{
@@ -1226,8 +1213,8 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
         cards_html = "\n".join(cards)
     else:
         cards_html = (
-            '<div class="sm:col-span-2 lg:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm '
-            'border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm '
+            '<div class="sm:col-span-2 lg:col-span-3 bg-white dark:bg-gray-900 rounded-2xl shadow-sm '
+            'border border-[#E5E5E5] dark:border-gray-800 p-6 text-center text-sm '
             'text-gray-500 dark:text-gray-400">No entries available right now.</div>'
         )
 
@@ -1264,7 +1251,7 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
       theme: {{
       extend: {{
       colors: {{
-      brand: '#E10101',
+      brand: '#dc2626',
       }},
       }},
       }},
@@ -1277,62 +1264,58 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
       crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
-    :root {{ --brand: #E10101; }}
+    :root {{ --brand: #dc2626; }}
     *:focus-visible {{
       outline: 2px solid var(--brand);
       outline-offset: 2px;
     }}
     </style>
+      <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+      <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     </head>
 
-    <body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen flex flex-col font-sans antialiased">
+    <body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col font-sans antialiased">
     <a href="#all-entries"
-     class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white focus:rounded-md focus:font-medium">
+     class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#dc2626] focus:text-white focus:rounded-md focus:font-medium">
     Skip to content
     </a>
 
-    <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-40">
+    <header class="bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
       <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
-      <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
-      <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">Design Contests</span>
+      <img src="/logo.svg" alt="" class="w-8 h-8" width="32" height="32" />
+      <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">BLT Design Contests</span>
       </a>
 
       <div class="hidden md:flex items-center gap-6 text-sm font-medium">
-      <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1.5">
+      <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors inline-flex items-center gap-1.5">
       <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
       </a>
       <a href="show-all-entries.html"
-       class="text-[#E10101] font-semibold inline-flex items-center gap-1.5"
+       class="text-[#dc2626] font-semibold inline-flex items-center gap-1.5"
        aria-current="page">
       <i class="fa-solid fa-images" aria-hidden="true"></i> All Entries
       </a>
       <a href="{ISSUES_URL}" target="_blank" rel="noopener"
-       class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+       class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors inline-flex items-center gap-1">
       <i class="fa-solid fa-list-check" aria-hidden="true"></i> Issues
       </a>
       </div>
 
       <a href="index.html#contests"
-       class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors shrink-0">
+       class="inline-flex items-center gap-2 bg-[#dc2626] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors shrink-0">
       <i class="fa-solid fa-plus" aria-hidden="true"></i>
       <span>Choose Contest</span>
       </a>
 
-      <button id="theme-toggle" type="button"
-      class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-      aria-label="Toggle dark mode">
-      <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
-      <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
-      </button>
       </nav>
     </div>
     </header>
 
-    <section class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700">
+    <section class="bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-      <span class="inline-block mb-4 bg-[#feeae9] dark:bg-red-900/30 text-[#E10101] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
+      <span class="inline-block mb-4 bg-[#fef2f2] dark:bg-red-900/30 text-[#dc2626] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
       Unified Showcase
       </span>
       <h1 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-gray-50 leading-tight mb-3">
@@ -1345,7 +1328,7 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
     </div>
     </section>
 
-    <main id="all-entries" class="flex-1 bg-gray-50 dark:bg-[#111827] border-t border-[#E5E5E5] dark:border-gray-700">
+    <main id="all-entries" class="flex-1 bg-gray-50 dark:bg-gray-950 border-t border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div class="mb-6">
       <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Entries</h2>
@@ -1358,24 +1341,24 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
 
       <div id="all-entries-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-live="polite">
       {cards_html}
-      <div id="no-filter-results" class="hidden sm:col-span-2 lg:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">No entries found for this filter.</div>
+      <div id="no-filter-results" class="hidden sm:col-span-2 lg:col-span-3 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-800 p-6 text-center text-sm text-gray-500 dark:text-gray-400">No entries found for this filter.</div>
       </div>
     </div>
     </main>
 
-    <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+    <footer class="bg-white dark:bg-gray-900 border-t border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500 dark:text-gray-400">
       <p>
       &copy; {datetime.now(timezone.utc).year}
-      <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+      <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener" class="text-[#dc2626] hover:underline font-medium">OWASP BLT</a>.
       Content licensed under
-      <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+      <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" class="text-[#dc2626] hover:underline">CC BY 4.0</a>.
       </p>
       <div class="flex items-center gap-4">
-      <a href="index.html" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <a href="index.html" class="hover:text-[#dc2626] transition-colors inline-flex items-center gap-1">
       <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
       </a>
-      <a href="{PROJECT_URL}" target="_blank" rel="noopener" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <a href="{PROJECT_URL}" target="_blank" rel="noopener" class="hover:text-[#dc2626] transition-colors inline-flex items-center gap-1">
       <i class="fa-solid fa-code" aria-hidden="true"></i> Source
       </a>
       </div>
@@ -1383,7 +1366,6 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
     </footer>
 
     <script>
-    const toggle = document.getElementById('theme-toggle');
     const html = document.documentElement;
 
     if (localStorage.theme === 'dark' ||
@@ -1392,13 +1374,9 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
       html.classList.add('dark');
     }}
 
-    toggle.addEventListener('click', () => {{
-      html.classList.toggle('dark');
-      localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
-    }});
 
     const baseBtn = ['border-gray-300', 'dark:border-gray-600', 'text-gray-700', 'dark:text-gray-200'];
-    const activeBtn = ['border-[#E10101]', 'text-[#E10101]', 'bg-red-50', 'dark:bg-red-900/20', 'dark:text-red-300'];
+    const activeBtn = ['border-[#dc2626]', 'text-[#dc2626]', 'bg-red-50', 'dark:bg-red-900/20', 'dark:text-red-300'];
 
     let activeFilter = 'all';
     const statusEl = document.getElementById('entries-status');
@@ -1609,7 +1587,7 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
         'Entries marked <strong>GitLab archive</strong> were submitted on gitlab.com before the BLT '
         'GitLab group closed; their vote counts are final. New entries and votes live on '
         f'<a href="{html.escape(ISSUES_URL)}" target="_blank" rel="noopener" '
-        'class="text-[#E10101] hover:underline">git.owaspblt.org</a>.</p>'
+        'class="text-[#dc2626] hover:underline">git.owaspblt.org</a>.</p>'
         if any(i.get("archived") for i in contest_data.get("issues", [])) else ""
     )
 
@@ -1640,7 +1618,7 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
       theme: {{
         extend: {{
           colors: {{
-            brand: '#E10101',
+            brand: '#dc2626',
           }},
         }},
       }},
@@ -1655,21 +1633,23 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
 
   <!-- Minimal custom overrides -->
   <style>
-    :root {{ --brand: #E10101; }}
+    :root {{ --brand: #dc2626; }}
     *:focus-visible {{
       outline: 2px solid var(--brand);
       outline-offset: 2px;
     }}
   </style>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 
-<body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen
+<body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen
              flex flex-col font-sans antialiased">
 
   <!-- ── Skip to content ── -->
   <a href="#contest-{cid}"
      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
-            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white
+            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#dc2626] focus:text-white
             focus:rounded-md focus:font-medium">
     Skip to content
   </a>
@@ -1677,33 +1657,32 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
   <!-- ══════════════════════════════════════════
        HEADER / NAV
   ══════════════════════════════════════════ -->
-  <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700
+  <header class="bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800
                  sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
 
         <!-- Logo / Brand -->
         <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
-          <span class="inline-flex items-center justify-center w-8 h-8 rounded-md
-                       bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
+          <img src="/logo.svg" alt="" class="w-8 h-8" width="32" height="32" />
           <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
-            Design Contests
+            BLT Design Contests
           </span>
         </a>
 
         <!-- Centre nav links -->
         <div class="hidden md:flex items-center gap-6 text-sm font-medium">
           <a href="index.html"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors
                     inline-flex items-center gap-1.5">
             <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
           </a>
           <span class="text-gray-300 dark:text-gray-600">|</span>
-          <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold">
+          <span class="inline-flex items-center gap-1.5 text-[#dc2626] font-semibold">
             <i class="{icon}" aria-hidden="true"></i> {cname}
           </span>
           <a href="{ISSUES_URL}" target="_blank" rel="noopener"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors
                     inline-flex items-center gap-1">
             <i class="fa-solid fa-list-check" aria-hidden="true"></i> Issues
           </a>
@@ -1712,21 +1691,13 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
         <!-- CTA -->
         <a href="{submit_url}"
            target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+           class="inline-flex items-center gap-2 bg-[#dc2626] hover:bg-red-700
                   text-white text-sm font-semibold px-4 py-2 rounded-md
                   transition-colors shrink-0">
           <i class="fa-solid fa-plus" aria-hidden="true"></i>
           <span>Submit Design</span>
         </a>
 
-        <!-- Dark-mode toggle -->
-        <button id="theme-toggle" type="button"
-                class="p-2 rounded-md text-gray-500 dark:text-gray-400
-                       hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                aria-label="Toggle dark mode">
-          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
-          <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
-        </button>
 
       </nav>
     </div>
@@ -1753,29 +1724,29 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
   <!-- ══════════════════════════════════════════
        FOOTER
   ══════════════════════════════════════════ -->
-  <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+  <footer class="bg-white dark:bg-gray-900 border-t border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8
                 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm
                 text-gray-500 dark:text-gray-400">
       <p>
         &copy; {datetime.now(timezone.utc).year}
         <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
-           class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+           class="text-[#dc2626] hover:underline font-medium">OWASP BLT</a>.
         Content licensed under
         <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener"
-           class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+           class="text-[#dc2626] hover:underline">CC BY 4.0</a>.
       </p>
       <div class="flex items-center gap-4">
         <a href="index.html"
-           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+           class="hover:text-[#dc2626] transition-colors inline-flex items-center gap-1">
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
         </a>
         <a href="{PROJECT_URL}" target="_blank" rel="noopener"
-           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+           class="hover:text-[#dc2626] transition-colors inline-flex items-center gap-1">
           <i class="fa-solid fa-code" aria-hidden="true"></i> Source
         </a>
         <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
-           class="hover:text-[#E10101] transition-colors">OWASP BLT</a>
+           class="hover:text-[#dc2626] transition-colors">OWASP BLT</a>
       </div>
     </div>
   </footer>
@@ -1784,8 +1755,6 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
        SCRIPTS
   ══════════════════════════════════════════ -->
   <script>
-    // Dark-mode toggle
-    const toggle = document.getElementById('theme-toggle');
     const html = document.documentElement;
 
     // Initialise from localStorage or system preference
@@ -1795,10 +1764,6 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
       html.classList.add('dark');
     }}
 
-    toggle.addEventListener('click', () => {{
-      html.classList.toggle('dark');
-      localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
-    }});
 
     // Sort buttons — work independently per contest panel
     const sortState = {{}};
@@ -1806,7 +1771,7 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
     function resetSortBtn(btn) {{
       if (!btn) return;
       btn.setAttribute('aria-pressed', 'false');
-      btn.classList.remove('border-[#E10101]', 'text-[#E10101]');
+      btn.classList.remove('border-[#dc2626]', 'text-[#dc2626]');
       btn.classList.add('border-gray-300', 'dark:border-gray-600', 'text-gray-700', 'dark:text-gray-200');
     }}
 
@@ -1829,8 +1794,8 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
         resetSortBtn(otherBtn);
 
         btn.setAttribute('aria-pressed', String(!isActive));
-        btn.classList.toggle('border-[#E10101]', !isActive);
-        btn.classList.toggle('text-[#E10101]', !isActive);
+        btn.classList.toggle('border-[#dc2626]', !isActive);
+        btn.classList.toggle('text-[#dc2626]', !isActive);
         btn.classList.toggle('border-gray-300', isActive);
         btn.classList.toggle('dark:border-gray-600', isActive);
         btn.classList.toggle('text-gray-700', isActive);
