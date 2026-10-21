@@ -968,6 +968,8 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       outline: 2px solid var(--brand);
       outline-offset: 2px;
     }}
+    blt-nav:not(:defined) {{ display: block; min-height: 61px; }}
+    blt-nav:not(:defined) > * {{ display: none; }}
   </style>
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
@@ -979,58 +981,18 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
   <!-- ── Skip to content ── -->
   <a href="#contests"
      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
-            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#dc2626] focus:text-white
+            focus:z-[1100] focus:px-4 focus:py-2 focus:bg-[#dc2626] focus:text-white
             focus:rounded-md focus:font-medium">
     Skip to content
   </a>
 
-  <!-- ══════════════════════════════════════════
-       HEADER / NAV
-  ══════════════════════════════════════════ -->
-  <header class="bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800
-                 sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
-
-        <!-- Logo / Brand -->
-        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
-          <img src="/logo.svg" alt="" class="w-8 h-8" width="32" height="32" />
-          <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
-            BLT Design Contests
-          </span>
-        </a>
-
-        <!-- Centre nav links -->
-        <div class="hidden md:flex items-center gap-6 text-sm font-medium">
-          <a href="#contests"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors">
-            Contests
-          </a>
-          <a href="#how-it-works"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors">
-            How it works
-          </a>
-          <a href="{ISSUES_URL}" target="_blank" rel="noopener"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors
-                    inline-flex items-center gap-1">
-            <i class="fa-solid fa-list-check" aria-hidden="true"></i> Issues
-          </a>
-        </div>
-
-        <!-- CTA -->
-        <a href="{first_submit_url}"
-           target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 bg-[#dc2626] hover:bg-red-700
-                  text-white text-sm font-semibold px-4 py-2 rounded-md
-                  transition-colors shrink-0">
-          <i class="fa-solid fa-plus" aria-hidden="true"></i>
-          <span>Submit Design</span>
-        </a>
-
-
-      </nav>
-    </div>
-  </header>
+  <!-- ── OWASP BLT bar: this site's links and the Submit button ── -->
+  <blt-nav project="blt-design-contest" name="Contest" data-sticky>
+    <a href="#contests">Contests</a>
+    <a href="#how-it-works">How it works</a>
+    <a href="{ISSUES_URL}" target="_blank" rel="noopener">Issues</a>
+    <a href="{first_submit_url}" slot="actions" data-primary target="_blank" rel="noopener">Submit Design</a>
+  </blt-nav>
 
   <!-- ══════════════════════════════════════════
        HERO
@@ -1269,6 +1231,8 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
       outline: 2px solid var(--brand);
       outline-offset: 2px;
     }}
+    blt-nav:not(:defined) {{ display: block; min-height: 61px; }}
+    blt-nav:not(:defined) > * {{ display: none; }}
     </style>
       <link rel="icon" type="image/svg+xml" href="/logo.svg" />
       <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
@@ -1276,42 +1240,16 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
 
     <body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col font-sans antialiased">
     <a href="#all-entries"
-     class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#dc2626] focus:text-white focus:rounded-md focus:font-medium">
+     class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[1100] focus:px-4 focus:py-2 focus:bg-[#dc2626] focus:text-white focus:rounded-md focus:font-medium">
     Skip to content
     </a>
 
-    <header class="bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800 sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
-      <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
-      <img src="/logo.svg" alt="" class="w-8 h-8" width="32" height="32" />
-      <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">BLT Design Contests</span>
-      </a>
-
-      <div class="hidden md:flex items-center gap-6 text-sm font-medium">
-      <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors inline-flex items-center gap-1.5">
-      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
-      </a>
-      <a href="show-all-entries.html"
-       class="text-[#dc2626] font-semibold inline-flex items-center gap-1.5"
-       aria-current="page">
-      <i class="fa-solid fa-images" aria-hidden="true"></i> All Entries
-      </a>
-      <a href="{ISSUES_URL}" target="_blank" rel="noopener"
-       class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors inline-flex items-center gap-1">
-      <i class="fa-solid fa-list-check" aria-hidden="true"></i> Issues
-      </a>
-      </div>
-
-      <a href="index.html#contests"
-       class="inline-flex items-center gap-2 bg-[#dc2626] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors shrink-0">
-      <i class="fa-solid fa-plus" aria-hidden="true"></i>
-      <span>Choose Contest</span>
-      </a>
-
-      </nav>
-    </div>
-    </header>
+    <blt-nav project="blt-design-contest" name="Contest" data-sticky>
+      <a href="index.html">All Contests</a>
+      <a href="show-all-entries.html" aria-current="page">All Entries</a>
+      <a href="{ISSUES_URL}" target="_blank" rel="noopener">Issues</a>
+      <a href="index.html#contests" slot="actions" data-primary>Choose Contest</a>
+    </blt-nav>
 
     <section class="bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
@@ -1638,6 +1576,8 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
       outline: 2px solid var(--brand);
       outline-offset: 2px;
     }}
+    blt-nav:not(:defined) {{ display: block; min-height: 61px; }}
+    blt-nav:not(:defined) > * {{ display: none; }}
   </style>
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
@@ -1649,59 +1589,18 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
   <!-- ── Skip to content ── -->
   <a href="#contest-{cid}"
      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
-            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#dc2626] focus:text-white
+            focus:z-[1100] focus:px-4 focus:py-2 focus:bg-[#dc2626] focus:text-white
             focus:rounded-md focus:font-medium">
     Skip to content
   </a>
 
-  <!-- ══════════════════════════════════════════
-       HEADER / NAV
-  ══════════════════════════════════════════ -->
-  <header class="bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800
-                 sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
-
-        <!-- Logo / Brand -->
-        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
-          <img src="/logo.svg" alt="" class="w-8 h-8" width="32" height="32" />
-          <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
-            BLT Design Contests
-          </span>
-        </a>
-
-        <!-- Centre nav links -->
-        <div class="hidden md:flex items-center gap-6 text-sm font-medium">
-          <a href="index.html"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors
-                    inline-flex items-center gap-1.5">
-            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
-          </a>
-          <span class="text-gray-300 dark:text-gray-600">|</span>
-          <span class="inline-flex items-center gap-1.5 text-[#dc2626] font-semibold">
-            <i class="{icon}" aria-hidden="true"></i> {cname}
-          </span>
-          <a href="{ISSUES_URL}" target="_blank" rel="noopener"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors
-                    inline-flex items-center gap-1">
-            <i class="fa-solid fa-list-check" aria-hidden="true"></i> Issues
-          </a>
-        </div>
-
-        <!-- CTA -->
-        <a href="{submit_url}"
-           target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 bg-[#dc2626] hover:bg-red-700
-                  text-white text-sm font-semibold px-4 py-2 rounded-md
-                  transition-colors shrink-0">
-          <i class="fa-solid fa-plus" aria-hidden="true"></i>
-          <span>Submit Design</span>
-        </a>
-
-
-      </nav>
-    </div>
-  </header>
+  <!-- ── OWASP BLT bar: this site's links and the Submit button ── -->
+  <blt-nav project="blt-design-contest" name="Contest" data-sticky>
+    <a href="index.html">All Contests</a>
+    <a href="{cid}.html" aria-current="page">{cname}</a>
+    <a href="{ISSUES_URL}" target="_blank" rel="noopener">Issues</a>
+    <a href="{submit_url}" slot="actions" data-primary target="_blank" rel="noopener">Submit Design</a>
+  </blt-nav>
 
   <!-- ══════════════════════════════════════════
        CONTEST CONTENT

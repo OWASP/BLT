@@ -37,6 +37,8 @@
       outline: 2px solid var(--brand);
       outline-offset: 2px;
     }
+    blt-nav:not(:defined) { display: block; min-height: 61px; }
+    blt-nav:not(:defined) > * { display: none; }
   </style>
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
@@ -48,59 +50,18 @@
   <!-- ── Skip to content ── -->
   <a href="#contest-blt-video-meme"
      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
-            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#dc2626] focus:text-white
+            focus:z-[1100] focus:px-4 focus:py-2 focus:bg-[#dc2626] focus:text-white
             focus:rounded-md focus:font-medium">
     Skip to content
   </a>
 
-  <!-- ══════════════════════════════════════════
-       HEADER / NAV
-  ══════════════════════════════════════════ -->
-  <header class="bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800
-                 sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
-
-        <!-- Logo / Brand -->
-        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
-          <img src="/logo.svg" alt="" class="w-8 h-8" width="32" height="32" />
-          <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
-            BLT Design Contests
-          </span>
-        </a>
-
-        <!-- Centre nav links -->
-        <div class="hidden md:flex items-center gap-6 text-sm font-medium">
-          <a href="index.html"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors
-                    inline-flex items-center gap-1.5">
-            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
-          </a>
-          <span class="text-gray-300 dark:text-gray-600">|</span>
-          <span class="inline-flex items-center gap-1.5 text-[#dc2626] font-semibold">
-            <i class="fa-solid fa-circle-play" aria-hidden="true"></i> BLT Video Meme
-          </span>
-          <a href="https://git.owaspblt.org/BLT/issues?label=blt-design-contest" target="_blank" rel="noopener"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#dc2626] transition-colors
-                    inline-flex items-center gap-1">
-            <i class="fa-solid fa-list-check" aria-hidden="true"></i> Issues
-          </a>
-        </div>
-
-        <!-- CTA -->
-        <a href="https://git.owaspblt.org/BLT/blob/main/blt-design-contest/issue-templates/video-meme-submission.md"
-           target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 bg-[#dc2626] hover:bg-red-700
-                  text-white text-sm font-semibold px-4 py-2 rounded-md
-                  transition-colors shrink-0">
-          <i class="fa-solid fa-plus" aria-hidden="true"></i>
-          <span>Submit Design</span>
-        </a>
-
-
-      </nav>
-    </div>
-  </header>
+  <!-- ── OWASP BLT bar: this site's links and the Submit button ── -->
+  <blt-nav project="blt-design-contest" name="Contest" data-sticky>
+    <a href="index.html">All Contests</a>
+    <a href="blt-video-meme.html" aria-current="page">BLT Video Meme</a>
+    <a href="https://git.owaspblt.org/BLT/issues?label=blt-design-contest" target="_blank" rel="noopener">Issues</a>
+    <a href="https://git.owaspblt.org/BLT/blob/main/blt-design-contest/issue-templates/video-meme-submission.md" slot="actions" data-primary target="_blank" rel="noopener">Submit Design</a>
+  </blt-nav>
 
   <!-- ══════════════════════════════════════════
        CONTEST CONTENT
