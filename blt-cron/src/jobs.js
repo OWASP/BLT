@@ -12,7 +12,10 @@ export const JOBS = [
   { name: "blt-leaf", binding: "LEAF", cron: "0 * * * *" },
   { name: "blt-lettuce", binding: "LETTUCE", cron: "0 * * * *" },
   { name: "blt-monitor", binding: "MONITOR", cron: "*/5 * * * *" },
-  { name: "blt-sizzle", binding: "SIZZLE", cron: "0 * * * *" },
+  // Check-in reminders: every 15 minutes, so a reminder set for :00, :15, :30 or :45 local
+  // time goes out on time (and :45-offset zones like Asia/Kathmandu line up too). An idle
+  // run is 1 D1 read; each user is reminded at most once per local day.
+  { name: "blt-sizzle", binding: "SIZZLE", cron: "*/15 * * * *" },
   { name: "blt-netguardian", binding: "NETGUARDIAN", cron: "*/5 * * * *" },
   { name: "my-gsoc-tool", binding: "GSOC_TOOL", cron: "3 0 * * *" },
   { name: "hackerhouse", binding: "HACKERHOUSE", cron: "2-59/5 * * * *" },

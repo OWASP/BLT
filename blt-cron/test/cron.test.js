@@ -40,6 +40,19 @@ test("due jobs at the top of an even hour", () => {
   assert.ok(!dueJobs(Date.parse("2026-10-18T04:30:00Z")).some((j) => j.name === "blt-lettuce"));
 });
 
+test("blt-sizzle runs every 15 minutes for check-in reminders", () => {
+  const names = (iso) => dueJobs(Date.parse(iso)).map((j) => j.name);
+  for (const iso of ["2026-10-18T04:00:00Z", "2026-10-18T04:15:00Z", "2026-10-18T11:30:00Z", "2026-10-18T23:45:00Z"]) {
+    assert.ok(names(iso).includes("blt-sizzle"), iso);
+  }
+  for (const iso of ["2026-10-18T04:05:00Z", "2026-10-18T11:29:00Z", "2026-10-18T11:31:00Z"]) {
+    assert.ok(!names(iso).includes("blt-sizzle"), iso);
+  }
+  const perDay = Array.from({ length: 1440 }, (_, m) => Date.parse("2026-10-18T00:00:00Z") + m * 60000)
+    .filter((t) => dueJobs(t).some((j) => j.name === "blt-sizzle")).length;
+  assert.equal(perDay, 96);
+});
+
 test("hackerhouse polls the forge every 5 minutes, off the other jobs' minutes", () => {
   const names = (iso) => dueJobs(Date.parse(iso)).map((j) => j.name);
   const job = JOBS.find((j) => j.name === "hackerhouse");
