@@ -79,13 +79,13 @@
                                         <h3 class="text-base font-semibold text-gray-800 dark:text-gray-200 mb-2 truncate">{{ member.username }}</h3>
                                         <div class="flex flex-col gap-2">
                                             {% if member != user %}
-                                                <button onclick="openKudosModal('{{ member.username }}')"
+                                                <button onclick="openKudosModal('{{ member.username|escapejs }}')"
                                                         class="px-2 py-1 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-300 w-full">
                                                     <i class="fas fa-star mr-1"></i> Give Kudos
                                                 </button>
                                             {% endif %}
                                             {% if user.userprofile.team.admin == user and user.userprofile.team.admin != member %}
-                                                <button onclick="kickMember('{{ member.username }}')"
+                                                <button onclick="kickMember('{{ member.username|escapejs }}')"
                                                         class="px-2 py-1 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-300 w-full">
                                                     <i class="fas fa-times mr-1"></i> Remove
                                                 </button>
@@ -555,18 +555,23 @@
                 return;
             }
 
-            fetch(`/teams/search-users/?query=${query}`)
+            fetch(`/teams/search-users/?query=${encodeURIComponent(query)}`)
                 .then(response => response.json())
-                .then(data => {
-                    let dropdownContent = "";
-                    data.forEach(user => {
-                        dropdownContent += `
-                            <div class="px-4 py-2 hover:bg-gray-50 cursor-pointer text-sm text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-800 last:border-b-0" onclick="selectUser('${user.username}')">
-                                ${user.username} ${user.team ? ' - ' + user.team : ''}
-                            </div>`;
-                    });
-                    document.getElementById('userDropdown').innerHTML = dropdownContent;
-                });
+                .then(data => renderUserResults(document.getElementById('userDropdown'), data, selectUser));
+        }
+
+        // Search results carry usernames and free-text team names: render as text only.
+        function renderUserResults(dropdown, data, onSelect) {
+            dropdown.replaceChildren();
+            (Array.isArray(data) ? data : []).forEach(user => {
+                const username = user && user.username != null ? String(user.username) : "";
+                if (!username) return;
+                const item = document.createElement('div');
+                item.className = "px-4 py-2 hover:bg-gray-50 cursor-pointer text-sm text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-800 last:border-b-0";
+                item.textContent = user.team ? `${username} - ${user.team}` : username;
+                item.addEventListener('click', () => onSelect(username));
+                dropdown.appendChild(item);
+            });
         }
 
         function selectUser(username) {
@@ -577,11 +582,17 @@
                 const userDiv = document.createElement('div');
                 userDiv.className = 'inline-flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm';
                 userDiv.dataset.username = username;
-                userDiv.innerHTML = `
-                    <span class="text-gray-700 dark:text-gray-300">${username}</span>
-                    <button type="button" onclick="removeUser(this)" class="text-gray-500 dark:text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>`;
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'text-gray-700 dark:text-gray-300';
+                nameSpan.textContent = username;
+                const removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.className = 'text-gray-500 dark:text-gray-500 hover:text-gray-700';
+                removeButton.addEventListener('click', () => removeUser(removeButton));
+                const removeIcon = document.createElement('i');
+                removeIcon.className = 'fas fa-times';
+                removeButton.appendChild(removeIcon);
+                userDiv.append(nameSpan, removeButton);
                 selectedUsersContainer.appendChild(userDiv);
             }
 
@@ -648,18 +659,9 @@
                 return;
             }
 
-            fetch(`/teams/search-users/?query=${query}`)
+            fetch(`/teams/search-users/?query=${encodeURIComponent(query)}`)
                 .then(response => response.json())
-                .then(data => {
-                    let dropdownContent = "";
-                    data.forEach(user => {
-                        dropdownContent += `
-                            <div class="px-4 py-2 hover:bg-gray-50 cursor-pointer text-sm text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-800 last:border-b-0" onclick="selectNewMember('${user.username}')">
-                                ${user.username} ${user.team ? ' - ' + user.team : ''}
-                            </div>`;
-                    });
-                    document.getElementById('newMemberDropdown').innerHTML = dropdownContent;
-                });
+                .then(data => renderUserResults(document.getElementById('newMemberDropdown'), data, selectNewMember));
         }
 
         // Select user from dropdown for adding a new member

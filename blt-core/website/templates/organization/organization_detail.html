@@ -269,7 +269,7 @@
                                            class="text-gray-600 dark:text-gray-400 hover:text-[#e74c3c]">{{ github_url }}</a>
                                     </div>
                                     <button id="updateReposBtn"
-                                            onclick="updateGithubRepos('{{ organization.slug }}')"
+                                            onclick="updateGithubRepos('{{ organization.slug|escapejs }}')"
                                             class="mt-2 inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-[#e74c3c] rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors duration-200">
                                         <i class="fas fa-sync-alt mr-2"></i>
                                         Update GitHub Repositories
@@ -835,6 +835,13 @@ function syncGithubProjects() {
     });
 }
 
+function appendStatusError(container, text) {
+    const line = document.createElement('div');
+    line.className = 'text-red-500';
+    line.textContent = text;
+    container.appendChild(line);
+}
+
 function updateGithubRepos(slug) {
     const button = document.getElementById('updateReposBtn');
     const statusArea = document.getElementById('repoUpdateStatus');
@@ -852,10 +859,11 @@ function updateGithubRepos(slug) {
     // Connect to the server-sent events endpoint
     let eventSource;
     try {
-        eventSource = new EventSource(`/organization/${slug}/update-repos/`);
+        eventSource = new EventSource(`/organization/${encodeURIComponent(slug)}/update-repos/`);
     } catch (err) {
         console.error('Error creating EventSource:', err);
-        statusMessages.innerHTML = `<div class="text-red-500">Error: ${err.message}</div>`;
+        // The error message can echo the (organization-controlled) slug: render as text.
+        appendStatusError(statusMessages, `Error: ${err && err.message ? err.message : err}`);
         button.disabled = false;
         button.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Update GitHub Repositories';
         return;
@@ -864,7 +872,7 @@ function updateGithubRepos(slug) {
     // Set a timeout to detect connection issues
     const connectionTimeout = setTimeout(() => {
         if (eventSource.readyState !== EventSource.OPEN) {
-            statusMessages.innerHTML += '<div class="text-red-500">Error: Connection timeout</div>';
+            appendStatusError(statusMessages, 'Error: Connection timeout');
             eventSource.close();
             button.disabled = false;
             button.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Update GitHub Repositories';
@@ -923,7 +931,7 @@ function updateGithubRepos(slug) {
         
         eventSource.close();
         
-        statusMessages.innerHTML += '<div class="text-red-500">Error: Connection to the server was lost</div>';
+        appendStatusError(statusMessages, 'Error: Connection to the server was lost');
         
         // Add a retry button
         const retryBtn = document.createElement('button');

@@ -107,6 +107,16 @@ function initializeDaterangepicker(retryCount = 0) {
             const defaultStart = "{{ default_start_date }}";
             const defaultEnd = "{{ default_end_date }}";
 
+            // Check-in fields are free text written by users; escape before building HTML.
+            function escapeHtml(value) {
+                return String(value == null ? "" : value)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
+
             // Initialize date range picker with default dates
             $('#daterange').daterangepicker({
                 opens: 'left',
@@ -156,13 +166,13 @@ function initializeDaterangepicker(retryCount = 0) {
 
                             let rows = '';
                             dayReports.forEach(item => {
-                                const detailUrl = "/check-in/" + item.id + "/"; // Construct URL directly
+                                const detailUrl = "/check-in/" + encodeURIComponent(parseInt(item.id, 10)) + "/"; // Construct URL directly
                                 rows += `
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700 hover:text-gray-900 dark:hover:text-white">${item.username}</td>
-                                        <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700 hover:text-gray-900 dark:hover:text-white">${item.previous_work}</td>
-                                        <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700 hover:text-gray-900 dark:hover:text-white">${item.next_plan}</td>
-                                        <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700 hover:text-gray-900 dark:hover:text-white">${item.blockers}</td>
+                                        <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700 hover:text-gray-900 dark:hover:text-white">${escapeHtml(item.username)}</td>
+                                        <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700 hover:text-gray-900 dark:hover:text-white">${escapeHtml(item.previous_work)}</td>
+                                        <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700 hover:text-gray-900 dark:hover:text-white">${escapeHtml(item.next_plan)}</td>
+                                        <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700 hover:text-gray-900 dark:hover:text-white">${escapeHtml(item.blockers)}</td>
                                         <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700">
                                             <a href="${detailUrl}" class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded">View</a>
                                         </td>
@@ -173,7 +183,7 @@ function initializeDaterangepicker(retryCount = 0) {
                             $('#report-container').append(`
                                 <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden mb-8">
                                     <div class="bg-red-500 text-white text-center py-4 text-lg font-semibold border-b border-gray-400 dark:border-gray-500">
-                                        ${reportDate}
+                                        ${escapeHtml(reportDate)}
                                     </div>
                                     <table class="min-w-full bg-white dark:bg-gray-800">
                                         <thead>

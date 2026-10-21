@@ -40,21 +40,55 @@
                     data.forEach(bid => {
                         const bidElement = document.createElement("div");
                         bidElement.classList.add("bg-red-500", "text-black", "p-4", "rounded", "text-center", "mb-2");
-                        bidElement.innerHTML = `
-                            <div class="p-4 border rounded-lg shadow-md bg-white dark:bg-gray-800">
-                                <p class="font-bold">User: ${bid.user}</p>
-                                <p>Current Bid: ${bid.amount}</p>
-                                <p>Issue Url: <a href="${bid.issue_url}" class="text-blue-500 underline">${bid.issue_url}</a></p>
-                                <p>Created on: ${bid.created}</p>
-                                <p>Status: ${bid.status}</p>
-                                <button class="bg-blue-500 text-white px-4 py-2 rounded mt-2" onclick="changeStatus(${bid.id})">Change Status</button>
-                            </div>
-                        `;
+                        // Bid fields (issue_url, usernames) are user-submitted: build with DOM methods.
+                        const card = document.createElement("div");
+                        card.className = "p-4 border rounded-lg shadow-md bg-white dark:bg-gray-800";
+                        const addLine = (label, value) => {
+                            const p = document.createElement("p");
+                            p.textContent = `${label}${value == null ? "" : value}`;
+                            card.appendChild(p);
+                            return p;
+                        };
+                        addLine("User: ", bid.user ?? bid.github_username ?? bid.user_id).classList.add("font-bold");
+                        addLine("Current Bid: ", bid.amount ?? bid.amount_bch);
+                        const urlLine = addLine("Issue Url: ", "");
+                        const issueUrl = bid.issue_url == null ? "" : String(bid.issue_url);
+                        const safeIssueUrl = safeHttpUrl(issueUrl);
+                        if (safeIssueUrl) {
+                            const link = document.createElement("a");
+                            link.href = safeIssueUrl;
+                            link.className = "text-blue-500 underline";
+                            link.textContent = issueUrl;
+                            urlLine.appendChild(link);
+                        } else {
+                            urlLine.appendChild(document.createTextNode(issueUrl));
+                        }
+                        addLine("Created on: ", bid.created);
+                        addLine("Status: ", bid.status);
+                        const statusButton = document.createElement("button");
+                        statusButton.className = "bg-blue-500 text-white px-4 py-2 rounded mt-2";
+                        statusButton.textContent = "Change Status";
+                        const bidId = parseInt(bid.id, 10);
+                        statusButton.addEventListener("click", () => changeStatus(bidId));
+                        card.appendChild(statusButton);
+                        bidElement.appendChild(card);
                         bidContainer.appendChild(bidElement);
                     });
                 }
             })
             .catch(error => console.error('Error fetching bids:', error));
+        }
+
+        // Only http(s) URLs may be used as link targets.
+        function safeHttpUrl(value) {
+            if (typeof value !== "string" || !value.trim()) return null;
+            try {
+                const url = new URL(value.trim());
+                if (url.protocol === "http:" || url.protocol === "https:") return url.href;
+            } catch (e) {
+                return null;
+            }
+            return null;
         }
 
         function changeStatus(bidId) {

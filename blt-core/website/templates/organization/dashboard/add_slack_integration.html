@@ -754,8 +754,9 @@
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
-                        ${data.message}
                     `;
+                    // data.message can include the Slack workspace name: append as text.
+                    btn.appendChild(document.createTextNode(data.message == null ? '' : String(data.message)));
                 } else {
                     btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
                     btn.classList.add('bg-red-50', 'text-red-700', 'border-red-300');
@@ -763,8 +764,9 @@
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
-                        ${data.message}
                     `;
+                    // data.message can include the Slack workspace name: append as text.
+                    btn.appendChild(document.createTextNode(data.message == null ? '' : String(data.message)));
                 }
 
                 // Reset button after 3 seconds
@@ -854,6 +856,18 @@
             }
         });
 
+        // Only http(s) URLs may be used as image sources.
+        function safeHttpUrl(value) {
+            if (typeof value !== 'string' || !value.trim()) return null;
+            try {
+                const url = new URL(value.trim());
+                if (url.protocol === 'http:' || url.protocol === 'https:') return url.href;
+            } catch (e) {
+                return null;
+            }
+            return null;
+        }
+
         function showUserResult(user) {
             userErrorContainer.classList.add('hidden');
 
@@ -862,7 +876,7 @@
             avatar.innerHTML = ''; // Clear previous content
             if (user.avatar) {
                 const img = document.createElement('img');
-                img.src = user.avatar;
+                img.src = safeHttpUrl(user.avatar) || '';
                 img.alt = user.name;
                 img.className = 'w-12 h-12 rounded-lg';
                 avatar.appendChild(img);

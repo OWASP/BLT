@@ -509,27 +509,26 @@ if (printButton) {
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
 
-        const content = document.querySelector('.container').innerHTML;
+        // Build the print document with DOM methods: the incident title is
+        // staff-entered text and must not be parsed as HTML (escapejs output
+        // decodes back to raw "<" inside a template literal).
+        const printDoc = printWindow.document;
+        printDoc.open();
+        printDoc.write('<!DOCTYPE html><html><head></head><body></body></html>');
+        printDoc.close();
+        printDoc.title = "{{ incident.title|escapejs }}";
+        const style = printDoc.createElement('style');
+        style.textContent = 'body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; padding: 32px; }';
+        printDoc.head.appendChild(style);
+        const container = document.querySelector('.container');
+        if (container) {
+            const copy = container.cloneNode(true);
+            copy.querySelectorAll('script').forEach((el) => el.remove());
+            Array.from(copy.childNodes).forEach((node) => {
+                printDoc.body.appendChild(printDoc.importNode(node, true));
+            });
+        }
 
-        printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-                <head>
-                    <title>{{ incident.title|escapejs }}</title>
-                    <style>
-                        body {
-                            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-                            padding: 32px;
-                        }
-</style>
-                </head>
-                <body>
-                    ${content}
-                </body>
-            </html>
-        `);
-
-        printWindow.document.close();
         printWindow.focus();
         printWindow.print();
     });

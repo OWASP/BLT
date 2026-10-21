@@ -1,3 +1,27 @@
+// Only http(s) URLs (absolute, or resolved against this page) may be used in href/src.
+function safeHttpUrl(value) {
+  if (typeof value !== "string" || !value.trim()) return null;
+  try {
+    const url = new URL(value.trim(), window.location.href);
+    if (url.protocol === "http:" || url.protocol === "https:") return url.href;
+  } catch (e) {
+    return null;
+  }
+  return null;
+}
+
+function textOf(value) {
+  return value == null ? "" : String(value);
+}
+
+function formatCount(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n ? n.toLocaleString() : "0";
+}
+
+const GITHUB_ICON_SVG =
+  '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" /></svg>';
+
 // Function to copy text to clipboard
 function copyToClipboard(elementId) {
   const element = document.getElementById(elementId);
@@ -241,34 +265,53 @@ async function refreshSection(button, section) {
         totalCountEl.textContent = `${total} total contributors`;
       }
 
-      // Update contributors grid
-      let contributorsHtml = "";
-      communityData.contributors.forEach((contributor) => {
-        contributorsHtml += `
-                    <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
-                        <img src="${contributor.avatar_url}" width="30" height="30" alt="${contributor.name}" class="w-12 h-12 rounded-full border-2 border-white shadow-md group-hover:scale-110 transition-transform">
-                        <div class="flex-grow">
-                            <div class="font-medium text-gray-900">
-                                ${contributor.name}
-                                ${contributor.verified ? '<span class="ml-1 text-green-500" title="Verified Contributor">✓</span>' : ""}
-                            </div>
-                            <div class="text-sm text-gray-500">${(contributor.contributions ?? 0).toLocaleString()} commits</div>
-                        </div>
-                        <a href="${contributor.github_url}" target="_blank" class="p-2 text-gray-400 hover:text-gray-600">
-                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                            </svg>
-                        </a>
-                    </div>
-                `;
-      });
+      // Update contributors grid. Names and URLs come from GitHub: build with
+      // DOM methods and only allow http(s) avatar/profile URLs.
+      contributorsContainer.replaceChildren();
+      (communityData.contributors || []).forEach((contributor) => {
+        const card = document.createElement("div");
+        card.className =
+          "flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group";
 
-      if (typeof DOMPurify !== "undefined") {
-        contributorsContainer.innerHTML = DOMPurify.sanitize(contributorsHtml);
-      } else {
-        contributorsContainer.textContent =
-          "Failed to load contributors: Sanitization library missing.";
-      }
+        const img = document.createElement("img");
+        const avatarUrl = safeHttpUrl(contributor.avatar_url);
+        if (avatarUrl) img.src = avatarUrl;
+        img.width = 30;
+        img.height = 30;
+        img.alt = textOf(contributor.name);
+        img.className =
+          "w-12 h-12 rounded-full border-2 border-white shadow-md group-hover:scale-110 transition-transform";
+
+        const info = document.createElement("div");
+        info.className = "flex-grow";
+        const nameEl = document.createElement("div");
+        nameEl.className = "font-medium text-gray-900";
+        nameEl.textContent = textOf(contributor.name);
+        if (contributor.verified) {
+          const badge = document.createElement("span");
+          badge.className = "ml-1 text-green-500";
+          badge.title = "Verified Contributor";
+          badge.textContent = "\u2713";
+          nameEl.append(" ", badge);
+        }
+        const commitsEl = document.createElement("div");
+        commitsEl.className = "text-sm text-gray-500";
+        commitsEl.textContent = `${formatCount(contributor.contributions)} commits`;
+        info.append(nameEl, commitsEl);
+
+        card.append(img, info);
+        const profileUrl = safeHttpUrl(contributor.github_url);
+        if (profileUrl) {
+          const link = document.createElement("a");
+          link.href = profileUrl;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.className = "p-2 text-gray-400 hover:text-gray-600";
+          link.innerHTML = GITHUB_ICON_SVG; // static markup only
+          card.appendChild(link);
+        }
+        contributorsContainer.appendChild(card);
+      });
 
       // Show success message
       messageContainer.className =
@@ -289,44 +332,57 @@ async function refreshSection(button, section) {
           const row = document.createElement("tr");
           row.className = "hover:bg-gray-50 transition-colors";
 
-          const rowHtml = `
-                        <td class="px-4 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <img class="h-8 w-8 rounded-full" width="20" height="20" src="${stat.contributor.avatar_url}" alt="${stat.contributor.name}">
-                                <div class="ml-3">
-                                    <div class="text-sm font-medium text-gray-900">${stat.contributor.name}</div>
-                                    <div class="text-sm text-gray-500">@${stat.contributor.github_id}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-center text-emerald-600 font-medium">
-                            ${stat.commits ? stat.commits.toLocaleString() : "0"}
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-center text-blue-600 font-medium">
-                            ${stat.issues_opened ? stat.issues_opened.toLocaleString() : "0"}
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-center text-purple-600 font-medium">
-                            ${stat.issues_closed ? stat.issues_closed.toLocaleString() : "0"}
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-center text-orange-600 font-medium">
-                            ${stat.pull_requests ? stat.pull_requests.toLocaleString() : "0"}
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-center text-cyan-600 font-medium">
-                            ${stat.comments ? stat.comments.toLocaleString() : "0"}
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-center">
-                            <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${stat.impact_level?.class ?? ""}">
-                                ${stat.impact_level?.text ?? "N/A"}
-                            </div>
-                        </td>
-                    `;
+          // Contributor names/ids/avatars come from GitHub: build with DOM methods.
+          const contributor = stat.contributor || {};
+          const userCell = document.createElement("td");
+          userCell.className = "px-4 py-4 whitespace-nowrap";
+          const userWrap = document.createElement("div");
+          userWrap.className = "flex items-center";
+          const avatar = document.createElement("img");
+          avatar.className = "h-8 w-8 rounded-full";
+          avatar.width = 20;
+          avatar.height = 20;
+          const avatarUrl = safeHttpUrl(contributor.avatar_url);
+          if (avatarUrl) avatar.src = avatarUrl;
+          avatar.alt = textOf(contributor.name);
+          const names = document.createElement("div");
+          names.className = "ml-3";
+          const nameEl = document.createElement("div");
+          nameEl.className = "text-sm font-medium text-gray-900";
+          nameEl.textContent = textOf(contributor.name);
+          const idEl = document.createElement("div");
+          idEl.className = "text-sm text-gray-500";
+          idEl.textContent = `@${textOf(contributor.github_id)}`;
+          names.append(nameEl, idEl);
+          userWrap.append(avatar, names);
+          userCell.appendChild(userWrap);
+          row.appendChild(userCell);
 
-          if (typeof DOMPurify !== "undefined") {
-            row.innerHTML = DOMPurify.sanitize(rowHtml);
-          } else {
-            // Minimal fallback if DOMPurify is missing (though we added it to the template)
-            row.textContent = "Error: Sanitization required.";
-          }
+          [
+            ["text-emerald-600", stat.commits],
+            ["text-blue-600", stat.issues_opened],
+            ["text-purple-600", stat.issues_closed],
+            ["text-orange-600", stat.pull_requests],
+            ["text-cyan-600", stat.comments],
+          ].forEach(([colorClass, value]) => {
+            const cell = document.createElement("td");
+            cell.className = `px-4 py-4 whitespace-nowrap text-center ${colorClass} font-medium`;
+            cell.textContent = formatCount(value);
+            row.appendChild(cell);
+          });
+
+          const impactCell = document.createElement("td");
+          impactCell.className = "px-4 py-4 whitespace-nowrap text-center";
+          const impact = document.createElement("div");
+          impact.className =
+            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
+          textOf(stat.impact_level?.class)
+            .split(/\s+/)
+            .filter((c) => /^[A-Za-z0-9_:\/.-]+$/.test(c))
+            .forEach((c) => impact.classList.add(c));
+          impact.textContent = stat.impact_level?.text ?? "N/A";
+          impactCell.appendChild(impact);
+          row.appendChild(impactCell);
           statsTableBody.appendChild(row);
         });
       } else {

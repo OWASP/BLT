@@ -187,6 +187,7 @@
             </div>
         </div>
     </div>
+    {{ organizations_list|json_script:"organizations-list-data" }}
     <script>
         // CSRF Token Setup
         function getCookie(name) {
@@ -216,7 +217,8 @@
             const token = '{{ token }}'; // Ensure token is securely passed from the view
             let timeLogId = null;
             let timerInterval = null;
-            const organizations_list = {{organizations_list | safe}};
+            // Organization names are user-supplied: read them as JSON data, never inline them into script.
+            const organizations_list = JSON.parse(document.getElementById('organizations-list-data').textContent);
 
             // Handle organization search
             $("#organization_search_input").on("input", function () {
@@ -224,7 +226,7 @@
                 let searchResults = [];
                 if (searchTerm !== "") {
                     searchResults = organizations_list.filter(function (item) {
-                        return item.name.toLowerCase().includes(searchTerm);
+                        return String(item.name || "").toLowerCase().includes(searchTerm);
                     });
                 }
 
@@ -237,7 +239,7 @@
                             .text(result.name)
                             .on("click", function () {
                                 $("#organization_search_input").val(result.url);
-                                $("#search_results").html(`Selected organization: ${result.name} 🎯`);
+                                $("#search_results").text(`Selected organization: ${result.name} 🎯`);
                                 $("#search_results").removeClass("hidden");
                             });
 
@@ -251,7 +253,7 @@
                     });
                 } else {
                     if (searchTerm !== "") {
-                        $("#search_results").html("No results found");
+                        $("#search_results").text("No results found");
                         $("#search_results").removeClass("hidden");
                     } else {
                         $("#search_results").empty();
@@ -399,7 +401,7 @@
                 };
                 
                 $('#message-container').html(`
-                    <div class="rounded-md p-4 mb-4 ${colors[type]} border">
+                    <div class="rounded-md p-4 mb-4 ${colors[type] || colors.error} border">
                         <div class="flex">
                             <div class="flex-shrink-0">
                                 ${type === 'error' ? 
@@ -409,11 +411,13 @@
                                 }
                             </div>
                             <div class="ml-3">
-                                <p class="text-sm">${message}</p>
+                                <p class="text-sm"></p>
                             </div>
                         </div>
                     </div>
                 `);
+                // API error details may echo user input: insert as text.
+                $('#message-container').find('p.text-sm').text(message == null ? '' : String(message));
             }
         });
     </script>
