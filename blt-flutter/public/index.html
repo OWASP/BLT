@@ -75,73 +75,21 @@
       transform: translateY(-4px);
       box-shadow: 0 12px 32px rgba(220,38,38,0.12);
     }
+
+    blt-nav:not(:defined) { display: block; min-height: 61px; }
+    blt-nav:not(:defined) > * { display: none; }
   </style>
 </head>
 
 <body class="bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
 
-  <!-- ══════════════════════════════ NAVBAR ══════════════════════════════ -->
-  <header class="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm dark:bg-gray-900 dark:border-gray-800">
-    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-      <!-- Logo -->
-      <a href="#" class="flex items-center gap-2 shrink-0" aria-label="BLT-Flutter home">
-        <img src="assets/blt-flutter-logo.svg" alt="" class="h-8 w-8" />
-        <span class="font-bold text-xl text-gray-900 dark:text-white tracking-tight">BLT-Flutter</span>
-      </a>
-
-      <!-- Nav links (desktop) -->
-      <ul class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-700 dark:text-gray-300">
-        <li><a href="#features" class="hover:text-[#dc2626] hover:underline transition-colors">Features</a></li>
-        <li><a href="#screenshots" class="hover:text-[#dc2626] hover:underline transition-colors">Screenshots</a></li>
-        <li><a href="#download" class="hover:text-[#dc2626] hover:underline transition-colors">Download</a></li>
-        <li>
-          <a href="https://git.owaspblt.org/BLT/BLT-Flutter"
-             target="_blank" rel="noopener"
-             class="hover:text-[#dc2626] hover:underline transition-colors flex items-center gap-1">
-            <i class="fa-brands fa-github" aria-hidden="true"></i>Source Code</a>
-        </li>
-      </ul>
-
-      <!-- CTA button (desktop) -->
-      <a href="#download"
-         class="hidden md:inline-flex items-center gap-2 bg-[#dc2626] hover:bg-[#B91C1C] text-white text-sm font-semibold px-5 py-2 rounded-md transition-colors">
-        <i class="fa-solid fa-download" aria-hidden="true"></i> Get the App
-      </a>
-
-      <!-- Mobile menu toggle (accessible) -->
-      <button id="mobile-menu-btn"
-              type="button"
-              class="md:hidden p-2 rounded-md text-gray-600 hover:text-[#dc2626] hover:bg-[#fee2e2] dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
-              aria-expanded="false" aria-controls="mobile-menu"
-              aria-label="BLT-Flutter menu">
-        <i class="fa-solid fa-ellipsis text-lg" aria-hidden="true"></i>
-      </button>
-    </nav>
-
-    <!-- Mobile menu -->
-    <div id="mobile-menu" class="hidden md:hidden border-t border-gray-200 px-4 pb-4 pt-2 space-y-2 bg-white dark:bg-gray-900 dark:border-gray-800">
-      <a href="#features"  class="block py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#dc2626]">Features</a>
-      <a href="#screenshots" class="block py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#dc2626]">Screenshots</a>
-      <a href="#download"  class="block py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#dc2626]">Download</a>
-      <a href="https://git.owaspblt.org/BLT/BLT-Flutter"
-         target="_blank" rel="noopener"
-         class="block py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#dc2626]">
-        <i class="fa-brands fa-github mr-1" aria-hidden="true"></i>Source Code</a>
-      <a href="#download"
-         class="inline-flex items-center gap-2 bg-[#dc2626] hover:bg-[#B91C1C] text-white text-sm font-semibold px-5 py-2 rounded-md transition-colors mt-2">
-        <i class="fa-solid fa-download" aria-hidden="true"></i> Get the App
-      </a>
-    </div>
-  </header>
-
-  <script>
-    document.getElementById('mobile-menu-btn').addEventListener('click', function() {
-      const menu = document.getElementById('mobile-menu');
-      const expanded = this.getAttribute('aria-expanded') === 'true';
-      this.setAttribute('aria-expanded', String(!expanded));
-      menu.classList.toggle('hidden');
-    });
-  </script>
+  <blt-nav project="blt-flutter" name="Flutter" data-sticky>
+    <a href="#features">Features</a>
+    <a href="#screenshots">Screenshots</a>
+    <a href="#download">Download</a>
+    <a href="https://git.owaspblt.org/BLT/BLT-Flutter" target="_blank" rel="noopener">Source Code</a>
+    <a href="#download" slot="actions" data-primary>Get the App</a>
+  </blt-nav>
 
   <!-- ══════════════════════════════ HERO ══════════════════════════════ -->
   <section class="hero-gradient text-white">
