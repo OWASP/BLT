@@ -3,9 +3,11 @@
  */
 
 // 1. Initial Theme Setup (Blocking to prevent flicker)
+// Same contract as every BLT site: class "dark" on <html>, saved as localStorage "theme"; the
+// OWASP BLT top bar (blt-nav.js) has the toggle. "blt-theme" is the key this site used before.
 (function () {
     try {
-        const savedTheme = localStorage.getItem('blt-theme');
+        const savedTheme = localStorage.getItem('theme') || localStorage.getItem('blt-theme');
         if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         }
@@ -22,10 +24,10 @@ function applyTailwindConfig() {
             theme: {
                 extend: {
                     colors: {
-                        'blt-red': '#E10101',
+                        'blt-red': '#dc2626',
                     },
                     fontFamily: {
-                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
                     }
                 }
             }
@@ -63,17 +65,6 @@ if (window.marked) {
 
 // 4. Utility Functions
 window.BLT = {
-    // Theme Toggle Logic
-    initThemeToggle: function (buttonId) {
-        const toggleBtn = document.getElementById(buttonId);
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => {
-                const isDark = document.documentElement.classList.toggle('dark');
-                localStorage.setItem('blt-theme', isDark ? 'dark' : 'light');
-            });
-        }
-    },
-
     // HTML Escaping
     escHtml: function (str) {
         if (!str) return '';
@@ -109,7 +100,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (yearEl) {
         yearEl.textContent = new Date().getFullYear();
     }
-
-    // Auto-init theme toggle if default ID exists
-    BLT.initThemeToggle('dark-toggle');
 });

@@ -5,8 +5,8 @@
 
 /* BLT Byte Shared Styles */
 :root {
-    --blt-red: #E10101;
-    --blt-red-h: #c00000;
+    --blt-red: #dc2626;
+    --blt-red-h: #b91c1c;
 }
 
 @keyframes fade-in {

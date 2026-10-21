@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/static/common.css">
     <script src="/static/common.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous"></script>
 </head>
 
@@ -24,7 +24,7 @@
         class="sticky top-0 z-50 bg-white/98 dark:bg-gray-800/98 backdrop-blur border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-                <img src="/static/logo.png" alt="BLT Byte Logo" class="w-10 h-10 object-contain">
+                <img src="/static/byte-logo.svg" width="40" height="40" alt="BLT Byte logo" class="w-10 h-10 rounded-full object-contain">
                 <div>
                     <h1 class="text-xl font-extrabold text-gray-900 dark:text-gray-100 leading-tight">BLT Byte</h1>
                     <p class="text-sm font-semibold text-gray-600 dark:text-gray-400">AI-Powered Bug Bounty Assistant
@@ -32,19 +32,6 @@
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <button id="dark-toggle"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                    aria-label="Toggle dark mode">
-                    <svg class="w-5 h-5 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z">
-                        </path>
-                    </svg>
-                    <svg class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                    </svg>
-                </button>
                 <a href="/" class="text-sm text-blt-red hover:text-red-700 font-bold transition">
                     ← Back
                 </a>
@@ -158,8 +145,8 @@
         }
 
         .quick-prompt-btn:hover {
-            border-color: #E10101;
-            color: #E10101;
+            border-color: #dc2626;
+            color: #dc2626;
             background: rgba(225, 1, 1, .05);
         }
     </style>
