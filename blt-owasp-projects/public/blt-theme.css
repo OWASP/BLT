@@ -1,0 +1,97 @@
+/* OWASP BLT look for the dashboard pages: system font, BLT red links, and dark mode keyed off
+   html.dark (set before paint by theme-init.js and by the OWASP BLT bar's toggle). */
+body {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #fff;
+    color: #111827;
+}
+
+/* The bar spans the full width above the padded body. */
+blt-nav {
+    display: block;
+    margin: -10px -10px 10px;
+}
+
+@media screen and (max-width: 768px) {
+    blt-nav {
+        margin: -5px -5px 5px;
+    }
+}
+
+a,
+#issue-count {
+    color: #dc2626;
+}
+
+html.dark {
+    color-scheme: dark;
+}
+
+html.dark body {
+    background: #030712;
+    color: #f3f4f6;
+}
+
+html.dark h2 {
+    color: #f3f4f6;
+}
+
+html.dark a,
+html.dark #issue-count {
+    color: #f87171;
+}
+
+html.dark table.dataTable thead th,
+html.dark table.dataTable thead td,
+html.dark th {
+    background-color: #111827 !important;
+    color: #f3f4f6;
+    border-color: #1f2937 !important;
+}
+
+html.dark table.dataTable tbody tr,
+html.dark table.dataTable tbody tr > td {
+    background-color: #111827 !important;
+    box-shadow: none !important;
+    color: #e5e7eb;
+    border-color: #1f2937 !important;
+}
+
+html.dark table.dataTable tbody tr:nth-child(even),
+html.dark table.dataTable tbody tr:nth-child(even) > td {
+    background-color: #0b1120 !important;
+}
+
+html.dark table.dataTable tbody tr:hover > td {
+    background-color: #1f2937 !important;
+}
+
+html.dark table.dataTable.no-footer,
+html.dark table.dataTable thead th,
+html.dark table.dataTable thead td {
+    border-bottom-color: #374151 !important;
+}
+
+html.dark .dataTables_wrapper .dataTables_length,
+html.dark .dataTables_wrapper .dataTables_filter,
+html.dark .dataTables_wrapper .dataTables_info,
+html.dark .dataTables_wrapper .dataTables_processing,
+html.dark .dataTables_wrapper .dataTables_paginate,
+html.dark .dataTables_wrapper .dataTables_paginate .paginate_button,
+html.dark .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    color: #d1d5db !important;
+}
+
+html.dark .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+html.dark .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+    color: #f3f4f6 !important;
+}
+
+html.dark input,
+html.dark select {
+    background: #030712;
+    color: #f3f4f6;
+    border: 1px solid #374151;
+}
