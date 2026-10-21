@@ -11,6 +11,7 @@ blt-flutter	flutter	flutter pub get && flutter test
 blt-gsoc	node	npm test
 blt-hackathons	python	python -m py_compile fetch_stats.py forkmesh_source.py slack_activity.py && python -m json.tool public/stats.json > /dev/null && python -m unittest discover -s test -p 'test_*.py' && node scripts/validate_gsoc_2027_contract.js && node --test 'scripts/actions/*.test.mjs' && node --test 'test/*.test.mjs'
 blt-hackerhouse	python	pip install -e '.[dev]' && python -m pytest -q backend/tests
+blt-home	node	node --test 'test/*.test.mjs'
 blt-jobs	node	npm_install && npm test && npm run test:worker
 blt-leaf	node	npm_install && npm test
 blt-legacy	python	export SECRET_KEY=ci-test-secret-key DATABASE_URL=sqlite:///db.sqlite3 && pip install uv && uv sync --locked && uv run --locked python manage.py collectstatic --noinput && $(command -v xvfb-run >/dev/null && echo 'xvfb-run --auto-servernum') uv run --locked python manage.py test --parallel --failfast

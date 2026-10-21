@@ -17,6 +17,7 @@ blt-gitcaster	blt-gitcaster	worker	-	-
 blt-gsoc	blt-gsoc	worker	-	rm -rf public && mkdir public && cp -r CNAME blog certificates contributors css favicon.ico gsoc2026.html images index.html js mentor-guide.html pr-report.html progress-tracker.html data public/
 blt-hackathons	blt-hackathons	worker	-	-
 blt-hackerhouse	blt-hackerhouse	pywrangler	-	-
+blt-home	blt-home	worker	-	-
 blt-ideas	blt-ideas	worker	-	-
 blt-jobs	blt-jobs	worker	-	npm ci && npm run build:jobs
 blt-ketchup	blt-ketchup	worker	-	npm ci && npm run build

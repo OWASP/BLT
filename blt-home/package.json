@@ -1,0 +1,16 @@
+{
+  "name": "blt-home",
+  "private": true,
+  "type": "module",
+  "description": "OWASP BLT landing page (owaspblt.org) on Cloudflare Workers",
+  "license": "AGPL-3.0",
+  "scripts": {
+    "test": "node --test 'test/*.test.mjs'",
+    "build:css": "tailwindcss -c tailwind.config.cjs -i src/home.css -o public/_home/home.css --minify",
+    "dev": "npx wrangler@4 dev",
+    "deploy": "npx wrangler@4 deploy"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}

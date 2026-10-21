@@ -1,0 +1,11 @@
+{
+  "name": "BLT-Home",
+  "about": "The owaspblt.org landing page: what OWASP BLT is, live project numbers, every live BLT product, and how to get involved.",
+  "website": "https://owaspblt.org/",
+  "links": [
+    {"label": "Source", "url": "https://git.owaspblt.org/BLT/BLT-Home"},
+    {"label": "Issues", "url": "https://git.owaspblt.org/BLT/issues"},
+    {"label": "AI policy", "url": "https://git.owaspblt.org/BLT/blob/main/AI_POLICY.md"}
+  ],
+  "topics": ["owasp", "landing-page", "cloudflare-workers", "tailwindcss"]
+}

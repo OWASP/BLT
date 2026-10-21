@@ -1,0 +1,411 @@
+<!doctype html>
+<!--
+  owaspblt.org landing page.
+  Design: Md Kaif Ansari (GitLab owasp-blt/blt!1, "feat: add new homepage").
+  Styles: public/_home/home.css, compiled from src/home.css (npm run build:css).
+  Live numbers: /api/home-stats (src/worker.js); a number whose source is down stays hidden.
+-->
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OWASP BLT: Bug Logging Tool</title>
+    <meta name="description" content="OWASP BLT is an open-source bug logging and vulnerability disclosure project. Report bugs publicly, disclose vulnerabilities securely with BLT-Zero, and earn BACON for accepted contributions." />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f9fafb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#030712" media="(prefers-color-scheme: dark)" />
+    <meta property="og:title" content="OWASP BLT: Bug Logging Tool" />
+    <meta property="og:description" content="The web is broken. We log it. Report bugs, disclose vulnerabilities securely, and help build OWASP BLT." />
+    <meta property="og:url" content="https://owaspblt.org/" />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/_home/blt-logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/_home/home.css" />
+    <script src="/_home/theme-init.js"></script>
+    <script src="/_home/home.js" defer></script>
+  </head>
+  <body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+    <a href="#main" class="sr-only z-[60] rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to content</a>
+
+    <header class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px] dark:border-white/10 dark:bg-gray-950/85" id="site-header">
+      <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3 max-md:px-4">
+        <a href="/" class="inline-flex flex-none items-center gap-2.5" aria-label="OWASP BLT home">
+          <img src="/_home/blt-logo.svg" alt="" width="32" height="32" class="h-8 w-8" />
+          <span class="text-lg font-bold tracking-tight text-gray-900 dark:text-white">OWASP <span class="text-red-600 dark:text-red-500">BLT</span></span>
+        </a>
+
+        <nav class="hidden items-center gap-6 lg:flex" aria-label="Primary">
+          <a class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white" href="#why">Why BLT</a>
+          <a class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white" href="#explore">Explore</a>
+          <a class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white" href="#get-involved">Get involved</a>
+          <a class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white" href="https://docs.owaspblt.org/">Docs</a>
+          <a class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white" href="https://pool.owaspblt.org/leaderboard">Leaderboard</a>
+          <a class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white" href="https://gsoc.owaspblt.org/">GSoC</a>
+        </nav>
+
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <a class="hidden rounded-md px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 md:inline-flex dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white" href="https://zero.owaspblt.org/">BLT-Zero</a>
+          <a class="hidden items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:shadow-[0_10px_24px_-12px_rgba(220,38,38,0.8)] sm:inline-flex" href="https://next.owaspblt.org/pages/report-bug.html">Report Bug</a>
+          <div class="relative hidden md:block" id="apps-launcher">
+            <button class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white" id="apps-trigger" type="button" aria-expanded="false" aria-controls="apps-panel" aria-label="All BLT apps">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="5" r="2" /><circle cx="12" cy="5" r="2" /><circle cx="19" cy="5" r="2" /><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /><circle cx="5" cy="19" r="2" /><circle cx="12" cy="19" r="2" /><circle cx="19" cy="19" r="2" /></svg>
+            </button>
+            <div class="apps-panel absolute right-0 top-full z-50 mt-3 hidden w-[26rem] max-w-[calc(100vw-2rem)] rounded-3xl border border-red-100 bg-white shadow-[0_25px_50px_-12px_rgba(254,202,202,0.6)] dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/50" id="apps-panel">
+              <div class="flex items-center justify-between px-5 pb-1 pt-5">
+                <p class="m-0 text-sm font-semibold text-gray-900 dark:text-white">BLT apps</p>
+                <a href="#explore" class="text-xs font-medium text-red-600 hover:underline dark:text-red-400">Browse by category</a>
+              </div>
+              <div class="apps-scroll max-h-[22rem] overflow-y-auto px-3 pb-5 pt-1">
+                <ul class="grid grid-cols-4" id="apps-grid"></ul>
+              </div>
+            </div>
+          </div>
+          <button id="theme-toggle" type="button" class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white" aria-label="Switch to dark theme">
+            <svg class="h-[18px] w-[18px] dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>
+            <svg class="hidden h-[18px] w-[18px] dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+          </button>
+          <button class="mobile-toggle flex h-9 w-9 flex-col items-center justify-center gap-[5px] rounded-lg lg:hidden" id="mobile-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
+            <span class="block h-px w-5 bg-gray-600 transition duration-200 dark:bg-gray-300"></span>
+            <span class="block h-px w-5 bg-gray-600 transition duration-200 dark:bg-gray-300"></span>
+            <span class="block h-px w-5 bg-gray-600 transition duration-200 dark:bg-gray-300"></span>
+          </button>
+        </div>
+      </div>
+
+      <nav class="mobile-menu hidden flex-col gap-1 border-t border-gray-100 bg-white px-4 py-3 lg:!hidden dark:border-gray-800 dark:bg-gray-950" id="mobile-menu" aria-label="Mobile">
+        <a class="rounded-md px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800" href="#why">Why BLT</a>
+        <a class="rounded-md px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800" href="#explore">Explore</a>
+        <a class="rounded-md px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800" href="#get-involved">Get involved</a>
+        <a class="rounded-md px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800" href="https://docs.owaspblt.org/">Docs</a>
+        <a class="rounded-md px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800" href="https://pool.owaspblt.org/leaderboard">Leaderboard</a>
+        <a class="rounded-md px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800" href="https://gsoc.owaspblt.org/">GSoC</a>
+        <a class="rounded-md px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800" href="https://zero.owaspblt.org/">BLT-Zero</a>
+        <a class="mt-1 rounded-md bg-red-600 px-3 py-2 text-center text-sm font-semibold text-white" href="https://next.owaspblt.org/pages/report-bug.html">Report Bug</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <!-- HERO -->
+      <section class="relative flex min-h-[40rem] items-center justify-center overflow-hidden px-6 pb-20 pt-32 max-md:min-h-0 max-md:px-4 max-md:pt-28" aria-labelledby="hero-heading">
+        <div class="hero-canvas-wrap pointer-events-none absolute inset-0 flex items-center justify-center opacity-70 dark:opacity-50" aria-hidden="true">
+          <canvas id="lifeCanvas"></canvas>
+        </div>
+        <div class="relative z-10 mx-auto w-full min-w-0 max-w-4xl text-center">
+          <!-- ANNOUNCEMENT: the one place to change the banner. Delete the <a> to remove it. -->
+          <a id="announcement" class="mb-7 inline-flex max-w-full items-center gap-2 rounded-full border border-black/5 bg-white/90 py-1 pl-1 pr-3 text-xs text-gray-700 shadow-sm transition hover:border-red-200 hover:text-gray-900 dark:border-white/10 dark:bg-gray-900/90 dark:text-gray-200 dark:hover:border-red-800" href="https://git.owaspblt.org/BLT/issues?label=hacktoberfest">
+            <span class="flex-none rounded-full bg-red-50 px-2 py-0.5 font-semibold text-red-700 dark:bg-red-950 dark:text-red-300">Hacktoberfest</span>
+            <span class="truncate">Contributor issues are open: pick one and send a pull request &#8599;</span>
+          </a>
+          <h1 id="hero-heading" class="text-[clamp(2.75rem,8vw,5.5rem)] font-extrabold leading-[0.95] tracking-tight text-gray-900 dark:text-white">
+            The web is<br />
+            <span class="text-red-600 dark:text-red-500">broken.</span> We log it.
+          </h1>
+          <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-gray-600 sm:text-lg dark:text-gray-300">Report bugs publicly, disclose vulnerabilities securely with BLT-Zero, and earn BACON for making the web safer. An open-source OWASP project.</p>
+          <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <a class="inline-flex items-center justify-center gap-2 rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:shadow-[0_10px_24px_-12px_rgba(220,38,38,0.8)]" href="https://next.owaspblt.org/pages/report-bug.html">Report a bug</a>
+            <a class="inline-flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-800 transition hover:border-red-200 hover:text-red-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:border-red-800 dark:hover:text-red-300" href="https://zero.owaspblt.org/">Disclose a vulnerability &#8599;</a>
+          </div>
+        </div>
+      </section>
+
+      <div class="feature-divider mx-auto flex max-w-5xl items-center gap-4 px-6" aria-hidden="true">
+        <span class="wave-dots relative h-4 w-5"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      </div>
+
+      <!-- WHY OWASP BLT -->
+      <section id="why" class="scroll-mt-20 px-6 py-20 max-md:px-4 max-md:py-14" aria-labelledby="why-heading">
+        <div class="mx-auto max-w-5xl">
+          <div class="mx-auto mb-12 max-w-2xl text-center">
+            <span class="inline-block rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-red-600 dark:border-red-900 dark:bg-red-950/60 dark:text-red-400">Platform</span>
+            <h2 id="why-heading" class="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">Why OWASP BLT</h2>
+            <p class="mt-3 text-gray-600 dark:text-gray-300">Public bug reports, private disclosure and real recognition, built in the open by the OWASP community.</p>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-3">
+            <!-- Public bug reports. The number appears only when BLT-Pages has reports. -->
+            <article class="flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-6 text-center dark:border-gray-800 dark:bg-gray-900">
+              <div class="relative flex h-24 w-full items-center justify-center" aria-hidden="true">
+                <svg class="absolute h-24 w-56 text-gray-300 dark:text-gray-700" viewBox="0 0 254 104" fill="none"><path d="M113 98c27-.6 58-3 88-10 9-2 18-5 27-10 4-2 8-4 11-7 3-2 5-5 7-8 4-7 3-13-3-18-3-3-7-5-11-7-12-6-24-10-37-13-10-2-21-4-32-4-2 0-6-1-6-3 0-2 3-3 6-3 17 0 34 3 50 9 8 3 16 6 24 10 4 2 8 5 11 8 7 6 8 15 4 23-2 4-5 8-9 12-7 5-14 8-22 11-16 6-32 9-48 11-19 3-39 4-58 5-24 0-47-1-70-6-10-3-21-6-30-12-4-3-9-7-11-12-5-9 0-18 7-24 9-8 22-13 34-16" stroke="currentColor" stroke-width="3" stroke-linecap="round" /></svg>
+                <span data-live="bugs" class="relative text-5xl font-bold tracking-tight text-gray-900 dark:text-white" hidden></span>
+                <svg data-live-fallback="bugs" class="relative h-11 w-11 text-red-600 dark:text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l1.9 1.9M16 2l-1.9 1.9M9 7.1V6a3 3 0 0 1 6 0v1.1" /><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6ZM12 20v-9M6.5 9C4.6 8.8 3 7.2 3 5M6 13H2M3 21c0-2.1 1.7-3.9 3.8-4M20.97 5c0 2.1-1.6 3.8-3.5 4M22 13h-4M17.2 17c2.1.1 3.8 1.9 3.8 4" /></svg>
+              </div>
+              <h3 class="mt-3 font-semibold text-gray-900 dark:text-white"><span data-live="bugs-label" hidden>Bugs logged</span><span data-live-fallback="bugs-label">Public bug reports</span></h3>
+              <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">Report 404s, broken flows, typos and design bugs on any site. Reports are public, so anyone can follow the fix. <a class="font-medium text-red-600 hover:underline dark:text-red-400" href="https://pages.owaspblt.org/">See reports</a></p>
+            </article>
+
+            <article class="flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-6 text-center dark:border-gray-800 dark:bg-gray-900">
+              <div class="relative flex h-24 w-full items-center justify-center" aria-hidden="true">
+                <svg class="h-20 w-20 text-gray-400 dark:text-gray-600" viewBox="0 0 120 120" fill="none"><path d="M60 16c19 0 35 10 44 25M16 55c8-22 25-36 44-36 24 0 44 18 44 41 0 16-10 29-24 34M50 101c-16-4-27-17-27-34 0-19 16-35 37-35 20 0 37 16 37 35 0 10-8 18-18 18s-18-8-18-18c0-5-4-9-9-9s-9 4-9 9c0 15 7 26 20 34" stroke="currentColor" stroke-width="7" stroke-linecap="round" /></svg>
+                <span class="absolute left-1/2 top-1/2 h-1 w-24 -translate-x-1/2 -translate-y-1/2 -rotate-12 rounded-full bg-red-600 dark:bg-red-500"></span>
+              </div>
+              <h3 class="mt-3 font-semibold text-gray-900 dark:text-white">Zero-trust disclosure</h3>
+              <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">BLT-Zero delivers vulnerability reports as encrypted payloads, with no analytics or tracking and only minimal metadata kept. <a class="font-medium text-red-600 hover:underline dark:text-red-400" href="https://zero.owaspblt.org/">Open BLT-Zero</a></p>
+            </article>
+
+            <!-- BLT Monitor. Live: sites up and median response time. -->
+            <article class="flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-6 text-center dark:border-gray-800 dark:bg-gray-900">
+              <div class="relative flex h-24 w-full flex-col items-center justify-center" aria-hidden="true">
+                <svg data-live-fallback="monitor" class="h-16 w-full text-red-600 dark:text-red-500" viewBox="0 0 386 123" preserveAspectRatio="none" fill="none"><path d="M3 121s12-27 33-33c21-6 31-7 31-7h24c12 0 9-17 18-17 8 0 9 28 16 28 8 0 17-14 29-11 11 2 32 11 39 11s12-28 20-28 25 30 30 28 15-32 22-32c6 0 18 28 21 28 8 0 13-15 18-15 7 0 17-7 29-9s13 18 29 17c15-2 21 26 21 26" stroke="currentColor" stroke-width="3" /></svg>
+                <div data-live="monitor" hidden>
+                  <p class="text-4xl font-bold tracking-tight text-gray-900 dark:text-white"><span data-stat="monitor.up"></span><span class="text-gray-400 dark:text-gray-500">/<span data-stat="monitor.sites"></span></span></p>
+                  <ul id="monitor-dots" class="mt-2 flex max-w-[15rem] flex-wrap justify-center gap-1"></ul>
+                </div>
+              </div>
+              <h3 class="mt-3 font-semibold text-gray-900 dark:text-white"><span data-live="monitor" hidden>BLT sites up right now</span><span data-live-fallback="monitor">Every BLT site, monitored</span></h3>
+              <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">BLT Monitor checks each BLT site's availability and content every 20 minutes.<span data-live="monitor-ms" hidden> Median response: <span data-stat="monitor.medianMs"></span> ms.</span> <a class="font-medium text-red-600 hover:underline dark:text-red-400" href="https://monitor.owaspblt.org/">Open dashboard</a></p>
+            </article>
+          </div>
+
+          <div class="mt-4 grid gap-4 md:grid-cols-2">
+            <article class="grid overflow-hidden rounded-2xl border border-gray-200 bg-white sm:grid-cols-2 dark:border-gray-800 dark:bg-gray-900">
+              <div class="p-6">
+                <div class="icon-ring relative mb-5 flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.5"><path d="M20 13c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V5l8-3 8 3v8Z" /><path d="m9 12 2 2 4-5" /></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white">Report from your tools</h3>
+                <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">File bugs from scripts, CI jobs or AI agents through BLT-API and BLT-MCP. <a class="font-medium text-red-600 hover:underline dark:text-red-400" href="https://api.owaspblt.org/">API reference</a></p>
+              </div>
+              <div class="border-t border-gray-100 bg-gray-50 p-5 font-mono text-[0.72rem] leading-relaxed text-gray-700 sm:border-l sm:border-t-0 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300" aria-label="Example API request">
+                <p class="m-0 font-semibold text-gray-900 dark:text-white">POST api.owaspblt.org/bugs</p>
+                <pre class="mt-3 whitespace-pre-wrap break-words"><span class="text-red-600 dark:text-red-400">"url"</span>: <span class="text-green-700 dark:text-green-400">"https://example.com/pricing"</span>,
+<span class="text-red-600 dark:text-red-400">"description"</span>: <span class="text-green-700 dark:text-green-400">"404 on the pricing page"</span></pre>
+                <p class="mt-3"><span class="rounded bg-green-50 px-1.5 py-0.5 font-semibold text-green-700 dark:bg-green-950 dark:text-green-400">201 Created</span></p>
+              </div>
+            </article>
+
+            <!-- BACON. Live: this month's top contributors from BLT-Pool. -->
+            <article class="grid overflow-hidden rounded-2xl border border-gray-200 bg-white sm:grid-cols-2 dark:border-gray-800 dark:bg-gray-900">
+              <div class="p-6">
+                <div class="icon-ring relative mb-5 flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.5"><circle cx="12" cy="9" r="6" /><path d="M8.5 13.5 7 22l5-3 5 3-1.5-8.5" /></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white">Earn BACON</h3>
+                <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">Accepted contributions earn BACON, BLT's token reward on Bitcoin (Runes) and Solana. <a class="font-medium text-red-600 hover:underline dark:text-red-400" href="https://rewards.owaspblt.org/">How it works</a></p>
+              </div>
+              <div class="flex flex-col justify-center border-t border-gray-100 p-5 sm:border-l sm:border-t-0 dark:border-gray-800">
+                <div data-live="pool" hidden>
+                  <p class="m-0 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">BLT-Pool leaderboard, <span data-stat="pool.monthLabel"></span></p>
+                  <ol id="pool-top" class="leaderboard relative mt-3 space-y-2"></ol>
+                  <a class="mt-3 inline-block text-xs font-medium text-red-600 hover:underline dark:text-red-400" href="https://pool.owaspblt.org/leaderboard">Full leaderboard</a>
+                </div>
+                <p data-live-fallback="pool" class="m-0 text-sm text-gray-600 dark:text-gray-400">See who is contributing this month on the <a class="font-medium text-red-600 hover:underline dark:text-red-400" href="https://pool.owaspblt.org/leaderboard">BLT-Pool leaderboard</a>.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIVE NUMBERS. The whole band stays hidden until at least one real number loads. -->
+      <section id="numbers" class="border-y border-gray-200 bg-white px-6 py-14 max-md:px-4 dark:border-gray-800 dark:bg-gray-900" aria-labelledby="numbers-heading" hidden>
+        <div class="mx-auto max-w-5xl">
+          <h2 id="numbers-heading" class="text-center text-sm font-semibold uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">BLT, live</h2>
+          <dl class="mt-8 grid grid-cols-3 gap-x-3 sm:gap-x-6">
+            <div data-stat-card="forge.contributors" class="flex flex-col-reverse text-center" hidden>
+              <dt class="text-sm text-gray-600 dark:text-gray-400">Contributors</dt>
+              <dd class="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white" data-stat="forge.contributors"></dd>
+            </div>
+            <div data-stat-card="forge.commits" class="flex flex-col-reverse text-center" hidden>
+              <dt class="text-sm text-gray-600 dark:text-gray-400">Commits</dt>
+              <dd class="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white" data-stat="forge.commits"></dd>
+            </div>
+            <div data-stat-card="forge.openIssues" class="flex flex-col-reverse text-center" hidden>
+              <dt class="text-sm text-gray-600 dark:text-gray-400"><a class="hover:text-red-600 hover:underline dark:hover:text-red-400" href="https://git.owaspblt.org/BLT/issues">Open issues</a></dt>
+              <dd class="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white" data-stat="forge.openIssues"></dd>
+            </div>
+          </dl>
+          <p class="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">Live from the BLT monorepo on <a class="underline hover:text-red-600 dark:hover:text-red-400" href="https://git.owaspblt.org/BLT">git.owaspblt.org</a>, refreshed every 15 minutes. Contributors excludes bots.</p>
+        </div>
+      </section>
+
+      <!-- EXPLORE BLT. One card per product with a live site. home.js turns the groups into tabs and fills the orbit and the apps menu from these cards. -->
+      <section id="explore" class="scroll-mt-20 px-6 py-20 max-md:px-4 max-md:py-14" aria-labelledby="explore-heading">
+        <div class="mx-auto max-w-6xl">
+          <div class="grid items-center gap-8 lg:grid-cols-[1fr_26rem]">
+            <div>
+              <h2 class="section-kicker with-bar relative m-0 text-sm font-semibold text-red-600 dark:text-red-400">BLT Ecosystem</h2>
+              <p id="explore-heading" class="mt-3 text-3xl font-bold leading-tight tracking-tight text-gray-900 sm:text-4xl dark:text-white">Explore BLT</p>
+              <p class="mt-3 max-w-xl text-gray-600 dark:text-gray-300">One core project, many tools around it: reporting and disclosure, community and rewards, developer tools and learning. Every card opens a live site.</p>
+            </div>
+            <div class="orbit relative mx-auto hidden aspect-square w-[26rem] lg:block" id="orbit" aria-hidden="true">
+              <svg class="absolute inset-0 h-full w-full" viewBox="0 0 416 416" id="orbit-svg"></svg>
+              <img class="absolute left-1/2 top-1/2 z-[3] h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-red-200 bg-white p-2 shadow-lg dark:border-red-900 dark:bg-gray-900" src="/_home/blt-logo.svg" alt="" width="80" height="80" />
+            </div>
+          </div>
+
+          <div id="explore-tabs" class="mt-8 flex flex-wrap gap-2" role="tablist" aria-label="Product groups" hidden></div>
+
+          <div class="mt-6 space-y-10" id="explore-groups">
+            <section class="explore-group" data-group="report" aria-labelledby="group-report">
+              <h3 id="group-report" class="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">Report and disclose</h3>
+              <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <li><a class="product-card" href="https://next.owaspblt.org/"><img src="/_home/logos/blt-next.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Next</strong><span>The next-generation BLT web app, in development.</span></span></a></li>
+                <li><a class="product-card" href="https://pages.owaspblt.org/"><img src="/_home/logos/blt-pages.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Pages</strong><span>Public bug reports and the reporter leaderboard.</span></span></a></li>
+                <li><a class="product-card" href="https://zero.owaspblt.org/"><img src="/_home/logos/blt-zero.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Zero</strong><span>Encrypted, zero-trust vulnerability disclosure.</span></span></a></li>
+                <li><a class="product-card" href="https://extension.owaspblt.org/"><img src="/_home/logos/blt-extension.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Extension</strong><span>Capture a page and report a bug from your browser.</span></span></a></li>
+                <li><a class="product-card" href="https://flutter.owaspblt.org/"><img src="/_home/logos/blt-flutter.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Flutter</strong><span>The BLT app for phones and desktops.</span></span></a></li>
+                <li><a class="product-card" href="https://cve.owaspblt.org/"><img src="/_home/logos/blt-cve.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-CVE</strong><span>A verifiable, machine-readable vulnerability registry.</span></span></a></li>
+                <li><a class="product-card" href="https://toasty.owaspblt.org/"><img src="/_home/logos/blt-toasty.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Toasty</strong><span>AI triage and responsible-disclosure assistant.</span></span></a></li>
+                <li><a class="product-card" href="https://netguardian.owaspblt.org/"><img src="/_home/logos/blt-netguardian.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-NetGuardian</strong><span>Signed findings, domain crawls and org triage.</span></span></a></li>
+              </ul>
+            </section>
+
+            <section class="explore-group" data-group="community" aria-labelledby="group-community">
+              <h3 id="group-community" class="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">Community and rewards</h3>
+              <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <li><a class="product-card" href="https://rewards.owaspblt.org/"><img src="/_home/logos/blt-rewards.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Rewards</strong><span>BACON, the token reward for contributions.</span></span></a></li>
+                <li><a class="product-card" href="https://pool.owaspblt.org/"><img src="/_home/logos/blt-pool.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Pool</strong><span>Mentor directory and monthly PR leaderboard.</span></span></a></li>
+                <li><a class="product-card" href="https://hackathons.owaspblt.org/"><img src="/_home/logos/blt-hackathons.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Hackathons</strong><span>Contribution events with leaderboards and prizes.</span></span></a></li>
+                <li><a class="product-card" href="https://gsoc.owaspblt.org/"><img src="/_home/logos/blt-gsoc.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-GSoC</strong><span>Google Summer of Code with OWASP BLT.</span></span></a></li>
+                <li><a class="product-card" href="https://gsoc-tool.owaspblt.org/"><img src="/_home/logos/my-gsoc-tool.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>MY-GSOC-TOOL</strong><span>A dashboard of a GSoC student's whole journey.</span></span></a></li>
+                <li><a class="product-card" href="https://nexus.owaspblt.org/"><img src="/_home/logos/blt-nexus.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Nexus</strong><span>The BLT Ambassador program.</span></span></a></li>
+                <li><a class="product-card" href="https://profiles.owaspblt.org/"><img src="/_home/logos/blt-profiles.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Profiles</strong><span>Directory of security researchers and mentors.</span></span></a></li>
+                <li><a class="product-card" href="https://jobs.owaspblt.org/"><img src="/_home/logos/blt-jobs.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Jobs</strong><span>A Git-native security job board.</span></span></a></li>
+                <li><a class="product-card" href="https://newsletter.owaspblt.org/"><img src="/_home/logos/blt-newsletter.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Newsletter</strong><span>News and updates from OWASP BLT.</span></span></a></li>
+                <li><a class="product-card" href="https://lettuce.owaspblt.org/"><img src="/_home/logos/blt-lettuce.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Lettuce</strong><span>Slack bot for welcomes and project discovery.</span></span></a></li>
+                <li><a class="product-card" href="https://sammich.owaspblt.org/"><img src="/_home/logos/blt-sammich.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Sammich</strong><span>Slack bot for activity, stats and reminders.</span></span></a></li>
+                <li><a class="product-card" href="https://contest.owaspblt.org/"><img src="/_home/logos/blt-design-contest.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Design-Contest</strong><span>Community design contests and showcase.</span></span></a></li>
+                <li><a class="product-card" href="https://hackerhouse.owaspblt.org/"><img src="/_home/logos/blt-hackerhouse.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-HackerHouse</strong><span>Real-time view of contributor activity.</span></span></a></li>
+                <li><a class="product-card" href="https://gitcaster.owaspblt.org/"><img src="/_home/logos/blt-gitcaster.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Gitcaster</strong><span>A live leaderboard of repos, with commentary.</span></span></a></li>
+              </ul>
+            </section>
+
+            <section class="explore-group" data-group="tools" aria-labelledby="group-tools">
+              <h3 id="group-tools" class="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">Tools</h3>
+              <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <li><a class="product-card" href="https://api.owaspblt.org/"><img src="/_home/logos/blt-api.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-API</strong><span>REST API for bugs, users, domains and more.</span></span></a></li>
+                <li><a class="product-card" href="https://mcp.owaspblt.org/"><img src="/_home/logos/blt-mcp.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-MCP</strong><span>MCP server that gives AI agents access to BLT.</span></span></a></li>
+                <li><a class="product-card" href="https://leaf.owaspblt.org/"><img src="/_home/logos/blt-leaf.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Leaf</strong><span>Check whether a pull request is ready to merge.</span></span></a></li>
+                <li><a class="product-card" href="https://preflight.owaspblt.org/"><img src="/_home/logos/blt-preflight.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Preflight</strong><span>Security guidance before you open a pull request.</span></span></a></li>
+                <li><a class="product-card" href="https://monitor.owaspblt.org/"><img src="/_home/logos/blt-monitor.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Monitor</strong><span>Uptime and content checks for BLT sites.</span></span></a></li>
+                <li><a class="product-card" href="https://waypoint.owaspblt.org/"><img src="/_home/logos/blt-waypoint.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Waypoint</strong><span>Live dashboard of every BLT project.</span></span></a></li>
+                <li><a class="product-card" href="https://dash.owaspblt.org/"><img src="/_home/logos/blt-dash.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Dash</strong><span>A one-page cybersecurity dashboard for companies.</span></span></a></li>
+                <li><a class="product-card" href="https://sizzle.owaspblt.org/"><img src="/_home/logos/blt-sizzle.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Sizzle</strong><span>Async daily check-ins for teams.</span></span></a></li>
+                <li><a class="product-card" href="https://timer.owaspblt.org/"><img src="/_home/logos/blt-timer-web.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Timer</strong><span>Minimal manual work logs.</span></span></a></li>
+                <li><a class="product-card" href="https://ketchup.owaspblt.org/"><img src="/_home/logos/blt-ketchup.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Ketchup</strong><span>Shared workspace for pentest teams.</span></span></a></li>
+                <li><a class="product-card" href="https://safecloak.owaspblt.org/"><img src="/_home/logos/blt-safecloak.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-SafeCloak</strong><span>Private peer-to-peer video and voice chat.</span></span></a></li>
+                <li><a class="product-card" href="https://vanish.owaspblt.org/"><img src="/_home/logos/blt-vanish.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Vanish</strong><span>Find and remove your personal data online.</span></span></a></li>
+                <li><a class="product-card" href="https://enforcement.owaspblt.org/"><img src="/_home/logos/blt-enforcement.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Enforcement</strong><span>IP and trademark defense tools.</span></span></a></li>
+                <li><a class="product-card" href="https://panini.owaspblt.org/"><img src="/_home/logos/blt-panini.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Panini</strong><span>Banned apps worldwide and Slack app ratings.</span></span></a></li>
+                <li><a class="product-card" href="https://bumper.owaspblt.org/"><img src="/_home/logos/blt-owasp-bumper.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-OWASP-Bumper</strong><span>Every OWASP GitHub repository, charted.</span></span></a></li>
+                <li><a class="product-card" href="https://projects.owaspblt.org/"><img src="/_home/logos/blt-owasp-projects.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-OWASP-Projects</strong><span>Status and open issues of OWASP projects.</span></span></a></li>
+                <li><a class="product-card" href="https://metadata.owaspblt.org/"><img src="/_home/logos/blt-owasp-metadata.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-OWASP-Metadata</strong><span>Unified data on OWASP projects and chapters.</span></span></a></li>
+                <li><a class="product-card" href="https://wich.owaspblt.org/"><img src="/_home/logos/blt-owasp-wich.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-OWASP-Wich</strong><span>Check a repository against OWASP practices.</span></span></a></li>
+                <li><a class="product-card" href="https://tomato.owaspblt.org/"><img src="/_home/logos/blt-tomato.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Tomato</strong><span>OWASP projects that are seeking funding.</span></span></a></li>
+              </ul>
+            </section>
+
+            <section class="explore-group" data-group="learning" aria-labelledby="group-learning">
+              <h3 id="group-learning" class="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">Learning</h3>
+              <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <li><a class="product-card" href="https://university.owaspblt.org/"><img src="/_home/logos/blt-university.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-University</strong><span>Short security courses with browser labs.</span></span></a></li>
+                <li><a class="product-card" href="https://docs.owaspblt.org/"><img src="/_home/logos/blt-docs.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Docs</strong><span>Guides for users and contributors.</span></span></a></li>
+                <li><a class="product-card" href="https://start.owaspblt.org/"><img src="/_home/logos/blt-start.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Start</strong><span>The start page for new contributors.</span></span></a></li>
+                <li><a class="product-card" href="https://ossh.owaspblt.org/"><img src="/_home/logos/blt-ossh.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-OSSH</strong><span>Find open-source projects that fit your skills.</span></span></a></li>
+                <li><a class="product-card" href="https://byte.owaspblt.org/"><img src="/_home/logos/blt-byte.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Byte</strong><span>AI assistant for bug bounty research.</span></span></a></li>
+                <li><a class="product-card" href="https://ideas.owaspblt.org/"><img src="/_home/logos/blt-ideas.svg" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Ideas</strong><span>Proposals for future BLT projects.</span></span></a></li>
+                <li><a class="product-card" href="https://design.owaspblt.org/"><img src="/_home/logos/blt-design.webp" alt="" width="40" height="40" loading="lazy" decoding="async" /><span><strong>BLT-Design</strong><span>The BLT design system: colors, type, components.</span></span></a></li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <div class="feature-divider mx-auto flex max-w-5xl items-center gap-4 px-6" aria-hidden="true">
+        <span class="wave-dots relative h-4 w-5"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      </div>
+
+      <!-- GET INVOLVED -->
+      <section id="get-involved" class="scroll-mt-20 overflow-x-clip px-6 py-20 max-md:px-4 max-md:py-14" aria-labelledby="involved-heading">
+        <div class="mx-auto max-w-6xl">
+          <h2 class="section-kicker with-bar relative m-0 text-sm font-semibold text-red-600 dark:text-red-400">Get involved</h2>
+          <p id="involved-heading" class="mt-3 text-3xl font-bold leading-tight tracking-tight text-gray-900 sm:text-4xl dark:text-white">Build BLT with us</p>
+          <p class="mt-3 max-w-xl text-gray-600 dark:text-gray-300">Every BLT project lives in one repository on git.owaspblt.org. Pick an issue, say hello on Slack, and send a pull request.</p>
+
+          <ul class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <li class="sticker rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+              <h3 class="font-semibold text-gray-900 dark:text-white"><a class="after:absolute after:inset-0 hover:text-red-600 dark:hover:text-red-400" href="https://git.owaspblt.org/BLT/issues?label=hacktoberfest">Hacktoberfest issues</a></h3>
+              <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">Scoped issues with acceptance criteria and test steps. Comment <code class="rounded bg-gray-100 px-1 dark:bg-gray-800">/assign</code> to claim one.</p>
+            </li>
+            <li class="sticker rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+              <h3 class="font-semibold text-gray-900 dark:text-white"><a class="after:absolute after:inset-0 hover:text-red-600 dark:hover:text-red-400" href="https://git.owaspblt.org/BLT/issues?label=good+first+issue">Good first issues</a></h3>
+              <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">Small, well-described tasks for your first BLT contribution.</p>
+            </li>
+            <li class="sticker rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+              <h3 class="font-semibold text-gray-900 dark:text-white"><a class="after:absolute after:inset-0 hover:text-red-600 dark:hover:text-red-400" href="https://git.owaspblt.org/BLT">Source on git.owaspblt.org</a></h3>
+              <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">The BLT monorepo: every project, one clone. <span data-live="forge.openIssues" hidden><span data-stat="forge.openIssues"></span> open issues right now.</span></p>
+            </li>
+            <li class="sticker rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+              <h3 class="font-semibold text-gray-900 dark:text-white"><a class="after:absolute after:inset-0 hover:text-red-600 dark:hover:text-red-400" href="https://git.owaspblt.org/BLT/blob/main/AI_POLICY.md">AI policy</a></h3>
+              <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">How to use AI tools when you contribute, and what to disclose.</p>
+            </li>
+            <li class="sticker rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+              <h3 class="font-semibold text-gray-900 dark:text-white"><a class="after:absolute after:inset-0 hover:text-red-600 dark:hover:text-red-400" href="https://owasp.slack.com/archives/project-blt">#project-blt on OWASP Slack</a></h3>
+              <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">Ask questions and meet maintainers. <a class="relative z-10 font-medium text-red-600 hover:underline dark:text-red-400" href="https://owasp.org/slack/invite">Join OWASP Slack</a> first if you are new.</p>
+            </li>
+            <li class="sticker rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+              <h3 class="font-semibold text-gray-900 dark:text-white"><a class="after:absolute after:inset-0 hover:text-red-600 dark:hover:text-red-400" href="https://gsoc.owaspblt.org/">Google Summer of Code</a></h3>
+              <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">OWASP BLT mentors GSoC students. See the project ideas and how to apply.</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- CTA + FOOTER -->
+      <section class="relative overflow-hidden px-6 pb-8 pt-20 max-md:px-4" id="cta" aria-labelledby="cta-heading">
+        <div class="mx-auto max-w-3xl text-center">
+          <span class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span> OWASP Foundation project</span>
+          <h2 id="cta-heading" class="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl dark:text-white">The web has bugs.<br />You find them.</h2>
+          <p class="mx-auto mt-4 max-w-lg text-gray-600 dark:text-gray-300">Report publicly, disclose securely with BLT-Zero, and earn BACON for accepted contributions.</p>
+          <div class="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <a class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px" href="https://next.owaspblt.org/pages/report-bug.html">Report a bug</a>
+            <a class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-800 transition hover:border-red-200 hover:text-red-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:text-red-300" href="https://zero.owaspblt.org/">BLT-Zero &#8599;</a>
+          </div>
+        </div>
+
+        <footer class="footer-panel mx-auto mt-16 max-w-7xl overflow-hidden rounded-3xl bg-gray-950 px-8 py-10 text-gray-300 ring-1 ring-white/10 max-md:px-5">
+          <div class="relative grid gap-10 lg:grid-cols-[1fr_2fr]">
+            <div>
+              <p class="m-0 text-3xl font-bold tracking-tight text-white sm:text-4xl">owaspblt.org</p>
+              <p class="mt-3 max-w-xs text-sm text-gray-400">OWASP BLT (Bug Logging Tool) is an open-source OWASP project, licensed under AGPL-3.0.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-8 text-sm sm:grid-cols-4">
+              <div>
+                <h2 class="m-0 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Report</h2>
+                <ul class="mt-3 space-y-2">
+                  <li><a class="hover:text-white hover:underline" href="https://next.owaspblt.org/pages/report-bug.html">Report a bug</a></li>
+                  <li><a class="hover:text-white hover:underline" href="https://zero.owaspblt.org/">Disclose securely</a></li>
+                  <li><a class="hover:text-white hover:underline" href="https://pages.owaspblt.org/">Public reports</a></li>
+                </ul>
+              </div>
+              <div>
+                <h2 class="m-0 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Project</h2>
+                <ul class="mt-3 space-y-2">
+                  <li><a class="hover:text-white hover:underline" href="https://git.owaspblt.org/BLT">Source code</a></li>
+                  <li><a class="hover:text-white hover:underline" href="https://git.owaspblt.org/BLT/issues">Issues</a></li>
+                  <li><a class="hover:text-white hover:underline" href="https://docs.owaspblt.org/">Docs</a></li>
+                  <li><a class="hover:text-white hover:underline" href="https://git.owaspblt.org/BLT/blob/main/AI_POLICY.md">AI policy</a></li>
+                </ul>
+              </div>
+              <div>
+                <h2 class="m-0 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">OWASP</h2>
+                <ul class="mt-3 space-y-2">
+                  <li><a class="hover:text-white hover:underline" href="https://owasp.org/www-project-bug-logging-tool/">Project page</a></li>
+                  <li><a class="hover:text-white hover:underline" href="https://owasp.org/">owasp.org</a></li>
+                  <li><a class="hover:text-white hover:underline" href="https://owasp.org/donate/">Donate</a></li>
+                </ul>
+              </div>
+              <div>
+                <h2 class="m-0 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Community</h2>
+                <ul class="mt-3 space-y-2">
+                  <li><a class="hover:text-white hover:underline" href="https://owasp.slack.com/archives/project-blt">Slack</a></li>
+                  <li><a class="hover:text-white hover:underline" href="https://x.com/OWASP_BLT">X</a></li>
+                  <li><a class="hover:text-white hover:underline" href="https://newsletter.owaspblt.org/">Newsletter</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </section>
+    </main>
+  </body>
+</html>

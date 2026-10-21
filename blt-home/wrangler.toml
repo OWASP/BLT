@@ -1,0 +1,20 @@
+# blt-home: the owaspblt.org landing page (static page + /api/home-stats).
+name = "blt-home"
+main = "src/worker.js"
+compatibility_date = "2026-06-01"
+
+# Preview at blt-home.<account>.workers.dev. No routes or custom domain yet:
+# owaspblt.org moves over from blt-next by hand (see README, "Cutover").
+workers_dev = true
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+# The Worker sees every request first: it serves the page and its assets,
+# answers /api/home-stats, and 308-redirects every other path to next.owaspblt.org.
+run_worker_first = true
+not_found_handling = "none"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
