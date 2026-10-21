@@ -67,12 +67,12 @@ test("every local src/href exists under public/", () => {
 
 test("nothing is loaded from another origin; no inline scripts or styles", () => {
   for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)) {
-    assert.match(m[1], /src="\/_home\//, "scripts are local files");
+    assert.match(m[1], /src="\/(_home\/|_shared\/blt-analytics\.js")/, "scripts are local files");
     assert.equal(m[2].trim(), "", "no inline script");
   }
   for (const m of html.matchAll(/<link\b[^>]*>/g)) assert.doesNotMatch(m[0], /href="https?:/, m[0]);
   assert.doesNotMatch(html, /<style\b|\sstyle="|\son[a-z]+="/);
-  for (const src of attrs("src")) assert.ok(src.startsWith("/_home/"), `src ${src}`);
+  for (const src of attrs("src")) assert.ok(src.startsWith("/_home/") || src === "/_shared/blt-analytics.js", `src ${src}`);
 });
 
 test("images are small, sized and have alt text", () => {
@@ -119,4 +119,30 @@ test("the shared top bar lists the same apps as the Explore cards", () => {
   assert.deepEqual(apps, cards);
   for (const a of apps) assert.ok(existsSync(join(publicDir, a.split("|")[2])), a);
   assert.doesNotMatch(nav, /innerHTML|outerHTML|insertAdjacentHTML|document\.write/);
+});
+
+test("analytics: the page and the shared bar load the forge's first-party analytics", () => {
+  assert.match(html, /<script src="\/_shared\/blt-analytics\.js" defer><\/script>/);
+  const nav = readFileSync(join(publicDir, "_shared", "blt-nav.js"), "utf8");
+  assert.match(nav, /BASE \+ "\/_shared\/blt-analytics\.js"/);
+  assert.match(nav, /getAttribute\("data-analytics"\) === "off"/);
+});
+
+test("analytics: first-party, private by default, nothing third-party", () => {
+  const js = readFileSync(join(publicDir, "_shared", "blt-analytics.js"), "utf8");
+  assert.match(js, /var FORGE = "https:\/\/git\.owaspblt\.org";/);
+  assert.match(js, /tag\.src = FORGE \+ "\/analytics-sdk\.js";/);
+  assert.match(js, /var KEY = "(fma_[0-9a-f]{40})?";/);
+  // Do Not Track and Global Privacy Control stop it before anything loads.
+  assert.match(js, /nav\.globalPrivacyControl === true/);
+  assert.match(js, /doNotTrack/);
+  assert.ok(js.indexOf("globalPrivacyControl") < js.indexOf("createElement("), "privacy check runs before the SDK loads");
+  for (const opt of ["autocapture", "heatmaps", "sessionRecording", "surveys", "captureErrors"]) {
+    assert.match(js, new RegExp(`\\b${opt}: false,`), opt);
+  }
+  assert.match(js, /maskUrlQuery: true/);
+  assert.match(js, /respectDoNotTrack: true/);
+  const code = js.replace(/^\s*\/\/.*$/gm, "");
+  assert.doesNotMatch(code, /document\.cookie|posthog|phc_|googletagmanager|google-analytics|plausible|umami/i);
+  assert.doesNotMatch(code, /innerHTML|outerHTML|insertAdjacentHTML|document\.write/);
 });

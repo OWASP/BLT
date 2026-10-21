@@ -16,6 +16,7 @@
 //   data-theme-key="name"       also save the choice under this localStorage key
 //   data-theme-attr="data-theme" also set this <html> attribute to "dark" | "light"
 //   data-sticky                 stick the bar to the top while scrolling
+//   data-analytics="off"        don't load the shared analytics (blt-analytics.js)
 // Every toggle fires window event "blt-theme-change" with detail { dark }.
 // APPS must match the Explore cards in blt-home/public/index.html (a test checks).
 (function () {
@@ -27,6 +28,17 @@
   try { if (script && script.src) BASE = new URL(script.src).origin; } catch (e) { /* keep default */ }
   var HOME = "https://owaspblt.org";
   var root = document.documentElement;
+
+  // ---- Analytics -------------------------------------------------------------
+  // The forge's first-party Analytics for every BLT site; what it sends and how to opt out
+  // is in _shared/blt-analytics.js. Loaded once, after the bar, never blocking the page.
+  (function loadAnalytics() {
+    if (window.__bltAnalytics || (script && script.getAttribute("data-analytics") === "off")) return;
+    var tag = document.createElement("script");
+    tag.src = BASE + "/_shared/blt-analytics.js";
+    tag.async = true;
+    (document.head || root).appendChild(tag);
+  })();
 
   var LINKS = [
     ["Why BLT", HOME + "/#why"],

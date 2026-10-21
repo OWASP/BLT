@@ -16,6 +16,7 @@ One Cloudflare Worker (`blt-home`) with static assets from `public/`. The Worker
 | `/` | `public/index.html` |
 | `/_home/*`, `/favicon.ico`, `/robots.txt` | static files from `public/` |
 | `/_shared/blt-nav.js` | the OWASP BLT top bar every BLT site loads (see below); it, `/_home/blt-logo.svg` and `/_home/logos/*` are sent with `Cross-Origin-Resource-Policy: cross-origin` |
+| `/_shared/blt-analytics.js` | the shared analytics loader (see "Analytics"); the top bar loads it, sent with the same cross-origin headers |
 | `/api/home-stats` | live numbers as JSON, cached for 15 minutes |
 | legacy Django paths (`/issue/…`, `/profile/…`, `/api/v1/…`, `/static/…`, … see `src/legacy.js`) | 308 to `https://next.owaspblt.org/moved?from=<path + query, URL-encoded>`, BLT-Next's "this page moved" page (the legacy app is off until its data is migrated) |
 | anything else (`/pages/report-bug.html`, `/api/stats`, `/assets/…`, …) | 308 to the same path and query on `https://next.owaspblt.org` (BLT-Next) |
@@ -39,12 +40,23 @@ The page inserts values with `textContent` only. A number whose source is down s
 - **Banner:** the `<a id="announcement">` element near the top of `public/index.html`. Edit its text and `href`, or delete it.
 - **Products:** the Explore cards in `public/index.html` are the single list; the tabs, the logo orbit and the apps menu are built from them. Logos are in `public/_home/logos/`: each is the project's `logo.svg`, a wasp badge made by `scripts/wasp-badges/build.mjs` (see its README; `npm test` checks they are current). Only projects with a live site belong here.
 - **Shared top bar:** `public/_shared/blt-nav.js` is the same header for every other BLT site: `<script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>` puts it at the top of the page (options are at the top of the file). Its `APPS` list must match the Explore cards; `npm test` checks that, so update both together.
+- **Analytics:** see "Analytics" below.
 - **Styles:** Tailwind is compiled once, so there is no CDN at runtime. After changing classes, run:
 
 ```bash
 npm install
 npm run build:css   # writes public/_home/home.css
 ```
+
+## Analytics
+
+Every BLT site is measured with the forge's own first-party **Analytics** package on git.owaspblt.org; there is no third-party analytics (PostHog was removed in October 2026). `public/_shared/blt-analytics.js` loads the SDK from `https://git.owaspblt.org/analytics-sdk.js` and sends to `https://git.owaspblt.org/api/analytics/_/capture`:
+
+- **Where it runs:** `blt-nav.js` loads it, so every site with the shared top bar is counted. This page and the sites without the bar load it with `<script src="https://owaspblt.org/_shared/blt-analytics.js" defer></script>`. `data-analytics="off"` on either tag turns it off for that page.
+- **What it sends:** pageviews, page leaves (time on page, scroll depth) and web vitals. URLs and referrers lose their query string and `#fragment`. No autocapture, heatmaps, session recordings, surveys or error reports. Pages may add their own events with `window.bltTrack(name, properties)` (queued until the SDK loads, dropped when analytics is off).
+- **Privacy:** no cookies; an anonymous visitor id and the send queue live in the site's `localStorage`. Nothing loads when the browser sends Do Not Track or Global Privacy Control, or on localhost. The forge stores no IP address (only a two-letter country).
+- **CSP:** a site with a Content-Security-Policy needs `https://git.owaspblt.org` in `script-src` and `connect-src` (this page's is in `src/app.js`).
+- **Key:** `KEY` in `blt-analytics.js` is the write key of the "OWASP BLT sites" project (git.owaspblt.org, Dashboard, Analytics, owasp-blt). Write keys are public; the project's allowed origins limit which sites may send. With `KEY` empty the file does nothing.
 
 ## Development
 

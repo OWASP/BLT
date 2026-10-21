@@ -19,10 +19,13 @@ export const STATS_PATH = "/api/home-stats";
 export const STATS_TTL_SECONDS = 900;
 const ROOT_FILES = new Set(["/", "/index.html", "/favicon.ico", "/robots.txt"]);
 
+// The forge (git.owaspblt.org): its Analytics SDK and event endpoint (see public/_shared/blt-analytics.js).
+export const FORGE_ORIGIN = "https://git.owaspblt.org";
+
 export const SECURITY_HEADERS = {
   "Content-Security-Policy":
-    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; " +
-    "connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'",
+    "default-src 'self'; script-src 'self' " + FORGE_ORIGIN + "; style-src 'self'; img-src 'self' data:; font-src 'self'; " +
+    "connect-src 'self' " + FORGE_ORIGIN + "; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'",
   "Strict-Transport-Security": "max-age=31536000",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "SAMEORIGIN",
