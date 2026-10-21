@@ -307,17 +307,20 @@ def load_text_file(path: Path) -> Optional[str]:
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-PROJECT_DATA = load_json_file(ROOT_DIR / "data" / "projects.json")
-REPO_DATA = load_json_file(ROOT_DIR / "data" / "repos.json")
+# src/data is bundled into the Worker as text modules (the [[rules]] in wrangler.toml add
+# .md and .json, which Wrangler leaves out by default) and read like ordinary files.
+DATA_DIR = Path(__file__).resolve().parent / "data"
+PROJECT_DATA = load_json_file(DATA_DIR / "projects.json")
+REPO_DATA = load_json_file(DATA_DIR / "repos.json")
 APP_VERSION = load_text_file(ROOT_DIR / "VERSION") or "unknown"
 
-# Welcome texts live in data/message-<team_id>-team_join.md (one source per workspace).
+# Welcome texts live in src/data/message-<team_id>-team_join.md (one source per workspace).
 
 
 def get_team_message_template(team_id: str, event_name: str) -> Optional[str]:
     if not team_id:
         return None
-    template_path = ROOT_DIR / "data" / "message-{0}-{1}.md".format(team_id, event_name)
+    template_path = DATA_DIR / "message-{0}-{1}.md".format(team_id, event_name)
     return load_text_file(template_path)
 
 
@@ -326,7 +329,7 @@ def get_workspace_welcome_message(team_id: str) -> str:
     if team_template:
         return team_template
     return (
-        load_text_file(ROOT_DIR / "data" / "welcome_message.md")
+        load_text_file(DATA_DIR / "welcome_message.md")
         or "Welcome to the OWASP Slack Community, <@{user_id}>!"
     )
 
@@ -334,7 +337,7 @@ def get_workspace_welcome_message(team_id: str) -> str:
 def get_channel_join_message(team_id: str, channel_id: str) -> str:
     if not team_id or not channel_id:
         return ""
-    template_path = ROOT_DIR / "data" / "message-{0}-{1}-ephemeral.md".format(
+    template_path = DATA_DIR / "message-{0}-{1}-ephemeral.md".format(
         team_id, channel_id
     )
     return load_text_file(template_path) or ""

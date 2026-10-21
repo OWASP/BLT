@@ -444,7 +444,7 @@ def test_missing_token_fails_honestly(slack):
 
 def test_welcome_text_is_sammichs_current_message():
     lettuce_copy = (SRC / "lettuce" / "messages" / "T04T40NHX-team_join.txt").read_text().strip()
-    sammich_copy = (ROOT.parent / "blt-sammich" / "data" / "message-T04T40NHX-team_join.md")
+    sammich_copy = (ROOT.parent / "blt-sammich" / "src" / "data" / "message-T04T40NHX-team_join.md")
     if sammich_copy.exists():
         assert lettuce_copy == sammich_copy.read_text().strip()
     # .txt under src/ is what Wrangler bundles as a text module (.md and data/ are not).

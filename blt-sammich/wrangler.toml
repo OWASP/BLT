@@ -11,6 +11,14 @@ APP_VERSION = "0.1.0"
 [build]
 command = "./script/migrate.sh"
 
+# Bundle src/data (welcome and channel-join .md templates, projects.json, repos.json) as text
+# modules. Python Workers only bundle .py/.txt/.html/... by default, so without this rule the
+# deployed Worker had none of them. tests/test_packaged_data.py checks every file is covered.
+[[rules]]
+type = "Text"
+globs = ["**/*.md", "**/*.json"]
+fallthrough = true
+
 [assets]
 directory = "./public"
 binding = "ASSETS"

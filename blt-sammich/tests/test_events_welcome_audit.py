@@ -73,7 +73,7 @@ def test_owasp_welcome_message_renders_with_current_channels():
 
 
 def test_owasp_welcome_message_has_one_source():
-    template = (worker.ROOT_DIR / "data" / "message-T04T40NHX-team_join.md").read_text().strip()
+    template = (worker.DATA_DIR / "message-T04T40NHX-team_join.md").read_text().strip()
     assert worker.get_workspace_welcome_message("T04T40NHX") == template
     assert not hasattr(worker, "TEAM_WELCOME_MESSAGES")
 

@@ -146,8 +146,8 @@ BLT-Sammich is built with a modular plugin system:
 
 ### Data Files
 
-- **`data/projects.json`**: Database of 800+ OWASP projects with descriptions and links
-- **`data/repos.json`**: Technology-to-repository mapping for development resources
+- **`src/data/projects.json`**: Database of 800+ OWASP projects with descriptions and links
+- **`src/data/repos.json`**: Technology-to-repository mapping for development resources
 
 ## 🏗️ Architecture
 
@@ -545,19 +545,16 @@ For running tests and code formatting, see the [Development](#-development) sect
 ### Project Structure
 ```
 BLT-Sammich/
-├── app.py                    # Main bot application
 ├── src/
-│   ├── settings.py          # Configuration
-│   └── sammich/
-│       └── plugins/         # Bot plugins
-│           ├── contributors.py  # GitHub activity tracking
-│           ├── project.py       # OWASP project lookup
-│           └── reminder.py      # Message scheduling (WIP)
-├── data/
-│   ├── projects.json        # OWASP projects database
-│   └── repos.json          # Technology repository mapping
+│   ├── worker.py            # The Cloudflare Worker (all bot logic)
+│   └── data/                # Bundled with the Worker (see [[rules]] in wrangler.toml)
+│       ├── message-*.md     # Welcome and channel-join messages
+│       ├── projects.json    # OWASP projects database
+│       └── repos.json       # Technology repository mapping
+├── public/                  # Static assets (env.ASSETS)
+├── migrations/              # D1 migrations
 ├── tests/                   # Unit tests
-└── pyproject.toml          # Poetry dependencies
+└── wrangler.toml
 ```
 
 ### Running Tests
