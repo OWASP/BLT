@@ -311,6 +311,16 @@ def generate_html(repos: List[Dict], org: str) -> str:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{org} GitHub Repositories</title>
+    <script>
+        // Before first paint: the saved OWASP BLT theme (localStorage "theme"), else the system preference.
+        (function () {{
+            var saved = null;
+            try {{ saved = localStorage.getItem("theme"); }} catch (e) {{ saved = null; }}
+            var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+            document.documentElement.classList.toggle("dark", dark);
+        }})();
+    </script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <style>
         * {{
             margin: 0;
@@ -323,7 +333,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
         }}
         
         body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
             color: #0f172a;
             background: #f8fafc;
@@ -376,7 +386,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
         
         input[type="text"]:focus {{
             outline: none;
-            border-color: #E10101;
+            border-color: #dc2626;
         }}
         
         .btn-group {{
@@ -387,9 +397,9 @@ def generate_html(repos: List[Dict], org: str) -> str:
         
         button {{
             padding: 12px 20px;
-            border: 2px solid #E10101;
+            border: 2px solid #dc2626;
             background: white;
-            color: #E10101;
+            color: #dc2626;
             border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
@@ -398,12 +408,12 @@ def generate_html(repos: List[Dict], org: str) -> str:
         }}
         
         button:hover {{
-            background: #E10101;
+            background: #dc2626;
             color: white;
         }}
         
         button.active {{
-            background: #E10101;
+            background: #dc2626;
             color: white;
         }}
         
@@ -414,7 +424,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
             padding: 12px 20px;
             font-size: 14px;
             font-weight: 600;
-            color: #E10101;
+            color: #dc2626;
             cursor: pointer;
             user-select: none;
         }}
@@ -445,14 +455,14 @@ def generate_html(repos: List[Dict], org: str) -> str:
         }}
         
         .sort-btn:hover {{
-            border-color: #E10101;
-            color: #E10101;
+            border-color: #dc2626;
+            color: #dc2626;
         }}
         
         .sort-btn.active {{
-            background: #E10101;
+            background: #dc2626;
             color: white;
-            border-color: #E10101;
+            border-color: #dc2626;
         }}
         
         .stats {{
@@ -484,7 +494,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
         }}
         
         .stat.clickable.active {{
-            background: #E10101;
+            background: #dc2626;
             color: white;
         }}
         
@@ -544,7 +554,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
         }}
         
         .repo-name a {{
-            color: #E10101;
+            color: #dc2626;
             text-decoration: none;
             font-size: 14px;
             font-weight: 600;
@@ -692,7 +702,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
             padding: 4px 6px;
             background: #f8fafc;
             border-radius: 3px;
-            border-left: 2px solid #E10101;
+            border-left: 2px solid #dc2626;
         }}
         
         .repo-tags {{
@@ -742,7 +752,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
         }}
         
         .sparkline {{
-            stroke: #E10101;
+            stroke: #dc2626;
             fill: none;
             stroke-width: 1.5;
         }}
@@ -763,7 +773,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
         .activity-score {{
             font-size: 12px;
             font-weight: 600;
-            color: #E10101;
+            color: #dc2626;
             background: #fee2e2;
             padding: 2px 8px;
             border-radius: 4px;
@@ -841,7 +851,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
         .loading {{
             text-align: center;
             padding: 40px;
-            color: #E10101;
+            color: #dc2626;
         }}
         
         .table-wrapper {{
@@ -875,12 +885,12 @@ def generate_html(repos: List[Dict], org: str) -> str:
         
         table.repo-table th.sortable:hover {{
             background: #fee2e2;
-            color: #E10101;
+            color: #dc2626;
         }}
         
         table.repo-table th.sort-active {{
             background: #fee2e2;
-            color: #E10101;
+            color: #dc2626;
         }}
         
         table.repo-table td {{
@@ -903,7 +913,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
         }}
         
         .table-name-link {{
-            color: #E10101;
+            color: #dc2626;
             text-decoration: none;
             font-weight: 600;
         }}
@@ -953,7 +963,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
         }}
         
         .creation-chart-bar {{
-            fill: #E10101;
+            fill: #dc2626;
             opacity: 0.85;
             transition: opacity 0.2s, fill 0.2s;
             cursor: pointer;
@@ -978,8 +988,8 @@ def generate_html(repos: List[Dict], org: str) -> str:
         
         .year-filter-clear-btn {{
             background: none;
-            border: 1px solid #E10101;
-            color: #E10101;
+            border: 1px solid #dc2626;
+            color: #dc2626;
             border-radius: 4px;
             padding: 1px 6px;
             font-size: 11px;
@@ -989,7 +999,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
         }}
         
         .year-filter-clear-btn:hover {{
-            background: #E10101;
+            background: #dc2626;
             color: #fff;
         }}
         
@@ -1133,13 +1143,130 @@ def generate_html(repos: List[Dict], org: str) -> str:
                 font-size: 11px;
             }}
         }}
+
+        /* The OWASP BLT bar spans the full width above the padded body. */
+        blt-nav {{
+            display: block;
+            margin: -20px -20px 20px;
+        }}
+        @media (max-width: 768px) {{
+            blt-nav {{
+                margin: -10px -10px 10px;
+            }}
+        }}
+
+        /* Dark mode: html.dark, set before paint and by the OWASP BLT bar's toggle. */
+        html.dark {{
+            color-scheme: dark;
+        }}
+        html.dark body {{
+            color: #f3f4f6;
+            background: #030712;
+        }}
+        html.dark .container {{
+            background: #111827;
+            box-shadow: none;
+            border: 1px solid #1f2937;
+        }}
+        html.dark h1,
+        html.dark .stat strong,
+        html.dark .creation-chart-title,
+        html.dark .last-commit-author,
+        html.dark table.repo-table th {{
+            color: #f3f4f6;
+        }}
+        html.dark .subtitle,
+        html.dark .repo-title,
+        html.dark .repo-description,
+        html.dark .repo-pitch,
+        html.dark .repo-meta,
+        html.dark .sparkline-label,
+        html.dark .last-commit,
+        html.dark .last-commit-message,
+        html.dark .no-results,
+        html.dark .table-desc,
+        html.dark #creationChartSubtitle,
+        html.dark footer {{
+            color: #9ca3af !important;
+        }}
+        html.dark input[type="text"] {{
+            background: #030712;
+            color: #f3f4f6;
+            border-color: #374151;
+        }}
+        html.dark button:not(.active):not(.bump-btn):not(:hover),
+        html.dark .sort-btn:not(.active):not(:hover) {{
+            background: #111827;
+        }}
+        html.dark .sort-btn:not(.active) {{
+            border-color: #374151;
+            color: #d1d5db;
+        }}
+        html.dark .stat {{
+            background: #1f2937;
+        }}
+        html.dark .stat.clickable:hover {{
+            background: #374151;
+        }}
+        html.dark .stat.clickable.active {{
+            background: #dc2626;
+        }}
+        html.dark .repo-item {{
+            background: #111827;
+            border-color: #1f2937;
+        }}
+        html.dark .repo-item.archived,
+        html.dark table.repo-table tbody tr.archived td {{
+            background: #0b1120;
+        }}
+        html.dark .repo-pitch,
+        html.dark .badge.language,
+        html.dark .creation-chart-section,
+        html.dark table.repo-table th {{
+            background: #030712;
+        }}
+        html.dark .creation-chart-section,
+        html.dark table.repo-table th,
+        html.dark footer {{
+            border-color: #1f2937;
+        }}
+        html.dark table.repo-table td,
+        html.dark .sparkline-container,
+        html.dark .last-commit {{
+            border-color: #1f2937;
+        }}
+        html.dark table.repo-table tbody tr:hover td,
+        html.dark table.repo-table th.sortable:hover,
+        html.dark table.repo-table th.sort-active,
+        html.dark .activity-score,
+        html.dark .badge.chapter {{
+            background: rgba(127, 29, 29, 0.35);
+        }}
+        html.dark .repo-name a,
+        html.dark .table-name-link,
+        html.dark table.repo-table th.sortable:hover,
+        html.dark table.repo-table th.sort-active,
+        html.dark .activity-score,
+        html.dark .badge.chapter {{
+            color: #f87171;
+        }}
+        html.dark .badge.tag {{
+            background: #1f2937;
+            color: #d1d5db;
+        }}
+        html.dark #creationChartSvg text {{
+            fill: #d1d5db;
+        }}
+        html.dark #creationChartSvg line {{
+            stroke: #1f2937;
+        }}
     </style>
 </head>
 <body>
     <div class="container">
         <h1>OWASP Bumper 🚀💪</h1>
         <div class="subtitle">This application aims to help encourage repositories to stay active by giving them a bump of a new issue with one click! 🔔✨</div>
-        <div class="subtitle">Comprehensive listing of all {org} GitHub repositories | <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Bumper" target="_blank" style="color: #E10101;">View on GitHub</a></div>
+        <div class="subtitle">Comprehensive listing of all {org} GitHub repositories | <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Bumper" target="_blank" style="color: #dc2626;">View on GitHub</a></div>
         
         <div class="creation-chart-section">
             <div class="creation-chart-title">📊 New Repositories Created Over Time<span id="creationYearFilterLabel" style="display:none"> — <span id="creationYearFilterValue"></span> <button class="year-filter-clear-btn" onclick="setCreationYearFilter(null)">✕ Clear</button></span></div>
@@ -1770,7 +1897,7 @@ Thank you for contributing to the OWASP community!
                     <td class="table-num">${{repo.forks_count}}</td>
                     <td class="table-num">${{repo.open_issues_count}}</td>
                     <td class="table-num">${{repo.open_prs_count || 0}}</td>
-                    <td style="white-space:nowrap">${{sparklineHtml}} <span style="font-size:11px;font-weight:600;color:#E10101">${{repo.activity_score}}</span></td>
+                    <td style="white-space:nowrap">${{sparklineHtml}} <span style="font-size:11px;font-weight:600;color:#dc2626">${{repo.activity_score}}</span></td>
                     <td style="white-space:nowrap;font-size:12px">${{getTimeAgo(repo.updated_at)}}</td>
                     <td style="white-space:nowrap;font-size:12px">${{formatDate(repo.created_at)}}</td>
                     <td>${{lastCommitCell}}</td>
