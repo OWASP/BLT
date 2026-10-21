@@ -39,19 +39,6 @@ describe('Background Service Worker', () => {
       expect(msg.action).toBe('takeScreenshot');
     });
 
-    it('should construct correct trademark API URL', () => {
-      const keyword = 'TestBrand';
-      const url = `https://legacy.owaspblt.org/api/trademarks/search/?query=${encodeURIComponent(keyword)}`;
-      
-      expect(url).toBe('https://legacy.owaspblt.org/api/trademarks/search/?query=TestBrand');
-    });
-
-    it('should URL encode special characters in keyword', () => {
-      const keyword = 'Test Brand With Spaces';
-      const url = `https://legacy.owaspblt.org/api/trademarks/search/?query=${encodeURIComponent(keyword)}`;
-      
-      expect(url).toBe('https://legacy.owaspblt.org/api/trademarks/search/?query=Test%20Brand%20With%20Spaces');
-    });
   });
 
   describe('Screenshot Functionality', () => {

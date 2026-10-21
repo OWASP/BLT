@@ -5,20 +5,21 @@ import 'package:http/http.dart' as http;
 class GeneralApiClient {
   GeneralApiClient._();
 
-  /// Get general stats.
+  /// Get general stats from the BLT API (GET /stats).
   static Future<Map<String, String>> getStats() async {
     http.Response? response;
     Map<String, String> m = {};
     try {
       response = await http.get(
         Uri.parse(GeneralEndPoints.stats),
+        headers: GeneralEndPoints.bltApiHeaders,
       );
       if (response.statusCode == 200) {
-        var decodedResponse = jsonDecode(response.body);
-        m["bugs"] = '${decodedResponse["bugs"]}';
-        m["users"] = '${decodedResponse["users"]}';
-        m["hunts"] = '${decodedResponse["hunts"]}';
-        m["domains"] = '${decodedResponse["domains"]}';
+        var counts = jsonDecode(utf8.decode(response.bodyBytes))["data"] ?? {};
+        m["bugs"] = '${counts["bugs"] ?? 0}';
+        m["users"] = '${counts["users"] ?? 0}';
+        m["hunts"] = '${counts["hunts"] ?? 0}';
+        m["domains"] = '${counts["domains"] ?? 0}';
       }
     } catch (e) {
       print(e);
@@ -26,25 +27,26 @@ class GeneralApiClient {
     return m;
   }
 
-  /// Check for duplicate issues for a given URL.
+  /// Check the BLT API for an earlier report on the same URL
+  /// (GET /bugs/search?q=<url>). Returns its description and id, or null.
   static Future<Map<String, String>?> checkForDuplicate(String url) async {
     http.Response? response;
     Map<String, String>? m;
-    Map<String, String> body = {
-      "dom_url": url,
-    };
 
     try {
-      response = await http.post(
-        Uri.parse(GeneralEndPoints.duplicateURL),
-        body: body,
+      response = await http.get(
+        Uri.parse(GeneralEndPoints.bugSearch).replace(
+          queryParameters: {"q": url.trim(), "limit": "1"},
+        ),
+        headers: GeneralEndPoints.bltApiHeaders,
       );
       if (response.statusCode == 200) {
-        var decodedResponse = jsonDecode(response.body);
-        if (decodedResponse["found"]) {
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        List<dynamic> found = decodedResponse["data"] ?? [];
+        if (found.isNotEmpty) {
           m = {};
-          m["description"] = decodedResponse["issue"]["description"];
-          m["id"] = decodedResponse["issue"]["id"].toString();
+          m["description"] = '${found[0]["description"] ?? ""}';
+          m["id"] = '${found[0]["id"]}';
         }
       }
     } catch (e) {

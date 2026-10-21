@@ -1,5 +1,6 @@
 import 'package:blt/src/pages/home/home_imports.dart';
 import 'package:blt/src/util/services/permission_handlers.dart';
+import 'package:blt/src/util/migration_notice.dart';
 
 /// Navigator and drawer provider for the main pages:
 /// Issues, Report Bug, Leaderboards and Feed.
@@ -173,6 +174,7 @@ class _HomeState extends ConsumerState<Home> {
     requestStoragePermission();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!GeneralEndPoints.oldApiAvailable) showMigrationNoticeOnce(context);
       ReportPageDefaults defaults = await receiveSharedIntent();
       if (defaults.sharedMediaFile != null || defaults.text != null) {
         setState(() {

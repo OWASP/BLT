@@ -1,17 +1,13 @@
+const TRADEMARK_SEARCH_UNAVAILABLE =
+  "Trademark search is not available yet: it is moving to the new BLT platform.";
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "CHECK_TRADEMARK") {
-    const url = `https://legacy.owaspblt.org/api/trademarks/search/?query=${encodeURIComponent(msg.keyword)}`;
-
-    fetch(url)
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        return res.json();
-      })
-      .then(data => sendResponse({ ok: true, data }))
-      .catch(err => sendResponse({ ok: false, error: err.toString() }));
-    return true; // async response
+    // The trademark search lived in the old BLT app (legacy.owaspblt.org), which is offline
+    // while its data is migrated, and the new BLT API has no trademark search yet.
+    // Answer right away instead of sending page keywords to a server that isn't there.
+    sendResponse({ ok: false, error: TRADEMARK_SEARCH_UNAVAILABLE });
+    return false;
   }
 
   if (msg.action === "takeScreenshot") {

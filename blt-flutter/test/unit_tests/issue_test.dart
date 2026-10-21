@@ -78,4 +78,29 @@ void main() {
       expect(result, isNull);
     });
   });
+
+  group("BLT API issues", () {
+    test('Issue.fromBltApi reads a GET /bugs row', () {
+      final issue = Issue.fromBltApi({
+        "id": 7,
+        "url": "https://example.com/login",
+        "title": null,
+        "severity": "high",
+        "description": "XSS in the login form",
+        "status": "open",
+        "verified": 0,
+        "score": null,
+        "created": "2026-10-20 12:34:56",
+        "modified": "2026-10-20 12:34:56",
+        "domain": null,
+      });
+      expect(issue.id, 7);
+      expect(issue.url, "https://example.com/login");
+      expect(issue.title, "XSS in the login form");
+      expect(issue.isOpen, isTrue);
+      expect(issue.isVerified, isFalse);
+      expect(issue.screenshotsLink, isEmpty);
+      expect(issue.created!.year, 2026);
+    });
+  });
 }

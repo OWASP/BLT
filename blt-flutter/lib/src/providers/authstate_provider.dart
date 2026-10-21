@@ -1,4 +1,5 @@
 import 'package:blt/src/providers/providers_imports.dart';
+import 'package:blt/src/util/migration_notice.dart';
 import 'package:http/http.dart' as http;
 
 /// The provider which exposes the state management for user authentication.
@@ -112,37 +113,14 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
   }
 
   /// Do a user type authentication.
+  ///
+  /// Accounts lived on the old BLT backend, which is offline while its data
+  /// is migrated, so signing in is not available yet. The user is told so and
+  /// can keep using the app as a guest.
   Future<void> userLogin(Map<String, String?> userCreds, bool rememberMe,
       BuildContext parentContext) async {
-    state = AsyncValue.data(AuthState.authenticating);
-    SnackBar authSnack = SnackBar(
-      content: Text("Authenticating ..."),
-      duration: Duration(minutes: 1),
-    );
-    ScaffoldMessenger.of(parentContext).showSnackBar(authSnack);
-    try {
-      User? authenticatedUser = await AuthApiClient.login(userCreds);
-      if (authenticatedUser != null) {
-        currentUser = authenticatedUser;
-        if (rememberMe) {
-          rememberUser(currentUser!.username!, currentUser!.token!);
-        }
-        await UserApiClient.getUserInfo(client, currentUser!);
-
-        state = AsyncValue.data(AuthState.loggedIn);
-        read(loginProvider.notifier).setUserLogin();
-        ScaffoldMessenger.of(parentContext).clearSnackBars();
-        Navigator.of(parentContext).pushReplacementNamed(
-          RouteManager.homePage,
-        );
-      } else {
-        ScaffoldMessenger.of(parentContext).clearSnackBars();
-        SnackBar errorSnack = SnackBar(
-          content: Text("There was some error, please try again!"),
-        );
-        ScaffoldMessenger.of(parentContext).showSnackBar(errorSnack);
-      }
-    } catch (e) {}
+    state = AsyncValue.data(AuthState.loggedOut);
+    showNotAvailableYet(parentContext, "Signing in");
   }
 
   /// Do a logout for both guest and user type authentications.

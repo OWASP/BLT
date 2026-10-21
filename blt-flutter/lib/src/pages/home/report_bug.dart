@@ -357,24 +357,15 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                               text: AppLocalizations.of(context)!
                                   .ensureNotSubmittingDuplicate,
                             ),
+                            // The new site has no page for a single bug yet, so
+                            // show the BLT API's bug number instead of a link.
                             TextSpan(
-                              text:
-                                  "${GeneralEndPoints.domain}issue/${m["id"]}",
+                              text: "BLT bug #${m["id"]}",
                               style: GoogleFonts.aBeeZee(
                                 textStyle: TextStyle(
                                   color: Color(0xFF4A93F8),
-                                  decoration: TextDecoration.underline,
                                 ),
                               ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () async {
-                                  Uri site = Uri.parse(
-                                      "${GeneralEndPoints.baseUrl}issue/${m["id"]}");
-                                  try {
-                                    await launchUrl(site,
-                                        mode: LaunchMode.externalApplication);
-                                  } catch (e) {}
-                                },
                             )
                           ],
                         ),
@@ -1143,34 +1134,25 @@ class _ReportFormState extends ConsumerState<ReportForm> {
               ),
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
-                  if (_image.isNotEmpty) {
-                    List<Tag> tags = [];
-                    for (int i = 0; i < _labels.length; i++) {
-                      if (_labelsState[i]) tags.add(_labels[i]);
-                    }
-                    Issue issue = Issue(
-                      user: currentUser!,
-                      url: _titleController.text,
-                      title: _titleController.text,
-                      description: _descriptionController.text,
-                      isVerified: false,
-                      isOpen: true,
-                      screenshotsLink: _image.map((e) => e.path).toList(),
-                      userAgent:
-                          "Dart ${Platform.version.substring(0, 7) + Platform.operatingSystem}",
-                      label: _selectedIssueCategoriesIndex,
-                      tags: tags,
-                    );
-                    await IssueApiClient.postIssue(issue, widget.parentContext);
-                  } else {
-                    SnackBar cantSnak = SnackBar(
-                      content: Text(
-                          AppLocalizations.of(context)!.needToUploadScreenshot),
-                    );
-                    ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-                      cantSnak,
-                    );
+                  // Screenshots are optional: the BLT API can't store them yet.
+                  List<Tag> tags = [];
+                  for (int i = 0; i < _labels.length; i++) {
+                    if (_labelsState[i]) tags.add(_labels[i]);
                   }
+                  Issue issue = Issue(
+                    user: currentUser!,
+                    url: _titleController.text,
+                    title: _titleController.text,
+                    description: _descriptionController.text,
+                    isVerified: false,
+                    isOpen: true,
+                    screenshotsLink: _image.map((e) => e.path).toList(),
+                    userAgent:
+                        "Dart ${Platform.version.substring(0, 7) + Platform.operatingSystem}",
+                    label: _selectedIssueCategoriesIndex,
+                    tags: tags,
+                  );
+                  await IssueApiClient.postIssue(issue, widget.parentContext);
                 }
               },
             ),

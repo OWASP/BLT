@@ -15,3 +15,4 @@ export 'package:blt/src/models/issue_model.dart';
 export 'dart:convert';
 export 'package:blt/src/models/tags_model.dart';
 export 'package:flutter/material.dart';
+export 'package:blt/src/util/migration_notice.dart';

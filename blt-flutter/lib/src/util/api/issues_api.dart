@@ -83,65 +83,64 @@ class IssueApiClient {
     return issueData;
   }
 
-  /// Create a new issue, [parentContext] is needed to show the snackbars.
+  /// Send a new bug report to the BLT API (POST /bugs).
+  /// [parentContext] is needed to show the snackbars.
+  ///
+  /// The API takes url and description (plus optional fields such as label
+  /// and user_agent) as JSON. It has no screenshot upload yet, so screenshots
+  /// stay on the device and the user is told so.
   static Future<void> postIssue(Issue issue, BuildContext parentContext) async {
-    http.Response? response;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(parentContext);
     try {
-      // var request = http.MultipartRequest(
-      //   "POST",
-      //   Uri.parse(IssueEndPoints.issues),
-      // );
-      // await Future.forEach(
-      //     issue.screenshotsLink!,
-      //     (path) async => {
-      //           request.files
-      //               .add(await http.MultipartFile.fromPath("screenshots", path))
-      //         });
-      // var issueMap = issue.toJson();
-      // request.headers.addAll({
-      //   "Content-Type": "multipart/form-data",
-      //   "user_agent": issue.userAgent!
-      // });
-      // issue.toJson().forEach((key, value) {
-      //   request.fields[key] = jsonEncode(value);
-      // });
+      Map<String, dynamic> body = {
+        "url": issue.url.trim(),
+        "description": (issue.description ?? "").trim(),
+      };
+      if (issue.label != null) body["label"] = issue.label;
+      if (issue.userAgent != null) body["user_agent"] = issue.userAgent;
 
-      // request.fields["url"] = issueMap["url"];
-      // request.fields["status"] = issueMap["status"];
-      // request.fields["description"] = issueMap["description"];
-
-      // var streamedresponse = await request.send();
-      // response = await http.Response.fromStream(streamedresponse);
-
-      // if (streamedresponse.statusCode == 201 ||
-      //     streamedresponse.statusCode == 200) {
-      //   var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-      //   issue = Issue.fromJson(decodedResponse);
-
-      //   SnackBar thankSnack = SnackBar(
-      //     content: Text("Thanks for reporting the issue!"),
-      //   );
-      //   ScaffoldMessenger.of(parentContext).showSnackBar(thankSnack);
-
-      //   Navigator.of(parentContext).pushNamed(
-      //     RouteManager.issueDetailPage,
-      //     arguments: issue,
-      //   );
-      // } else {
-      //   ScaffoldMessenger.of(parentContext).clearSnackBars();
-      //   SnackBar errorSnack = SnackBar(
-      //     content:
-      //         Text("There was some error, please try again!" + response.body),
-      //   );
-      //   ScaffoldMessenger.of(parentContext).showSnackBar(errorSnack);
-      // }
-    } catch (e) {
-      ScaffoldMessenger.of(parentContext).clearSnackBars();
-      SnackBar errorSnack = SnackBar(
-        content: Text("There was some error, please try again!" + e.toString()),
+      http.Response response = await http.post(
+        Uri.parse(GeneralEndPoints.bugs),
+        headers: GeneralEndPoints.bltApiHeaders,
+        body: jsonEncode(body),
       );
-      ScaffoldMessenger.of(parentContext).showSnackBar(errorSnack);
 
+      messenger.clearSnackBars();
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        bool hadScreenshots = (issue.screenshotsLink ?? []).isNotEmpty;
+        messenger.showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 6),
+            content: Text(
+              "Thanks for reporting the issue!" +
+                  (hadScreenshots
+                      ? " Screenshots can't be uploaded yet, so they were not sent."
+                      : ""),
+            ),
+          ),
+        );
+      } else {
+        String reason = "error ${response.statusCode}";
+        try {
+          var decoded = jsonDecode(utf8.decode(response.bodyBytes));
+          if (decoded is Map && decoded["message"] != null) {
+            reason = decoded["message"].toString();
+          }
+        } catch (_) {}
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text("The bug report could not be sent: " + reason),
+          ),
+        );
+      }
+    } catch (e) {
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        SnackBar(
+          content:
+              Text("There was some error, please try again! " + e.toString()),
+        ),
+      );
       print(e);
     }
   }
@@ -232,25 +231,35 @@ class IssueApiClient {
 
   static Future searchUserIssueByKeyWord() async {}
 
+  /// Bugs with [status] from the BLT API. With a [url], bugs whose URL or
+  /// description matches it (GET /bugs/search); otherwise the newest bugs
+  /// (GET /bugs?status=...). The API pages differently from the old one, so
+  /// only the first page is returned.
   static Future<IssueData?> getIssueByStatus(String status, String url) async {
     http.Response? response;
     IssueData? issueData;
-    List<Issue>? issueList;
     try {
-      String searchUrl = GeneralEndPoints.apiBaseUrl +
-          "issues/" +
-          "?status=$status&domain=$url";
-      response = await http.get(Uri.parse(searchUrl));
+      Uri uri = url.trim().isEmpty
+          ? Uri.parse(GeneralEndPoints.bugs).replace(
+              queryParameters: {"status": status, "per_page": "50"},
+            )
+          : Uri.parse(GeneralEndPoints.bugSearch).replace(
+              queryParameters: {"q": url.trim(), "limit": "50"},
+            );
+      response = await http.get(uri, headers: GeneralEndPoints.bltApiHeaders);
       if (response.statusCode == 200) {
-        issueList = [];
         var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-        decodedResponse["results"].forEach((element) {
-          issueList!.add(Issue.fromJson(element));
-        });
+        List<Issue> issueList = [];
+        for (var element in (decodedResponse["data"] ?? [])) {
+          if (element is Map<String, dynamic> &&
+              (element["status"] ?? "open") == status) {
+            issueList.add(Issue.fromBltApi(element));
+          }
+        }
         issueData = IssueData(
-          count: decodedResponse["count"],
-          nextQuery: decodedResponse["next"],
-          previousQuery: decodedResponse["previous"],
+          count: issueList.length,
+          nextQuery: null,
+          previousQuery: null,
           issueList: issueList,
         );
       }

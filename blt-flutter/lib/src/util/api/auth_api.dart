@@ -48,74 +48,21 @@ class AuthApiClient {
   }
 
   /// Request a new user signup on BLT.
+  ///
+  /// Accounts lived on the old BLT backend, which is offline while its data is
+  /// migrated, so creating an account is not available yet.
   static Future<void> signup(
     String username,
     String email,
     String password,
     BuildContext parentContext,
   ) async {
-    http.Response? response;
-
-    try {
-      response = await http.post(
-        Uri.parse(AuthEndPoints.register),
-        body: {
-          "username": username,
-          "email": email,
-          "password1": password,
-          "password2": password,
-        },
-      );
-      print(response.statusCode);
-      print(response.body);
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        SnackBar sentSnack = SnackBar(
-          duration: const Duration(seconds: 6),
-          content: Text(
-            "Email Confirmation mail sent, please verify your email to login",
-          ),
-        );
-        ScaffoldMessenger.of(parentContext).showSnackBar(sentSnack);
-        await Future.delayed(const Duration(seconds: 6));
-        Navigator.of(parentContext).pop();
-      } else {
-        ScaffoldMessenger.of(parentContext).clearSnackBars();
-        Map responseMap = jsonDecode(utf8.decode(response.bodyBytes));
-        String errorString = "";
-        responseMap.forEach((key, value) {
-          errorString +=
-              "$key : ${value.toString().substring(1, value.toString().length - 1)} \n";
-        });
-        SnackBar errorSnack = SnackBar(
-          content: Text("Error!\n ${errorString}"),
-        );
-        ScaffoldMessenger.of(parentContext).showSnackBar(errorSnack);
-      }
-    } catch (e) {
-      print(e);
-    }
+    showNotAvailableYet(parentContext, "Creating an account");
   }
 
-  /// Send a email for a user to reset their password.
+  /// Request a password reset email. Not available yet (see [signup]).
   static Future<void> resetPassword(String email, BuildContext context) async {
-    http.Response? response;
-    try {
-      response = await http.post(
-        Uri.parse(AuthEndPoints.reset),
-        body: {
-          "email": email,
-        },
-      );
-      print(response.body);
-      if (response.statusCode == 200) {
-        SnackBar sentSnack = SnackBar(
-          content: Text("Email sent successfully"),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(sentSnack);
-        await Future.delayed(const Duration(seconds: 3));
-        Navigator.of(context).pop();
-      }
-    } catch (e) {}
+    showNotAvailableYet(context, "Password reset");
   }
 
   static Future<bool> checkPassword(String password) async {

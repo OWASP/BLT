@@ -1,5 +1,7 @@
 var m;
 var global_url;
+// Bug reports go through the new BLT site, which forwards them to the BLT API.
+var BLT_REPORT_PAGE = "https://next.owaspblt.org/pages/report-bug";
 function n() {
   for (var a = [["edge", /Edge\/([0-9\._]+)/], ["chrome", /Chrom(?:e|ium)\/([0-9\.]+)(:?\s|$)/], ["firefox", /Firefox\/([0-9\.]+)(?:\s|$)/], ["opera", /Opera\/([0-9\.]+)(?:\s|$)/], ["ie", /Trident\/7\.0.*rv\:([0-9\.]+)\).*Gecko$/], ["ie", /MSIE\s([0-9\.]+);.*Trident\/[4-7].0/], ["ie", /MSIE\s(7\.0)/], ["bb10", /BB10;\sTouch.*Version\/([0-9\.]+)/], ["android", /Android\s([0-9\.]+)/], ["ios", /iPad\;\sCPU\sOS\s([0-9\._]+)/], ["ios", /iPhone\;\sCPU\siPhone\sOS\s([0-9\._]+)/], ["safari", /Safari\/([0-9\._]+)/]], 
   b = 0, g = [], b = 0;b < a.length;b++) {
@@ -101,11 +103,9 @@ function x() {
   }, u:a};
 }
 ;var E = {save:function(a, b) {
-  a && "undefined" != typeof a && "undefined" != typeof a.img_url && $.ajax({type:"POST", url:"https://legacy.owaspblt.org/v1/", data:JSON.stringify({jsonrpc:"2.0", id:1, method:"save", params:a}), dataType:"json", beforeSend:function(a) {
-    a.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-  }, complete:function(a) {
-    a.responseJSON && "undefined" != typeof a.responseJSON && "undefined" != typeof a.responseJSON.result ? b(a.responseJSON.result) : b(null);
-  }});
+  // The old JSON-RPC save endpoint (bugheist.com) is gone and BLT has no replacement:
+  // report "no result" without sending anything.
+  b(null);
 }};
 if ("function" !== typeof F) {
   var F = function() {
@@ -268,45 +268,19 @@ J.prototype.t = function(a) {
 };
 function K(a, b) {
   K.o.constructor.call(this, a, b);
-  this.C = "5CE3DF4D45AC";
-  this.W = "https://legacy.owaspblt.org/upload/{time}/{hash}/";
 }
 s.extend(K, G);
 m = K.prototype;
 
 m.upload = function() {
-  var a = this;
-  this.j = this.h.s;
-  var b = function(a) {
-    var b = a.split(",");
-    a = b[0].match(/:(.*?);/)[1];
-    for (var b = atob(b[1]), g = b.length, k = new Uint8Array(g);g--;) {
-      k[g] = b.charCodeAt(g);
-    }
-    return new Blob([k], {type:a});
-  }(a.n.dataUrl), g = new FormData;
-  g.append("image", b, "image.png");
-
-  
-
-
-  
-  var tempvartime = Math.floor(Date.now() / 1E3);
-
-  var b = tempvartime, k = F("{key}*{time}".replace("{key}", this.C).replace("{time}", b)), b = this.W.replace("{time}", b).replace("{hash}", k);
-  var tempvar = k;
-  this.m = $.ajax({processData:!1, contentType:!1, url:b, type:"POST", timeout:18E4, data:g, xhr:function() {
-    var b = new XMLHttpRequest;
-    b.upload.onprogress = function(b) {
-      H(a, b);
-    };
-    return b;
-  }, beforeSend:function(b) {
-    a.t(b);
-  }, complete:function(b, g) {
-    chrome.tabs.create({ url: 'https://legacy.owaspblt.org/report/?hash='+ tempvar + '&time='+ tempvartime +'&url=' + global_url});
-    //a.w(b, g);
-  }});
+  // The old screenshot upload (bugheist.com, later the legacy Django app) is gone, and the
+  // new BLT API has no screenshot upload yet. Save the screenshot to Downloads and open the
+  // new report page with the page URL filled in, so the screenshot can be attached there.
+  var dataUrl = this.n && this.n.dataUrl;
+  if (dataUrl && chrome.downloads) {
+    chrome.downloads.download({url:dataUrl, filename:"blt-screenshot-" + Date.now() + ".png", saveAs:false});
+  }
+  chrome.tabs.create({url:BLT_REPORT_PAGE + "?url=" + encodeURIComponent(global_url || "")});
 };
 m.t = function() {
 };
