@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523929,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`workers/main.py:11` lists `https://next.owaspbt.org` (missing the \"l\"), so CORS headers are never sent for the real site. `wrangler.toml` defines `ALLOWED_ORIGIN`, which main.py never reads, and README documents a third name. The local dev origin `localhost:8787` isn't allowed either.\n\n## What to do\n\n1. Fix the spelling and add `http://localhost:8787`.\n2. Either read origins from the env var (comma-separated) or delete it; make README use the same name.\n\n## Acceptance criteria\n\n- [ ] `Origin: https://next.owaspblt.org` gets `Access-Control-Allow-Origin`\n- [ ] README and wrangler.toml agree\n\n## How to test locally\n\n```bash\ncd blt-next && npx wrangler dev\ncurl -i -H 'Origin: https://next.owaspblt.org' localhost:8787/api/stats\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-107",
+            "sig": "eFi-vxPE26Y_d8bQjBIu6wnk-_ttbM4bL0xRk-YneU217bQzhf-LYq5PoIerbdRYo0WYRS8fitrHewVD5unXCw",
+            "title": "blt-next: fix the typo'd production origin in ALLOWED_ORIGINS and the unused ALLOWED_ORIGIN var",
+            "ts": 1792547523929,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-107",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-next",
+                "bug"
+            ],
+            "sig": "xJQYm36uEwki4LKnBrSUCB469va48ykBbynrbjO0elf-x6HWYaG-lTFaL-GoqITLgEVehG2kfsEhv_hVsPx0BQ",
+            "ts": 1792547523930,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-next",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 107,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-next: fix the typo'd production origin in ALLOWED_ORIGINS and the unused ALLOWED_ORIGIN var",
+    "updatedAt": 1792547523930,
+    "votes": 0
+}

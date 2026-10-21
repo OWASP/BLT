@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523689,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/index.html` (about L65-73) has a \"Search docs, issues, MRs...\" input with no handler. README embeds `screenshot.png`, which isn't in the folder.\n\n## What to do\n\n1. Either make Enter open `https://git.owaspblt.org/BLT/issues?q=<text>`, or remove the input.\n2. Add a real screenshot or drop the README section.\n\n## Acceptance criteria\n\n- [ ] The input does something or is gone\n- [ ] No broken image in the README\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-start/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-83",
+            "sig": "Xld9wtwraGW_dpiPu3v6Qxj7PsONInx6_r6wIoCaSMBbqzGdDJHhtbx5WVEpQz-6ilnbpZWp0ZmA_Kg2qrj0Ag",
+            "title": "blt-start: remove the dead header search box and the missing README screenshot",
+            "ts": 1792547523689,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-83",
+            "labels": [
+                "hacktoberfest",
+                "blt-start",
+                "bug"
+            ],
+            "sig": "v5uMuu_GvIoZjjaEUYj24Ye3x2ZMTsZO9At67E-Fy7wd2-SOIDYPyjmk2Ag73zOtwYoEsVMhwwbimiKGulx1Bw",
+            "ts": 1792547523690,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-start",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 83,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-start: remove the dead header search box and the missing README screenshot",
+    "updatedAt": 1792547523690,
+    "votes": 0
+}

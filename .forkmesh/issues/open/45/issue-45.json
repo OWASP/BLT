@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523309,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nSecurity-sweep leftover. `blt-mcp/pyproject.toml` pins `mcp<2` and `uv.lock` has mcp **1.27.1** and starlette **1.0.0**, both with published advisories (unbounded StreamableHTTP sessions, Host-header handling, StaticFiles). The last 1.x on PyPI still has one open advisory, so the fix is the 2.x line. starlette is imported directly in `blt_mcp/server.py` but not declared.\n\n## What to do\n\n1. Quick part: declare `starlette>=1.9` in `pyproject.toml` and run `uv lock --upgrade-package starlette`.\n2. Main part: move to `mcp>=2.2,<3`. Port `from mcp.server.fastmcp import FastMCP` (`server_base.py`) to the 2.x API using the upstream migration guide.\n3. Re-check `server.py` where it sets `mcp.settings.host/port` and wraps `sse_app` / `streamable_http_app` in `MCPTokenAuthMiddleware`: the token check must still cover both transports.\n4. Check the `mcp-vcr` dev pin still works with 2.x. Note CI installs with `pip install -e '.[dev]'`, so the pyproject floors are what CI sees.\n\n## Acceptance criteria\n\n- [ ] Lock has mcp >= 2.2 and starlette >= 1.9\n- [ ] `tests/test_transport_sse.py` and `test_transport_stdio.py` pass\n- [ ] An unauthenticated HTTP request is still rejected with 401\n- [ ] blt-cli still connects: `cargo run -- --mcp-path \"uv run --project ../blt-mcp blt-mcp\"`\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-mcp\n```\n\n---\nSize: **L**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-45",
+            "sig": "TSxbmEnuu71fQby-ZgHJfokZVWdSuBwCrMaEGPYLyXhHIzqf_woeEANtzD3AuRB9wN290Sb_iRNSUFGAar2WCw",
+            "title": "blt-mcp: upgrade mcp to 2.x and starlette to >= 1.9",
+            "ts": 1792547523309,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-45",
+            "labels": [
+                "hacktoberfest",
+                "blt-mcp",
+                "enhancement"
+            ],
+            "sig": "R-1EOSVooLOBIS-N_ZrVcBUo47NKubTiXv1JEuWlZRgRMTkJ-aoi-EV4aDmi9ZI2XTdfTJC4Kz-BQ7cIFAlJCA",
+            "ts": 1792547523310,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-mcp",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 45,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-mcp: upgrade mcp to 2.x and starlette to >= 1.9",
+    "updatedAt": 1792547523310,
+    "votes": 0
+}

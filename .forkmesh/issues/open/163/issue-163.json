@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524489,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME lists `.github/workflows/update-catalog.yml` and `update-profiles.yml` (the jobs are `.forkmesh/blt-ossh--*.yml`), says `cd BLT-OSSH`, and describes profiles as GitHub Issues; ARCHITECTURE.md says GitHub Actions.\n\n## What to do\n\n1. Rewrite those sections for the forge and .forkmesh; use `cd BLT/blt-ossh`.\n\n## Acceptance criteria\n\n- [ ] Every path in the tree exists\n- [ ] Setup steps work verbatim\n\n## How to test locally\n\n```bash\nFollow the README.\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-163",
+            "sig": "TqYdjxG-BJ7uCx8zjQcTdw4_QMGF3Amj32NdiYNfrEipMnXkzX0AMuoKsK2tQFDTikj9yN7B4RKagE6aspAtCA",
+            "title": "blt-ossh: update README structure and setup for the forge and .forkmesh workflows",
+            "ts": 1792547524489,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-163",
+            "labels": [
+                "hacktoberfest",
+                "blt-ossh",
+                "documentation"
+            ],
+            "sig": "3LADTYLfjqdGvU_8FqZqW38AgOwj992PcbMWyR9MOV0HuwqS6-yCT0-nZKmr9TZC8jRTQ93wDYM4c9Ea-B7oAQ",
+            "ts": 1792547524490,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-ossh",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 163,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-ossh: update README structure and setup for the forge and .forkmesh workflows",
+    "updatedAt": 1792547524490,
+    "votes": 0
+}

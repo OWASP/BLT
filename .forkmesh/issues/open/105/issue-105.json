@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523909,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME runs `python3 -m http.server 8000` from the project root, but pages fetch `data/jobs.json` relative to `public/`. It also mentions `.assetsignore` and `assets/`, which don't exist (`wrangler.toml` serves `./public`).\n\n## What to do\n\n1. Use `python3 -m http.server 8000 -d public`.\n2. Remove the `.assetsignore` / `assets/` references from the text and tree.\n\n## Acceptance criteria\n\n- [ ] Following the README shows the jobs list\n- [ ] No references to missing paths\n\n## How to test locally\n\n```bash\ncd blt-jobs && npm ci && npm run build:jobs && python3 -m http.server 8000 -d public\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-105",
+            "sig": "Qk7lHHtGknA7MMdTizSlzyAHTzMJcRTv3SgD5ctESrloBa0dGPSge4Sl0C81sYHsBnlXwu_eJrx25RDuflDKBw",
+            "title": "blt-jobs: fix the README local-dev command and references to files that don't exist",
+            "ts": 1792547523909,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-105",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-jobs",
+                "documentation"
+            ],
+            "sig": "TbUT8xmvs6yBC3A8ddR6kSmjki0qaRafaRyMLu8WgQL0oVhT52gUZz8FeMaWaNh4SMgeNHh7gBai9ko5Uxy9Bg",
+            "ts": 1792547523910,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-jobs",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 105,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-jobs: fix the README local-dev command and references to files that don't exist",
+    "updatedAt": 1792547523910,
+    "votes": 0
+}

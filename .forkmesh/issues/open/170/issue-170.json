@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524559,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/index.py` strips a `/dash` prefix, then checks `hasattr(env, 'ASSETS')`, but `wrangler.toml` `[assets]` has no `binding = \"ASSETS\"`, so `/dash` returns placeholder HTML. Even with a binding, the original request (not the stripped path) is passed on. Confirm with `curl -i localhost:8787/dash` first.\n\n## What to do\n\n1. Add `binding = \"ASSETS\"` under `[assets]`.\n2. Fetch the rewritten URL from ASSETS, or drop the `/dash` handling and redirect to `/`.\n3. Remove the placeholder HTML.\n\n## Acceptance criteria\n\n- [ ] `/dash` and `/dash/` show the dashboard or redirect to `/`\n- [ ] Unknown paths return 404\n\n## How to test locally\n\n```bash\ncd blt-dash && npx wrangler dev   # curl -i localhost:8787/dash\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-170",
+            "sig": "k4-Q1X1jypLZCwz7a641coN-Z14q-jk0FxPKO5-eskpysOQFRMh3QigVCQrGaQK08vkp0uiGpLaduQ51ILwAAA",
+            "title": "blt-dash: make /dash serve the dashboard instead of the \"Please configure assets\" placeholder",
+            "ts": 1792547524559,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-170",
+            "labels": [
+                "hacktoberfest",
+                "blt-dash",
+                "bug"
+            ],
+            "sig": "GG1eDvw26kG4MprJkP5oqfF5sZHvNhDfxqhgv1mXl4c433o2iStpzD_LVgllTIoIZOdGSxRh6wb-izQelaB7Cg",
+            "ts": 1792547524560,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-dash",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 170,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-dash: make /dash serve the dashboard instead of the \"Please configure assets\" placeholder",
+    "updatedAt": 1792547524560,
+    "votes": 0
+}

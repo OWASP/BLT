@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523839,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`.github/ISSUE_TEMPLATE/*.yml` are GitHub issue forms the forge doesn't use. The enrollment and course workflows only fire on a title starting `[ENROLLMENT]` or `[COURSE]` (`.forkmesh/blt-university--*.yml`), but `_pages/enroll.html` and `_pages/request.html` link a blank `issues/new` and never mention it. QUICKSTART says \"Fill out the GitHub issue form\", and README/QUICKSTART say `cd blt-university` right after cloning BLT.git.\n\n## What to do\n\n1. Add `issue-templates/*.md` (pattern: `blt-profiles/issue-templates/add-profile.md`) and link them from the enroll and request pages, stating the required prefix.\n2. Delete `.github/ISSUE_TEMPLATE`.\n3. Fix QUICKSTART and the `cd BLT/blt-university` paths.\n\n## Acceptance criteria\n\n- [ ] Enroll and request pages show the prefix and a template\n- [ ] No `.github/ISSUE_TEMPLATE`\n- [ ] `cd` paths correct\n\n## How to test locally\n\n```bash\ncd blt-university && bundle exec jekyll serve   # open http://127.0.0.1:4001/enroll/\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-98",
+            "sig": "Vlrz7nRuVRL1jOX6UI_xwoBvw6crzEqeER8IKSzBuIiSE3_tqmuQkHEv5CNNPH9jxXJ0jrOLQHNT3aEJFJn4BQ",
+            "title": "blt-university: replace the unused GitHub issue forms with forge templates and explain the title prefix",
+            "ts": 1792547523839,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-98",
+            "labels": [
+                "hacktoberfest",
+                "blt-university",
+                "bug"
+            ],
+            "sig": "dLy4aCulVbzlt6xM1jQgiegcCPggfKVW8YqbZ3JBqqJb0DSpFc8UbyGkzdHgxVG0X8LC7H3DnURZBFOizZ_CAg",
+            "ts": 1792547523840,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-university",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 98,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-university: replace the unused GitHub issue forms with forge templates and explain the title prefix",
+    "updatedAt": 1792547523840,
+    "votes": 0
+}

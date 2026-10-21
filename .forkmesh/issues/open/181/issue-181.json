@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524669,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`background.js` downloads `dataUrl` without checking `chrome.runtime.lastError` (undefined on chrome:// pages and the Web Store). `popup.js` calls `chrome.tabs.sendMessage` with no callback, so \"Receiving end does not exist\" goes unhandled and the user sees nothing.\n\n## What to do\n\n1. Check `lastError` and `dataUrl` before downloading; show an inline message in the popup.\n2. Add tests where the chrome mock sets `lastError`.\n\n## Acceptance criteria\n\n- [ ] No uncaught error on chrome://extensions\n- [ ] User sees a message\n- [ ] New tests pass\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-extension\n# then load unpacked and try on chrome://extensions\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-181",
+            "sig": "1gOKeOUv6SCBsphKACjCHNDPieTMDS6EfHV07iZXvUHrZEfGazLFOMWGs3stTVwm5fxL1u4rd3NBmIuX9GWDCw",
+            "title": "blt-extension: handle captureVisibleTab failures and missing content scripts in the popup",
+            "ts": 1792547524669,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-181",
+            "labels": [
+                "hacktoberfest",
+                "blt-extension",
+                "bug"
+            ],
+            "sig": "2te-7QB6-W-SpbSFR0jR0YS0q9uQOeNh6XgZ5tbwzwc6fTepYSgeVaxvv2K-f6CgJbRaGqoIR_x3SLXNA3X7CQ",
+            "ts": 1792547524670,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-extension",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 181,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-extension: handle captureVisibleTab failures and missing content scripts in the popup",
+    "updatedAt": 1792547524670,
+    "votes": 0
+}

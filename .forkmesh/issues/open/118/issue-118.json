@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524039,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME says the manual-run curl makes \"an immediate monitor run\", but `worker.py` defaults to `shard=0` and skips other shards, so only about a quarter of monitors run. `?shard=0..3`, `/api/test-slack`, `/api/histories` and `POST /api/history/<id>` are undocumented.\n\n## What to do\n\n1. Document `?shard=N` with a loop example and add a short API table with auth requirements.\n\n## Acceptance criteria\n\n- [ ] Every route in `Default.fetch` is listed with its auth\n\n## How to test locally\n\n```bash\nDocs only.\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-118",
+            "sig": "e87MjcTV6hNsnaa74CjP56Aaa1BzAZgGOo68BQPoAJhCs0HRL5oMRCllhDp3VOMiqrV-mbRjFWNdYpgFp_IKBw",
+            "title": "blt-monitor: document that /api/run checks one shard, plus the undocumented API routes",
+            "ts": 1792547524039,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-118",
+            "labels": [
+                "hacktoberfest",
+                "blt-monitor",
+                "documentation"
+            ],
+            "sig": "7n7XIzsbwLpKEA1HXriHKkh-nYG8XZ17LyoavPxNJEatz7JrCZpfKYUvr__Mc41x8Db4oBneAJH8ZoN1JI3eDA",
+            "ts": 1792547524040,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-monitor",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 118,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-monitor: document that /api/run checks one shard, plus the undocumented API routes",
+    "updatedAt": 1792547524040,
+    "votes": 0
+}

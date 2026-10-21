@@ -1,0 +1,57 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524579,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nAll three READMEs clone `https://git.owaspblt.org/BLT.git` and then `cd BLT-Dash`, `cd BLT-Rewards` or `cd Github_Sportscaster`. The root README uses `cd BLT/<project>`.\n\n## What to do\n\n1. Change them to `cd BLT/blt-dash`, `cd BLT/blt-rewards` and `cd BLT/blt-gitcaster`.\n\n## Acceptance criteria\n\n- [ ] Commands work when pasted in order\n- [ ] They match the root README\n\n## How to test locally\n\n```bash\nFollow the steps in a temp directory.\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-172",
+            "sig": "-bZM3bTlt7O4HADG71fuDihUZz2wXsUXdrQgQbf274fa5UET_tKwNzu8EjkDg3Cmr7v1VlPLWr36s3qMJ_quCg",
+            "title": "blt-dash: fix the `cd` path after `git clone` in the blt-dash, blt-rewards and blt-gitcaster READMEs",
+            "ts": 1792547524579,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-172",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-dash",
+                "blt-rewards",
+                "blt-gitcaster",
+                "documentation"
+            ],
+            "sig": "XFgOkSNoAqdhioeJCTS76bahW15xz0H5uMpwTAcQ5c0mhHQcyZI2UOHCFnPTtwW3xVxuIgT8ir4j3xjc-yW5BA",
+            "ts": 1792547524580,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-dash",
+        "blt-rewards",
+        "blt-gitcaster",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 172,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-dash: fix the `cd` path after `git clone` in the blt-dash, blt-rewards and blt-gitcaster READMEs",
+    "updatedAt": 1792547524580,
+    "votes": 0
+}

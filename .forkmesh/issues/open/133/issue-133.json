@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524189,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME starts with an orphaned \"File Naming Convention\" block, has an empty \"Core Features\" heading, says stats live in KV (only D1 is bound), references `app.py` and `pyproject.toml` (neither exists), clones from `github.com/YOUR-USERNAME/BLT-Lettuce.git` and shows GitHub badges.\n\n## What to do\n\n1. Describe D1 storage, fix the tree and clone URL, drop the badges, and move the naming-convention block under the welcome-message docs.\n\n## Acceptance criteria\n\n- [ ] Storage described as D1\n- [ ] Every file in the tree exists\n- [ ] Clone URL is git.owaspblt.org\n\n## How to test locally\n\n```bash\nDocs only.\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-133",
+            "sig": "oZH93qSty2Y-Jrng1ln_3LIbd6ZYwwquv4fcO_Fm0s_aBDVWfqAFR_BPVQmqv-u2bsRRuzj2NEZ7cM2lS3Z8DA",
+            "title": "blt-lettuce: rewrite README sections that describe a KV/Flask setup that no longer exists",
+            "ts": 1792547524189,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-133",
+            "labels": [
+                "hacktoberfest",
+                "blt-lettuce",
+                "documentation"
+            ],
+            "sig": "WujZlehK0Bq8bGzRZm8APWFLMEnqXZ0dyaE2QTt9cXuNfE0a0Tyg1TagJ0vg54MS6h1Rp34l9XRCXx3tTEKyAA",
+            "ts": 1792547524190,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-lettuce",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 133,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-lettuce: rewrite README sections that describe a KV/Flask setup that no longer exists",
+    "updatedAt": 1792547524190,
+    "votes": 0
+}

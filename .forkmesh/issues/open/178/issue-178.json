@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524639,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nCONTRIBUTING says to fork on GitHub and clone `github.com/<you>/BLT-Rewards.git`. The root README says to clone `https://git.owaspblt.org/BLT.git` and that GitHub is a read-only mirror.\n\n## What to do\n\n1. Rewrite the steps: clone BLT.git, `cd BLT/blt-rewards`, open the PR on git.owaspblt.org.\n\n## Acceptance criteria\n\n- [ ] No GitHub fork steps\n- [ ] Commands match the root README\n\n## How to test locally\n\n```bash\nFollow the steps.\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-178",
+            "sig": "n68MdKr9JM0n57UaOqORDQUGWIsBDOovnl0IWMNvoluif6tbh9TSV0Rkb8Y-XnNDdwFtt7_utICqM0QpPPA9Ag",
+            "title": "blt-rewards: update CONTRIBUTING.md for the git.owaspblt.org monorepo workflow",
+            "ts": 1792547524639,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-178",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-rewards",
+                "documentation"
+            ],
+            "sig": "Yg0y2k2VQFjUy0itx45iyxCkiLr9kfphW0KhI-tDAezOdxPJWpI8-K55FNZeEoj_oCg0b9UWFjik6iP825T7Cg",
+            "ts": 1792547524640,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-rewards",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 178,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-rewards: update CONTRIBUTING.md for the git.owaspblt.org monorepo workflow",
+    "updatedAt": 1792547524640,
+    "votes": 0
+}

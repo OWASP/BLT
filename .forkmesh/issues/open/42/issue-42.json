@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523279,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nSecurity-sweep leftover. `pyproject.toml:69` pulls in `django-bleach` only to get **bleach 5.0.1** (2022, deprecated upstream). bleach is used in exactly one module: `website/views/issue.py:21` (`from bleach import clean`), called at about lines 2914 and 3119 to sanitise rendered GitHub issue bodies. `django_bleach` isn't in `INSTALLED_APPS` and no template uses its filter. This touches HTML sanitising, so it needs a careful reviewer even though the diff is small.\n\n## What to do\n\n1. Add `nh3` and remove `django-bleach` from `blt-core/pyproject.toml`; run `uv lock`.\n2. Rewrite both `clean(...)` calls as `nh3.clean(html, tags=set(...), attributes={...})` with the **same** allowlists.\n3. Add a test that feeds `<script>`, `onerror=` attributes and `javascript:` links through both code paths and checks they are removed.\n\n## Acceptance criteria\n\n- [ ] No `bleach` in `pyproject.toml` or `uv.lock`\n- [ ] Both call sites use nh3 with unchanged allowlists\n- [ ] New sanitiser test passes\n- [ ] Full suite passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-core\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-42",
+            "sig": "KPXkPYplJ4zGvW5E80RFK7GukMZc0gdomhqUc_to1izNXn0jdI0D5UI_MxuHPxk5kzJWp9HYg3fV3iZssRXnBA",
+            "title": "blt-core: replace deprecated bleach (django-bleach) with nh3 for GitHub issue bodies",
+            "ts": 1792547523279,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-42",
+            "labels": [
+                "hacktoberfest",
+                "blt-core",
+                "enhancement"
+            ],
+            "sig": "b75VGI4KQS5ibU8qSzjl3lg1L2b5sZUiDzngiEqoHRJRYbv86jjewaGO0GQv0rTGGUCi0H0ygZuNb-sLK0VQAQ",
+            "ts": 1792547523280,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-core",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 42,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-core: replace deprecated bleach (django-bleach) with nh3 for GitHub issue bodies",
+    "updatedAt": 1792547523280,
+    "votes": 0
+}

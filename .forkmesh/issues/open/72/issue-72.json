@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523579,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`test/` only covers `Task` and `TaskManager`. `lib/models/target.dart`, `lib/models/agent_result.dart` (with enum fallbacks), `lib/services/result_manager.dart` and `lib/services/target_manager.dart` are untested. Needs the Flutter SDK locally (CI skips Flutter today).\n\n## What to do\n\n1. Reuse the MockClient setup from `test/services/task_manager_test.dart`.\n2. Add `test/models/target_test.dart`, `test/models/agent_result_test.dart` and `test/services/result_manager_test.dart`.\n\n## Acceptance criteria\n\n- [ ] JSON round-trip and unknown-enum fallback tested\n- [ ] ResultManager cache hit avoids a second HTTP call\n- [ ] `flutter test` passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-netguardian-client   # needs the Flutter SDK\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-72",
+            "sig": "mmpNosUhwn5kAGKl0o1f4Gu7wlyzvq5Rg1Mfszd6oMlqQLCnLND6NryMW0H7IahMY-ZaRncjB6Uco2biNCQRAg",
+            "title": "blt-netguardian-client: add unit tests for the Target and AgentResult models and their managers",
+            "ts": 1792547523579,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-72",
+            "labels": [
+                "hacktoberfest",
+                "blt-netguardian-client",
+                "tests"
+            ],
+            "sig": "mqSgwbTeBWOx6UXJtCfjjoWiOa_3Ki7wjqIQINwp7W9PjbMndsvWnykX_Pa-3SdiB15BvW0vwa6-S0cp2A61Dw",
+            "ts": 1792547523580,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-netguardian-client",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 72,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-netguardian-client: add unit tests for the Target and AgentResult models and their managers",
+    "updatedAt": 1792547523580,
+    "votes": 0
+}

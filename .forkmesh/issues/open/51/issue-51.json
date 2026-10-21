@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523369,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/index_template.py:3-4` and `src/worker.py` say the page is \"auto-generated from templates/index.html\" and to regenerate before deploying, but no generator exists (`scripts/` has only `run-migrations.sh` and `upload-production-vars.sh`). The two copies have drifted: the live module has the Admin link and \"Live\" badge, the template doesn't.\n\n## What to do\n\n1. Treat the live `src/index_template.py` HTML as canonical and copy it back into `templates/index.html`.\n2. Add `scripts/build_index_template.py` that writes the module from the template.\n3. Add a test that fails when the template and module differ; document the script in the README.\n\n## Acceptance criteria\n\n- [ ] Script exists and is documented\n- [ ] Sync test fails when the template is edited without regenerating\n- [ ] Landing page renders the same as today\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-pool\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-51",
+            "sig": "Ja8SRvhd9RlGspRnGTHX9RqzeyKM_EA7Y2qPk2tP3RlWoUGl54NR-Jxa4LhzB-byidEDDilYL7A_5EDqZubFAw",
+            "title": "blt-pool: sync templates/index.html with src/index_template.py and add the regenerate script",
+            "ts": 1792547523369,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-51",
+            "labels": [
+                "hacktoberfest",
+                "blt-pool",
+                "bug"
+            ],
+            "sig": "c1vM7JrJdJBxV29w_bGoJt1OhFGU6BKyVejE3gidvnL6WCyS7DNUUVmf3ZvOH9l72JyzB9Wvqqydj2Abfhb3AQ",
+            "ts": 1792547523370,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-pool",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 51,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-pool: sync templates/index.html with src/index_template.py and add the regenerate script",
+    "updatedAt": 1792547523370,
+    "votes": 0
+}

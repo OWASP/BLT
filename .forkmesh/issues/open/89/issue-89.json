@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523749,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME describes `profiles/<username>/profile.yaml` with avatars and writeups. The real data is `public/profiles/<username>.json` plus `public/profiles/index.json` (see `buildProfile` in `scripts/actions/add-profile.mjs`); no YAML is read. Two roadmap items that already exist are unchecked.\n\n## What to do\n\n1. Document the JSON fields from `buildProfile` and `upsertIndex` with an example.\n2. Change the manual steps to editing the JSON files via a PR.\n3. Move the YAML layout under \"Future\" and tick the done roadmap items.\n\n## Acceptance criteria\n\n- [ ] No instruction to create `profile.yaml`\n- [ ] Field list matches `buildProfile`\n\n## How to test locally\n\n```bash\nDocs only: preview `blt-profiles/README.md`.\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-89",
+            "sig": "MmvHWGGg4P8rgJgh5MVweHUcKdrNUfeEEymOd00nVWryxphi9I-YxdHmLLLmrAegjyBz7p_H7N9waUI8d2uEAQ",
+            "title": "blt-profiles: rewrite README \"Profile Structure\" and \"Manual Submission\" for the JSON files actually used",
+            "ts": 1792547523749,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-89",
+            "labels": [
+                "hacktoberfest",
+                "blt-profiles",
+                "documentation"
+            ],
+            "sig": "DaDCrfFTsjZVlLTQJ4tAXwtkkjMvEbuxpmTKll6DBWCAFyAzIJBNXwjtVq28fSWaslMecof-l9JmidNf5NCeDw",
+            "ts": 1792547523750,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-profiles",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 89,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-profiles: rewrite README \"Profile Structure\" and \"Manual Submission\" for the JSON files actually used",
+    "updatedAt": 1792547523750,
+    "votes": 0
+}

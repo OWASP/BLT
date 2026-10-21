@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523409,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`package.json` runs `tailwindcss -i css/input.css -o css/styles.css` and `tailwind.config.js` has `content: ['./*.html']`, but everything moved to `public/`. `npm run build` now fails or produces CSS with every utility purged, so nobody can change styling safely.\n\n## What to do\n\n1. Change the scripts to `-i public/css/input.css -o public/css/styles.css`.\n2. Set `content: ['./public/**/*.html']`.\n3. Rebuild and commit `public/css/styles.css`.\n\n## Acceptance criteria\n\n- [ ] `npm install && npm run build` succeeds\n- [ ] Rebuilt CSS still contains classes the pages use (e.g. `grid-cols-3`)\n- [ ] Pages look the same\n\n## How to test locally\n\n```bash\ncd blt-ketchup && npm install && npm run build && python3 -m http.server -d public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-55",
+            "sig": "I_2iOEPwNaiWOiRnxSUdPAABdQ8vXTEpWyXRZhwA6OIg-SorpKJb-0VS_EFVImX8lK9wgdFVZsITMYcIgGEFCA",
+            "title": "blt-ketchup: fix the Tailwind build paths after the move to public/",
+            "ts": 1792547523409,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-55",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-ketchup",
+                "bug"
+            ],
+            "sig": "GhhK9izyneg8_ba5D0H5n96BbLFFE8fY5n9d1IlL56k7dnPzHdWgUebENPL2o6Jtii4ZGKXz594QT56IAj2fBg",
+            "ts": 1792547523410,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-ketchup",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 55,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-ketchup: fix the Tailwind build paths after the move to public/",
+    "updatedAt": 1792547523410,
+    "votes": 0
+}

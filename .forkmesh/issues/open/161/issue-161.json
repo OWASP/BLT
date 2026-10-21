@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524469,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/screenshots.html` links to the forge but labels links \"View ... on GitHub\" with a GitHub icon. BLT-Nexus and BLT-Waypoint have no screenshot, while BLT-GitHub-App, BLT-on-Cloudflare and owasp-blt.github.io have orphan images. README says `cd blt-waypoint` right after cloning BLT.git.\n\n## What to do\n\n1. Change the label/icon to git.owaspblt.org (match `issues.html`).\n2. Add the two missing PNGs and delete the orphans.\n3. Fix the README `cd BLT/blt-waypoint`.\n\n## Acceptance criteria\n\n- [ ] No \"on GitHub\" label points at the forge\n- [ ] Every repo with a homepage has a screenshot\n- [ ] No orphan images\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-waypoint/public 8000   # then open http://localhost:8000\nscripts/ci/test.sh blt-waypoint\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-161",
+            "sig": "P9k286VE3IWTmAMr4j41v0qjB4xpedk8muUoMKOA0UVqxexw_uf7QgDYZsNnXDi9kWRFSh5vTKtySVAUq4nsCQ",
+            "title": "blt-waypoint: fix the \"View on GitHub\" labels on screenshots.html and sync the screenshot files",
+            "ts": 1792547524469,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-161",
+            "labels": [
+                "hacktoberfest",
+                "blt-waypoint",
+                "bug"
+            ],
+            "sig": "3xnELgOlD0YDJsOT1P3D8sOxGgYe-6a2lj2r4w2mTqjdTTbYD1_n1CA9EB_bQdpuBojCIruh7gfhcsDUPY5BCQ",
+            "ts": 1792547524470,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-waypoint",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 161,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-waypoint: fix the \"View on GitHub\" labels on screenshots.html and sync the screenshot files",
+    "updatedAt": 1792547524470,
+    "votes": 0
+}

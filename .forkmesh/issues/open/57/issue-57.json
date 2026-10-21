@@ -1,0 +1,55 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523429,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`blt-vanish/flutter_app/lib/services/broker_service.dart:9` uses `https://Vanish.workers.dev` and `blt-vanish-flutter/lib/services/broker_service.dart:9` uses `https://selferase.workers.dev`. Neither resolves, so both apps wait for a timeout before falling back. `https://vanish.owaspblt.org/api/brokers` returns the broker list.\n\n## What to do\n\n1. Set the base URL to `https://vanish.owaspblt.org` in both files.\n2. Optional: inject an `http.Client` and add a MockClient test for primary-then-fallback (pattern: `blt-netguardian-client/test/services/task_manager_test.dart`).\n\n## Acceptance criteria\n\n- [ ] Both apps load brokers from the primary endpoint\n- [ ] (Optional) a unit test covers the fallback order\n\n## How to test locally\n\n```bash\ncd blt-vanish/flutter_app && flutter test   # needs the Flutter SDK\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-57",
+            "sig": "oCmM3ZLnUNs1TaeIrj2DHD2NKSNeEfFePuJhhPwJ89SS_kJZkw4ogQqHYI4AyhlxfbTLRW7-wYrYqaDsexMOBg",
+            "title": "blt-vanish: point both Flutter apps' BrokerService at vanish.owaspblt.org",
+            "ts": 1792547523429,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-57",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-vanish",
+                "blt-vanish-flutter",
+                "bug"
+            ],
+            "sig": "zCmmwK519FZTZTMq5PRbAv6WANi1RIG7uWGXZAq1fflBufPCnz61hmLN2DoBmBpYzF4EWfpnf5T4c2CapcCBDg",
+            "ts": 1792547523430,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-vanish",
+        "blt-vanish-flutter",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 57,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-vanish: point both Flutter apps' BrokerService at vanish.owaspblt.org",
+    "updatedAt": 1792547523430,
+    "votes": 0
+}

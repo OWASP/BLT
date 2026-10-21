@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524499,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/community.html` `#search-profiles` has only a placeholder (its icon isn't `aria-hidden`) and `#filter-experience` has no label. `public/index.html` `#error-message` has no `role=\"alert\"`.\n\n## What to do\n\n1. Add labels/aria-labels and `aria-hidden` on the icon.\n2. Add `role=\"alert\"` to `#error-message`.\n\n## Acceptance criteria\n\n- [ ] Controls have accessible names\n- [ ] Errors are announced\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-ossh/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-164",
+            "sig": "Vq_bmSa9zNYDFYp40a3N1oZM-8DJm6WaWxbGO8Vx5rjuCXr_VQlnNojn-0z-dXTmHOCsMgwUC1ZClan8EGZUDw",
+            "title": "blt-ossh: label the Community search and filter and announce analysis errors",
+            "ts": 1792547524499,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-164",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-ossh",
+                "accessibility"
+            ],
+            "sig": "aq4xwfDSCNGPSDnkl43ctpQAjnGDv38pnwICBK3q_fv9y2hRhAy2s1OlKK1OrUbOaQEBMrFylVhU--30eH-GDQ",
+            "ts": 1792547524500,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-ossh",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 164,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-ossh: label the Community search and filter and announce analysis errors",
+    "updatedAt": 1792547524500,
+    "votes": 0
+}

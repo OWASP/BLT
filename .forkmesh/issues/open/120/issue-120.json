@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524059,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/index.html` has a \"View on GitHub\" button that links to git.owaspblt.org; `#projects-grid` is `role=\"list\" aria-live` and contains a `role=\"alert\"` element; footer links are given `role=\"listitem\"`, which hides them as links; the search box has `outline: none`.\n\n## What to do\n\n1. Change the button text to \"Source code\".\n2. Move `#no-results` outside the list with `role=\"status\"`; drop `aria-live` from the grid.\n3. Use a real `<ul><li><a>` in the footer; add a `:focus-visible` outline.\n\n## Acceptance criteria\n\n- [ ] axe reports no ARIA errors\n- [ ] Focus ring visible on search and filters\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-nexus/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-120",
+            "sig": "2M1Scuj9PMjMAf5FGtZkDimO4KxVsvDCJrDAdAaEVBXVy314k63MN2lVvT_T3TQxcrvuFhDlY3IzbtHpP6iiAw",
+            "title": "blt-nexus: fix the \"View on GitHub\" button text and the invalid list/alert ARIA",
+            "ts": 1792547524059,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-120",
+            "labels": [
+                "hacktoberfest",
+                "blt-nexus",
+                "accessibility"
+            ],
+            "sig": "weFBr8d8ovnoGTiftaUTZ1Detyfp-3Z7krYGfkVYP0qZtKVGPIjv6n83w_0yD8upXcZUAkOHUigbij493530Bw",
+            "ts": 1792547524060,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-nexus",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 120,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-nexus: fix the \"View on GitHub\" button text and the invalid list/alert ARIA",
+    "updatedAt": 1792547524060,
+    "votes": 0
+}

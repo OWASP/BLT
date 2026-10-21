@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523939,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME has practice-PR leftovers (\"Overview (Edited by Vandana)\", \"this is a temperory change...\"), the clone line twice, `cd BLT-Next` (should be `cd BLT/blt-next`), a step to edit `API_BASE_URL` though main.js already switches on hostname, and a tree missing `theme-init.js`, `css/main.css` and `components/footer.html`.\n\n## What to do\n\n1. Remove the leftovers, fix the clone/cd steps and the env var name, and update the tree.\n\n## Acceptance criteria\n\n- [ ] No personal or temporary notes\n- [ ] Commands work from a fresh clone\n\n## How to test locally\n\n```bash\nFollow the README, then `npm run dev`.\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-108",
+            "sig": "98Pgpu-OP1dN6KXqgirQTX5TDWCO2OI5CzuI3xxuxVyZt316Tu3Fh7hx_4ngocx0aExHmESWD3dopCwzmSbTAQ",
+            "title": "blt-next: clean up README leftovers and wrong setup steps",
+            "ts": 1792547523939,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-108",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-next",
+                "documentation"
+            ],
+            "sig": "JgEvudFVirWswguOXBAGeSCTMqROS5UNbHp54lXCA5YfzDq1oat40y2EjELiZWEj9o_iqbAPvFj-uzkj68d0Bg",
+            "ts": 1792547523940,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-next",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 108,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-next: clean up README leftovers and wrong setup steps",
+    "updatedAt": 1792547523940,
+    "votes": 0
+}

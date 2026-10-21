@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523759,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/profile.html` labels the GitHub link `@${p.username}` (the profile slug, not the GitHub account). `viewSubmissionsLink` stays `href=\"#\"` without GitHub, and otherwise links to a GitHub `?tab=issues` page that doesn't exist.\n\n## What to do\n\n1. Derive the label from the last path segment of `p.github`.\n2. Hide the submissions link when there's no useful target, or point it at the forge issue search.\n\n## Acceptance criteria\n\n- [ ] Label shows the GitHub handle\n- [ ] No `href=\"#\"` link remains\n\n## How to test locally\n\n```bash\ncd blt-profiles && npx wrangler dev   # edit a local copy of blt_demo.json\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-90",
+            "sig": "kLEifgwW0me60gOh12UHCa8cLEw_nr00WraIunnJnPWdx1Z4ubQn2x-skQs71aGP0YqAkGAFlylN9GPyCFrHCA",
+            "title": "blt-profiles: show the real GitHub handle on profile pages and drop the dead \"View All Submissions\" link",
+            "ts": 1792547523759,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-90",
+            "labels": [
+                "hacktoberfest",
+                "blt-profiles",
+                "bug"
+            ],
+            "sig": "N9sRnctJgiqkgNm0hRQrBHY2DaPoFq-s_fcHNyu_CpA78Uf51C8M6IXmV3-umnB-iHlEKJfjH_W1guKNW0O8BQ",
+            "ts": 1792547523760,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-profiles",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 90,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-profiles: show the real GitHub handle on profile pages and drop the dead \"View All Submissions\" link",
+    "updatedAt": 1792547523760,
+    "votes": 0
+}

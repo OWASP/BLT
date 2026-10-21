@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523949,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`package.json` has no `test` script, so CI runs nothing real. `workers/main.py` (about L487) does `str(url).replace(path, '/index.html')` when `path == '/'`, which replaces every \"/\" in the URL; it's hidden only because assets serve \"/\" first. `avatar_initials`, `get_cors_headers` and the routes table are untested. Avoid the leaderboard area (#27).\n\n## What to do\n\n1. Add `tests/test_worker.py` with stubs for `js` and `workers` (pattern: `blt-monitor/tests/test_cron_dispatch.py`).\n2. Cover CORS, `avatar_initials`, `/api/bugs` validation and the root rewrite (build it from the origin).\n3. Add `\"test\": \"python3 -m pytest tests -q\"` to package.json.\n\n## Acceptance criteria\n\n- [ ] `npm test` runs at least 6 tests\n- [ ] Root rewrite produces `<origin>/index.html`\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-next\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-109",
+            "sig": "M8Di1m5Trk8ineh5WipeExomvWV5UNQCAPfXTWhpLdqdyO8NneXhVAD04FknpzzOqTVvF85rALdPZTL0eaReCw",
+            "title": "blt-next: add unit tests for workers/main.py and fix the \"/\" to index.html rewrite",
+            "ts": 1792547523949,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-109",
+            "labels": [
+                "hacktoberfest",
+                "blt-next",
+                "tests"
+            ],
+            "sig": "ylLVUWu-sc9W0YhEFZCabQG7qrjFcOqVShikVlTRW15WuHmkZyV37Mz_T8AtctbfLEJ9ooXPPaDlCbmNBcvfDQ",
+            "ts": 1792547523950,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-next",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 109,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-next: add unit tests for workers/main.py and fix the \"/\" to index.html rewrite",
+    "updatedAt": 1792547523950,
+    "votes": 0
+}

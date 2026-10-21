@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524589,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/trademark-check.html` searches a hardcoded 5-row `mockDB` behind a fake 900 ms \"Searching trademark databases...\" delay and gives conflict-risk advice from it. `#tmJurisdiction` is never read. `public/index.html` advertises \"USPTO & international database search\".\n\n## What to do\n\n1. Add a visible \"Demo data, not a real trademark search\" notice.\n2. Apply the jurisdiction filter case-insensitively with an \"All\" option.\n3. Add search links to USPTO/WIPO/EUIPO with the term filled in; soften the index.html claim.\n4. Optional: test `similarity()` in `test/trademark-check.test.mjs` using the `pick()` pattern from `test/repo-compare.test.mjs`.\n\n## Acceptance criteria\n\n- [ ] Demo notice visible\n- [ ] Choosing EU shows only EU rows\n- [ ] index.html no longer claims a real database search\n- [ ] Tests pass\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-enforcement/public 8000   # then open http://localhost:8000   # /trademark-check.html?q=owasp\nscripts/ci/test.sh blt-enforcement\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-173",
+            "sig": "rKmRar0bMrVTW9-07-AKrfHso62lcEPiQ-OPfLGVQ1mfgRKQaV3TmYczsy6mKw56-1w6le2N7SvR3HU-R9N9Dw",
+            "title": "blt-enforcement: label the trademark check as demo data and apply the jurisdiction filter",
+            "ts": 1792547524589,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-173",
+            "labels": [
+                "hacktoberfest",
+                "blt-enforcement",
+                "bug"
+            ],
+            "sig": "Lpw26Cg0LTM4wSRgsqXYcoJ_MXj0BqLe-eyppcWt9O4JnLxdSEc8y5I2zB8hpyzsD-zYr6I0370_GzYP9i_FAQ",
+            "ts": 1792547524590,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-enforcement",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 173,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-enforcement: label the trademark check as demo data and apply the jurisdiction filter",
+    "updatedAt": 1792547524590,
+    "votes": 0
+}

@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523509,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nIn `src/pages/submit.html`, `#msg` has no live region, and the submit handler calls `res.json()` before checking `res.ok`, so a plain-text 404 or an HTML 5xx shows \"Unexpected token...\".\n\n## What to do\n\n1. Add `role=\"status\" aria-live=\"polite\"` to the message container; use `role=\"alert\"` for errors.\n2. Check `res.ok` and the content type before parsing; fall back to a friendly message.\n\n## Acceptance criteria\n\n- [ ] Success and error messages are announced\n- [ ] A mocked 502 HTML response shows a readable error\n\n## How to test locally\n\n```bash\ncd blt-zero && npx wrangler dev   # override /submit in DevTools\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-65",
+            "sig": "qJ-2cFP2hEfhGA4OaJAfx5k19mVm5EtelHhomBQTLdWv1dgG6M93XKPQyAhpWOLKsCw1ND4ydorvnHSlUU8rBQ",
+            "title": "blt-zero: announce submit results to screen readers and handle non-JSON error responses",
+            "ts": 1792547523509,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-65",
+            "labels": [
+                "hacktoberfest",
+                "blt-zero",
+                "accessibility"
+            ],
+            "sig": "MhqRrvlKDD4PWKY6TSgeWpJEFruDkSTG937JdEZ4msTrLnGXr9xBI6tVmy1a6LbHoIS40rAF0NIomps6uks6BQ",
+            "ts": 1792547523510,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-zero",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 65,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-zero: announce submit results to screen readers and handle non-JSON error responses",
+    "updatedAt": 1792547523510,
+    "votes": 0
+}

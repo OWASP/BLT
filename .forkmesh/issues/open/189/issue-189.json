@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524749,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/index.html` and `projects.html` have `<html>` with no `lang`, the same \"Project Matrix\" title, no `<h1>` and no links between pages (`issues.html` has nav). Their `fetch(...).then(r => r.json())` has no `.ok` check or catch, and the committed fallback `www_project_repos.json` is `[]`, so `Math.min(...[])` gives Infinity and the page shows a blank table with no explanation. `issues.html` already handles these cases.\n\n## What to do\n\n1. Add `lang=\"en\"`, a distinct `<title>` and `<h1>` per page, and the nav from `issues.html`.\n2. Wrap the loads in try/catch with an `.ok` check and show an error row; show a \"no data yet\" message for an empty array.\n\n> **Note:** Cells are now escaped (b5b0d592be); keep using those helpers.\n\n## Acceptance criteria\n\n- [ ] All three pages have lang and cross-links\n- [ ] HTTP errors show a message\n- [ ] Empty JSON shows an empty-state message\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-owasp-projects/public 8000   # then open http://localhost:8000\nscripts/ci/test.sh blt-owasp-projects\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-189",
+            "sig": "E-__URIKqWUF0md3jmzf6M7F3XjFistUd53dGs6Byf5F-sXu5BQ0otHPMRI8asbi354CeZPt_DceFEzZEKWBBA",
+            "title": "blt-owasp-projects: add lang, navigation and fetch error/empty states to index.html and projects.html",
+            "ts": 1792547524749,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-189",
+            "labels": [
+                "hacktoberfest",
+                "blt-owasp-projects",
+                "bug"
+            ],
+            "sig": "5fpgEJQgz013jB7YCc_lYuZqwJvNP6R8oE93JiG6tONLIsEm0ai1e3cdFSJeaPzg7quDSjoEb11wtJsEolyKBw",
+            "ts": 1792547524750,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-owasp-projects",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 189,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-projects: add lang, navigation and fetch error/empty states to index.html and projects.html",
+    "updatedAt": 1792547524750,
+    "votes": 0
+}

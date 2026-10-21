@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524129,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME badges and links, CONTRIBUTING clone/issue/PR steps, the `public/index.html` footer and `lib/src/constants/socialurls_constants.dart` (used by the About screen) still point at github.com/OWASP, including a BLT-Bacon repo that isn't in the monorepo.\n\n## What to do\n\n1. Map links to `https://git.owaspblt.org/BLT/BLT-Core`, `/BLT-Extension`, `/BLT-Action`, `/BLT-Flutter` and `https://git.owaspblt.org/BLT/issues`.\n2. Drop the Bacon link and the broken Actions badge.\n\n## Acceptance criteria\n\n- [ ] `grep -rn \"github.com/OWASP\" blt-flutter --exclude-dir=ios --exclude-dir=android` is empty\n- [ ] `flutter analyze` clean\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-flutter/public 8000   # then open http://localhost:8000\ncd blt-flutter && flutter analyze\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-127",
+            "sig": "q4s4Chiy1IZnwhXrc4KMgDL6ZlfDBLzhUOjPZ4la6mOukNgndQv9UW3Eae4m5DEgxyNl9JtKhFj4eHfyJtppCw",
+            "title": "blt-flutter: replace stale github.com/OWASP links in README, CONTRIBUTING, landing page and About screen",
+            "ts": 1792547524129,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-127",
+            "labels": [
+                "hacktoberfest",
+                "blt-flutter",
+                "documentation"
+            ],
+            "sig": "Poe10Y6S0kSDSLULjJb3mfLGg8oCeDmlH9W8B5hwIdk3oWg9L1hLI_4KQT84sMIGtsYrbFpiGKmOfhCTB7V3BA",
+            "ts": 1792547524130,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-flutter",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 127,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-flutter: replace stale github.com/OWASP links in README, CONTRIBUTING, landing page and About screen",
+    "updatedAt": 1792547524130,
+    "votes": 0
+}

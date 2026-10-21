@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524279,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`generate_repo_list.py` (about L235) calls `urlopen(req)` with no timeout, while every other fetch uses `timeout=10`, and only `HTTPError` is caught. A stalled connection hangs the daily job until its 30-minute limit.\n\n## What to do\n\n1. Pass `timeout=30`.\n2. Catch `URLError` and `TimeoutError`, print a clear message and exit 1.\n3. Add a unit test that mocks `urlopen`.\n\n## Acceptance criteria\n\n- [ ] Timeout set\n- [ ] URLError gives a readable message and exit 1\n- [ ] Test passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-owasp-bumper\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-142",
+            "sig": "mJQiQ-iyKJa42UkUC0EhBg_1d-z0W1e3CcCa_VaEhChn26Uwmiv9fMOCQAo4i7jJ9FisZqhzF2lBnGx9LRLoAg",
+            "title": "blt-owasp-bumper: add a timeout and network-error handling to fetch_repos",
+            "ts": 1792547524279,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-142",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-owasp-bumper",
+                "bug"
+            ],
+            "sig": "YJlxhsZJKejlaVGPXxo53y88tfCMcFUTlph8qVI2M77PinSzDpxrTsEPrXF3JL2h24TSz_Mva-b0OUlGOCUQDw",
+            "ts": 1792547524280,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-owasp-bumper",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 142,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-bumper: add a timeout and network-error handling to fetch_repos",
+    "updatedAt": 1792547524280,
+    "votes": 0
+}

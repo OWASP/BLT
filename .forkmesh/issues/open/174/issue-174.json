@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524599,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/index.html` channel pills and preset chips are `<span>`s with click handlers (`public/sportscaster.js`), unreachable by keyboard. `#ai-api-key` and `#ai-model` have no labels, and the key field is `type=\"text\"` while the GitHub token field is `type=\"password\"`.\n\n## What to do\n\n1. Turn the spans into `<button type=\"button\" aria-pressed>` (keep the classes) and toggle `aria-pressed` in the handlers.\n2. Add labels; make the key field `type=\"password\" autocomplete=\"off\"`.\n3. Use `role=\"group\" aria-labelledby` for chip groups.\n\n## Acceptance criteria\n\n- [ ] Tab and Enter/Space switch channels and filters\n- [ ] Every input has an accessible name\n- [ ] Selected state announced\n\n## How to test locally\n\n```bash\npython3 -m http.server 8080 --directory blt-gitcaster/public\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-174",
+            "sig": "j4ueHhPsLKm3xJMphvxA7Nup0If17d_SgR188FlXL8yfA3rPeA9oe14ryk100U0vRcpfVWhhAC6gafkjd5iCBQ",
+            "title": "blt-gitcaster: make channel pills and filter chips keyboard-accessible and label the AI fields",
+            "ts": 1792547524599,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-174",
+            "labels": [
+                "hacktoberfest",
+                "blt-gitcaster",
+                "accessibility"
+            ],
+            "sig": "uIOyc6r8YxzZ6bpiBOc1w47hWhG_pN3aE-GV7dbFA0Im15Fw6xiSdnkzj3u2ORb-37DeBvLA4v95L4decRqTAg",
+            "ts": 1792547524600,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-gitcaster",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 174,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-gitcaster: make channel pills and filter chips keyboard-accessible and label the AI fields",
+    "updatedAt": 1792547524600,
+    "votes": 0
+}

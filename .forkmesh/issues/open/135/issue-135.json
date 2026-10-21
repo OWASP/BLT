@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524209,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`discover_response`, `contrib_response`, `help_response` and `format_contributor_blocks` in `src/worker.py` aren't tested. `tests/test_worker_helpers.py` already tests similar responses and is the pattern to copy.\n\n## What to do\n\n1. Add tests for a search with matches and the \"No matching projects\" path, an empty contributor list, column alignment with long usernames, and /contrib containing the ideas link.\n\n## Acceptance criteria\n\n- [ ] At least 6 new tests\n- [ ] No changes to reminder, event or welcome code\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-sammich\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-135",
+            "sig": "msAMN7wfnq9aF2IvBiUM7ogE3nC33cFrAV7Fow7OVwS_el5zSRuqZaM2WfF9O7SIW8MGz_BRGGsJVvmNGaLjBw",
+            "title": "blt-sammich: add tests for /discover, /contrib, help and contributor-table formatting",
+            "ts": 1792547524209,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-135",
+            "labels": [
+                "hacktoberfest",
+                "blt-sammich",
+                "tests"
+            ],
+            "sig": "hNoqVXpBb8h5ybsXNO1faYDwKLZ3UA6OXyg1lcpLuJAMOxa81zUReXwDzzkbr2HnJL7qdRki25JJDSazG1PzDA",
+            "ts": 1792547524210,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-sammich",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 135,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-sammich: add tests for /discover, /contrib, help and contributor-table formatting",
+    "updatedAt": 1792547524210,
+    "votes": 0
+}

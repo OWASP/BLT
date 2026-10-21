@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524159,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/index.html` `#message` (subscribe result), `public/login.html` `#login-error` and `public/signup.html` `#signup-error` have no `role` or `aria-live`, so results are never read aloud.\n\n## What to do\n\n1. Add `role=\"status\" aria-live=\"polite\"` to `#message` and `role=\"alert\"` to the error paragraphs.\n2. Assert the attributes in `tests/test_dashboard_frontend.py` or a new test.\n\n## Acceptance criteria\n\n- [ ] All three regions have live-region semantics\n- [ ] Test passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-newsletter\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-130",
+            "sig": "be4_i8zuBfGbYmkIB69tpI81Dwn67V3tfZX2sW252FosFCTk1DJn6X7KcYgFJ-fSUZZ6-J6rjzw0LmGJLn7jCA",
+            "title": "blt-newsletter: announce form status and error messages to screen readers",
+            "ts": 1792547524159,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-130",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-newsletter",
+                "accessibility"
+            ],
+            "sig": "_H9QZj1RetmNvzWiqhcr-jVYtrLKRbB_GEvx3D6NLnYQRcvrgvxkp7uqr6-YbCwMAGEFB6KH_7kRvdLtLJl3CA",
+            "ts": 1792547524160,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-newsletter",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 130,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-newsletter: announce form status and error messages to screen readers",
+    "updatedAt": 1792547524160,
+    "votes": 0
+}

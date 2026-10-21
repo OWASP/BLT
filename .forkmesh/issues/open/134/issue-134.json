@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524199,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/local_settings.py` lists plugins that don't exist; the root `terms.html` and `welcome_message.txt` aren't used (the worker serves `src/lettuce/templates/terms.html` and reads `src/workspace_welcome_message_<team>.txt`); `tests/plugins/test_handle_messages.py` is fully commented out; `.env.sample` has a stray practice comment.\n\n## What to do\n\n1. Grep each file before deleting it, then delete or fix.\n\n## Acceptance criteria\n\n- [ ] Tests pass\n- [ ] `npx wrangler dev` serves /, /terms and /health\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-lettuce\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-134",
+            "sig": "XnZcoYRrIl8ZEGbMP41RXArswOzDy670CbFwuMWiOzTlo8Aac5CyoY7DYTEa4LQE-iIVOyzEqzoZH8MayIxxBQ",
+            "title": "blt-lettuce: remove legacy dead files (local_settings.py, root terms.html, commented-out test, .env.sample junk)",
+            "ts": 1792547524199,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-134",
+            "labels": [
+                "hacktoberfest",
+                "blt-lettuce",
+                "enhancement"
+            ],
+            "sig": "_vJ31NF72Oh7rF4U0C7SYQ3mwrXEFPdF3u1j_AV7lCp9Tf3GorjrttwrESWOjHUbTLwQ5FeTlBA0_BajV34UDg",
+            "ts": 1792547524200,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-lettuce",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 134,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-lettuce: remove legacy dead files (local_settings.py, root terms.html, commented-out test, .env.sample junk)",
+    "updatedAt": 1792547524200,
+    "votes": 0
+}

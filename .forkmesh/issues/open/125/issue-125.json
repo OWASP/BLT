@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524109,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`test/widget_test.dart` is Flutter's template counter test, which can't pass because the app has no counter. `lib/idle_detector.dart`, `lib/batch_sender.dart` and `lib/api_client.dart` (injectable `http.Client`) are pure Dart and untested. Needs the Flutter SDK.\n\n## What to do\n\n1. Delete the template test.\n2. Add `idle_detector_test.dart` (fake_async), `batch_sender_test.dart` (flush at max size, re-queue on error) and `api_client_test.dart` (MockClient: 2xx, non-2xx, empty body).\n\n## Acceptance criteria\n\n- [ ] `flutter test` passes\n- [ ] At least 8 tests\n- [ ] No test loads the native X11 library\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-timer-flutter   # needs the Flutter SDK\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-125",
+            "sig": "Ud-lQeSX-EV3br6vcvHmRC9Ip1_ef7hACiuJ91KKoec85cmAAtJe_LIj76uJSZtV2vEgItkysffqYHEGiQVpBQ",
+            "title": "blt-timer-flutter: replace the default counter widget test with real unit tests",
+            "ts": 1792547524109,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-125",
+            "labels": [
+                "hacktoberfest",
+                "blt-timer-flutter",
+                "tests"
+            ],
+            "sig": "fV1Ph2syIg6JxSW7XGk4dM2ZS8bUkoWGnUyXSNxbXMIgq5ux89IGxkAfYXurn7wgi8RyOCMezIwo3OKYOkY4BA",
+            "ts": 1792547524110,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-timer-flutter",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 125,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-timer-flutter: replace the default counter widget test with real unit tests",
+    "updatedAt": 1792547524110,
+    "votes": 0
+}

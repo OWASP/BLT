@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524659,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME says captures are uploaded to BLT and you can select an area; `background.js` only downloads `screenshot.png` and the area editor isn't loaded by `manifest.json`. It describes a tag-triggered GitHub Action and GitHub Pages setup (the real release is the manual `.forkmesh/blt-extension--release.yml`) and links github.com/OWASP repos including BLT-Bacon.\n\n## What to do\n\n1. Describe the actual features.\n2. Document the `.forkmesh` release workflow and `scripts/deploy.sh blt-extension`.\n3. Use `https://git.owaspblt.org/BLT/<Project>` links (BLT-Bacon becomes BLT-Rewards) and note that `install.sh` still pulls from the GitHub mirror.\n\n## Acceptance criteria\n\n- [ ] No github.com/OWASP links\n- [ ] Release steps match the workflow\n- [ ] Feature claims match the code\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-extension\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-180",
+            "sig": "DKl0nNPJP5_NzgwCYuDKxXzWky4-L42vKRdx_a_N5RMdkyv9DnXfhGa04BmZI1WQI8fkfpBpZ37CXvi3gZB_Dg",
+            "title": "blt-extension: rewrite stale README sections (upload claim, releases, GitHub links)",
+            "ts": 1792547524659,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-180",
+            "labels": [
+                "hacktoberfest",
+                "blt-extension",
+                "documentation"
+            ],
+            "sig": "9GSjEdf4xox3x6v0JmiscFUfIvLS4BavgwJMl1hzpNvzJA_aZ50ZwVHdxGbuouOvqLuzE2XLBuwEbuxCxKgFCg",
+            "ts": 1792547524660,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-extension",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 180,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-extension: rewrite stale README sections (upload claim, releases, GitHub links)",
+    "updatedAt": 1792547524660,
+    "votes": 0
+}

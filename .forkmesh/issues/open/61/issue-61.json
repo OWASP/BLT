@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523469,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`web_client/index.html` declares `role=\"dialog\" aria-modal=\"true\"`, but `showBrokerDetails` in `app.js` only sets `display:block`: focus never moves in, isn't trapped and isn't restored on close. The password input has only a placeholder.\n\n## What to do\n\n1. On open, remember `document.activeElement` and focus the close button; keep Tab inside; on close (button, backdrop, Escape) restore focus.\n2. Point `aria-labelledby` at the dialog heading.\n3. Add `<label for=\"password\" class=\"sr-only\">Encryption password</label>`.\n\n## Acceptance criteria\n\n- [ ] Keyboard-only: Enter opens with focus inside, Esc closes and returns focus\n- [ ] Dialog title is announced\n- [ ] Password field has an accessible name\n\n## How to test locally\n\n```bash\ncd blt-vanish/cloudflare_workers && npx wrangler dev   # open http://localhost:8787\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-61",
+            "sig": "Utp8rQw_H4o_2rx3aMt5RSQ1U1xyIuQ7tXwTT1FMk16kwi_CFH86b8ZWmSLIExET_ax5Fgo3RRNq2kZEBzHyBQ",
+            "title": "blt-vanish: manage focus in the broker details dialog and label the password field",
+            "ts": 1792547523469,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-61",
+            "labels": [
+                "hacktoberfest",
+                "blt-vanish",
+                "accessibility"
+            ],
+            "sig": "YeV97550d-lE7Qr6pOKkRg0F3FV2nvBsa6SHa-bJNBq2WEtZ0dENk2TohqDVBhfKvSDSaIjfj3NzhGGXCWAKAQ",
+            "ts": 1792547523470,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-vanish",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 61,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-vanish: manage focus in the broker details dialog and label the password field",
+    "updatedAt": 1792547523470,
+    "votes": 0
+}

@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523719,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nSorting is a click listener on plain `<th data-col>` elements (generated in `scripts/generate_page.py`), which aren't focusable and have no `aria-sort`. `applyFilter` counts visible rows but never uses the count, so a search with no matches leaves an empty table.\n\n## What to do\n\n1. Wrap header labels in `<button type=\"button\">` and set `aria-sort` on the active column.\n2. Add a `#no-results` message with `aria-live=\"polite\"` shown when nothing matches.\n\n## Acceptance criteria\n\n- [ ] Tab reaches headers; Enter/Space sorts\n- [ ] `aria-sort` reflects state\n- [ ] Searching \"zzzz\" shows the message\n\n## How to test locally\n\n```bash\ncd blt-ideas && python3 scripts/generate_page.py && python3 -m http.server -d dist 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-86",
+            "sig": "GiUjDxoZf2dYjgQOWsXqos9HHmDymuw7pbzAKdr9v0MwqEqyi4sjzrAmyQjMGmvxc4M9rex0AUHb4dmg9THKBQ",
+            "title": "blt-ideas: make the ideas table keyboard-sortable and show a \"no results\" message",
+            "ts": 1792547523719,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-86",
+            "labels": [
+                "hacktoberfest",
+                "blt-ideas",
+                "accessibility"
+            ],
+            "sig": "Vq1J_3N5gDN5C2kILzM1_KUL_UNyv2TvbcHz6X6fANdbymY8DmZeGR8xBKIItFfpn83uvtx3KhEBA1AED1eJCA",
+            "ts": 1792547523720,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-ideas",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 86,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-ideas: make the ideas table keyboard-sortable and show a \"no results\" message",
+    "updatedAt": 1792547523720,
+    "votes": 0
+}

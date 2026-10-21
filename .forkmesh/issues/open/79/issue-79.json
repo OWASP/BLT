@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523649,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nIn `frontend/src/pages/Triage.jsx` the refresh buttons have only `title`, the filter buttons don't expose `aria-pressed`, and the \"Unable to connect to backend API\" banner has no `role=\"status\"`. The Sidebar mobile toggle has no `aria-expanded`/`aria-controls`.\n\n## What to do\n\n1. Add `aria-label`s to the refresh buttons and `aria-pressed={filter === f}` to the filters.\n2. Add `role=\"status\"` to the fallback banners in Triage.jsx and Overview.jsx.\n3. Add `aria-expanded`/`aria-controls` to the Sidebar toggle.\n\n## Acceptance criteria\n\n- [ ] No \"button has no accessible name\" on /triage in Lighthouse\n- [ ] Filter state is announced\n- [ ] API-down banner is announced\n\n## How to test locally\n\n```bash\ncd blt-toasty/frontend && npm ci && npm run dev\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-79",
+            "sig": "6AIkaz3hCal66iLSJOqZWSugu8iiloduiiaqB9BZ-Z8tO30XRTNdF0F-eFZvPsfHd-RbMuBorcVaWwXzcUi_Cw",
+            "title": "blt-toasty: give the dashboard's icon-only and toggle buttons accessible names and state",
+            "ts": 1792547523649,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-79",
+            "labels": [
+                "hacktoberfest",
+                "blt-toasty",
+                "accessibility"
+            ],
+            "sig": "x0_Pqjh8IWc5adX-0PcdquaGDZcJE14VMSgEaTaVOLn6GMJza25yE4FXacNvB5wAOVOewS2oYLbLTbOp6nRSBg",
+            "ts": 1792547523650,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-toasty",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 79,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-toasty: give the dashboard's icon-only and toggle buttons accessible names and state",
+    "updatedAt": 1792547523650,
+    "votes": 0
+}

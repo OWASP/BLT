@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524449,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`scripts/generate_leaderboard.py` (about L57) uses `### URL\\s*\\n\\n(\\S+)`, so `\"### URL\\r\\n\\r\\nhttps://a.com\"` and `\"### URL\\nhttps://a.com\"` both return None. Reports with CRLF or one missing blank line drop out of \"Top reported domains\".\n\n## What to do\n\n1. Use `### URL[ \\t]*\\r?\\n\\s*(\\S+)` or normalise `\\r\\n` first.\n2. Add cases to `tests/test_generate_leaderboard.py`, plus tests for `extract_first_image`.\n\n## Acceptance criteria\n\n- [ ] LF, CRLF and single-newline bodies yield the domain\n- [ ] New tests pass\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-pages\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-159",
+            "sig": "JmckjaWX_LlmC23TS6pTJLXc5vC8GuLsoySiMhUk-KAObZ9PdQO0i5de4Wx7jf_0fBMjXlzazi29sYRjCkEWCQ",
+            "title": "blt-pages: make extract_domain accept CRLF and single-newline \"### URL\" sections",
+            "ts": 1792547524449,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-159",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-pages",
+                "bug"
+            ],
+            "sig": "j2eGfeFZU-9RYraVkcIH35MJ8sSChrGJUbBooznd-iwY7-fKXjvhPrITaA1zKyUcdyF4K5R7CRGY-A_pxJwXAg",
+            "ts": 1792547524450,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-pages",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 159,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-pages: make extract_domain accept CRLF and single-newline \"### URL\" sections",
+    "updatedAt": 1792547524450,
+    "votes": 0
+}

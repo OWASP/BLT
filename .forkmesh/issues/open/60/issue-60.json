@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523459,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nCI only runs `compileall` for blt-vanish; there is no `cloudflare_workers/tests/`. Untested logic includes broker list/by-id/404 (`src/brokers.py`), the 100-per-60s rate limit and content-type check (`src/middleware.py`) and routing (`src/index.py`). The hardcoded `BROKERS` has also drifted from `data/brokers/brokers.json`.\n\n## What to do\n\n1. Add `cloudflare_workers/tests/conftest.py` stubbing the `workers` and `js` modules (copy the approach in `blt-zero/tests/`).\n2. Test each module, plus one test that `BROKERS` matches `data/brokers/brokers.json` (sync the data).\n3. Change the tests.tsv row to also run `pip install -r requirements-dev.txt && python -m pytest -q`.\n\n## Acceptance criteria\n\n- [ ] Broker list/detail/404, 429, OPTIONS and unknown path are covered\n- [ ] Data-consistency test passes\n- [ ] tests.tsv row runs pytest\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-vanish\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-60",
+            "sig": "UGVVV-BFHvFDTwyM5u8vEr0AgnspiBC_pXRp5uPbvkHwlD4RTQGf0uMUrg18RrOiLuIcSNXOT6HyBbI8VvfsCQ",
+            "title": "blt-vanish: add pytest unit tests for the Python Worker and run them in CI",
+            "ts": 1792547523459,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-60",
+            "labels": [
+                "hacktoberfest",
+                "blt-vanish",
+                "tests"
+            ],
+            "sig": "AdagmRZ3BiQHqw09mp07P9yQNKtFAqXayt6bmZukVE9KTGPMJtc3LnpmPiaxZS5PltXLGGRRmWZJJrkB0ejxCw",
+            "ts": 1792547523460,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-vanish",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 60,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-vanish: add pytest unit tests for the Python Worker and run them in CI",
+    "updatedAt": 1792547523460,
+    "votes": 0
+}

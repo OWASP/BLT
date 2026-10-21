@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524379,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`main()` in `compliance_checker.py` always returns 0, even when it prints an error, although README pitches the CLI for CI/CD pipelines.\n\n## What to do\n\n1. `sys.exit(2)` when `results['error']` is set.\n2. Add `--min-score N` that exits 1 when the percentage is below N.\n3. Document both in the README.\n\n## Acceptance criteria\n\n- [ ] Error gives exit 2\n- [ ] Score below `--min-score` gives exit 1\n- [ ] README documents both\n\n## How to test locally\n\n```bash\npython3 blt-owasp-wich/compliance_checker.py https://github.com/x; echo $?\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-152",
+            "sig": "sV6-lSkVrU5JLxcdTF8WPfIMK28stmOnqKieqVAPH3fymTj2EIeJZIaSbRr5XYhA8vpLBkanhhwF5NbApXmtCQ",
+            "title": "blt-owasp-wich: make the CLI exit non-zero on errors and add --min-score",
+            "ts": 1792547524379,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-152",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-owasp-wich",
+                "enhancement"
+            ],
+            "sig": "hdo67oGmQiiKwH3Tok96lTYa-MP6cIzbPyRJeSam3ehVOrNZrYzgoXh6kLhPX6_NvR0xyQxzCTL4uiu_tNjiCg",
+            "ts": 1792547524380,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-owasp-wich",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 152,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-wich: make the CLI exit non-zero on errors and add --min-score",
+    "updatedAt": 1792547524380,
+    "votes": 0
+}

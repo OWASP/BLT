@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523619,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`DEPLOY.md` has a Deploy button for `github.com/OWASP-BLT/BLT-NetGuardian` and a \"Frontend Deployment (GitHub Pages) - legacy\" section with github.io URLs; `ARCHITECTURE.md` says \"Frontend (GitHub Pages)\"; `_config.yml` is Pages config. The product is served from Workers assets plus D1.\n\n## What to do\n\n1. Remove the GitHub Pages instructions and the button.\n2. Describe Workers assets in ARCHITECTURE.md.\n3. Remove `_config.yml` or explain it.\n\n## Acceptance criteria\n\n- [ ] No github.io or GitHub Pages instructions remain\n- [ ] ARCHITECTURE matches the deployment\n\n## How to test locally\n\n```bash\ngrep -rn \"github.io\\|GitHub Pages\" blt-netguardian/*.md\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-76",
+            "sig": "cSPiXegVc7yU3HtY2UsLh194aJZI23CrEIyd98KX74QVYvlA3FjTzzNEHUstlziJtS202gROBsx8MHXQjKuBCA",
+            "title": "blt-netguardian: remove the GitHub Pages deploy docs and the dead Deploy button",
+            "ts": 1792547523619,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-76",
+            "labels": [
+                "hacktoberfest",
+                "blt-netguardian",
+                "documentation"
+            ],
+            "sig": "GRmF1SMb29YFYcdEkLeTx4DrghY5bsaZ53MbPOjUiIKGYKjhD1QAeONKKzeL7FzhBgvaDSisehmWkZ424ILtBQ",
+            "ts": 1792547523620,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-netguardian",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 76,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-netguardian: remove the GitHub Pages deploy docs and the dead Deploy button",
+    "updatedAt": 1792547523620,
+    "votes": 0
+}

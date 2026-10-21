@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524609,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nNo page loads `public/script.js` or `public/styles.css` (all use the Tailwind CDN), and `public/_config.yml` is a GitHub Pages leftover published as an asset. README, `public/README.md` and CONTRIBUTING still describe them, and the README tree misses files that exist (`setup-ord.sh`, `sol-bacon/`, `regtest/` ...).\n\n## What to do\n\n1. Delete the three files.\n2. Update both README trees and CONTRIBUTING to match `ls`.\n\n## Acceptance criteria\n\n- [ ] No dead files under `public/`\n- [ ] Trees match the folder\n- [ ] Pages render as before\n\n## How to test locally\n\n```bash\ncd blt-rewards && npx wrangler dev\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-175",
+            "sig": "MA19xcuW7zNN7tKWaQ9LNf18lXsCzIsi0kxhL9483tGHuts8KBQCjyULv-ii5vw_wAefX2J0pLcs9uQKX5t6BQ",
+            "title": "blt-rewards: remove unused public/script.js, styles.css and Jekyll _config.yml and fix the docs",
+            "ts": 1792547524609,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-175",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-rewards",
+                "enhancement"
+            ],
+            "sig": "Pgbi3J1PVLWRhgDYfdaTfLWZ4urCSfZHRVGhMPNS8cvDGKj3jiH4IRVTWP7CE0D7w78THww0j3xAGvSB27ENBw",
+            "ts": 1792547524610,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-rewards",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 175,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-rewards: remove unused public/script.js, styles.css and Jekyll _config.yml and fix the docs",
+    "updatedAt": 1792547524610,
+    "votes": 0
+}

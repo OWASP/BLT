@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523479,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`CONTRIBUTING.md` clones `github.com/YOUR_USERNAME/BLT-Vanish.git` then `cd BLT-Vanish-Web`, and tells you to run `npm test` / `npm run lint` in `cloudflare_workers`, whose package.json only has `dev`, `deploy` and `check`.\n\n## What to do\n\n1. Clone `https://git.owaspblt.org/BLT.git` and `cd BLT/blt-vanish`.\n2. List only commands that exist (`npm run check`, or pytest once the tests issue lands); use `dart run build_runner`.\n\n## Acceptance criteria\n\n- [ ] Clone path is correct\n- [ ] Every listed command exists\n\n## How to test locally\n\n```bash\nRun each documented command.\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-62",
+            "sig": "16fjZQfJB8trIIyED-9pCgtGIiUUL196wtzpj3BPY7J7p6Ts6y5hXy3MeY5Hwz7-qrmV6gliguSakiDaUIa1DA",
+            "title": "blt-vanish: fix wrong setup and test commands in CONTRIBUTING.md",
+            "ts": 1792547523479,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-62",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-vanish",
+                "documentation"
+            ],
+            "sig": "VBdU2LO_Ld-019LM7Ru2qkU9BNfsW1FgywA0L-QAQZBVOEpF4SBMQLaAVW06hSpG2246qMPTcwwyW29tZ0Q6Cw",
+            "ts": 1792547523480,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-vanish",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 62,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-vanish: fix wrong setup and test commands in CONTRIBUTING.md",
+    "updatedAt": 1792547523480,
+    "votes": 0
+}

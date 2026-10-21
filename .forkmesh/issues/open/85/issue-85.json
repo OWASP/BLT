@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523709,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nblt-ideas has no tests and no row in `scripts/ci/tests.tsv`, but `parse_idea_file`, `sort_key` and `build_overlap_matrix` have non-trivial regexes. The page is regenerated on every deploy, so a regression silently breaks the catalog.\n\n## What to do\n\n1. Add `blt-ideas/tests/test_generate_page.py` (unittest + tempfile): title cleanup, one-liner extraction, discussion number, `E.1`/`L2`/`M-S` ordering, symmetric overlap, unknown ID error.\n2. Add `blt-ideas\\tpython\\tpython -m unittest discover -s tests` to `scripts/ci/tests.tsv`.\n\n## Acceptance criteria\n\n- [ ] At least 6 tests pass\n- [ ] No network calls\n- [ ] `scripts/ci/test.sh blt-ideas` passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-ideas\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-85",
+            "sig": "pUeml_oNG3gyVVwXPl1rk0URxawOWkI9nLFtRi-qldbaqbu0Bvck5QMHYdKpJeJB-9oP3oq8soi5z1NCDidqCA",
+            "title": "blt-ideas: add unit tests for generate_page.py and a CI entry",
+            "ts": 1792547523709,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-85",
+            "labels": [
+                "hacktoberfest",
+                "blt-ideas",
+                "tests"
+            ],
+            "sig": "9wR3lKL2ZLJGgQih3QFq_kvs-IF8tyOXwGczynPffxAhC7N82ZJKf75QlMeh1MaJxYO8dG6qrvXTN59yrp5HAw",
+            "ts": 1792547523710,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-ideas",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 85,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-ideas: add unit tests for generate_page.py and a CI entry",
+    "updatedAt": 1792547523710,
+    "votes": 0
+}

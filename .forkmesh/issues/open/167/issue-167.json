@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524529,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME lists `.github/workflows/validate.yml` and `build-index.yml` (only `.forkmesh/blt-cve--build-index.yml` exists; validation runs through `scripts/ci/tests.tsv`), links `owasp.org/www-project-buglogging-tool/` (typo), and CONTRIBUTING clones from GitHub.\n\n## What to do\n\n1. Fix the workflow references, the OWASP link (`www-project-bug-logging-tool`) and the clone steps.\n\n## Acceptance criteria\n\n- [ ] Every referenced file exists\n- [ ] OWASP link resolves\n- [ ] Clone steps work\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-cve\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-167",
+            "sig": "45FTD29RpOaIeLBZotCfqGCcCbs6mIAtJNV1kHyFUbZ5JvIZgzeKstSjDAnJGOOMD_181QqQ1aDeSVE4U51EDQ",
+            "title": "blt-cve: fix stale workflow references and the broken OWASP project link in the docs",
+            "ts": 1792547524529,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-167",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-cve",
+                "documentation"
+            ],
+            "sig": "C5Bzv9_vyWtCSQNuDaj-ZWEEw2W3syV4uIatIkTmoW4bginnoHmUylpJysmZMS5QPIIStTR21LdH_zDgHs3bCg",
+            "ts": 1792547524530,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-cve",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 167,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-cve: fix stale workflow references and the broken OWASP project link in the docs",
+    "updatedAt": 1792547524530,
+    "votes": 0
+}

@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524079,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/dashboard.js` (395 lines) isn't loaded by any page since the dashboard was split into `*-page.js` modules. The only reference is an unused `DASHBOARD_JS` constant in `tests/test_frontend_mock_ui.py`.\n\n## What to do\n\n1. `git rm public/dashboard.js`, remove the unused constant, and grep for \"dashboard.js\".\n\n## Acceptance criteria\n\n- [ ] Tests pass\n- [ ] /dashboard, /logs, /history and /settings work under `wrangler dev`\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-timer-web\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-122",
+            "sig": "i9AEj6JYzIIMeNVxT1TBwL-Uu-GOk3O9Q9YOuDdCXuuYGlI2Igeg27C9xG8VSPGQBWJf7g5-tCMg-DPLthW2Cg",
+            "title": "blt-timer-web: remove the dead public/dashboard.js left over from the dashboard split",
+            "ts": 1792547524079,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-122",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-timer-web",
+                "enhancement"
+            ],
+            "sig": "hF35frlKVfTo3HTWKhsZM8CH0lNefdZD7ApfA-RlCmez12Xfs3eR4ihp_AiHEKjh1JyncOEjQ-T1CqL6Dw_AAw",
+            "ts": 1792547524080,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-timer-web",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 122,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-timer-web: remove the dead public/dashboard.js left over from the dashboard split",
+    "updatedAt": 1792547524080,
+    "votes": 0
+}

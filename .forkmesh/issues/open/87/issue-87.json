@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523729,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/index.py` serves the profile page for `/zerocool/`, `/index` and `/404.html`. On `/zerocool/`, `public/profile.html` fetches the relative `profiles/zerocool.json`, which resolves to `/zerocool/profiles/...` and 404s, so a valid profile shows \"Profile not found\". `/index` renders \"@undefined\". `RESERVED_PATHS` lacks `index` and `404.html`, though `scripts/actions/add-profile.mjs` claims to mirror it.\n\n## What to do\n\n1. Use absolute paths in `profile.html` (`/profiles/...json`, `href=\"/\"`).\n2. Add `index` and `404.html` to `RESERVED_PATHS`.\n3. Guard `renderProfile` against non-object JSON. Optional: redirect `/<user>/` to `/<user>`.\n\n## Acceptance criteria\n\n- [ ] `/blt_demo/` renders the demo profile\n- [ ] `/index` shows not-found\n- [ ] Both reserved lists match\n\n## How to test locally\n\n```bash\ncd blt-profiles && npx wrangler dev   # open /blt_demo, /blt_demo/ and /index\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-87",
+            "sig": "5Z2L3UQXB9SfsugdnL7jhKLJ0zntmpFIFfpODAJyqbxhxKiUF1Bfv6nmlsWLg4Qwt5vM5yS2v1L1hmnryJhlCw",
+            "title": "blt-profiles: fix profile pages under a trailing slash and the `/index` route",
+            "ts": 1792547523729,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-87",
+            "labels": [
+                "hacktoberfest",
+                "blt-profiles",
+                "bug"
+            ],
+            "sig": "XhJK9G6AvV90bcsU5QzReksYt8EtSMvOlAEGlisu07iRDVb5fyVp0KcyMTC2r91NrqahXrSIfz03xXIsXtXUBA",
+            "ts": 1792547523730,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-profiles",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 87,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-profiles: fix profile pages under a trailing slash and the `/index` route",
+    "updatedAt": 1792547523730,
+    "votes": 0
+}

@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523959,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/utils.py` (589 lines, pure Python) holds the core logic: `parse_pr_url`, `parse_repo_url`, `parse_org_url`, `calculate_review_status`, `calculate_ci_confidence` and `calculate_pr_readiness`. None of it is tested.\n\n## What to do\n\n1. Create `tests/test_utils.py` (unittest; `npm run test:cron` already runs `unittest discover -s tests`).\n2. Cover valid/invalid PR URLs (trailing junk, non-string), reserved org names and CI-confidence edges (0/0/0 gives 50, all failed gives 0, mixed).\n\n## Acceptance criteria\n\n- [ ] At least 12 assertions across the six functions\n- [ ] Runs under `npm test`\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-leaf\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-110",
+            "sig": "sVJg8TvAvg9Bz_oKya9Xq5mFRUr4IjlcNB946_1hUPAPFpH3dt_YY8_ToX6fsHViR3uShFIeTNy5ppjolE37Bw",
+            "title": "blt-leaf: add Python unit tests for src/utils.py (PR parsing and readiness scoring)",
+            "ts": 1792547523959,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-110",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-leaf",
+                "tests"
+            ],
+            "sig": "qnZ0KDWtp_5OzLJUM1HpTWQfLwRUaxnjJ0u9Bu_BC4HwkHp7IDDoMJhyUYoezOCZtU2xx_2jr0fYHNCknMHPDQ",
+            "ts": 1792547523960,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-leaf",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 110,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-leaf: add Python unit tests for src/utils.py (PR parsing and readiness scoring)",
+    "updatedAt": 1792547523960,
+    "votes": 0
+}

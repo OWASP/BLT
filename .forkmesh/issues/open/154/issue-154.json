@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524399,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nThe BLT entry's `repo_url` is `https://git.owaspblt.org/BLT/BLT-Core`, but `check_funding_file` builds `raw.githubusercontent.com/{owner}/{repo}/master/...` from the last two path parts, so it fetches the wrong host. Only `master` is tried, so main-branch repos are missed. The real file is `blt-core/.github/FUNDING.yml`.\n\n## What to do\n\n1. Allow an optional `funding_url` per extra project (for BLT, the forge raw URL of `blt-core/.github/FUNDING.yml`).\n2. For GitHub repos, use `default_branch` from the API instead of `master`.\n\n## Acceptance criteria\n\n- [ ] BLT appears with its owasp.org donate link\n- [ ] Main-branch repos with FUNDING.yml are found\n- [ ] No raw.githubusercontent.com URL for the BLT forge in the run log\n\n## How to test locally\n\n```bash\ncd blt-tomato && GITHUB_TOKEN=<your token> OUTPUT_DIR=/tmp/t python3 .github/scripts/funding/owasp_funding_yml_scraper.py\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-154",
+            "sig": "KFvxK4V9WTEuW12eHP0Jz7dV6h4uxB0A0oVdu3-C4MA_FzM84rKjwH-SKk0ovfx2ZhqERA8RON3GbX49sWJdCw",
+            "title": "blt-tomato: fix the BLT entry and main-branch repos in the funding lookup",
+            "ts": 1792547524399,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-154",
+            "labels": [
+                "hacktoberfest",
+                "blt-tomato",
+                "bug"
+            ],
+            "sig": "O6LMoY0Efz_nEBU6-oXcxiS3dSzixrEQagm1brM3Jqc_MOtVfwwxDoUXa-y5U2TB6pj2lKr67JyFYd7ESxWFAg",
+            "ts": 1792547524400,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-tomato",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 154,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-tomato: fix the BLT entry and main-branch repos in the funding lookup",
+    "updatedAt": 1792547524400,
+    "votes": 0
+}

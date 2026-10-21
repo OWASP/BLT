@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523349,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/main.rs:64` uses `std::env::var(\"BLT_API_BASE\").unwrap_or(args.api_base)`, so the env var beats an explicit `--api-base`, though the README calls the env var a fallback (`--mcp-path` on L63 does it right). The README example `--mcp-path ../blt_mcp/server.py` doesn't work, and the shortcut table is out of date: `src/tui/input.rs:308-315` maps 4 to Logs and 5 to Settings, and `e`, `/`, `p`, Space, `A`/`P` are missing. `BLT_API_KEY` (`src/api.rs:42`) is undocumented.\n\n## What to do\n\n1. Pull the precedence into a small function so the flag wins, and unit-test it.\n2. Use the working command from blt-mcp's README: `--mcp-path \"uv run --project ../blt-mcp blt-mcp\"`.\n3. Update the shortcut table from `input.rs` and document `BLT_API_KEY`.\n\n## Acceptance criteria\n\n- [ ] The flag beats the env var, with a test\n- [ ] README example runs\n- [ ] Shortcut table matches `input.rs`\n- [ ] Env vars documented\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-cli\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-49",
+            "sig": "3-HZEM1f2IaMiWT1c1T4Zao-w6ohW4vRtg9Iml34E0EtsZIoBwcB-CofLdGu4JXzgIDeEePDCyshX9Tju5pFBA",
+            "title": "blt-cli: make --api-base override BLT_API_BASE and fix README flags and shortcuts",
+            "ts": 1792547523349,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-49",
+            "labels": [
+                "hacktoberfest",
+                "blt-cli",
+                "bug"
+            ],
+            "sig": "alrQ2pCOkl-TvZqOHpp5QaH-Xri8zLfryl8vcj6gudi-qB00i1yN1jC1zOU3_KemAmpSr8pTNwunbHgfN_kdCw",
+            "ts": 1792547523350,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-cli",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 49,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-cli: make --api-base override BLT_API_BASE and fix README flags and shortcuts",
+    "updatedAt": 1792547523350,
+    "votes": 0
+}

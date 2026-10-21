@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524149,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`lib/src/util/validators.dart` has no tests, its messages say \"emal\", \"atleast\" and \"Leter\", and the password message lists `($, @, #, %)` while the regex also allows `!*?&`.\n\n## What to do\n\n1. Add `test/unit_tests/validators_test.dart` for valid and invalid email and password inputs.\n2. Fix the typos and make the special-character list match the regex.\n\n## Acceptance criteria\n\n- [ ] Tests cover both validators\n- [ ] Typos fixed\n- [ ] Message matches regex\n\n## How to test locally\n\n```bash\ncd blt-flutter && flutter test test/unit_tests/validators_test.dart\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-129",
+            "sig": "GohPe0VaLO1G3QDhhfxGIzwA1oAjAJeTtQo7oIJb3N48oh4YXTJIS9EWmDpNR6b6ToWnjaqo6CIZsvTYYfXsBQ",
+            "title": "blt-flutter: add tests for validators.dart and fix the typos in its messages",
+            "ts": 1792547524149,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-129",
+            "labels": [
+                "hacktoberfest",
+                "blt-flutter",
+                "tests"
+            ],
+            "sig": "ZhI0amMrGDSShl1AEfz9WYEXtalI9H7WB8YDs5Ax0gO8SCyAkWje5XPaHMaq7Zcut3v6EV5Qe6xU4oSHMwsxAw",
+            "ts": 1792547524150,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-flutter",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 129,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-flutter: add tests for validators.dart and fix the typos in its messages",
+    "updatedAt": 1792547524150,
+    "votes": 0
+}

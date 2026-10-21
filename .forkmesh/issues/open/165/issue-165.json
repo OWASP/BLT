@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524509,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME, CONTRIBUTING and GOVERNANCE tell submitters to create `public/cves/YYYY/BLT-YYYY-DRAFT.json`, but the schema and `scripts/validate_cves.py` only accept `BLT-YYYY-NNNN`, so every draft fails local validation. `build_index.py` would also publish drafts.\n\n## What to do\n\n1. Accept `BLT-YYYY-DRAFT` in `validate_cves.py` (schema-validate with the id pattern relaxed, keep the year/filename checks).\n2. Skip DRAFT files in `build_index.py`.\n3. Add tests.\n\n## Acceptance criteria\n\n- [ ] A well-formed draft validates\n- [ ] A malformed draft still fails\n- [ ] Drafts excluded from index.json/feed.json\n- [ ] Tests pass\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-cve\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-165",
+            "sig": "7Xqnw68mJ1afRYwkXLXgABioD6WjcJdI2J_mv7JbBi5eHe_SQmrZvQhmcX7H-u989k0X13zG3Bhw5CgDVLzKCw",
+            "title": "blt-cve: make the documented BLT-YYYY-DRAFT submission pass validation",
+            "ts": 1792547524509,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-165",
+            "labels": [
+                "hacktoberfest",
+                "blt-cve",
+                "bug"
+            ],
+            "sig": "kSqyO97GUkdAXg9WWM2tcoBTyZRrBS-wz3CX-vExbOrAm5_Sjf1KXFTkJQ8Z6_isAXXhfb36CjR2qJnI09N0AQ",
+            "ts": 1792547524510,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-cve",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 165,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-cve: make the documented BLT-YYYY-DRAFT submission pass validation",
+    "updatedAt": 1792547524510,
+    "votes": 0
+}

@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524539,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`docs/assets/js/include.js` fails `node --check` with `SyntaxError: Unexpected token '}'` at line 93: lines 80-93 are a leftover copy of `wireDocLinks`'s second loop plus an extra brace (likely a bad merge). `loadIncludes()` never runs, so the sidebar and `data-asset-src` images are missing on 21 pages.\n\n## What to do\n\n1. Delete the orphaned lines 80-93 (the same logic is already inside `wireDocLinks`).\n2. Optional: add a smoke-test row to `scripts/ci/tests.tsv`: `blt-design\\tnode\\tfor f in docs/assets/js/*.js; do node --check $f || exit 1; done`.\n\n## Acceptance criteria\n\n- [ ] `node --check docs/assets/js/include.js` passes\n- [ ] Sidebar renders on `/index.html` and `/docs/components/buttons.html`\n- [ ] Current page has `aria-current=\"page\"`\n- [ ] No console errors\n\n## How to test locally\n\n```bash\ncd blt-design && python3 -m http.server 8765   # open /index.html and /docs/components/buttons.html\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-168",
+            "sig": "FiI6cc9M6IWkv77d8nfG-tjRdafcQYo5KvAJiAeudTP6n15s4hkXOaT_IaOcYiyP7bsM-1nbjMk5Mdl_PY98BA",
+            "title": "blt-design: fix the syntax error in include.js that stops the shared sidebar loading",
+            "ts": 1792547524539,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-168",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-design",
+                "bug"
+            ],
+            "sig": "RawYDT8CPXAYz3lshWui1r2AyvSYg-hq8K3uU3QVykpo12bYrNu2AE5QkcJkD-lXVsbsREv-LBRGZp8NvtytDw",
+            "ts": 1792547524540,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-design",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 168,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-design: fix the syntax error in include.js that stops the shared sidebar loading",
+    "updatedAt": 1792547524540,
+    "votes": 0
+}

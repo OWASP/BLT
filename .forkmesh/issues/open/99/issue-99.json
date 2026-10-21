@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523849,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME says `uv sync --group dev`, but `dev` is an optional-dependencies extra, so uv rejects it (`uv sync --extra dev` works). The Documentation Index links `docs/*.md` and `spike-1-fastapi/`, which don't exist, and the tree lists `UI/html/` though files are in `UI/`. `WEBSOCKET_AUTH_TOKEN` is required but missing from `backend/.env.example`. `Agents.md` is an empty tracked file.\n\n## What to do\n\n1. Fix the command, dead links and tree.\n2. Add `WEBSOCKET_AUTH_TOKEN` to `backend/.env.example`.\n3. Delete or fill `Agents.md`.\n\n## Acceptance criteria\n\n- [ ] \"Local Development\" works on a clean clone\n- [ ] No link to a missing path\n\n## How to test locally\n\n```bash\ncd blt-hackerhouse && uv sync --extra dev && uv run pytest backend/tests/unit -q\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-99",
+            "sig": "TttW6G_1WhfewugJF0jmvQpDzkzu5GW-QGTGTAYuUK2qEp_U0DCwdj-59x7dCLcs854b07UwMpEpvTnd0fUfCg",
+            "title": "blt-hackerhouse: fix the README setup command and dead documentation links",
+            "ts": 1792547523849,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-99",
+            "labels": [
+                "hacktoberfest",
+                "blt-hackerhouse",
+                "documentation"
+            ],
+            "sig": "Hum7F8R7U_A5DzNxulGQJ5KB4CDj_4EhVjWwvDmSou1kGg1tVkgpo3r-qtPay3ADQ8H_dNg1bvudumwLlpHqBg",
+            "ts": 1792547523850,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-hackerhouse",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 99,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-hackerhouse: fix the README setup command and dead documentation links",
+    "updatedAt": 1792547523850,
+    "votes": 0
+}

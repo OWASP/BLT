@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523899,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`scripts/extract-salary.js` feeds `build-jobs.js` but has no tests. `\"Pay $45 - $60 per hour\"` becomes `$45 - $60` with the unit lost, and k-detection looks at the whole match, so text like \"New York\" can wrongly multiply by 1000. Small and separate from the QA umbrella in #19.\n\n## What to do\n\n1. Add `tests/extract-salary.test.js` (require it from `tests/main.test.js`): USD/k/GBP/EUR, \"to\", \"per hour\" and no-salary cases.\n2. Detect `k` per number; append \"/hr\" (or return null) for hourly ranges.\n\n## Acceptance criteria\n\n- [ ] New tests pass\n- [ ] Hourly text isn't shown as a bare range\n- [ ] `npm test` green\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-jobs\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-104",
+            "sig": "k3DdIGXYlnLsUePxaPknU7P-EUA_IAlq5ExPa0-E1N7Dnhqvb0Sf0kW29SInQRyMTmGgKV0h5EYSvNgqf8n2AA",
+            "title": "blt-jobs: add unit tests for extract-salary.js and stop hourly rates showing as salaries",
+            "ts": 1792547523899,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-104",
+            "labels": [
+                "hacktoberfest",
+                "blt-jobs",
+                "tests"
+            ],
+            "sig": "47ZEKOFI2rTKSQbenPb6ks9j2nZUbXh6gCn_bPaz02oUJw539y9K6kmcGMKJxmZrjNF7S0C7pwqSlb-dfZRkDQ",
+            "ts": 1792547523900,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-jobs",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 104,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-jobs: add unit tests for extract-salary.js and stop hourly rates showing as salaries",
+    "updatedAt": 1792547523900,
+    "votes": 0
+}

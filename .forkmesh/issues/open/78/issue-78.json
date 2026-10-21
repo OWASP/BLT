@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523639,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/js/consent.js` (about L119-131) builds CSV cells from user-entered name, details and purpose, escaping only `\"`. A value starting with `=`, `+`, `-` or `@` runs as a formula in Excel or LibreOffice (OWASP \"CSV Injection\"). The CSV export also leaves out `participants`, which the JSON export includes.\n\n## What to do\n\n1. Add a `csvCell(v)` helper that prefixes `'` when a value starts with `= + - @ \\t \\r`, then quotes and doubles `\"`. Use it for every column.\n2. Add a Participants column.\n\n## Acceptance criteria\n\n- [ ] An entry named `=HYPERLINK(\"x\")` exports as text\n- [ ] CSV has a participants column\n- [ ] JSON export unchanged\n\n## How to test locally\n\n```bash\ncd blt-safecloak && npx wrangler dev   # /consent > record > Export CSV > open in LibreOffice\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-78",
+            "sig": "Rijh2-Ska8JQQmeYRcnJw81h1VPmeyaKEnF6Q-SFZBw2xKm7Ix8FpAQbId6K6cJZVSwyBBfUlt6P2duCVD2bCA",
+            "title": "blt-safecloak: guard the consent CSV export against spreadsheet formula injection",
+            "ts": 1792547523639,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-78",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-safecloak",
+                "bug"
+            ],
+            "sig": "-G-ZyuA_UBIRRWvkdrsWZgcBeK_PzoTD_rp8Y1qsZtYKyVRUrsruD8Pfeu2tuF-nxquQT371afbiY4WAh-CIAw",
+            "ts": 1792547523640,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-safecloak",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 78,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-safecloak: guard the consent CSV export against spreadsheet formula injection",
+    "updatedAt": 1792547523640,
+    "votes": 0
+}

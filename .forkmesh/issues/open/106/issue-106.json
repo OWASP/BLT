@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523919,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/pages/report-bug.html` posts with `hx-post=\"/api/bugs\"` and no `json-enc` extension, so HTMX sends form-urlencoded data. `workers/main.py` calls `await request.json()`, which throws and returns 500, and HTMX doesn't swap error responses, so \"Submit Bug Report\" silently does nothing.\n\n## What to do\n\n1. Either accept form data in `handle_bugs_list` when the Content-Type isn't JSON, or load the htmx `json-enc` extension and add `hx-ext=\"json-enc\"`.\n2. Add an `htmx:responseError` handler that shows `#custom-error-box`.\n\n## Acceptance criteria\n\n- [ ] A filled form shows \"Report Submitted!\"\n- [ ] Missing fields show the 400 message\n- [ ] Server or network errors show a message\n\n## How to test locally\n\n```bash\ncd blt-next && npm install && npx wrangler dev   # open /pages/report-bug.html\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-106",
+            "sig": "4yqDoNDxhQJzWx0bDdRFEVFnoEJtVMRkxZBV9sxc3I_tTZ_7J-00KEQSJzchp6i5xMitMksqyxTGHPreINY4AA",
+            "title": "blt-next: make the Report Bug form send data the worker can parse",
+            "ts": 1792547523919,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-106",
+            "labels": [
+                "hacktoberfest",
+                "blt-next",
+                "bug"
+            ],
+            "sig": "f5k6CNq7OpGDTgfyVil3WiFGLGoaJyQbspjgScPLgwRTEpVzPcAWEApbN6Plj0gvvqbLXpXCU6Do5mGa16s5Dw",
+            "ts": 1792547523920,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-next",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 106,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-next: make the Report Bug form send data the worker can parse",
+    "updatedAt": 1792547523920,
+    "votes": 0
+}

@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523869,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nNo test imports `core.fuzzy`, `core.dedup` or `storage.d1_utils`. `core/fuzzy.py` is pure stdlib (Levenshtein plus trigram Jaccard) and its docstring wrongly calls trigram matching \"token-set\".\n\n## What to do\n\n1. Add `backend/tests/unit/test_fuzzy.py`: empty, identical, single edit, case, strings under 3 chars.\n2. Add tests for dedup and the d1_utils conversions.\n3. Fix the docstring.\n\n## Acceptance criteria\n\n- [ ] At least 10 new tests pass\n- [ ] No new dependencies\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-hackerhouse\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-101",
+            "sig": "5w_XLnNC_Ah07P9Q7IRlmtss7IzXnE_2WzBF8SBhLmkjI4v2VrFExaOZUZ_DzmoyCNE5pJSvd_DEgzudU1usBg",
+            "title": "blt-hackerhouse: add unit tests for core/fuzzy.py, core/dedup.py and storage/d1_utils.py",
+            "ts": 1792547523869,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-101",
+            "labels": [
+                "hacktoberfest",
+                "blt-hackerhouse",
+                "tests"
+            ],
+            "sig": "BzX1JBiJVmyZ_E0i95xxwfHqd5iW4GqTfQmStgrSyXW8MTYuv93ozSY6k_bLoCnPBRtdptW03ECgk8n_BgaKAA",
+            "ts": 1792547523870,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-hackerhouse",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 101,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-hackerhouse: add unit tests for core/fuzzy.py, core/dedup.py and storage/d1_utils.py",
+    "updatedAt": 1792547523870,
+    "votes": 0
+}

@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524009,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/chat.html` (about L129-131) `#messageInput` has only a placeholder, which doesn't count as a label.\n\n## What to do\n\n1. Add a visually hidden `<label for=\"messageInput\">` or an `aria-label`.\n\n## Acceptance criteria\n\n- [ ] Lighthouse/axe report no unlabelled form element on /chat\n\n## How to test locally\n\n```bash\ncd blt-byte && npx wrangler dev   # Lighthouse on /chat\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-115",
+            "sig": "DxyrAWj1qHrNqplHE6G9Y3K31ROrIelMK9xykCT66vuFOEm7jWBaZHTGmPE4CqXfJtDHKtvBevjyrYDMpd1iAQ",
+            "title": "blt-byte: give the chat textarea an accessible label",
+            "ts": 1792547524009,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-115",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-byte",
+                "accessibility"
+            ],
+            "sig": "DZP3oGE-aEcXlEeTrDt7Jmo3WqSTQ-KK07NC8RPyWMs-uI1c6LUZo-vBoR_vlUfx3AECjvYbHN42RXRNyrA6DQ",
+            "ts": 1792547524010,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-byte",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 115,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-byte: give the chat textarea an accessible label",
+    "updatedAt": 1792547524010,
+    "votes": 0
+}

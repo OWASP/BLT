@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523489,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME has a Markdown link inside a bash block, `cd BLT-Zero` (should be `cd BLT/blt-zero`), a D1 step though `wrangler.toml` has no D1, says FastAPI though `src/main.py` uses `WorkerEntrypoint`, claims storage that doesn't happen, documents points sync that is never called, and links the old GitHub issue. `.dev.vars.example` lists variables the code never reads (it uses `ZIP_MAX_TOTAL_BYTES` and `RL_*`).\n\n## What to do\n\n1. Fix the clone/cd and dev steps.\n2. Mark points/BACON sync as \"not wired yet\" and correct the storage and framework claims.\n3. Make `.dev.vars.example` list only variables `src/main.py` reads.\n\n## Acceptance criteria\n\n- [ ] Steps work exactly as written\n- [ ] No claims about unimplemented features\n- [ ] `.dev.vars.example` matches the code\n\n## How to test locally\n\n```bash\ncd blt-zero && npx wrangler dev\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-63",
+            "sig": "RBzXsLcqtafVu1Zr7qIDDOLS1Ofc1ZjypgTnIY16QNR5oMeLQT6sUyELyt3YDrlhGx_JDI1xjp96JzQi_m3oAA",
+            "title": "blt-zero: fix README setup steps and mark features that aren't implemented",
+            "ts": 1792547523489,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-63",
+            "labels": [
+                "hacktoberfest",
+                "blt-zero",
+                "documentation"
+            ],
+            "sig": "fRbeaW_0U6tzKH-wP7ZuvRyngi_UiexB5RNH235LRWZJTM0mhDQMQNmd9-VxxfXiyIXgtalNKnh3UTaKl7pYBA",
+            "ts": 1792547523490,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-zero",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 63,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-zero: fix README setup steps and mark features that aren't implemented",
+    "updatedAt": 1792547523490,
+    "votes": 0
+}

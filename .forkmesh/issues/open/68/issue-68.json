@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523539,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/blt_mayo/cli/app.py` (about L56-68) takes a `Path` without `exists=True` and calls `json.loads` unguarded, so bad input prints a traceback. `report` has no CLI test.\n\n## What to do\n\n1. Use `typer.Argument(exists=True, dir_okay=False, readable=True)`.\n2. Catch `json.JSONDecodeError` and raise `typer.BadParameter`.\n3. Add three tests in `tests/test_cli.py`: valid report (from `scan --output`), missing file, invalid JSON.\n\n## Acceptance criteria\n\n- [ ] Clear message and non-zero exit, no traceback\n- [ ] Three new tests pass\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-mayo\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-68",
+            "sig": "KsNuXkKDFRy526JXp0_BVFFPb9azTn30ikrBQntKh2emIHFqDqIbJ68P6jYbU8EizfBEG-dSI_8nPJ4OOi35DA",
+            "title": "blt-mayo: make `blt-mayo report` fail cleanly on a missing file or invalid JSON",
+            "ts": 1792547523539,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-68",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-mayo",
+                "bug"
+            ],
+            "sig": "n6R66vWgtg6uTuMyuJPtjgjqLzyejSTsrDUadQkhz6WfhYJUaREiNAbSS1xud6tcgXjZCC5vZ8YcctK2zqLBDw",
+            "ts": 1792547523540,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-mayo",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 68,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-mayo: make `blt-mayo report` fail cleanly on a missing file or invalid JSON",
+    "updatedAt": 1792547523540,
+    "votes": 0
+}

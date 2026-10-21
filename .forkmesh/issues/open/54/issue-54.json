@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523399,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/css/fontawesome.min.css` loads `../webfonts/fa-solid-900.woff2`, `fa-regular-400.woff2` and `fa-brands-400.woff2`, but only `public/webfonts/fa-v4compatibility.woff2` is committed. The live site 404s on the fonts, so every icon shows as an empty box (index.html alone uses 15 solid icons).\n\n## What to do\n\n1. Copy the three woff2 files from `@fortawesome/fontawesome-free` (already a devDependency; match the version in the CSS header) into `public/webfonts/`.\n\n## Acceptance criteria\n\n- [ ] The three files are in `public/webfonts/`\n- [ ] No webfont 404s in DevTools on index, workspace and finding pages\n- [ ] Icons visible in light and dark mode\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-ketchup/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-54",
+            "sig": "-2J4tb0Y289wKDKPVnNayArrTprNxEpyzVyCLuDfsPQW5bHIHlGsV0RDtqLoHTdkP3hiW3mviVj-wiwor85aDA",
+            "title": "blt-ketchup: add the missing Font Awesome webfonts so icons render",
+            "ts": 1792547523399,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-54",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-ketchup",
+                "bug"
+            ],
+            "sig": "otRHr9YJX2CR55s-b4QGcWJPdJckFcQ0DZ9Kqt8w3paKmMA8NWYpnyj9HsChhbQqCBRLYndvPKbuWZbxKF_pBA",
+            "ts": 1792547523400,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-ketchup",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 54,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-ketchup: add the missing Font Awesome webfonts so icons render",
+    "updatedAt": 1792547523400,
+    "votes": 0
+}

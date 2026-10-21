@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524179,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/dashboard.html` shows \"Export started\", \"Import started\" and \"Subscriber suppressed\" toasts, but `src/entry.py` has no such endpoints and `public/docs.html` advertises import/export. Admins are told actions succeeded when nothing happened. Implementing them touches subscriber privacy (#25), so this issue only disables them.\n\n## What to do\n\n1. Disable the three buttons with a \"Not available yet\" title.\n2. Remove the import/export claims from `docs.html`.\n\n## Acceptance criteria\n\n- [ ] No success toast for an action that didn't happen\n\n## How to test locally\n\n```bash\ncd blt-newsletter && wrangler dev --local --port 8794   # open /dashboard\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-132",
+            "sig": "ZAarT_5eq5TEpMr1BVMfiKKJfjfpmSjFkOUZLscQBdo7JLFhSRROy7hFuXnha_KuQ8RUFv237t0PVc_gg2dfAQ",
+            "title": "blt-newsletter: stop the dashboard's Import, Export and Suppress buttons showing fake success toasts",
+            "ts": 1792547524179,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-132",
+            "labels": [
+                "hacktoberfest",
+                "blt-newsletter",
+                "bug"
+            ],
+            "sig": "-5UrwxmY147KHSyeIKfcL-VAo2QlXX69zZaySRjdj8FGqtj3pDRrZuZVFJLiedu8zTCfSHbUJNsJKfwtn72WBg",
+            "ts": 1792547524180,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-newsletter",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 132,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-newsletter: stop the dashboard's Import, Export and Suppress buttons showing fake success toasts",
+    "updatedAt": 1792547524180,
+    "votes": 0
+}

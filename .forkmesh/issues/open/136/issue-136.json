@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524219,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME describes Poetry, Socket Mode, `app.py`, `.secrets.sample` and `src/sammich/plugins/*.py`, none of which exist; the bot is an HTTP Worker. The command table leaves out `/contrib`, `/stats`, `/blt`, `/blt-welcome`, `/installed_apps` and `/blt-app-url` from `manifest.yaml`.\n\n## What to do\n\n1. Rewrite Setup, Local Development, Project Structure and \"Adding a New Command\" around `wrangler dev`, `script/set-vars.sh` and `script/migrate.sh`.\n2. Make the command table match `manifest.yaml` and the router; note commands handled in code but not registered.\n3. Leave the reminders, event logging and welcome sections alone.\n\n## Acceptance criteria\n\n- [ ] No Poetry, app.py or Socket Mode references\n- [ ] Command table matches manifest.yaml\n\n## How to test locally\n\n```bash\nDocs only.\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-136",
+            "sig": "wxkBxIbXSLjGnaydHmosMMnd9ggRsbvGg5X1BDuZbZqX-_0Jb8l7C2_5N2nXMwXKA_-ZbXnZBBUOKRTGgsqFCA",
+            "title": "blt-sammich: update README setup, structure and command table for the Cloudflare Worker",
+            "ts": 1792547524219,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-136",
+            "labels": [
+                "hacktoberfest",
+                "blt-sammich",
+                "documentation"
+            ],
+            "sig": "Sb23llS6w-UTwDDUYrki5SDVWS1v0aQRX-JyTnOfrw9ISLhOzBLtmZtArQkHp0yVYFzIz8O9HbGAZnukoVBuBg",
+            "ts": 1792547524220,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-sammich",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 136,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-sammich: update README setup, structure and command table for the Cloudflare Worker",
+    "updatedAt": 1792547524220,
+    "votes": 0
+}

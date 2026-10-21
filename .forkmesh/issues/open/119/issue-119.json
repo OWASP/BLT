@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524049,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/app.js` and `public/index.html` link to `https://blt.owasp.org/ambassador`, which BLT-Core doesn't route. `public/data.js` uses `bltUrl: \"https://blt.owasp.org/projects/<slug>\"`, but the detail route is `project/<slug>/`. Every \"Become an Ambassador\" and \"BLT\" button probably 404s.\n\n## What to do\n\n1. Check a few slugs on owaspblt.org first.\n2. Point the ambassador CTAs at the flow the page describes (open an issue at `https://git.owaspblt.org/BLT/issues`) and change `bltUrl` to `/project/<slug>/`.\n3. Add an assertion to `test/app.test.mjs`.\n\n## Acceptance criteria\n\n- [ ] No links to `/ambassador`\n- [ ] `bltUrl` uses `/project/`\n- [ ] Test passes\n\n## How to test locally\n\n```bash\nnode --test 'blt-nexus/test/*.test.mjs'\npython3 -m http.server -d blt-nexus/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-119",
+            "sig": "uyURq1sVkfH2MuKXQdEvitbH6apxRgJExnf6fw1qzncHm4HgsYlPNpzaXXt0KTc7QUQ1NqyGBluZeHmJ99EjCQ",
+            "title": "blt-nexus: fix ambassador and project links that point at routes BLT-Core doesn't have",
+            "ts": 1792547524049,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-119",
+            "labels": [
+                "hacktoberfest",
+                "blt-nexus",
+                "bug"
+            ],
+            "sig": "iNRVV3NQ8OeyEHrNyvA8xWYi1MR_h32Cmsv79pfK3AfDlox-ZvlALSdZrMInzliSMjssHWTLJXZ3LaYiGQ-_AA",
+            "ts": 1792547524050,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-nexus",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 119,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-nexus: fix ambassador and project links that point at routes BLT-Core doesn't have",
+    "updatedAt": 1792547524050,
+    "votes": 0
+}

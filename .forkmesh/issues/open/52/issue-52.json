@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523379,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/cron.js:39` does `fields[4].replace(/\\b7\\b/g, \"0\")`, which turns `1-7` into `1-0` and then fails the `lo > hi` check, so `parseCron(\"0 0 * * 1-7\")` throws `bad value in \"1-0\"` (so does `5-7`). The comment says \"0 or 7 = Sunday\".\n\n## What to do\n\n1. Parse the day-of-week field with range [0,7], then map 7 to 0 in the resulting set.\n2. Add cases to the \"cron matching\" test in `test/cron.test.js`.\n\n## Acceptance criteria\n\n- [ ] `1-7`, `5-7` and `*/7` parse\n- [ ] `1-7` matches every day\n- [ ] Existing tests pass\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-cron\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-52",
+            "sig": "xxj6Ecj6sLJXgIOzFpD93mw1PpwLDx7NLxUy4fYUbCerZdXCqhhwHVC1ua8r8ngnP1PjxjhOfTp5ztp4QZr4Cw",
+            "title": "blt-cron: parseCron rejects day-of-week ranges ending in 7 (e.g. \"1-7\")",
+            "ts": 1792547523379,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-52",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-cron",
+                "bug"
+            ],
+            "sig": "7VNpdJ0TprqJpnbbkM18rRe44o0up8I4nQwREupOV_r5V1WPJ-cU-wO8uazxCSPhrVlQzX3yPcHlswIKnIYXCw",
+            "ts": 1792547523380,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-cron",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 52,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-cron: parseCron rejects day-of-week ranges ending in 7 (e.g. \"1-7\")",
+    "updatedAt": 1792547523380,
+    "votes": 0
+}

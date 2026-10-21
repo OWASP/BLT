@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524389,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`parse_funding_file` in `.github/scripts/funding/owasp_funding_yml_scraper.py` throws away the FUNDING.yml keys (`github:`, `patreon:`, `custom:`...) and keeps only the values, so a `github: OWASP` entry becomes the bare string `OWASP`. Since the escaping fix in 9a5cf08265, `safe_href` drops any value that isn't an absolute http(s) URL, so those donors' links now disappear from the page instead of 404ing. Only `custom:` URLs survive. The heart links also have no accessible name. The site's whole purpose is directing donors.\n\n## What to do\n\n1. Keep key/value pairs and map platforms to URLs (github to `https://github.com/sponsors/<v>`; open_collective, patreon, ko_fi, liberapay, buy_me_a_coffee similarly; custom as-is).\n2. Give each link an `aria-label` like \"Sponsor OWASP on GitHub Sponsors\".\n3. Add cases to `test/test_funding_render.py` with sample FUNDING.yml content.\n\n> **Note:** Keep the output going through the existing `esc()` and `safe_href()` helpers; build full URLs before they reach `safe_href`.\n\n## Acceptance criteria\n\n- [ ] No relative funding links\n- [ ] Each platform has its URL pattern\n- [ ] Links have accessible names\n- [ ] Test passes\n\n## How to test locally\n\n```bash\ncd blt-tomato && GITHUB_TOKEN=<your token> OUTPUT_DIR=/tmp/t python3 .github/scripts/funding/owasp_funding_yml_scraper.py   # open /tmp/t/index.html\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-153",
+            "sig": "r9Z5ZBGddb9fMQbPxsuS1zwb7BQ1EA5VM6HWm0WehYTgNzhwqWWfL845gLwifavu9NIFvuPoe-poLPLYcf8OCg",
+            "title": "blt-tomato: turn FUNDING.yml platform entries into real donate URLs",
+            "ts": 1792547524389,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-153",
+            "labels": [
+                "hacktoberfest",
+                "blt-tomato",
+                "bug"
+            ],
+            "sig": "_vKLYTI0G9-gHPJZafhQRxpf9AVF48iskjgwqRk_t6pLAkfDtjrg9PM6eWfcRDNxNYdHp87hzF399WouHVd4DQ",
+            "ts": 1792547524390,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-tomato",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 153,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-tomato: turn FUNDING.yml platform entries into real donate URLs",
+    "updatedAt": 1792547524390,
+    "votes": 0
+}

@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523319,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nSecurity-sweep leftover, and it fixes a live bug. `package.json` has `@actions/github ^4.0.0`; `undici` 5.28.3 comes in through `@actions/core` and has open advisories. In github v4 the octokit object has no `.rest` namespace, yet `src/index.js` makes 21 `octokit.rest.*` calls (e.g. L165, L218, L320), so `handleClosedPR`, `handleOpenedPR` and `enforceClosedPRGracePeriod` throw a TypeError. The outer catch only logs, so runs still show green. This is the GitHub Action in `src/`, not the forge `/assign` code in `forge/`.\n\n## What to do\n\n1. Bump to `@actions/github@^8` and `@actions/core@^1.11` (8.x is the last CommonJS major; 9.x needs an ESM conversion, optional).\n2. Make every call use `octokit.rest.*` consistently.\n3. Move `axios` from devDependencies to dependencies (it is `require`d at runtime in `src/index.js:3`).\n4. Call `core.setFailed` in the outer catch.\n5. Run `npm run build` and commit the regenerated `dist/index.js` (ncc bundle; `action.yml` runs `dist/index.js`).\n6. Fix `TESTING.md:112-120`, which refers to workflows that don't exist.\n\n> **Note:** Don't touch `forge/assign.mjs` or the `/assign` workflow; that work just landed.\n\n## Acceptance criteria\n\n- [ ] `npm ls undici` no longer shows 5.28.3\n- [ ] No `octokit.issues.` / `octokit.pulls.` calls without `.rest`\n- [ ] `dist/` rebuilt from current `src/`\n- [ ] A test covers `handleClosedPR` with a real `getOctokit` and nock\n- [ ] `npm test` passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-action\ncd blt-action && npm run build && git diff --stat dist/\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-46",
+            "sig": "B15UcgoMjVIBazZJlG9zZP-Rg6nz3nwlZaZBuw7-Pda0feayxSsco4Lh6SCejp7xKZvyzblThqRUw1deSEQjDA",
+            "title": "blt-action: upgrade @actions/github and undici, fix the broken `octokit.rest` calls, rebuild dist/",
+            "ts": 1792547523319,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-46",
+            "labels": [
+                "hacktoberfest",
+                "blt-action",
+                "bug"
+            ],
+            "sig": "OjVcRAFTZweLbRjhVpnlg4Dno2wIlEBYFY3sbVEqC1wuv5xwn4w3LtKD9HEIa04nMKQn8BZMvHwv1XtUAQGKAA",
+            "ts": 1792547523320,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-action",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 46,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-action: upgrade @actions/github and undici, fix the broken `octokit.rest` calls, rebuild dist/",
+    "updatedAt": 1792547523320,
+    "votes": 0
+}

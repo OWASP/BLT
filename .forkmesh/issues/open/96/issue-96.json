@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523819,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`js/gsoc_pr_report.js` (938 lines) isn't referenced by any blt-gsoc page; it's a copy of blt-core's file. `scripts/build_static.sh` isn't used and its copy list omits `contributors` and `certificates`, so it would build a broken site.\n\n## What to do\n\n1. Remove both files (or make `build_static.sh` match the build in `scripts/deploy/projects.tsv`).\n2. Update the README tree.\n\n## Acceptance criteria\n\n- [ ] `grep -r gsoc_pr_report blt-gsoc` finds nothing\n- [ ] Tests pass\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-gsoc\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-96",
+            "sig": "GwLjPV-leHuKS07Gqg6hYsC6H9ParMoUn-nzqjJQFMOJSWMym8NOs3ulda-DE--H0s5pGIaIYOArq1_E_W63Cg",
+            "title": "blt-gsoc: delete the unused js/gsoc_pr_report.js copy and the stale scripts/build_static.sh",
+            "ts": 1792547523819,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-96",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-gsoc",
+                "enhancement"
+            ],
+            "sig": "0fbTA2WTvzg92xf2BjdaGZZUopgfCb-QKHmCD9mIxtzzupSfdYLnzH-unjDQVo6_dqxFktpL3aP6QvzRqDMPAQ",
+            "ts": 1792547523820,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-gsoc",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 96,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-gsoc: delete the unused js/gsoc_pr_report.js copy and the stale scripts/build_static.sh",
+    "updatedAt": 1792547523820,
+    "votes": 0
+}

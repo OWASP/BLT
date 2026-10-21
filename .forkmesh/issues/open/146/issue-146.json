@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524319,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/app.js` (about L313-327) sorts on `click` on `<th data-column>` only, with no tabindex, key handler or `aria-sort`.\n\n## What to do\n\n1. Put a `<button>` inside each `<th>` (or add tabindex + Enter/Space).\n2. Set `aria-sort` on the active column. Don't add inline `onclick` (a test forbids it).\n\n## Acceptance criteria\n\n- [ ] Tab + Enter sorts\n- [ ] `aria-sort` reflects the sort\n- [ ] `test/app-escaping.test.mjs` passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-owasp-metadata\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-146",
+            "sig": "bB_rmBUHLl1VNAhsEfY5SdjGEVfqFN3DVowOff3B7hea0ODGWupZmtbqHPnSf7OKIrjfSgNVakm4wPFj43rEBg",
+            "title": "blt-owasp-metadata: make the explorer's sortable column headers keyboard-accessible",
+            "ts": 1792547524319,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-146",
+            "labels": [
+                "hacktoberfest",
+                "blt-owasp-metadata",
+                "accessibility"
+            ],
+            "sig": "WB97joRTe2bsgZ94OCLP4lG1KX-ZFVwbMVFMBMrMKaUT1oaoCLftTTAadaxtjUqNvn23b0lpuuyrCPWcc40ZDw",
+            "ts": 1792547524320,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-owasp-metadata",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 146,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-metadata: make the explorer's sortable column headers keyboard-accessible",
+    "updatedAt": 1792547524320,
+    "votes": 0
+}

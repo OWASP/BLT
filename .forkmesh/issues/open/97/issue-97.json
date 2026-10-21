@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523829,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`scripts/actions/welcome.mjs` posts on every enrollment or course issue and links to `.../blob/main/contributing.html` (the file is `_pages/contributing.html`, published at `/contributing/`), `${PROJECT_URL}/discussions` and a wiki that doesn't exist. `labelsToAdd` has no test.\n\n## What to do\n\n1. Point the links at `https://university.owaspblt.org/contributing/`, `https://git.owaspblt.org/BLT/discussions` and `CONTRIBUTING.md`; drop the wiki and \"star\" lines.\n2. Add a `node --test` file for `labelsToAdd` and each `MODES[*].message` and add it to the blt-university row in `scripts/ci/tests.tsv`.\n\n## Acceptance criteria\n\n- [ ] Every URL in the messages resolves\n- [ ] New tests pass in CI\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-university\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-97",
+            "sig": "tKiuTl0oX6s3qYC-Lv2Bdt1ljZMat9OFAHt9XPGHB86I8azjBGWzNnDVv3U3SZsyllHGRFEWZgz62GtP9TCXCw",
+            "title": "blt-university: fix broken links in the enrollment and course welcome comments",
+            "ts": 1792547523829,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-97",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-university",
+                "bug"
+            ],
+            "sig": "pTPKohl7XXOYIDtv_S8-eKWW4McjBeCVY__XHjuiYGU8gchnzBCBIYVVXUmZCKVqf-Pactt9J2QRltStArwoCQ",
+            "ts": 1792547523830,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-university",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 97,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-university: fix broken links in the enrollment and course welcome comments",
+    "updatedAt": 1792547523830,
+    "votes": 0
+}

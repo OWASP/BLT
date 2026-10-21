@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523999,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`FAQ_CONTEXT` in `src/main.py` (about L68-70) tells the model `/api/mcp` has `search_bugs, submit_bug, get_leaderboard, scan_url` and `/api/scan` does SSL/TLS and file checks. `MCP_MANIFEST` offers only `chat`, `scan_url` and `get_onboarding_guide`, and `_run_scan` just asks the model for a checklist. Byte tells users about tools they can't use.\n\n## What to do\n\n1. Rewrite those lines to match the manifest and call the scan an \"AI-generated checklist\".\n2. Add a test that every tool name in `FAQ_CONTEXT` is in `MCP_MANIFEST`.\n\n## Acceptance criteria\n\n- [ ] No nonexistent tools in `FAQ_CONTEXT`\n- [ ] Drift test passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-byte\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-114",
+            "sig": "w-IPQm-ixNYRUYqc1nZdVAtw6VP-AIr7E2rbCvTBvG6xuW1pI1MbTAH8hrsywkIJyhlGNPouKT9FCSVyQuOSCw",
+            "title": "blt-byte: stop the system prompt advertising MCP tools and scan checks that don't exist",
+            "ts": 1792547523999,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-114",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-byte",
+                "bug"
+            ],
+            "sig": "uKaIEqlCOSRSe92OuxYyZaJYl2rRD98jPz4Bjzl89XSQ4q7IBJn5CJckGJBvBM-ScvhmMk16vi5XW045g54xAQ",
+            "ts": 1792547524000,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-byte",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 114,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-byte: stop the system prompt advertising MCP tools and scan checks that don't exist",
+    "updatedAt": 1792547524000,
+    "votes": 0
+}

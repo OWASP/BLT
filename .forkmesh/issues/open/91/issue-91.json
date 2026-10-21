@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523769,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`worker/refresh.js` (about L37-44) counts `payload.commits.length` and reads `payload.commits[0].message`. The committed `public/data/github-contributions.json` has 20 commit entries but `stats.commits` is 0 and every description is \"Code changes\", which matches GitHub trimming PushEvent payloads. Check the current Events API docs before relying on this.\n\n## What to do\n\n1. Count PushEvents (or use whatever size field the current payload has) and fall back gracefully.\n2. Add a test fixture with no `commits` array to `test/worker.test.mjs`.\n\n## Acceptance criteria\n\n- [ ] A PushEvent without `commits` increments a non-zero counter\n- [ ] New and existing tests pass\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh my-gsoc-tool\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-91",
+            "sig": "giZ8pqTSIUt9nk0_-hW71I-TlrOMYtt_N1BiVwcRFbO2MK52S8tCNfuGmM9YLnTwDr2eNAc2wa10GfWrOaLkAQ",
+            "title": "my-gsoc-tool: count pushes correctly now that GitHub's PushEvent has no `commits` list",
+            "ts": 1792547523769,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-91",
+            "labels": [
+                "hacktoberfest",
+                "my-gsoc-tool",
+                "bug"
+            ],
+            "sig": "009r6kTeJmEISnkrTAPq3sSxc4Oc1zx5btnjmybKmWbWPopioQZ13lGvjPA4c9WI3K5BmoFmqnZ6yh3EWak7BA",
+            "ts": 1792547523770,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "my-gsoc-tool",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 91,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "my-gsoc-tool: count pushes correctly now that GitHub's PushEvent has no `commits` list",
+    "updatedAt": 1792547523770,
+    "votes": 0
+}

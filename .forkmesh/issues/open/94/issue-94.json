@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523799,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/dashboard.js` uses `via.placeholder.com` (shut down) for default avatars although `public/assets/images/sample-avatar.svg` exists. Blog titles are `<h3 onclick=\"window.open(...)\">`, unreachable by keyboard, and `styles.css` has no focus styles.\n\n## What to do\n\n1. Use the local SVGs as defaults.\n2. Render `<h3><a href target=\"_blank\" rel=\"noopener noreferrer\">`.\n3. Add `:focus-visible` outlines and `aria-hidden` on decorative icons.\n\n## Acceptance criteria\n\n- [ ] No placeholder.com requests\n- [ ] Blog titles reachable with Tab and open with Enter\n- [ ] Visible focus ring\n\n## How to test locally\n\n```bash\npython3 -m http.server -d my-gsoc-tool/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-94",
+            "sig": "vdalVB9u1d4lsSqwVjzABDpRGMWpktOHeWMxPU7Eo8PseC3CAl1jdQ0Iuxfz6jFotyfISU6sg9RUBU6GME6xDA",
+            "title": "my-gsoc-tool: replace dead via.placeholder.com avatars and make blog titles real links",
+            "ts": 1792547523799,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-94",
+            "labels": [
+                "hacktoberfest",
+                "my-gsoc-tool",
+                "accessibility"
+            ],
+            "sig": "JV8PqdsGO6lhhwGMn-ufi16fe-h-9nEgh4BXRhc_jnC0piNPQZ3OST-ByM94SRqKfdr7lgMgfIoJUXXcHEQAAw",
+            "ts": 1792547523800,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "my-gsoc-tool",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 94,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "my-gsoc-tool: replace dead via.placeholder.com avatars and make blog titles real links",
+    "updatedAt": 1792547523800,
+    "votes": 0
+}

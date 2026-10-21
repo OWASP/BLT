@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523419,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nThe README is 4 lines and describes a real-time collaboration tool with CVSS scoring. In practice `public/*.html` is a static prototype with demo data and `worker.py` isn't wired into `wrangler.toml`. Nothing says how to run or build it.\n\n## What to do\n\n1. Add Status (static prototype; API in `worker.py` not deployed yet), Run locally, Build CSS and Project layout sections.\n\n## Acceptance criteria\n\n- [ ] README says what is live and what is planned\n- [ ] Commands work as written\n\n## How to test locally\n\n```bash\nFollow the README from a fresh clone.\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-56",
+            "sig": "K3diUay1eCicuUICSFIAUQOYZjvT9Ar1Ji9xdbNvms6gYB0lrErlUj88SYb4WwHokLJ2JzHW4_XFOjJUOV1dCw",
+            "title": "blt-ketchup: expand the README with project status and local dev steps",
+            "ts": 1792547523419,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-56",
+            "labels": [
+                "hacktoberfest",
+                "blt-ketchup",
+                "documentation"
+            ],
+            "sig": "G-x8Ed57esoONRR5H_juZcgvlqYV4VQUuA8HV1TgadlxDcYJTPinDazNVdeHpZdXHRa7z-e1uKduf-2dDZOxAw",
+            "ts": 1792547523420,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-ketchup",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 56,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-ketchup: expand the README with project status and local dev steps",
+    "updatedAt": 1792547523420,
+    "votes": 0
+}

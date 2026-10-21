@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523609,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`client/lib/queue/outbox.dart` (`OutboxItem` JSON and status fallback) and `client/lib/history/send_history.dart` (100-item cap) have no tests in `client/test/`. Needs the Flutter SDK.\n\n## What to do\n\n1. Add tests using `SharedPreferences.setMockInitialValues({})` for round-trip, unknown status and the 100-item cap.\n\n## Acceptance criteria\n\n- [ ] Round-trip and unknown-status fallback tested\n- [ ] History is capped at 100\n\n## How to test locally\n\n```bash\ncd blt-netguardian/client && flutter test\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-75",
+            "sig": "uszcwt2P3650w9nyND5dDlOTGd3c2433Qn1kQcNV43rQij2CVgs3xEUeiH6-f9Of1Ezncsd8oWyjiTJj_p7SCg",
+            "title": "blt-netguardian: add Flutter tests for the client outbox and send history",
+            "ts": 1792547523609,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-75",
+            "labels": [
+                "hacktoberfest",
+                "blt-netguardian",
+                "tests"
+            ],
+            "sig": "yeZWaEwNWn1YRT8r7owx6wg48dJRAbZOrozerd6NHJfCKO6TaCP4LuDIpYF33GjfzqScOIvee8wZMfXP0C-_Cw",
+            "ts": 1792547523610,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-netguardian",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 75,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-netguardian: add Flutter tests for the client outbox and send history",
+    "updatedAt": 1792547523610,
+    "votes": 0
+}

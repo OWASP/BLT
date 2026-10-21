@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523879,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nIcon-only buttons (hamburger in `UI/index.html` and `UI/status_health.html`, identity-bar close) have no `aria-label`, so screen readers read the ligature text (\"menu\", \"close\"). Several buttons do nothing (\"Review\", \"View All 15 Rooms\", an `alert('coming soon')`). `status_health.html` never checks `r.ok` on `fetch('/status')` and its catch only logs, so the list stays on \"Loading rooms...\" forever.\n\n## What to do\n\n1. Add `aria-label`s and `aria-hidden` on the icon spans.\n2. Hide or disable stub buttons.\n3. Check `r.ok` and render an error state in the catch.\n\n## Acceptance criteria\n\n- [ ] No \"button has no name\" in Lighthouse\n- [ ] A failing `/status` shows an error, not a spinner\n\n## How to test locally\n\n```bash\ncd blt-hackerhouse && npm install && npx wrangler d1 migrations apply hackerhouse --local && uv run pywrangler dev\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-102",
+            "sig": "ITXVg7yNJpBVejocYg5VhF80uzT4r2yeip_iCM915HcKCez69s2V0YKtcrLqPNIKDS2GV669LpT38NSOUktgDg",
+            "title": "blt-hackerhouse: label icon-only buttons and show an error state on the status page",
+            "ts": 1792547523879,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-102",
+            "labels": [
+                "hacktoberfest",
+                "blt-hackerhouse",
+                "accessibility"
+            ],
+            "sig": "rnBOdu507S1PrAOB9b_oOxtGEEQ5JnoStcdkVwC1k8-4Cv_55JaU7p8aSg4KS9YFqL9YqeKvODQdaYgePwl8AQ",
+            "ts": 1792547523880,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-hackerhouse",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 102,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-hackerhouse: label icon-only buttons and show an error state on the status page",
+    "updatedAt": 1792547523880,
+    "votes": 0
+}

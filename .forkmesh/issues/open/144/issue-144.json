@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524299,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/charts.html:143` loads `https://cdn.jsdelivr.net/npm/chart.js` with no version and no SRI, so a future major release can break the Analytics page. Mermaid is already vendored in `public/`.\n\n## What to do\n\n1. Pin an exact version with `integrity` and `crossorigin`, or vendor it like mermaid.\n2. Show a message in `charts.js` if `Chart` failed to load.\n\n## Acceptance criteria\n\n- [ ] Version pinned\n- [ ] All charts render\n- [ ] A readable message if the library fails\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-owasp-metadata/public 8000   # then open http://localhost:8000   # open /charts.html\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-144",
+            "sig": "0gfIFIoMNroGE0OMFBaesuh3GrZGn8C2S9gmPS0Dn7Wo5aFjvdmPPfTBn6kcNNFgWMcQZGEgf__PBY4QwYMSCQ",
+            "title": "blt-owasp-metadata: pin Chart.js on charts.html instead of loading the latest from jsDelivr",
+            "ts": 1792547524299,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-144",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-owasp-metadata",
+                "enhancement"
+            ],
+            "sig": "VGx68famNNvRNnN-gYERPkH3JUBszsT-jhGcgz9nFSz2jpHCmj-2yf6BA_85-4_O4xhltKVxHhoH4u3dilEXCg",
+            "ts": 1792547524300,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-owasp-metadata",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 144,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-metadata: pin Chart.js on charts.html instead of loading the latest from jsDelivr",
+    "updatedAt": 1792547524300,
+    "votes": 0
+}

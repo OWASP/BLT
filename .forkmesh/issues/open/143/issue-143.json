@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524289,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/index.html` navigates with `<button onclick=\"window.location.href='charts.html'\">` (and two more), so you can't open them in a new tab and they aren't announced as links. The theme toggle is an icon-only emoji, the search has only a placeholder, and the Filters/Columns toggles have no `aria-expanded`.\n\n## What to do\n\n1. Replace the three buttons with `<a class=\"btn\" href=...>`.\n2. Add `aria-label` to the search and theme controls.\n3. Set `aria-expanded`/`aria-controls` in `togglePanel` in `public/app.js`.\n\n## Acceptance criteria\n\n- [ ] No `onclick=` in `index.html`\n- [ ] Nav entries are links\n- [ ] Search and theme controls named\n- [ ] Panel toggles report `aria-expanded`\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-owasp-metadata/public 8000   # then open http://localhost:8000\nscripts/ci/test.sh blt-owasp-metadata\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-143",
+            "sig": "HiGSgVs5xX4uCHWQIJTJErd1ywInNUVwSSVIp3cY7eUdBXRAw-HKZThw0gT-g-Wm5X4bvxqBdjJHn14zHIWUDA",
+            "title": "blt-owasp-metadata: use links instead of onclick buttons for navigation and label the explorer controls",
+            "ts": 1792547524289,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-143",
+            "labels": [
+                "hacktoberfest",
+                "blt-owasp-metadata",
+                "accessibility"
+            ],
+            "sig": "Ad48QWDV0CPsUBJqIXW43vKwAvyO7ZOqSCIWC2S67o-kCZV1ZS_GdJg_NMx_D1OeFm634Lv86zYTN7BHTp8fCA",
+            "ts": 1792547524290,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-owasp-metadata",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 143,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-metadata: use links instead of onclick buttons for navigation and label the explorer controls",
+    "updatedAt": 1792547524290,
+    "votes": 0
+}

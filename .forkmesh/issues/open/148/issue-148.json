@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524339,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nSeveral `requests` calls have no timeout: `scripts/fetch_repo_status.py` (7 per repo), `fetch_issues.py`, `main.py`, `scrape_github_links.py` and `sweep.py`. Other calls in the same files do. The daily job can hang on one stalled request.\n\n## What to do\n\n1. Add a module-level `TIMEOUT = 30` and pass it everywhere.\n2. Catch `requests.RequestException` where the loop should continue.\n\n## Acceptance criteria\n\n- [ ] Every `requests.get/post/head(` line has a timeout\n- [ ] `py_compile` passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-owasp-projects\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-148",
+            "sig": "luAdN40Pq8StDZ4Sgfn_PwiExg9NaHr33DZjMkS0BLuNpwC6Xdym8Az2Nffx1pBq3MToSIYe0_QKfptF7I3xAg",
+            "title": "blt-owasp-projects: add timeouts to every requests call in the refresh scripts",
+            "ts": 1792547524339,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-148",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-owasp-projects",
+                "bug"
+            ],
+            "sig": "wy2glvLZKMABvPJ5Fqur6zHHAipquBQsygSabET2dKqCPCEJq7X0Wv8mti28lg7fduU8N2AMIHz7iFJ0lD8HBA",
+            "ts": 1792547524340,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-owasp-projects",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 148,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-projects: add timeouts to every requests call in the refresh scripts",
+    "updatedAt": 1792547524340,
+    "votes": 0
+}

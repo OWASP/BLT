@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524089,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/index.html` `#mobile-toggle` has `aria-label` but no `aria-expanded`/`aria-controls`, and `public/app.js` never closes the menu after an in-page link is clicked.\n\n## What to do\n\n1. Add `aria-controls=\"mobile-menu\" aria-expanded=\"false\"` and update it in app.js.\n2. Close the menu on link click and on Escape.\n3. Add a contract test in `tests/test_frontend_mock_ui.py`.\n\n## Acceptance criteria\n\n- [ ] `aria-expanded` reflects state\n- [ ] Clicking a link closes the menu\n- [ ] Test passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-timer-web\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-123",
+            "sig": "XIzRSTXNelUUp5zYwnOF8QelJ3nhKQDiqgug6Y28B6WR6QrHzPXe8sy96qU3H-j-deH_480VsNUx_C_1L5gRBA",
+            "title": "blt-timer-web: make the landing-page mobile menu toggle accessible",
+            "ts": 1792547524089,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-123",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-timer-web",
+                "accessibility"
+            ],
+            "sig": "BL8szxx_Q3TYYzMY1s92I_bupePO5PLIHXkscJ03rMaX_PcF-j0UkU7QC5d-8hyHMyhIFDDDZKUq5Y5wY97zAg",
+            "ts": 1792547524090,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-timer-web",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 123,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-timer-web: make the landing-page mobile menu toggle accessible",
+    "updatedAt": 1792547524090,
+    "votes": 0
+}

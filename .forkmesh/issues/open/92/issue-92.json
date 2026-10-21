@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523779,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/dashboard.js` (about L428-431) sets \"Last updated\" to `new Date()`, which is always now. The data has a `lastUpdated` field. The footer still says \"Generated automatically via GitHub Actions\".\n\n## What to do\n\n1. Pass `githubData.lastUpdated` to `updateLastUpdated`; show \"unknown\" when missing.\n2. Change the footer to say the data is refreshed daily by the site's Worker.\n\n## Acceptance criteria\n\n- [ ] Footer shows 2026-05-30 for the committed fallback data\n- [ ] Doesn't change on reload\n\n## How to test locally\n\n```bash\npython3 -m http.server -d my-gsoc-tool/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-92",
+            "sig": "k8QFlxWp7zd4GNUqdjiHxSI-ovPbGKhY0afRLR0gTB4jCoAeMAVOcBz9JkuCfazV4dar1g8ietXYRKpAmX6RDw",
+            "title": "my-gsoc-tool: show the data's real \"Last updated\" time instead of the browser clock",
+            "ts": 1792547523779,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-92",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "my-gsoc-tool",
+                "bug"
+            ],
+            "sig": "MqZfdGHyuuYjEEi7_p1FrZr1K0fH7GrQdhWOeMoiSW8ittSXY5PwSkORVeyyDLG08Wxqmw_H1oX0KT21_k0mCg",
+            "ts": 1792547523780,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "my-gsoc-tool",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 92,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "my-gsoc-tool: show the data's real \"Last updated\" time instead of the browser clock",
+    "updatedAt": 1792547523780,
+    "votes": 0
+}

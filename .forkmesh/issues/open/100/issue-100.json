@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523859,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`backend/check_db.py`, `check_dlq.py` and `check_now.py` are ad-hoc SQLite dumps, and `backend/db_out.txt` / `db_err.txt` are tracked output. Nothing references them and the app now uses D1.\n\n## What to do\n\n1. Delete them (or fold them into one documented `backend/scripts/inspect_db.py`).\n2. Add `db_*.txt` to `.gitignore`.\n\n## Acceptance criteria\n\n- [ ] Files removed or consolidated\n- [ ] Tests pass\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-hackerhouse\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-100",
+            "sig": "VbsU8sJa6RFIpQfCl1DDBbPmUXXVh3QSvE7sD1g-4Xo8uJ2Gf1t1zfyTHclGRn4sy0YtWL1TaxAE4izX4xVuCQ",
+            "title": "blt-hackerhouse: remove committed debug scripts and output (check_*.py, db_*.txt)",
+            "ts": 1792547523859,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-100",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-hackerhouse",
+                "enhancement"
+            ],
+            "sig": "93deaUjBEXVVWku2Vg5T_XhnAawFizqZefris3iszXOEvpeeXjhWBH-nMO4hv7ywvheJ_qvGwqGT1FrUb6VOBA",
+            "ts": 1792547523860,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-hackerhouse",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 100,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-hackerhouse: remove committed debug scripts and output (check_*.py, db_*.txt)",
+    "updatedAt": 1792547523860,
+    "votes": 0
+}

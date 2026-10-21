@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523659,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nThis is the first page newcomers see, and its setup commands fail: `public/index.html` (about L292-306) says `cd BLT` (the monorepo root has no `manage.py`) and `pip install -r requirements.txt` (blt-core has no requirements.txt; it uses uv). The \"Creating a Merge Request\" steps use an `upstream` remote that is never added.\n\n## What to do\n\n1. Use `cd BLT/blt-core` and the uv commands from `blt-core/README.md` Quick start.\n2. Relabel the BLT-Core repo link (about L254) to \"BLT/BLT-Core\".\n3. Add `git remote add upstream https://git.owaspblt.org/BLT.git` before it's used.\n\n## Acceptance criteria\n\n- [ ] Commands match blt-core's README\n- [ ] No `requirements.txt` or bare `cd BLT`\n- [ ] `upstream` defined before use\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-start/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-80",
+            "sig": "dm7vEQ_BQ_D-EyDpVblB6PYSFiotTmNlRHjCetufuwCtk551KYpMeLgyZ6W7twoX0iAP_djcZmc7PUyZs3BeBQ",
+            "title": "blt-start: fix the Local Setup steps to match blt-core (folder, uv, migrate)",
+            "ts": 1792547523659,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-80",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-start",
+                "documentation"
+            ],
+            "sig": "El4uhg8kd4mo4oLYYUeDjTDvKIDu9-TruBHCyff9SV0dNxsG4mrc4b5fxfnK0O1EexM_SlcvgZeV55w92r46DA",
+            "ts": 1792547523660,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-start",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 80,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-start: fix the Local Setup steps to match blt-core (folder, uv, migrate)",
+    "updatedAt": 1792547523660,
+    "votes": 0
+}

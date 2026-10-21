@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523359,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nThe blt-pool row in `scripts/ci/tests.tsv` runs only `test_worker.py` and `test_forge_leaderboard.py`, and compiles only `src/worker.py src/services`. `test_checks_api.py` and `test_check_orchestrator.py` (21 tests, passing locally) never run, and `src/checks_api.py` is never compiled, although `src/worker.py` imports both modules.\n\n## What to do\n\n1. Add both files to the blt-pool row in `scripts/ci/tests.tsv` (or run `python -m pytest -q`), and add `src/checks_api.py` to the compileall list.\n2. Update the README Testing section and project tree.\n\n## Acceptance criteria\n\n- [ ] `scripts/ci/test.sh blt-pool` runs all four test files\n- [ ] README matches\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-pool\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-50",
+            "sig": "oPHWp-2kkoDgWO0vVOubZT2X2hNsbE_IGBDhKDySDDFpZxL_dTzrhqEgdRPtHGXb5QExJ2S-9EFWZRAvQozhDA",
+            "title": "blt-pool: run test_checks_api.py and test_check_orchestrator.py in CI",
+            "ts": 1792547523359,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-50",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-pool",
+                "tests"
+            ],
+            "sig": "eu5C5FfrIx0DMSO1MarYl7S4OdEmC_eQC33pdvaiqK3FpzXiJ1O0FGK1THu932HKl-5dC2_LtF0Zt4NfJvNfBA",
+            "ts": 1792547523360,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-pool",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 50,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-pool: run test_checks_api.py and test_check_orchestrator.py in CI",
+    "updatedAt": 1792547523360,
+    "votes": 0
+}

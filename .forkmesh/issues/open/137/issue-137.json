@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524229,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`blt-sizzle/package.json` has `\"wrangler\": \"^3.0.0\"`; every other project uses 4.x (e.g. blt-leaf ^4.75.0, blt-monitor 4.95.0).\n\n## What to do\n\n1. Bump wrangler to the same ^4 range other projects use (there is no lockfile to update).\n2. Check `npm run dev` still starts.\n\n## Acceptance criteria\n\n- [ ] wrangler is ^4\n- [ ] `npm install && npm run dev` starts\n- [ ] Tests pass\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-sizzle\ncd blt-sizzle && npm install && npm run dev\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-137",
+            "sig": "X8vSYVKGiqOq8P4PsJEO47xSsY7oHP-_Z1PGRJjgxTyaMjPCGNHYc-bmeePX9deu7xbWneFcul5QZX5Cq2uXCw",
+            "title": "blt-sizzle: update the old wrangler ^3 dev dependency to 4.x",
+            "ts": 1792547524229,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-137",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-sizzle",
+                "enhancement"
+            ],
+            "sig": "UOv-uICIUjETa84vPrt81bPVmq_MyPWMV8ISP0VbNxJ4ePcPO6XCijf_YbxAzb-aChumj8jg0sqBquuR7pwiBw",
+            "ts": 1792547524230,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-sizzle",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 137,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-sizzle: update the old wrangler ^3 dev dependency to 4.x",
+    "updatedAt": 1792547524230,
+    "votes": 0
+}

@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524239,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/scripts/sizzle-ui.js` appends toasts to a plain `.toast-container` div (no live region) on every page, and `openSheet`/`openModal` don't handle Escape or move focus.\n\n## What to do\n\n1. In sizzle-ui.js, give the container `role=\"status\" aria-live=\"polite\"` (no HTML edits needed).\n2. Close the active sheet/modal on Escape and focus its first focusable element on open.\n3. Add a contract test in `tests/test_frontend_contract.py`.\n\n> **Note:** Don't touch the reminder settings, scheduler or email code; that work just landed.\n\n## Acceptance criteria\n\n- [ ] Toasts are announced\n- [ ] Escape closes the sheet/modal\n- [ ] Test passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-sizzle\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-138",
+            "sig": "VYd3BxYeHOYaRwRs3tPAS1-11WDsWLxm2QZyDwI638uyndE1nhnfPgIJPQCZ68m304OviZCFYVvuA9oAqeOlAg",
+            "title": "blt-sizzle: make toasts, sheets and modals in sizzle-ui.js accessible",
+            "ts": 1792547524239,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-138",
+            "labels": [
+                "hacktoberfest",
+                "blt-sizzle",
+                "accessibility"
+            ],
+            "sig": "sijGMLGSaNd9yQRgKB4okkzSFhflEGqOrcvgp7URy56ECg0osKBVIzTuyr80Uc0ZtqkB8tOQf9tHuepgSaGLCQ",
+            "ts": 1792547524240,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-sizzle",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 138,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-sizzle: make toasts, sheets and modals in sizzle-ui.js accessible",
+    "updatedAt": 1792547524240,
+    "votes": 0
+}

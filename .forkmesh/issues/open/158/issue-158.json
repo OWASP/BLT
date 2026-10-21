@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524439,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`scripts/update_slack_apps.py` has pure functions (`merge_apps`, `parse_app_cards`, `_find_apps_in_json`, `_parse_next_data`) with no tests; CI only runs `py_compile` on it. `merge_apps` must keep curated security fields.\n\n## What to do\n\n1. Add `tests/test_update_slack_apps.py` with fixture HTML/JSON.\n2. Extend the blt-panini row in `scripts/ci/tests.tsv` with `pip install -r scripts/requirements.txt && python -m unittest discover -s tests`.\n\n## Acceptance criteria\n\n- [ ] Merge keeps curated fields and adds new apps with defaults\n- [ ] Parser handles card HTML and a `__NEXT_DATA__` blob\n- [ ] CI runs the tests\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-panini\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-158",
+            "sig": "xRjPUjmS-GpP9SEVh4ZPwMSeGdP6QWQrEiHUxrtuYN214R2qYSm_M52Fm7R6DsrsdVNZk6xYvQ45yeOtoLGBAA",
+            "title": "blt-panini: add unit tests for update_slack_apps.py merge and parse helpers",
+            "ts": 1792547524439,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-158",
+            "labels": [
+                "hacktoberfest",
+                "blt-panini",
+                "tests"
+            ],
+            "sig": "-PUIG0bu4ip5uMxzEH-31jHu35NUoTvAZHb6zdUvbhn9AjjSXf6yicyGbJknZVaLKxQvMdFtMiCv0mKJXugfBQ",
+            "ts": 1792547524440,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-panini",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 158,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-panini: add unit tests for update_slack_apps.py merge and parse helpers",
+    "updatedAt": 1792547524440,
+    "votes": 0
+}

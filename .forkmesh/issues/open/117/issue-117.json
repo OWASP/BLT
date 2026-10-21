@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524029,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/index.html` leaves `#monitors-list` empty until both fetches finish, and `renderCards()` renders nothing when search/filter matches nothing, so the page just goes blank.\n\n## What to do\n\n1. Render a \"Loading monitors...\" placeholder at start.\n2. When filtering leaves 0 cards, show \"No monitors match your search\" in a `role=\"status\"` container.\n\n## Acceptance criteria\n\n- [ ] Placeholder visible before data loads\n- [ ] Searching \"zzzz\" shows the message\n- [ ] Clearing restores cards\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-monitor/public 8000   # then open http://localhost:8000   # history 404s are fine\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-117",
+            "sig": "TdPvv4yp1f1A6evbEF6cEc2zaUvzxGs9lklnMdTyqkXV2GFsog-L36DC3t7BvNTlspij4FO9rM8ENulKlA7UDg",
+            "title": "blt-monitor: show loading and \"no matching monitors\" states on the dashboard",
+            "ts": 1792547524029,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-117",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-monitor",
+                "enhancement"
+            ],
+            "sig": "rNHd84Y_fbkvgkneU3tMqJQnRUrwjzu8POVolQl7VuFxaf5HIGwj2F121wCN0Y8uMJuVdNoKNMmFEX5YdLATCg",
+            "ts": 1792547524030,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-monitor",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 117,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-monitor: show loading and \"no matching monitors\" states on the dashboard",
+    "updatedAt": 1792547524030,
+    "votes": 0
+}

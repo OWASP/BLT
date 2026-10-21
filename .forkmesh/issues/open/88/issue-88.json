@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523739,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/index.py` has no tests; CI runs only `node --test`. `_path_from_url` and `_maybe_profile_page` are pure once the `workers` module is stubbed.\n\n## What to do\n\n1. Add `test/test_index.py` stubbing `sys.modules['workers']`: root, valid username, reserved names, multi-segment paths, query strings, too-short names, trailing slash.\n2. Append `&& python3 -m unittest discover -s test -p 'test_*.py'` to the blt-profiles row in `scripts/ci/tests.tsv`.\n\n## Acceptance criteria\n\n- [ ] At least 8 cases pass\n- [ ] `scripts/ci/test.sh blt-profiles` runs both suites\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-profiles\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-88",
+            "sig": "A_MoxFLAqaTOLS2MIMMk9imy2FSGosW1Gie2hZgMg2nxj_wNhsyDsJgGL5byFXFlEfqt4fR5umIB2UgXNX6HAg",
+            "title": "blt-profiles: add Python unit tests for the Worker router and run them in CI",
+            "ts": 1792547523739,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-88",
+            "labels": [
+                "hacktoberfest",
+                "blt-profiles",
+                "tests"
+            ],
+            "sig": "gWodh7LXjGFr8JkXMmkAVJtREq567pt0y8hXPG46NXBTnKHTAnmcuPS33k_WuAo8pfj91HEfg8twUz9vijxLCQ",
+            "ts": 1792547523740,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-profiles",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 88,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-profiles: add Python unit tests for the Worker router and run them in CI",
+    "updatedAt": 1792547523740,
+    "votes": 0
+}

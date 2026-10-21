@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523549,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`tests/tests_cli.py` has 10 tests, but pytest only collects `test_*.py` / `*_test.py` and there's no config overriding that, so CI never runs them (they pass when run directly).\n\n## What to do\n\n1. `git mv tests/tests_cli.py tests/test_cli.py`.\n\n## Acceptance criteria\n\n- [ ] `python -m pytest -q` output includes `tests/test_cli.py`\n- [ ] Suite passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-preflight\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-69",
+            "sig": "0g2VijfWINWbsyEB74OFHAPE5TQvIKTB3UzMT_9NQS2Stb3Y6-yyE3nhclk_7T2fW0DFOq583cgZzRfntPEwAA",
+            "title": "blt-preflight: rename tests/tests_cli.py so pytest collects it",
+            "ts": 1792547523549,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-69",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-preflight",
+                "tests"
+            ],
+            "sig": "v4HlfcoEGOF937ZuYg74lJQzASYn23WgKjQ31e8AByLDIjT82v1SjkulNeTM3gb8XPfpMD6UJFIbYqUaS9mvCA",
+            "ts": 1792547523550,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-preflight",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 69,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-preflight: rename tests/tests_cli.py so pytest collects it",
+    "updatedAt": 1792547523550,
+    "votes": 0
+}

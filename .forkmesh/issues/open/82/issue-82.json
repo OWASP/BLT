@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523679,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/index.html` (about L80, L260, L399) links to `issues?label_name[]=good%20first%20issue`, which is GitLab syntax. Other projects use `issues?label=...`, so the page's main call to action probably shows an unfiltered list.\n\n## What to do\n\n1. Confirm in a browser which form git.owaspblt.org honours.\n2. Switch the three links to `issues?label=good%20first%20issue`.\n\n## Acceptance criteria\n\n- [ ] All three links open a list filtered to \"good first issue\"\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-start/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-82",
+            "sig": "hA93JZElssFP48qchJWztDHhrP3IzcBqgZcqGJqrgVgD2njyfTVeTNqCmBbEZ84u22q69hZhgaCnZtvEhkwnBQ",
+            "title": "blt-start: use the forge's `?label=` filter for the \"good first issue\" links",
+            "ts": 1792547523679,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-82",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-start",
+                "bug"
+            ],
+            "sig": "Hahi905P-J7Q2irOIYn8L_lYAt1wuXI2L16yrwtCdjwoI-C8WvYsygoP8Feea9rkf24Qd4nhauiKnJa7RXKgCA",
+            "ts": 1792547523680,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-start",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 82,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-start: use the forge's `?label=` filter for the \"good first issue\" links",
+    "updatedAt": 1792547523680,
+    "votes": 0
+}

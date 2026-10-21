@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523889,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nTests cover `process_hackathon_stats` and `slack_activity`, but not the pure helpers in `fetch_stats.py`: `load_participants_allowlist` (five malformed-input branches), `configured_repositories`, `build_summary`, `parse_optional_datetime`, `is_owned_by_workflow` and `is_hackathon_active`.\n\n## What to do\n\n1. Add `test/test_fetch_stats_helpers.py` with temp YAML files for each allowlist branch, forkmesh paths excluding `*`, top-3 truncation in `build_summary` and the workflow-ownership boundaries.\n\n## Acceptance criteria\n\n- [ ] At least 10 tests pass\n- [ ] No network\n- [ ] Picked up by `unittest discover -s test`\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-hackathons\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-103",
+            "sig": "B35UGwhMdQrNUrulhw7txcomC3LtFgg9D4PNFZYxoqjwt9L2pu8pvWD9yl3h0vvzLN8SfQj7xw2ADCwuVi7HAA",
+            "title": "blt-hackathons: add unit tests for fetch_stats.py helper functions",
+            "ts": 1792547523889,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-103",
+            "labels": [
+                "hacktoberfest",
+                "blt-hackathons",
+                "tests"
+            ],
+            "sig": "7W5ZCNGDsbD2sACb563Uqo5Ggqbsp80aPAL74uHgl6GcaeOqUo_kS_1Y2Kp5vV4gpIE4i2PzK7TfcvXN3nX-AQ",
+            "ts": 1792547523890,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-hackathons",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 103,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-hackathons: add unit tests for fetch_stats.py helper functions",
+    "updatedAt": 1792547523890,
+    "votes": 0
+}

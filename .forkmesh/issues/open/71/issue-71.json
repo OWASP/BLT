@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523569,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nThere's no `.github/` in blt-preflight, yet README, `docs/CONFIGURATION.md` and `docs/WORKFLOW.md` say the advisory runs from `.github/workflows/advisory.yml`. The real integration is the webhook Worker in `workers/api/`. README also says `cd BLT-Preflight` after cloning the monorepo.\n\n## What to do\n\n1. Remove or clearly mark as historical every `advisory.yml` reference.\n2. Describe the `workers/api` webhook and local `pf` usage.\n3. Use `cd BLT/blt-preflight`.\n\n## Acceptance criteria\n\n- [ ] `grep -rn advisory.yml blt-preflight` finds nothing current\n- [ ] Clone path correct\n\n## How to test locally\n\n```bash\ngrep -rn advisory.yml blt-preflight\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-71",
+            "sig": "3x4MApSHrx_n5jh9lh9WRs7Qm4quQ37vPjaKvkPtPzjcYEMX2TypDJ_LW9S60YOsuFkSKvwDbSnsEU2UZFqUDA",
+            "title": "blt-preflight: remove references to a GitHub Actions workflow that doesn't exist",
+            "ts": 1792547523569,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-71",
+            "labels": [
+                "hacktoberfest",
+                "blt-preflight",
+                "documentation"
+            ],
+            "sig": "EBKQdtKOUqTzVEVPiKU8w5p2vpG8ZhvBccDNy1dKTpOqNmA0l7xAr5ljWl2I0p8VLPKyjM_8upUA0GGaXwJYAA",
+            "ts": 1792547523570,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-preflight",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 71,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-preflight: remove references to a GitHub Actions workflow that doesn't exist",
+    "updatedAt": 1792547523570,
+    "votes": 0
+}

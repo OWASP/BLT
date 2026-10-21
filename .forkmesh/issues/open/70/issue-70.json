@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523559,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`workers/api/src/pipeline/signals.ts` uses unanchored regexes: `src/feedback.py` is tagged database, `AUTHORS` auth, `lessons.css` auth (\"sso\"), `capitalize.js` api, and `.env.example` secret, which `score.ts` (`hardSecret`) escalates to CRITICAL. The TS worker has no tests.\n\n## What to do\n\n1. Match on path segments or word boundaries.\n2. Exclude `.env.example`, `.env.sample` and `.env.template` from the secret check.\n3. Add a test runner to `workers/api` (vitest, or `node --test` with tsx) and tests for `classifyFiles`, `scoreSignals` and `formatGitLabComment`.\n\n## Acceptance criteria\n\n- [ ] The five paths above are no longer misclassified\n- [ ] `src/auth/login.py` and `.env` are still flagged\n- [ ] `npm test` in `workers/api` runs the tests\n\n## How to test locally\n\n```bash\ncd blt-preflight/workers/api && npm install && npm test\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-70",
+            "sig": "YcGIWLyvxlbZ2KdJ5Fv0AkHVWX2NJfwKzUvCWBWtsajyAC3i1dmVqHKbH2jdP9pblxmbmnjthzpMXurTLzvtCg",
+            "title": "blt-preflight: fix substring false positives in the workers/api file classifier and add tests",
+            "ts": 1792547523559,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-70",
+            "labels": [
+                "hacktoberfest",
+                "blt-preflight",
+                "bug"
+            ],
+            "sig": "TfE3Yjt4iyUXoSQUpE0Yk_LjaqFpd2v2Rl23JEQcBPh5ZfxG_YVxwDB_Gweia0I2pvQYus-l3CBIiDBId7zNBw",
+            "ts": 1792547523560,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-preflight",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 70,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-preflight: fix substring false positives in the workers/api file classifier and add tests",
+    "updatedAt": 1792547523560,
+    "votes": 0
+}

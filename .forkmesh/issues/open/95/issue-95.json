@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523809,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME tells you to enable GitHub Pages on a `copilot/...` branch; the site is deployed with `scripts/deploy.sh blt-gsoc`. The tree lists files that don't exist (`.nojekyll`, `images/gsoc.png`, `CHANGELOG.md`, `SUMMARY.md`), \"History\" appears twice, and the page list leaves out `gsoc2026.html`, `mentor-guide.html`, `progress-tracker.html`, `contributors/` and `certificates/`.\n\n## What to do\n\n1. Replace the Pages section with `scripts/deploy.sh blt-gsoc`.\n2. Fix the tree and page list; remove the duplicate heading; fix \"GitHub Pages\" wording in README and `pr-report.html`.\n\n## Acceptance criteria\n\n- [ ] Every path in the README exists\n- [ ] No GitHub Pages instructions\n\n## How to test locally\n\n```bash\ncd blt-gsoc && ./run.sh\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-95",
+            "sig": "lT12i1yTidVGSsT7hC3IgA2T1dvTjRxgL0S9sXsa7IvO3EH0a4OBJ0tuwV_eUs7-lfKMrq9e4EV5DoN8s77qAg",
+            "title": "blt-gsoc: rewrite the stale README (GitHub Pages deploy, missing files, page list)",
+            "ts": 1792547523809,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-95",
+            "labels": [
+                "hacktoberfest",
+                "blt-gsoc",
+                "documentation"
+            ],
+            "sig": "jpf7bxp4-MaqjsyvJtpEXDcnjRDVsvNvyMqv9e6KvUvw9kX9oiWoerarDQdfZZ-yHtin34nOMnNrMYhEydsuAg",
+            "ts": 1792547523810,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-gsoc",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 95,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-gsoc: rewrite the stale README (GitHub Pages deploy, missing files, page list)",
+    "updatedAt": 1792547523810,
+    "votes": 0
+}

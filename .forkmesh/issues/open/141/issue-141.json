@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524269,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`SETUP.md` is entirely about GitHub Pages and `.github/workflows/generate-repo-list.yml` (doesn't exist; the job is `.forkmesh/blt-owasp-bumper--generate-repo-list.yml`). README has GitHub badges, `cd OWASP-Bumper`, a \"1s delay per 100 repos\" claim the code doesn't do, stale line numbers, and \"no secrets needed\" contradicting `GH_API_TOKEN`.\n\n## What to do\n\n1. Replace SETUP.md with local run steps (`OUTPUT_FILE=public/index.html python3 generate_repo_list.py`) and pointers to the .forkmesh workflow and `scripts/refresh-kv.sh`.\n2. Fix the README items above.\n\n## Acceptance criteria\n\n- [ ] No GitHub Pages / `.github/workflows` mentions\n- [ ] Clone/cd commands work\n- [ ] No stale line numbers\n- [ ] Rate-limit claims match the code\n\n## How to test locally\n\n```bash\nFollow the README; scripts/ci/test.sh blt-owasp-bumper\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-141",
+            "sig": "RPVV0MTJSS_Eipslg0sUWzSAPf_WZrOV2MjLCLiboCkjy5DUzQlcmkCnud1jEG_lBUxvrGKJZ9_RIqZEleppBA",
+            "title": "blt-owasp-bumper: rewrite SETUP.md and stale README sections for the forge and Workers KV",
+            "ts": 1792547524269,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-141",
+            "labels": [
+                "hacktoberfest",
+                "blt-owasp-bumper",
+                "documentation"
+            ],
+            "sig": "ixzGmILXtFgCEIuCg55aU_Xa6ZgxCWUsDNJ3ed4QWqgTaILwKKmQjGik2NIgklYJ9E6hDwig2rTLRUBR3H2BAQ",
+            "ts": 1792547524270,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-owasp-bumper",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 141,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-bumper: rewrite SETUP.md and stale README sections for the forge and Workers KV",
+    "updatedAt": 1792547524270,
+    "votes": 0
+}

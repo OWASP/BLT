@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524409,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nThe scraper's `requests.get` calls in `.github/scripts/funding/owasp_funding_yml_scraper.py` (`get_owasp_repos`, `check_funding_file`, `parse_funding_file`) have no timeout, so one stalled request can hang the scheduled job. In `parse_funding_file`, `yaml.safe_load` returns `None` for an empty file and raises on invalid YAML, and `funding_content.items()` then crashes the whole run.\n\n## What to do\n\n1. Add a module-level `TIMEOUT = 30` and pass it to every `requests.get`.\n2. In `parse_funding_file`, catch `yaml.YAMLError`, skip non-mapping content with a warning, and return `\"\"`.\n3. Add cases to `test/test_funding_render.py` (or a new `test/test_funding_parse.py`) that mock `requests.get` for an empty file and invalid YAML.\n\n## Acceptance criteria\n\n- [ ] Every `requests.get` has a timeout\n- [ ] Empty or invalid FUNDING.yml is skipped with a warning, not a crash\n- [ ] New tests pass\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-tomato\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-155",
+            "sig": "2Ho7AsJ6ckIalpArHXBIMB1nUNCSIY_Si1F0O2rzSK9oTEU-Q6Zk61izJRi_xGCt8PZOyP8MDj-TPTBYZhIpBg",
+            "title": "blt-tomato: add request timeouts and skip empty or invalid FUNDING.yml files",
+            "ts": 1792547524409,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-155",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-tomato",
+                "bug"
+            ],
+            "sig": "FmXshQPRauXhcCJ6QTYDhta86XOyHO7TZ3mW3MrrCwgVZfnNh13snR8RuiKLqONER3E1ypfRDD2i-KTFaDF2CA",
+            "ts": 1792547524410,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-tomato",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 155,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-tomato: add request timeouts and skip empty or invalid FUNDING.yml files",
+    "updatedAt": 1792547524410,
+    "votes": 0
+}

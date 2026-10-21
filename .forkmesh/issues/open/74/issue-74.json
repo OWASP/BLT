@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523599,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/payload_redact.py` (37 lines, pure) is used by `findings_service.py` and `pdf_report.py`, but nothing under `tests/` covers it.\n\n## What to do\n\n1. Add `tests/test_payload_redact.py` covering top-level keys, case-insensitivity, nested dicts, lists of dicts and non-dict pass-through.\n2. If you find key variants that are *not* redacted (e.g. `access_token`, `api-key`), record them as `xfail` tests with a comment. Don't change redaction behaviour in this issue.\n\n## Acceptance criteria\n\n- [ ] At least 6 test cases\n- [ ] Full suite passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-netguardian\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-74",
+            "sig": "ZpUBPXOz87No-F1IjTPgWN_X9o9UbPefFAUREgQweMxFtTw3AR5WjQjuIINvgJIIn9JYOKoaE55Wvl72jyxDCg",
+            "title": "blt-netguardian: add unit tests for payload_redact.py",
+            "ts": 1792547523599,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-74",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-netguardian",
+                "tests"
+            ],
+            "sig": "pQCfxK-qcMnGew-ZjUlKJtXkJiox6nijjzw6n7sGbn1ys9fWBdlLmFlFr8VecNYLsbbmzIjAqQs1goqaqPNbCg",
+            "ts": 1792547523600,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-netguardian",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 74,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-netguardian: add unit tests for payload_redact.py",
+    "updatedAt": 1792547523600,
+    "votes": 0
+}

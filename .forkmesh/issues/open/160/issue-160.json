@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524459,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/js/config.js` has `PROJECT_PATH: \"owasp-blt/blt-pages\"` (GitLab era) and `ISSUE_TEMPLATE`, which nothing reads. `@fontsource/manrope` in package.json isn't used (fonts are vendored). `playwright.config.js` runs `python` instead of `python3`.\n\n## What to do\n\n1. Delete the dead keys, remove the dependency (update package-lock.json), and use `python3` in the webServer command.\n\n## Acceptance criteria\n\n- [ ] No unused config keys\n- [ ] `npm ci && npm test` still works\n- [ ] Unit tests pass\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-pages\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-160",
+            "sig": "ugMS1iesb2hxlvQnPeERU8ZBTLFUyQ5ThFsxWe8hcHuppiWYmyLt8mwBz_BOPqskFUUNNEc3nDE9eDU1Hv_mCg",
+            "title": "blt-pages: remove dead config keys and the unused @fontsource dependency",
+            "ts": 1792547524459,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-160",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-pages",
+                "enhancement"
+            ],
+            "sig": "u6I1vcMOezZKA1yYniGZCtpCTYf4a-CK8YesgaJKY2WAOCnCg-EiLWGVvL5e_v8zSv-nxsoMz0PsT-ZjPLPlAQ",
+            "ts": 1792547524460,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-pages",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 160,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-pages: remove dead config keys and the unused @fontsource dependency",
+    "updatedAt": 1792547524460,
+    "votes": 0
+}

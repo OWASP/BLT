@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524429,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/script.js` calls `.json()` without checking `response.ok`; a Slack data failure only goes to `console.error`, so the Slack tab later says \"No Slack apps match your filters.\" A GeoJSON failure leaves the map blank.\n\n## What to do\n\n1. Check `.ok`; show an error panel in the Slack and map views.\n2. Keep \"no results\" for real filtering only.\n\n## Acceptance criteria\n\n- [ ] Blocking slack_apps.json in DevTools shows an error, not \"no results\"\n- [ ] A GeoJSON failure shows a map notice\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-panini/public 8000   # then open http://localhost:8000   # block requests in DevTools\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-157",
+            "sig": "TiTEwXBslCPaGpSwVzLieLqLncT9S0vlNR_XQpB9pTeD86OzU3AyNW9H1FsSiUshzjoFEkoVjelgTA_L_BAhCw",
+            "title": "blt-panini: show an error when slack_apps.json or the map data fails to load",
+            "ts": 1792547524429,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-157",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-panini",
+                "bug"
+            ],
+            "sig": "JTErNBk69NNfcqW_E0wXV0cfwGnfmRH8e06KwqnG1GSJg2peUxBWPgqTZ7QEJvsh4TqHYGyzmEpiasn6s3vtDA",
+            "ts": 1792547524430,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-panini",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 157,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-panini: show an error when slack_apps.json or the map data fails to load",
+    "updatedAt": 1792547524430,
+    "votes": 0
+}

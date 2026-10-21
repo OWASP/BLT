@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524619,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/index.py` returns `None` for unmatched paths (\"let Cloudflare serve the static asset\"), but matched assets are already served before the Worker runs, so only unknown paths get here and they error instead of 404. The `/` redirect is unreachable, and error responses carry `Cache-Control: public, max-age=30`. Confirm with `curl -i localhost:8787/nope` first.\n\n## What to do\n\n1. Return a 404 Response (or set `not_found_handling` in wrangler.toml).\n2. Remove the dead redirect; use `no-store` on error responses.\n3. Optional: add a `tests/` folder with a stubbed `js` module (see blt-zero) and a tests.tsv row.\n\n## Acceptance criteria\n\n- [ ] `/nope` returns 404, not 500\n- [ ] `/api/sol-balance` still works\n- [ ] Errors not cached\n\n## How to test locally\n\n```bash\ncd blt-rewards && npx wrangler dev   # curl -i localhost:8787/nope\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-176",
+            "sig": "ORZTSezEI8Ni8osTy9qGyAzRGivgqoxfkXCPq5Zc0fyLV71LJ9CDjyGqSIm-lZkNkOtgLWbng_5r7KK4Ew4pAg",
+            "title": "blt-rewards: return a 404 from the Worker instead of None for unknown paths",
+            "ts": 1792547524619,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-176",
+            "labels": [
+                "hacktoberfest",
+                "blt-rewards",
+                "bug"
+            ],
+            "sig": "5XWiYZpczk0SlGDyUzKb8CXc1ycmTVHRECbAIFDqaoeM8CsjrIzJXumGEjuYBaDI5Jvwri1N9HlP4wopMQV9Ag",
+            "ts": 1792547524620,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-rewards",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 176,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-rewards: return a 404 from the Worker instead of None for unknown paths",
+    "updatedAt": 1792547524620,
+    "votes": 0
+}

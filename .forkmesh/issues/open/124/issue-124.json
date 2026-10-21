@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524099,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME and `docs/SETUP.md` say `npx wrangler d1 create blt-timer-web`, but `wrangler.toml` now binds the shared `blt-apps` database with `migrations_table = \"d1_migrations_timer\"` (shared with blt-toasty since 55c8485acd).\n\n## What to do\n\n1. Explain the shared database and the custom migrations table, and how to run migrations locally (`./migrate.sh dev`).\n\n## Acceptance criteria\n\n- [ ] Docs match `wrangler.toml`\n\n## How to test locally\n\n```bash\ncd blt-timer-web && ./migrate.sh dev && npx wrangler dev\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-124",
+            "sig": "qXIHBSP25qAr4ONtbAO6_ZbIlcYgfoUGAcW9sBhM1mcsY3cjwnJXHfCxayDfnMHKrVxfCcLOd_TJH-IayZlbBQ",
+            "title": "blt-timer-web: update README and SETUP for the shared blt-apps D1 database",
+            "ts": 1792547524099,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-124",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-timer-web",
+                "documentation"
+            ],
+            "sig": "ylIHgVESn3lxIbiQl1N60tNtwzTpQ4rbjEKjFb8uGHA9_yay4a4EoJtf0h_MV42vyIjuSnBxrFUtJwNjO8NOBQ",
+            "ts": 1792547524100,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-timer-web",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 124,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-timer-web: update README and SETUP for the shared blt-apps D1 database",
+    "updatedAt": 1792547524100,
+    "votes": 0
+}

@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523389,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nThe README jobs table lists 4 jobs but `src/jobs.js` has 10 (missing blt-pool, leaf, lettuce, monitor, sizzle, netguardian). `wrangler.toml` still binds `GSOC` to blt-gsoc although no job has used it since 2026-10-18.\n\n## What to do\n\n1. Regenerate the README table from `JOBS` in `src/jobs.js`.\n2. Remove the `GSOC` service binding from `wrangler.toml`.\n3. Add a test in `test/cron.test.js` that fails if wrangler.toml declares a binding no job uses.\n\n## Acceptance criteria\n\n- [ ] Table lists every job\n- [ ] `GSOC` binding removed\n- [ ] New test passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-cron\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-53",
+            "sig": "uq5SjLsJybUUgZ3nlHpMixYnxkCVEtvQ5EFYc14ON3oY9W59omevET8vOOpIVffvQYt3sQSQSpmoUM0WX7A0DA",
+            "title": "blt-cron: complete the README jobs table and remove the unused GSOC service binding",
+            "ts": 1792547523389,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-53",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-cron",
+                "documentation"
+            ],
+            "sig": "R-ON_1fY10PO4RBnw9ujxycGA1Qys6pjcQSfpguYpjIVeKkRdUaUY3_iTl8JArM4QnaLat0oA6D-upT82BvvDg",
+            "ts": 1792547523390,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-cron",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 53,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-cron: complete the README jobs table and remove the unused GSOC service binding",
+    "updatedAt": 1792547523390,
+    "votes": 0
+}

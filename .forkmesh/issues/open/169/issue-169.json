@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524549,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME describes Cloudflare Pages and `wrangler pages deploy`, and says the domain is in `CNAME`. There is no CNAME file; `wrangler.toml` is Workers static assets and `scripts/deploy/projects.tsv` deploys it as a worker.\n\n## What to do\n\n1. Replace the Pages section with `npx wrangler dev` for preview and `scripts/deploy.sh blt-design` for deploy; remove the CNAME sentence.\n\n## Acceptance criteria\n\n- [ ] No Pages or CNAME mentions\n- [ ] Deploy command matches projects.tsv\n\n## How to test locally\n\n```bash\ncd blt-design && npx wrangler dev\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-169",
+            "sig": "qccH3VjlefWnVAIov5wmrTmkYKddNz0PxthV0iiln7owvPtOjLtHb3o5vopR2_6LFnuNVPxM2pJ2Rl7kv3pXAw",
+            "title": "blt-design: update the README deploy section (no CNAME; deploys as a Worker, not Pages)",
+            "ts": 1792547524549,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-169",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-design",
+                "documentation"
+            ],
+            "sig": "-qBZlvmQHNkGgYp5Rbvpf4Ow1y2pN4JaOVWXwCRN0z6893y6cVNkoLhNuQS0P8CibTgQa6A7OH6dmEwq8LtxAw",
+            "ts": 1792547524550,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-design",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 169,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-design: update the README deploy section (no CNAME; deploys as a Worker, not Pages)",
+    "updatedAt": 1792547524550,
+    "votes": 0
+}

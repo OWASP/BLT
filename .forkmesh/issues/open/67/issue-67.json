@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523529,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nThe pipe-to-shell rule in `src/blt_mayo/rules/shell_execution.py` (about L27-30, and the encoded-execution rule at L65-67) misses common variants: `curl ... | /bin/bash`, `curl ... | sudo -E bash`, `bash <(curl -s ...)` and `echo ... | base64 -d | /bin/sh` all produce no findings.\n\n## What to do\n\n1. Allow an optional `(/usr)?/bin/` prefix and sudo flags.\n2. Add a process-substitution pattern for `bash <(curl|wget ...)`.\n3. Add cases to `tests/test_shell_execution_rules.py` and `tests/fixtures/shell/dangerous.sh`.\n\n## Acceptance criteria\n\n- [ ] The four lines above are flagged\n- [ ] `safe.sh` still has 0 findings\n- [ ] Coverage stays >= 80%\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-mayo\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-67",
+            "sig": "k5K3A1D8Ufo3PCo3DTZVm47kpRD8hk3i3dASLkoQqoca6lmgCMs_Ry4kHPz35IEkHXgk44TJ-8CLdnKe6ZkIAg",
+            "title": "blt-mayo: detect `| /bin/bash`, `| sudo -E bash` and `bash <(curl ...)`",
+            "ts": 1792547523529,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-67",
+            "labels": [
+                "hacktoberfest",
+                "blt-mayo",
+                "enhancement"
+            ],
+            "sig": "dOVHd9VvN23oVZDE3ObPWdFRWTCuAPNX1Iruf6673SeU_Pad4zUhaerKP6VT5B6jP5H9zWCFhTcnRUZvNi-DBg",
+            "ts": 1792547523530,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-mayo",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 67,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-mayo: detect `| /bin/bash`, `| sudo -E bash` and `bash <(curl ...)`",
+    "updatedAt": 1792547523530,
+    "votes": 0
+}

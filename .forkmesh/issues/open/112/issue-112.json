@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523979,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`test-sorting-security.js` checks the SQL sort-column allowlist and passes (21/21), and README and CONTRIBUTING tell people to run it, but the `test` script in `package.json` doesn't include it, so CI never does.\n\n## What to do\n\n1. Append `&& node test-sorting-security.js` to the `test` script; make sure it exits non-zero on failure.\n\n## Acceptance criteria\n\n- [ ] `npm test` runs it\n- [ ] A deliberately broken allowlist makes `npm test` fail\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-leaf\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-112",
+            "sig": "FsiSdbiflXYLzCXeKc3oaQhobtRd18HzAHt1aosf6e8wzvOZJ6-tnOab6KePWR5bwdHLUQlYYbHcr6S8dvDaDA",
+            "title": "blt-leaf: run test-sorting-security.js as part of npm test",
+            "ts": 1792547523979,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-112",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-leaf",
+                "tests"
+            ],
+            "sig": "cQ3qmhfgeiddz21YtGfn-T3ExA9Lw8XWFoFRj66_DPkp8UJBkTTUKd8MYKUGocDckKzpJrI8gz56Yuz_3PvaDw",
+            "ts": 1792547523980,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-leaf",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 112,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-leaf: run test-sorting-security.js as part of npm test",
+    "updatedAt": 1792547523980,
+    "votes": 0
+}

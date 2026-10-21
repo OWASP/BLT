@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523669,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME lists dark mode and `public/index.html` sets Tailwind `darkMode: 'class'` with many `dark:` classes, but nothing ever adds the `dark` class: no toggle, no `prefers-color-scheme`, no saved choice.\n\n## What to do\n\n1. Add an early inline script that applies `dark` from localStorage or `prefers-color-scheme`.\n2. Add a labelled toggle (`aria-label`, `aria-pressed`) to the header nav, modelled on `blt-gsoc/js/theme.js`.\n\n## Acceptance criteria\n\n- [ ] Toggle switches theme and survives reload\n- [ ] OS preference respected on first visit\n- [ ] Button is keyboard-reachable and labelled\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-start/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-81",
+            "sig": "G2pKpDn8ZZkTdXa1-gO_7pCYpaRG4LnJEGus5ji-3Hiih4AyugWs8aViwyOKDwzgBjAgV-mT-TolvhlrVdAfCA",
+            "title": "blt-start: make the advertised dark mode work (add a theme toggle)",
+            "ts": 1792547523669,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-81",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-start",
+                "bug"
+            ],
+            "sig": "WBialF2fdu2hFpDEBgDAvVIESU5Jg9Idw2Vhkqf-wEjtT9rL8KgUgpXy_9KC7Ut93am68QC7QliRLmR0hwZhAw",
+            "ts": 1792547523670,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-start",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 81,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-start: make the advertised dark mode work (add a theme toggle)",
+    "updatedAt": 1792547523670,
+    "votes": 0
+}

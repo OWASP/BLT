@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524169,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME says `cd BLT-Newsletter`, uses a macOS-only `/private/tmp` path, and says to replace a placeholder D1 id that is already real. `.env.example` lists only SENDGRID_* while the README also requires `EMAIL_HASH_SECRET`, `ADMIN_SESSION_SECRET` and `PUBLIC_BASE_URL`, and never says to copy it to `.dev.vars`. Docs only; doesn't change how secrets are handled (#25).\n\n## What to do\n\n1. Fix the paths and steps; list every variable from the README in `.env.example` with placeholder values.\n\n## Acceptance criteria\n\n- [ ] `.env.example` covers every documented variable\n- [ ] Commands are portable\n\n## How to test locally\n\n```bash\nDocs only.\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-131",
+            "sig": "G6E9IY67qPcQ31FxOsCBRFtDVmMb7T0KOT8MjGAhYMcvFeUAUU9W1nQXVS_JpYI91NflAClAiMGq1JIqF1IGAA",
+            "title": "blt-newsletter: fix README local-dev steps and complete .env.example",
+            "ts": 1792547524169,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-131",
+            "labels": [
+                "hacktoberfest",
+                "blt-newsletter",
+                "documentation"
+            ],
+            "sig": "HixAwDdcL1wJ4uDQS0r9w2_zkkyiDqvw7cyzb8yoDZyFc5r-ej0lNPlnSesEeKsWRtNcslImWjJVTeyIKpwNAQ",
+            "ts": 1792547524170,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-newsletter",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 131,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-newsletter: fix README local-dev steps and complete .env.example",
+    "updatedAt": 1792547524170,
+    "votes": 0
+}

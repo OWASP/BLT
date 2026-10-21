@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524689,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`scripts/build_showcase.py` (about L395) strips `[ ]`/`[x]` lines with a lowercase-only class, while `extract_category` uses `[ xX]`. The 200-character truncation and code-fence stripping are untested.\n\n## What to do\n\n1. Change the class to `[ xX]`.\n2. Add tests for uppercase X, a fenced description, and a 250-character description (197 chars + \"…\").\n\n## Acceptance criteria\n\n- [ ] Three new tests\n- [ ] Suite passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-design-contest\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-183",
+            "sig": "m1gG6w1CI-1g7XS2gPj9pVXBQOXA41lhvZChGuA6cskqppVxYfx6isSbimTgOupJlydM5ues8PFukq3cm6c6BQ",
+            "title": "blt-design-contest: strip `[X]` checkboxes from descriptions and test extract_description edge cases",
+            "ts": 1792547524689,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-183",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-design-contest",
+                "tests"
+            ],
+            "sig": "JhS1guyxXbXXHVJLhUOSMZFhkosUal6_HHctwQfwWBLbMXFmrmjPZb-RWeuLuwdWV_q-avGsK4TEaoH3d6_ICA",
+            "ts": 1792547524690,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-design-contest",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 183,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-design-contest: strip `[X]` checkboxes from descriptions and test extract_description edge cases",
+    "updatedAt": 1792547524690,
+    "votes": 0
+}

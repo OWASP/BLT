@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524349,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`index.html` and `projects.html` load jQuery 3.6.0 and DataTables 1.10.25 (2021); `issues.html` loads DataTables 1.13.6. None use SRI.\n\n## What to do\n\n1. Move all pages to current jQuery 3.7.x and one DataTables version with `integrity`/`crossorigin`.\n2. Check sorting and paging on each page.\n\n## Acceptance criteria\n\n- [ ] One pinned version per library\n- [ ] SRI on every CDN tag\n- [ ] All three tables render and sort\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-owasp-projects/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-149",
+            "sig": "hQLCvnFmKHeqN2K5SIjoUHfxPZW6LLeI47U1qZsUAF7uS452UR8V7iugyr693BD5DLDL4XK086qcEb0EXZD6Bw",
+            "title": "blt-owasp-projects: upgrade jQuery and DataTables and use one version on all three pages",
+            "ts": 1792547524349,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-149",
+            "labels": [
+                "hacktoberfest",
+                "blt-owasp-projects",
+                "enhancement"
+            ],
+            "sig": "n5pNLtW57t6sgCo4hBmCXp-Y7NB2-9oy4BNDe_KnSc5T6u6E-1CiA8V95rEJqSyyEYeQX20ze1f_V-WO-vVrBQ",
+            "ts": 1792547524350,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-owasp-projects",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 149,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-projects: upgrade jQuery and DataTables and use one version on all three pages",
+    "updatedAt": 1792547524350,
+    "votes": 0
+}

@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523519,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/pages/submit.html:139` imports `https://unpkg.com/@zip.js/zip.js/index.js` with no version, so every reporter's browser loads whatever was published last, on the page that builds the encrypted ZIP.\n\n## What to do\n\n1. Pin an exact current version in the URL and note in the README how to bump it. Don't change the encryption code.\n\n## Acceptance criteria\n\n- [ ] URL has an exact version\n- [ ] A submission with a screenshot still produces a ZIP that 7-Zip opens\n\n## How to test locally\n\n```bash\ncd blt-zero && npx wrangler dev\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-66",
+            "sig": "w7Pdt8L4ZW6Ey6OGq0xzgEfb799a5QAP521n6fKPevzO-WUfzrG8hTlyKYdNW0sJGJJYEMtE34pWc1vtZ4slDw",
+            "title": "blt-zero: pin the @zip.js/zip.js CDN import to an exact version",
+            "ts": 1792547523519,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-66",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-zero",
+                "enhancement"
+            ],
+            "sig": "mkANIHlJmGR2BQLvBZPN9w9I7kVxGAK78MKYOXWXr7yjISoWmGbJ4Tp1l46yEe6ZvlIAMJjvr82aVAwZKYAICg",
+            "ts": 1792547523520,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-zero",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 66,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-zero: pin the @zip.js/zip.js CDN import to an exact version",
+    "updatedAt": 1792547523520,
+    "votes": 0
+}

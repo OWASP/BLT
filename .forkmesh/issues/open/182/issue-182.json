@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524679,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`scripts/build_showcase.py` always emits `<img src=\"{preview_url}\">` (in `build_card`, `summary_card` and the winner showcase). Four `blt-video-meme` entries have `.mp4` previews, so `public/blt-video-meme.html` and `show-all-entries.html` show broken images.\n\n## What to do\n\n1. Add an `is_video(url)` helper (`.mp4|.webm|.mov`) and render `<video muted playsinline preload=\"metadata\" controls aria-label=...>` in those three places.\n2. Add a test in `tests/test_build_showcase.py` and rebuild `public/` with `--offline`.\n\n## Acceptance criteria\n\n- [ ] Video entries play or show a poster frame\n- [ ] No `<img src=\"*.mp4\">` in `public/`\n- [ ] Tests pass\n\n## How to test locally\n\n```bash\npython3 blt-design-contest/scripts/build_showcase.py --offline --out /tmp/contest && python3 -m http.server 8080 --directory /tmp/contest\nscripts/ci/test.sh blt-design-contest\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-182",
+            "sig": "NXLUVrgUGfWxnUNtXsoZ_SuNSX_bkj59jHXZ8egotIk0PfNIqcq-r-W9kAJsOwcJWtcKzeY6MnUX95AFEuJuBQ",
+            "title": "blt-design-contest: show video entries (.mp4) with <video> instead of a broken <img>",
+            "ts": 1792547524679,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-182",
+            "labels": [
+                "hacktoberfest",
+                "blt-design-contest",
+                "bug"
+            ],
+            "sig": "4M51zY8-orhf3mIa8Mfx4OqSj5XL-NZuhY5L10y8PDr6VGbMa3gT7-smVKKj09SUOKaGJ4TB5VIwv4HvBbYeDw",
+            "ts": 1792547524680,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-design-contest",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 182,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-design-contest: show video entries (.mp4) with <video> instead of a broken <img>",
+    "updatedAt": 1792547524680,
+    "votes": 0
+}

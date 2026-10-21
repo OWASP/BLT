@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523789,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME, SETUP.md and CONTRIBUTING.md describe a GitHub Actions workflow and Cloudflare Pages deploy. The project is now a Worker with KV refreshed by blt-cron (README \"Data refresh\" already says so). `public/dashboard.js` also mentions the workflow in an empty-state message.\n\n## What to do\n\n1. Replace those sections with the Worker/KV/blt-cron flow.\n2. Fix the \"midnight UTC\" vs \"00:03 UTC\" mismatch and the dashboard.js copy.\n\n## Acceptance criteria\n\n- [ ] `grep -ri \"github actions\\|\\.github/workflows\\|cloudflare pages\" my-gsoc-tool` shows no stale instructions\n\n## How to test locally\n\n```bash\npython3 -m http.server -d my-gsoc-tool/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-93",
+            "sig": "fluVL87H07xk7CzujB3VsQt5FBjbCFBC8gCmB3jrM1JBeT7HrE4NfMQ8SJM7neiIWvbqNhJfaoRiyRuq9JTmDA",
+            "title": "my-gsoc-tool: remove GitHub Actions and GitHub Pages instructions that no longer apply",
+            "ts": 1792547523789,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-93",
+            "labels": [
+                "hacktoberfest",
+                "my-gsoc-tool",
+                "documentation"
+            ],
+            "sig": "V20cv_jk1dZ7ufcV6OjOG3w4D5WynCUtwHpQ4jOiNiHAd2Al0m0MWgbtvDR8WA653l7BLyKrjR5FtuRWHAjVDQ",
+            "ts": 1792547523790,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "my-gsoc-tool",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 93,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "my-gsoc-tool: remove GitHub Actions and GitHub Pages instructions that no longer apply",
+    "updatedAt": 1792547523790,
+    "votes": 0
+}

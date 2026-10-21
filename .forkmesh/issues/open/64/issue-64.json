@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523499,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/pages/docs-decrypt.html`, `docs-security.html` and `docs-org-onboarding.html` describe an ECDH/JWK flow with `tools/org_decrypt.py`. The real flow is a browser-side AES-256 ZIP whose password is emailed (README \"Cryptography & Decryption\"). Orgs following the live docs can't decrypt what they receive.\n\n## What to do\n\n1. Rewrite the three pages to match the README, with decrypt steps for Windows (7-Zip), macOS and Linux.\n2. Don't change `tools/` or the `/admin/onboard` form.\n\n## Acceptance criteria\n\n- [ ] No JWK/ECDH wording on `/docs/*`\n- [ ] Decrypt steps for all three OSes\n- [ ] `tests/test_routes.py` still passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-zero\ncd blt-zero && npx wrangler dev   # visit /docs/decrypt\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-64",
+            "sig": "UcF1zUI43aaFWXm2dQYFcs0PTzoIuI8W3q7hSW5XhqAb4AmwnrGVmwhcpqLfMd1N5mtHPFPT_vnyjIwCeSPQCQ",
+            "title": "blt-zero: rewrite /docs/decrypt, /docs/security and org onboarding for the password-ZIP flow",
+            "ts": 1792547523499,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-64",
+            "labels": [
+                "hacktoberfest",
+                "blt-zero",
+                "documentation"
+            ],
+            "sig": "EH7y0XVNN6LgyhngQapmaEnbg4hrzu-8l7ROLMuEIxEszP4V-2QsirnWToFEvdP7thg8W72jQC-sHk0VSQ-bDw",
+            "ts": 1792547523500,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-zero",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 64,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-zero: rewrite /docs/decrypt, /docs/security and org onboarding for the password-ZIP flow",
+    "updatedAt": 1792547523500,
+    "votes": 0
+}

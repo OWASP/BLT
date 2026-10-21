@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524629,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nEvery `public/*.html` page puts its nav in `<ul class=\"hidden md:flex ...\">` with no toggle, so phones have no navigation at all. Decorative `<i class=\"fas\">` icons lack `aria-hidden`.\n\n## What to do\n\n1. Add a hamburger `<button aria-expanded aria-controls>` and toggled list (pattern: `blt-enforcement/public/index.html`).\n2. Add `aria-hidden=\"true\"` to decorative icons.\n\n> **Note:** Don't change the footer community links (under review in #39).\n\n## Acceptance criteria\n\n- [ ] At 375 px a menu button opens the nav on all 7 pages\n- [ ] `aria-expanded` updates\n- [ ] Icons hidden from screen readers\n\n## How to test locally\n\n```bash\ncd blt-rewards && npx wrangler dev   # DevTools mobile viewport\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-177",
+            "sig": "v2jsldzwf0I3WfgEeqGW2UdAqqLNQeyUcRrve8RHYMRAHL9uUMM9vUVP8AIJSYyk85cLTXYfLJws8bKrLp6sBA",
+            "title": "blt-rewards: add a mobile navigation menu to all 7 pages",
+            "ts": 1792547524629,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-177",
+            "labels": [
+                "hacktoberfest",
+                "blt-rewards",
+                "accessibility"
+            ],
+            "sig": "6ul8OuTs68lRENAlWfz3QM79n3irIbYhcNeosumMCCdEuNoQddWpSmZixwXwple-hpBthU9joBJEgXnEpYaABw",
+            "ts": 1792547524630,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-rewards",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 177,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-rewards: add a mobile navigation menu to all 7 pages",
+    "updatedAt": 1792547524630,
+    "votes": 0
+}

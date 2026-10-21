@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523969,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME describes `.github/workflows/test-data-display.yml` and a Wrangler CI job that were removed; says `cd BLT-Leaf`; and the migrations list stops at 0003 although `migrations/0004_add_etag_column.sql` exists.\n\n## What to do\n\n1. Replace the CI section with `scripts/ci/test.sh blt-leaf` / `npm test`.\n2. Use `cd BLT/blt-leaf` and add 0004 to the tree.\n\n## Acceptance criteria\n\n- [ ] No references to the deleted workflow\n- [ ] Setup works from the monorepo root\n\n## How to test locally\n\n```bash\nnpm test\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-111",
+            "sig": "q6WudlnqdabtqOx7o4-tniNVbRA1SpakJwJyXxjdGN-DAxK5Wdgw7mBCqogBaxMoKVtGMImLlZGxPBQ6dAA6BQ",
+            "title": "blt-leaf: fix README setup and CI sections that no longer match the repo",
+            "ts": 1792547523969,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-111",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-leaf",
+                "documentation"
+            ],
+            "sig": "MT99JZw-gPjy64PK_mHuPXGgm3_WZbLOowEaVwTIyntlFbRV2kJM5qepshTy98CudvnUhTdNQouqmIUPuFEOCw",
+            "ts": 1792547523970,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-leaf",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 111,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-leaf: fix README setup and CI sections that no longer match the repo",
+    "updatedAt": 1792547523970,
+    "votes": 0
+}

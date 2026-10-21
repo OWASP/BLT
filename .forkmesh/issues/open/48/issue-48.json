@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523339,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`src/handlers/hunts.py` (131 lines) has no tests. This is a narrow slice of the broader Phase I test pass in #3; link that issue in your PR.\n\n## What to do\n\n1. Add `tests/test_hunts.py`, following the mocking style in `tests/test_hackathons.py`.\n2. Cover invalid id (400), not found (404), the active/previous/upcoming filters and the pagination maths.\n\n## Acceptance criteria\n\n- [ ] The cases above are covered\n- [ ] Passes in CI\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-api\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-48",
+            "sig": "IGEUqBUMxUUVrj9vqTI22yK-y9DRrRWEAXU0fV02iaJnGwF1oMKd-uZ4cxCqfaTw8BlJUbllDAvfe_wCflyUBw",
+            "title": "blt-api: add unit tests for the hunts handler",
+            "ts": 1792547523339,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-48",
+            "labels": [
+                "hacktoberfest",
+                "blt-api",
+                "tests"
+            ],
+            "sig": "DBiLbFP3fK4bjUxT4P6KZLnMbfJg7EJljrsmsdqThBc9WGKs1oKbqFDTRaG-skwuN07_fM6cfbnWFu9Kw2aXAg",
+            "ts": 1792547523340,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-api",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 48,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-api: add unit tests for the hunts handler",
+    "updatedAt": 1792547523340,
+    "votes": 0
+}

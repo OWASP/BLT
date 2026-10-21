@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524419,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/index.html`: `#themeToggle` and `#closeInfoBtn` are icon-only with no label; `#countrySearch`, `#slackSearch` and three `<select>`s have no labels; sortable `<th data-sort>` respond to click only (`script.js`) with no `aria-sort`; the view buttons don't expose the selected state.\n\n## What to do\n\n1. Add aria-labels or visually hidden labels.\n2. Make sortable headers buttons and set `aria-sort`.\n3. Add `aria-pressed` to the view buttons and update it in `switchView`.\n\n## Acceptance criteria\n\n- [ ] No unlabelled controls in Lighthouse/axe\n- [ ] Keyboard sorting works\n- [ ] Selected view announced\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-panini/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-156",
+            "sig": "v6y1yWIBQQuOfipUZVpmH72eFWuKIQnx-3DnVMsRaQbqH4OPKnH24R5eySLLuxaiiDY4zyw5sLmWp0-UGSWsDg",
+            "title": "blt-panini: label icon-only buttons, searches and filters, and make table sorting keyboard-accessible",
+            "ts": 1792547524419,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-156",
+            "labels": [
+                "hacktoberfest",
+                "blt-panini",
+                "accessibility"
+            ],
+            "sig": "r86IAkzHuMj9AfRjbOxuHfcN58iAf1OaTYXQjfNPvAoWzIKrK6GPfys36HjflumxlfTuBCs9BB1lguCsHGtLAQ",
+            "ts": 1792547524420,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-panini",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 156,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-panini: label icon-only buttons, searches and filters, and make table sorting keyboard-accessible",
+    "updatedAt": 1792547524420,
+    "votes": 0
+}

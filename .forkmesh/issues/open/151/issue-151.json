@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524369,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nCONTRIBUTING clones `github.com/YOUR_USERNAME/OWASP-Wich.git`; README says `cd OWASP-Wich`. `requirements.txt` lists PyYAML and python-dotenv, which aren't imported. `.env.example` documents `GITHUB_TOKEN` in a `.env`, but nothing calls `load_dotenv`.\n\n## What to do\n\n1. Use `cd BLT/blt-owasp-wich`.\n2. Remove PyYAML; either load `.env` in `main()` or drop python-dotenv and make `.env.example` an `export` hint.\n\n## Acceptance criteria\n\n- [ ] Setup steps work verbatim\n- [ ] Requirements match the imports\n- [ ] `.env` behaviour matches the docs\n\n## How to test locally\n\n```bash\npython3 -m venv /tmp/w && . /tmp/w/bin/activate && pip install -r blt-owasp-wich/requirements.txt\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-151",
+            "sig": "9NT40gJukJktpUxhqhf0nD9e6T43Rm-9clheKhTD2n1_eNvby6soUTWhNCGQQb26C2KDbCxgS-bz_f87mb0QCQ",
+            "title": "blt-owasp-wich: fix contributor docs, unused requirements and the .env.example nothing loads",
+            "ts": 1792547524369,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-151",
+            "labels": [
+                "hacktoberfest",
+                "blt-owasp-wich",
+                "documentation"
+            ],
+            "sig": "NwMA1gW15DEo5MVc9G5AJXvnUJN2As9XOH08kE0Jf3CO72II1WSOBUXGAUeJfwXP89XmOawyvOvg5KZ9P4cmCg",
+            "ts": 1792547524370,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-owasp-wich",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 151,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-wich: fix contributor docs, unused requirements and the .env.example nothing loads",
+    "updatedAt": 1792547524370,
+    "votes": 0
+}

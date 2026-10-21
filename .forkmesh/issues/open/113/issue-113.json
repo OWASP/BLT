@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523989,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME says `npm install` / `npm run dev` / `npm run deploy`, but blt-byte has no package.json (it's `pyproject.toml` + `uv.lock`). The tree lists `src/pages/index.html` and `static/logo.png` (pages are in `public/`), it documents a `POST /` that `src/main.py` doesn't handle, and the tech-stack list appears twice.\n\n## What to do\n\n1. Use `uv sync` and `uv run pywrangler dev` (as blt-monitor's README does).\n2. Fix the tree, remove the POST / section and the duplicate list, and match the test command to tests.tsv.\n\n## Acceptance criteria\n\n- [ ] Every README command runs\n- [ ] Tree matches `git ls-files blt-byte`\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-byte\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-113",
+            "sig": "Tb5swjeECMYaV2I-5bOSbGZFYaQBt23ZxsfmsBdXxwlImRVkTCmxmHglBLXRPWbYwikS4Q24DvB69TUas-bnCA",
+            "title": "blt-byte: fix the README: no package.json, wrong structure and a route that doesn't exist",
+            "ts": 1792547523989,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-113",
+            "labels": [
+                "hacktoberfest",
+                "blt-byte",
+                "documentation"
+            ],
+            "sig": "qizq4jPdm4tt2CW_pJIscX4-sHHMa59TdVSB4GM0wr5c5jgSVDldsgYSk_GjZ9Ae5W-LJvMWeALNSG3sopGDAA",
+            "ts": 1792547523990,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-byte",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 113,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-byte: fix the README: no package.json, wrong structure and a route that doesn't exist",
+    "updatedAt": 1792547523990,
+    "votes": 0
+}

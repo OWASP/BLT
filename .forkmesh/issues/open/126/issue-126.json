@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524119,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nREADME links `SETUP.md`, `INTEGRATION.md` and `PROJECT_SUMMARY.md` (none exist), lists `fl_chart` (removed), documents `POST /api/activity` though the code posts to `/api/activity/batch`, mentions a \"Fresh\" backend five times and labels the tree `flutter_tracker/`.\n\n## What to do\n\n1. Remove or fix each reference and document `run.sh` and `demo.sh`.\n\n## Acceptance criteria\n\n- [ ] Every file and endpoint mentioned exists\n\n## How to test locally\n\n```bash\nDocs only.\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-126",
+            "sig": "kiUTj9NexIyHMvq_8BMeLMv5t1_qgFYpEsK9ZBqePZ4CRqY2z5KhZwMA0fPYIKALqZO3BGDPQM-kM88reqLWCQ",
+            "title": "blt-timer-flutter: fix README references to missing files, removed dependencies and the wrong endpoint",
+            "ts": 1792547524119,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-126",
+            "labels": [
+                "hacktoberfest",
+                "blt-timer-flutter",
+                "documentation"
+            ],
+            "sig": "4T0jxUjSR6r1RazlVriEVf2NLVZeaMyPQLBF8lxSL5LYsqT0NkFJPSmXtowW2oni9NkrLG79GBTKSfacNmTsCg",
+            "ts": 1792547524120,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-timer-flutter",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 126,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-timer-flutter: fix README references to missing files, removed dependencies and the wrong endpoint",
+    "updatedAt": 1792547524120,
+    "votes": 0
+}

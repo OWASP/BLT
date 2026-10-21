@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524139,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`lib/src/util/api/leaderboard_api.dart` decodes bodies `as List` / `[\"results\"]` without checking `statusCode`, so a 404/500 or HTML error page becomes an uncaught TypeError. `getMoreMonthlyLeaders` uses the global `http.get`, so it can't be mocked.\n\n## What to do\n\n1. Check `statusCode` and throw a typed exception.\n2. Inject an `http.Client` into `getMoreMonthlyLeaders`.\n3. Add MockClient tests for 500 and malformed JSON in `test/unit_tests/leaderboard_test.dart`.\n\n## Acceptance criteria\n\n- [ ] Non-200 gives a clear exception\n- [ ] New tests pass\n- [ ] Providers still compile\n\n## How to test locally\n\n```bash\ncd blt-flutter && flutter test test/unit_tests/leaderboard_test.dart\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-128",
+            "sig": "dj9KlNmvIySJUwzk-dasQQW63QuxgFCHigwOGSFXJthw3L9Rt3_OeJ3voSjDdnN0_rix-oxwBqPNoPCg4HWbBQ",
+            "title": "blt-flutter: handle non-200 responses in LeaderboardApiClient and test them",
+            "ts": 1792547524139,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-128",
+            "labels": [
+                "hacktoberfest",
+                "blt-flutter",
+                "bug"
+            ],
+            "sig": "B48vTpZvNe7JjSjNJUsZ_3NlHd1eQ_04i66Nd8blu6HtR1g_SrOtoE-it0Kv4QAXqQOJT9H5SBXGnkY1GTgOAg",
+            "ts": 1792547524140,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-flutter",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 128,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-flutter: handle non-200 responses in LeaderboardApiClient and test them",
+    "updatedAt": 1792547524140,
+    "votes": 0
+}

@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524329,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nIn `public/projects.html`, `getColor` returns `rgb(r, 0, b)` but `getTextBrightness` parses it as hex with `substr(1, 2)`, giving NaN, so it always returns white. `maxDate` comes from `updated_at` only while `pushed_at` can exceed it, pushing red above 255.\n\n## What to do\n\n1. Have `getColor` return numbers (or parse rgb()) and compute brightness from them.\n2. Use the max of all three dates and clamp to 0..1.\n3. Add a small node test (extract the helpers the way `blt-owasp-metadata/test/app-escaping.test.mjs` does).\n\n## Acceptance criteria\n\n- [ ] Light backgrounds get black text\n- [ ] Percentage clamped\n- [ ] Node test covers both helpers\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-owasp-projects\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-147",
+            "sig": "ByxtjGoM7nYgDeqLtFBEqslpWpBiskUdKRgvhDfXEK9wmYK8mhsgf9dbGvhbHckiGEwzwnyl0xioLkz3ar5FCQ",
+            "title": "blt-owasp-projects: fix getTextBrightness, which never parses the rgb() colours it gets",
+            "ts": 1792547524329,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-147",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-owasp-projects",
+                "bug"
+            ],
+            "sig": "1VahavEbaDOHO1Zt24H6HDWtxLqAmiHa-mUtcw-XDvFbKZGQW3_D9hw1Ig9gAMiwCfeXpGsvmU9-a487ulPpDg",
+            "ts": 1792547524330,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-owasp-projects",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 147,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-projects: fix getTextBrightness, which never parses the rgb() colours it gets",
+    "updatedAt": 1792547524330,
+    "votes": 0
+}

@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524479,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/community.html` opens `https://github.com/OWASP-BLT/BLT-OSSH/issues/new?template=user_profile.yml`, the archived repo. The profile job only watches forge issues, so profiles created from this page never reach the site. `public/js/app.js` already builds the right forge URL.\n\n## What to do\n\n1. Build the same forge URL as `app.js` (`[PROFILE]` title, `profile` label), ideally via a shared helper.\n2. Remove the unused constants and add a node test asserting the URL.\n\n## Acceptance criteria\n\n- [ ] No github.com issue URLs in community.html\n- [ ] Button opens a prefilled forge issue\n- [ ] Test passes\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-ossh/public 8000   # then open http://localhost:8000\nscripts/ci/test.sh blt-ossh\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-162",
+            "sig": "8kf-IW-dmWnIOPsZFWXzBgQrCJR9bu5Dd6U15na3WHZYP3d9XzAPxdSI6x1i9SumTw3Fq5THDO0JcxkvRJhhBQ",
+            "title": "blt-ossh: point the Community page's \"Create profile\" button at git.owaspblt.org",
+            "ts": 1792547524479,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-162",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-ossh",
+                "bug"
+            ],
+            "sig": "HPavcFRjYgkTLFicYsGMK-3wKU--s8NysQ_t51Mc4rouxdzPPRuOEkG-god0ef0HRtEpgzImdgMtfYZ01YNFDw",
+            "ts": 1792547524480,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-ossh",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 162,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-ossh: point the Community page's \"Create profile\" button at git.owaspblt.org",
+    "updatedAt": 1792547524480,
+    "votes": 0
+}

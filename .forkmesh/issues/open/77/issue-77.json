@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523629,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/js/notes.js:224` splits with `/[^.!?]+[.!?]+/g`, so `\"Meeting notes. We agreed to encrypt everything before launch\"` summarises to just `Meeting notes.`. The helper tests live in `tests/test_browser_js.py`, which CI excludes.\n\n## What to do\n\n1. Use `/[^.!?]+(?:[.!?]+|$)/g` and drop whitespace-only matches.\n2. Expose `summarize` and friends on the object returned near `notes.js:409` and add a test CI runs (e.g. extend `tests/test_js_static.py` or call them via `node -e`).\n\n## Acceptance criteria\n\n- [ ] The example keeps both sentences\n- [ ] A CI-run test covers it\n- [ ] Existing browser test still passes locally\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-safecloak\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-77",
+            "sig": "HhZRg-ZyPloNZfTPU0zIaF1LkhQjUvoNPdNNMCfOedTWXsHO3aib0blA4AeeQm4ur3deunnQvHqfDYkk1FBTAA",
+            "title": "blt-safecloak: stop Notes \"Summarize\" from dropping the last unpunctuated sentence",
+            "ts": 1792547523629,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-77",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-safecloak",
+                "bug"
+            ],
+            "sig": "1aOW7C18-V3kfJlnq8wmlcVWd3oZA6ihckHSRO3ejYb7GRXgBz2eOQhw8ovgghzzkAAngpfadxNBYWCOG8qXAw",
+            "ts": 1792547523630,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-safecloak",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 77,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-safecloak: stop Notes \"Summarize\" from dropping the last unpunctuated sentence",
+    "updatedAt": 1792547523630,
+    "votes": 0
+}

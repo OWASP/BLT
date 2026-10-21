@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524519,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`tests/` only has `test_index_page.py`. `validate()` (filename/id mismatch, year/folder mismatch, duplicates, invalid JSON) and `build_index`/`build_feed` are untested, and `build_index.py` crashes on `\"severity\": null`.\n\n## What to do\n\n1. Let `validate(cves_dir=CVES_DIR)` and `collect_entries(cves_dir=...)` take a directory.\n2. Add `tests/test_validate.py` with tempfile fixtures.\n3. Guard against null severity.\n\n## Acceptance criteria\n\n- [ ] Each error branch covered\n- [ ] Null severity doesn't crash\n- [ ] CI diff check still passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-cve\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-166",
+            "sig": "sujVUsyBiD9F5Nx87laRJ6ck5RXkNgDISO3EadapNxFPPVal2ZOnmP68UWAAgVz28MmfWvtMT6_0fqNkvQMrDw",
+            "title": "blt-cve: add unit tests for validate_cves.py and build_index.py",
+            "ts": 1792547524519,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-166",
+            "labels": [
+                "hacktoberfest",
+                "blt-cve",
+                "tests"
+            ],
+            "sig": "xHbuTX-0kXXRc3juRG58mh2CZUekAcz8B84CU71dRc8__Gs6F1ISUqgaQF37tRCWFOgZ_BarpW0VkFweukXRBA",
+            "ts": 1792547524520,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-cve",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 166,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-cve: add unit tests for validate_cves.py and build_index.py",
+    "updatedAt": 1792547524520,
+    "votes": 0
+}

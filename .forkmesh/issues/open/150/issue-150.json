@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524359,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`compliance_checker.py` sets `current_score = 0` only in `__init__`, so calling `check_compliance` twice on one instance (README \"As a Python Module\") adds the scores. A GitHub URL with fewer than 2 path parts silently scores 0 with no error. CONTRIBUTING says `pytest tests/`, but there's no `tests/` and no tests.tsv row.\n\n## What to do\n\n1. Reset `current_score` at the start of `check_compliance`; set `results[\"error\"]` for incomplete URLs.\n2. Add `tests/test_compliance_checker.py` with a fake repo object (stub `get_repo`/`get_contents`) so it runs offline.\n3. Add `blt-owasp-wich\\tpython\\tpip install -r requirements.txt pytest && python -m pytest tests -q` to `scripts/ci/tests.tsv`.\n\n> **Note:** Don't change which checks pass or how they're scored, and don't touch `public/` styling (under review in #39).\n\n## Acceptance criteria\n\n- [ ] Two calls give the same score\n- [ ] A bad URL gives an `error`\n- [ ] At least 5 offline tests\n- [ ] tests.tsv row passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-owasp-wich\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-150",
+            "sig": "KEYKoy2wWdeBZTDt5AKSwaEkmrfNo8IMCwHqCyr42Hgft8MBMN6Lv8osy5e_8wP8Q1N19t13DvodfL59NaIhCQ",
+            "title": "blt-owasp-wich: add a Python test suite and CI row; reset the score between checks",
+            "ts": 1792547524359,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-150",
+            "labels": [
+                "hacktoberfest",
+                "blt-owasp-wich",
+                "tests"
+            ],
+            "sig": "-oJd6h0V35txhpn4C9hFavtsjKG1RW8umB7NhctO-oRSLxypVsNfxdSa5luwjwnpV_ik0oAgJKujSJUPxLn8Aw",
+            "ts": 1792547524360,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-owasp-wich",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 150,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-wich: add a Python test suite and CI row; reset the score between checks",
+    "updatedAt": 1792547524360,
+    "votes": 0
+}

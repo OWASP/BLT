@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524739,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`coderabbit/README.md` says the folder \"has no code or configuration yet\", but `coderabbit/.coderabbit.yml` (53 lines) holds the review profile, labelling rules and issue enrichment.\n\n## What to do\n\n1. Describe what `.coderabbit.yml` configures, and note that CodeRabbit only reads it from a repository root, so here it's reference-only. Don't change the config.\n\n## Acceptance criteria\n\n- [ ] README matches the folder\n- [ ] It says whether the config is active\n\n## How to test locally\n\n```bash\nDocs only.\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-188",
+            "sig": "y6FwPY6fLF2sGYI__SCYlHBjHceKAuDpXVpdc04PXQSIkFt4vrd2jl38SJen0cacNfaGecFQY1iO8M5IY85mDQ",
+            "title": "coderabbit: fix the README, which says the folder has no configuration",
+            "ts": 1792547524739,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-188",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "coderabbit",
+                "documentation"
+            ],
+            "sig": "1qloGJ2Ktl4na4Kx7Z_nfR7VO0xEujfYeeoyzfuFDvJYw02WfH2i3iFGVgPLqhE9CJfBXCzur2Nqo_h9VcaZCg",
+            "ts": 1792547524740,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "coderabbit",
+        "documentation"
+    ],
+    "milestone": "",
+    "number": 188,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "coderabbit: fix the README, which says the folder has no configuration",
+    "updatedAt": 1792547524740,
+    "votes": 0
+}

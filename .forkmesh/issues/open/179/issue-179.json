@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524649,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`tests/popup.test.js` and `tests/jobtracking.test.js` never `require` the source files; they build their own DOM and check their own mocks. `tests/background.test.js` loads `background.js` once and its message tests only check literals.\n\n## What to do\n\n1. Popup: load `popup.html`, `require('../popup.js')`, click the buttons and assert the `chrome.runtime.sendMessage` / `chrome.tabs.*` calls.\n2. Background: capture the `onMessage` listener and call it directly.\n3. Job tracking: require the file and dispatch `DOMContentLoaded`.\n\n## Acceptance criteria\n\n- [ ] `npm run test:coverage` shows non-zero coverage for popup.js, background.js and jobtracking.js\n- [ ] Tautological tests removed\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-extension\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-179",
+            "sig": "FUjKf4RkiH1gPSWkch0h3hJBkOMWGjhkE6LbXGJ1ine6QCiB9dfy5v0HOkEz09PB8gmAdSFnE0dzKIl7e0AhDA",
+            "title": "blt-extension: make the popup and job-tracking tests exercise the real popup.js and jobtracking.js",
+            "ts": 1792547524649,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-179",
+            "labels": [
+                "hacktoberfest",
+                "blt-extension",
+                "tests"
+            ],
+            "sig": "DW4y24xEnkMymnFYSDzdA02BXohUHEKjkY7d-uCvOnInKLQmcAUTPWIPgbshDJieBMv45skgLxWYZlALMpIbCA",
+            "ts": 1792547524650,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-extension",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 179,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-extension: make the popup and job-tracking tests exercise the real popup.js and jobtracking.js",
+    "updatedAt": 1792547524650,
+    "votes": 0
+}

@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524249,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`parse_yaml_frontmatter` in `generate_repo_list.py` (about L19-82) keeps quotes (`title: \"OWASP Foo: Bar\"` gives `'\"OWASP Foo: Bar\"'`), returns `[]` for block-list tags (`tags:` then `- a`), and treats `tags: builder breaker` as one tag. Titles, pitches and tags feed the dashboard's cards and search.\n\n## What to do\n\n1. Strip matching surrounding quotes from scalar values.\n2. When `tags:` is empty, collect the following `- item` lines.\n3. Keep it standard-library only; add `test/frontmatter.test.mjs` that shells out to python3 like `test/escaping.test.mjs`.\n\n## Acceptance criteria\n\n- [ ] Quoted title/pitch are unquoted\n- [ ] Block-list tags parse\n- [ ] Inline `[a, b]` and comma forms still work\n- [ ] Test covers each case\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-owasp-bumper\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-139",
+            "sig": "3KYaAQe5aRh1S63eW6evNtjhNQVxyj5tqOyVw6fa4jR8zy2gy9fCgcsNmgmmKfhTVbAaqbWcp-ZzVXRytLxuAg",
+            "title": "blt-owasp-bumper: parse quoted values and YAML-list tags in index.md front matter",
+            "ts": 1792547524249,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-139",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-owasp-bumper",
+                "bug"
+            ],
+            "sig": "P1iHEZIeHxPeKJvFom0sCR-Ft0NMm6WA49HnvpEDCievb75Pkk3HzpzA8dispDRUdg1O_9vVQM4XNr-MjnndAg",
+            "ts": 1792547524250,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "good first issue",
+        "blt-owasp-bumper",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 139,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-bumper: parse quoted values and YAML-list tags in index.md front matter",
+    "updatedAt": 1792547524250,
+    "votes": 0
+}

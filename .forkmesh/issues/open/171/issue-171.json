@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524569,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`public/index.html` has infinite pulse animations, an animated SVG map, tiles re-animated every 400 ms and `document.title` rewritten every second, with no `prefers-reduced-motion` handling. Tiles look clickable (`cursor: pointer`) but aren't.\n\n## What to do\n\n1. Add `@media (prefers-reduced-motion: reduce)` and skip the tile interval when it matches.\n2. Show the timestamp in a visible element instead of `document.title`.\n3. Remove `cursor: pointer` from tiles.\n\n## Acceptance criteria\n\n- [ ] Nothing animates with reduced motion emulated\n- [ ] Title is static\n- [ ] Tiles don't look clickable\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-dash/public 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-171",
+            "sig": "0c6q9Q7Ix4iCVOiJY9G6OAHl3uYXf03pemeMhxC8-I4MFcAhzmxqz8Apy560OzVN4HaHvn-OTi0Kwy0xCXvBBg",
+            "title": "blt-dash: respect prefers-reduced-motion and stop rewriting the tab title every second",
+            "ts": 1792547524569,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-171",
+            "labels": [
+                "hacktoberfest",
+                "blt-dash",
+                "accessibility"
+            ],
+            "sig": "noUOFUMnkaVjttUk-5iRPSkT4pJXrZ1gE7-cRv1RewtiIaIq9LfbrwfvtWTrNa6dww-ZQZn2JpMyPFVFmP1uAw",
+            "ts": 1792547524570,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-dash",
+        "accessibility"
+    ],
+    "milestone": "",
+    "number": 171,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-dash: respect prefers-reduced-motion and stop rewriting the tab title every second",
+    "updatedAt": 1792547524570,
+    "votes": 0
+}

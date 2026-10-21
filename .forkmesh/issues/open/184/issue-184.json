@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524699,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nblt-docs has no row in `scripts/ci/tests.tsv`, though its README says a strict build is required. `docs/developer-guide/deployment.md` never names the deploy command.\n\n## What to do\n\n1. Add `blt-docs\\tpython\\tpip install -r requirements.txt && mkdocs build --strict` to `scripts/ci/tests.tsv`.\n2. Fix any strict-mode warnings it exposes.\n3. Mention `scripts/ci/test.sh blt-docs` and `scripts/deploy.sh blt-docs` in deployment.md.\n\n## Acceptance criteria\n\n- [ ] `scripts/ci/test.sh blt-docs` passes\n- [ ] deployment.md names both commands\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-docs\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-184",
+            "sig": "UHgQeoGz0jfxAtS7BVc66vs34j_PtbFQ3GFmmlsmhb_DDfGQk5cl0iJcWdZJWzcKcRRNeeeMu3XTV7SiQzJOCw",
+            "title": "blt-docs: add a strict MkDocs build to CI and document scripts/deploy.sh",
+            "ts": 1792547524699,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-184",
+            "labels": [
+                "hacktoberfest",
+                "blt-docs",
+                "tests"
+            ],
+            "sig": "ZYu_n1cV3zp5VGnDe6X2F8qTIyCnW26gaNE8aA2qd1plpOvs_5XGu2iN73J2Xz6atpzHqoqrmir59J-ykbrYDg",
+            "ts": 1792547524700,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-docs",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 184,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-docs: add a strict MkDocs build to CI and document scripts/deploy.sh",
+    "updatedAt": 1792547524700,
+    "votes": 0
+}

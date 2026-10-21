@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524309,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`scripts/scrape_metadata.py` uses an unanchored `re.search(r\"---(.*?)---\")`, so horizontal rules in a body can be parsed as metadata; it has a bare `except:`, `requests.get` calls without timeout (with 20 threads), and `json.load(open(path))` that crashes on a corrupt cache. The parsers are untested.\n\n## What to do\n\n1. Anchor the regex (`\\A---\\s*\\n(.*?)\\n---`) and catch `yaml.YAMLError`.\n2. Add timeouts and use `with open` with a decode-error fallback.\n3. Add `tests/test_scrape_metadata.py` (set `METADATA_DATA_DIR` to a temp dir; importing runs `mkdir`) and extend the tests.tsv row with `pip install -r requirements.txt && python -m unittest discover -s tests`.\n\n## Acceptance criteria\n\n- [ ] Horizontal rules no longer parsed as metadata\n- [ ] All requests have timeouts\n- [ ] Unit tests for both parsers run in CI\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-owasp-metadata\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-145",
+            "sig": "uu1xLO7gDToxRDIxKsbFTPBEbI3PLruE-6TANyJ4tlDQ1V_yYyAUWfumO3dL6-mO4uS1KKTbjy9EsiyUp8--CQ",
+            "title": "blt-owasp-metadata: anchor front-matter parsing and add timeouts and tests to the scraper",
+            "ts": 1792547524309,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-145",
+            "labels": [
+                "hacktoberfest",
+                "blt-owasp-metadata",
+                "bug"
+            ],
+            "sig": "ZT7kqNstuLxJjTTGmpPtw6YPS8FjTEOW0IwPgCqWfUdfdDOvRznDu-V9frLdNmWgYwnhP7F8OdRG4uGAjYYuCA",
+            "ts": 1792547524310,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-owasp-metadata",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 145,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-metadata: anchor front-matter parsing and add timeouts and tests to the scraper",
+    "updatedAt": 1792547524310,
+    "votes": 0
+}

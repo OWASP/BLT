@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523439,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`test/storage_service_test.dart` imports `package:selferase/...`, but `pubspec.yaml` names the package `vanish`. The models declare `part '*.g.dart'` and no generated files are committed, while the CI command has no build_runner step. The only test can never compile.\n\n## What to do\n\n1. Change the imports to `package:vanish/...` (see `blt-vanish/flutter_app/test/storage_service_test.dart`).\n2. Either commit the generated `*.g.dart` files or add `dart run build_runner build --delete-conflicting-outputs` to the row in `scripts/ci/tests.tsv`.\n\n## Acceptance criteria\n\n- [ ] `flutter test` compiles and runs\n- [ ] The tests.tsv command works from a clean checkout\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-vanish-flutter   # needs the Flutter SDK\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-58",
+            "sig": "_EoWeVqDEdX4lOBaWWvCwfrf4E4tYUD2Qsf9WTt_BKlgsJImdHk4OpvslZfz7_-FCIl7Jx2YqP2cVQqVNPd5Ag",
+            "title": "blt-vanish-flutter: make `flutter test` compile (wrong package import, missing generated files)",
+            "ts": 1792547523439,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-58",
+            "labels": [
+                "hacktoberfest",
+                "blt-vanish-flutter",
+                "bug"
+            ],
+            "sig": "A61pR7KkUDaS9qO7VpMtGWc3zPjP90vlKVeDhF_76-oC0ZMojtBp7Q-LzCmkEP2p_HgIHbj82Gxwj0n6PQDuDA",
+            "ts": 1792547523440,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-vanish-flutter",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 58,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-vanish-flutter: make `flutter test` compile (wrong package import, missing generated files)",
+    "updatedAt": 1792547523440,
+    "votes": 0
+}

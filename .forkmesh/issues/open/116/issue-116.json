@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547524019,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`tests/test_cron_dispatch.py` covers only `handle_cron_dispatch`. Untested: `append_history` validation, trimming to 30 entries in `add_history_entry`, `monitor_shard`, `load_histories` with corrupt JSON, and the keyword/captcha logic in `check_monitor`.\n\n## What to do\n\n1. Add `tests/test_worker.py` reusing `_load_worker()` from the existing test, with a fake KV (`get`/`put`) and a fake `fetch`.\n\n## Acceptance criteria\n\n- [ ] Invalid status / negative duration return 400\n- [ ] 31st entry trims to 30\n- [ ] Corrupt KV JSON returns `{}`\n- [ ] Missing keyword on a 200 records a failure\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-monitor\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-116",
+            "sig": "RXV0TrIUKQYCTnjFDFXlcalRG_qL8y92ck66B11s_s4TRq2qT-OsqBDCuLFN9o9hAetPZwxXUtvZzCwO7HGzBA",
+            "title": "blt-monitor: add unit tests for history storage, validation and sharding in worker.py",
+            "ts": 1792547524019,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-116",
+            "labels": [
+                "hacktoberfest",
+                "blt-monitor",
+                "tests"
+            ],
+            "sig": "nooi6sq77mS_czTIz_kuKhEdYmZdnfQI0eODlbHGZKiEvmcaEx0yVBcYdLre4LEfKoB1jC_L-DfM_EdS0lHZCA",
+            "ts": 1792547524020,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-monitor",
+        "tests"
+    ],
+    "milestone": "",
+    "number": 116,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-monitor: add unit tests for history storage, validation and sharding in worker.py",
+    "updatedAt": 1792547524020,
+    "votes": 0
+}

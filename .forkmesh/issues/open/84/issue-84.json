@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792547523699,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\n`scripts/generate_page.py` builds every \"Idea X\" badge, matrix label, header button and repo link from `REPO_URL = https://github.com/OWASP-BLT/...` and `IDEA_REPO_MAP` values like `OWASP-BLT/<Repo>`. The hero card links to the forge but is labelled \"View on GitHub\".\n\n## What to do\n\n1. Add a `FORGE_URL` constant; build file links as `https://git.owaspblt.org/BLT/blob/main/blt-ideas/{filename}`.\n2. Make `IDEA_REPO_MAP` values bare repo names linking to `https://git.owaspblt.org/BLT/{name}`.\n3. Fix the hero card label and icon. Leave GitHub Discussions links and GitHub API calls alone.\n\n## Acceptance criteria\n\n- [ ] `grep -c 'github.com/OWASP-BLT' dist/index.html` is 0 apart from discussion links\n- [ ] Badges open the right file on the forge\n- [ ] Repo filter still lists repo names\n\n## How to test locally\n\n```bash\ncd blt-ideas && python3 scripts/generate_page.py && python3 -m http.server -d dist 8000   # then open http://localhost:8000\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "id": "blt-tasks-issue-84",
+            "sig": "AG1Fo8FH7CDSsmhz5AuYINrdBksBiBCKoHS3eoZ-LokTA9SaylensIADEjIPnQY0vAbGp2Aw2rFq3J1YereEBg",
+            "title": "blt-ideas: point generated idea and repo links at git.owaspblt.org instead of github.com/OWASP-BLT",
+            "ts": 1792547523699,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-84",
+            "labels": [
+                "hacktoberfest",
+                "blt-ideas",
+                "bug"
+            ],
+            "sig": "FBrKYGVd_-B0Zbaug2e9aVFS61-esXA_6ou3vdxynHLDNvEB5WwHLlfxvw5yjRF48T6A7b425tZIANZcSUsaAA",
+            "ts": 1792547523700,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "hacktoberfest",
+        "blt-ideas",
+        "bug"
+    ],
+    "milestone": "",
+    "number": 84,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-ideas: point generated idea and repo links at git.owaspblt.org instead of github.com/OWASP-BLT",
+    "updatedAt": 1792547523700,
+    "votes": 0
+}
