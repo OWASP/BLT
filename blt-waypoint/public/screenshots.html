@@ -40,50 +40,20 @@
   <!-- Custom styles -->
   <link rel="stylesheet" href="styles.css" />
   <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <style>
+    blt-nav:not(:defined) { display: block; min-height: 61px; }
+    blt-nav:not(:defined) > * { display: none; }
+  </style>
 </head>
 
 <body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen font-sans">
 
-<!-- ===== TOP NAV ===== -->
-<header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-  <div class="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-
-    <!-- Logo -->
-    <a href="./index.html" class="flex items-center gap-2 shrink-0" aria-label="BLT-Waypoint home">
-      <img src="./imgs/project-logos-v2/BLT-Waypoint.svg" alt="" class="h-7 w-7" width="28" height="28" />
-      <span class="hidden sm:inline text-sm font-semibold text-gray-900 dark:text-gray-100">BLT-Waypoint</span>
-    </a>
-
-    <!-- Nav links -->
-    <div class="flex items-center gap-2 shrink-0">
-      <a
-        href="./index.html"
-        class="text-sm font-medium px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-      >
-        <i class="fa-solid fa-table-list mr-1" aria-hidden="true"></i>Dashboard
-      </a>
-
-      <a
-        href="./issues.html"
-        class="text-sm font-medium px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-      >
-        <i class="fa-solid fa-circle-dot text-brand mr-1" aria-hidden="true"></i>Issues
-      </a>
-
-
-      <!-- Source code link -->
-      <a
-        href="https://git.owaspblt.org/BLT/tree/main/blt-waypoint"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="BLT-Waypoint source code on git.owaspblt.org"
-        class="p-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-      >
-        <i class="fa-brands fa-github text-base" aria-hidden="true"></i>
-      </a>
-    </div>
-  </div>
-</header>
+<blt-nav project="blt-waypoint" name="Waypoint" data-sticky>
+  <a href="./index.html">Dashboard</a>
+  <a href="./issues.html">Issues</a>
+  <a href="./screenshots.html" aria-current="page">Screenshots</a>
+  <a href="https://git.owaspblt.org/BLT/tree/main/blt-waypoint" target="_blank" rel="noopener noreferrer" slot="actions">Source</a>
+</blt-nav>
 
 <!-- ===== MAIN CONTENT ===== -->
 <main class="max-w-screen-xl mx-auto px-4 py-8">

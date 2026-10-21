@@ -38,20 +38,25 @@
   <!-- Custom styles -->
   <link rel="stylesheet" href="styles.css?v=0.3.0" />
   <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <style>
+    blt-nav:not(:defined) { display: block; min-height: 61px; }
+    blt-nav:not(:defined) > * { display: none; }
+  </style>
 </head>
 
 <body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen font-sans">
 
-  <!-- ===== TOP NAV ===== -->
-  <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm table-view-header">
-    <div id="header-inner"
-      class="max-w-screen-xl mx-auto px-2 sm:px-4 h-14 flex items-center justify-between gap-2 sm:gap-4">
+  <blt-nav project="blt-waypoint" name="Waypoint" data-sticky>
+    <a href="./index.html" aria-current="page">Dashboard</a>
+    <a href="./issues.html">Issues</a>
+    <a href="./screenshots.html">Screenshots</a>
+    <a href="https://git.owaspblt.org/BLT/tree/main/blt-waypoint" target="_blank" rel="noopener noreferrer" slot="actions">Source</a>
+  </blt-nav>
 
-      <!-- Logo -->
-      <a href="./index.html" class="flex items-center gap-2 shrink-0" aria-label="BLT-Waypoint home">
-      <img src="./imgs/project-logos-v2/BLT-Waypoint.svg" alt="" class="h-7 w-7" width="28" height="28" />
-      <span class="hidden sm:inline text-sm font-semibold text-gray-900 dark:text-gray-100">BLT-Waypoint</span>
-    </a>
+  <!-- ===== TOOLBAR: search, data source, sort, view ===== -->
+  <div id="site-toolbar" class="table-view-header">
+    <div id="header-inner"
+      class="max-w-screen-xl mx-auto px-2 sm:px-4 pt-4 flex items-center justify-between gap-2 sm:gap-4">
 
       <!-- Search -->
       <div class="relative flex-1 min-w-0 max-w-sm">
@@ -117,31 +122,9 @@
           title="Card view">
           <i class="fa-solid fa-grip text-xs sm:text-sm" aria-hidden="true"></i>
         </button>
-
-        <!-- Open Issues -->
-        <a href="./issues.html" aria-label="View all open issues"
-          title="All open issues across repositories"
-          class="w-7 h-7 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-xs font-medium gap-1">
-          <i class="fa-solid fa-circle-dot text-brand text-xs sm:text-sm" aria-hidden="true"></i>
-          <span class="hidden sm:inline">Issues</span>
-        </a>
-
-
-        <!-- Screenshots link -->
-        <a href="./screenshots.html" aria-label="Website Screenshots" title="Website Screenshots"
-          class="w-7 h-7 sm:w-auto sm:h-auto sm:p-2 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-          <i class="fa-solid fa-camera text-xs sm:text-sm" aria-hidden="true"></i>
-        </a>
-
-        <!-- Source code link -->
-        <a href="https://git.owaspblt.org/BLT/tree/main/blt-waypoint" target="_blank" rel="noopener noreferrer"
-          aria-label="BLT-Waypoint source code on git.owaspblt.org" title="Source code on git.owaspblt.org"
-          class="w-7 h-7 sm:w-auto sm:h-auto sm:p-2 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-          <i class="fa-solid fa-code-branch text-xs sm:text-base" aria-hidden="true"></i>
-        </a>
       </div>
     </div>
-  </header>
+  </div>
 
   <!-- ===== MAIN LAYOUT ===== -->
   <div id="main-layout" class="max-w-screen-xl mx-auto px-2 sm:px-4 py-6 flex gap-2 sm:gap-6 table-view">

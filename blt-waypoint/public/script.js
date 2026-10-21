@@ -930,7 +930,7 @@ function renderRepos(repos) {
     table.classList.remove('hidden');
     const sidebar = document.getElementById('main-sidebar');
     const layout = document.getElementById('main-layout');
-    const header = document.querySelector('header');
+    const header = document.getElementById('site-toolbar');
     if (sidebar) sidebar.classList.add('force-hidden');
     if (layout) layout.classList.add('table-view');
     if (header) header.classList.add('table-view-header');
@@ -943,7 +943,7 @@ function renderRepos(repos) {
     table.classList.remove('hidden');
     const sidebar = document.getElementById('main-sidebar');
     const layout = document.getElementById('main-layout');
-    const header = document.querySelector('header');
+    const header = document.getElementById('site-toolbar');
     if (sidebar) sidebar.classList.add('force-hidden');
     if (layout) layout.classList.add('table-view');
     if (header) header.classList.add('table-view-header');
@@ -953,7 +953,7 @@ function renderRepos(repos) {
     grid.classList.remove('hidden');
     const sidebar = document.getElementById('main-sidebar');
     const layout = document.getElementById('main-layout');
-    const header = document.querySelector('header');
+    const header = document.getElementById('site-toolbar');
     if (sidebar) sidebar.classList.remove('force-hidden');
     if (layout) layout.classList.remove('table-view');
     if (header) header.classList.remove('table-view-header');

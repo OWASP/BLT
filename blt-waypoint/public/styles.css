@@ -78,8 +78,8 @@
 #main-layout.table-view #repo-table { overflow-x: visible; }
 #main-layout.table-view #content-inner { width: max-content; min-width: 100%; }
 
-/* Table view: expand header inner div to full width */
-header.table-view-header #header-inner { max-width: none; }
+/* Table view: expand the toolbar to full width */
+#site-toolbar.table-view-header #header-inner { max-width: none; }
 
 /* GSoC card highlight with Google brand colors */
 .gsoc-card {
