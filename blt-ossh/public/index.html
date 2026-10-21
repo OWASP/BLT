@@ -117,6 +117,9 @@
     .dark ::-webkit-scrollbar-track { background: #1F2937; }
     ::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 999px; }
     .dark ::-webkit-scrollbar-thumb { background: #ef4444; }
+
+    blt-nav:not(:defined) { display: block; min-height: 61px; }
+    blt-nav:not(:defined) > * { display: none; }
   </style>
 </head>
 
@@ -124,38 +127,11 @@
   <!-- Background Glow Effect -->
   <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
 
-  <!-- Header -->
-  <header class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-dark-surface/95">
-    <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-      <a href="./" class="flex items-center gap-3" aria-label="OSSH home">
-        <img
-          src="static/ossh-logo.svg"
-          alt="OSSH logo"
-          class="h-9 w-9 rounded-full object-contain"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-        />
-        <span class="hidden h-9 w-9 items-center justify-center rounded-lg bg-red-600 text-sm font-extrabold text-white">
-          <i class="fas fa-hat-wizard"></i>
-        </span>
-        <div>
-          <p class="text-base font-extrabold leading-none dark:text-gray-100">Open Source Sorting Hat</p>
-          <p class="text-xs font-medium text-gray-500 dark:text-gray-400">by OWASP BLT</p>
-        </div>
-      </a>
-
-      <div class="flex items-center gap-3">
-        <a
-          href="https://git.owaspblt.org/BLT/BLT-OSSH"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="hidden sm:inline-flex h-9 items-center gap-2 rounded-lg border border-neutral-border px-4 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-        >
-          <i class="fa-brands fa-github" aria-hidden="true"></i>
-          <span>Source Code</span>
-        </a>
-      </div>
-    </div>
-  </header>
+  <blt-nav project="blt-ossh" name="OSSH" current="auto" data-sticky>
+    <a href="./">Sorting Hat</a>
+    <a href="./community">Community</a>
+    <a href="https://git.owaspblt.org/BLT/BLT-OSSH" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source Code</a>
+  </blt-nav>
 
   <!-- Main Content -->
   <main class="py-12 sm:py-20">
