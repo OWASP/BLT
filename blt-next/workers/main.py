@@ -551,7 +551,8 @@ async def call_blt_api(env, method, path, payload=None, client_ip=None):
     binding = getattr(env, 'BLT_API', None) if env is not None else None
     try:
         if binding is not None:
-            response = await binding.fetch(base + path, _to_js(init))
+            # The Python SDK's binding.fetch takes the URL plus keyword options.
+            response = await binding.fetch(base + path, **init)
         else:
             from js import fetch as js_fetch
             response = await js_fetch(base + path, _to_js(init))

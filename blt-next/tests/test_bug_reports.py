@@ -55,7 +55,8 @@ class FakeBltApi:
         self.raw = raw
         self.error = error
 
-    async def fetch(self, url, init):
+    async def fetch(self, url, **init):
+        # Same signature as the Python SDK's binding.fetch: URL, then keyword options.
         self.calls.append((url, init))
         if self.error:
             raise self.error
