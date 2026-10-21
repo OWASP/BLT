@@ -1,13 +1,20 @@
-/* BLT Docs theme accents for MkDocs Material. Keep this intentionally small. */
+/* BLT Docs theme for MkDocs Material, matched to owaspblt.org: gray/white surfaces,
+   BLT red (#dc2626) accent, system fonts, dark mode via the OWASP BLT top bar. Keep it small. */
 :root {
-  --blt-primary: #e10101;
+  --blt-primary: #dc2626;
   --blt-primary-hover: #b91c1c;
-  --blt-primary-soft: #feeaea;
+  --blt-primary-soft: #fee2e2;
   --blt-dark: #111827;
   --blt-dark-surface: #1f2937;
-  --blt-light-bg: #f8fafc;
+  --blt-light-bg: #f9fafb;
   --blt-light-border: #e5e7eb;
-  --blt-muted: #64748b;
+  --blt-muted: #6b7280;
+}
+
+/* Material defines its font stacks on body, so override them there. */
+body {
+  --md-text-font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --md-code-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 [data-md-color-scheme="default"] {
@@ -15,36 +22,50 @@
   --md-primary-fg-color--light: #ef4444;
   --md-primary-fg-color--dark: var(--blt-primary-hover);
   --md-accent-fg-color: var(--blt-primary);
-  --md-typeset-a-color: var(--blt-primary-hover);
+  --md-typeset-a-color: var(--blt-primary);
   --md-default-bg-color: var(--blt-light-bg);
 }
 
 [data-md-color-scheme="slate"] {
   --md-primary-fg-color: var(--blt-dark);
   --md-primary-fg-color--light: var(--blt-dark-surface);
-  --md-primary-fg-color--dark: #0b1120;
+  --md-primary-fg-color--dark: #030712;
   --md-accent-fg-color: #ef4444;
   --md-typeset-a-color: #f87171;
+  --md-default-bg-color: #030712;
+  --md-code-bg-color: #111827;
+}
+
+/* The OWASP BLT top bar has the theme toggle; Material's own palette toggle is hidden. */
+.md-header__option[data-md-component="palette"] {
+  display: none;
 }
 
 .md-header {
-  background-color: var(--blt-primary);
+  background-color: #ffffff;
   background-image: none;
-  box-shadow: 0 0.15rem 0.45rem rgba(17, 24, 39, 0.16);
+  color: #111827;
+  border-bottom: 1px solid var(--blt-light-border);
+  box-shadow: none;
 }
 
 [data-md-color-scheme="slate"] .md-header {
-  background-color: #7f1d1d;
+  background-color: var(--blt-dark);
   background-image: none;
+  color: #f3f4f6;
+  border-bottom-color: var(--blt-dark-surface);
 }
 
 .md-tabs {
-  background-color: var(--blt-dark);
+  background-color: #ffffff;
+  color: #4b5563;
+  border-bottom: 1px solid var(--blt-light-border);
 }
 
 [data-md-color-scheme="slate"] .md-tabs {
   background-color: var(--blt-dark);
-  border-bottom: 1px solid rgba(248, 113, 113, 0.22);
+  color: #9ca3af;
+  border-bottom: 1px solid var(--blt-dark-surface);
 }
 
 .md-header__button.md-logo {
@@ -52,20 +73,39 @@
 }
 
 .md-search__form {
-  background-color: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background-color: #f3f4f6;
+  border: 1px solid var(--blt-light-border);
   border-radius: 0.55rem;
 }
 
 .md-search__form:hover,
 .md-search__input:focus + .md-search__icon {
-  background-color: rgba(255, 255, 255, 0.24);
+  background-color: #e5e7eb;
+}
+
+[data-md-color-scheme="slate"] .md-search__form {
+  background-color: var(--blt-dark-surface);
+  border-color: #374151;
+}
+
+[data-md-color-scheme="slate"] .md-search__form:hover {
+  background-color: #374151;
+}
+
+.md-search__input::placeholder,
+.md-search__input ~ .md-search__icon {
+  color: inherit;
 }
 
 .md-tabs__link--active,
 .md-tabs__link:is(:focus, :hover) {
-  color: #ffffff;
+  color: var(--blt-primary);
   opacity: 1;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link--active,
+[data-md-color-scheme="slate"] .md-tabs__link:is(:focus, :hover) {
+  color: #f87171;
 }
 
 .md-typeset a:hover {
@@ -96,7 +136,7 @@
 }
 
 .md-typeset .grid.cards > ul > li:is(:focus-within, :hover) {
-  border-color: rgba(225, 1, 1, 0.55);
+  border-color: rgba(220, 38, 38, 0.55);
   box-shadow: 0 1rem 2.2rem -1.75rem rgba(185, 28, 28, 0.45);
 }
 
@@ -105,7 +145,7 @@
 }
 
 .md-typeset table:not([class]) th {
-  background-color: rgba(225, 1, 1, 0.08);
+  background-color: rgba(220, 38, 38, 0.08);
   color: var(--blt-primary-hover);
 }
 
@@ -119,7 +159,7 @@
 }
 
 .md-footer-meta {
-  background-color: #0b1120;
+  background-color: #030712;
 }
 
 .md-footer a:is(:focus, :hover),
@@ -128,5 +168,5 @@
 }
 
 ::selection {
-  background: rgba(225, 1, 1, 0.2);
+  background: rgba(220, 38, 38, 0.2);
 }

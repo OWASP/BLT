@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <script>
+    // One theme for every BLT site: class "dark" on <html> and localStorage "theme"
+    // ("dark" | "light"), switched by the OWASP BLT top bar. Map it onto Material's
+    // palette (index 0 = default, 1 = slate) before the header script applies it.
+    (function () {
+      function palette(dark) {
+        return { index: dark ? 1 : 0, color: {
+          media: dark ? "(prefers-color-scheme: dark)" : "(prefers-color-scheme: light)",
+          scheme: dark ? "slate" : "default", primary: "red", accent: "red" } };
+      }
+      var saved = null;
+      try { saved = localStorage.getItem("theme"); } catch (e) {}
+      var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", dark);
+      __md_set("__palette", palette(dark));
+      window.addEventListener("blt-theme-change", function (e) {
+        var d = !!(e.detail && e.detail.dark);
+        __md_set("__palette", palette(d));
+        document.body.setAttribute("data-md-color-scheme", d ? "slate" : "default");
+      });
+    })();
+  </script>
+{% endblock %}

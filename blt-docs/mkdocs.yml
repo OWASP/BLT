@@ -8,6 +8,8 @@ edit_uri: ""
 
 theme:
   name: material
+  # overrides/main.html adds the OWASP BLT top bar and ties Material's palette to its theme toggle.
+  custom_dir: overrides
   palette:
     # Light mode
     - media: "(prefers-color-scheme: light)"
@@ -25,10 +27,11 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
-  font:
-    text: Inter
-    code: Roboto Mono
+  # System font stacks (set in blt-theme.css), like owaspblt.org.
+  font: false
   favicon: assets/favicon.ico
+  # BLT-Docs project logo in the docs header (the OWASP BLT wasp is in the top bar above it).
+  logo: assets/logo.svg
   features:
     - navigation.instant
     - navigation.tracking
@@ -47,6 +50,8 @@ theme:
     - content.code.annotate
   icon:
     repo: fontawesome/brands/git-alt
+    # The OWASP BLT top bar already has a hamburger on phones; use an ellipsis for the docs menu.
+    menu: material/dots-horizontal
 
 extra_css:
   - assets/stylesheets/blt-theme.css
