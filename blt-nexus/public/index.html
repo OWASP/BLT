@@ -14,33 +14,11 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Navigation -->
-    <nav aria-label="Main navigation">
-      <a href="/" class="nav-brand" aria-label="BLT Nexus home">
-        <img src="logo.svg" alt="" width="32" height="32" />
-        <span>BLT Nexus</span>
-      </a>
-      <ul class="nav-links" role="list">
-        <li><a href="#projects">Projects</a></li>
-        <li><a href="#about">About</a></li>
-        <li>
-          <a
-            href="https://git.owaspblt.org/BLT/BLT-Nexus"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Source Code</a
-          >
-        </li>
-        <li>
-          <a
-            href="https://blt.owasp.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            >BLT</a
-          >
-        </li>
-      </ul>
-    </nav>
+    <blt-nav project="blt-nexus" name="Nexus" data-sticky>
+      <a href="#projects">Projects</a>
+      <a href="#about">About</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-Nexus" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source Code</a>
+    </blt-nav>
 
     <!-- Hero -->
     <section class="hero" aria-labelledby="hero-heading">
