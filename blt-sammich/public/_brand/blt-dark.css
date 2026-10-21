@@ -1,0 +1,52 @@
+/* Dark mode for pages styled with plain Tailwind gray/white utilities.
+   OWASP BLT theme contract: class "dark" on <html> (set by theme-init.js and the
+   <blt-nav> toggle). Colours follow owaspblt.org: gray-950 page, gray-900 cards,
+   gray-800 borders, red-400/500 accents. "html.dark" outranks the Tailwind CDN's
+   single-class rules whatever order the stylesheets load in. */
+html.dark { color-scheme: dark; }
+html.dark body { background-color: #030712; color: #e5e7eb; }
+
+/* surfaces */
+html.dark .bg-gray-50 { background-color: #030712; }
+html.dark .bg-white, html.dark .bg-white\/95, html.dark .bg-white\/90, html.dark .bg-white\/80 { background-color: #111827; }
+html.dark .bg-white\/40 { background-color: rgba(17, 24, 39, .4); }
+html.dark .bg-gray-100 { background-color: #1f2937; }
+html.dark .bg-gray-200 { background-color: #374151; }
+html.dark .hover\:bg-gray-50:hover, html.dark .hover\:bg-gray-100:hover { background-color: #1f2937; }
+html.dark .hover\:bg-gray-200:hover { background-color: #374151; }
+
+/* text */
+html.dark .text-black, html.dark .text-gray-900 { color: #f9fafb; }
+html.dark .text-gray-800 { color: #f3f4f6; }
+html.dark .text-gray-700 { color: #d1d5db; }
+html.dark .text-gray-600 { color: #9ca3af; }
+html.dark .text-gray-500 { color: #9ca3af; }
+html.dark .text-gray-400 { color: #6b7280; }
+html.dark .text-gray-300 { color: #4b5563; }
+html.dark .hover\:text-gray-900:hover, html.dark .hover\:text-gray-800:hover, html.dark .hover\:text-gray-700:hover { color: #fff; }
+
+/* borders and dividers */
+html.dark .border-gray-100, html.dark .border-gray-200 { border-color: #1f2937; }
+html.dark .border-gray-300 { border-color: #374151; }
+html.dark .border-black\/5, html.dark .border-black\/10 { border-color: rgba(255, 255, 255, .08); }
+html.dark :is(.border, .border-t, .border-b, .border-l, .border-r, .border-2):not([class*="border-red-"]):not([class*="border-green-"]):not([class*="border-blue-"]):not([class*="border-yellow-"]):not([class*="border-amber-"]):not([class*="border-orange-"]):not([class*="border-purple-"]):not([class*="border-indigo-"]):not([class*="border-emerald-"]) { border-color: #1f2937; }
+html.dark .divide-y > * + *, html.dark .divide-gray-100 > * + *, html.dark .divide-gray-200 > * + * { border-color: #1f2937; }
+
+/* tinted chips and notices */
+html.dark .bg-red-50, html.dark .bg-red-100 { background-color: rgba(127, 29, 29, .35); }
+html.dark .bg-green-50, html.dark .bg-green-100 { background-color: rgba(20, 83, 45, .4); }
+html.dark .bg-yellow-50, html.dark .bg-yellow-100, html.dark .bg-amber-50, html.dark .bg-amber-100 { background-color: rgba(113, 63, 18, .4); }
+html.dark .bg-blue-50, html.dark .bg-blue-100 { background-color: rgba(30, 58, 138, .35); }
+html.dark .text-red-600, html.dark .text-red-700, html.dark .text-red-800 { color: #f87171; }
+html.dark .text-green-600, html.dark .text-green-700, html.dark .text-green-800 { color: #4ade80; }
+html.dark .text-yellow-700, html.dark .text-yellow-800, html.dark .text-amber-700, html.dark .text-amber-800 { color: #fbbf24; }
+html.dark .text-blue-600, html.dark .text-blue-700, html.dark .text-blue-800 { color: #60a5fa; }
+html.dark .border-red-200 { border-color: rgba(248, 113, 113, .3); }
+html.dark .border-green-200 { border-color: rgba(74, 222, 128, .3); }
+
+/* form controls */
+html.dark :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]) { background-color: #111827; color: #f3f4f6; border-color: #374151; }
+html.dark ::placeholder { color: #6b7280; }
+
+/* shadows read as smudges on near-black */
+html.dark .shadow, html.dark .shadow-sm, html.dark .shadow-md, html.dark .shadow-lg, html.dark .shadow-xl { box-shadow: 0 1px 2px rgba(0, 0, 0, .5); }

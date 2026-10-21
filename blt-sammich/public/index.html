@@ -5,17 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title id="hackathon-title">BLT-Sammich</title>
     <meta name="description" content="A slack bot that can help manage and track your projects and contributions" />
-    <link rel="icon" type="image/png" href="./static/logo.png" />
+    <link rel="icon" href="./static/blt-logo.svg" type="image/svg+xml" />
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: "class" };</script>
+    <script src="/_brand/theme-init.js"></script>
+    <link rel="stylesheet" href="/_brand/blt-dark.css" />
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
     <style>
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       }
       .loading {
         display: inline-block;
@@ -48,15 +52,15 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center">
-            <img src="./static/logo.png" alt="BLT-Sammich Logo" class="h-8 w-8 mr-2" />
-            <h1 class="text-xl font-bold text-gray-900" id="nav-title">BLT-Sammich</h1>
+            <img src="/static/sammich-logo.svg" alt="BLT-Sammich logo" class="h-8 w-8 mr-2 rounded-full" />
+            <h1 class="text-xl font-bold text-gray-900 whitespace-nowrap" id="nav-title">BLT-Sammich</h1>
           </div>
           <div class="flex items-center space-x-4">
-            <a class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-5 rounded-lg" href="/install-slack">
-              <button><i class="fab fa-slack mr-2"></i> Install to Workspace</button>
+            <a class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-3 sm:py-3 sm:px-5 rounded-lg" href="/install-slack" aria-label="Install to Workspace">
+              <button><i class="fab fa-slack sm:mr-2"></i><span class="hidden sm:inline"> Install to Workspace</span></button>
             </a>
-            <a class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-5 rounded-lg" href="https://git.owaspblt.org/BLT/BLT-Sammich" target="_blank" rel="noopener noreferrer">
-              <button><i class="fab fa-github mr-2"></i> Contribute</button>
+            <a class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 sm:py-3 sm:px-5 rounded-lg" href="https://git.owaspblt.org/BLT/BLT-Sammich" target="_blank" rel="noopener noreferrer" aria-label="Contribute">
+              <button><i class="fab fa-github sm:mr-2"></i><span class="hidden sm:inline"> Contribute</span></button>
             </a>
           </div>
         </div>
