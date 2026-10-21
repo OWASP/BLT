@@ -1,0 +1,35 @@
+/* Dark mode for BLT Profiles: class "dark" on <html>, set by /static/theme-init.js before
+   first paint and by the shared <blt-nav> toggle (localStorage "theme"). Maps the light
+   Tailwind utilities these pages use onto the owaspblt.org dark palette. */
+html.dark { color-scheme: dark; }
+html.dark body.bg-gray-50 { background-color: #030712; color: #f3f4f6; }
+html.dark header.bg-white,
+html.dark .bg-white,
+html.dark .section-card,
+html.dark .stat-card { background-color: #111827; border-color: #1f2937; }
+html.dark .bg-gray-50:not(body),
+html.dark .bg-gray-100 { background-color: #1f2937; }
+html.dark .border-\[\#E5E5E5\],
+html.dark .border-b,
+html.dark .border-t { border-color: #1f2937; }
+html.dark .ring-\[\#E5E5E5\] { --tw-ring-color: #1f2937; }
+html.dark .text-gray-900 { color: #f3f4f6; }
+html.dark .text-gray-800 { color: #e5e7eb; }
+html.dark .text-gray-700 { color: #d1d5db; }
+html.dark .text-gray-600,
+html.dark .text-gray-500 { color: #9ca3af; }
+html.dark .text-\[\#dc2626\] { color: #f87171; }
+html.dark .bg-\[\#feeae9\],
+html.dark .sidebar-link-active { background-color: rgba(220, 38, 38, 0.15); color: #f87171; }
+html.dark .sidebar-link { color: #9ca3af; }
+html.dark .sidebar-link:hover:not(.sidebar-link-active) { background: #1f2937; color: #f3f4f6; }
+html.dark .bg-green-50 { background-color: rgba(34, 197, 94, 0.12); }
+html.dark .bg-purple-50 { background-color: rgba(168, 85, 247, 0.12); }
+html.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.12); }
+html.dark .bg-red-50 { background-color: rgba(220, 38, 38, 0.12); }
+html.dark .border-green-200 { border-color: rgba(34, 197, 94, 0.3); }
+html.dark .border-purple-200 { border-color: rgba(168, 85, 247, 0.3); }
+html.dark .border-amber-200 { border-color: rgba(245, 158, 11, 0.3); }
+html.dark .border-red-200 { border-color: rgba(248, 113, 113, 0.3); }
+html.dark .bg-\[\#111827\] { background-color: #111827; }
+html.dark footer.bg-\[\#111827\] { background-color: #000; border-top: 1px solid #1f2937; }

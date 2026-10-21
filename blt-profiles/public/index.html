@@ -5,13 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BLT Profiles — Cybersecurity Community</title>
   <meta name="description" content="Browse and join the BLT cybersecurity community. Discover researchers, bug hunters, and security professionals worldwide." />
+  <script src="/static/theme-init.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            primary: '#E10101',
+            primary: '#dc2626',
             'primary-dark': '#b91c1c',
             'blt-dark': '#111827',
             'blt-surface': '#1F2937',
@@ -21,22 +24,23 @@
     }
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/blt-dark.css" />
   <style>
     .btn-primary {
-      background-color: #E10101;
+      background-color: #dc2626;
       color: #fff;
-      border: 1px solid #E10101;
+      border: 1px solid #dc2626;
       transition: background-color .15s, border-color .15s;
     }
     .btn-primary:hover { background-color: #b91c1c; border-color: #b91c1c; }
     .btn-outline {
       background-color: transparent;
-      color: #E10101;
-      border: 1px solid #E10101;
+      color: #dc2626;
+      border: 1px solid #dc2626;
       transition: background-color .15s, color .15s;
     }
-    .btn-outline:hover { background-color: #E10101; color: #fff; }
-    .profile-card:hover { box-shadow: 0 8px 30px rgba(225,1,1,.12); transform: translateY(-2px); }
+    .btn-outline:hover { background-color: #dc2626; color: #fff; }
+    .profile-card:hover { box-shadow: 0 8px 30px rgba(220,38,38,.12); transform: translateY(-2px); }
     .profile-card { transition: transform .2s, box-shadow .2s; }
   </style>
 </head>
@@ -46,17 +50,17 @@
   <header class="bg-white border-b border-[#E5E5E5] sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
       <a href="index.html" class="flex items-center gap-2 font-bold text-xl tracking-tight" aria-label="BLT Profiles home">
-        <span class="text-[#E10101]"><i class="fa-solid fa-bug" aria-hidden="true"></i></span>
-        <span>BLT<span class="text-[#E10101]"> Profiles</span></span>
+        <span class="text-[#dc2626]"><i class="fa-solid fa-bug" aria-hidden="true"></i></span>
+        <span>BLT<span class="text-[#dc2626]"> Profiles</span></span>
       </a>
       <nav class="hidden md:flex items-center gap-6 text-sm font-medium" aria-label="Main navigation">
-        <a href="index.html" class="text-[#E10101] underline underline-offset-4">Home</a>
+        <a href="index.html" class="text-[#dc2626] underline underline-offset-4">Home</a>
         <a href="https://git.owaspblt.org/BLT/issues/new" target="_blank" rel="noopener"
-           class="text-gray-600 hover:text-[#E10101]">Add Profile</a>
+           class="text-gray-600 hover:text-[#dc2626]">Add Profile</a>
         <a href="https://git.owaspblt.org/BLT/blob/main/blt-profiles/issue-templates/add-profile.md" target="_blank" rel="noopener"
-           class="text-gray-600 hover:text-[#E10101]">Profile Template</a>
+           class="text-gray-600 hover:text-[#dc2626]">Profile Template</a>
         <a href="https://git.owaspblt.org/BLT/tree/main/blt-profiles" target="_blank" rel="noopener"
-           class="text-gray-600 hover:text-[#E10101]">
+           class="text-gray-600 hover:text-[#dc2626]">
           <i class="fa-solid fa-code-branch text-lg" aria-hidden="true"></i> Source
         </a>
       </nav>
@@ -74,7 +78,7 @@
     <!-- ── HERO ── -->
     <section class="bg-[#111827] text-white py-20 px-4 text-center" aria-label="Hero">
       <div class="max-w-3xl mx-auto">
-        <span class="inline-flex items-center gap-2 bg-[#E10101]/10 text-[#E10101] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest mb-4">
+        <span class="inline-flex items-center gap-2 bg-[#dc2626]/10 text-[#dc2626] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest mb-4">
           <i class="fa-solid fa-shield-halved" aria-hidden="true"></i> OWASP BLT Community
         </span>
         <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight mb-4">
@@ -86,7 +90,7 @@
         </p>
 
         <!-- Search -->
-        <form id="searchForm" class="flex items-center max-w-xl mx-auto bg-[#1F2937] rounded-lg overflow-hidden border border-gray-700 focus-within:border-[#E10101] focus-within:ring-1 focus-within:ring-[#E10101] transition-all"
+        <form id="searchForm" class="flex items-center max-w-xl mx-auto bg-[#1F2937] rounded-lg overflow-hidden border border-gray-700 focus-within:border-[#dc2626] focus-within:ring-1 focus-within:ring-[#dc2626] transition-all"
               role="search" aria-label="Search profiles" onsubmit="return false;">
           <label for="searchInput" class="sr-only">Search profiles</label>
           <span class="pl-4 text-gray-400" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -125,7 +129,7 @@
         <div class="flex items-center gap-3 text-sm" role="group" aria-label="Sort options">
           <span class="text-gray-500">Sort by:</span>
           <select id="sortSelect" aria-label="Sort profiles"
-                  class="border border-gray-400 rounded-md px-4 py-2 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] outline-none text-sm bg-white">
+                  class="border border-gray-400 rounded-md px-4 py-2 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] outline-none text-sm bg-white">
             <option value="newest">Newest</option>
             <option value="name">Name</option>
             <option value="role">Role</option>
@@ -152,7 +156,7 @@
 
       <!-- Loading -->
       <div id="loadingState" class="col-span-full flex justify-center py-20">
-        <i class="fa-solid fa-circle-notch fa-spin text-[#E10101] text-3xl" aria-label="Loading profiles"></i>
+        <i class="fa-solid fa-circle-notch fa-spin text-[#dc2626] text-3xl" aria-label="Loading profiles"></i>
       </div>
     </section>
 
@@ -163,25 +167,25 @@
         <p class="text-gray-500 text-sm mb-10">Three simple steps to join the community.</p>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
           <div class="flex flex-col items-center gap-3">
-            <span class="w-14 h-14 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] text-2xl">
+            <span class="w-14 h-14 rounded-full bg-[#feeae9] flex items-center justify-center text-[#dc2626] text-2xl">
               <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
             </span>
             <h3 class="font-bold">1. Open an Issue</h3>
-            <p class="text-gray-500 text-sm">On <a href="https://git.owaspblt.org/BLT/issues/new" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">git.owaspblt.org</a>, title it <code class="text-[#E10101] bg-gray-100 px-1 py-0.5 rounded text-xs">[blt-profiles] Add profile: yourname</code> and paste the <a href="https://git.owaspblt.org/BLT/blob/main/blt-profiles/issue-templates/add-profile.md" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">Add Profile template</a> with your details.</p>
+            <p class="text-gray-500 text-sm">On <a href="https://git.owaspblt.org/BLT/issues/new" target="_blank" rel="noopener" class="text-[#dc2626] hover:underline">git.owaspblt.org</a>, title it <code class="text-[#dc2626] bg-gray-100 px-1 py-0.5 rounded text-xs">[blt-profiles] Add profile: yourname</code> and paste the <a href="https://git.owaspblt.org/BLT/blob/main/blt-profiles/issue-templates/add-profile.md" target="_blank" rel="noopener" class="text-[#dc2626] hover:underline">Add Profile template</a> with your details.</p>
           </div>
           <div class="flex flex-col items-center gap-3">
-            <span class="w-14 h-14 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] text-2xl">
+            <span class="w-14 h-14 rounded-full bg-[#feeae9] flex items-center justify-center text-[#dc2626] text-2xl">
               <i class="fa-solid fa-robot" aria-hidden="true"></i>
             </span>
             <h3 class="font-bold">2. Profile Published</h3>
             <p class="text-gray-500 text-sm">A workflow commits your profile file and index entry, replies with your link and closes the issue.</p>
           </div>
           <div class="flex flex-col items-center gap-3">
-            <span class="w-14 h-14 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] text-2xl">
+            <span class="w-14 h-14 rounded-full bg-[#feeae9] flex items-center justify-center text-[#dc2626] text-2xl">
               <i class="fa-solid fa-id-card" aria-hidden="true"></i>
             </span>
             <h3 class="font-bold">3. Share Your Profile</h3>
-            <p class="text-gray-500 text-sm">Your public profile lives at <code class="text-[#E10101] bg-gray-100 px-1 py-0.5 rounded text-xs">…/yourname</code>.</p>
+            <p class="text-gray-500 text-sm">Your public profile lives at <code class="text-[#dc2626] bg-gray-100 px-1 py-0.5 rounded text-xs">…/yourname</code>.</p>
           </div>
         </div>
         <div class="mt-10">
@@ -200,7 +204,7 @@
   <!-- ── FOOTER ── -->
   <footer class="bg-[#111827] text-gray-400 text-sm py-8 px-4" role="contentinfo">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p>© <span id="footerYear"></span> <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">OWASP BLT</a>. All rights reserved.</p>
+      <p>© <span id="footerYear"></span> <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener" class="text-[#dc2626] hover:underline">OWASP BLT</a>. All rights reserved.</p>
       <div class="flex items-center gap-5">
         <a href="https://git.owaspblt.org/BLT/tree/main/blt-profiles" target="_blank" rel="noopener" aria-label="Source code"
            class="hover:text-white transition-colors"><i class="fa-solid fa-code-branch text-lg" aria-hidden="true"></i></a>
@@ -234,7 +238,7 @@
           if (el) el.replaceWith(img);
         }, 0);
       } else {
-        avatarHTML = `<span class="w-16 h-16 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] font-bold text-2xl" aria-hidden="true">${escHtml(initials)}</span>`;
+        avatarHTML = `<span class="w-16 h-16 rounded-full bg-[#feeae9] flex items-center justify-center text-[#dc2626] font-bold text-2xl" aria-hidden="true">${escHtml(initials)}</span>`;
       }
 
       const tags = (p.tags || []).slice(0, 2).map(t =>
@@ -248,7 +252,7 @@
             <div class="flex-1 min-w-0">
               <h3 class="font-bold text-base truncate">${escHtml(p.name || p.username)}</h3>
               <p class="text-gray-500 text-sm truncate">@${escHtml(p.username)}</p>
-              <p class="text-[#E10101] text-xs font-medium mt-0.5 truncate">${escHtml(p.role || 'Cybersecurity Professional')}</p>
+              <p class="text-[#dc2626] text-xs font-medium mt-0.5 truncate">${escHtml(p.role || 'Cybersecurity Professional')}</p>
             </div>
           </div>
           ${p.questions && p.questions.involvement
@@ -257,8 +261,8 @@
           ${tags ? `<div class="flex flex-wrap gap-1">${tags}</div>` : ''}
           <div class="mt-auto pt-3 border-t border-[#E5E5E5] flex items-center justify-between">
             <div class="flex items-center gap-3 text-xs text-gray-500">
-              <span title="Bugs reported"><i class="fa-solid fa-bug text-[#E10101]" aria-hidden="true"></i> ${p.stats ? p.stats.bugs_reported || 0 : 0}</span>
-              <span title="Total PRs"><i class="fa-solid fa-code-pull-request text-[#E10101]" aria-hidden="true"></i> ${p.prs ? p.prs.total || 0 : 0}</span>
+              <span title="Bugs reported"><i class="fa-solid fa-bug text-[#dc2626]" aria-hidden="true"></i> ${p.stats ? p.stats.bugs_reported || 0 : 0}</span>
+              <span title="Total PRs"><i class="fa-solid fa-code-pull-request text-[#dc2626]" aria-hidden="true"></i> ${p.prs ? p.prs.total || 0 : 0}</span>
             </div>
             <a href="${encodeURIComponent(p.username)}"
                class="btn-outline text-xs px-3 py-1.5 rounded-md font-semibold">
@@ -270,7 +274,7 @@
 
     function fallbackAvatar(initial) {
       const span = document.createElement('span');
-      span.className = 'w-16 h-16 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] font-bold text-2xl';
+      span.className = 'w-16 h-16 rounded-full bg-[#feeae9] flex items-center justify-center text-[#dc2626] font-bold text-2xl';
       span.textContent = initial;
       return span;
     }

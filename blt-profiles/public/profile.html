@@ -5,13 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BLT Profile</title>
   <meta name="description" content="BLT cybersecurity profile" />
+  <script src="/static/theme-init.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            primary: '#E10101',
+            primary: '#dc2626',
             'primary-dark': '#b91c1c',
             'blt-dark': '#111827',
             'blt-surface': '#1F2937',
@@ -21,14 +24,15 @@
     }
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/blt-dark.css" />
   <style>
-    .btn-primary { background-color:#E10101; color:#fff; border:1px solid #E10101; transition:background-color .15s,border-color .15s; }
+    .btn-primary { background-color:#dc2626; color:#fff; border:1px solid #dc2626; transition:background-color .15s,border-color .15s; }
     .btn-primary:hover { background-color:#b91c1c; border-color:#b91c1c; }
-    .btn-outline { background-color:transparent; color:#E10101; border:1px solid #E10101; transition:background-color .15s,color .15s; }
-    .btn-outline:hover { background-color:#E10101; color:#fff; }
+    .btn-outline { background-color:transparent; color:#dc2626; border:1px solid #dc2626; transition:background-color .15s,color .15s; }
+    .btn-outline:hover { background-color:#dc2626; color:#fff; }
     .stat-card { background:#fff; border:1px solid #E5E5E5; border-radius:.75rem; }
     .section-card { background:#fff; border:1px solid #E5E5E5; border-radius:.75rem; }
-    .sidebar-link-active { background:#feeae9; color:#E10101; font-weight:600; }
+    .sidebar-link-active { background:#feeae9; color:#dc2626; font-weight:600; }
     .sidebar-link { display:flex; align-items:center; gap:.625rem; padding:.5rem .75rem; border-radius:.5rem; font-size:.875rem; color:#4B5563; transition:background .15s,color .15s; }
     .sidebar-link:hover:not(.sidebar-link-active) { background:#f9fafb; color:#111827; }
   </style>
@@ -39,17 +43,17 @@
   <header class="bg-white border-b border-[#E5E5E5] sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
       <a href="index.html" class="flex items-center gap-2 font-bold text-xl tracking-tight" aria-label="BLT Profiles home">
-        <span class="text-[#E10101]"><i class="fa-solid fa-bug" aria-hidden="true"></i></span>
-        <span>BLT<span class="text-[#E10101]"> Profiles</span></span>
+        <span class="text-[#dc2626]"><i class="fa-solid fa-bug" aria-hidden="true"></i></span>
+        <span>BLT<span class="text-[#dc2626]"> Profiles</span></span>
       </a>
       <nav class="hidden md:flex items-center gap-6 text-sm font-medium" aria-label="Main navigation">
-        <a href="index.html" class="text-gray-600 hover:text-[#E10101]">Home</a>
+        <a href="index.html" class="text-gray-600 hover:text-[#dc2626]">Home</a>
         <a href="https://git.owaspblt.org/BLT/issues/new" target="_blank" rel="noopener"
-           class="text-gray-600 hover:text-[#E10101]">Add Profile</a>
+           class="text-gray-600 hover:text-[#dc2626]">Add Profile</a>
         <a href="https://git.owaspblt.org/BLT/blob/main/blt-profiles/issue-templates/add-profile.md" target="_blank" rel="noopener"
-           class="text-gray-600 hover:text-[#E10101]">Profile Template</a>
+           class="text-gray-600 hover:text-[#dc2626]">Profile Template</a>
         <a href="https://git.owaspblt.org/BLT/tree/main/blt-profiles" target="_blank" rel="noopener"
-           class="text-gray-600 hover:text-[#E10101]">
+           class="text-gray-600 hover:text-[#dc2626]">
           <i class="fa-solid fa-code-branch text-lg" aria-hidden="true"></i> Source
         </a>
       </nav>
@@ -70,7 +74,7 @@
 
   <!-- ── LOADING spinner ── -->
   <div id="loadingSpinner" class="flex-1 flex items-center justify-center py-24" role="status" aria-label="Loading profile">
-    <i class="fa-solid fa-circle-notch fa-spin text-[#E10101] text-4xl" aria-hidden="true"></i>
+    <i class="fa-solid fa-circle-notch fa-spin text-[#dc2626] text-4xl" aria-hidden="true"></i>
   </div>
 
   <!-- ── MAIN CONTENT (hidden until loaded) ── -->
@@ -87,10 +91,10 @@
           <div class="flex-1 min-w-0">
             <div class="flex flex-wrap items-center gap-3 mb-1">
               <h1 id="headerName" class="text-2xl sm:text-3xl font-extrabold"></h1>
-              <span id="headerRankBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#E10101] text-white"></span>
+              <span id="headerRankBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#dc2626] text-white"></span>
             </div>
             <p id="headerUsername" class="text-gray-400 text-sm mb-1"></p>
-            <p id="headerRole" class="text-[#E10101] font-semibold text-sm mb-3"></p>
+            <p id="headerRole" class="text-[#dc2626] font-semibold text-sm mb-3"></p>
 
             <!-- Social -->
             <div id="headerSocial" class="flex flex-wrap items-center gap-3"></div>
@@ -149,11 +153,11 @@
         <!-- ── STREAK ── -->
         <section id="streak" class="section-card p-6" aria-labelledby="streakTitle">
           <h2 id="streakTitle" class="font-bold text-base mb-5 flex items-center gap-2">
-            <i class="fa-solid fa-fire text-[#E10101]" aria-hidden="true"></i> Streak Details
+            <i class="fa-solid fa-fire text-[#dc2626]" aria-hidden="true"></i> Streak Details
           </h2>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
             <div class="bg-gray-50 rounded-lg p-4 text-center border border-[#E5E5E5]">
-              <p id="currentStreak" class="text-3xl font-extrabold text-[#E10101]">0</p>
+              <p id="currentStreak" class="text-3xl font-extrabold text-[#dc2626]">0</p>
               <p class="text-xs text-gray-500 mt-1">Current Streak</p>
             </div>
             <div class="bg-gray-50 rounded-lg p-4 text-center border border-[#E5E5E5]">
@@ -179,7 +183,7 @@
             </div>
             <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden border border-[#E5E5E5]" role="progressbar"
                  aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="streakProgressBar">
-              <div id="streakProgressFill" class="h-3 rounded-full bg-[#E10101] transition-all duration-700" style="width:0%"></div>
+              <div id="streakProgressFill" class="h-3 rounded-full bg-[#dc2626] transition-all duration-700" style="width:0%"></div>
             </div>
           </div>
         </section>
@@ -187,7 +191,7 @@
         <!-- ── RECENT ACTIVITY ── -->
         <section id="activity" class="section-card p-6" aria-labelledby="activityTitle">
           <h2 id="activityTitle" class="font-bold text-base mb-5 flex items-center gap-2">
-            <i class="fa-solid fa-wave-square text-[#E10101]" aria-hidden="true"></i> Recent Activity
+            <i class="fa-solid fa-wave-square text-[#dc2626]" aria-hidden="true"></i> Recent Activity
           </h2>
           <div id="activityFeed">
             <div class="flex flex-col items-center py-10 text-gray-400">
@@ -200,13 +204,13 @@
         <!-- ── CYBERSECURITY Q&A ── -->
         <section id="questions" class="section-card p-6" aria-labelledby="qaTitle">
           <h2 id="qaTitle" class="font-bold text-base mb-5 flex items-center gap-2">
-            <i class="fa-solid fa-comments text-[#E10101]" aria-hidden="true"></i> Cybersecurity Q&amp;A
+            <i class="fa-solid fa-comments text-[#dc2626]" aria-hidden="true"></i> Cybersecurity Q&amp;A
           </h2>
           <div class="space-y-6">
 
             <div>
               <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full bg-[#feeae9] text-[#E10101] text-xs flex items-center justify-center font-bold">1</span>
+                <span class="w-6 h-6 rounded-full bg-[#feeae9] text-[#dc2626] text-xs flex items-center justify-center font-bold">1</span>
                 What is your involvement in cybersecurity?
               </h3>
               <p id="q1" class="text-gray-600 text-sm leading-relaxed bg-gray-50 rounded-lg px-4 py-3 border border-[#E5E5E5]">–</p>
@@ -214,7 +218,7 @@
 
             <div>
               <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full bg-[#feeae9] text-[#E10101] text-xs flex items-center justify-center font-bold">2</span>
+                <span class="w-6 h-6 rounded-full bg-[#feeae9] text-[#dc2626] text-xs flex items-center justify-center font-bold">2</span>
                 How do you see cybersecurity evolving?
               </h3>
               <p id="q2" class="text-gray-600 text-sm leading-relaxed bg-gray-50 rounded-lg px-4 py-3 border border-[#E5E5E5]">–</p>
@@ -222,7 +226,7 @@
 
             <div>
               <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full bg-[#feeae9] text-[#E10101] text-xs flex items-center justify-center font-bold">3</span>
+                <span class="w-6 h-6 rounded-full bg-[#feeae9] text-[#dc2626] text-xs flex items-center justify-center font-bold">3</span>
                 What is your most significant cybersecurity achievement or contribution?
               </h3>
               <p id="q3" class="text-gray-600 text-sm leading-relaxed bg-gray-50 rounded-lg px-4 py-3 border border-[#E5E5E5]">–</p>
@@ -234,7 +238,7 @@
         <!-- ── ISSUE STATS ── -->
         <section id="issues" class="section-card p-6" aria-labelledby="issueStatsTitle">
           <h2 id="issueStatsTitle" class="font-bold text-base mb-5 flex items-center gap-2">
-            <i class="fa-solid fa-circle-exclamation text-[#E10101]" aria-hidden="true"></i> Issue Stats
+            <i class="fa-solid fa-circle-exclamation text-[#dc2626]" aria-hidden="true"></i> Issue Stats
           </h2>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div class="bg-gray-50 border border-[#E5E5E5] rounded-lg p-4">
@@ -251,7 +255,7 @@
             </div>
             <div class="bg-gray-50 border border-[#E5E5E5] rounded-lg p-4">
               <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Security</p>
-              <p id="issueSecurity" class="text-2xl font-bold text-[#E10101]">0</p>
+              <p id="issueSecurity" class="text-2xl font-bold text-[#dc2626]">0</p>
             </div>
             <div class="bg-gray-50 border border-[#E5E5E5] rounded-lg p-4">
               <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Typo</p>
@@ -264,10 +268,10 @@
           </div>
           <!-- Issue number callout -->
           <div class="mt-5 flex items-center gap-3 bg-[#feeae9] rounded-lg px-4 py-3">
-            <i class="fa-solid fa-hashtag text-[#E10101] text-xl" aria-hidden="true"></i>
+            <i class="fa-solid fa-hashtag text-[#dc2626] text-xl" aria-hidden="true"></i>
             <div>
               <p class="text-xs text-gray-500">Total Issues Logged</p>
-              <p id="issueTotal" class="font-extrabold text-[#E10101] text-xl">0</p>
+              <p id="issueTotal" class="font-extrabold text-[#dc2626] text-xl">0</p>
             </div>
           </div>
         </section>
@@ -275,11 +279,11 @@
         <!-- ── USER STATS ── -->
         <section id="stats" class="section-card p-6" aria-labelledby="userStatsTitle">
           <h2 id="userStatsTitle" class="font-bold text-base mb-5 flex items-center gap-2">
-            <i class="fa-solid fa-chart-bar text-[#E10101]" aria-hidden="true"></i> User Stats
+            <i class="fa-solid fa-chart-bar text-[#dc2626]" aria-hidden="true"></i> User Stats
           </h2>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div class="flex items-center gap-4 bg-gray-50 border border-[#E5E5E5] rounded-lg p-4">
-              <span class="w-10 h-10 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101]">
+              <span class="w-10 h-10 rounded-full bg-[#feeae9] flex items-center justify-center text-[#dc2626]">
                 <i class="fa-solid fa-bug" aria-hidden="true"></i>
               </span>
               <div>
@@ -311,7 +315,7 @@
         <!-- ── BACON / REWARDS ── -->
         <section id="bacon" class="section-card p-6" aria-labelledby="baconTitle">
           <h2 id="baconTitle" class="font-bold text-base mb-5 flex items-center gap-2">
-            <i class="fa-solid fa-coins text-[#E10101]" aria-hidden="true"></i> Bacon &amp; Rewards
+            <i class="fa-solid fa-coins text-[#dc2626]" aria-hidden="true"></i> Bacon &amp; Rewards
           </h2>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
             <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
@@ -327,7 +331,7 @@
               <p class="text-xs text-green-700 mt-1">Completed Submissions</p>
             </div>
           </div>
-          <a id="viewSubmissionsLink" href="#" class="text-[#E10101] text-sm font-medium hover:underline inline-flex items-center gap-1">
+          <a id="viewSubmissionsLink" href="#" class="text-[#dc2626] text-sm font-medium hover:underline inline-flex items-center gap-1">
             <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
             View All Submissions
           </a>
@@ -336,7 +340,7 @@
         <!-- ── PULL REQUESTS ── -->
         <section id="prs" class="section-card p-6" aria-labelledby="prsTitle">
           <h2 id="prsTitle" class="font-bold text-base mb-5 flex items-center gap-2">
-            <i class="fa-solid fa-code-pull-request text-[#E10101]" aria-hidden="true"></i> Pull Requests
+            <i class="fa-solid fa-code-pull-request text-[#dc2626]" aria-hidden="true"></i> Pull Requests
           </h2>
 
           <!-- Summary -->
@@ -361,10 +365,10 @@
 
           <!-- Rank -->
           <div class="flex items-center gap-3 bg-[#feeae9] rounded-lg px-4 py-3 mb-5">
-            <i class="fa-solid fa-ranking-star text-[#E10101] text-xl" aria-hidden="true"></i>
+            <i class="fa-solid fa-ranking-star text-[#dc2626] text-xl" aria-hidden="true"></i>
             <div>
               <p class="text-xs text-gray-500">Contributor Rank</p>
-              <p id="contributorRank" class="font-bold text-[#E10101]">Newcomer</p>
+              <p id="contributorRank" class="font-bold text-[#dc2626]">Newcomer</p>
             </div>
           </div>
 
@@ -380,7 +384,7 @@
         <!-- ── BADGES ── -->
         <section id="badges" class="section-card p-6" aria-labelledby="badgesTitle">
           <h2 id="badgesTitle" class="font-bold text-base mb-5 flex items-center gap-2">
-            <i class="fa-solid fa-medal text-[#E10101]" aria-hidden="true"></i> Badges
+            <i class="fa-solid fa-medal text-[#dc2626]" aria-hidden="true"></i> Badges
           </h2>
           <div id="badgeList" class="flex flex-wrap gap-3">
             <div class="flex items-center gap-2 text-gray-400">
@@ -393,7 +397,7 @@
         <!-- ── MONTHLY REPORT ── -->
         <section id="report" class="section-card p-6" aria-labelledby="reportTitle">
           <h2 id="reportTitle" class="font-bold text-base mb-5 flex items-center gap-2">
-            <i class="fa-solid fa-file-lines text-[#E10101]" aria-hidden="true"></i> Monthly Report
+            <i class="fa-solid fa-file-lines text-[#dc2626]" aria-hidden="true"></i> Monthly Report
           </h2>
           <div class="bg-gray-50 border border-[#E5E5E5] rounded-lg p-5">
             <div class="flex items-center gap-3 mb-4">
@@ -414,7 +418,7 @@
   <!-- ── FOOTER ── -->
   <footer class="bg-[#111827] text-gray-400 text-sm py-8 px-4" role="contentinfo">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p>© <span id="footerYear"></span> <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">OWASP BLT</a>. All rights reserved.</p>
+      <p>© <span id="footerYear"></span> <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener" class="text-[#dc2626] hover:underline">OWASP BLT</a>. All rights reserved.</p>
       <div class="flex items-center gap-5">
         <a href="https://git.owaspblt.org/BLT/tree/main/blt-profiles" target="_blank" rel="noopener" aria-label="Source code"
            class="hover:text-white transition-colors"><i class="fa-solid fa-code-branch text-lg" aria-hidden="true"></i></a>
@@ -516,14 +520,14 @@
         img.className = 'w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover ring-4 ring-white/20';
         img.addEventListener('error', function() {
           const span = document.createElement('span');
-          span.className = 'w-20 h-20 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] font-bold text-3xl';
+          span.className = 'w-20 h-20 rounded-full bg-[#feeae9] flex items-center justify-center text-[#dc2626] font-bold text-3xl';
           span.textContent = initials;
           this.replaceWith(span);
         });
         avatarEl.appendChild(img);
       } else {
         const span = document.createElement('span');
-        span.className = 'w-20 h-20 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] font-bold text-3xl';
+        span.className = 'w-20 h-20 rounded-full bg-[#feeae9] flex items-center justify-center text-[#dc2626] font-bold text-3xl';
         span.textContent = initials;
         avatarEl.appendChild(span);
       }
@@ -560,7 +564,7 @@
       // Tags
       const tags = (p.tags || []);
       const tagsHtml = tags.length
-        ? tags.map(t => `<span class="inline-flex items-center gap-1 text-xs bg-[#feeae9] text-[#E10101] font-medium px-2.5 py-1 rounded-full">
+        ? tags.map(t => `<span class="inline-flex items-center gap-1 text-xs bg-[#feeae9] text-[#dc2626] font-medium px-2.5 py-1 rounded-full">
             <i class="fa-solid fa-tag text-[10px]" aria-hidden="true"></i>${escHtml(t)}</span>`).join('')
         : '<span class="text-xs text-gray-400">No tags yet</span>';
       setHtml('userTags', tagsHtml);
@@ -632,7 +636,7 @@
             <div class="flex-1 min-w-0">
               <p class="font-medium truncate">${escHtml(item.title)}</p>
               ${item.url ? `<a href="${escHtml(item.url)}" target="_blank" rel="noopener"
-                class="text-xs text-[#E10101] hover:underline">${escHtml(item.repo || item.url)}</a>` : ''}
+                class="text-xs text-[#dc2626] hover:underline">${escHtml(item.repo || item.url)}</a>` : ''}
             </div>
           </li>`).join('');
       }
