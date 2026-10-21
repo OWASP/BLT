@@ -42,7 +42,14 @@
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="font-sans text-gray-900">
-    <div class="min-h-screen lg:flex">
+    <blt-nav project="blt-netguardian" name="NetGuardian">
+        <a href="index.html">Overview</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="vulnerabilities.html" aria-current="page">Vulnerabilities</a>
+        <a href="triage.html">Triage</a>
+        <button type="button" slot="actions" data-primary onclick="refreshVulnerabilities()">Refresh</button>
+    </blt-nav>
+    <div class="min-h-[calc(100vh-62px)] lg:flex">
         <aside class="hidden lg:flex lg:w-72 lg:flex-col border-r border-neutral-border bg-white">
             <div class="border-b border-neutral-border px-6 py-6">
                 <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">OWASP BLT</p>
@@ -89,31 +96,12 @@
         </aside>
 
         <div class="flex-1">
-            <header class="border-b border-neutral-border bg-white/90 px-5 py-4 backdrop-blur lg:px-8">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Security Findings</p>
-                        <h2 class="text-2xl font-extrabold text-dark-base">Vulnerability Database</h2>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="index.html" class="btn-outline">
-                            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-                            Back to Home
-                        </a>
-                        <button type="button" class="btn-primary" onclick="refreshVulnerabilities()">
-                            <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
-                            Refresh
-                        </button>
-                    </div>
-                </div>
-                <div class="mt-4 flex items-center gap-2 lg:hidden">
-                    <a href="index.html" class="rounded-md border border-neutral-border px-3 py-2 text-xs font-semibold text-gray-700">Overview</a>
-                    <a href="dashboard.html" class="rounded-md border border-neutral-border px-3 py-2 text-xs font-semibold text-gray-700">Dashboard</a>
-                    <a href="vulnerabilities.html" class="rounded-md bg-[#feeae9] px-3 py-2 text-xs font-semibold text-brand">Vulnerabilities</a>
-                </div>
-            </header>
-
             <main class="space-y-6 px-5 py-6 lg:px-8">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Security Findings</p>
+                    <h2 class="text-2xl font-extrabold text-dark-base">Vulnerability Database</h2>
+                </div>
+
                 <section class="rounded-xl border border-neutral-border bg-white p-6 shadow-card">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <h3 class="text-lg font-bold text-dark-base">Filter Vulnerabilities</h3>

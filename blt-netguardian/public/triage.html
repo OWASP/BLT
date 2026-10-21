@@ -16,6 +16,7 @@
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
     <style>
+        blt-nav:not(:defined){display:block;min-height:61px}blt-nav:not(:defined)>*{display:none}
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
@@ -89,79 +90,16 @@
             min-height: 0;
         }
 
-        /* ── HEADER ─────────────────────────────────────────────── */
-        .header {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            padding: 0.85rem 1.25rem;
-            border-bottom: 1px solid var(--border);
-            box-shadow: var(--glow-soft);
-            background: rgba(17, 24, 39, 0.95);
+        /* Connection status: a button in the shared <blt-nav> bar (slot="actions") */
+        .conn-pill { display: inline-flex; align-items: center; gap: 0.4rem; }
+
+        .visually-hidden {
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
         }
-
-        .header-spacer { min-width: 1px; }
-
-        .header-title {
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            font-size: 1.35rem;
-            font-weight: 800;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            color: var(--text-primary);
-            text-shadow: none;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 0.65rem;
-        }
-
-        .header-icon {
-            width: 2.1rem;
-            height: 2.1rem;
-            border-radius: 50%;
-            border: 1px solid var(--border);
-            box-shadow: var(--glow-soft);
-            background: var(--panel-bg);
-            color: var(--accent-critical);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: box-shadow 0.2s, border-color 0.2s;
-        }
-
-        .header-icon:hover {
-            border-color: #ef4444;
-            box-shadow: none;
-        }
-
-        .header-icon.cve-badge {
-            font-size: 0.55rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-        }
-
-        .conn-pill {
-            display: none;
-            align-items: center;
-            gap: 0.35rem;
-            font-size: 0.6rem;
-            color: var(--text-muted);
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            margin-right: 0.25rem;
-        }
-
-        .conn-pill.visible { display: flex; }
 
         .conn-dot {
+            display: inline-block;
             width: 0.45rem;
             height: 0.45rem;
             border-radius: 50%;
@@ -1280,43 +1218,6 @@
                 overflow-x: hidden;
             }
 
-            .header {
-                grid-template-columns: 1fr;
-                gap: 0.45rem;
-                padding: 0.55rem 0.75rem;
-            }
-
-            .header-spacer { display: none; }
-
-            .header-title {
-                font-size: 0.72rem;
-                letter-spacing: 0.14em;
-                white-space: normal;
-                line-height: 1.25;
-            }
-
-            .header-actions {
-                justify-content: center;
-                gap: 0.45rem;
-                flex-wrap: wrap;
-            }
-
-            .header-icon {
-                width: 1.85rem;
-                height: 1.85rem;
-                font-size: 0.75rem;
-            }
-
-            #change-token-btn { display: none; }
-
-            .conn-pill {
-                font-size: 0.52rem;
-                max-width: 42vw;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
             .mobile-tabs {
                 display: flex;
                 gap: 0.35rem;
@@ -1480,7 +1381,6 @@
         }
 
         @media (max-width: 480px) {
-            .header-title { font-size: 0.62rem; letter-spacing: 0.1em; }
             .findings-count { display: none; }
             .date-row { grid-template-columns: 1fr; }
             .evidence-pre, .payload-pre,
@@ -1493,6 +1393,14 @@
     </style>
 </head>
 <body>
+<blt-nav project="blt-netguardian" name="NetGuardian">
+    <a href="index.html">Overview</a>
+    <a href="triage.html" aria-current="page">Triage</a>
+    <a href="/client/">Client</a>
+    <button id="btn-avatar" type="button" slot="actions" title="Connection status"><span id="conn-pill" class="conn-pill"><span id="conn-dot" class="conn-dot"></span><span id="conn-label">—</span></span></button>
+    <button id="change-token-btn" type="button" slot="actions" title="Change API token">API token</button>
+    <button id="refresh-btn" type="button" slot="actions" data-primary title="Refresh findings">Refresh</button>
+</blt-nav>
 <div class="app">
 
     <!-- Auth overlay: shown only when AUTHENTICATE_READ_ENDPOINTS requires a token. -->
@@ -1507,30 +1415,7 @@
         </div>
     </div>
 
-    <!-- Header -->
-    <header class="header">
-        <div class="header-spacer"></div>
-        <h1 class="header-title">NetGuardian Triage</h1>
-        <div class="header-actions">
-            <div id="conn-pill" class="conn-pill">
-                <span id="conn-dot" class="conn-dot"></span>
-                <span id="conn-label">—</span>
-            </div>
-            <button id="btn-avatar" type="button" class="header-icon" title="Connection status">
-                <i class="fa-solid fa-robot"></i>
-            </button>
-            <button id="change-token-btn" type="button" class="header-icon cve-badge" title="Change API token">CVE</button>
-            <a href="/client/" class="header-icon" title="Scanner client">
-                <i class="fa-solid fa-desktop"></i>
-            </a>
-            <a href="index.html" class="header-icon" title="Exit to overview">
-                <i class="fa-solid fa-right-from-bracket"></i>
-            </a>
-            <button id="refresh-btn" type="button" class="header-icon" title="Refresh findings">
-                <i class="fa-solid fa-rotate"></i>
-            </button>
-        </div>
-    </header>
+    <h1 class="visually-hidden">NetGuardian Triage</h1>
 
     <nav class="mobile-tabs" aria-label="Panel navigation">
         <button type="button" class="mobile-tab active" data-mobile-panel="findings">Findings</button>

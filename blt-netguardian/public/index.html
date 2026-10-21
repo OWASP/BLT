@@ -15,6 +15,7 @@
   </script>
   <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <style>
+    blt-nav:not(:defined){display:block;min-height:61px}blt-nav:not(:defined)>*{display:none}
     /* owaspblt.org palette: gray surfaces, BLT red accent; html.dark for dark mode */
     :root { --bg: #f9fafb; --panel: #ffffff; --line: #e5e7eb; --ink: #111827; --red: #dc2626; --gold: #b91c1c; --muted: #6b7280; --code-bg: #f3f4f6; }
     :root.dark { color-scheme: dark; --bg: #030712; --panel: #111827; --line: #1f2937; --ink: #f3f4f6; --red: #f87171; --gold: #f87171; --muted: #9ca3af; --code-bg: #111827; }
@@ -51,6 +52,12 @@
   </style>
 </head>
 <body>
+  <blt-nav project="blt-netguardian" name="NetGuardian">
+    <a href="/get-client">Client</a>
+    <a href="/triage">Triage</a>
+    <a href="https://git.owaspblt.org/BLT/BLT-NetGuardian/blob/main/docs/spec/quickstart.md">Quickstart</a>
+    <a href="https://git.owaspblt.org/BLT/BLT-NetGuardian" slot="actions">Source</a>
+  </blt-nav>
   <main>
     <h1>NETGUARDIAN</h1>
     <p>

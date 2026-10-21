@@ -1,3 +1,6 @@
+/* The shared OWASP BLT bar: keep its space and hide its links until it loads */
+blt-nav:not(:defined){display:block;min-height:61px}blt-nav:not(:defined)>*{display:none}
+
 :root {
     --blt-primary: #dc2626;
     --blt-neutral-border: #e5e5e5;
