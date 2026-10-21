@@ -47,7 +47,7 @@ The page inserts values with `textContent` only. A number whose source is down s
     <a href="https://git.owaspblt.org/BLT/BLT-Zero" slot="actions" data-primary>Contribute</a>
   </blt-nav>
   ```
-  Without children it shows the OWASP BLT links (and, on a `*.owaspblt.org` site in its list, that project's symbol and name). Its `APPS` list must match the Explore cards; `npm test` checks that, so update both together.
+  Without centre links it shows the OWASP BLT links (and, on a `*.owaspblt.org` site in its list, that project's symbol and name, even with no config). Its `APPS` list must match the Explore cards; `npm test` checks that, so update both together.
 - **Project symbols:** `public/_home/symbols/` holds each project's own round symbol without the wasp badge (written by `scripts/wasp-badges/build.mjs` from `scripts/wasp-badges/symbols/`). The top bar's project part and both apps choosers use them; the Explore cards and project logos keep the wasp badges in `public/_home/logos/`.
 - **Analytics:** see "Analytics" below.
 - **Styles:** Tailwind is compiled once, so there is no CDN at runtime. After changing classes, run:

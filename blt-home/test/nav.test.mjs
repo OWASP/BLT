@@ -58,6 +58,7 @@ test("data- attributes work too; name and home have defaults", () => {
   assert.equal(c.home, "/");
   assert.equal(resolveConfig(attrs({ project: "my-gsoc-tool" }), "x").name, "GSoC Tool");
   assert.equal(resolveConfig(attrs({ project: "blt-autopatch" }), "x").name, "Autopatch");
+  assert.equal(resolveConfig(attrs({ project: "blt-owasp-bumper" }), "x").name, "Bumper");
 });
 
 test("un-updated *.owaspblt.org sites get their project from the host name", () => {

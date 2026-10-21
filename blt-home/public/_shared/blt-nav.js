@@ -31,7 +31,8 @@
 // On wide screens the site's links take the centre and the OWASP BLT links (Why BLT, Explore,
 // ...) move into a small menu next to the brand. When they don't fit, and on phones, everything
 // goes into the menu button: this site's links and buttons first, then the OWASP BLT links.
-// Without children the centre keeps the OWASP BLT links, as on owaspblt.org.
+// With no centre links (only slot="actions" children, or none) the centre keeps the OWASP BLT
+// links, as on owaspblt.org. A site's own "Report Bug" child hides the bar's Report Bug.
 // Before the script runs the children are plain links in the page; a site can hide them with
 //   blt-nav:not(:defined){display:block;min-height:57px}blt-nav:not(:defined)>*{display:none}
 //
@@ -135,7 +136,7 @@
   // get(name) returns an attribute of the <blt-nav> element (or the script tag), or null.
   function shortName(appName) {
     if (appName === "MY-GSOC-TOOL") return "GSoC Tool";
-    var s = appName.replace(/^BLT-/i, "").replace(/-/g, " ");
+    var s = appName.replace(/^BLT-/i, "").replace(/^OWASP-/, "").replace(/-/g, " ");
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
   function appFor(slug) {
@@ -188,7 +189,7 @@
     ".more{display:none;width:24px;height:28px;flex:none;align-items:center;justify-content:center;border-radius:6px;color:#6b7280}",
     ".more:hover,.more[aria-expanded=true]{background:#f3f4f6;color:#111827}",
     ".more svg{transition:transform .15s}.more[aria-expanded=true] svg{transform:rotate(180deg)}",
-    ":host([blt-site]:not([blt-compact])) .more{display:inline-flex}",
+    ":host([blt-links]:not([blt-compact])) .more{display:inline-flex}",
     ".bm{position:absolute;left:0;top:100%;margin-top:12px;display:none;flex-direction:column;gap:2px;min-width:14rem;padding:8px;border-radius:16px;border:1px solid #fee2e2;background:#fff;box-shadow:0 25px 50px -12px rgba(254,202,202,.6)}",
     ".bm.open{display:flex;animation:pin .18s ease-out}",
     ".bm a{border-radius:8px;padding:8px 10px;color:#374151;white-space:nowrap}",
@@ -205,8 +206,9 @@
     ".links{display:flex;align-items:center;gap:24px}",
     ".links a.blt{color:#4b5563;white-space:nowrap;transition:color .15s}",
     ".links a.blt:hover{color:#111827}",
-    ":host([blt-site]) .links{gap:2px}",
-    ":host([blt-site]) .links a.blt{display:none}",
+    ":host([blt-links]) .links{gap:2px}",
+    ":host([blt-links]) .links a.blt{display:none}",
+    ":host([blt-noreport]) .mreport{display:none}",
     ":host([blt-compact]) .links{display:none}",
     ".right{display:flex;flex:none;align-items:center;gap:8px}",
     ".acts{display:flex;align-items:center;gap:8px}",
@@ -557,8 +559,13 @@
     var phone = window.matchMedia ? window.matchMedia("(max-width: 767px)") : null;
     var narrow = window.matchMedia ? window.matchMedia("(max-width: 1023px)") : null;
     function layout() {
-      var site = !!cfg.project && host.children.length > 0;
+      // blt-site: the site has links or buttons here; blt-links: some go in the centre (else
+      // the centre keeps the OWASP BLT links). A site's own Report Bug hides the bar's.
+      var kids = Array.prototype.slice.call(host.children);
+      var site = !!cfg.project && kids.length > 0;
       host.toggleAttribute("blt-site", site);
+      host.toggleAttribute("blt-links", site && kids.some(function (k) { return !k.getAttribute("slot"); }));
+      host.toggleAttribute("blt-noreport", site && kids.some(function (k) { return /^\s*report (a )?bug\s*$/i.test(k.textContent); }));
       host.removeAttribute("blt-compact");
       host.removeAttribute("blt-tight");
       links.appendChild(defSlot);
