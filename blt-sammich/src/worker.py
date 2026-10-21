@@ -749,6 +749,18 @@ def bool_int(value: Any) -> int:
     return 1 if value else 0
 
 
+def welcome_enabled(env: Any) -> bool:
+    """WELCOME_ENABLED: the team_join welcome DM is on unless this is an explicit false value.
+
+    The OWASP welcome moves to blt-lettuce, which has the mirror switch (off by default).
+    At the cut-over lettuce's is set true and this one false in the same minute, so exactly
+    one bot welcomes; rollback is the reverse. Joins are still recorded (Team_Join rows) and
+    /blt-welcome still works when this is off. See README "Welcome hand-off to lettuce".
+    """
+    value = str(env_value(env, "WELCOME_ENABLED", "") or "").strip().lower()
+    return value not in ("0", "false", "no", "off")
+
+
 def team_join_user_skip_reason(user_obj: Dict[str, Any], bot_user_id: str = "") -> str:
     user_id = str((user_obj or {}).get("id") or "").strip()
     if bool_int((user_obj or {}).get("deleted")):
@@ -6019,6 +6031,15 @@ async def handle_team_join_event(
     user_id = str(user_obj.get("id") or event.get("user") or "").strip()
     if not user_id:
         return {"ok": False, "error": "missing_user_id"}
+    if not welcome_enabled(env):
+        # Kill switch: lettuce sends this welcome now. No DM, no welcome row; the join
+        # itself is still recorded by record_activity.
+        print(json.dumps({
+            "event": "team_join_welcome_disabled",
+            "team_id": str(user_obj.get("team_id") or team_id or ""),
+            "event_id": str((envelope or {}).get("event_id") or event.get("_event_id") or ""),
+        }, separators=(",", ":"), sort_keys=True))
+        return {"ok": True, "action": "team_join_welcome_disabled"}
 
     user_team_id = str(user_obj.get("team_id") or "").strip()
     effective_team_id = user_team_id or team_id

@@ -330,6 +330,23 @@ What "opened" means: the existing data shows the tracked image is fetched from s
 
 `<ADMIN_URL>?view=welcomes` shows sent / delivered / opened per welcome (the latest 100) and 7- and 30-day totals (delivered % of sent, opened % of delivered). Add `&format=json` for the JSON. Rows from before migration 0024 count as delivered when their status was `success`, and as opened when `verified` (for those rows, opened was the last load rather than the first).
 
+### Welcome hand-off to lettuce
+
+The OWASP workspace welcome is moving to blt-lettuce (its README, "OWASP welcome bot", has
+the cut-over steps and the owner's checklist). `WELCOME_ENABLED` (a secret; on unless set to
+`false`) is the switch: off, a team_join is still recorded as a `Team_Join` row but no DM or
+`Team_Join_Welcome` row is written. `/blt-welcome` works either way. Lettuce has the mirror
+switch (off unless `true`), so at the cut-over:
+
+```bash
+echo false | npx wrangler secret put WELCOME_ENABLED   # here, in the same minute as
+echo true  | npx wrangler secret put WELCOME_ENABLED   # in blt-lettuce
+```
+
+Rollback is the reverse, or deleting both secrets (the defaults are sammich on, lettuce off).
+Sammich keeps the BLT-project work: its commands, reminders, PR review asks, channel join
+messages in the BLT workspace and the Slack app audit.
+
 ### Slack app audit
 
 `<ADMIN_URL>?view=slack-apps` (same Basic auth as the admin) lists the bots and apps in the OWASP workspace (`team_id` query parameter for another one) from `users.list`, and matches each against blt-panini's `slack_apps.json` and `banned_apps.json` (`PANINI_BASE_URL`, default `https://panini.owaspblt.org`). Add `&format=json` for the JSON, one batch of up to 5 `users.list` pages per request (`next_cursor` continues). It is read-only. A bot token can't see other apps' scopes or install dates, so those come only from the Slack admin console.

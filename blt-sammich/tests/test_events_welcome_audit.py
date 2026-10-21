@@ -257,6 +257,75 @@ def test_team_join_is_answered_before_the_welcome_is_sent(monkeypatch):
     assert seen == [("EvJOIN2", "2")]
 
 
+# --- welcome kill switch (hand-off to blt-lettuce) -----------------------------------------
+
+
+def test_welcome_enabled_defaults_on_and_turns_off_only_explicitly():
+    assert worker.welcome_enabled(sqlite_env()) is True
+    for value in ("true", "1", "yes", "", "anything"):
+        assert worker.welcome_enabled(sqlite_env(WELCOME_ENABLED=value)) is True
+    for value in ("false", "FALSE", "0", "no", "off", " Off "):
+        assert worker.welcome_enabled(sqlite_env(WELCOME_ENABLED=value)) is False
+
+
+def test_welcome_disabled_records_join_but_sends_no_dm(monkeypatch):
+    env = sqlite_env(WELCOME_ENABLED="false")
+    calls = []
+
+    async def fake_record(env_, kind, payload):
+        calls.append(("record", payload["event_id"]))
+
+    async def no_slack(*args, **kwargs):
+        raise AssertionError("no Slack call when the welcome is off")
+
+    async def no_db(*args, **kwargs):
+        raise AssertionError("no welcome lookups when the welcome is off")
+
+    monkeypatch.setattr(worker, "record_activity", fake_record)
+    monkeypatch.setattr(worker, "slack_api_open_conversation", no_slack)
+    monkeypatch.setattr(worker, "slack_api_send_message", no_slack)
+    monkeypatch.setattr(worker, "db_get_workspace_by_team", no_db)
+    monkeypatch.setattr(worker, "json_response", lambda payload, status=200: payload)
+    # The deferred welcome swallows exceptions into this log, so record them.
+    monkeypatch.setattr(worker, "log_exception_one_line",
+                        lambda error, context, extra=None: calls.append(("error", context, str(error))))
+
+    async def deliver():
+        ctx = _Ctx()
+        response = await worker.accept_team_join_delivery(env, ctx, team_join_payload())
+        await asyncio.gather(*ctx.tasks)
+        return response
+
+    assert run(deliver()) == {"ok": True, "action": "team_join_accepted"}
+    assert calls == [("record", "EvJOIN1")]
+    result = run(worker.handle_team_join_event(
+        env, {"user": {"id": "UNEW", "team_id": "T04T40NHX"}}, team_id="T04T40NHX",
+        envelope={"event_id": "EvJOIN1"},
+    ))
+    assert result == {"ok": True, "action": "team_join_welcome_disabled"}
+
+
+def test_blt_welcome_command_still_works_when_switch_is_off(monkeypatch):
+    env = sqlite_env(WELCOME_ENABLED="false")
+    sent = []
+
+    async def fake_open(user_id, env_, team_id=""):
+        return {"ok": True, "channel": {"id": "D1"}}
+
+    async def fake_welcome(env_, workspace_id, user_id, team_id, dm_channel, text, data, **fields):
+        sent.append(user_id)
+        return {"ok": True}
+
+    async def no_workspace(env_, team_id):
+        return None
+
+    monkeypatch.setattr(worker, "slack_api_open_conversation", fake_open)
+    monkeypatch.setattr(worker, "send_tracked_welcome", fake_welcome)
+    monkeypatch.setattr(worker, "db_get_workspace_by_team", no_workspace)
+    result = run(worker.blt_welcome_response({"team_id": "T04T40NHX", "user_id": "UME"}, env))
+    assert sent == ["UME"] and "sent the BLT welcome" in result["text"]
+
+
 # --- Slack app audit ----------------------------------------------------------------------
 
 PANINI_APPS = [
