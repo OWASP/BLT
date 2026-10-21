@@ -27,7 +27,7 @@ The prompt gets you started. It doesn't finish the job. You still read the issue
 
 **Pull requests.** Every pull request on git.owaspblt.org has a required **AI model** field. Put in it:
 
-- the model(s) you used, and the tool or agent that ran them, for example `Claude Opus 4.5 via Claude Code`, `GPT-5 via Codex`, `Copilot (VS Code)`, or `Qwen2.5-Coder 32B via Ollama`;
+- the model(s) you used, and the tool or agent that ran them, for example `Claude Opus 5.5 via Claude Code`, `GPT-5 via Codex`, `Copilot (VS Code)`, or `Qwen2.5-Coder 32B via Ollama`;
 - `None` if you didn't use AI. That's a perfectly good answer.
 
 If AI played a significant part, add a sentence or two to the description saying what it did (for example "the agent wrote the tests; I wrote the migration by hand"). This helps reviewers know where to look harder. It doesn't count against you.
@@ -35,7 +35,7 @@ If AI played a significant part, add a sentence or two to the description saying
 **Commits.** When an agent writes or substantially edits a commit, end the commit message with a trailer naming the model:
 
 ```
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 Use whatever name and address your tool emits. If it emits none, the model name alone is enough.
