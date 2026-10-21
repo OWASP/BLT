@@ -26,11 +26,19 @@
     <link rel="stylesheet" href="./docs/assets/css/blt-design.css" />
   </head>
   <body class="min-h-screen font-sans text-slate-900 antialiased">
+    <blt-nav project="blt-design" name="Design" data-sticky>
+      <a href="/" aria-current="page">Overview</a>
+      <a href="/docs/foundations/theme-colors.html">Foundations</a>
+      <a href="/docs/components/navbar.html">Components</a>
+      <a href="/docs/logos.html">Logos</a>
+      <a href="/mockup.html" slot="actions">Preview</a>
+      <a href="https://git.owaspblt.org/BLT/tree/main/blt-design" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Contribute</a>
+    </blt-nav>
     <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
       <aside
         id="sidebar-root"
         data-include="./docs/partials/sidebar.html"
-        class="lg:sticky lg:top-0 lg:h-screen"
+        class="hidden lg:block lg:sticky lg:top-[62px] lg:h-[calc(100vh-62px)]"
       ></aside>
       <main class="blt-page-main px-4 py-10 sm:px-8 lg:px-12">
         <!-- Hero -->

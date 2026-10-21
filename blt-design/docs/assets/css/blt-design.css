@@ -1,5 +1,9 @@
 /* BLT design tokens, matched to owaspblt.org: Tailwind grays, BLT red (red-600 #dc2626),
    system font stacks, dark mode via class "dark" on <html> (saved as localStorage "theme"). */
+/* The shared OWASP BLT bar (<blt-nav>): keep its space and hide its links until it loads */
+blt-nav:not(:defined) { display: block; min-height: 61px; }
+blt-nav:not(:defined) > * { display: none; }
+
 :root {
   color-scheme: light;
   --blt-primary: #dc2626; /* red-600 */

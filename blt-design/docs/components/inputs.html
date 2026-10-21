@@ -13,8 +13,16 @@
     <link rel="stylesheet" href="../assets/css/blt-design.css" />
   </head>
   <body class="min-h-screen font-sans text-slate-900 antialiased">
+    <blt-nav project="blt-design" name="Design" data-sticky>
+      <a href="/">Overview</a>
+      <a href="/docs/foundations/theme-colors.html">Foundations</a>
+      <a href="/docs/components/navbar.html" aria-current="page">Components</a>
+      <a href="/docs/logos.html">Logos</a>
+      <a href="/mockup.html" slot="actions">Preview</a>
+      <a href="https://git.owaspblt.org/BLT/tree/main/blt-design" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Contribute</a>
+    </blt-nav>
     <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
-      <aside id="sidebar-root" data-include="../partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
+      <aside id="sidebar-root" data-include="../partials/sidebar.html" class="hidden lg:block lg:sticky lg:top-[62px] lg:h-[calc(100vh-62px)]"></aside>
       <main class="blt-page-main px-4 py-8 sm:px-8 lg:px-10">
         <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><span class="blt-badge"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Components</span><h1 class="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">Inputs</h1><p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">Official BLT style: <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">rounded-md px-4 py-2 border-gray-400 focus:ring-1 focus:#dc2626</code>.</p></div><a class="inline-flex items-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50" href="https://git.owaspblt.org/BLT" target="_blank" rel="noreferrer noopener"><i class="fa-solid fa-code-branch" aria-hidden="true"></i>Contribute</a></header>
         <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">

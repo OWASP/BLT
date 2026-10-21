@@ -15,66 +15,91 @@
     <link rel="stylesheet" href="../assets/css/blt-design.css" />
   </head>
   <body class="min-h-screen font-sans text-slate-900 antialiased">
+    <blt-nav project="blt-design" name="Design" data-sticky>
+      <a href="/">Overview</a>
+      <a href="/docs/foundations/theme-colors.html">Foundations</a>
+      <a href="/docs/components/navbar.html" aria-current="page">Components</a>
+      <a href="/docs/logos.html">Logos</a>
+      <a href="/mockup.html" slot="actions">Preview</a>
+      <a href="https://git.owaspblt.org/BLT/tree/main/blt-design" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Contribute</a>
+    </blt-nav>
     <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
-      <aside id="sidebar-root" data-include="../partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
+      <aside id="sidebar-root" data-include="../partials/sidebar.html" class="hidden lg:block lg:sticky lg:top-[62px] lg:h-[calc(100vh-62px)]"></aside>
       <main class="blt-page-main px-4 py-8 sm:px-8 lg:px-10">
         <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <span class="blt-badge"><i class="fa-solid fa-bars" aria-hidden="true"></i> Components</span>
             <h1 class="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">Navbar</h1>
-            <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">Simple, clean navbars with BLT branding and clear actions.</p>
+            <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">Every BLT site has one header: the shared OWASP BLT bar. A site does not build its own navbar; it configures the bar with its project, its links and its buttons.</p>
           </div>
           <a class="inline-flex items-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50" href="https://git.owaspblt.org/BLT" target="_blank" rel="noreferrer noopener"><i class="fa-solid fa-code-branch" aria-hidden="true"></i>Contribute</a>
         </header>
 
         <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 class="text-base font-semibold">Full Logo Navbar</h3>
-          <nav class="mt-3 rounded-lg border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-4">
-            <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
-              <img data-asset-src="assets/img/blt-logo.svg" alt="OWASP BLT" class="inline h-8 w-8" />
-              <div class="flex items-center gap-3">
-                <a href="#" class="text-sm text-slate-600 hover:text-slate-900">Docs</a>
-                <a href="#" class="text-sm text-slate-600 hover:text-slate-900">Issues</a>
-                <button class="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700">Submit Report</button>
-              </div>
-            </div>
-          </nav>
-          <pre class="mt-3 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200"><code>&lt;nav class="rounded-xl border border-slate-200 bg-white px-4 py-3"&gt;
-  &lt;img src="/docs/assets/img/blt-logo.svg" alt="OWASP BLT" class="h-8 w-8" /&gt;
-  &lt;div class="flex items-center gap-3"&gt;
-    &lt;a href="#" class="text-sm text-slate-600 hover:text-slate-900"&gt;Docs&lt;/a&gt;
-    &lt;a href="#" class="text-sm text-slate-600 hover:text-slate-900"&gt;Issues&lt;/a&gt;
-    &lt;button class="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"&gt;Submit Report&lt;/button&gt;
-  &lt;/div&gt;
-&lt;/nav&gt;</code></pre>
+          <h3 class="text-base font-semibold">One header</h3>
+          <p class="mt-1 text-sm leading-6 text-slate-600">The OWASP BLT brand, then the project's round symbol and short name, the project's own links in the centre, its buttons on the right, the apps chooser and the theme toggle. When they don't fit, and on phones, everything goes into the bar's menu, the project's links first. A live BLT-Zero bar:</p>
+          <div class="mt-3 overflow-hidden rounded-lg border border-slate-200">
+            <blt-nav project="blt-zero" name="Zero" home="#">
+              <a href="#" aria-current="page">Submit</a>
+              <a href="#">Security</a>
+              <a href="#" slot="actions" data-primary>Contribute</a>
+            </blt-nav>
+          </div>
+          <pre class="mt-3 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200"><code>&lt;head&gt;
+  &lt;script src="https://owaspblt.org/_shared/blt-nav.js" defer&gt;&lt;/script&gt;
+  &lt;style&gt;blt-nav:not(:defined){display:block;min-height:61px}blt-nav:not(:defined)&gt;*{display:none}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;blt-nav project="blt-zero" name="Zero" current="auto" data-sticky&gt;
+    &lt;a href="/"&gt;Submit&lt;/a&gt;
+    &lt;a href="/docs/security"&gt;Security&lt;/a&gt;
+    &lt;a href="/docs/org-onboarding"&gt;Onboarding&lt;/a&gt;
+    &lt;a href="/admin/onboard" slot="actions"&gt;Admin&lt;/a&gt;
+    &lt;a href="https://git.owaspblt.org/BLT/BLT-Zero" slot="actions" data-primary&gt;Contribute&lt;/a&gt;
+  &lt;/blt-nav&gt;
+  &lt;main&gt;…&lt;/main&gt;
+&lt;/body&gt;</code></pre>
         </section>
 
         <section class="mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 class="text-base font-semibold">Compact Logo Navbar</h3>
-          <nav class="mt-3 rounded-lg border border-slate-200 bg-white shadow-sm">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <div class="flex h-16 items-center justify-between">
-                <div class="flex items-center">
-                  <img data-asset-src="assets/img/blt-logo.svg" alt="OWASP BLT" class="mr-2 h-8 w-8" />
-                  <h1 class="text-xl font-bold text-gray-900" id="nav-title">BLT-Navbar</h1>
-                </div>
-                <a class="rounded-lg bg-red-600 px-5 py-3 font-semibold text-white hover:bg-red-700" href="https://git.owaspblt.org/BLT" target="_blank" rel="noopener noreferrer">
-                  <i class="fa-solid fa-code-branch mr-2" aria-hidden="true"></i>Contribute
-                </a>
-              </div>
-            </div>
-          </nav>
-          <pre class="mt-3 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200"><code>&lt;nav class="rounded-lg border border-slate-200 bg-white shadow-sm"&gt;
-  &lt;div class="flex h-16 items-center justify-between px-4"&gt;
-    &lt;div class="flex items-center"&gt;
-      &lt;img src="/docs/assets/img/blt-logo.svg" alt="OWASP BLT" class="mr-2 h-8 w-8" /&gt;
-      &lt;h1 class="text-xl font-bold text-gray-900"&gt;BLT-Navbar&lt;/h1&gt;
-    &lt;/div&gt;
-    &lt;a href="https://git.owaspblt.org/BLT" class="rounded-lg bg-red-600 px-5 py-3 font-semibold text-white hover:bg-red-700"&gt;
-      &lt;i class="fa-solid fa-code-branch mr-2"&gt;&lt;/i&gt;Contribute
-    &lt;/a&gt;
-  &lt;/div&gt;
-&lt;/nav&gt;</code></pre>
+          <h3 class="text-base font-semibold">Configuration</h3>
+          <div class="mt-3 overflow-x-auto">
+            <table class="blt-data-table text-left text-sm">
+              <thead class="text-xs uppercase tracking-wide">
+                <tr><th class="px-4 py-2 font-extrabold" scope="col">Attribute or child</th><th class="px-4 py-2 font-extrabold" scope="col">What it does</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="px-4 py-2 align-top"><code class="rounded bg-slate-100 px-1 py-0.5 text-xs">project="blt-x"</code></td><td class="px-4 py-2 text-slate-600">The project's slug (its directory name). Its round symbol is <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">owaspblt.org/_home/symbols/blt-x.svg</code>.</td></tr>
+                <tr><td class="px-4 py-2 align-top"><code class="rounded bg-slate-100 px-1 py-0.5 text-xs">name="X"</code></td><td class="px-4 py-2 text-slate-600">Short name next to the symbol, without "BLT-" or "OWASP-" (Zero, Jobs, NetGuardian). Keep it to about 11 characters so it fits on a 375px phone.</td></tr>
+                <tr><td class="px-4 py-2 align-top"><code class="rounded bg-slate-100 px-1 py-0.5 text-xs">home="/"</code></td><td class="px-4 py-2 text-slate-600">Where the project's symbol and name link to; set it when the site lives under a sub-path.</td></tr>
+                <tr><td class="px-4 py-2 align-top"><code class="rounded bg-slate-100 px-1 py-0.5 text-xs">current="auto"</code></td><td class="px-4 py-2 text-slate-600">Marks the link to this page. Sites that already know the current page put <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">aria-current="page"</code> on that link instead; <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">aria-current="false"</code> keeps a link unmarked.</td></tr>
+                <tr><td class="px-4 py-2 align-top"><code class="rounded bg-slate-100 px-1 py-0.5 text-xs">data-sticky</code></td><td class="px-4 py-2 text-slate-600">Keeps the bar at the top while scrolling. Sticky sidebars then use <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">top: 62px</code> and <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">height: calc(100vh - 62px)</code>.</td></tr>
+                <tr><td class="px-4 py-2 align-top"><code class="rounded bg-slate-100 px-1 py-0.5 text-xs">data-theme-key</code>, <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">data-theme-attr</code></td><td class="px-4 py-2 text-slate-600">For sites whose dark mode uses another localStorage key or an attribute such as <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">data-theme</code>. The bar's toggle sets class <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">dark</code> on <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">&lt;html&gt;</code> and fires <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">blt-theme-change</code>.</td></tr>
+                <tr><td class="px-4 py-2 align-top"><code class="rounded bg-slate-100 px-1 py-0.5 text-xs">&lt;a&gt;</code> / <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">&lt;button&gt;</code> children</td><td class="px-4 py-2 text-slate-600">The site's links, in the centre (2 to 6). No classes needed: the bar styles them. Ids, <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">data-*</code>, click handlers and <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">hidden</code> keep working, so signed-in and signed-out buttons can toggle.</td></tr>
+                <tr><td class="px-4 py-2 align-top"><code class="rounded bg-slate-100 px-1 py-0.5 text-xs">slot="actions"</code></td><td class="px-4 py-2 text-slate-600">Buttons on the right: Login, Admin, the signed-in user. At most two or three.</td></tr>
+                <tr><td class="px-4 py-2 align-top"><code class="rounded bg-slate-100 px-1 py-0.5 text-xs">data-primary</code></td><td class="px-4 py-2 text-slate-600">The red call-to-action button: Contribute, Sign up, Submit, Report Bug. One per site.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="mt-4 grid gap-4 lg:grid-cols-2">
+          <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <h3 class="text-base font-semibold">Do</h3>
+            <ul class="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-6 text-slate-600">
+              <li>Put <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">&lt;blt-nav&gt;</code> first in <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">&lt;body&gt;</code>, even with no links (then the centre keeps the OWASP BLT links).</li>
+              <li>Keep page titles, breadcrumbs, search fields and toolbars in the page content.</li>
+              <li>App pages can keep an in-app sidebar under the bar.</li>
+            </ul>
+          </article>
+          <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <h3 class="text-base font-semibold">Don't</h3>
+            <ul class="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-6 text-slate-600">
+              <li>Add a second header row under the bar with the project's logo, name or links.</li>
+              <li>Add a separate mobile menu button or another theme toggle: the bar has both.</li>
+              <li>Show a second wasp: the bar shows the OWASP BLT mark and the project's own symbol.</li>
+            </ul>
+          </article>
         </section>
       </main>
     </div>

@@ -13,8 +13,16 @@
     <link rel="stylesheet" href="../assets/css/blt-design.css" />
   </head>
   <body class="min-h-screen font-sans text-slate-900 antialiased">
+    <blt-nav project="blt-design" name="Design" data-sticky>
+      <a href="/">Overview</a>
+      <a href="/docs/foundations/theme-colors.html" aria-current="page">Foundations</a>
+      <a href="/docs/components/navbar.html">Components</a>
+      <a href="/docs/logos.html">Logos</a>
+      <a href="/mockup.html" slot="actions">Preview</a>
+      <a href="https://git.owaspblt.org/BLT/tree/main/blt-design" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Contribute</a>
+    </blt-nav>
     <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
-      <aside id="sidebar-root" data-include="../partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
+      <aside id="sidebar-root" data-include="../partials/sidebar.html" class="hidden lg:block lg:sticky lg:top-[62px] lg:h-[calc(100vh-62px)]"></aside>
       <main class="blt-page-main px-4 py-8 sm:px-8 lg:px-10">
         <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -35,8 +43,9 @@ Use the BLT design system (it matches owaspblt.org):
 - Light mode uses white / gray-50 (#F9FAFB) surfaces and gray-200 (#E5E7EB) borders.
 - Dark mode uses a gray-950 (#030712) page, gray-900 (#111827) cards, and gray-800 (#1F2937) borders.
 - Dark mode is class "dark" on html, saved as localStorage "theme" ("dark" | "light"); with no saved choice, follow prefers-color-scheme. Apply it in a small script before first paint.
-- Add the shared OWASP BLT top bar in head: &lt;script src="https://owaspblt.org/_shared/blt-nav.js" defer&gt;&lt;/script&gt;. It has the theme toggle, so do not add another one.
-- The OWASP BLT brand mark is the wasp (https://owaspblt.org/_home/blt-logo.svg). A project header shows the project's own logo and name, not a second wasp.
+- Add the shared OWASP BLT top bar in head: &lt;script src="https://owaspblt.org/_shared/blt-nav.js" defer&gt;&lt;/script&gt;. It is the page's only header and has the theme toggle and the phone menu, so do not add another header row, mobile menu or theme toggle.
+- Configure the bar with &lt;blt-nav project="blt-x" name="X"&gt; first in body: the project's links are its &lt;a&gt; children (centre), buttons get slot="actions", the main call to action also gets data-primary. Add data-sticky for a sticky header.
+- The OWASP BLT brand mark is the wasp (https://owaspblt.org/_home/blt-logo.svg). The bar shows it next to the project's own round symbol and name; do not repeat either in the page.
 - Show logos from SVG sources; use raster images only where a platform requires them (favicon.ico, app icons, extension manifest PNGs, og:image).
 - Cards are rounded-2xl with a gray-200 / gray-800 border; controls use rounded-md or rounded-lg.
 - Use restrained shadows, clear section bands, and practical component previews.

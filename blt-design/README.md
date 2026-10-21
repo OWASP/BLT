@@ -47,7 +47,10 @@ Open `http://127.0.0.1:8765/index.html`. Do not use `file://` directly, because 
 - Theme preference is stored in `localStorage` under `theme` (`dark` / `light`), the same key every BLT site
   uses; the old `blt-theme` key is read once as a fallback.
 - Every page loads the shared OWASP BLT top bar (`https://owaspblt.org/_shared/blt-nav.js`), which has the
-  theme toggle.
+  theme toggle. It is the guide's only header: `<blt-nav project="blt-design" name="Design" data-sticky>`
+  first in `<body>` carries the guide's sections (Overview, Foundations, Components, Logos) and its
+  Preview / Contribute buttons. The docs sidebar sits under it (sticky at `top: 62px`, wide screens only).
+  The Navbar page (`docs/components/navbar.html`) documents this one-header pattern for every BLT site.
 
 ## Component Coverage
 
