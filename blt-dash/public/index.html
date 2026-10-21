@@ -17,6 +17,7 @@
   <style>
     /* ─── Reset & Base ──────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    blt-nav:not(:defined) { display: block; min-height: 61px; }
 
     /* Tokens follow owaspblt.org: gray/white surfaces, BLT red (#dc2626) accent, system fonts,
        dark mode via html.dark (set by the pre-paint script below and the BLT top bar). */
@@ -103,7 +104,7 @@
       grid-template-rows: auto auto auto;
       gap: 4px;
       padding: 4px;
-      min-height: 100vh;
+      min-height: calc(100vh - 61px); /* under the BLT top bar */
     }
 
     /* Top row: 4 quadrant panels */
@@ -404,6 +405,7 @@
   </style>
 </head>
 <body>
+<blt-nav project="blt-dash" name="Dash"></blt-nav>
 
 <div class="dashboard">
 
