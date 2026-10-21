@@ -7,7 +7,7 @@ OWASP BLT top bar and the homepage keep the plain wasp (`public/_home/blt-logo.s
 - `symbols/<project>.svg`: the project's own symbol (its logo before this family). Edit one to change
   that project's sub-badge. BLT-Next has a new "next" symbol instead of the old red circle with an arrow.
 - `targets.json`: other files in a project that show its logo on its site (header images, SVG favicons).
-- `build.mjs`: writes `<project>/logo.svg`, `public/_home/logos/<project>.svg` and the targets.
+- `build.mjs`: writes `<project>/logo.svg`, `public/_home/logos/<project>.svg`, the targets, and the plain symbol `public/_home/symbols/<project>.svg` (no wasp) that the shared top bar and the apps choosers show.
 
 ```bash
 node blt-home/scripts/wasp-badges/build.mjs          # regenerate everything

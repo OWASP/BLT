@@ -13,15 +13,17 @@
 //                          (header/sub-nav images, SVG favicons). Always written with the badge.
 //   ../../public/_home/blt-logo.svg   the wasp (single path).
 // Outputs, per project P: P/logo.svg, blt-home/public/_home/logos/P.svg (when the project is on
-// the homepage) and every path in targets.json[P]. PNGs (P/logo.png, 512 px) are rendered from
+// the homepage), every path in targets.json[P], and blt-home/public/_home/symbols/P.svg: the plain
+// symbol, without the wasp, that the shared top bar (<blt-nav>) and both apps choosers show. PNGs (P/logo.png, 512 px) are rendered from
 // P/logo.svg separately; see README.md here.
-import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, "..", "..", "..");
 const homeLogos = join(repo, "blt-home", "public", "_home", "logos");
+const homeSymbols = join(repo, "blt-home", "public", "_home", "symbols");
 const args = new Set(process.argv.slice(2));
 const check = args.has("--check");
 const outDir = [...args].find((a) => a.startsWith("--out="))?.split("=")[1];
@@ -90,20 +92,29 @@ export function badge(project, symbolSvg) {
   );
 }
 
+// The plain symbol as served from owaspblt.org/_home/symbols/: the source file, tidied.
+export function plainSymbol(svg) {
+  return svg.replace(/<\?xml[^>]*>\s*/g, "").trim() + "\n";
+}
+
 const targets = JSON.parse(readFileSync(join(here, "targets.json"), "utf8"));
 let stale = 0;
 let written = 0;
 for (const file of readdirSync(join(here, "symbols")).filter((f) => f.endsWith(".svg")).sort()) {
   const project = file.slice(0, -4);
-  const out = badge(project, readFileSync(join(here, "symbols", file), "utf8"));
+  const symbol = readFileSync(join(here, "symbols", file), "utf8");
+  const out = badge(project, symbol);
   let paths = [join(repo, project, "logo.svg"), ...(targets[project] || []).map((p) => join(repo, p))];
   if (existsSync(join(homeLogos, project + ".svg"))) paths.push(join(homeLogos, project + ".svg"));
   if (outDir) paths = [join(outDir, project + ".svg")]; // preview: write only here
-  for (const p of paths) {
+  const files = paths.map((p) => [p, out]);
+  if (!outDir) files.push([join(homeSymbols, project + ".svg"), plainSymbol(symbol)]);
+  for (const [p, want] of files) {
     const cur = existsSync(p) ? readFileSync(p, "utf8") : null;
-    if (cur === out) continue;
+    if (cur === want) continue;
     if (check) { stale++; console.error("stale:", p); continue; }
-    writeFileSync(p, out);
+    mkdirSync(dirname(p), { recursive: true });
+    writeFileSync(p, want);
     written++;
   }
 }

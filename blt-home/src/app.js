@@ -4,7 +4,8 @@
 //   /                 -> the landing page (public/index.html)
 //   /_home/*, a few root files -> static assets from public/ (a prefix neither blt-next nor legacy uses)
 //   /_shared/*        -> the BLT top bar (blt-nav.js) that every BLT site loads; it and the
-//                        logos it shows may be embedded from other origins (see SHARED_HEADERS)
+//                        logos and project symbols (/_home/symbols/) it shows may be embedded
+//                        from other origins (see SHARED_HEADERS)
 //   /api/home-stats   -> live numbers, cached for 15 minutes
 //   legacy Django paths (/issue/1/, /profile/x/, /api/v1/, ... see legacy.js)
 //                     -> 308 to next.owaspblt.org/moved?from=<path + query, URL-encoded>
@@ -47,7 +48,7 @@ export function isHomePath(pathname) {
 }
 
 export function isSharedPath(pathname) {
-  return pathname.startsWith("/_shared/") || pathname.startsWith("/_home/logos/") || pathname === "/_home/blt-logo.svg";
+  return pathname.startsWith("/_shared/") || pathname.startsWith("/_home/logos/") || pathname.startsWith("/_home/symbols/") || pathname === "/_home/blt-logo.svg";
 }
 
 export function redirectTarget(url) {

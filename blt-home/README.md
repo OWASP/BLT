@@ -15,7 +15,7 @@ One Cloudflare Worker (`blt-home`) with static assets from `public/`. The Worker
 |---|---|
 | `/` | `public/index.html` |
 | `/_home/*`, `/favicon.ico`, `/robots.txt` | static files from `public/` |
-| `/_shared/blt-nav.js` | the OWASP BLT top bar every BLT site loads (see below); it, `/_home/blt-logo.svg` and `/_home/logos/*` are sent with `Cross-Origin-Resource-Policy: cross-origin` |
+| `/_shared/blt-nav.js` | the OWASP BLT top bar every BLT site loads (see below); it, `/_home/blt-logo.svg`, `/_home/logos/*` and `/_home/symbols/*` are sent with `Cross-Origin-Resource-Policy: cross-origin` |
 | `/_shared/blt-analytics.js` | the shared analytics loader (see "Analytics"); the top bar loads it, sent with the same cross-origin headers |
 | `/api/home-stats` | live numbers as JSON, cached for 15 minutes |
 | legacy Django paths (`/issue/…`, `/profile/…`, `/api/v1/…`, `/static/…`, … see `src/legacy.js`) | 308 to `https://next.owaspblt.org/moved?from=<path + query, URL-encoded>`, BLT-Next's "this page moved" page (the legacy app is off until its data is migrated) |
@@ -39,7 +39,16 @@ The page inserts values with `textContent` only. A number whose source is down s
 
 - **Banner:** the `<a id="announcement">` element near the top of `public/index.html`. Edit its text and `href`, or delete it.
 - **Products:** the Explore cards in `public/index.html` are the single list; the tabs, the logo orbit and the apps menu are built from them. Logos are in `public/_home/logos/`: each is the project's `logo.svg`, a wasp badge made by `scripts/wasp-badges/build.mjs` (see its README; `npm test` checks they are current). Only projects with a live site belong here.
-- **Shared top bar:** `public/_shared/blt-nav.js` is the same header for every other BLT site: `<script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>` puts it at the top of the page (options are at the top of the file). Its `APPS` list must match the Explore cards; `npm test` checks that, so update both together.
+- **Shared top bar:** `public/_shared/blt-nav.js` is the one header of every other BLT site: `<script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>` puts it at the top of the page (options are at the top of the file). A site configures it on a `<blt-nav>` element: `project` (slug; its plain round symbol is `/_home/symbols/<slug>.svg`), `name` (short name shown after the OWASP BLT brand) and `home`; its own links are the element's children (`slot="actions"` for buttons on the right, `data-primary` for the red one), so the site's scripts keep working on them. Example:
+  ```html
+  <blt-nav project="blt-zero" name="Zero" data-sticky>
+    <a href="/" aria-current="page">Submit</a>
+    <a href="/docs/security">Security</a>
+    <a href="https://git.owaspblt.org/BLT/BLT-Zero" slot="actions" data-primary>Contribute</a>
+  </blt-nav>
+  ```
+  Without children it shows the OWASP BLT links (and, on a `*.owaspblt.org` site in its list, that project's symbol and name). Its `APPS` list must match the Explore cards; `npm test` checks that, so update both together.
+- **Project symbols:** `public/_home/symbols/` holds each project's own round symbol without the wasp badge (written by `scripts/wasp-badges/build.mjs` from `scripts/wasp-badges/symbols/`). The top bar's project part and both apps choosers use them; the Explore cards and project logos keep the wasp badges in `public/_home/logos/`.
 - **Analytics:** see "Analytics" below.
 - **Styles:** Tailwind is compiled once, so there is no CDN at runtime. After changing classes, run:
 

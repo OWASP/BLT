@@ -50,6 +50,8 @@
       href: a.getAttribute("href"),
       name: ($("strong", a) || a).textContent.trim(),
       logo: img ? img.getAttribute("src") : "",
+      // the apps menu shows the project's own symbol (no wasp), as the shared top bar does
+      symbol: img ? img.getAttribute("src").replace("/_home/logos/", "/_home/symbols/").replace(/\.webp$/, ".svg") : "",
       group: a.closest(".explore-group").getAttribute("data-group"),
     };
   });
@@ -68,7 +70,7 @@
       var a = el("a", "group flex flex-col items-center gap-1.5 rounded-2xl px-1 py-3 transition-colors hover:bg-red-50/80 dark:hover:bg-gray-800");
       a.href = p.href;
       var img = el("img", "h-10 w-10 object-contain transition-transform group-hover:scale-105");
-      img.src = p.logo;
+      img.src = p.symbol;
       img.alt = "";
       img.width = 40;
       img.height = 40;

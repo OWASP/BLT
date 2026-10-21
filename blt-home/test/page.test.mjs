@@ -121,6 +121,33 @@ test("the shared top bar lists the same apps as the Explore cards", () => {
   assert.doesNotMatch(nav, /innerHTML|outerHTML|insertAdjacentHTML|document\.write/);
 });
 
+test("every Explore project has its plain symbol (no wasp) in _home/symbols/", () => {
+  const cards = [...html.matchAll(/class="product-card" href="[^"]+"><img src="\/_home\/logos\/([a-z0-9-]+)\.(?:svg|webp)"/g)].map((m) => m[1]);
+  assert.ok(cards.length > 40);
+  for (const p of cards) {
+    const file = join(publicDir, "_home", "symbols", p + ".svg");
+    assert.ok(existsSync(file), `missing _home/symbols/${p}.svg`);
+    const svg = readFileSync(file, "utf8");
+    assert.match(svg, /^<svg\b[^>]*xmlns="http:\/\/www\.w3\.org\/2000\/svg"/, p);
+    // not the badge: the badge's project sub-circle is clipped with an id ending in "-sub"
+    assert.doesNotMatch(svg, /<clipPath id="[a-z0-9]+-sub">/, `${p} symbol is a wasp badge`);
+    assert.notEqual(svg, readFileSync(join(publicDir, "_home", "logos", p + ".svg"), "utf8"), p);
+    assert.ok(svg.length < 20_000, `${p} symbol is over 20 KB`);
+    assert.doesNotMatch(svg, /<script|\son[a-z]+=|href="(?!#)/i, `${p} symbol: no scripts or external refs`);
+  }
+});
+
+test("both apps choosers show the plain symbols, the Explore cards keep the badges", () => {
+  const nav = readFileSync(join(publicDir, "_shared", "blt-nav.js"), "utf8");
+  assert.match(nav, /BASE \+ "\/_home\/symbols\/" \+ p\[2\]/, "blt-nav.js apps grid uses _home/symbols/");
+  assert.doesNotMatch(nav, /"\/_home\/logos\/"/, "blt-nav.js loads no badge logos");
+  assert.match(js, /symbol: img \? img\.getAttribute\("src"\)\.replace\("\/_home\/logos\/", "\/_home\/symbols\/"\)/);
+  const apps = js.slice(js.indexOf("function buildApps"), js.indexOf("function buildApps") + 800);
+  assert.match(apps, /img\.src = p\.symbol;/);
+  assert.doesNotMatch(apps, /p\.logo/);
+  for (const m of html.matchAll(/class="product-card"[^>]*><img src="([^"]+)"/g)) assert.match(m[1], /^\/_home\/logos\//);
+});
+
 test("analytics: the page and the shared bar load the forge's first-party analytics", () => {
   assert.match(html, /<script src="\/_shared\/blt-analytics\.js" defer><\/script>/);
   const nav = readFileSync(join(publicDir, "_shared", "blt-nav.js"), "utf8");

@@ -48,7 +48,7 @@ const env = {
   ASSETS: {
     async fetch(request) {
       const { pathname } = new URL(request.url);
-      if (["/", "/_home/home.css", "/_shared/blt-nav.js", "/_shared/blt-analytics.js", "/_home/logos/blt-zero.webp"].includes(pathname)) return new Response("ok", { status: 200 });
+      if (["/", "/_home/home.css", "/_shared/blt-nav.js", "/_shared/blt-analytics.js", "/_home/logos/blt-zero.webp", "/_home/symbols/blt-zero.svg"].includes(pathname)) return new Response("ok", { status: 200 });
       return new Response("missing", { status: 404 });
     },
   },
@@ -181,7 +181,7 @@ test("landing page and its assets are served with security headers", async () =>
 });
 
 test("the shared top bar and its logos can be embedded by other BLT sites; the page cannot", async () => {
-  for (const path of ["/_shared/blt-nav.js", "/_shared/blt-analytics.js", "/_home/logos/blt-zero.webp"]) {
+  for (const path of ["/_shared/blt-nav.js", "/_shared/blt-analytics.js", "/_home/logos/blt-zero.webp", "/_home/symbols/blt-zero.svg"]) {
     const res = await handle(new Request("https://owaspblt.org" + path), env, {});
     assert.equal(res.status, 200, path);
     for (const [k, v] of Object.entries(SHARED_HEADERS)) assert.equal(res.headers.get(k), v, `${path} ${k}`);
