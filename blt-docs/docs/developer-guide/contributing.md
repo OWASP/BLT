@@ -63,6 +63,10 @@ For code changes:
 - [ ] `uvx --with-requirements requirements.txt mkdocs build --strict` passes.
 - [ ] Screenshots, diagrams, or assets are included only when they are needed and reviewed.
 
+## Using AI
+
+AI tools are welcome. Follow the [BLT AI Policy](https://git.owaspblt.org/BLT/blob/main/AI_POLICY.md): disclose the model you used in the pull request's AI model field, review and test everything, and keep secrets out of AI services. See also [Agentic development guidance](agentic-development.md).
+
 ## Communication
 
 Use project maintainers, discussions and issues on git.owaspblt.org to clarify scope before making broad changes. OWASP community channels, including OWASP Slack, can help contributors find the right maintainer or project area, but implementation decisions should be recorded in the repository that owns the work.

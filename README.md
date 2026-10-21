@@ -21,6 +21,10 @@ cd BLT/<project>     # e.g. blt-leaf; each project has its own README
 
 Deploy a project with `scripts/deploy.sh <project>`, or every Cloudflare project with `scripts/deploy.sh --all`. See [Deploying](#-deploying).
 
+## Using AI
+
+BLT is a pro-AI project: coding agents and AI assistants are welcome for issues, pull requests, tests and docs. Every BLT issue has a one-line **copy AI prompt** you can paste into your agent to start work. You stay responsible for the result. Before you submit, review every change, run `scripts/ci/test.sh <project>`, and fill in the pull request's **AI model** field (or put `None`). Never paste secrets or private vulnerability details into AI services. Read the full [AI Policy](AI_POLICY.md) before you contribute.
+
 <!-- PROJECTS-START -->
 ## 📦 Projects
 
