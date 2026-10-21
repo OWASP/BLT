@@ -25,9 +25,9 @@ class TestAppRefactorFrontendContracts(unittest.TestCase):
 
     def test_landing_header_uses_public_logo_asset(self):
         html = self.read("src/index.html")
-        self.assertIn('src="/assets/logo.png"', html)
+        self.assertIn('src="/assets/logo.svg"', html)
         self.assertNotIn("/assets/images/owasp-blt-logo.svg", html)
-        self.assertTrue((SRC / "assets" / "logo.png").is_file())
+        self.assertTrue((SRC / "assets" / "logo.svg").is_file())
 
     def test_landing_footer_has_sizzle_domain_and_link_groups(self):
         html = self.read("src/index.html")
@@ -78,7 +78,7 @@ class TestAppRefactorFrontendContracts(unittest.TestCase):
         self.assertIn("/api/auth/verify-otp", html)
         self.assertIn("#dc2626", html)
         self.assertIn("BLT Sizzle", html)
-        self.assertIn('src="/assets/logo.png"', html)
+        self.assertIn('src="/assets/logo.svg"', html)
         self.assertNotIn("/assets/images/owasp-blt-logo.svg", html)
         self.assertIn("setPending", html)
         self.assertIn("Network error while requesting the verification code", html)

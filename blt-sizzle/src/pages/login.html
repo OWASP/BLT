@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --primary: #dc2626; --primary-hover: #b91c1c; --surface: #ffffff; --background: #f8fafc; --border: #e2e8f0; }
-        * { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        * { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
         .dot-field{background-image:radial-gradient(rgba(17,24,39,.16) 1px,transparent 1px);background-size:18px 18px;mask-image:radial-gradient(circle at center,black 0,transparent 74%);-webkit-mask-image:radial-gradient(circle at center,black 0,transparent 74%)}
         .btn-primary{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(to bottom,#ef4444,#dc2626);color:white;border-bottom:1.5px solid #991b1b;border-radius:8px;padding:8px 12px;min-height:34px;font-size:13px;font-weight:600;line-height:1.2;box-shadow:0 8px 20px -14px rgba(220,38,38,.8);transition:all .2s ease}.btn-primary:hover{transform:translateY(-1px)}
         .btn-primary:disabled{transform:none;box-shadow:none}.tab-active{background:#111827;color:white}.tab-idle{background:#f8fafc;color:#475569}
@@ -16,18 +16,21 @@
         .auth-button-sm{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;font-weight:600}
         .auth-tab-sm{min-height:32px;padding:7px 10px;font-size:13px;line-height:1.2}
     </style>
+  <script src="/scripts/theme-init.js"></script>
+  <link rel="stylesheet" href="/styles/sizzle-theme.css" />
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 <body class="min-h-screen overflow-x-hidden bg-gray-50 text-gray-900 antialiased">
-    <header class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]">
+    <header class="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
             <a href="/" class="inline-flex items-center gap-2.5">
-                <img src="/assets/logo.png" alt="Sizzle logo" class="h-12" />
+                <img src="/assets/logo.svg" alt="Sizzle logo" class="h-12 w-12" />
             </a>
             <a class="rounded-md px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900" href="/">Back to landing</a>
         </div>
     </header>
 
-    <main class="relative flex min-h-screen items-center justify-center px-4 py-28">
+    <main class="relative flex min-h-screen items-center justify-center px-4 py-12">
         <div class="dot-field pointer-events-none absolute inset-x-0 top-20 mx-auto h-[36rem] w-[min(90rem,100vw)] opacity-70" aria-hidden="true"></div>
         <section class="relative z-10 grid w-full max-w-5xl overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)] md:grid-cols-[1fr_.9fr]">
             <div class="bg-[#0e0d0c] p-8 text-white md:p-10">

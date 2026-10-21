@@ -11,6 +11,7 @@
     <script>
       window.tailwind = window.tailwind || {};
       window.tailwind.config = {
+        darkMode: "class",
         theme: {
           extend: {
             colors: {
@@ -24,13 +25,14 @@
             },
             fontFamily: {
               sans: [
-                "Geist",
-                "Inter",
                 "ui-sans-serif",
                 "system-ui",
                 "-apple-system",
                 "BlinkMacSystemFont",
-                "Segoe UI",
+                '"Segoe UI"',
+                "Roboto",
+                '"Helvetica Neue"',
+                "Arial",
                 "sans-serif",
               ],
               mono: [
@@ -129,18 +131,21 @@
         border-color: #d1d5db;
       }
     </style>
+    <script src="/scripts/theme-init.js"></script>
+    <link rel="stylesheet" href="/styles/sizzle-theme.css" />
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   </head>
   <body
     class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
   >
     <header
-      class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
+      class="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
     >
       <div
         class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-md:px-4"
       >
         <a href="/" class="" aria-label="BLT Sizzle home">
-          <img src="/assets/logo.png" alt="Sizzle logo" class="h-12" />
+          <img src="/assets/logo.svg" alt="Sizzle logo" class="h-12 w-12" />
         </a>
         <nav
           class="hidden items-center gap-7 md:flex"
@@ -182,7 +187,7 @@
 
     <main>
       <section
-        class="relative flex min-h-[43rem] items-start justify-center px-4 pb-14 pt-52 max-md:min-h-[38rem] max-md:pt-36"
+        class="relative flex min-h-[43rem] items-start justify-center px-4 pb-14 pt-32 max-md:min-h-[38rem] max-md:pt-16"
         aria-label="Hero"
       >
         <div

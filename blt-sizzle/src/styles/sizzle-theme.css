@@ -1,0 +1,44 @@
+/* Dark mode for the Sizzle landing and login pages, keyed off html.dark (set by
+   /scripts/theme-init.js and the BLT top bar). Those pages are built from light Tailwind
+   utilities; this maps them onto the owaspblt.org dark palette (gray-950 page, gray-900
+   cards, gray-800 borders, red-400/500 accents). The dashboard pages use
+   sizzle-dashboard.css, which has its own html.dark tokens. */
+html.dark { color-scheme: dark; }
+html.dark body { background-color: #030712; color: #f3f4f6; }
+
+html.dark .bg-gray-50 { background-color: #030712; }
+html.dark .bg-white { background-color: #111827; }
+html.dark .bg-white\/90 { background-color: rgba(17, 24, 39, 0.9); }
+html.dark .bg-white\/80 { background-color: rgba(17, 24, 39, 0.8); }
+html.dark .bg-white\/60 { background-color: rgba(17, 24, 39, 0.6); }
+html.dark .hover\:bg-gray-50:hover,
+html.dark .hover\:bg-gray-100:hover,
+html.dark .focus\:bg-white:focus { background-color: #1f2937; }
+
+html.dark .border-gray-100,
+html.dark .border-gray-200 { border-color: #1f2937; }
+html.dark .border-black\/5 { border-color: rgba(255, 255, 255, 0.06); }
+
+html.dark .text-gray-900 { color: #f9fafb; }
+html.dark .text-gray-700 { color: #d1d5db; }
+html.dark .text-gray-600,
+html.dark .text-gray-500 { color: #9ca3af; }
+html.dark .text-gray-400 { color: #6b7280; }
+html.dark .hover\:text-gray-900:hover { color: #ffffff; }
+html.dark .text-red-600 { color: #f87171; }
+html.dark .text-red-700 { color: #f87171; }
+
+html.dark .bg-red-50 { background-color: rgba(127, 29, 29, 0.25); }
+html.dark .border-red-200 { border-color: rgba(153, 27, 27, 0.6); }
+html.dark .bg-emerald-50 { background-color: rgba(6, 78, 59, 0.3); }
+html.dark .text-emerald-700 { color: #34d399; }
+html.dark .text-amber-600 { color: #fbbf24; }
+
+html.dark .btn-secondary { background: #111827; border-color: #374151; color: #e5e7eb; }
+html.dark .btn-secondary:hover { background: #1f2937; border-color: #4b5563; }
+html.dark .feature-divider::before { background: linear-gradient(to right, transparent, #1f2937); }
+html.dark .feature-divider::after { background: linear-gradient(to left, transparent, #1f2937); }
+html.dark .dot-field { background-image: radial-gradient(rgba(243, 244, 246, 0.14) 1px, transparent 1px); }
+html.dark ::placeholder { color: #6b7280; }
+html.dark .tab-idle { background: #1f2937; color: #d1d5db; }
+html.dark .tab-active { background: #dc2626; color: #ffffff; }
