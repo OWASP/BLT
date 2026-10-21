@@ -1,4 +1,4 @@
-"""Routing tests for workers/main.py: legacy redirects, own routes and the 404 page.
+"""Routing tests for workers/main.py: old-site links, the /moved page, own routes and the 404 page.
 
 The Worker imports `js` and `workers`, which only exist inside the Cloudflare Python runtime,
 so small fakes stand in for them here. Run with: python3 -m unittest discover -s tests
@@ -11,7 +11,7 @@ import sys
 import types
 import unittest
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import quote, unquote, urlsplit
 
 HERE = Path(__file__).resolve().parent
 PROJECT = HERE.parent
@@ -119,56 +119,85 @@ def fetch(path, method='GET', assets=None, body=None, headers=None):
 
 # ---- tests --------------------------------------------------------------------------------
 
-class LegacyRedirectTests(unittest.TestCase):
-    def assertRedirect(self, path, expected, method='GET', status=301):
+class OldSiteLinkTests(unittest.TestCase):
+    def assertMoved(self, path, method='GET'):
         response = fetch(path, method=method)
-        self.assertEqual(response.status, status, path)
-        self.assertEqual(response.headers.get('Location'), expected)
+        self.assertEqual(response.status, 302, path)
+        location = response.headers.get('Location')
+        self.assertTrue(location.startswith('/moved?from='), location)
+        self.assertEqual(unquote(location[len('/moved?from='):]), path)
+        return location
 
-    def test_old_deep_links_redirect_with_path_and_query(self):
-        cases = {
-            '/issue/1/': '/issue/1/',
-            '/issue/123/?ref=mail': '/issue/123/?ref=mail',
-            '/profile/someone/': '/profile/someone/',
-            '/domain/example.com/': '/domain/example.com/',
-            '/leaderboard/': '/leaderboard/',
-            '/leaderboard/monthly/?month=3&year=2024': '/leaderboard/monthly/?month=3&year=2024',
-            '/report/': '/report/',
-            '/api/v1/issues/': '/api/v1/issues/',
-            '/api/v1/issues/?page=2': '/api/v1/issues/?page=2',
-            '/api/trademarks/search/?query=blt': '/api/trademarks/search/?query=blt',
-            '/accounts/login/': '/accounts/login/',
-            '/authenticate/': '/authenticate/',
-            '/organization/1/dashboard/': '/organization/1/dashboard/',
-            '/hunt/7/': '/hunt/7/',
-            '/bounties/': '/bounties/',
-            '/scoreboard/': '/scoreboard/',
-            '/gsoc/pr-report/': '/gsoc/pr-report/',
-            '/hackathons/some-event/': '/hackathons/some-event/',
-            '/upload/1/x.png': '/upload/1/x.png',
-            '/leaderboard': '/leaderboard',
-        }
-        for path, target in cases.items():
+    def test_old_page_links_go_to_the_moved_page_with_path_and_query(self):
+        for path in ('/issue/1/', '/issue/123/?ref=mail', '/profile/someone/', '/domain/example.com/',
+                     '/leaderboard/', '/leaderboard/monthly/?month=3&year=2024', '/report/', '/accounts/login/',
+                     '/authenticate/', '/organization/1/dashboard/', '/hunt/7/', '/bounties/', '/scoreboard/',
+                     '/gsoc/pr-report/', '/hackathons/some-event/', '/upload/1/x.png', '/leaderboard'):
             with self.subTest(path=path):
-                self.assertRedirect(path, 'https://legacy.owaspblt.org' + target)
+                self.assertMoved(path)
 
-    def test_non_get_requests_keep_their_method(self):
-        self.assertRedirect('/api/v1/issues/', 'https://legacy.owaspblt.org/api/v1/issues/', method='POST', status=308)
-        self.assertRedirect('/authenticate/', 'https://legacy.owaspblt.org/authenticate/', method='POST', status=308)
+    def test_head_and_post_also_go_to_the_moved_page(self):
+        self.assertMoved('/issue/1/', method='HEAD')
+        self.assertMoved('/report/', method='POST')
 
-    def test_head_is_a_301(self):
-        self.assertRedirect('/issue/1/', 'https://legacy.owaspblt.org/issue/1/', method='HEAD')
+    def test_old_api_paths_get_json_not_a_redirect(self):
+        for path in ('/api/v1/issues/', '/api/v1/issues/?page=2', '/api/v2/hunts/', '/api/trademarks/search/'):
+            with self.subTest(path=path):
+                response = fetch(path)
+                self.assertEqual(response.status, 404)
+                data = json.loads(response.body)
+                self.assertIn('old BLT API', data['error'])
+                self.assertEqual(data['api'], 'https://api.owaspblt.org')
+        self.assertEqual(fetch('/api/v1/createissues/', method='POST').status, 404)
 
-    def test_redirect_host_is_fixed(self):
-        # A path that looks like another host stays on legacy.owaspblt.org.
-        target = main.legacy_redirect_target('/issue//evil.example/', '')
-        self.assertTrue(target.startswith('https://legacy.owaspblt.org/'))
-        self.assertEqual(main.legacy_redirect_target('//evil.example/x', ''), None)
+    def test_moved_page_names_the_new_home(self):
+        cases = {
+            '/leaderboard/': 'https://pool.owaspblt.org/leaderboard',
+            '/hackathons/x/': 'https://hackathons.owaspblt.org/',
+            '/gsoc/pr-report/': 'https://gsoc.owaspblt.org/',
+            '/jobs/': 'https://jobs.owaspblt.org/',
+            '/education/': 'https://university.owaspblt.org/',
+            '/sizzle/': 'https://sizzle.owaspblt.org/',
+            '/report/': '/pages/report-bug',
+        }
+        for path, home in cases.items():
+            with self.subTest(path=path):
+                response = fetch(self.assertMoved(path))
+                self.assertEqual(response.status, 200)
+                self.assertIn(f'href="{home}"', response.body)
+                self.assertIn('This page has moved', response.body)
+                self.assertIn('href="/pages/report-bug"', response.body)
+                self.assertIn('back after the migration', response.body)
+
+    def test_moved_page_without_a_new_home(self):
+        body = fetch(self.assertMoved('/issue/1/')).body
+        self.assertIn('<code>/issue/1/</code>', body)
+        self.assertIn("doesn't have a new home yet", body)
+
+    def test_moved_page_escapes_its_parameter(self):
+        body = fetch('/moved?from=' + quote('/issue/<script>alert(1)</script>/')).body
+        self.assertNotIn('<script>', body)
+        self.assertIn('&lt;script&gt;', body)
+        # A from= that isn't an old-site path is not echoed at all.
+        body = fetch('/moved?from=' + quote('javascript:alert(1)')).body
+        self.assertNotIn('javascript:', body)
+        self.assertEqual(fetch('/moved').status, 200)
+
+    def test_every_new_home_is_reachable(self):
+        for segments, label, url in main.NEW_HOMES:
+            self.assertTrue(url.startswith(('https://', '/pages/')), url)
+            for segment in segments:
+                with self.subTest(segment=segment):
+                    self.assertTrue(main.is_legacy_path('/' + segment + '/'), segment)
+
+    def test_redirect_never_leaves_the_site(self):
+        self.assertFalse(main.is_legacy_path('//evil.example/x'))
+        self.assertTrue(main.moved_location('/issue//evil.example/', '').startswith('/moved?from='))
 
     def test_segment_match_is_exact(self):
-        for path in ('/issuezzz/', '/profiles-x', '/Issue/1/', '/api/v3/x', '/api/', '/api'):
+        for path in ('/issuezzz/', '/profiles-x', '/Issue/1/', '/api/v3/x', '/api/', '/api', '/moved'):
             with self.subTest(path=path):
-                self.assertIsNone(main.legacy_redirect_target(path, ''))
+                self.assertFalse(main.is_legacy_path(path))
 
 
 class OwnRoutesAreNotShadowedTests(unittest.TestCase):
@@ -184,14 +213,14 @@ class OwnRoutesAreNotShadowedTests(unittest.TestCase):
         for method_routes in main.ROUTES.values():
             for path in method_routes:
                 with self.subTest(route=path):
-                    self.assertIsNone(main.legacy_redirect_target(path, ''))
+                    self.assertFalse(main.is_legacy_path(path))
         for file in (PROJECT / 'src').rglob('*'):
             if file.is_file():
                 rel = '/' + file.relative_to(PROJECT / 'src').as_posix()
                 with self.subTest(asset=rel):
-                    self.assertIsNone(main.legacy_redirect_target(rel, ''))
+                    self.assertFalse(main.is_legacy_path(rel))
                     if rel.endswith('.html'):
-                        self.assertIsNone(main.legacy_redirect_target(rel[:-5], ''))
+                        self.assertFalse(main.is_legacy_path(rel[:-5]))
 
     def test_home_and_assets_are_served(self):
         self.assertEqual(fetch('/').status, 200)
@@ -200,7 +229,7 @@ class OwnRoutesAreNotShadowedTests(unittest.TestCase):
     def test_root_level_files_are_not_redirected(self):
         for path in ('/', '/favicon.ico', '/robots.txt', '/.well-known/security.txt', '/__debug__/', '/500/'):
             with self.subTest(path=path):
-                self.assertIsNone(main.legacy_redirect_target(path, ''))
+                self.assertFalse(main.is_legacy_path(path))
 
 
 class NotFoundTests(unittest.TestCase):
@@ -210,6 +239,7 @@ class NotFoundTests(unittest.TestCase):
         self.assertEqual(response.status, 404)
         self.assertIn('text/html', response.headers.get('Content-Type'))
         self.assertIn('Page not found', response.body)
+        self.assertNotIn('legacy.owaspblt.org', response.body)
         self.assertEqual(len(assets.calls), 1)  # the original Request was passed through
 
     def test_missing_asset_is_a_404(self):

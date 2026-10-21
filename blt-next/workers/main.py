@@ -461,17 +461,21 @@ ROUTES = {
 }
 
 # ===================================
-# Legacy redirects and 404
+# Old-site links ("this page has moved") and 404
 # ===================================
 
-# The old Django app (blt-legacy, formerly blt-core) still runs here. blt.owasp.org now
-# redirects to owaspblt.org, so its old deep links (/issue/1/, /profile/<u>/, /api/v1/...)
-# arrive at this Worker. Send them on to the legacy app with the same path and query.
-LEGACY_ORIGIN = 'https://legacy.owaspblt.org'
+# blt.owasp.org now redirects to owaspblt.org with its path and query, so the old Django
+# app's deep links (/issue/1/, /profile/<u>/, /api/v1/...) arrive at this Worker. That app
+# (blt-legacy, formerly blt-core) is offline while its data is migrated, so its page links
+# go to /moved, which says where that part of BLT lives now, and its API paths get a JSON
+# answer saying the same.
+MOVED_PATH = '/moved'
+REPORT_PAGE = '/pages/report-bug'
+API_HOME = 'https://api.owaspblt.org'
 
 # First path segments of the legacy app's routes (blt-legacy/blt/urls.py). An allowlist,
-# so blt-next's own routes and pages are never redirected. Left out on purpose: '' (the
-# home page), favicon.ico, robots.txt, .well-known, and debug-only routes (__debug__, 500,
+# so blt-next's own routes and pages are never caught. Left out on purpose: '' (the home
+# page), favicon.ico, robots.txt, .well-known, and debug-only routes (__debug__, 500,
 # test-sentry). 'api' is not listed as a whole: see LEGACY_API_SEGMENTS.
 LEGACY_SEGMENTS = frozenset({
     'Submitpr', 'about', 'accounts', 'activity', 'add-sizzle-checkin', 'add_domain_to_organization',
@@ -502,70 +506,162 @@ LEGACY_SEGMENTS = frozenset({
 })
 
 # blt-next serves /api/stats, /api/bugs, /api/auth/... itself. Only the legacy app's own
-# /api/<segment>/ families are redirected (not the debug-only /api/debug/).
+# /api/<segment>/ families are caught (not the debug-only /api/debug/).
 LEGACY_API_SEGMENTS = frozenset({
     'v1', 'v2', 'bacon', 'get-wallet-balance', 'load-more-issues', 'messaging', 'organization', 'ossh',
     'room-messages', 'send-message', 'timelogsreport', 'trademarks',
 })
 
 
-def legacy_redirect_target(path, search=''):
-    """Return the legacy.owaspblt.org URL for a legacy-only path, or None.
+# Where each part of the old site lives now: (first path segment(s), what it was, new URL).
+# From the blt-core parity audit; only homes that really serve that feature are listed.
+NEW_HOMES = [
+    (('report',), 'Bug reporting', REPORT_PAGE),
+    (('leaderboard', 'scoreboard', 'contributors', 'contributor-stats'),
+     'The contributor leaderboard', 'https://pool.owaspblt.org/leaderboard'),
+    (('hackathons',), 'Hackathons', 'https://hackathons.owaspblt.org/'),
+    (('gsoc',), 'Google Summer of Code', 'https://gsoc.owaspblt.org/'),
+    (('jobs',), 'Jobs', 'https://jobs.owaspblt.org/'),
+    (('education', 'simulation'), 'Courses and security labs', 'https://university.owaspblt.org/'),
+    (('sizzle', 'check-in', 'add-sizzle-checkin', 'sizzle-daily-log', 'sizzle-docs', 'user-sizzle-report',
+      'reminder-settings', 'send-test-reminder'), 'Daily check-ins and reminders', 'https://sizzle.owaspblt.org/'),
+    (('time-logs',), 'Time logs', 'https://timer.owaspblt.org/'),
+    (('open-source-sorting-hat', 'get-recommended-articles', 'get-recommended-communities',
+      'get-recommended-discussion-channels', 'get-recommended-repos'),
+     'The Open Source Sorting Hat', 'https://ossh.owaspblt.org/'),
+    (('projects', 'project'), 'OWASP projects', 'https://projects.owaspblt.org/'),
+    (('repository', 'repo_list'), 'BLT repositories and their activity', 'https://waypoint.owaspblt.org/'),
+    (('blt-tomato',), 'OWASP project funding', 'https://tomato.owaspblt.org/'),
+    (('trademarks', 'similarity_scan'), 'Trademark and similarity checks', 'https://enforcement.owaspblt.org/'),
+    (('check_owasp_compliance',), 'The OWASP compliance checker', 'https://wich.owaspblt.org/'),
+    (('view-pr-analysis',), 'Pull request analysis', 'https://leaf.owaspblt.org/'),
+    (('slack',), 'The BLT Slack apps', 'https://sammich.owaspblt.org/'),
+    (('video_call',), 'Video calls', 'https://safecloak.owaspblt.org/'),
+    (('bacon',), 'BACON rewards', 'https://rewards.owaspblt.org/'),
+    (('swagger', 'swagger.json', 'swagger.yaml', 'redoc'), 'The BLT API and its docs', API_HOME + '/'),
+    (('style-guide', 'template_list'), 'The BLT design system', 'https://design.owaspblt.org/'),
+    (('extension',), 'The BLT browser extension', 'https://extension.owaspblt.org/'),
+    (('about',), 'About BLT', '/pages/about'),
+]
 
-    Only the path and query are copied; the host is fixed, so this can't be used as an
-    open redirect.
-    """
-    if not path.startswith('/'):
-        return None
+
+def _first_segments(path):
     parts = path.split('/')
-    first = parts[1] if len(parts) > 1 else ''
+    return (parts[1] if len(parts) > 1 else ''), (parts[2] if len(parts) > 2 else '')
+
+
+def is_legacy_path(path):
+    """True for paths that belonged to the old Django site (an allowlist of its routes)."""
+    if not path.startswith('/') or path.startswith('//'):
+        return False
+    first, second = _first_segments(path)
     if first == 'api':
-        second = parts[2] if len(parts) > 2 else ''
-        if second not in LEGACY_API_SEGMENTS:
-            return None
-    elif first not in LEGACY_SEGMENTS:
-        return None
-    return LEGACY_ORIGIN + path + (search or '')
+        return second in LEGACY_API_SEGMENTS
+    return first in LEGACY_SEGMENTS
 
 
-def legacy_redirect_response(location, method):
-    """301 for GET/HEAD; 308 for other methods so the method and body are kept."""
+def new_home_for(path):
+    """(what it was, new URL) for an old-site path, or None when nothing replaces it yet."""
+    first, _ = _first_segments(path)
+    for segments, label, url in NEW_HOMES:
+        if first in segments:
+            return label, url
+    return None
+
+
+def moved_location(path, search=''):
+    """/moved?from=<old path and query>. Always a path on this site, never another host."""
+    from urllib.parse import quote
+    return MOVED_PATH + '?from=' + quote(path + (search or ''), safe='/')
+
+
+def _redirect(location):
     js_headers = Headers.new()
     js_headers.set('Location', location)
+    # Temporary: once the old data is migrated these links may point somewhere better.
     js_headers.set('Cache-Control', 'public, max-age=3600')
     apply_security_headers(js_headers)
-    status = 301 if method in ('GET', 'HEAD') else 308
-    return Response.new('', status=status, headers=js_headers)
+    return Response.new('', status=302, headers=js_headers)
 
 
-NOT_FOUND_HTML = """<!DOCTYPE html>
+def legacy_api_response(path, request):
+    """Old /api/v1/... calls get JSON (they come from scripts and apps, not browsers)."""
+    return create_response({
+        'error': 'This endpoint belonged to the old BLT API, which is offline while its data is migrated.',
+        'path': path,
+        'api': API_HOME,
+        'report_bug': REPORT_PAGE,
+    }, status=404, origin=request.headers.get('Origin'))
+
+
+PAGE_STYLE = """
+    body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+           font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: #f9fafb; color: #111827; }
+    main { max-width: 36rem; padding: 2rem 1rem; }
+    h1 { font-size: 1.75rem; margin: 0 0 1rem; color: #dc2626; }
+    p, li { line-height: 1.6; color: #4b5563; }
+    code { background: #f3f4f6; padding: 0.1rem 0.3rem; border-radius: 0.25rem; word-break: break-all; }
+    a { color: #dc2626; font-weight: 600; }
+    .box { border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.75rem 1rem; background: #fff; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #111827; color: #f9fafb; } p, li { color: #d1d5db; } a, h1 { color: #f87171; }
+      code { background: #1f2937; } .box { background: #1f2937; border-color: #374151; }
+    }
+"""
+
+
+def _page(title, body):
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Page not found | OWASP BLT</title>
+  <meta name="robots" content="noindex">
+  <title>{title} | OWASP BLT</title>
   <link rel="icon" href="/favicon.ico">
-  <style>
-    body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
-           font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: #f9fafb; color: #111827; }
-    main { max-width: 32rem; padding: 2rem 1rem; text-align: center; }
-    h1 { font-size: 3rem; margin: 0; color: #dc2626; }
-    p { line-height: 1.6; color: #4b5563; }
-    a { color: #dc2626; font-weight: 600; }
-    @media (prefers-color-scheme: dark) { body { background: #111827; color: #f9fafb; } p { color: #d1d5db; } a, h1 { color: #f87171; } }
-  </style>
+  <style>{PAGE_STYLE}</style>
 </head>
 <body>
   <main>
-    <h1>404</h1>
-    <p>This page doesn't exist on OWASP BLT.</p>
-    <p><a href="/">Go to the home page</a></p>
-    <p>Looking for an old bug, profile or organization page? Try
-      <a href="https://legacy.owaspblt.org/">legacy.owaspblt.org</a>.</p>
+{body}
   </main>
 </body>
 </html>
 """
+
+
+def _html_response(html_text, status):
+    js_headers = Headers.new()
+    js_headers.set('Content-Type', 'text/html; charset=utf-8')
+    apply_security_headers(js_headers)
+    return Response.new(html_text, status=status, headers=js_headers)
+
+
+def moved_page_response(url):
+    """The page old-site links land on. ?from= is shown escaped and only used for lookup."""
+    from html import escape
+    from urllib.parse import parse_qs
+    old = (parse_qs((url.search or '').lstrip('?')).get('from') or [''])[0][:500]
+    old_path = old.split('?', 1)[0]
+    if old and is_legacy_path(old_path):
+        intro = (f'<p>The page you opened, <code>{escape(old)}</code>, belonged to the old BLT site, '
+                 'which is being migrated to the new BLT platform.</p>')
+        home = new_home_for(old_path)
+    else:
+        intro = '<p>This page belonged to the old BLT site, which is being migrated to the new BLT platform.</p>'
+        home = None
+    if home:
+        label, target = home
+        where = f'<p class="box">{escape(label)} now lives at <a href="{escape(target)}">{escape(target)}</a>.</p>'
+    else:
+        where = '<p class="box">This part of BLT doesn\'t have a new home yet.</p>'
+    body = f"""    <h1>This page has moved</h1>
+    {intro}
+    {where}
+    <p>Found a bug? <a href="{REPORT_PAGE}">Report it here</a>.</p>
+    <p>Bug reports, profiles, organizations and points from the old site will be back after the migration.</p>
+    <p><a href="/">Go to the home page</a></p>"""
+    return _html_response(_page('This page has moved', body), 200)
 
 
 def not_found_response(path, request):
@@ -573,10 +669,23 @@ def not_found_response(path, request):
     origin = request.headers.get('Origin')
     if path.startswith('/api/'):
         return create_response({'error': 'Not found', 'path': path}, status=404, origin=origin)
-    js_headers = Headers.new()
-    js_headers.set('Content-Type', 'text/html; charset=utf-8')
-    apply_security_headers(js_headers)
-    return Response.new(NOT_FOUND_HTML, status=404, headers=js_headers)
+    body = f"""    <h1>404: page not found</h1>
+    <p>This page doesn't exist on OWASP BLT.</p>
+    <p>Found a bug? <a href="{REPORT_PAGE}">Report it here</a>.</p>
+    <p><a href="/">Go to the home page</a></p>"""
+    return _html_response(_page('Page not found', body), 404)
+
+
+def handle_old_site(request, url):
+    """Answer /moved and old-site links; None for everything else."""
+    path = url.pathname
+    if path in (MOVED_PATH, MOVED_PATH + '/') and request.method in ('GET', 'HEAD'):
+        return moved_page_response(url)
+    if not is_legacy_path(path):
+        return None
+    if path.startswith('/api/'):
+        return legacy_api_response(path, request)
+    return _redirect(moved_location(path, url.search))
 
 
 async def route_request(request, env):
@@ -598,10 +707,10 @@ async def route_request(request, env):
             print(f"Handler Error: {e}")
             raise e
 
-    # Old blt.owasp.org deep links go to the legacy app.
-    location = legacy_redirect_target(path, url.search)
-    if location:
-        return legacy_redirect_response(location, request.method)
+    # Old blt.owasp.org links and the /moved page.
+    old_site = handle_old_site(request, url)
+    if old_site:
+        return old_site
 
     # Static assets. Cloudflare serves files that exist before the Worker runs, so this
     # is mostly a fallback (e.g. a request that skipped asset routing).
