@@ -1154,6 +1154,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
                 margin: -10px -10px 10px;
             }}
         }}
+        blt-nav:not(:defined) {{ min-height: 61px; }}
 
         /* Dark mode: html.dark, set before paint and by the OWASP BLT bar's toggle. */
         html.dark {{
@@ -1263,6 +1264,7 @@ def generate_html(repos: List[Dict], org: str) -> str:
     </style>
 </head>
 <body>
+    <blt-nav project="blt-owasp-bumper" name="Bumper"></blt-nav>
     <div class="container">
         <h1>OWASP Bumper 🚀💪</h1>
         <div class="subtitle">This application aims to help encourage repositories to stay active by giving them a bump of a new issue with one click! 🔔✨</div>
