@@ -23,33 +23,14 @@
 <body
   class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-200 min-h-screen">
 
-  <!-- Navbar -->
-  <nav
-    class="sticky top-0 z-50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-      <a class="flex items-center gap-3 group" href="/">
-        <img src="/static/byte-logo.svg" width="32" height="32" alt="BLT Byte logo"
-          class="w-8 h-8 rounded-full object-contain transition-transform group-hover:scale-110">
-        <span class="font-extrabold text-xl tracking-tight">BLT <span class="text-blt-red">Byte</span></span>
-      </a>
-      <div class="hidden md:flex items-center gap-8">
-        <a href="#features"
-          class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">Features</a>
-        <a href="#chat" class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">Try
-          It</a>
-        <a href="#how-it-works"
-          class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">How It Works</a>
-        <a href="#api"
-          class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">API</a>
-        <a href="#gsoc"
-          class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">GSoC</a>
-      </div>
-      <div class="flex items-center gap-4">
-        <a class="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-blt-red text-white text-sm font-bold rounded-lg hover:bg-red-700 transition shadow-lg shadow-red-200 dark:shadow-red-950"
-          href="https://git.owaspblt.org/BLT/BLT-Core" target="_blank" rel="noopener noreferrer">Source Code</a>
-      </div>
-    </div>
-  </nav>
+  <blt-nav project="blt-byte" name="Byte" data-sticky>
+    <a href="#features">Features</a>
+    <a href="#chat">Try It</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="#api">API</a>
+    <a href="#gsoc">GSoC</a>
+    <a href="https://git.owaspblt.org/BLT/BLT-Core" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source Code</a>
+  </blt-nav>
 
   <!-- Hero -->
   <header class="relative overflow-hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">

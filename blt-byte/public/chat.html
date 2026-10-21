@@ -14,34 +14,21 @@
 </head>
 
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans transition-colors duration-200">
+    <blt-nav project="blt-byte" name="Byte" data-sticky>
+        <a href="/">Overview</a>
+        <a href="/chat.html" aria-current="page">Chat</a>
+        <a href="https://git.owaspblt.org/BLT/BLT-Core" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source Code</a>
+    </blt-nav>
+
     <!-- Gradient overlay -->
     <div
         class="pointer-events-none fixed inset-0 -z-10 h-[460px] bg-gradient-to-b from-red-50 via-white to-transparent dark:from-red-950/20 dark:via-gray-900 dark:to-transparent">
     </div>
 
-    <!-- Header -->
-    <header
-        class="sticky top-0 z-50 bg-white/98 dark:bg-gray-800/98 backdrop-blur border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <img src="/static/byte-logo.svg" width="40" height="40" alt="BLT Byte logo" class="w-10 h-10 rounded-full object-contain">
-                <div>
-                    <h1 class="text-xl font-extrabold text-gray-900 dark:text-gray-100 leading-tight">BLT Byte</h1>
-                    <p class="text-sm font-semibold text-gray-600 dark:text-gray-400">AI-Powered Bug Bounty Assistant
-                    </p>
-                </div>
-            </div>
-            <div class="flex items-center gap-4">
-                <a href="/" class="text-sm text-blt-red hover:text-red-700 font-bold transition">
-                    ← Back
-                </a>
-            </div>
-        </div>
-    </header>
-
     <!-- Main Chat Area -->
     <main class="flex-1 overflow-y-auto px-4 sm:px-6 py-6" id="chatMain">
         <div class="max-w-4xl mx-auto">
+            <h1 class="sr-only">BLT Byte - AI-Powered Bug Bounty Assistant</h1>
             <!-- Welcome Message -->
             <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 mb-4 shadow-sm animate-fade-in transition-colors duration-200"
                 id="welcomeCard">
