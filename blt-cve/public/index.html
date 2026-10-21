@@ -8,22 +8,54 @@
       content="BLT-CVE is a decentralized, machine-readable vulnerability registry for the OWASP BLT ecosystem."
     >
     <title>BLT-CVE Registry</title>
+    <script>
+      // Before first paint: the saved theme (localStorage "theme", shared with the <blt-nav> bar), else the system preference.
+      (function () {
+        var saved = null;
+        try { saved = localStorage.getItem("theme"); } catch (e) { saved = null; }
+        var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <style>
       :root {
         color-scheme: light;
-        --bg: #f6f8fb;
+        /* owaspblt.org palette: Tailwind gray surfaces, BLT red accent */
+        --bg: #f9fafb;
         --surface: #ffffff;
-        --surface-soft: #eef3f8;
-        --ink: #172033;
-        --muted: #5d697f;
-        --line: #d9e1ec;
-        --accent: #116b5d;
-        --accent-dark: #0b4e44;
-        --warn-bg: #fff4dc;
-        --warn-line: #f0c56d;
-        --warn-ink: #6c4a00;
-        --danger: #ad2f2f;
-        --shadow: 0 18px 45px rgba(23, 32, 51, 0.08);
+        --surface-soft: #f3f4f6;
+        --ink: #111827;
+        --muted: #6b7280;
+        --line: #e5e7eb;
+        --accent: #dc2626;
+        --accent-dark: #b91c1c;
+        --link: #b91c1c;
+        --hero-from: rgba(185, 28, 28, 0.94);
+        --hero-to: rgba(17, 24, 39, 0.94);
+        --low: #15803d;
+        --warn-bg: #fffbeb;
+        --warn-line: #fcd34d;
+        --warn-ink: #92400e;
+        --danger: #b91c1c;
+        --shadow: 0 18px 45px rgba(17, 24, 39, 0.08);
+      }
+
+      :root.dark {
+        color-scheme: dark;
+        --bg: #030712;
+        --surface: #111827;
+        --surface-soft: #1f2937;
+        --ink: #f3f4f6;
+        --muted: #9ca3af;
+        --line: #1f2937;
+        --link: #f87171;
+        --hero-from: rgba(127, 29, 29, 0.92);
+        --hero-to: rgba(3, 7, 18, 0.96);
+        --warn-bg: #271a09;
+        --warn-line: rgba(180, 83, 9, 0.55);
+        --warn-ink: #fcd34d;
+        --shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
       }
 
       * {
@@ -35,13 +67,13 @@
         background: var(--bg);
         color: var(--ink);
         font-family:
-          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-          "Segoe UI", sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         line-height: 1.55;
       }
 
       a {
-        color: var(--accent-dark);
+        color: var(--link);
         font-weight: 700;
         text-decoration: none;
       }
@@ -67,7 +99,7 @@
 
       .hero {
         background:
-          linear-gradient(120deg, rgba(17, 107, 93, 0.94), rgba(23, 32, 51, 0.92)),
+          linear-gradient(120deg, var(--hero-from), var(--hero-to)),
           url("/assets/blt-cve-hero.png");
         background-position: center;
         background-size: cover;
@@ -184,8 +216,8 @@
       .entry {
         background: var(--surface);
         border: 1px solid var(--line);
-        border-radius: 8px;
-        box-shadow: 0 8px 20px rgba(23, 32, 51, 0.05);
+        border-radius: 1rem;
+        box-shadow: 0 8px 20px rgba(17, 24, 39, 0.05);
         padding: 1rem;
       }
 
@@ -235,7 +267,7 @@
       }
 
       .severity.low {
-        background: var(--accent);
+        background: var(--low);
       }
 
       .docs {
