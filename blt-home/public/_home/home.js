@@ -313,16 +313,27 @@
       hideFallback("bugs-label");
     }
 
-    // BLT Monitor: sites up, one dot per monitored site.
-    var mon = data.monitor;
-    if (mon && isNum(mon.sites) && mon.sites > 0 && isNum(mon.up)) {
-      var dots = $("#monitor-dots");
-      for (var i = 0; i < mon.sites; i++) {
-        dots.appendChild(el("li", "h-2 w-2 rounded-full " + (i < mon.up ? "bg-green-500" : "bg-red-500")));
-      }
-      show('[data-live="monitor"]');
-      hideFallback("monitor");
-      if (isNum(mon.medianMs)) show('[data-live="monitor-ms"]');
+    // Activity: one square per week of commits, shaded by quartile of the
+    // non-empty weeks. Quiet weeks are simply light squares.
+    var forge = data.forge;
+    if (forge && Array.isArray(forge.weeks) && forge.weeks.length >= 12 && isNum(forge.recentCommits)) {
+      var weeks = forge.weeks.filter(isNum);
+      var busy = weeks.filter(function (n) { return n > 0; }).sort(function (a, b) { return a - b; });
+      var cut = [0.25, 0.5, 0.75].map(function (q) { return busy.length ? busy[Math.floor(q * (busy.length - 1))] : 0; });
+      var grid = $("#activity-grid");
+      var startMs = Date.parse(forge.weeksStart);
+      weeks.forEach(function (n, i) {
+        var level = n <= 0 ? 0 : n <= cut[0] ? 1 : n <= cut[1] ? 2 : n <= cut[2] ? 3 : 4;
+        var cell = el("li", "heat-" + level + (i === weeks.length - 1 ? " heat-now" : ""));
+        cell.style.animationDelay = (i * 12) + "ms";
+        if (isFinite(startMs)) {
+          var label = new Date(startMs + i * 7 * 864e5).toLocaleDateString("en", { month: "short", day: "numeric", timeZone: "UTC" });
+          cell.title = "Week of " + label + ": " + fmt.format(n) + (n === 1 ? " commit" : " commits");
+        }
+        grid.appendChild(cell);
+      });
+      show('[data-live="activity"]');
+      hideFallback("activity");
     }
 
     // BLT-Pool: this month's top contributors.

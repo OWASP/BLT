@@ -76,7 +76,7 @@ export async function homeStats({ fetcher = fetch, cache = globalThis.caches?.de
     }
   }
   const body = await collectStats({ fetcher, now });
-  const anyData = ["forge", "pool", "monitor", "pages"].some((k) => body[k]);
+  const anyData = ["forge", "pool", "pages"].some((k) => body[k]);
   // Cache a complete failure only briefly, so a short outage of every source is retried soon.
   const ttl = anyData ? STATS_TTL_SECONDS : 60;
   memo = { at: anyData ? now : now - (STATS_TTL_SECONDS - 60) * 1000, body };

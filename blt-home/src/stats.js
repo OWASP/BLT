@@ -6,7 +6,6 @@
 export const SOURCES = {
   forge: "https://git.owaspblt.org/api/repo/owasp-blt/BLT/stats",
   pool: "https://pool.owaspblt.org/api/leaderboard",
-  monitor: "https://monitor.owaspblt.org/api/histories",
   pages: "https://pages.owaspblt.org/data/leaderboard.json",
 };
 
@@ -27,6 +26,12 @@ export function summariseForge(data) {
     }
     if (people.size) out.contributors = people.size;
   }
+  const weeks = weeklyCommits(data);
+  if (weeks) {
+    out.weeks = weeks.counts;
+    out.weeksStart = weeks.start;
+    out.recentCommits = weeks.counts.slice(-4).reduce((a, b) => a + b, 0);
+  }
   const counts = data.counts || {};
   if (isCount(counts.openIssues)) out.openIssues = counts.openIssues;
   if (isCount(counts.openPulls)) out.openPulls = counts.openPulls;
@@ -46,29 +51,26 @@ export function summarisePool(data, top = 3) {
   };
 }
 
-// BLT-Monitor check histories: how many monitored BLT sites passed their
-// latest check. Monitors that have not run recently (removed or renamed) are
-// left out; if the whole feed is stale the result is null.
-export function summariseMonitor(data, now = Date.now(), { activeWindowMs = 3 * 3600e3, staleAfterMs = 6 * 3600e3 } = {}) {
-  if (!data || typeof data !== "object") return null;
-  const latest = [];
-  for (const history of Object.values(data)) {
-    if (!Array.isArray(history) || !history.length) continue;
-    const last = history[history.length - 1];
-    const t = Date.parse(last?.datetime);
-    if (!Number.isFinite(t)) continue;
-    latest.push({ t, ok: last.status === "success", ms: Number(last.duration_ms) });
+// Commits per week by people (bots left out), oldest first, from each
+// contributor's activityWeeks. Null unless every contributor is present and
+// the series has at least 12 weeks.
+export function weeklyCommits(data, maxWeeks = 52) {
+  if (!Array.isArray(data?.contributors) || data.contributorsTruncated) return null;
+  const start = Date.parse(data.activityStart);
+  let totals = null;
+  for (const c of data.contributors) {
+    const name = typeof c?.name === "string" ? c.name.trim() : "";
+    const weeks = c?.activityWeeks;
+    if (!Array.isArray(weeks) || BOT_NAME.test(name)) continue;
+    if (!totals) totals = new Array(weeks.length).fill(0);
+    if (weeks.length !== totals.length) return null;
+    weeks.forEach((n, i) => { if (isCount(n)) totals[i] += n; });
   }
-  if (!latest.length) return null;
-  const newest = Math.max(...latest.map((x) => x.t));
-  if (now - newest > staleAfterMs) return null;
-  const active = latest.filter((x) => newest - x.t <= activeWindowMs);
-  const times = active.filter((x) => x.ok && Number.isFinite(x.ms)).map((x) => x.ms).sort((a, b) => a - b);
+  if (!totals || totals.length < 12 || !Number.isFinite(start)) return null;
+  const skip = Math.max(0, totals.length - maxWeeks);
   return {
-    sites: active.length,
-    up: active.filter((x) => x.ok).length,
-    medianMs: times.length ? Math.round(times[Math.floor(times.length / 2)]) : null,
-    checkedAt: new Date(newest).toISOString(),
+    counts: totals.slice(skip),
+    start: new Date(start + skip * 7 * 86400e3).toISOString().slice(0, 10),
   };
 }
 
@@ -87,7 +89,7 @@ export function summarisePages(data, top = 3) {
   };
 }
 
-const SUMMARISERS = { forge: summariseForge, pool: summarisePool, monitor: summariseMonitor, pages: summarisePages };
+const SUMMARISERS = { forge: summariseForge, pool: summarisePool, pages: summarisePages };
 
 async function fetchJson(fetcher, url, timeoutMs) {
   const controller = new AbortController();
@@ -114,7 +116,7 @@ export async function collectStats({ fetcher = fetch, now = Date.now(), timeoutM
   names.forEach((n, i) => {
     let value = null;
     try {
-      value = raw[i] == null ? null : n === "monitor" ? SUMMARISERS[n](raw[i], now) : SUMMARISERS[n](raw[i]);
+      value = raw[i] == null ? null : SUMMARISERS[n](raw[i]);
     } catch {
       value = null;
     }

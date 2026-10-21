@@ -119,3 +119,33 @@
   .product-card strong { @apply block text-sm font-semibold text-gray-900 dark:text-white; }
   .product-card strong + span { @apply mt-0.5 block text-xs leading-snug text-gray-600 dark:text-gray-400; }
 }
+
+/* ---- Activity heatmap: commits per week, past year ---------------------- */
+@layer components {
+  .heatmap { @apply grid w-full max-w-[16rem] gap-[3px]; grid-template-columns: repeat(13, minmax(0, 1fr)); }
+  .heatmap li { @apply aspect-square rounded-[3px]; animation: heat-in 0.5s ease-out both; }
+  .heat-0 { @apply bg-gray-100 dark:bg-gray-800; }
+  .heat-1 { @apply bg-red-100 dark:bg-red-950; }
+  .heat-2 { @apply bg-red-300 dark:bg-red-800; }
+  .heat-3 { @apply bg-red-500 dark:bg-red-600; }
+  .heat-4 { @apply bg-red-700 dark:bg-red-400; }
+  .heatmap li.heat-now { @apply ring-2 ring-red-600 ring-offset-1 ring-offset-white dark:ring-red-400 dark:ring-offset-gray-900; }
+}
+@keyframes heat-in { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
+
+/* ---- Cyborg pumpkin on the Hacktoberfest pill --------------------------- */
+.cyborg-pumpkin { overflow: visible; }
+.cyborg-pumpkin .cp-body { transform-origin: 50% 100%; animation: cp-drop 0.9s cubic-bezier(.3, 1.6, .5, 1) 0.2s both; }
+.cyborg-pumpkin .cp-eye { animation: cp-boot 1.6s steps(1, end) 1s both, cp-glow 2.4s ease-in-out 2.6s 3; }
+.cyborg-pumpkin .cp-antenna-tip { animation: cp-blink 0.5s ease-in-out 1.1s 4; }
+@keyframes cp-drop {
+  0% { transform: translateY(-140%) rotate(-25deg); opacity: 0; }
+  55% { transform: translateY(0) rotate(8deg) scaleY(.8); opacity: 1; }
+  75% { transform: translateY(-12%) rotate(-4deg) scaleY(1.05); }
+  100% { transform: translateY(0) rotate(0) scaleY(1); }
+}
+@keyframes cp-boot {
+  0% { fill: #374151; } 20% { fill: #ef4444; } 30% { fill: #374151; } 45% { fill: #ef4444; } 55% { fill: #374151; } 70%, 100% { fill: #ef4444; }
+}
+@keyframes cp-glow { 0%, 100% { filter: none; } 50% { filter: drop-shadow(0 0 2px #ef4444) drop-shadow(0 0 4px #f87171); } }
+@keyframes cp-blink { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }

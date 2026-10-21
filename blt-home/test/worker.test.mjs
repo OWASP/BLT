@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { handle, homeStats, isHomePath, redirectTarget, resetMemo, SECURITY_HEADERS, STATS_TTL_SECONDS } from "../src/app.js";
-import { SOURCES, collectStats, summariseForge, summariseMonitor, summarisePages, summarisePool } from "../src/stats.js";
+import { SOURCES, collectStats, summariseForge, summarisePages, summarisePool, weeklyCommits } from "../src/stats.js";
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
@@ -22,12 +22,6 @@ const FIXTURES = {
     users: {
       alice: { total: 19 }, bob: { total: 25 }, "renovate[bot]": { total: 99 }, carol: { total: 0 }, dave: { total: 3 }, erin: { total: 1 },
     },
-  },
-  [SOURCES.monitor]: {
-    site_a: [{ datetime: "2026-10-21T02:20:00Z", status: "success", duration_ms: 50 }],
-    site_b: [{ datetime: "2026-10-21T02:21:00Z", status: "failure", duration_ms: 900 }],
-    site_c: [{ datetime: "2026-10-21T02:25:00Z", status: "success", duration_ms: 70 }],
-    retired: [{ datetime: "2026-06-05T10:20:00Z", status: "failure", duration_ms: 700 }],
   },
   [SOURCES.pages]: { total_bugs: 0, total_domains: 0, leaderboard: [] },
 };
@@ -85,10 +79,28 @@ test("pool: top three by points, bots and zero rows dropped", () => {
   assert.equal(summarisePool({ month: "<script>", users: { a: { total: 1 } } }).month, null);
 });
 
-test("monitor: only recently checked sites count; stale feed is null", () => {
-  assert.deepEqual(summariseMonitor(FIXTURES[SOURCES.monitor], NOW), { sites: 3, up: 2, medianMs: 70, checkedAt: "2026-10-21T02:25:00.000Z" });
-  assert.equal(summariseMonitor(FIXTURES[SOURCES.monitor], NOW + 24 * 3600e3), null);
-  assert.equal(summariseMonitor({}, NOW), null);
+test("weekly commits: people only, oldest first, last 52 weeks", () => {
+  const weeks = (n, v) => Array.from({ length: n }, (_, i) => v(i));
+  const data = {
+    activityStart: "2025-10-20T00:00:00+00:00",
+    contributorsTruncated: false,
+    contributors: [
+      { name: "alice", activityWeeks: weeks(53, (i) => i) },
+      { name: "bob", activityWeeks: weeks(53, () => 1) },
+      { name: "dependabot[bot]", activityWeeks: weeks(53, () => 100) },
+    ],
+  };
+  const out = weeklyCommits(data);
+  assert.equal(out.counts.length, 52);
+  assert.equal(out.counts[0], 2);
+  assert.equal(out.counts[51], 53);
+  assert.equal(out.start, "2025-10-27");
+  const forge = summariseForge({ ...data, commitCount: 9 });
+  assert.equal(forge.recentCommits, 50 + 51 + 52 + 53);
+  assert.equal(forge.weeksStart, "2025-10-27");
+  assert.equal(weeklyCommits({ ...data, contributorsTruncated: true }), null);
+  assert.equal(weeklyCommits({ ...data, contributors: [{ name: "a", activityWeeks: [1, 2] }] }), null);
+  assert.equal(weeklyCommits({ ...data, contributors: [data.contributors[0], { name: "c", activityWeeks: [1] }] }), null);
 });
 
 test("pages: real zero stays zero; rows need login and count", () => {
@@ -101,12 +113,12 @@ test("pages: real zero stays zero; rows need login and count", () => {
 test("collectStats: a failing source becomes null, the rest still load", async () => {
   const map = { ...FIXTURES };
   delete map[SOURCES.pool];
-  map[SOURCES.monitor] = new Response("oops", { status: 502 });
+  map[SOURCES.pages] = new Response("oops", { status: 502 });
   const out = await collectStats({ fetcher: fakeFetch(map), now: NOW });
   assert.equal(out.pool, null);
-  assert.equal(out.monitor, null);
+  assert.equal(out.pages, null);
+  assert.equal("monitor" in out, false);
   assert.equal(out.forge.commits, 45613);
-  assert.equal(out.pages.bugs, 0);
 });
 
 test("collectStats: invalid JSON from a source is treated as missing", async () => {
@@ -123,22 +135,22 @@ test("home-stats: cached for 15 minutes, then refetched", async () => {
   const cache = fakeCache();
   const fetcher = fakeFetch(FIXTURES, calls);
   await homeStats({ fetcher, cache, now: NOW });
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 3);
   await homeStats({ fetcher, cache, now: NOW + 60e3 });
-  assert.equal(calls.length, 4, "second call within the TTL is served from memory");
+  assert.equal(calls.length, 3, "second call within the TTL is served from memory");
   const cached = cache.store.values().next().value;
   assert.match(cached.headers.get("Cache-Control"), new RegExp(`max-age=${STATS_TTL_SECONDS}`));
   resetMemo();
   cache.store.clear();
   await homeStats({ fetcher, cache, now: NOW + (STATS_TTL_SECONDS + 1) * 1000 });
-  assert.equal(calls.length, 8);
+  assert.equal(calls.length, 6);
 });
 
 test("home-stats: total outage is cached only briefly", async () => {
   resetMemo();
   const cache = fakeCache();
   const out = await homeStats({ fetcher: fakeFetch({}), cache, now: NOW });
-  assert.deepEqual([out.forge, out.pool, out.monitor, out.pages], [null, null, null, null]);
+  assert.deepEqual([out.forge, out.pool, out.pages], [null, null, null]);
   assert.match(cache.store.values().next().value.headers.get("Cache-Control"), /max-age=60\b/);
 });
 

@@ -23,13 +23,12 @@ The legacy list is built from `blt-core/blt/urls.py` (or `blt-legacy/` after a r
 
 ## Live numbers
 
-`/api/home-stats` fetches these public sources server-side (the forge and BLT Monitor send no CORS headers, so the browser cannot read them directly), caches the summary for 15 minutes, and returns `null` for any source that fails:
+`/api/home-stats` fetches these public sources server-side (the forge sends no CORS headers, so the browser cannot read it directly), caches the summary for 15 minutes, and returns `null` for any source that fails:
 
 | Key | Source | Shown as |
 |---|---|---|
-| `forge` | `https://git.owaspblt.org/api/repo/owasp-blt/BLT/stats` | contributors (bots excluded), commits, open issues |
+| `forge` | `https://git.owaspblt.org/api/repo/owasp-blt/BLT/stats` | contributors (bots excluded), commits, open issues, and a 52-week commit heatmap with the last four weeks' total |
 | `pool` | `https://pool.owaspblt.org/api/leaderboard` | this month's top three on the BLT-Pool leaderboard |
-| `monitor` | `https://monitor.owaspblt.org/api/histories` | BLT sites passing their latest check, median response time |
 | `pages` | `https://pages.owaspblt.org/data/leaderboard.json` | bugs logged, once there is at least one |
 
 The page inserts values with `textContent` only. A number whose source is down stays hidden; the page never shows a placeholder number.
