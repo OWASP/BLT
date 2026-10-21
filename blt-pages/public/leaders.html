@@ -8,11 +8,11 @@
       content="OWASP BLT – Community Leadership Elections. Nominate and vote for project Leads and Co-Leads."
     />
     <title>Leaders – OWASP BLT</title>
-    <link rel="icon" type="image/png" href="/static/logo.png" />
+    <link rel="icon" href="/static/blt-logo.svg" type="image/svg+xml" />
     <script>
       (function () {
         try {
-          var s = localStorage.getItem("blt-theme");
+          var s = (localStorage.getItem("theme") || localStorage.getItem("blt-theme"));
           if (
             s === "dark" ||
             (!s && window.matchMedia("(prefers-color-scheme: dark)").matches)
@@ -21,6 +21,7 @@
         } catch (e) {}
       })();
     </script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -28,21 +29,15 @@
         theme: {
           extend: {
             colors: {
-              primary: "#E10101",
+              primary: "#dc2626",
               "primary-hover": "#B91C1C",
               "neutral-border": "#E5E5E5",
-              "dark-base": "#111827",
-              "dark-surface": "#1F2937",
+              "dark-base": "#030712",
+              "dark-surface": "#111827",
               "active-bg": "#feeae9",
             },
             fontFamily: {
-              sans: [
-                "Manrope",
-                "ManropeFallback",
-                "ui-sans-serif",
-                "system-ui",
-                "sans-serif",
-              ],
+              sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
             },
             boxShadow: { soft: "0 14px 40px -28px rgba(17,24,39,0.35)" },
           },
@@ -60,7 +55,7 @@
         overflow: visible;
       }
       :root {
-        --blt-primary: #e10101;
+        --blt-primary: #dc2626;
         --blt-border: #e5e5e5;
         --blt-surface: #ffffff;
         --blt-background: #f8fafc;
@@ -68,8 +63,8 @@
       .dark {
         --blt-primary: #ef4444;
         --blt-border: #374151;
-        --blt-surface: #1f2937;
-        --blt-background: #111827;
+        --blt-surface: #111827;
+        --blt-background: #030712;
       }
       body {
         background: var(--blt-background);
@@ -107,29 +102,7 @@
             rgba(239, 68, 68, 0.08),
             transparent 28%
           ),
-          linear-gradient(to bottom, #1f2937 0%, #111827 70%);
-      }
-      @font-face {
-        font-family: "Manrope";
-        font-style: normal;
-        font-weight: 400;
-        font-display: swap;
-        src: url("/static/fonts/manrope-latin-400-normal.woff2") format("woff2");
-      }
-      @font-face {
-        font-family: "Manrope";
-        font-style: normal;
-        font-weight: 700;
-        font-display: swap;
-        src: url("/static/fonts/manrope-latin-700-normal.woff2") format("woff2");
-      }
-      @font-face {
-        font-family: "ManropeFallback";
-        src: local("ui-sans-serif"), local("system-ui"), local("Arial");
-        ascent-override: 93%;
-        descent-override: 23%;
-        line-gap-override: 0%;
-        size-adjust: 100%;
+          linear-gradient(to bottom, #111827 0%, #030712 70%);
       }
       .line-clamp-3 {
         display: -webkit-box;
@@ -246,11 +219,11 @@
         <a
           href="/"
           class="flex min-w-0 shrink-0 items-center gap-3"
-          aria-label="OWASP BLT home"
+          aria-label="BLT-Pages home"
         >
           <img
-            src="./static/logo.png"
-            alt="BLT logo"
+            src="/static/blt-pages-logo.svg"
+            alt="BLT-Pages logo"
             class="h-8 w-8 shrink-0 rounded-md object-contain"
             style="background-color: transparent"
             onerror="
@@ -265,14 +238,10 @@
           <div class="min-w-0">
             <p
               class="whitespace-nowrap text-sm font-extrabold leading-none dark:text-gray-100"
-            >
-              OWASP BLT
-            </p>
+            >BLT-Pages</p>
             <p
               class="hidden whitespace-nowrap text-xs font-semibold text-gray-500 dark:text-gray-400 xl:block"
-            >
-              OWASP Bug Logging Tool
-            </p>
+            >Bug reporting &amp; leaderboard</p>
           </div>
         </a>
 
@@ -341,28 +310,13 @@
 
         <div class="flex shrink-0 items-center gap-2">
           <button
-            id="dark-toggle"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-            aria-label="Toggle dark mode"
-            type="button"
-          >
-            <svg class="fa-icon dark:hidden" aria-hidden="true">
-              <use href="#fa-moon"></use>
-            </svg>
-            <svg class="fa-icon hidden dark:inline-block" aria-hidden="true">
-              <use href="#fa-sun"></use>
-            </svg>
-          </button>
-          <button
             id="mobile-menu-toggle"
             class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 lg:hidden"
-            aria-label="Open navigation menu"
+            aria-label="BLT-Pages menu"
             aria-expanded="false"
             type="button"
           >
-            <svg class="fa-icon" aria-hidden="true">
-              <use href="#fa-bars"></use>
-            </svg>
+            <svg class="fa-icon" viewBox="0 0 448 512" aria-hidden="true"><path fill="currentColor" d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"/></svg>
           </button>
         </div>
       </div>

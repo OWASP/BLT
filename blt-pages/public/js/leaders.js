@@ -22,22 +22,11 @@ const profileFor = (login) => `${FORGE_ORIGIN}/@${encodeURIComponent(String(logi
 
 /* ── Bootstrap ── */
 document.addEventListener('DOMContentLoaded', () => {
-  initDarkMode();
   initMobileMenu();
   initTabs();
   loadLeadersData();
   document.getElementById('footer-year').textContent = new Date().getFullYear();
 });
-
-/* ── Dark Mode ── */
-function initDarkMode() {
-  const btn = document.getElementById('dark-toggle');
-  if (!btn) return;
-  btn.addEventListener('click', () => {
-    document.documentElement.classList.toggle('dark');
-    localStorage.setItem('blt-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-  });
-}
 
 /* ── Mobile Menu ── */
 function initMobileMenu() {

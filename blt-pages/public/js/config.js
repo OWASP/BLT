@@ -10,7 +10,7 @@ const BLT_CONFIG = {
   /* ── Brand ── */
   ORG_NAME: "OWASP BLT",
   LOGO_URL:
-    "static/logo.png",
+    "static/blt-logo.svg",
 
   /* ── Source: the BLT monorepo on git.owaspblt.org (single organization), folder blt-pages ── */
   PROJECT_PATH: "owasp-blt/blt-pages",
