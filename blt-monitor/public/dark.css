@@ -1,0 +1,55 @@
+/* Dark mode for BLT-Monitor, keyed off html.dark (set by theme-init.js and the BLT top bar).
+   The pages and their JS-built cards use light Tailwind utilities; these map them onto the
+   owaspblt.org dark palette (gray-950 page, gray-900 cards, gray-800 borders, red-400/500 accents). */
+html.dark { color-scheme: dark; }
+html.dark body { background-color: #030712; color: #f3f4f6; }
+
+html.dark .bg-gray-50 { background-color: #030712; }
+html.dark .bg-gray-50\/70 { background-color: rgba(3, 7, 18, 0.7); }
+html.dark .bg-white { background-color: #111827; }
+html.dark .bg-white\/90 { background-color: rgba(17, 24, 39, 0.9); }
+html.dark .bg-gray-100 { background-color: #1f2937; }
+html.dark .hover\:bg-gray-50:hover,
+html.dark .hover\:bg-white:hover,
+html.dark .focus\:bg-white:focus { background-color: #1f2937; }
+
+html.dark .border-gray-100,
+html.dark .border-gray-200 { border-color: #1f2937; }
+html.dark .hover\:border-gray-300:hover { border-color: #374151; }
+
+html.dark .text-gray-950,
+html.dark .text-gray-900 { color: #f9fafb; }
+html.dark .text-gray-800 { color: #e5e7eb; }
+html.dark .text-gray-700 { color: #d1d5db; }
+html.dark .text-gray-600 { color: #9ca3af; }
+html.dark .text-gray-500 { color: #9ca3af; }
+html.dark .text-gray-400 { color: #6b7280; }
+html.dark .hover\:text-gray-950:hover { color: #ffffff; }
+
+/* Tinted status surfaces */
+html.dark .bg-red-50 { background-color: rgba(127, 29, 29, 0.25); }
+html.dark .bg-red-100,
+html.dark .hover\:bg-red-100:hover { background-color: rgba(127, 29, 29, 0.4); }
+html.dark .border-red-100,
+html.dark .border-red-200 { border-color: rgba(153, 27, 27, 0.6); }
+html.dark .text-red-700,
+html.dark .text-red-800 { color: #f87171; }
+html.dark .text-red-600 { color: #ef4444; }
+html.dark .bg-emerald-50 { background-color: rgba(6, 78, 59, 0.3); }
+html.dark .hover\:bg-emerald-100:hover { background-color: rgba(6, 78, 59, 0.45); }
+html.dark .border-emerald-200 { border-color: rgba(6, 95, 70, 0.7); }
+html.dark .text-emerald-700,
+html.dark .text-emerald-800 { color: #34d399; }
+html.dark .bg-amber-50 { background-color: rgba(120, 53, 15, 0.3); }
+html.dark .border-amber-200 { border-color: rgba(146, 64, 14, 0.7); }
+html.dark .text-amber-700,
+html.dark .text-amber-800 { color: #fbbf24; }
+html.dark .bg-orange-50 { background-color: rgba(124, 45, 18, 0.3); }
+html.dark .border-orange-200 { border-color: rgba(154, 52, 18, 0.7); }
+html.dark .text-orange-700 { color: #fb923c; }
+html.dark .bg-cyan-50 { background-color: rgba(22, 78, 99, 0.3); }
+html.dark .border-cyan-200 { border-color: rgba(21, 94, 117, 0.7); }
+html.dark .text-cyan-700 { color: #22d3ee; }
+
+html.dark .placeholder\:text-gray-400::placeholder { color: #6b7280; }
+html.dark .dot-field { background-image: radial-gradient(rgba(243, 244, 246, 0.12) 1px, transparent 1px); }
