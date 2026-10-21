@@ -6,16 +6,19 @@ body {
     color: #111827;
 }
 
-/* The bar spans the full width above the padded body. */
+/* The bar spans the full width above the padded body (10px; projects.html uses 5px on phones). */
 blt-nav {
     display: block;
     margin: -10px -10px 10px;
 }
 
-@media screen and (max-width: 768px) {
-    blt-nav {
-        margin: -5px -5px 5px;
-    }
+/* Before the bar's script runs: reserve its height, hide its links. */
+blt-nav:not(:defined) {
+    min-height: 61px;
+}
+
+blt-nav:not(:defined) > * {
+    display: none;
 }
 
 a,

@@ -121,19 +121,18 @@
             gap: 12px;
             margin-bottom: 8px;
         }
-
-        #header-bar a {
-            font-size: 12px;
-            color: #666;
-        }
     </style>
     <link rel="stylesheet" href="blt-theme.css">
 </head>
 <body>
-    <div id="header-bar">
-        <h2>OWASP Issues &mdash; <span id="issue-count">Loading&hellip;</span></h2>
+    <blt-nav project="blt-owasp-projects" name="Projects" current="auto">
         <a href="index.html">Projects</a>
         <a href="projects.html">Repos</a>
+        <a href="issues.html">Issues</a>
+        <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Projects" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source code</a>
+    </blt-nav>
+    <div id="header-bar">
+        <h2>OWASP Issues &mdash; <span id="issue-count">Loading&hellip;</span></h2>
     </div>
 
     <table id="issues" class="display compact" style="width:100%">
