@@ -30,9 +30,9 @@ This is a **GitHub App** built as a **Cloudflare Worker** (Python) that automate
 ┌─────────────────────────────────────────────────────────────┐
 │                     Scheduled Tasks                          │
 │                                                              │
-│  on_scheduled() → Runs on cron schedule                     │
-│  - Checks for stale issue assignments                       │
-│  - Auto-unassigns issues after ASSIGNMENT_DURATION_HOURS    │
+│  on_scheduled() → called by blt-cron (POST /__scheduled)    │
+│  - task "forge-leaderboard": forge pulls → leaderboard      │
+│  - no stale-assignment sweep any more (issue #38)           │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -40,7 +40,13 @@ This is a **GitHub App** built as a **Cloudflare Worker** (Python) that automate
 
 ## Feature Breakdown
 
-### Feature 1: Issue Assignment Commands (`/assign` & `/unassign`)
+### Feature 1: Issue Assignment Commands (`/assign` & `/unassign`) — removed
+
+> **Removed (issue #38).** `/assign` and `/unassign` are answered only by BLT-Action on
+> git.owaspblt.org (`blt-action/forge/assign.mjs`), which also releases stale claims
+> (`blt-action/forge/stale.mjs`). This app ignores both commands, and `_assign`, `_unassign`,
+> `_run_scheduled`, `_check_stale_assignments` and `_check_stale_mentor_assignments` are gone. The
+> description below and the scheduled-task flow further down are kept for history only.
 
 **Location**: Lines 1856-1982
 
@@ -448,7 +454,7 @@ For each installation:
 │  │  • check_unresolved_conversations() → Thread tracking    │ │
 │  └──────────────────────────────────────────────────────────┘ │
 │                                                                │
-│  on_scheduled() ──→ _run_scheduled() ──→ Stale assignments    │
+│  on_scheduled() ──→ forge leaderboard sync (task only)        │
 └────────┬───────────────────────────────────────────┬──────────┘
          │                                            │
          │ API Calls                                  │ Database Queries

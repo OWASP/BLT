@@ -15,7 +15,7 @@ Some Workers refresh data into Workers KV instead of having a workflow commit it
 
 The GSoC 2026 progress job (`blt-gsoc-progress`, task `progress`) was turned off on 2026-10-18 because GSoC 2026 coding ended on 17 Aug. blt-gsoc still has the `progress` task and its KV data, so the progress page shows the final state; it can be run by hand (see `docs/workflows.md`).
 
-The other rows of `src/jobs.js` replace the cron triggers of blt-github-app (pool), blt-leaf, blt-lettuce, blt-monitor, blt-sizzle, and blt-netguardian. blt-toasty's hourly call was dropped on 2026-10-18 (its scheduled handler is a no-op).
+The other rows of `src/jobs.js` replace the cron triggers of blt-leaf, blt-lettuce, blt-monitor, blt-sizzle, and blt-netguardian. blt-toasty's hourly call was dropped on 2026-10-18 (its scheduled handler is a no-op). blt-github-app's (pool) 2-hourly stale-assignment sweep was dropped on 2026-10-20 (issue #38): it polled the frozen OWASP-BLT/* GitHub repositories, and BLT-Action now releases stale `/assign` claims on git.owaspblt.org.
 
 ## Add a job
 

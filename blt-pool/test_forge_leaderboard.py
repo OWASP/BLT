@@ -549,14 +549,16 @@ class TestWorkerLeaderboard(unittest.TestCase):
 
     def test_cron_task_runs_forge_sync(self):
         sync = AsyncMock(return_value={"ok": True})
-        stale = AsyncMock()
+        github = AsyncMock()
         with patch.object(_worker, "_run_forge_leaderboard_sync", new=sync), \
-                patch.object(_worker, "_run_scheduled", new=stale):
+                patch.object(_worker, "github_api", new=github), \
+                patch.object(_worker, "console", new=self.quiet):
             run(_worker.on_scheduled(_worker._CronEvent("6-59/20 * * * *", 1, "forge-leaderboard"), self.env))
             sync.assert_awaited_once()
-            stale.assert_not_awaited()
+            # The old 2-hourly call without a task no longer polls GitHub (issue #38).
             run(_worker.on_scheduled(_worker._CronEvent("0 */2 * * *", 1), self.env))
-            stale.assert_awaited_once()
+            sync.assert_awaited_once()
+            github.assert_not_called()
 
     def test_cron_dispatch_passes_the_task(self):
         env = types.SimpleNamespace(CRON_SECRET="s3cret")

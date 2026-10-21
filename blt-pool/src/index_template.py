@@ -148,7 +148,7 @@ GITHUB_PAGE_HTML = """\
             <i class="fa-solid fa-list-check" aria-hidden="true"></i>
           </div>
           <h4 class="text-base font-bold text-blt-dark-base">Issue Claim Commands</h4>
-          <p class="mt-2 text-sm leading-relaxed text-gray-600">Use <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">/assign</code> and <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">/unassign</code> with an 8-hour claim window.</p>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600">Use <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">/assign</code> and <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">/unassign</code> on git.owaspblt.org, answered by BLT-Action with a 7-day claim window.</p>
         </article>
 
         <article class="rounded-2xl border border-blt-border bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-md">

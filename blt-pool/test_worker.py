@@ -334,118 +334,6 @@ def _make_pr_payload(
     }
 
 
-class TestHandleAssign(unittest.TestCase):
-    """_assign — mirrors handleAssign in issue-assign.test.js"""
-
-    def _run_assign(self, payload, comments, github_calls):
-        async def _inner():
-            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
-                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))):
-                    await _worker._assign(
-                        payload["repository"]["owner"]["login"],
-                        payload["repository"]["name"],
-                        payload["issue"],
-                        payload["comment"]["user"]["login"],
-                        "tok",
-                    )
-        _run(_inner())
-
-    def test_assigns_user_to_open_issue(self):
-        payload = _make_issue_payload(labels=[{"name": "help wanted"}])
-        comments, calls = [], []
-        self._run_assign(payload, comments, calls)
-        # Expect a POST to the assignees endpoint
-        self.assertTrue(any(
-            method == "POST" and "assignees" in path
-            for method, path, *_ in calls
-        ))
-        self.assertTrue(any("assigned to this issue" in c for c in comments))
-
-    def test_does_not_assign_without_help_wanted_label(self):
-        payload = _make_issue_payload(labels=[])
-        comments, calls = [], []
-        mock_ensure = AsyncMock()
-        with patch.object(_worker, "_ensure_label_exists", new=mock_ensure):
-            self._run_assign(payload, comments, calls)
-        # Comment must mention the requester, @donnieblt, and the "help wanted" label
-        self.assertTrue(any("@alice" in c and "@donnieblt" in c and "help wanted" in c for c in comments))
-        # _ensure_label_exists must be called for the "needs-approval" label
-        mock_ensure.assert_called_once_with(
-            "OWASP-BLT", "TestRepo",
-            _worker.NEEDS_APPROVAL_LABEL, _worker.NEEDS_APPROVAL_LABEL_COLOR, "tok",
-        )
-        # The "needs-approval" label must be added to the issue via POST
-        self.assertTrue(any(
-            method == "POST" and "labels" in path and body == {"labels": ["needs-approval"]}
-            for method, path, _tok, body in calls
-        ))
-
-    def test_does_not_assign_closed_issue(self):
-        payload = _make_issue_payload(state="closed")
-        comments, calls = [], []
-        self._run_assign(payload, comments, calls)
-        self.assertEqual(calls, [])
-        self.assertTrue(any("already closed" in c for c in comments))
-
-    def test_does_not_assign_already_assigned(self):
-        payload = _make_issue_payload(assignees=[{"login": "alice"}])
-        comments, calls = [], []
-        self._run_assign(payload, comments, calls)
-        self.assertEqual(calls, [])
-        self.assertTrue(any("already assigned" in c for c in comments))
-
-    def test_does_not_assign_when_max_assignees_reached(self):
-        payload = _make_issue_payload(
-            assignees=[{"login": "bob"}, {"login": "carol"}, {"login": "dave"}]
-        )
-        comments, calls = [], []
-        self._run_assign(payload, comments, calls)
-        self.assertEqual(calls, [])
-        self.assertTrue(any("maximum number of assignees" in c for c in comments))
-
-    def test_does_not_assign_on_pull_request(self):
-        payload = _make_issue_payload(is_pr=True)
-        comments, calls = [], []
-        self._run_assign(payload, comments, calls)
-        self.assertEqual(calls, [])
-        self.assertTrue(any("pull requests" in c for c in comments))
-
-
-class TestHandleUnassign(unittest.TestCase):
-    """_unassign — mirrors handleUnassign in issue-assign.test.js"""
-
-    def _run_unassign(self, payload, comments, github_calls):
-        async def _inner():
-            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
-                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))):
-                    await _worker._unassign(
-                        payload["repository"]["owner"]["login"],
-                        payload["repository"]["name"],
-                        payload["issue"],
-                        payload["comment"]["user"]["login"],
-                        "tok",
-                    )
-        _run(_inner())
-
-    def test_removes_user_from_assigned_issue(self):
-        payload = _make_issue_payload(assignees=[{"login": "alice"}])
-        comments, calls = [], []
-        self._run_unassign(payload, comments, calls)
-        # Expect a DELETE to the assignees endpoint
-        self.assertTrue(any(
-            method == "DELETE" and "assignees" in path
-            for method, path, *_ in calls
-        ))
-        self.assertTrue(any("unassigned" in c for c in comments))
-
-    def test_does_not_remove_user_not_assigned(self):
-        payload = _make_issue_payload(assignees=[])
-        comments, calls = [], []
-        self._run_unassign(payload, comments, calls)
-        self.assertEqual(calls, [])
-        self.assertTrue(any("not currently assigned" in c for c in comments))
-
-
 class TestGetLastAssignRequester(unittest.TestCase):
     """_get_last_assign_requester — finds the last human /assign commenter"""
 
@@ -701,65 +589,61 @@ class TestHandleDeny(unittest.TestCase):
 
 
 class TestHandleIssueComment(unittest.TestCase):
-    """handle_issue_comment — routes /assign, /unassign, /approve, /deny commands"""
+    """handle_issue_comment — routes /approve and /deny; /assign and /unassign belong to BLT-Action."""
 
-    def _run_comment(self, payload, assign_calls, unassign_calls,
-                     approve_calls=None, deny_calls=None):
-        if approve_calls is None:
-            approve_calls = []
-        if deny_calls is None:
-            deny_calls = []
+    def _run_comment(self, payload, approve_calls=None, deny_calls=None, github_calls=None, reactions=None):
+        approve_calls = [] if approve_calls is None else approve_calls
+        deny_calls = [] if deny_calls is None else deny_calls
+        github_calls = [] if github_calls is None else github_calls
+        reactions = [] if reactions is None else reactions
 
         async def _inner():
-            with patch.object(_worker, "_assign", new=AsyncMock(side_effect=lambda *a: assign_calls.append(a))):
-                with patch.object(_worker, "_unassign", new=AsyncMock(side_effect=lambda *a: unassign_calls.append(a))):
-                    with patch.object(_worker, "_approve", new=AsyncMock(side_effect=lambda *a: approve_calls.append(a))):
-                        with patch.object(_worker, "_deny", new=AsyncMock(side_effect=lambda *a: deny_calls.append(a))):
-                            await _worker.handle_issue_comment(payload, "tok")
+            with patch.object(_worker, "_approve", new=AsyncMock(side_effect=lambda *a: approve_calls.append(a))), \
+                    patch.object(_worker, "_deny", new=AsyncMock(side_effect=lambda *a: deny_calls.append(a))), \
+                    patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))), \
+                    patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))), \
+                    patch.object(_worker, "create_reaction", new=AsyncMock(side_effect=lambda *a, **kw: reactions.append(a))):
+                await _worker.handle_issue_comment(payload, "tok")
         _run(_inner())
 
-    def test_routes_assign_command(self):
-        payload = _make_issue_payload(comment_body="/assign")
-        assigns, unassigns = [], []
-        self._run_comment(payload, assigns, unassigns)
-        self.assertEqual(len(assigns), 1)
-        self.assertEqual(len(unassigns), 0)
+    def test_assign_and_unassign_are_left_to_blt_action(self):
+        for body in ("/assign", "/unassign", "/assign please", "I'd like this.\n/unassign"):
+            calls, reactions = [], []
+            self._run_comment(_make_issue_payload(comment_body=body), github_calls=calls, reactions=reactions)
+            self.assertEqual(calls, [], body)
+            self.assertEqual(reactions, [], body)
 
-    def test_routes_unassign_command(self):
-        payload = _make_issue_payload(comment_body="/unassign")
-        assigns, unassigns = [], []
-        self._run_comment(payload, assigns, unassigns)
-        self.assertEqual(len(assigns), 0)
-        self.assertEqual(len(unassigns), 1)
+    def test_assign_handlers_are_gone(self):
+        for name in ("_assign", "_unassign", "_run_scheduled", "_check_stale_assignments",
+                     "_check_stale_mentor_assignments"):
+            self.assertFalse(hasattr(_worker, name), name)
 
     def test_ignores_bot_comments(self):
         payload = _make_issue_payload(
-            comment_body="/assign",
+            comment_body="/approve",
             comment_user={"login": "bot", "type": "Bot"},
         )
-        assigns, unassigns = [], []
-        self._run_comment(payload, assigns, unassigns)
-        self.assertEqual(assigns, [])
-        self.assertEqual(unassigns, [])
+        approves = []
+        self._run_comment(payload, approves)
+        self.assertEqual(approves, [])
 
     def test_ignores_unrelated_comments(self):
         payload = _make_issue_payload(comment_body="just a comment")
-        assigns, unassigns = [], []
-        self._run_comment(payload, assigns, unassigns)
-        self.assertEqual(assigns, [])
-        self.assertEqual(unassigns, [])
+        approves, denies, calls = [], [], []
+        self._run_comment(payload, approves, denies, calls)
+        self.assertEqual((approves, denies, calls), ([], [], []))
 
     def test_routes_approve_command(self):
         payload = _make_issue_payload(comment_body="/approve")
-        assigns, unassigns, approves, denies = [], [], [], []
-        self._run_comment(payload, assigns, unassigns, approves, denies)
+        approves, denies = [], []
+        self._run_comment(payload, approves, denies)
         self.assertEqual(len(approves), 1)
         self.assertEqual(len(denies), 0)
 
     def test_routes_deny_command(self):
         payload = _make_issue_payload(comment_body="/deny")
-        assigns, unassigns, approves, denies = [], [], [], []
-        self._run_comment(payload, assigns, unassigns, approves, denies)
+        approves, denies = [], []
+        self._run_comment(payload, approves, denies)
         self.assertEqual(len(approves), 0)
         self.assertEqual(len(denies), 1)
 
@@ -1537,9 +1421,7 @@ class TestHandleIssueCommentLeaderboard(unittest.TestCase):
                 leaderboard_calls.append((owner, repo, number, login))
             
             with patch.object(_worker, "_post_or_update_leaderboard", new=_mock_leaderboard):
-                with patch.object(_worker, "_assign", new=AsyncMock()):
-                    with patch.object(_worker, "_unassign", new=AsyncMock()):
-                        await _worker.handle_issue_comment(payload, "tok")
+                await _worker.handle_issue_comment(payload, "tok")
         _run(_inner())
 
     def test_routes_leaderboard_command(self):
@@ -1850,7 +1732,6 @@ class TestPostMergedPrCombinedComment(unittest.TestCase):
         _run(_inner())
         # Despite delete failure, the new comment should still be posted
         self.assertEqual(len(posted), 1)
-
 
 
     """Test auto-close for users with too many open PRs"""
@@ -5748,51 +5629,6 @@ class TestRoundRobinMentorReviewer(unittest.TestCase):
         self.assertEqual(reviewer_calls, [])
 
 
-class TestGetLastHumanActivityTs(unittest.TestCase):
-    """_get_last_human_activity_ts — returns most recent non-bot comment timestamp."""
-
-    def _run(self, comments_response, issue_created_at="2024-01-01T00:00:00Z"):
-        issue = {"created_at": issue_created_at}
-        comments_json = json.dumps(comments_response)
-
-        async def _inner():
-            with patch.object(
-                _worker,
-                "github_api",
-                new=AsyncMock(return_value=types.SimpleNamespace(
-                    status=200, text=AsyncMock(return_value=comments_json)
-                )),
-            ):
-                return await _worker._get_last_human_activity_ts(
-                    "OWASP-BLT", "TestRepo", 1, issue, "tok"
-                )
-
-        return _run(_inner())
-
-    def test_returns_most_recent_human_comment_ts(self):
-        # Comments are returned newest-first (direction=desc).
-        comments = [
-            {"user": {"login": "bob", "type": "User"}, "created_at": "2024-06-20T12:00:00Z"},
-            {"user": {"login": "alice", "type": "User"}, "created_at": "2024-06-15T12:00:00Z"},
-        ]
-        ts = self._run(comments)
-        # The function should return bob's timestamp (first non-bot comment in desc order).
-        self.assertAlmostEqual(ts, _worker._parse_github_timestamp("2024-06-20T12:00:00Z"), delta=1)
-
-    def test_falls_back_to_created_at_when_no_human_comments(self):
-        comments = [
-            {"user": {"login": "github-actions[bot]", "type": "Bot"}, "created_at": "2024-06-15T12:00:00Z"},
-        ]
-        ts = self._run(comments, issue_created_at="2024-01-10T08:00:00Z")
-        expected = _worker._parse_github_timestamp("2024-01-10T08:00:00Z")
-        self.assertAlmostEqual(ts, expected, delta=1)
-
-    def test_falls_back_when_no_comments(self):
-        ts = self._run([], issue_created_at="2024-03-05T10:00:00Z")
-        expected = _worker._parse_github_timestamp("2024-03-05T10:00:00Z")
-        self.assertAlmostEqual(ts, expected, delta=1)
-
-
 class TestBuildReferralLeaderboard(unittest.TestCase):
     """_build_referral_leaderboard — tallies referred_by across mentors."""
 
@@ -6137,8 +5973,6 @@ class TestLoadMentorsFromD1(unittest.TestCase):
         for m in _worker._INITIAL_MENTORS:
             self.assertIn("github_username", m)
             self.assertIn("name", m)
-
-
 
 
 class TestOnFetchHomepage(unittest.TestCase):
@@ -6985,6 +6819,38 @@ class TestCronDispatch(unittest.TestCase):
         body = json.loads(resp.body)
         self.assertFalse(body["ok"])
         self.assertIn("boom", body["error"])
+
+
+class TestOnScheduled(unittest.TestCase):
+    """on_scheduled — only the forge leaderboard task runs; nothing polls GitHub (issue #38)."""
+
+    def _call(self, task):
+        sync = AsyncMock()
+        github = AsyncMock()
+        quiet = types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)
+
+        async def _inner():
+            with patch.object(_worker, "_run_forge_leaderboard_sync", new=sync), \
+                    patch.object(_worker, "github_api", new=github), \
+                    patch.object(_worker, "create_github_jwt", new=AsyncMock()) as jwt, \
+                    patch.object(_worker, "console", new=quiet):
+                await _worker.on_scheduled(_worker._CronEvent("0 */2 * * *", 1, task), types.SimpleNamespace())
+                return jwt
+
+        jwt = _run(_inner())
+        return sync, github, jwt
+
+    def test_forge_leaderboard_task_runs_the_sync(self):
+        sync, github, _ = self._call("forge-leaderboard")
+        sync.assert_awaited_once()
+        github.assert_not_called()
+
+    def test_untasked_call_does_not_poll_github(self):
+        for task in ("", "stale-assignments"):
+            sync, github, jwt = self._call(task)
+            sync.assert_not_called()
+            github.assert_not_called()
+            jwt.assert_not_called()
 
 
 class TestAdminSameOriginPost(unittest.TestCase):
