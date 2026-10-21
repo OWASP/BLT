@@ -10,24 +10,28 @@
     <meta property="og:type" content="website" />
     <title>BLT-Lettuce | GitHub-Connected Slack Bot</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: "class" };</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://js.sentry-cdn.com/73ec24fc4cd44cec10017d622968ee3a.min.js" crossorigin="anonymous"></script>
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <script src="/_brand/theme-init.js"></script>
+    <link rel="stylesheet" href="/_brand/blt-dark.css" />
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   </head>
   <body class="bg-gray-50 font-sans text-gray-900">
     <nav class="bg-white shadow-lg sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center">
-            <img class="w-10 h-10 mr-2" src="/docs/static/logo.png" alt="BLT-Lettuce Logo" />
-            <h1 class="text-xl font-bold text-gray-900">BLT-Lettuce</h1>
+            <img class="w-10 h-10 mr-2" src="/logo.svg" alt="BLT-Lettuce logo" />
+            <h1 class="text-xl font-bold text-gray-900 whitespace-nowrap">BLT-Lettuce</h1>
           </div>
           <div class="flex items-center gap-4">
-            <a href="https://git.owaspblt.org/BLT/BLT-Lettuce" target="_blank" class="text-gray-500 hover:text-gray-900 text-sm">
+            <a href="https://git.owaspblt.org/BLT/BLT-Lettuce" target="_blank" class="hidden sm:inline text-gray-500 hover:text-gray-900 text-sm">
               <i class="fab fa-github text-xl mr-1"></i>Contribute
             </a>
             <a href="{{ AUTH_BUTTON_HREF }}"
-               class="inline-flex items-center gap-2 px-4 py-2 bg-[#4A154B] text-white
+               class="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-[#4A154B] text-white
                       rounded-lg hover:bg-[#3b1040] transition-colors text-sm font-semibold shadow-sm">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.8 122.8" class="w-4 h-4">
                 <path d="M25.8 77.6a12.9 12.9 0 1 1-12.9-12.9h12.9z" fill="#e01e5a"/>

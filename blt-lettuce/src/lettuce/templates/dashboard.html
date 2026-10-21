@@ -6,10 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard - BLT-Lettuce</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://js.sentry-cdn.com/73ec24fc4cd44cec10017d622968ee3a.min.js" crossorigin="anonymous"></script>
   <link rel="icon" type="image/png" href="/favicon.png" />
+  <script src="/_brand/theme-init.js"></script>
+  <link rel="stylesheet" href="/_brand/blt-dark.css" />
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 min-h-screen">
 
@@ -18,8 +22,8 @@
     <div class="flex justify-between items-center h-14">
       <div class="flex items-center gap-3">
         <a href="/dashboard" class="inline-flex items-center gap-3 text-gray-800 hover:text-red-700 transition-colors">
-          <img src="/docs/static/logo.png"
-               alt="Logo" class="w-7 h-7"/>
+          <img src="/logo.svg"
+               alt="BLT-Lettuce logo" class="w-7 h-7"/>
           <span class="font-bold">BLT-Lettuce</span>
         </a>
         <span class="text-gray-300">|</span>

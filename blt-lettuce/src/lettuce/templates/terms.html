@@ -6,6 +6,15 @@
     <title>Terms of Service - Lettuce</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <style>
+        :root {
+            --page: #f9fafb; --card: #fff; --fg: #111827; --fg2: #374151; --muted: #6b7280;
+            --line: #e5e7eb; --soft: #f9fafb; --tint: #fef2f2; --accent: #dc2626;
+        }
+        html.dark {
+            --page: #030712; --card: #111827; --fg: #f3f4f6; --fg2: #d1d5db; --muted: #9ca3af;
+            --line: #1f2937; --soft: #1f2937; --tint: rgba(127, 29, 29, .3); --accent: #f87171;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,18 +22,19 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+            color: var(--fg);
+            background: var(--page);
             min-height: 100vh;
-            padding: 20px;
+            padding: 0;
         }
         
         .container {
             max-width: 900px;
-            margin: 0 auto;
-            background: white;
+            width: calc(100% - 40px);
+            margin: 20px auto;
+            background: var(--card);
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 60px;
@@ -33,41 +43,41 @@
         header {
             text-align: center;
             margin-bottom: 50px;
-            border-bottom: 3px solid #4DBD15;
+            border-bottom: 3px solid var(--accent);
             padding-bottom: 30px;
         }
         
         h1 {
             font-size: 2.5em;
-            color: #4DBD15;
+            color: var(--accent);
             margin-bottom: 10px;
         }
         
         .last-updated {
-            color: #666;
+            color: var(--muted);
             font-size: 0.9em;
             font-style: italic;
         }
         
         h2 {
             font-size: 1.4em;
-            color: #333;
+            color: var(--fg);
             margin-top: 40px;
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 2px solid var(--line);
         }
         
         h3 {
             font-size: 1.1em;
-            color: #555;
+            color: var(--fg2);
             margin-top: 20px;
             margin-bottom: 10px;
         }
         
         p {
             margin-bottom: 15px;
-            color: #555;
+            color: var(--fg2);
         }
         
         ul {
@@ -77,11 +87,11 @@
         
         li {
             margin-bottom: 8px;
-            color: #555;
+            color: var(--fg2);
         }
         
         strong {
-            color: #333;
+            color: var(--fg);
             font-weight: 600;
         }
         
@@ -90,8 +100,8 @@
         }
         
         .highlight {
-            background: #f0f8f0;
-            border-left: 4px solid #4DBD15;
+            background: var(--tint);
+            border-left: 4px solid var(--accent);
             padding: 15px 20px;
             margin: 20px 0;
             border-radius: 4px;
@@ -100,9 +110,9 @@
         .footer {
             margin-top: 50px;
             padding-top: 30px;
-            border-top: 2px solid #e0e0e0;
+            border-top: 2px solid var(--line);
             text-align: center;
-            color: #666;
+            color: var(--muted);
             font-size: 0.95em;
         }
         
@@ -111,7 +121,7 @@
         }
         
         .nav-back a {
-            color: #4DBD15;
+            color: var(--accent);
             text-decoration: none;
             font-weight: 600;
         }
@@ -134,6 +144,9 @@
             }
         }
     </style>
+    <script src="/_brand/theme-init.js"></script>
+    <link rel="stylesheet" href="/_brand/blt-dark.css" />
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 <body>
     <div class="container">

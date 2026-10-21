@@ -12,11 +12,15 @@
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: "class" };</script>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://js.sentry-cdn.com/73ec24fc4cd44cec10017d622968ee3a.min.js" crossorigin="anonymous"></script>
     <link rel="icon" type="image/png" href="./static/logo.png" />
+    <script src="/_brand/theme-init.js"></script>
+    <link rel="stylesheet" href="/_brand/blt-dark.css" />
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   </head>
   <body class="bg-gray-50 font-sans text-gray-900">
     <!-- Navigation -->
@@ -24,7 +28,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center">
-            <img class="w-10 h-10 mr-2" src="./static/logo.png" alt="OWASP Logo" />
+            <img class="w-10 h-10 mr-2" src="/logo.svg" alt="BLT-Lettuce logo" />
             <h1 class="text-xl font-bold text-gray-900">BLT-Lettuce</h1>
           </div>
           <div class="flex items-center justify-center space-x-4">

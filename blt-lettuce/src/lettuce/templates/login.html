@@ -5,14 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Connect Workspace - BLT-Lettuce</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <script src="https://js.sentry-cdn.com/73ec24fc4cd44cec10017d622968ee3a.min.js" crossorigin="anonymous"></script>
   <link rel="icon" type="image/png" href="/favicon.png" />
+  <script src="/_brand/theme-init.js"></script>
+  <link rel="stylesheet" href="/_brand/blt-dark.css" />
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+<body class="bg-gray-50 min-h-screen">
+<div class="min-h-screen flex items-center justify-center">
   <div class="bg-white rounded-2xl shadow-lg p-10 w-full max-w-md text-center">
-    <img src="/docs/static/logo.png"
-         alt="OWASP Logo" class="w-16 h-16 mx-auto mb-4"/>
+    <img src="/logo.svg"
+         alt="BLT-Lettuce logo" class="w-16 h-16 mx-auto mb-4"/>
     <h1 class="text-2xl font-bold text-gray-900 mb-1">BLT-Lettuce</h1>
     <p class="text-gray-500 text-sm mb-8">Connect BLT-Lettuce to a Slack workspace</p>
     {{ ERR_BLOCK }}
@@ -38,6 +43,7 @@
       <a href="https://slack.com/terms-of-service" class="underline" target="_blank">Terms of Service</a>.
     </p>
   </div>
+</div>
 </body>
 </html>
 

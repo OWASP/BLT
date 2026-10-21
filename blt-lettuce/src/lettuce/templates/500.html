@@ -12,22 +12,31 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --page: #f9fafb; --card: #fff; --fg: #111827; --fg2: #4b5563; --line: #e5e7eb;
+            --accent: #dc2626; --accent-hover: #b91c1c; --btn2: #f3f4f6; --btn2-hover: #e5e7eb; --btn2-fg: #374151;
+            --note-bg: #fef2f2; --note-line: #fecaca; --note-fg: #991b1b;
+        }
+        html.dark {
+            --page: #030712; --card: #111827; --fg: #f3f4f6; --fg2: #9ca3af; --line: #1f2937;
+            --accent: #ef4444; --accent-hover: #dc2626; --btn2: #1f2937; --btn2-hover: #374151; --btn2-fg: #e5e7eb;
+            --note-bg: rgba(127, 29, 29, .3); --note-line: rgba(248, 113, 113, .3); --note-fg: #fca5a5;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(135deg, #fef08a 0%, #f97316 100%);
-            color: #1f2937;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--page);
+            color: var(--fg);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
         }
 
         .container {
             max-width: 640px;
-            background: white;
+            width: calc(100% - 40px);
+            margin: 64px auto;
+            background: var(--card);
+            border: 1px solid var(--line);
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
             padding: 56px 40px;
             text-align: center;
         }
@@ -35,7 +44,7 @@
         .error-code {
             font-size: 112px;
             font-weight: 800;
-            color: #ea580c;
+            color: var(--accent);
             line-height: 1;
             margin-bottom: 20px;
         }
@@ -43,21 +52,21 @@
         h1 {
             font-size: 32px;
             margin-bottom: 14px;
-            color: #111827;
+            color: var(--fg);
         }
 
         p {
             font-size: 18px;
-            color: #4b5563;
+            color: var(--fg2);
             margin-bottom: 28px;
             line-height: 1.6;
         }
 
         .note {
-            background: #fff7ed;
-            border: 1px solid #fdba74;
+            background: var(--note-bg);
+            border: 1px solid var(--note-line);
             border-radius: 10px;
-            color: #9a3412;
+            color: var(--note-fg);
             font-size: 14px;
             padding: 12px;
             margin-bottom: 24px;
@@ -80,22 +89,22 @@
         }
 
         .btn-primary {
-            background: #ea580c;
+            background: var(--accent);
             color: white;
         }
 
         .btn-primary:hover {
-            background: #c2410c;
+            background: var(--accent-hover);
             transform: translateY(-1px);
         }
 
         .btn-secondary {
-            background: #e5e7eb;
-            color: #374151;
+            background: var(--btn2);
+            color: var(--btn2-fg);
         }
 
         .btn-secondary:hover {
-            background: #d1d5db;
+            background: var(--btn2-hover);
             transform: translateY(-1px);
         }
 
@@ -113,6 +122,7 @@
             }
 
             .container {
+                margin: 24px auto;
                 padding: 36px 22px;
             }
 
@@ -126,6 +136,9 @@
         }
     </style>
     <script src="https://js.sentry-cdn.com/73ec24fc4cd44cec10017d622968ee3a.min.js" crossorigin="anonymous"></script>
+    <script src="/_brand/theme-init.js"></script>
+    <link rel="stylesheet" href="/_brand/blt-dark.css" />
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 <body>
     <div class="container">
