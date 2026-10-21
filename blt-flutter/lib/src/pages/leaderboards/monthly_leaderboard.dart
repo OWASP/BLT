@@ -1,5 +1,6 @@
 import 'package:blt/src/pages/leaderboards/leaderboards_imports.dart';
 import 'package:flutter/material.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// Page showing the top contributing users for the current month.
 class MonthlyLeaderBoardPage extends ConsumerStatefulWidget {
@@ -23,7 +24,7 @@ class _MonthlyLeaderBoardPageState
           radius: 20,
           child: Icon(
             Icons.account_circle_outlined,
-            color: Color(0xFFDC4654),
+            color: BLTColors.primary,
             size: 40,
           ),
         );
@@ -87,7 +88,7 @@ class _MonthlyLeaderBoardPageState
               },
             ),
             title: Text(AppLocalizations.of(context)!.monthlyLeaderboard),
-            backgroundColor: Color(0xFFDC4654),
+            backgroundColor: BLTColors.primary,
           ),
           body: SingleChildScrollView(
             child: Column(
@@ -103,9 +104,9 @@ class _MonthlyLeaderBoardPageState
                         padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                         child: Text(
                           AppLocalizations.of(context)!.monthlyLeaderboard,
-                          style: GoogleFonts.ubuntu(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
-                              color: Color(0xFF737373),
+                              color: BLTColors.textMuted,
                               fontSize: 25,
                             ),
                           ),
@@ -117,9 +118,9 @@ class _MonthlyLeaderBoardPageState
                           Text(
                             AppLocalizations.of(context)!
                                 .theseAreMostActiveUsers,
-                            style: GoogleFonts.aBeeZee(
+                            style: BLTFonts.system(
                               textStyle: TextStyle(
-                                color: Color(0xFF737373),
+                                color: BLTColors.textMuted,
                               ),
                             ),
                           ),
@@ -157,13 +158,13 @@ class _MonthlyLeaderBoardPageState
                                                 });
                                                 Navigator.pop(context);
                                               },
-                                              tileColor: Color(0xFFECECEC)
+                                              tileColor: BLTColors.gray100
                                                   .withOpacity(0.42),
                                               title: Text(
                                                 "${monthsInYear[index + 1]}",
-                                                style: GoogleFonts.ubuntu(
+                                                style: BLTFonts.system(
                                                   textStyle: TextStyle(
-                                                    color: Color(0xFF737373),
+                                                    color: BLTColors.textMuted,
                                                   ),
                                                 ),
                                               ));
@@ -178,7 +179,7 @@ class _MonthlyLeaderBoardPageState
                             ),
                             label: Text(
                               "${monthsInYear[monthActive]}",
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   color: Colors.white,
                                   fontSize: 15,
@@ -187,7 +188,7 @@ class _MonthlyLeaderBoardPageState
                             ),
                             style: ButtonStyle(
                               backgroundColor:
-                                  WidgetStateProperty.all(Color(0xFFDC4654)),
+                                  WidgetStateProperty.all(BLTColors.primary),
                             ),
                           ),
                         ]),
@@ -239,13 +240,13 @@ class _MonthlyLeaderBoardPageState
                                               ),
                                   ),
                                   tileColor:
-                                      Color(0xFFECECEC).withOpacity(0.42),
+                                      BLTColors.gray100.withOpacity(0.42),
                                   leading: buildAvatar(list[index].image),
                                   title: Text(
                                     list[index].user,
-                                    style: GoogleFonts.ubuntu(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
-                                        color: Color(0xFFDC4654),
+                                        color: BLTColors.primary,
                                       ),
                                     ),
                                     maxLines: 6,
@@ -253,9 +254,9 @@ class _MonthlyLeaderBoardPageState
                                   subtitle: Text(
                                     list[index].score.toString() +
                                         AppLocalizations.of(context)!.points,
-                                    style: GoogleFonts.aBeeZee(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
-                                        color: Color(0xFF737373),
+                                        color: BLTColors.textMuted,
                                         fontSize: 12,
                                       ),
                                     ),
@@ -263,9 +264,9 @@ class _MonthlyLeaderBoardPageState
                                   ),
                                   trailing: Text(
                                     "# " + (index + 1).toString(),
-                                    style: GoogleFonts.ubuntu(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
-                                        color: Color(0xFF737373),
+                                        color: BLTColors.textMuted,
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                       ),

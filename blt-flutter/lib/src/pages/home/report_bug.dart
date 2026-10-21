@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../models/tags_model.dart';
 import '../../util/api/tags_api.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// Report Bug and Start Bug Hunt Page, namesake, used for
 /// posting bugs, companies and individuals
@@ -243,7 +244,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                     },
                     title: Text(
                       _issueCategories[index],
-                      style: GoogleFonts.ubuntu(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -288,9 +289,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                 return AlertDialog(
                   title: Text(
                     AppLocalizations.of(context)!.sweet,
-                    style: GoogleFonts.ubuntu(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
-                        color: Color(0xFFDC4654),
+                        color: BLTColors.primary,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -298,9 +299,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                   ),
                   content: Text(
                     AppLocalizations.of(context)!.noBugFromURL,
-                    style: GoogleFonts.aBeeZee(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
-                        color: Color(0xFF737373),
+                        color: BLTColors.textMuted,
                       ),
                     ),
                   ),
@@ -309,9 +310,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                 return AlertDialog(
                   title: Text(
                     AppLocalizations.of(context)!.bugWithURLExists,
-                    style: GoogleFonts.ubuntu(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
-                        color: Color(0xFFDC4654),
+                        color: BLTColors.primary,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -322,17 +323,17 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                     children: [
                       RichText(
                         text: TextSpan(
-                          style: GoogleFonts.aBeeZee(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
-                              color: Color(0xFF737373),
+                              color: BLTColors.textMuted,
                             ),
                           ),
                           children: <TextSpan>[
                             TextSpan(
                               text: AppLocalizations.of(context)!.description,
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
-                                  color: Color(0xFF737373),
+                                  color: BLTColors.textMuted,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -346,9 +347,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                       ),
                       RichText(
                         text: TextSpan(
-                          style: GoogleFonts.aBeeZee(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
-                              color: Color(0xFF737373),
+                              color: BLTColors.textMuted,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -361,7 +362,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                             // show the BLT API's bug number instead of a link.
                             TextSpan(
                               text: "BLT bug #${m["id"]}",
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   color: Color(0xFF4A93F8),
                                 ),
@@ -464,9 +465,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
               children: [
                 Text(
                   AppLocalizations.of(context)!.reportIssue,
-                  style: GoogleFonts.ubuntu(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
-                      color: Color(0xFFDC4654),
+                      color: BLTColors.primary,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -512,8 +513,8 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                       contentPadding:
                           EdgeInsets.only(top: 8.0, left: 16.0, right: 16.0),
                     ),
-                    cursorColor: Color(0xFFDC4654),
-                    style: GoogleFonts.aBeeZee(
+                    cursorColor: BLTColors.primary,
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
                         fontSize: 12,
                       ),
@@ -541,7 +542,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                             ),
                             Text(
                               _issueCategories[_selectedIssueCategoriesIndex],
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   fontSize: 12,
                                 ),
@@ -556,8 +557,8 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                   Radius.circular(8),
                                 ),
                                 color: isDarkMode
-                                    ? Color.fromRGBO(126, 33, 58, 1)
-                                    : Color(0xFFDC4654),
+                                    ? BLTColors.primaryDark
+                                    : BLTColors.primary,
                               ),
                               child: Center(
                                 child: Builder(builder: (context) {
@@ -592,7 +593,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                           return TextButton(
                             child: Text(
                               AppLocalizations.of(context)!.checkForDuplicates,
-                              style: GoogleFonts.ubuntu(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,
@@ -610,8 +611,8 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                 duplicateVerified
                                     ? Color(0xFF50C878)
                                     : isDarkMode
-                                        ? Color.fromRGBO(126, 33, 58, 1)
-                                        : Color(0xFFDC4654),
+                                        ? BLTColors.primaryDark
+                                        : BLTColors.primary,
                               ),
                             ),
                             onPressed: () async {
@@ -662,12 +663,12 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                         .descriptio,
                                     border: InputBorder.none,
                                   ),
-                                  style: GoogleFonts.aBeeZee(
+                                  style: BLTFonts.system(
                                     textStyle: TextStyle(
                                       fontSize: 12,
                                     ),
                                   ),
-                                  cursorColor: Color(0xFFDC4654),
+                                  cursorColor: BLTColors.primary,
                                 );
                               }
                               return Container(
@@ -677,12 +678,12 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                   styleSheet: MarkdownStyleSheet.fromTheme(
                                     ThemeData(
                                       fontFamily:
-                                          GoogleFonts.aBeeZee().fontFamily,
+                                          BLTFonts.system().fontFamily,
                                       textTheme: TextTheme(
-                                        bodyMedium: GoogleFonts.aBeeZee(
+                                        bodyMedium: BLTFonts.system(
                                           textStyle: TextStyle(
                                             fontSize: 12,
-                                            color: Color(0xFF737373),
+                                            color: BLTColors.textMuted,
                                           ),
                                         ),
                                       ),
@@ -799,7 +800,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                     _selectedDescriptionLabelIndex.value == 1
                                         ? AppLocalizations.of(context)!.edit
                                         : AppLocalizations.of(context)!.preview,
-                                    style: GoogleFonts.ubuntu(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
                                         color: Colors.white,
                                         fontSize: 15,
@@ -816,8 +817,8 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                   ),
                                   backgroundColor: WidgetStateProperty.all(
                                     isDarkMode
-                                        ? Color.fromRGBO(126, 33, 58, 1)
-                                        : Color(0xFFDC4654),
+                                        ? BLTColors.primaryDark
+                                        : BLTColors.primary,
                                   ),
                                 ),
                                 onPressed: () async {
@@ -875,7 +876,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                         borderRadius: BorderRadius.all(
                                           Radius.circular(15),
                                         ),
-                                        color: Color(0xFFDC4654),
+                                        color: BLTColors.primary,
                                       ),
                                       child: IconButton(
                                         padding: EdgeInsets.zero,
@@ -909,22 +910,22 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                 child: Ink(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
-                                    color: Color(0xFFF8D2CD),
+                                    color: BLTColors.primarySoft,
                                   ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
                                         Icons.paste,
-                                        color: Color(0xFFDC4654),
+                                        color: BLTColors.primary,
                                         size: 35.0,
                                       ),
                                       SizedBox(height: 10),
                                       Text(
                                         "Paste image",
-                                        style: GoogleFonts.ubuntu(
+                                        style: BLTFonts.system(
                                           textStyle: TextStyle(
-                                            color: Color(0xFFDC4654),
+                                            color: BLTColors.primary,
                                             fontSize: 12,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -1019,7 +1020,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(8),
                                       ),
-                                      color: Color(0xFFF8D2CD),
+                                      color: BLTColors.primarySoft,
                                     ),
                                     child: Center(
                                       child: Column(
@@ -1035,9 +1036,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                           Text(
                                             AppLocalizations.of(context)!
                                                 .addImages,
-                                            style: GoogleFonts.ubuntu(
+                                            style: BLTFonts.system(
                                               textStyle: TextStyle(
-                                                color: Color(0xFFDC4654),
+                                                color: BLTColors.primary,
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -1069,13 +1070,13 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                   label: Text(
                     _labels[index].name,
                     style: (_labelsState[index])
-                        ? GoogleFonts.ubuntu(
+                        ? BLTFonts.system(
                             textStyle: TextStyle(
                               color: Colors.white,
                               fontSize: 12,
                             ),
                           )
-                        : GoogleFonts.aBeeZee(
+                        : BLTFonts.system(
                             textStyle: TextStyle(
                               fontSize: 12,
                             ),
@@ -1089,8 +1090,8 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                     });
                   },
                   selectedColor: isDarkMode
-                      ? Color.fromRGBO(126, 33, 58, 1)
-                      : Color(0xFFDC4654),
+                      ? BLTColors.primaryDark
+                      : BLTColors.primary,
                 );
               }),
             ),
@@ -1098,9 +1099,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
             padding: EdgeInsets.fromLTRB(0, 16, 0, 16),
             child: Text(
               AppLocalizations.of(context)!.noteAddingIssueGivesPoints,
-              style: GoogleFonts.aBeeZee(
+              style: BLTFonts.system(
                 textStyle: TextStyle(
-                  color: Color(0xFF737373),
+                  color: BLTColors.textMuted,
                   fontSize: 12,
                   fontStyle: FontStyle.italic,
                 ),
@@ -1113,7 +1114,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
             child: TextButton(
               child: Text(
                 AppLocalizations.of(context)!.addIssue,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -1128,8 +1129,8 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                 ),
                 backgroundColor: WidgetStateProperty.all(
                   isDarkMode
-                      ? Color.fromRGBO(126, 33, 58, 1)
-                      : Color(0xFFDC4654),
+                      ? BLTColors.primaryDark
+                      : BLTColors.primary,
                 ),
               ),
               onPressed: () async {

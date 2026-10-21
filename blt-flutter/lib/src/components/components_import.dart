@@ -4,7 +4,6 @@ export 'package:blt/src/components/searchbar.dart';
 export 'package:blt/src/global/variables.dart';
 export 'package:cached_network_image/cached_network_image.dart';
 export 'package:flutter/services.dart';
-export 'package:google_fonts/google_fonts.dart';
 export 'package:url_launcher/url_launcher.dart';
 export '../models/issue_model.dart';
 export '../components/issuelike.dart';

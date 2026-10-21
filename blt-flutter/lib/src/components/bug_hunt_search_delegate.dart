@@ -1,4 +1,5 @@
 import './components_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// The search bar of app for searching issues based on keyword.
 class BugHuntSearchDelegate extends SearchDelegate {
@@ -11,7 +12,7 @@ class BugHuntSearchDelegate extends SearchDelegate {
         },
         icon: Icon(
           Icons.clear,
-          color: Color(0xFFDC4654),
+          color: BLTColors.primary,
         ),
       ),
     ];
@@ -22,7 +23,7 @@ class BugHuntSearchDelegate extends SearchDelegate {
     return IconButton(
       icon: Icon(
         Icons.arrow_back_ios_new_rounded,
-        color: Color(0xFFDC4654),
+        color: BLTColors.primary,
       ),
       onPressed: () {
         Navigator.of(context).pop();
@@ -77,9 +78,9 @@ class BugHuntSearchDelegate extends SearchDelegate {
       child: Center(
         child: Text(
           'Search a Bug Hunt!',
-          style: GoogleFonts.ubuntu(
+          style: BLTFonts.system(
             textStyle: TextStyle(
-              color: Color(0xFF737373),
+              color: BLTColors.textMuted,
               fontSize: 20,
             ),
           ),

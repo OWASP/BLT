@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/drawer/drawer_imports.dart';
+import 'package:blt/src/util/brand.dart';
 
 class SponsorPage extends StatefulWidget {
   const SponsorPage({super.key});
@@ -60,11 +61,11 @@ class _SponsorPageState extends State<SponsorPage>
     // final Size size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: isDarkMode
-          ? Color.fromRGBO(34, 22, 23, 1)
+          ? BLTColors.darkBackground
           : Theme.of(context).canvasColor,
       appBar: AppBar(
         backgroundColor:
-            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
+            isDarkMode ? BLTColors.darkSurface : BLTColors.primary,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
@@ -92,9 +93,9 @@ class _SponsorPageState extends State<SponsorPage>
                 padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                 child: Text(
                   "Sponsor BLT",
-                  style: GoogleFonts.ubuntu(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
-                      color: Color(0xFF737373),
+                      color: BLTColors.textMuted,
                       fontSize: 25,
                     ),
                   ),
@@ -104,9 +105,9 @@ class _SponsorPageState extends State<SponsorPage>
                 padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                 child: Text(
                   "Join us in driving innovation and excellence in the tech community. Your sponsorship helps fuel groundbreaking projects, ensuring we continue to develop and share cutting-edge solutions with the world.",
-                  style: GoogleFonts.aBeeZee(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
-                      color: Color(0xFF737373),
+                      color: BLTColors.textMuted,
                     ),
                   ),
                 ),
@@ -153,7 +154,7 @@ class _SponsorPageState extends State<SponsorPage>
                       SizedBox(width: 5),
                       Text(
                         "Sponsor",
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
                             color: Colors.white,
                             fontSize: 22,
@@ -171,8 +172,8 @@ class _SponsorPageState extends State<SponsorPage>
                   ),
                   backgroundColor: WidgetStateProperty.all(
                     isDarkMode
-                        ? Color.fromRGBO(126, 33, 58, 1)
-                        : Color(0xFFDC4654),
+                        ? BLTColors.primaryDark
+                        : BLTColors.primary,
                   ),
                 ),
                 onPressed: () {
@@ -184,8 +185,8 @@ class _SponsorPageState extends State<SponsorPage>
                           style: TextStyle(color: Colors.white),
                         ),
                         backgroundColor: isDarkMode
-                            ? Color.fromRGBO(126, 33, 58, 1)
-                            : Color(0xFFDC4654),
+                            ? BLTColors.primaryDark
+                            : BLTColors.primary,
                       ),
                     );
                   } else {
@@ -222,7 +223,7 @@ class UnselectedSponsorTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           width: 1.5,
-          color: isDarkMode ? Color.fromRGBO(73, 40, 49, 1) : Color(0xFFDC4654),
+          color: isDarkMode ? BLTColors.gray700 : BLTColors.primary,
         ),
       ),
       child: Padding(
@@ -251,7 +252,7 @@ class UnselectedSponsorTile extends StatelessWidget {
                 children: [
                   Text(
                     sponsor["title"],
-                    style: GoogleFonts.ubuntu(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
                         color: isDarkMode
                             ? Color.fromARGB(255, 161, 161, 161)
@@ -262,7 +263,7 @@ class UnselectedSponsorTile extends StatelessWidget {
                   ),
                   Text(
                     sponsor["subtitle"],
-                    style: GoogleFonts.ubuntu(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
                         color: !isDarkMode
                             ? Color.fromARGB(255, 161, 161, 161)
@@ -293,7 +294,7 @@ class SelectedSponsorTile extends StatelessWidget {
       width: size.width,
       decoration: BoxDecoration(
         // color: Colors.white,
-        color: isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
+        color: isDarkMode ? BLTColors.darkSurface : BLTColors.primary,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
@@ -324,11 +325,11 @@ class SelectedSponsorTile extends StatelessWidget {
                     children: [
                       Text(
                         sponsor["title"],
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
                             // color: !isDarkMode
                             //     ? Color.fromARGB(255, 161, 161, 161)
-                            //     : Color(0xFF737373),
+                            //     : BLTColors.textMuted,
                             color: Colors.white,
                             fontSize: 22,
                           ),
@@ -336,12 +337,12 @@ class SelectedSponsorTile extends StatelessWidget {
                       ),
                       Text(
                         sponsor["subtitle"],
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
                             color: const Color.fromARGB(255, 233, 232, 232),
                             // color: !isDarkMode
                             //     ? Color.fromARGB(255, 161, 161, 161)
-                            //     : Color(0xFF737373),
+                            //     : BLTColors.textMuted,
                             fontSize: 16,
                           ),
                         ),

@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 class ChatBotPage extends StatefulWidget {
   const ChatBotPage({super.key});
@@ -55,11 +56,11 @@ class _ChatBotPageState extends State<ChatBotPage> {
 
     return Scaffold(
       backgroundColor: isDarkMode
-          ? Color.fromRGBO(34, 22, 23, 1)
+          ? BLTColors.darkBackground
           : Theme.of(context).canvasColor,
       appBar: AppBar(
         backgroundColor:
-            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
+            isDarkMode ? BLTColors.darkSurface : BLTColors.primary,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
@@ -115,7 +116,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
                   color: Color.fromARGB(255, 247, 246, 246),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Color(0xFFDC4654),
+                    color: BLTColors.primary,
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -178,8 +179,8 @@ class _ChatBotPageState extends State<ChatBotPage> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: isDarkMode
-                              ? Color.fromRGBO(126, 33, 58, 1)
-                              : Color(0xFFDC4654),
+                              ? BLTColors.primaryDark
+                              : BLTColors.primary,
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(10.0),
@@ -222,7 +223,7 @@ class ConversationBLTBOt extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: Container(
               decoration: BoxDecoration(
-                color: Color.fromARGB(255, 237, 97, 111),
+                color: BLTColors.primaryOnDark,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
@@ -257,7 +258,7 @@ class ConversationBLTBOt extends StatelessWidget {
                 maxWidth: size.width * 0.6,
               ),
               decoration: BoxDecoration(
-                color: Color.fromRGBO(126, 33, 58, 1),
+                color: BLTColors.primaryDark,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(

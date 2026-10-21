@@ -1,5 +1,6 @@
 import 'package:blt/src/pages/home/home_imports.dart';
 import 'package:http/http.dart' as http;
+import 'package:blt/src/util/brand.dart';
 
 /// Page that displays the stats of a user registered on BLT,
 /// shows dummy data for Guest login.
@@ -66,7 +67,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       return Container(
         margin: EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          border: Border.all(color: Color(0xFF737373), width: 0.5),
+          border: Border.all(color: BLTColors.textMuted, width: 0.5),
           borderRadius: BorderRadius.circular(15),
         ),
         child: ClipRRect(
@@ -109,15 +110,15 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         width: size.width,
         height: 0.3 * size.height,
         decoration: BoxDecoration(
-          border: Border.all(color: Color(0xFF737373), width: 0.5),
+          border: Border.all(color: BLTColors.textMuted, width: 0.5),
           borderRadius: BorderRadius.circular(15),
         ),
         child: Center(
           child: Text(
             AppLocalizations.of(context)!.noIssuesUpvoted,
-            style: GoogleFonts.aBeeZee(
+            style: BLTFonts.system(
               textStyle: TextStyle(
-                color: Color(0xFF737373),
+                color: BLTColors.textMuted,
               ),
             ),
           ),
@@ -131,7 +132,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       return Container(
         margin: EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          border: Border.all(color: Color(0xFF737373), width: 0.5),
+          border: Border.all(color: BLTColors.textMuted, width: 0.5),
           borderRadius: BorderRadius.circular(15),
         ),
         child: ClipRRect(
@@ -174,15 +175,15 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         width: size.width,
         height: 0.3 * size.height,
         decoration: BoxDecoration(
-          border: Border.all(color: Color(0xFF737373), width: 0.5),
+          border: Border.all(color: BLTColors.textMuted, width: 0.5),
           borderRadius: BorderRadius.circular(15),
         ),
         child: Center(
           child: Text(
             AppLocalizations.of(context)!.noIssuesFlagged,
-            style: GoogleFonts.aBeeZee(
+            style: BLTFonts.system(
               textStyle: TextStyle(
-                color: Color(0xFF737373),
+                color: BLTColors.textMuted,
               ),
             ),
           ),
@@ -196,7 +197,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       return Container(
         margin: EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          border: Border.all(color: Color(0xFF737373), width: 0.5),
+          border: Border.all(color: BLTColors.textMuted, width: 0.5),
           borderRadius: BorderRadius.circular(15),
         ),
         child: ClipRRect(
@@ -239,15 +240,15 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         width: size.width,
         height: 0.3 * size.height,
         decoration: BoxDecoration(
-          border: Border.all(color: Color(0xFF737373), width: 0.5),
+          border: Border.all(color: BLTColors.textMuted, width: 0.5),
           borderRadius: BorderRadius.circular(15),
         ),
         child: Center(
           child: Text(
             AppLocalizations.of(context)!.noIssuesSaved,
-            style: GoogleFonts.aBeeZee(
+            style: BLTFonts.system(
               textStyle: TextStyle(
-                color: Color(0xFF737373),
+                color: BLTColors.textMuted,
               ),
             ),
           ),
@@ -262,9 +263,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       builder: (context) => AlertDialog(
         title: Text(
           "This account will be deleted permanently !",
-          style: GoogleFonts.ubuntu(
+          style: BLTFonts.system(
             textStyle: TextStyle(
-              color: Color(0xFFDC4654),
+              color: BLTColors.primary,
               fontSize: 15,
               fontWeight: FontWeight.bold,
             ),
@@ -298,11 +299,11 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                   },
                   style: ButtonStyle(
                     alignment: Alignment.center,
-                    backgroundColor: WidgetStateProperty.all(Color(0xFFDC4654)),
+                    backgroundColor: WidgetStateProperty.all(BLTColors.primary),
                   ),
                   child: Text(
                     "Delete",
-                    style: GoogleFonts.ubuntu(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
                         color: Color.fromRGBO(255, 255, 255, 1),
                         fontSize: 15,
@@ -315,11 +316,11 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                   },
                   style: ButtonStyle(
                     alignment: Alignment.center,
-                    backgroundColor: WidgetStateProperty.all(Color(0xFF737373)),
+                    backgroundColor: WidgetStateProperty.all(BLTColors.textMuted),
                   ),
                   child: Text(
                     AppLocalizations.of(context)!.cancel,
-                    style: GoogleFonts.ubuntu(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
                         color: Color.fromRGBO(255, 255, 255, 1),
                         fontSize: 15,
@@ -442,7 +443,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF737373).withOpacity(0.125),
+              BLTColors.textMuted.withOpacity(0.125),
               Colors.transparent,
             ],
           ),
@@ -457,7 +458,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 width: size.width,
                 height: 0.25 * size.height,
                 decoration: BoxDecoration(
-                  color: Color(0xFFDC4654),
+                  color: BLTColors.primary,
                   image: DecorationImage(
                     image: getProfilePicture(),
                     fit: BoxFit.cover,
@@ -473,9 +474,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                   children: [
                     Text(
                       currentUser!.username!,
-                      style: GoogleFonts.ubuntu(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
-                          color: Color(0xFFDC4654),
+                          color: BLTColors.primary,
                           fontWeight: FontWeight.bold,
                           fontSize: 30,
                         ),
@@ -483,9 +484,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                     ),
                     Text(
                       '#${currentUser!.id!}',
-                      style: GoogleFonts.aBeeZee(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
-                          color: Color(0xFF737373).withOpacity(0.5),
+                          color: BLTColors.textMuted.withOpacity(0.5),
                           fontStyle: FontStyle.italic,
                           fontSize: 10,
                         ),
@@ -501,9 +502,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                               ? currentUser!.description!
                               : AppLocalizations.of(context)!
                                   .noDescriptionWriteOne,
-                          style: GoogleFonts.aBeeZee(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
-                              color: Color(0xFF737373),
+                              color: BLTColors.textMuted,
                               fontSize: 15,
                             ),
                           ),
@@ -517,9 +518,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                               child: Text(
                                 currentUser!.following!.length.toString() +
                                     AppLocalizations.of(context)!.following,
-                                style: GoogleFonts.aBeeZee(
+                                style: BLTFonts.system(
                                   textStyle: TextStyle(
-                                    color: Color(0xFFDC4654),
+                                    color: BLTColors.primary,
                                     fontSize: 15,
                                   ),
                                 ),
@@ -538,9 +539,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                                 (currentUser!.totalScore != null)
                                     ? "${AppLocalizations.of(context)!.score} : ${currentUser!.totalScore!} "
                                     : "${AppLocalizations.of(context)!.score} : 0 ",
-                                style: GoogleFonts.aBeeZee(
+                                style: BLTFonts.system(
                                   textStyle: TextStyle(
-                                    color: Color(0xFFDC4654),
+                                    color: BLTColors.primary,
                                     fontSize: 15,
                                   ),
                                 ),
@@ -565,7 +566,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                       children: [
                         Icon(
                           Icons.event_repeat,
-                          color: Color(0xFF737373),
+                          color: BLTColors.textMuted,
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(
@@ -574,9 +575,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                           ),
                           child: Text(
                             AppLocalizations.of(context)!.recentActivity,
-                            style: GoogleFonts.ubuntu(
+                            style: BLTFonts.system(
                               textStyle: TextStyle(
-                                color: Color(0xFF737373),
+                                color: BLTColors.textMuted,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 20,
                               ),
@@ -591,14 +592,14 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                           padding: const EdgeInsets.all(5.0),
                           child: Icon(
                             Icons.favorite,
-                            color: Color(0xFFDC4654),
+                            color: BLTColors.primary,
                           ),
                         ),
                         Text(
                           AppLocalizations.of(context)!.likedIssues,
-                          style: GoogleFonts.ubuntu(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
-                              color: Color(0xFFDC4654),
+                              color: BLTColors.primary,
                               fontSize: 17.5,
                             ),
                           ),
@@ -606,7 +607,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                       ],
                     ),
                     Divider(
-                      color: Color(0xFFDC4654),
+                      color: BLTColors.primary,
                       thickness: 2,
                     ),
                     FutureBuilder<List<Issue>?>(
@@ -620,7 +621,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                             height: 0.3 * size.height,
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: Color(0xFF737373),
+                                color: BLTColors.textMuted,
                               ),
                               borderRadius: BorderRadius.circular(15),
                             ),
@@ -639,14 +640,14 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                           padding: const EdgeInsets.all(5.0),
                           child: Icon(
                             Icons.flag,
-                            color: Color(0xFFDC4654),
+                            color: BLTColors.primary,
                           ),
                         ),
                         Text(
                           AppLocalizations.of(context)!.flaggedIssues,
-                          style: GoogleFonts.ubuntu(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
-                              color: Color(0xFFDC4654),
+                              color: BLTColors.primary,
                               fontSize: 17.5,
                             ),
                           ),
@@ -654,7 +655,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                       ],
                     ),
                     Divider(
-                      color: Color(0xFFDC4654),
+                      color: BLTColors.primary,
                       thickness: 2,
                     ),
                     FutureBuilder<List<Issue>?>(
@@ -668,7 +669,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                             height: 0.3 * size.height,
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: Color(0xFF737373),
+                                color: BLTColors.textMuted,
                               ),
                               borderRadius: BorderRadius.circular(15),
                             ),
@@ -687,14 +688,14 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                           padding: const EdgeInsets.all(5.0),
                           child: Icon(
                             Icons.bookmark_outlined,
-                            color: Color(0xFFDC4654),
+                            color: BLTColors.primary,
                           ),
                         ),
                         Text(
                           AppLocalizations.of(context)!.savedIssues,
-                          style: GoogleFonts.ubuntu(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
-                              color: Color(0xFFDC4654),
+                              color: BLTColors.primary,
                               fontSize: 17.5,
                             ),
                           ),
@@ -702,7 +703,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                       ],
                     ),
                     Divider(
-                      color: Color(0xFFDC4654),
+                      color: BLTColors.primary,
                       thickness: 2,
                     ),
                     FutureBuilder<List<Issue>?>(
@@ -716,7 +717,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                             height: 0.3 * size.height,
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: Color(0xFF737373),
+                                color: BLTColors.textMuted,
                               ),
                               borderRadius: BorderRadius.circular(15),
                             ),
@@ -744,7 +745,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                               horizontal: 20, vertical: 5),
                           child: Text(
                             "Delete Account",
-                            style: GoogleFonts.ubuntu(
+                            style: BLTFonts.system(
                               textStyle: TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
@@ -761,8 +762,8 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                           ),
                           backgroundColor: WidgetStateProperty.all(
                             isDarkMode
-                                ? Color.fromRGBO(126, 33, 58, 1)
-                                : Color(0xFFDC4654),
+                                ? BLTColors.primaryDark
+                                : BLTColors.primary,
                           ),
                         ),
                       ),

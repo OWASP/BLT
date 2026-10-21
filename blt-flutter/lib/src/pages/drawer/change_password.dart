@@ -1,4 +1,5 @@
 import '../pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// The change password page for the app.
 class ChangePasswordPage extends StatefulWidget {
@@ -33,7 +34,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           Container(
             width: size.width,
             height: size.height,
-            color: Color(0xFFDC4654),
+            color: BLTColors.primary,
             child: Column(
               children: [
                 SizedBox(
@@ -46,7 +47,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     ),
                     child: Center(
                       child: SvgPicture.asset(
-                        'assets/logo_white.svg',
+                        'assets/blt_wasp_white.svg',
                         fit: BoxFit.contain,
                         height: 192.0,
                       ),
@@ -141,7 +142,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                   borderSide: BorderSide(
-                    color: Color(0xFF737373),
+                    color: BLTColors.textMuted,
                   ),
                 ),
                 fillColor: Colors.white.withOpacity(0.35),
@@ -169,7 +170,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                   borderSide: BorderSide(
-                    color: Color(0xFF737373),
+                    color: BLTColors.textMuted,
                   ),
                 ),
                 fillColor: Colors.white.withOpacity(0.35),
@@ -199,7 +200,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                   borderSide: BorderSide(
-                    color: Color(0xFF737373),
+                    color: BLTColors.textMuted,
                   ),
                 ),
                 fillColor: Colors.white.withOpacity(0.35),
@@ -236,7 +237,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
               },
               child: Text(
                 AppLocalizations.of(context)!.changePassword,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
                     color: Colors.white,
                     fontSize: 17.5,
@@ -254,7 +255,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
                   ),
                 ),
                 backgroundColor: WidgetStateProperty.all(
-                  Color(0xFFDC4654),
+                  BLTColors.primary,
                 ),
               ),
             ),

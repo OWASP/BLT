@@ -1,4 +1,5 @@
 import '../pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 class CompanyDashBoardPage extends ConsumerStatefulWidget {
   const CompanyDashBoardPage({Key? key}) : super(key: key);
@@ -17,7 +18,7 @@ class _CompanyDashBoardPageState extends ConsumerState<CompanyDashBoardPage> {
       height: 0.3 * size.height,
       margin: EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        border: Border.all(color: Color(0xFF737373), width: 0.5),
+        border: Border.all(color: BLTColors.textMuted, width: 0.5),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Center(
@@ -25,9 +26,9 @@ class _CompanyDashBoardPageState extends ConsumerState<CompanyDashBoardPage> {
           1 > 0
               ? AppLocalizations.of(context)!.unableToGetInfo
               : AppLocalizations.of(context)!.noOpenIssues,
-          style: GoogleFonts.aBeeZee(
+          style: BLTFonts.system(
             textStyle: TextStyle(
-              color: Color(0xFF737373),
+              color: BLTColors.textMuted,
             ),
           ),
         ),
@@ -37,7 +38,7 @@ class _CompanyDashBoardPageState extends ConsumerState<CompanyDashBoardPage> {
 
   @override
   void initState() {
-    companyColor = Color(0xFFDC4654);
+    companyColor = BLTColors.primary;
     super.initState();
   }
 
@@ -78,7 +79,7 @@ class _CompanyDashBoardPageState extends ConsumerState<CompanyDashBoardPage> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF737373).withOpacity(0.125),
+              BLTColors.textMuted.withOpacity(0.125),
               Colors.transparent,
             ],
           ),
@@ -116,7 +117,7 @@ class _CompanyDashBoardPageState extends ConsumerState<CompanyDashBoardPage> {
                           children: [
                             Text(
                               "BLT",
-                              style: GoogleFonts.ubuntu(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 30,
@@ -126,9 +127,9 @@ class _CompanyDashBoardPageState extends ConsumerState<CompanyDashBoardPage> {
                             ),
                             Text(
                               '#9999',
-                              style: GoogleFonts.ubuntu(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
-                                  color: Color(0xFF737373),
+                                  color: BLTColors.textMuted,
                                   fontSize: 12,
                                 ),
                               ),
@@ -157,7 +158,7 @@ class _CompanyDashBoardPageState extends ConsumerState<CompanyDashBoardPage> {
                                         Text(
                                           AppLocalizations.of(context)!
                                               .activeHunts,
-                                          style: GoogleFonts.ubuntu(
+                                          style: BLTFonts.system(
                                             textStyle: TextStyle(
                                               fontSize: 17.5,
                                               color: companyColor,
@@ -199,7 +200,7 @@ class _CompanyDashBoardPageState extends ConsumerState<CompanyDashBoardPage> {
                                         ),
                                         Text(
                                           AppLocalizations.of(context)!.payouts,
-                                          style: GoogleFonts.ubuntu(
+                                          style: BLTFonts.system(
                                             textStyle: TextStyle(
                                               fontSize: 17.5,
                                               color: companyColor,

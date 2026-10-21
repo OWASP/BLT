@@ -1,6 +1,7 @@
 import 'package:blt/src/components/components_import.dart';
 import 'package:blt/src/constants/labels_constants.dart';
 import 'package:blt/src/pages/issues/issues_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// Popup page when an issue is clicked to be viewed.
 class IssueDetailPage extends StatelessWidget {
@@ -85,7 +86,7 @@ class IssueDetailPage extends StatelessWidget {
             color: Colors.white,
           ),
         ],
-        backgroundColor: Color(0xFFDC4654),
+        backgroundColor: BLTColors.primary,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -97,9 +98,9 @@ class IssueDetailPage extends StatelessWidget {
                 Container(
                   child: Text(
                     "${AppLocalizations.of(context)!.issue} #${issue.id}",
-                    style: GoogleFonts.ubuntu(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
-                        color: Color(0xFF737373),
+                        color: BLTColors.textMuted,
                         fontSize: 25,
                       ),
                     ),
@@ -117,7 +118,7 @@ class IssueDetailPage extends StatelessWidget {
                           .copyWith(left: 10, right: 10),
                       child: Text(
                         "${labels[issue.label]}",
-                        style: GoogleFonts.aBeeZee(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -136,10 +137,10 @@ class IssueDetailPage extends StatelessWidget {
                     "${AppLocalizations.of(context)!.createdOn} ${issue.created_date}",
                     overflow: TextOverflow.ellipsis,
                     softWrap: true,
-                    style: GoogleFonts.aBeeZee(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFFA3A3A3),
+                        color: BLTColors.gray400,
                       ),
                     ),
                   ),
@@ -161,7 +162,7 @@ class IssueDetailPage extends StatelessWidget {
                     ),
                     label: Text(
                       issue.tags![index].name,
-                      style: GoogleFonts.ubuntu(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
                           fontSize: 12,
                         ),
@@ -176,9 +177,9 @@ class IssueDetailPage extends StatelessWidget {
                 AppLocalizations.of(context)!.title,
                 overflow: TextOverflow.ellipsis,
                 softWrap: true,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFFDC4654),
+                    color: BLTColors.primary,
                     fontSize: 17.5,
                   ),
                   fontWeight: FontWeight.bold,
@@ -193,13 +194,13 @@ class IssueDetailPage extends StatelessWidget {
               selectable: true,
               styleSheet: MarkdownStyleSheet.fromTheme(
                 ThemeData(
-                  fontFamily: GoogleFonts.aBeeZee().fontFamily,
+                  fontFamily: BLTFonts.system().fontFamily,
                   textTheme: TextTheme(
-                    bodyMedium: GoogleFonts.aBeeZee(
+                    bodyMedium: BLTFonts.system(
                       textStyle: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF737373),
+                        color: BLTColors.textMuted,
                       ),
                     ),
                   ),
@@ -213,9 +214,9 @@ class IssueDetailPage extends StatelessWidget {
                   "Description",
                   overflow: TextOverflow.ellipsis,
                   softWrap: true,
-                  style: GoogleFonts.ubuntu(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
-                      color: Color(0xFFDC4654),
+                      color: BLTColors.primary,
                       fontSize: 17.5,
                     ),
                     fontWeight: FontWeight.bold,
@@ -234,12 +235,12 @@ class IssueDetailPage extends StatelessWidget {
                 },
                 styleSheet: MarkdownStyleSheet.fromTheme(
                   ThemeData(
-                    fontFamily: GoogleFonts.aBeeZee().fontFamily,
+                    fontFamily: BLTFonts.system().fontFamily,
                     textTheme: TextTheme(
-                      bodyMedium: GoogleFonts.aBeeZee(
+                      bodyMedium: BLTFonts.system(
                         textStyle: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF737373),
+                          color: BLTColors.textMuted,
                         ),
                       ),
                     ),
@@ -252,9 +253,9 @@ class IssueDetailPage extends StatelessWidget {
                 AppLocalizations.of(context)!.screenshots,
                 overflow: TextOverflow.ellipsis,
                 softWrap: true,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFFDC4654),
+                    color: BLTColors.primary,
                     fontSize: 17.5,
                   ),
                   fontWeight: FontWeight.bold,

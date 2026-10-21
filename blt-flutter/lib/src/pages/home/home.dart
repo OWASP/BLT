@@ -1,6 +1,7 @@
 import 'package:blt/src/pages/home/home_imports.dart';
 import 'package:blt/src/util/services/permission_handlers.dart';
 import 'package:blt/src/util/migration_notice.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// Navigator and drawer provider for the main pages:
 /// Issues, Report Bug, Leaderboards and Feed.
@@ -86,9 +87,9 @@ class _HomeState extends ConsumerState<Home> {
     return AlertDialog(
       title: Text(
         AppLocalizations.of(context)!.youWillBeLoggedOut,
-        style: GoogleFonts.ubuntu(
+        style: BLTFonts.system(
           textStyle: TextStyle(
-            color: Color(0xFFDC4654),
+            color: BLTColors.primary,
             fontSize: 15,
             fontWeight: FontWeight.bold,
           ),
@@ -108,11 +109,11 @@ class _HomeState extends ConsumerState<Home> {
                 },
                 style: ButtonStyle(
                   alignment: Alignment.center,
-                  backgroundColor: WidgetStateProperty.all(Color(0xFFDC4654)),
+                  backgroundColor: WidgetStateProperty.all(BLTColors.primary),
                 ),
                 child: Text(
                   AppLocalizations.of(context)!.logout,
-                  style: GoogleFonts.ubuntu(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
                       color: Color.fromRGBO(255, 255, 255, 1),
                       fontSize: 15,
@@ -125,11 +126,11 @@ class _HomeState extends ConsumerState<Home> {
                 },
                 style: ButtonStyle(
                   alignment: Alignment.center,
-                  backgroundColor: WidgetStateProperty.all(Color(0xFF737373)),
+                  backgroundColor: WidgetStateProperty.all(BLTColors.textMuted),
                 ),
                 child: Text(
                   AppLocalizations.of(context)!.cancel,
-                  style: GoogleFonts.ubuntu(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
                       color: Color.fromRGBO(255, 255, 255, 1),
                       fontSize: 15,
@@ -216,12 +217,12 @@ class _HomeState extends ConsumerState<Home> {
       },
       child: Scaffold(
         backgroundColor: isDarkMode.isDarkMode
-            ? Color.fromRGBO(34, 22, 23, 1)
+            ? BLTColors.darkBackground
             : Theme.of(context).canvasColor,
         appBar: buildAppBar(context: context),
         drawer: Drawer(
           backgroundColor: isDarkMode.isDarkMode
-              ? Color.fromRGBO(58, 21, 31, 1)
+              ? BLTColors.darkSurface
               : Theme.of(context).canvasColor,
           child: ListView(
             padding: EdgeInsets.zero,
@@ -229,8 +230,8 @@ class _HomeState extends ConsumerState<Home> {
               UserAccountsDrawerHeader(
                 decoration: BoxDecoration(
                   color: isDarkMode.isDarkMode
-                      ? Color.fromRGBO(58, 21, 31, 1)
-                      : Color(0xFFDC4654),
+                      ? BLTColors.darkSurface
+                      : BLTColors.primary,
                 ),
                 accountName: Text(
                   currentUser!.username!,
@@ -249,7 +250,7 @@ class _HomeState extends ConsumerState<Home> {
                     currentUser!.username!.substring(0, 2),
                     style: TextStyle(fontSize: 40.0),
                   ),
-                  foregroundColor: Color(0xFFDC4654),
+                  foregroundColor: BLTColors.primary,
                 ),
               ),
               ListTile(
@@ -361,7 +362,7 @@ class _HomeState extends ConsumerState<Home> {
                           SizedBox(width: 5),
                           Text(
                             "Sponsor BLT",
-                            style: GoogleFonts.ubuntu(
+                            style: BLTFonts.system(
                               textStyle: TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,
@@ -378,8 +379,8 @@ class _HomeState extends ConsumerState<Home> {
                         ),
                         backgroundColor: WidgetStateProperty.all(
                           isDarkMode.isDarkMode
-                              ? Color.fromRGBO(126, 33, 58, 1)
-                              : Color(0xFFDC4654),
+                              ? BLTColors.primaryDark
+                              : BLTColors.primary,
                         ),
                       ),
                       onPressed: () {
@@ -400,7 +401,7 @@ class _HomeState extends ConsumerState<Home> {
                     return TextButton(
                       child: Text(
                         AppLocalizations.of(context)!.startBugHunt,
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
@@ -415,8 +416,8 @@ class _HomeState extends ConsumerState<Home> {
                         ),
                         backgroundColor: WidgetStateProperty.all(
                           isDarkMode.isDarkMode
-                              ? Color.fromRGBO(126, 33, 58, 1)
-                              : Color(0xFFDC4654),
+                              ? BLTColors.primaryDark
+                              : BLTColors.primary,
                         ),
                       ),
                       onPressed: () async {
@@ -434,7 +435,7 @@ class _HomeState extends ConsumerState<Home> {
                     return TextButton(
                       child: Text(
                         "Spam Call Blocker",
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
@@ -449,8 +450,8 @@ class _HomeState extends ConsumerState<Home> {
                         ),
                         backgroundColor: WidgetStateProperty.all(
                           isDarkMode.isDarkMode
-                              ? Color.fromRGBO(126, 33, 58, 1)
-                              : Color(0xFFDC4654),
+                              ? BLTColors.primaryDark
+                              : BLTColors.primary,
                         ),
                       ),
                       onPressed: () async {
@@ -475,7 +476,7 @@ class _HomeState extends ConsumerState<Home> {
                         ? TextButton(
                             child: Text(
                               "Sizzle",
-                              style: GoogleFonts.ubuntu(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
@@ -491,8 +492,8 @@ class _HomeState extends ConsumerState<Home> {
                               ),
                               backgroundColor: WidgetStateProperty.all(
                                 isDarkMode.isDarkMode
-                                    ? Color.fromRGBO(126, 33, 58, 1)
-                                    : Color(0xFFDC4654),
+                                    ? BLTColors.primaryDark
+                                    : BLTColors.primary,
                               ),
                             ),
                             onPressed: () {
@@ -515,8 +516,8 @@ class _HomeState extends ConsumerState<Home> {
             );
           },
           backgroundColor: isDarkMode.isDarkMode
-              ? Color.fromRGBO(94, 15, 36, 1)
-              : Color.fromARGB(255, 246, 219, 221),
+              ? BLTColors.darkCard
+              : BLTColors.primarySoft,
           child: Center(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -540,7 +541,7 @@ class _HomeState extends ConsumerState<Home> {
             ]),
         bottomNavigationBar: BottomNavigationBar(
           backgroundColor: isDarkMode.isDarkMode
-              ? Color.fromRGBO(58, 21, 31, 1)
+              ? BLTColors.darkSurface
               : Colors.grey[300],
           type: BottomNavigationBarType.fixed,
           items: <BottomNavigationBarItem>[
@@ -566,7 +567,7 @@ class _HomeState extends ConsumerState<Home> {
             ),
           ],
           currentIndex: _selectedIndex,
-          selectedItemColor: Color(0xFFDC4654),
+          selectedItemColor: BLTColors.primary,
           onTap: _onItemTapped,
         ),
       ),

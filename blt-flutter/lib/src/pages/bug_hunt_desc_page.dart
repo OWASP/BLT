@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 class BugHuntDescriptionPage extends StatefulWidget {
   const BugHuntDescriptionPage({super.key, required this.hunt});
@@ -26,11 +27,11 @@ class _BugHuntDescriptionPageState extends State<BugHuntDescriptionPage>
     final Size size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: isDarkMode
-          ? Color.fromRGBO(34, 22, 23, 1)
+          ? BLTColors.darkBackground
           : Theme.of(context).canvasColor,
       appBar: AppBar(
         backgroundColor:
-            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
+            isDarkMode ? BLTColors.darkSurface : BLTColors.primary,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
@@ -88,10 +89,10 @@ class _BugHuntDescriptionPageState extends State<BugHuntDescriptionPage>
                             padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                             child: Text(
                               widget.hunt.name,
-                              style: GoogleFonts.ubuntu(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
-                                  color: Color(0xFFDC4654),
-                                  // color: Color(0xFF737373),
+                                  color: BLTColors.primary,
+                                  // color: BLTColors.textMuted,
                                   fontSize: 25,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -103,9 +104,9 @@ class _BugHuntDescriptionPageState extends State<BugHuntDescriptionPage>
                               title: "Description",
                               details: Text(
                                 widget.hunt.description!,
-                                style: GoogleFonts.aBeeZee(
+                                style: BLTFonts.system(
                                   textStyle: TextStyle(
-                                    color: Color(0xFF737373),
+                                    color: BLTColors.textMuted,
                                   ),
                                 ),
                               ),
@@ -122,17 +123,17 @@ class _BugHuntDescriptionPageState extends State<BugHuntDescriptionPage>
                                     children: [
                                       Icon(
                                         Icons.calendar_month,
-                                        color: Color(0xFF737373),
+                                        color: BLTColors.textMuted,
                                       ),
                                       SizedBox(width: 5),
                                       Text(
                                         'Starts on : ${monthsInYear[widget.hunt.startsOn?.month]} ${widget.hunt.startsOn?.day} ${widget.hunt.startsOn?.year}',
                                         overflow: TextOverflow.ellipsis,
                                         softWrap: true,
-                                        style: GoogleFonts.aBeeZee(
+                                        style: BLTFonts.system(
                                           textStyle: TextStyle(
                                             fontSize: 14,
-                                            color: Color(0xFF737373),
+                                            color: BLTColors.textMuted,
                                           ),
                                         ),
                                       ),
@@ -144,17 +145,17 @@ class _BugHuntDescriptionPageState extends State<BugHuntDescriptionPage>
                                     children: [
                                       Icon(
                                         Icons.calendar_month,
-                                        color: Color(0xFF737373),
+                                        color: BLTColors.textMuted,
                                       ),
                                       SizedBox(width: 5),
                                       Text(
                                         'Ends on : ${monthsInYear[widget.hunt.endsOn?.month]} ${widget.hunt.endsOn?.day} ${widget.hunt.endsOn?.year}',
                                         overflow: TextOverflow.ellipsis,
                                         softWrap: true,
-                                        style: GoogleFonts.aBeeZee(
+                                        style: BLTFonts.system(
                                           textStyle: TextStyle(
                                             fontSize: 14,
-                                            color: Color(0xFF737373),
+                                            color: BLTColors.textMuted,
                                           ),
                                         ),
                                       ),
@@ -195,7 +196,7 @@ class _BugHuntDescriptionPageState extends State<BugHuntDescriptionPage>
               width: size.width,
               decoration: BoxDecoration(
                   color: isDarkMode
-                      ? Color.fromRGBO(34, 22, 23, 1)
+                      ? BLTColors.darkBackground
                       : Theme.of(context).canvasColor,
                   boxShadow: [
                     BoxShadow(
@@ -213,17 +214,17 @@ class _BugHuntDescriptionPageState extends State<BugHuntDescriptionPage>
                     children: [
                       Text(
                         'Prize : ',
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF737373),
+                            color: BLTColors.textMuted,
                           ),
                         ),
                       ),
                       Text(
                         '\$${widget.hunt.prize}',
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
@@ -240,7 +241,7 @@ class _BugHuntDescriptionPageState extends State<BugHuntDescriptionPage>
                     },
                     child: Text(
                       "Participate",
-                      style: GoogleFonts.ubuntu(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -255,8 +256,8 @@ class _BugHuntDescriptionPageState extends State<BugHuntDescriptionPage>
                       ),
                       backgroundColor: WidgetStateProperty.all(
                         isDarkMode
-                            ? Color.fromRGBO(126, 33, 58, 1)
-                            : Color(0xFFDC4654),
+                            ? BLTColors.primaryDark
+                            : BLTColors.primary,
                       ),
                     ),
                   )
@@ -282,9 +283,9 @@ class SectionAnsData extends StatelessWidget {
       children: [
         Text(
           "$title :",
-          style: GoogleFonts.ubuntu(
+          style: BLTFonts.system(
             textStyle: TextStyle(
-              color: Color(0xFFDC4654),
+              color: BLTColors.primary,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),

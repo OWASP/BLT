@@ -1,4 +1,5 @@
 import '../pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// Page stating the legal Terms and Conditions and Privacy
 /// Policy applying to the BLT project.
@@ -27,7 +28,7 @@ class LegalPage extends StatelessWidget {
           ),
         ),
         backgroundColor:
-            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
+            isDarkMode ? BLTColors.darkSurface : BLTColors.primary,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 20),
@@ -37,17 +38,18 @@ class LegalPage extends StatelessWidget {
             Container(
               padding: EdgeInsets.fromLTRB(0, 36, 0, 24),
               child: SvgPicture.asset(
-                'assets/blt_logo_dark.svg',
-                width: 169.42,
+                'assets/blt_wasp.svg',
+                height: 96,
+                semanticsLabel: 'OWASP BLT',
               ),
             ),
             Container(
               padding: EdgeInsets.fromLTRB(0, 0, 0, 24),
               child: Text(
                 AppLocalizations.of(context)!.byUsingBLTAppAgree,
-                style: GoogleFonts.aBeeZee(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFF737373),
+                    color: BLTColors.textMuted,
                   ),
                 ),
               ),
@@ -57,9 +59,9 @@ class LegalPage extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 AppLocalizations.of(context)!.termsAndConditions,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFFDC4654),
+                    color: BLTColors.primary,
                     fontSize: 15,
                   ),
                   fontWeight: FontWeight.bold,
@@ -81,10 +83,10 @@ class LegalPage extends StatelessWidget {
                         styleSheet: MarkdownStyleSheet.fromTheme(
                           ThemeData(
                             textTheme: TextTheme(
-                              bodyMedium: GoogleFonts.aBeeZee(
+                              bodyMedium: BLTFonts.system(
                                 textStyle: TextStyle(
                                   fontSize: 12,
-                                  color: Color(0xFF737373),
+                                  color: BLTColors.textMuted,
                                 ),
                               ),
                             ),
@@ -103,9 +105,9 @@ class LegalPage extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 AppLocalizations.of(context)!.privacyPolicy,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFFDC4654),
+                    color: BLTColors.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -126,10 +128,10 @@ class LegalPage extends StatelessWidget {
                         styleSheet: MarkdownStyleSheet.fromTheme(
                           ThemeData(
                             textTheme: TextTheme(
-                              bodyMedium: GoogleFonts.aBeeZee(
+                              bodyMedium: BLTFonts.system(
                                 textStyle: TextStyle(
                                   fontSize: 12,
-                                  color: Color(0xFF737373),
+                                  color: BLTColors.textMuted,
                                 ),
                               ),
                             ),

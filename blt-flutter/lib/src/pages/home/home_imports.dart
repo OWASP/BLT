@@ -1,4 +1,3 @@
-export 'package:google_fonts/google_fonts.dart';
 export 'package:flutter_riverpod/flutter_riverpod.dart';
 export '../../global/variables.dart';
 export 'package:blt/src/pages/home/issues.dart';

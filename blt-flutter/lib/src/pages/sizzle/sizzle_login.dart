@@ -1,6 +1,7 @@
 import 'package:blt/src/pages/pages_import.dart';
 import 'package:blt/src/pages/sizzle/sizzle_state_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:blt/src/util/brand.dart';
 
 // Define a provider for storing the username
 
@@ -76,7 +77,7 @@ class _SizzleLoginState extends ConsumerState<SizzleLogin> {
             width: size.width,
             height: size.height,
             color:
-                isDarkMode ? Color.fromRGBO(34, 22, 23, 1) : Color(0xFFDC4654),
+                isDarkMode ? BLTColors.darkBackground : BLTColors.primary,
           ),
           Positioned(
             bottom: 0,
@@ -85,7 +86,7 @@ class _SizzleLoginState extends ConsumerState<SizzleLogin> {
               height: size.height * 0.65,
               decoration: BoxDecoration(
                 color: isDarkMode
-                    ? Color.fromRGBO(42, 38, 38, 1)
+                    ? BLTColors.darkCard
                     : Theme.of(context).canvasColor,
                 boxShadow: [
                   BoxShadow(
@@ -129,8 +130,8 @@ class _SizzleLoginState extends ConsumerState<SizzleLogin> {
                             ),
                             backgroundColor: WidgetStateProperty.all(
                               isDarkMode
-                                  ? Color.fromRGBO(83, 49, 52, 1)
-                                  : Color(0xFFDC4654),
+                                  ? BLTColors.gray700
+                                  : BLTColors.primary,
                             ),
                           ),
                           child: Text(
@@ -141,7 +142,7 @@ class _SizzleLoginState extends ConsumerState<SizzleLogin> {
                       ] else ...[
                         Text(
                           'Welcome back, $storedUsername!',
-                          style: GoogleFonts.ubuntu(
+                          style: BLTFonts.system(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 20),
@@ -153,7 +154,7 @@ class _SizzleLoginState extends ConsumerState<SizzleLogin> {
                           style: ButtonStyle(
                             backgroundColor: WidgetStateProperty.all(
                               isDarkMode
-                                  ? Color.fromRGBO(10, 37, 157, 1)
+                                  ? BLTColors.primaryDark
                                   : Color.fromARGB(255, 5, 143, 255),
                             ),
                           ),
@@ -172,8 +173,8 @@ class _SizzleLoginState extends ConsumerState<SizzleLogin> {
                           style: ButtonStyle(
                             backgroundColor: WidgetStateProperty.all(
                               isDarkMode
-                                  ? Color.fromRGBO(83, 49, 52, 1)
-                                  : Color(0xFFDC4654),
+                                  ? BLTColors.gray700
+                                  : BLTColors.primary,
                             ),
                           ),
                           child: Text('Logout Sizzle',

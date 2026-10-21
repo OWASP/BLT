@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/drawer/drawer_imports.dart';
+import 'package:blt/src/util/brand.dart';
 
 class PreviousBugHunts extends ConsumerStatefulWidget {
   const PreviousBugHunts({Key? key}) : super(key: key);
@@ -28,11 +29,11 @@ class _PreviousBugHuntsState extends ConsumerState<PreviousBugHunts>
 
     return Scaffold(
       backgroundColor: isDarkMode
-          ? Color.fromRGBO(34, 22, 23, 1)
+          ? BLTColors.darkBackground
           : Theme.of(context).canvasColor,
       appBar: AppBar(
         backgroundColor:
-            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
+            isDarkMode ? BLTColors.darkSurface : BLTColors.primary,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
@@ -77,7 +78,7 @@ class _PreviousBugHuntsState extends ConsumerState<PreviousBugHunts>
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 width: size.width,
                 color: isDarkMode
-                    ? Color.fromRGBO(34, 22, 23, 1)
+                    ? BLTColors.darkBackground
                     : Theme.of(context).canvasColor,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,9 +87,9 @@ class _PreviousBugHuntsState extends ConsumerState<PreviousBugHunts>
                       padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                       child: Text(
                         "Previous Bug Hunts",
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFF737373),
+                            color: BLTColors.textMuted,
                             fontSize: 25,
                           ),
                         ),
@@ -98,9 +99,9 @@ class _PreviousBugHuntsState extends ConsumerState<PreviousBugHunts>
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                       child: Text(
                         "Check out the list of awesome Previous Bug Hunts going on. Maybe try to participate in them too?",
-                        style: GoogleFonts.aBeeZee(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFF737373),
+                            color: BLTColors.textMuted,
                           ),
                         ),
                       ),
@@ -156,7 +157,7 @@ class _PreviousBugHuntsState extends ConsumerState<PreviousBugHunts>
                         valueColor: animationController.drive(
                           ColorTween(
                             begin: Colors.blueAccent,
-                            end: Colors.red,
+                            end: BLTColors.primary,
                           ),
                         ),
                       ),

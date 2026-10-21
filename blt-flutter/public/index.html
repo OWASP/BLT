@@ -5,6 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OWASP BLT – Bug Logging Tool</title>
   <meta name="description" content="Report bugs, secure the web, and win points with OWASP BLT – the community-driven bug logging tool." />
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="icon" href="assets/blt-logo.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/app-icon.png" />
+
+  <!-- Theme before first paint: saved choice (localStorage "theme"), else the system preference -->
+  <script>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("theme"); } catch (e) { saved = null; }
+      var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", dark);
+    })();
+  </script>
+
+  <!-- OWASP BLT shared top bar -->
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 
   <!-- Tailwind CSS CDN (pinned to v3.4.3) -->
   <script src="https://cdn.tailwindcss.com/3.4.3"></script>
@@ -15,9 +31,9 @@
         extend: {
           colors: {
             brand: {
-              DEFAULT: '#E10101',
+              DEFAULT: '#dc2626',
               hover:   '#B91C1C',  /* red-700 */
-              light:   '#feeae9',
+              light:   '#fee2e2',
             },
             dark: {
               base:    '#111827',
@@ -41,75 +57,78 @@
 
     /* Brand gradient hero bg */
     .hero-gradient {
-      background: linear-gradient(135deg, #111827 0%, #1F2937 60%, #2d1a1a 100%);
+      background: linear-gradient(135deg, #030712 0%, #111827 55%, #1f2937 100%);
     }
 
     /* Phone mockup frame */
     .phone-frame {
-      border: 3px solid #E10101;
+      border: 3px solid #dc2626;
       border-radius: 2.5rem;
-      box-shadow: 0 25px 60px rgba(225, 1, 1, 0.25), 0 8px 24px rgba(0,0,0,0.5);
+      box-shadow: 0 25px 60px rgba(220, 38, 38, 0.25), 0 8px 24px rgba(0,0,0,0.5);
     }
 
     /* Feature card hover */
+    /* Dark mode: BLT red reads as red-500 on gray surfaces */
+    html.dark .text-\[\#dc2626\] { color: #ef4444; }
+
     .feature-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(225,1,1,0.12);
+      box-shadow: 0 12px 32px rgba(220,38,38,0.12);
     }
   </style>
 </head>
 
-<body class="bg-white text-gray-900 antialiased">
+<body class="bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
 
   <!-- ══════════════════════════════ NAVBAR ══════════════════════════════ -->
-  <header class="sticky top-0 z-50 bg-white border-b border-[#E5E5E5] shadow-sm">
+  <header class="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm dark:bg-gray-900 dark:border-gray-800">
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
       <!-- Logo -->
-      <a href="#" class="flex items-center gap-2 shrink-0" aria-label="BLT Home">
-        <img src="assets/blt_logo.svg" alt="BLT Logo" class="h-8 w-auto" />
-        <span class="font-bold text-xl text-[#E10101] tracking-tight">BLT</span>
+      <a href="#" class="flex items-center gap-2 shrink-0" aria-label="BLT-Flutter home">
+        <img src="assets/blt-flutter-logo.svg" alt="" class="h-8 w-8" />
+        <span class="font-bold text-xl text-gray-900 dark:text-white tracking-tight">BLT-Flutter</span>
       </a>
 
       <!-- Nav links (desktop) -->
-      <ul class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-700">
-        <li><a href="#features" class="hover:text-[#E10101] hover:underline transition-colors">Features</a></li>
-        <li><a href="#screenshots" class="hover:text-[#E10101] hover:underline transition-colors">Screenshots</a></li>
-        <li><a href="#download" class="hover:text-[#E10101] hover:underline transition-colors">Download</a></li>
+      <ul class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-700 dark:text-gray-300">
+        <li><a href="#features" class="hover:text-[#dc2626] hover:underline transition-colors">Features</a></li>
+        <li><a href="#screenshots" class="hover:text-[#dc2626] hover:underline transition-colors">Screenshots</a></li>
+        <li><a href="#download" class="hover:text-[#dc2626] hover:underline transition-colors">Download</a></li>
         <li>
           <a href="https://git.owaspblt.org/BLT/BLT-Flutter"
              target="_blank" rel="noopener"
-             class="hover:text-[#E10101] hover:underline transition-colors flex items-center gap-1">
+             class="hover:text-[#dc2626] hover:underline transition-colors flex items-center gap-1">
             <i class="fa-brands fa-github" aria-hidden="true"></i>Source Code</a>
         </li>
       </ul>
 
       <!-- CTA button (desktop) -->
       <a href="#download"
-         class="hidden md:inline-flex items-center gap-2 bg-[#E10101] hover:bg-[#B91C1C] text-white text-sm font-semibold px-5 py-2 rounded-md transition-colors">
+         class="hidden md:inline-flex items-center gap-2 bg-[#dc2626] hover:bg-[#B91C1C] text-white text-sm font-semibold px-5 py-2 rounded-md transition-colors">
         <i class="fa-solid fa-download" aria-hidden="true"></i> Get the App
       </a>
 
       <!-- Mobile menu toggle (accessible) -->
       <button id="mobile-menu-btn"
               type="button"
-              class="md:hidden p-2 rounded-md text-gray-600 hover:text-[#E10101] hover:bg-[#feeae9] transition-colors"
+              class="md:hidden p-2 rounded-md text-gray-600 hover:text-[#dc2626] hover:bg-[#fee2e2] dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
               aria-expanded="false" aria-controls="mobile-menu"
-              aria-label="Toggle navigation">
-        <i class="fa-solid fa-bars text-lg" aria-hidden="true"></i>
+              aria-label="BLT-Flutter menu">
+        <i class="fa-solid fa-ellipsis text-lg" aria-hidden="true"></i>
       </button>
     </nav>
 
     <!-- Mobile menu -->
-    <div id="mobile-menu" class="hidden md:hidden border-t border-[#E5E5E5] px-4 pb-4 pt-2 space-y-2 bg-white">
-      <a href="#features"  class="block py-2 text-sm font-medium text-gray-700 hover:text-[#E10101]">Features</a>
-      <a href="#screenshots" class="block py-2 text-sm font-medium text-gray-700 hover:text-[#E10101]">Screenshots</a>
-      <a href="#download"  class="block py-2 text-sm font-medium text-gray-700 hover:text-[#E10101]">Download</a>
+    <div id="mobile-menu" class="hidden md:hidden border-t border-gray-200 px-4 pb-4 pt-2 space-y-2 bg-white dark:bg-gray-900 dark:border-gray-800">
+      <a href="#features"  class="block py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#dc2626]">Features</a>
+      <a href="#screenshots" class="block py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#dc2626]">Screenshots</a>
+      <a href="#download"  class="block py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#dc2626]">Download</a>
       <a href="https://git.owaspblt.org/BLT/BLT-Flutter"
          target="_blank" rel="noopener"
-         class="block py-2 text-sm font-medium text-gray-700 hover:text-[#E10101]">
+         class="block py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#dc2626]">
         <i class="fa-brands fa-github mr-1" aria-hidden="true"></i>Source Code</a>
       <a href="#download"
-         class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-[#B91C1C] text-white text-sm font-semibold px-5 py-2 rounded-md transition-colors mt-2">
+         class="inline-flex items-center gap-2 bg-[#dc2626] hover:bg-[#B91C1C] text-white text-sm font-semibold px-5 py-2 rounded-md transition-colors mt-2">
         <i class="fa-solid fa-download" aria-hidden="true"></i> Get the App
       </a>
     </div>
@@ -131,13 +150,13 @@
       <!-- Text column -->
       <div class="flex-1 text-center lg:text-left">
         <!-- Badge -->
-        <span class="inline-flex items-center gap-2 bg-[#E10101]/20 text-[#feeae9] text-xs font-semibold px-3 py-1 rounded-full mb-6 border border-[#E10101]/40">
+        <span class="inline-flex items-center gap-2 bg-[#dc2626]/20 text-[#fee2e2] text-xs font-semibold px-3 py-1 rounded-full mb-6 border border-[#dc2626]/40">
           <i class="fa-solid fa-shield-halved" aria-hidden="true"></i> OWASP Official Project
         </span>
 
         <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
           Report Bugs.<br />
-          <span class="text-[#E10101]">Secure the Web.</span><br />
+          <span class="text-[#dc2626]">Secure the Web.</span><br />
           Win Points.
         </h1>
 
@@ -151,13 +170,13 @@
         <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
           <a href="https://play.google.com/store/apps/details?id=org.owasp.blt"
              target="_blank" rel="noopener"
-             class="inline-flex items-center justify-center gap-3 bg-[#E10101] hover:bg-[#B91C1C] text-white font-semibold px-6 py-3 rounded-md transition-colors text-base">
+             class="inline-flex items-center justify-center gap-3 bg-[#dc2626] hover:bg-[#B91C1C] text-white font-semibold px-6 py-3 rounded-md transition-colors text-base">
             <i class="fa-brands fa-google-play text-lg" aria-hidden="true"></i>
             <span>Google Play</span>
           </a>
           <a href="https://apps.apple.com/app/owasp-blt/id6450837545"
              target="_blank" rel="noopener"
-             class="inline-flex items-center justify-center gap-3 border border-white hover:border-[#E10101] hover:text-[#E10101] text-white font-semibold px-6 py-3 rounded-md transition-colors text-base">
+             class="inline-flex items-center justify-center gap-3 border border-white hover:border-[#dc2626] hover:text-[#dc2626] text-white font-semibold px-6 py-3 rounded-md transition-colors text-base">
             <i class="fa-brands fa-apple text-lg" aria-hidden="true"></i>
             <span>App Store</span>
           </a>
@@ -166,15 +185,15 @@
         <!-- Stats row -->
         <div class="mt-12 flex flex-wrap justify-center lg:justify-start gap-8 text-center">
           <div>
-            <p class="text-3xl font-extrabold text-[#E10101]">Open</p>
+            <p class="text-3xl font-extrabold text-[#dc2626]">Open</p>
             <p class="text-gray-400 text-sm mt-1">Source</p>
           </div>
           <div class="border-l border-white/10 pl-8">
-            <p class="text-3xl font-extrabold text-[#E10101]">OWASP</p>
+            <p class="text-3xl font-extrabold text-[#dc2626]">OWASP</p>
             <p class="text-gray-400 text-sm mt-1">Backed</p>
           </div>
           <div class="border-l border-white/10 pl-8">
-            <p class="text-3xl font-extrabold text-[#E10101]">Free</p>
+            <p class="text-3xl font-extrabold text-[#dc2626]">Free</p>
             <p class="text-gray-400 text-sm mt-1">Forever</p>
           </div>
         </div>
@@ -184,7 +203,7 @@
       <div class="flex-shrink-0 flex justify-center lg:justify-end w-full lg:w-auto">
         <div class="relative">
           <!-- Decorative glow -->
-          <div class="absolute inset-0 rounded-[2.5rem] bg-[#E10101]/20 blur-2xl scale-110 -z-10"></div>
+          <div class="absolute inset-0 rounded-[2.5rem] bg-[#dc2626]/20 blur-2xl scale-110 -z-10"></div>
           <!-- Phone frame -->
           <div class="phone-frame w-56 sm:w-64 overflow-hidden bg-[#111827]">
             <!-- Status bar mock -->
@@ -198,25 +217,25 @@
             </div>
             <!-- App screenshot placeholder with brand styling -->
             <div class="bg-[#1F2937] h-[440px] sm:h-[500px] flex flex-col items-center justify-center px-4 text-center">
-              <img src="assets/blt_logo.svg" alt="BLT App" class="w-20 h-20 mb-6 drop-shadow-lg" />
-              <p class="text-[#E10101] font-bold text-xl mb-2">OWASP BLT</p>
+              <img src="assets/app-icon.png" alt="BLT app icon" class="w-20 h-20 mb-6 drop-shadow-lg" />
+              <p class="text-[#dc2626] font-bold text-xl mb-2">OWASP BLT</p>
               <p class="text-gray-400 text-xs leading-relaxed">Bug Logging Tool</p>
               <div class="mt-6 w-full space-y-3 px-2">
                 <div class="bg-[#111827] rounded-lg p-3 text-left">
                   <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-bug text-[#E10101] text-sm" aria-hidden="true"></i>
+                    <i class="fa-solid fa-bug text-[#dc2626] text-sm" aria-hidden="true"></i>
                     <span class="text-white text-xs font-medium">Report a Bug</span>
                   </div>
                 </div>
                 <div class="bg-[#111827] rounded-lg p-3 text-left">
                   <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-trophy text-[#E10101] text-sm" aria-hidden="true"></i>
+                    <i class="fa-solid fa-trophy text-[#dc2626] text-sm" aria-hidden="true"></i>
                     <span class="text-white text-xs font-medium">Leaderboard</span>
                   </div>
                 </div>
                 <div class="bg-[#111827] rounded-lg p-3 text-left">
                   <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-magnifying-glass text-[#E10101] text-sm" aria-hidden="true"></i>
+                    <i class="fa-solid fa-magnifying-glass text-[#dc2626] text-sm" aria-hidden="true"></i>
                     <span class="text-white text-xs font-medium">Browse Issues</span>
                   </div>
                 </div>
@@ -230,12 +249,12 @@
   </section>
 
   <!-- ══════════════════════════════ FEATURES ══════════════════════════════ -->
-  <section id="features" class="py-20 bg-gray-50">
+  <section id="features" class="py-20 bg-gray-50 dark:bg-gray-950">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Section header -->
       <div class="text-center mb-14">
-        <span class="text-[#E10101] text-sm font-semibold tracking-widest uppercase">Why BLT?</span>
-        <h2 class="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900">Everything you need to hunt bugs</h2>
+        <span class="text-[#dc2626] text-sm font-semibold tracking-widest uppercase">Why BLT?</span>
+        <h2 class="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">Everything you need to hunt bugs</h2>
         <p class="mt-4 text-gray-500 max-w-2xl mx-auto text-lg">
           A full-featured, open-source bug reporting platform built for security researchers, developers, and anyone who wants a better internet.
         </p>
@@ -245,62 +264,62 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
         <!-- Feature card -->
-        <div class="feature-card bg-white border border-[#E5E5E5] rounded-xl p-7 transition-all duration-200">
-          <div class="w-12 h-12 rounded-lg bg-[#feeae9] flex items-center justify-center mb-5">
-            <i class="fa-solid fa-bug text-[#E10101] text-xl" aria-hidden="true"></i>
+        <div class="feature-card bg-white border border-gray-200 rounded-2xl dark:bg-gray-900 dark:border-gray-800 p-7 transition-all duration-200">
+          <div class="w-12 h-12 rounded-lg bg-[#fee2e2] dark:bg-red-500/10 flex items-center justify-center mb-5">
+            <i class="fa-solid fa-bug text-[#dc2626] text-xl" aria-hidden="true"></i>
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">Report Any Bug</h3>
-          <p class="text-gray-500 text-sm leading-relaxed">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Report Any Bug</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
             Capture and report any type of issue — from broken UI to critical security vulnerabilities — directly from your phone.
           </p>
         </div>
 
-        <div class="feature-card bg-white border border-[#E5E5E5] rounded-xl p-7 transition-all duration-200">
-          <div class="w-12 h-12 rounded-lg bg-[#feeae9] flex items-center justify-center mb-5">
-            <i class="fa-solid fa-trophy text-[#E10101] text-xl" aria-hidden="true"></i>
+        <div class="feature-card bg-white border border-gray-200 rounded-2xl dark:bg-gray-900 dark:border-gray-800 p-7 transition-all duration-200">
+          <div class="w-12 h-12 rounded-lg bg-[#fee2e2] dark:bg-red-500/10 flex items-center justify-center mb-5">
+            <i class="fa-solid fa-trophy text-[#dc2626] text-xl" aria-hidden="true"></i>
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">Earn Points &amp; Rewards</h3>
-          <p class="text-gray-500 text-sm leading-relaxed">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Earn Points &amp; Rewards</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
             Every valid bug you report earns you points. Climb the leaderboard and get recognised by companies and the security community.
           </p>
         </div>
 
-        <div class="feature-card bg-white border border-[#E5E5E5] rounded-xl p-7 transition-all duration-200">
-          <div class="w-12 h-12 rounded-lg bg-[#feeae9] flex items-center justify-center mb-5">
-            <i class="fa-solid fa-flag text-[#E10101] text-xl" aria-hidden="true"></i>
+        <div class="feature-card bg-white border border-gray-200 rounded-2xl dark:bg-gray-900 dark:border-gray-800 p-7 transition-all duration-200">
+          <div class="w-12 h-12 rounded-lg bg-[#fee2e2] dark:bg-red-500/10 flex items-center justify-center mb-5">
+            <i class="fa-solid fa-flag text-[#dc2626] text-xl" aria-hidden="true"></i>
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">Bug Hunt Programs</h3>
-          <p class="text-gray-500 text-sm leading-relaxed">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Bug Hunt Programs</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
             Organisations can launch bug hunt programs with prize pools, giving hunters incentive to find every possible issue.
           </p>
         </div>
 
-        <div class="feature-card bg-white border border-[#E5E5E5] rounded-xl p-7 transition-all duration-200">
-          <div class="w-12 h-12 rounded-lg bg-[#feeae9] flex items-center justify-center mb-5">
-            <i class="fa-solid fa-shield-halved text-[#E10101] text-xl" aria-hidden="true"></i>
+        <div class="feature-card bg-white border border-gray-200 rounded-2xl dark:bg-gray-900 dark:border-gray-800 p-7 transition-all duration-200">
+          <div class="w-12 h-12 rounded-lg bg-[#fee2e2] dark:bg-red-500/10 flex items-center justify-center mb-5">
+            <i class="fa-solid fa-shield-halved text-[#dc2626] text-xl" aria-hidden="true"></i>
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">OWASP Backed</h3>
-          <p class="text-gray-500 text-sm leading-relaxed">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">OWASP Backed</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
             Developed under the OWASP umbrella, BLT follows rigorous security standards and best practices.
           </p>
         </div>
 
-        <div class="feature-card bg-white border border-[#E5E5E5] rounded-xl p-7 transition-all duration-200">
-          <div class="w-12 h-12 rounded-lg bg-[#feeae9] flex items-center justify-center mb-5">
-            <i class="fa-solid fa-users text-[#E10101] text-xl" aria-hidden="true"></i>
+        <div class="feature-card bg-white border border-gray-200 rounded-2xl dark:bg-gray-900 dark:border-gray-800 p-7 transition-all duration-200">
+          <div class="w-12 h-12 rounded-lg bg-[#fee2e2] dark:bg-red-500/10 flex items-center justify-center mb-5">
+            <i class="fa-solid fa-users text-[#dc2626] text-xl" aria-hidden="true"></i>
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">Community Driven</h3>
-          <p class="text-gray-500 text-sm leading-relaxed">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Community Driven</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
             A global community of bug hunters and security researchers collaborating to make the web safer for everyone.
           </p>
         </div>
 
-        <div class="feature-card bg-white border border-[#E5E5E5] rounded-xl p-7 transition-all duration-200">
-          <div class="w-12 h-12 rounded-lg bg-[#feeae9] flex items-center justify-center mb-5">
-            <i class="fa-brands fa-github text-[#E10101] text-xl" aria-hidden="true"></i>
+        <div class="feature-card bg-white border border-gray-200 rounded-2xl dark:bg-gray-900 dark:border-gray-800 p-7 transition-all duration-200">
+          <div class="w-12 h-12 rounded-lg bg-[#fee2e2] dark:bg-red-500/10 flex items-center justify-center mb-5">
+            <i class="fa-brands fa-github text-[#dc2626] text-xl" aria-hidden="true"></i>
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">Fully Open Source</h3>
-          <p class="text-gray-500 text-sm leading-relaxed">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Fully Open Source</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
             Every line of code is open source. Contribute, audit, and improve the platform on GitHub.
           </p>
         </div>
@@ -310,13 +329,13 @@
   </section>
 
   <!-- ══════════════════════════════ SCREENSHOTS ══════════════════════════════ -->
-  <section id="screenshots" class="py-20 bg-white">
+  <section id="screenshots" class="py-20 bg-white dark:bg-gray-900">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Section header -->
       <div class="text-center mb-14">
-        <span class="text-[#E10101] text-sm font-semibold tracking-widest uppercase">App Previews</span>
-        <h2 class="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900">Built for bug hunters</h2>
-        <p class="mt-4 text-gray-500 max-w-xl mx-auto text-lg">
+        <span class="text-[#dc2626] text-sm font-semibold tracking-widest uppercase">App Previews</span>
+        <h2 class="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">Built for bug hunters</h2>
+        <p class="mt-4 text-gray-500 dark:text-gray-400 max-w-xl mx-auto text-lg">
           A clean, fast mobile experience designed to make reporting bugs as frictionless as possible.
         </p>
       </div>
@@ -343,8 +362,8 @@
               <div class="mt-2 space-y-2">
                 <div class="bg-[#111827] rounded-lg p-2">
                   <div class="flex items-start gap-2">
-                    <div class="w-6 h-6 rounded bg-[#feeae9] flex items-center justify-center shrink-0">
-                      <i class="fa-solid fa-bug text-[#E10101] text-xs" aria-hidden="true"></i>
+                    <div class="w-6 h-6 rounded bg-[#fee2e2] flex items-center justify-center shrink-0">
+                      <i class="fa-solid fa-bug text-[#dc2626] text-xs" aria-hidden="true"></i>
                     </div>
                     <div>
                       <p class="text-white text-xs font-medium">Login button misaligned</p>
@@ -354,8 +373,8 @@
                 </div>
                 <div class="bg-[#111827] rounded-lg p-2">
                   <div class="flex items-start gap-2">
-                    <div class="w-6 h-6 rounded bg-[#feeae9] flex items-center justify-center shrink-0">
-                      <i class="fa-solid fa-triangle-exclamation text-[#E10101] text-xs" aria-hidden="true"></i>
+                    <div class="w-6 h-6 rounded bg-[#fee2e2] flex items-center justify-center shrink-0">
+                      <i class="fa-solid fa-triangle-exclamation text-[#dc2626] text-xs" aria-hidden="true"></i>
                     </div>
                     <div>
                       <p class="text-white text-xs font-medium">XSS in search field</p>
@@ -365,8 +384,8 @@
                 </div>
                 <div class="bg-[#111827] rounded-lg p-2">
                   <div class="flex items-start gap-2">
-                    <div class="w-6 h-6 rounded bg-[#feeae9] flex items-center justify-center shrink-0">
-                      <i class="fa-solid fa-link-slash text-[#E10101] text-xs" aria-hidden="true"></i>
+                    <div class="w-6 h-6 rounded bg-[#fee2e2] flex items-center justify-center shrink-0">
+                      <i class="fa-solid fa-link-slash text-[#dc2626] text-xs" aria-hidden="true"></i>
                     </div>
                     <div>
                       <p class="text-white text-xs font-medium">Broken 404 redirect</p>
@@ -410,7 +429,7 @@
                   <i class="fa-solid fa-camera text-gray-600 text-sm" aria-hidden="true"></i>
                 </div>
               </div>
-              <div class="w-full bg-[#E10101] rounded py-2 text-center">
+              <div class="w-full bg-[#dc2626] rounded py-2 text-center">
                 <span class="text-white text-xs font-semibold">Submit Report</span>
               </div>
             </div>
@@ -440,10 +459,10 @@
                 </div>
                 <div class="text-center">
                   <i class="fa-solid fa-crown text-yellow-400 text-sm mb-1 block" aria-hidden="true"></i>
-                  <div class="w-9 h-9 rounded-full bg-[#E10101] mx-auto mb-1 flex items-center justify-center">
+                  <div class="w-9 h-9 rounded-full bg-[#dc2626] mx-auto mb-1 flex items-center justify-center">
                     <i class="fa-solid fa-user text-white text-xs" aria-hidden="true"></i>
                   </div>
-                  <div class="bg-[#E10101] rounded-t w-10 h-14 flex items-end justify-center pb-1">
+                  <div class="bg-[#dc2626] rounded-t w-10 h-14 flex items-end justify-center pb-1">
                     <span class="text-white text-[10px] font-bold">1</span>
                   </div>
                 </div>
@@ -459,10 +478,10 @@
               <div class="space-y-1">
                 <div class="bg-[#111827] rounded flex items-center justify-between px-2 py-1">
                   <div class="flex items-center gap-1">
-                    <span class="text-[#E10101] text-[10px] font-bold w-4">1</span>
+                    <span class="text-[#dc2626] text-[10px] font-bold w-4">1</span>
                     <span class="text-white text-[10px]">hunter_pro</span>
                   </div>
-                  <span class="text-[#E10101] text-[10px] font-bold">4,280</span>
+                  <span class="text-[#dc2626] text-[10px] font-bold">4,280</span>
                 </div>
                 <div class="bg-[#111827] rounded flex items-center justify-between px-2 py-1">
                   <div class="flex items-center gap-1">
@@ -489,46 +508,46 @@
   </section>
 
   <!-- ══════════════════════════════ HOW IT WORKS ══════════════════════════════ -->
-  <section class="py-20 bg-gray-50">
+  <section class="py-20 bg-gray-50 dark:bg-gray-950">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-14">
-        <span class="text-[#E10101] text-sm font-semibold tracking-widest uppercase">Simple Process</span>
-        <h2 class="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900">How BLT works</h2>
+        <span class="text-[#dc2626] text-sm font-semibold tracking-widest uppercase">Simple Process</span>
+        <h2 class="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">How BLT works</h2>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
         <!-- Connector line (desktop) -->
-        <div class="hidden md:block absolute top-10 left-1/3 right-1/3 h-0.5 bg-[#E5E5E5] -translate-y-1/2" aria-hidden="true"></div>
+        <div class="hidden md:block absolute top-10 left-1/3 right-1/3 h-0.5 bg-gray-200 dark:bg-gray-800 -translate-y-1/2" aria-hidden="true"></div>
 
         <!-- Step 1 -->
         <div class="text-center">
-          <div class="w-20 h-20 rounded-full bg-[#feeae9] border-2 border-[#E10101] flex items-center justify-center mx-auto mb-5 relative z-10">
-            <i class="fa-solid fa-magnifying-glass text-[#E10101] text-2xl" aria-hidden="true"></i>
+          <div class="w-20 h-20 rounded-full bg-[#fee2e2] dark:bg-gray-900 border-2 border-[#dc2626] flex items-center justify-center mx-auto mb-5 relative z-10">
+            <i class="fa-solid fa-magnifying-glass text-[#dc2626] text-2xl" aria-hidden="true"></i>
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">1. Find a Bug</h3>
-          <p class="text-gray-500 text-sm leading-relaxed max-w-xs mx-auto">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">1. Find a Bug</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-xs mx-auto">
             Spot any issue on a website or app — visual bugs, broken links, or security flaws.
           </p>
         </div>
 
         <!-- Step 2 -->
         <div class="text-center">
-          <div class="w-20 h-20 rounded-full bg-[#feeae9] border-2 border-[#E10101] flex items-center justify-center mx-auto mb-5 relative z-10">
-            <i class="fa-solid fa-paper-plane text-[#E10101] text-2xl" aria-hidden="true"></i>
+          <div class="w-20 h-20 rounded-full bg-[#fee2e2] dark:bg-gray-900 border-2 border-[#dc2626] flex items-center justify-center mx-auto mb-5 relative z-10">
+            <i class="fa-solid fa-paper-plane text-[#dc2626] text-2xl" aria-hidden="true"></i>
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">2. Report It</h3>
-          <p class="text-gray-500 text-sm leading-relaxed max-w-xs mx-auto">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">2. Report It</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-xs mx-auto">
             Submit a detailed report with a screenshot right from the BLT app in seconds.
           </p>
         </div>
 
         <!-- Step 3 -->
         <div class="text-center">
-          <div class="w-20 h-20 rounded-full bg-[#feeae9] border-2 border-[#E10101] flex items-center justify-center mx-auto mb-5 relative z-10">
-            <i class="fa-solid fa-star text-[#E10101] text-2xl" aria-hidden="true"></i>
+          <div class="w-20 h-20 rounded-full bg-[#fee2e2] dark:bg-gray-900 border-2 border-[#dc2626] flex items-center justify-center mx-auto mb-5 relative z-10">
+            <i class="fa-solid fa-star text-[#dc2626] text-2xl" aria-hidden="true"></i>
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-2">3. Earn Rewards</h3>
-          <p class="text-gray-500 text-sm leading-relaxed max-w-xs mx-auto">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">3. Earn Rewards</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-xs mx-auto">
             Get points for every accepted bug. Earn recognition, badges, and prizes from companies.
           </p>
         </div>
@@ -539,7 +558,7 @@
   <!-- ══════════════════════════════ DOWNLOAD ══════════════════════════════ -->
   <section id="download" class="hero-gradient py-20 text-white">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <img src="assets/logo_white.svg" alt="BLT" class="w-16 h-16 mx-auto mb-6" />
+      <img src="assets/blt-logo.svg" alt="OWASP BLT" class="w-16 h-16 mx-auto mb-6" />
       <h2 class="text-3xl sm:text-4xl font-extrabold mb-4">
         Start hunting bugs today
       </h2>
@@ -554,7 +573,7 @@
            target="_blank" rel="noopener"
            class="inline-flex items-center gap-3 bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-4 rounded-xl transition-colors group"
            aria-label="Download on Google Play">
-          <i class="fa-brands fa-google-play text-2xl text-[#E10101] group-hover:scale-110 transition-transform" aria-hidden="true"></i>
+          <i class="fa-brands fa-google-play text-2xl text-[#dc2626] group-hover:scale-110 transition-transform" aria-hidden="true"></i>
           <div class="text-left">
             <p class="text-gray-500 text-xs">Get it on</p>
             <p class="text-gray-900 font-bold text-base leading-tight">Google Play</p>
@@ -579,7 +598,7 @@
         Prefer to build from source?
         <a href="https://git.owaspblt.org/BLT/BLT-Flutter"
            target="_blank" rel="noopener"
-           class="text-[#E10101] hover:underline font-medium ml-1">
+           class="text-[#dc2626] hover:underline font-medium ml-1">
           <i class="fa-brands fa-github" aria-hidden="true"></i> View on GitHub
         </a>
       </p>
@@ -594,7 +613,7 @@
         <!-- Brand column -->
         <div class="md:col-span-1">
           <a href="#" class="flex items-center gap-2 mb-4" aria-label="BLT Home">
-            <img src="assets/logo_white.svg" alt="BLT" class="h-8 w-auto" />
+            <img src="assets/blt-logo.svg" alt="" class="h-8 w-8" />
             <span class="text-white font-bold text-lg">OWASP BLT</span>
           </a>
           <p class="text-sm leading-relaxed">
@@ -604,13 +623,13 @@
           <div class="flex gap-3 mt-4">
             <a href="https://git.owaspblt.org/BLT/BLT-Flutter"
                target="_blank" rel="noopener"
-               class="text-gray-500 hover:text-[#E10101] transition-colors"
+               class="text-gray-500 hover:text-[#dc2626] transition-colors"
                aria-label="Source Code">
               <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
             </a>
             <a href="https://owasp.org/slack/invite"
                target="_blank" rel="noopener"
-               class="text-gray-500 hover:text-[#E10101] transition-colors"
+               class="text-gray-500 hover:text-[#dc2626] transition-colors"
                aria-label="OWASP Slack">
               <i class="fa-brands fa-slack text-xl" aria-hidden="true"></i>
             </a>
@@ -621,9 +640,9 @@
         <div>
           <h4 class="text-white text-sm font-semibold mb-4 uppercase tracking-wider">Project</h4>
           <ul class="space-y-2 text-sm">
-            <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener" class="hover:text-[#E10101] hover:underline transition-colors">OWASP Page</a></li>
-            <li><a href="https://git.owaspblt.org/BLT/BLT-Flutter/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener" class="hover:text-[#E10101] hover:underline transition-colors">Contributing</a></li>
-            <li><a href="https://git.owaspblt.org/BLT/BLT-Flutter/blob/main/LICENSE" target="_blank" rel="noopener" class="hover:text-[#E10101] hover:underline transition-colors">License</a></li>
+            <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener" class="hover:text-[#dc2626] hover:underline transition-colors">OWASP Page</a></li>
+            <li><a href="https://git.owaspblt.org/BLT/BLT-Flutter/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener" class="hover:text-[#dc2626] hover:underline transition-colors">Contributing</a></li>
+            <li><a href="https://git.owaspblt.org/BLT/BLT-Flutter/blob/main/LICENSE" target="_blank" rel="noopener" class="hover:text-[#dc2626] hover:underline transition-colors">License</a></li>
           </ul>
         </div>
 
@@ -631,9 +650,9 @@
         <div>
           <h4 class="text-white text-sm font-semibold mb-4 uppercase tracking-wider">Related</h4>
           <ul class="space-y-2 text-sm">
-            <li><a href="https://github.com/OWASP/BLT" target="_blank" rel="noopener" class="hover:text-[#E10101] hover:underline transition-colors">BLT Core</a></li>
-            <li><a href="https://github.com/OWASP/BLT-Extension" target="_blank" rel="noopener" class="hover:text-[#E10101] hover:underline transition-colors">BLT Extension</a></li>
-            <li><a href="https://github.com/OWASP/BLT-Action" target="_blank" rel="noopener" class="hover:text-[#E10101] hover:underline transition-colors">BLT Action</a></li>
+            <li><a href="https://github.com/OWASP/BLT" target="_blank" rel="noopener" class="hover:text-[#dc2626] hover:underline transition-colors">BLT Core</a></li>
+            <li><a href="https://github.com/OWASP/BLT-Extension" target="_blank" rel="noopener" class="hover:text-[#dc2626] hover:underline transition-colors">BLT Extension</a></li>
+            <li><a href="https://github.com/OWASP/BLT-Action" target="_blank" rel="noopener" class="hover:text-[#dc2626] hover:underline transition-colors">BLT Action</a></li>
           </ul>
         </div>
 
@@ -642,11 +661,11 @@
           <h4 class="text-white text-sm font-semibold mb-4 uppercase tracking-wider">Community</h4>
           <ul class="space-y-2 text-sm">
             <li>
-              <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener" class="hover:text-[#E10101] hover:underline transition-colors">
+              <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener" class="hover:text-[#dc2626] hover:underline transition-colors">
                 OWASP Slack <span class="text-gray-600">#project-blt</span>
               </a>
             </li>
-            <li><a href="https://git.owaspblt.org/BLT/issues" target="_blank" rel="noopener" class="hover:text-[#E10101] hover:underline transition-colors">Report an Issue</a></li>
+            <li><a href="https://git.owaspblt.org/BLT/issues" target="_blank" rel="noopener" class="hover:text-[#dc2626] hover:underline transition-colors">Report an Issue</a></li>
           </ul>
         </div>
 
@@ -657,10 +676,10 @@
         <p>© 2024 OWASP BLT. Released under the
           <a href="https://git.owaspblt.org/BLT/BLT-Flutter/blob/main/LICENSE"
              target="_blank" rel="noopener"
-             class="text-[#E10101] hover:underline">BSD 3-Clause License</a>.
+             class="text-[#dc2626] hover:underline">BSD 3-Clause License</a>.
         </p>
         <p class="flex items-center gap-1">
-          Made with <i class="fa-solid fa-heart text-[#E10101]" aria-hidden="true"></i> by the OWASP community
+          Made with <i class="fa-solid fa-heart text-[#dc2626]" aria-hidden="true"></i> by the OWASP community
         </p>
       </div>
     </div>

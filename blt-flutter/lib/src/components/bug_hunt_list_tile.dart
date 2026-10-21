@@ -1,4 +1,5 @@
 import './components_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 class BugHuntListTile extends StatelessWidget {
   const BugHuntListTile({super.key, required this.hunt});
@@ -10,7 +11,7 @@ class BugHuntListTile extends StatelessWidget {
     return Card(
       elevation: 0,
       clipBehavior: Clip.antiAlias,
-      color: Color(0xFF737373).withOpacity(0.15),
+      color: BLTColors.textMuted.withOpacity(0.15),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -54,9 +55,9 @@ class BugHuntListTile extends StatelessWidget {
                           hunt.name,
                           overflow: TextOverflow.ellipsis,
                           softWrap: true,
-                          style: GoogleFonts.ubuntu(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
-                              color: Color(0xFFDC4654),
+                              color: BLTColors.primary,
                               fontSize: 18,
                             ),
                             fontWeight: FontWeight.bold,
@@ -74,11 +75,11 @@ class BugHuntListTile extends StatelessWidget {
                               'Starts on : ${monthsInYear[hunt.startsOn?.month]} ${hunt.startsOn?.day} ${hunt.startsOn?.year}',
                               overflow: TextOverflow.ellipsis,
                               softWrap: true,
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF737373),
+                                  color: BLTColors.textMuted,
                                 ),
                               ),
                             ),
@@ -97,11 +98,11 @@ class BugHuntListTile extends StatelessWidget {
                               'Ends on : ${monthsInYear[hunt.endsOn?.month]} ${hunt.endsOn?.day} ${hunt.endsOn?.year}',
                               overflow: TextOverflow.ellipsis,
                               softWrap: true,
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF737373),
+                                  color: BLTColors.textMuted,
                                 ),
                               ),
                             ),
@@ -124,7 +125,7 @@ class BugHuntListTile extends StatelessWidget {
                                 '${hunt.url}',
                                 overflow: TextOverflow.ellipsis,
                                 softWrap: true,
-                                style: GoogleFonts.aBeeZee(
+                                style: BLTFonts.system(
                                   textStyle: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
@@ -143,7 +144,7 @@ class BugHuntListTile extends StatelessWidget {
                               ' \$ ',
                               overflow: TextOverflow.ellipsis,
                               softWrap: true,
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600,
@@ -156,11 +157,11 @@ class BugHuntListTile extends StatelessWidget {
                               '${hunt.prize}',
                               overflow: TextOverflow.ellipsis,
                               softWrap: true,
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF737373),
+                                  color: BLTColors.textMuted,
                                 ),
                               ),
                             ),

@@ -52,8 +52,7 @@ class BLTState extends State<BLT> {
               title: 'BLT',
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
-              themeMode:
-                  themeMode.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              themeMode: themeMode.themeMode,
               home: Scaffold(body: OnboardingMainPage()),
             );
           },

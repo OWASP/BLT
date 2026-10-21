@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/drawer/drawer_imports.dart';
+import 'package:blt/src/util/brand.dart';
 
 class OWASPDonationWebView extends StatefulWidget {
   const OWASPDonationWebView({super.key, required this.selectedIndex});
@@ -15,11 +16,11 @@ class _OWASPDonationWebViewState extends State<OWASPDonationWebView> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: isDarkMode
-          ? Color.fromRGBO(34, 22, 23, 1)
+          ? BLTColors.darkBackground
           : Theme.of(context).canvasColor,
       appBar: AppBar(
         backgroundColor:
-            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
+            isDarkMode ? BLTColors.darkSurface : BLTColors.primary,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,

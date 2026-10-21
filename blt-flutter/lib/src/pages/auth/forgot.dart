@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// Page for initiating the process for recovering
 /// a user's account password.
@@ -53,7 +54,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           Container(
             width: size.width,
             height: size.height,
-            color: Color(0xFFDC4654),
+            color: BLTColors.primary,
             child: Column(
               children: [
                 SizedBox(
@@ -66,7 +67,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     ),
                     child: Center(
                       child: SvgPicture.asset(
-                        'assets/logo_white.svg',
+                        'assets/blt_wasp_white.svg',
                         fit: BoxFit.contain,
                         height: 192.0,
                       ),
@@ -132,7 +133,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10.0),
                                   borderSide: BorderSide(
-                                    color: Color(0xFF737373),
+                                    color: BLTColors.textMuted,
                                   ),
                                 ),
                                 fillColor: Colors.white.withOpacity(0.35),
@@ -156,7 +157,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               },
                               child: Text(
                                 AppLocalizations.of(context)!.resetPassword,
-                                style: GoogleFonts.ubuntu(
+                                style: BLTFonts.system(
                                   textStyle: TextStyle(
                                     color: Colors.white,
                                     fontSize: 17.5,
@@ -175,7 +176,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                   ),
                                 ),
                                 backgroundColor: WidgetStateProperty.all(
-                                  Color(0xFFDC4654),
+                                  BLTColors.primary,
                                 ),
                               ),
                             ),

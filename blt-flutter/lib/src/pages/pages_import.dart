@@ -1,5 +1,4 @@
 export 'package:cached_network_image/cached_network_image.dart';
-export 'package:google_fonts/google_fonts.dart';
 export '../models/company_model.dart';
 export 'package:url_launcher/url_launcher.dart';
 export 'package:blt/src/routes/routing.dart';

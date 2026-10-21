@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:blt/src/util/brand.dart';
 import 'database_helper.dart'; // Your DatabaseHelper class for SQLite operations
 
 class SpamCallBlockerPage extends StatefulWidget {
@@ -89,7 +90,7 @@ class _SpamCallBlockerPageState extends State<SpamCallBlockerPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: BLTColors.primary,
       ),
     );
   }
@@ -130,7 +131,7 @@ class _SpamCallBlockerPageState extends State<SpamCallBlockerPage> {
                             style: TextStyle(fontSize: 16),
                           ),
                           trailing: IconButton(
-                            icon: Icon(Icons.remove_circle, color: Colors.red),
+                            icon: Icon(Icons.remove_circle, color: BLTColors.primary),
                             onPressed: () => _removeNumber(_numbers[index]),
                           ),
                         );

@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// The signup page for the app.
 class SignUpPage extends StatefulWidget {
@@ -35,7 +36,7 @@ class _SignUpPageState extends State<SignUpPage> {
             width: size.width,
             height: size.height,
             color:
-                isDarkMode ? Color.fromRGBO(34, 22, 23, 1) : Color(0xFFDC4654),
+                isDarkMode ? BLTColors.darkBackground : BLTColors.primary,
             child: Column(
               children: [
                 SizedBox(
@@ -48,7 +49,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                     child: Center(
                       child: SvgPicture.asset(
-                        'assets/logo_white.svg',
+                        'assets/blt_wasp_white.svg',
                         fit: BoxFit.contain,
                         height: 192.0,
                       ),
@@ -69,7 +70,7 @@ class _SignUpPageState extends State<SignUpPage> {
               height: size.height * 0.65,
               decoration: BoxDecoration(
                 color: isDarkMode
-                    ? Color.fromRGBO(42, 38, 38, 1)
+                    ? BLTColors.darkCard
                     : Theme.of(context).canvasColor,
                 boxShadow: [
                   BoxShadow(
@@ -214,7 +215,7 @@ class _SignUpFormState extends State<SignUpForm> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                   borderSide: BorderSide(
-                    color: Color(0xFF737373),
+                    color: BLTColors.textMuted,
                   ),
                 ),
                 fillColor: Colors.white.withOpacity(0.35),
@@ -246,7 +247,7 @@ class _SignUpFormState extends State<SignUpForm> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                   borderSide: BorderSide(
-                    color: Color(0xFF737373),
+                    color: BLTColors.textMuted,
                   ),
                 ),
                 fillColor: Colors.white.withOpacity(0.35),
@@ -273,7 +274,7 @@ class _SignUpFormState extends State<SignUpForm> {
               },
               child: Text(
                 AppLocalizations.of(context)!.signUp,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
                     color: Colors.white,
                     fontSize: 17.5,
@@ -291,7 +292,7 @@ class _SignUpFormState extends State<SignUpForm> {
                   ),
                 ),
                 backgroundColor: WidgetStateProperty.all(
-                  Color(0xFFDC4654),
+                  BLTColors.primary,
                 ),
               ),
             ),

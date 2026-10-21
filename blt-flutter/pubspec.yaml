@@ -11,7 +11,6 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_markdown: ^0.7.1
-  google_fonts: ">=3.0.1 <5.0.0"
   http: ^1.1.0
   image_picker: ^1.1.1
   receive_sharing_intent:
@@ -53,8 +52,13 @@ flutter:
     - assets/
     - assets/login_signup/
 
+# App icon: the OWASP BLT wasp on white. The generated Android/iOS PNGs are
+# committed; `dart run flutter_launcher_icons` regenerates them from this config.
+# macOS (rounded tile) and Windows (.ico) icons are committed as-is.
 flutter_icons:
   android: "ic_launcher"
   ios: true
   image_path: "assets/app_large_icon.png"
   remove_alpha_ios: true
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/launcher/app_icon_foreground.png"

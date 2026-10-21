@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// Page for allowing users to send referrals to their friends.
 class ReferralPage extends StatefulWidget {
@@ -34,7 +35,7 @@ class _ReferralPageState extends State<ReferralPage> {
         ),
         title: Text(AppLocalizations.of(context)!.invite),
         backgroundColor:
-            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
+            isDarkMode ? BLTColors.darkSurface : BLTColors.primary,
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -51,9 +52,9 @@ class _ReferralPageState extends State<ReferralPage> {
                     padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                     child: Text(
                       AppLocalizations.of(context)!.inviteYourFriends,
-                      style: GoogleFonts.ubuntu(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
-                          color: Color(0xFF737373),
+                          color: BLTColors.textMuted,
                           fontSize: 25,
                         ),
                       ),
@@ -63,9 +64,9 @@ class _ReferralPageState extends State<ReferralPage> {
                     padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                     child: Text(
                       AppLocalizations.of(context)!.inviteFriendsDescription,
-                      style: GoogleFonts.aBeeZee(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
-                          color: Color(0xFF737373),
+                          color: BLTColors.textMuted,
                         ),
                       ),
                     ),
@@ -79,8 +80,8 @@ class _ReferralPageState extends State<ReferralPage> {
                     Icon(
                       Icons.group,
                       color: isDarkMode
-                          ? Color.fromRGBO(126, 33, 58, 1)
-                          : Color(0xFFDC4654),
+                          ? BLTColors.primaryDark
+                          : BLTColors.primary,
                       size: 250,
                     ),
                     Container(
@@ -107,7 +108,7 @@ class _ReferralPageState extends State<ReferralPage> {
                         onPressed: () async {},
                         child: Text(
                           AppLocalizations.of(context)!.invite,
-                          style: GoogleFonts.ubuntu(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
                               color: Colors.white,
                               fontSize: 17.5,
@@ -127,8 +128,8 @@ class _ReferralPageState extends State<ReferralPage> {
                           ),
                           backgroundColor: WidgetStateProperty.all(
                             isDarkMode
-                                ? Color.fromRGBO(126, 33, 58, 1)
-                                : Color(0xFFDC4654),
+                                ? BLTColors.primaryDark
+                                : BLTColors.primary,
                           ),
                         ),
                       ),

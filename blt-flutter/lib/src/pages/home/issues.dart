@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/home/home_imports.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// Issues page for viewing all the issues posted via the website and app.
 class IssuesPage extends ConsumerStatefulWidget {
@@ -60,7 +61,7 @@ class IssuesPageState extends ConsumerState<IssuesPage>
 
     return Scaffold(
       backgroundColor: isDarkMode
-          ? Color.fromRGBO(34, 22, 23, 1)
+          ? BLTColors.darkBackground
           : Theme.of(context).canvasColor,
       body: RefreshIndicator(
         onRefresh: () async {
@@ -75,7 +76,7 @@ class IssuesPageState extends ConsumerState<IssuesPage>
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 width: size.width,
                 color: isDarkMode
-                    ? Color.fromRGBO(34, 22, 23, 1)
+                    ? BLTColors.darkBackground
                     : Theme.of(context).canvasColor,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,9 +85,9 @@ class IssuesPageState extends ConsumerState<IssuesPage>
                       padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                       child: Text(
                         AppLocalizations.of(context)!.issues,
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFF737373),
+                            color: BLTColors.textMuted,
                             fontSize: 25,
                           ),
                         ),
@@ -96,9 +97,9 @@ class IssuesPageState extends ConsumerState<IssuesPage>
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                       child: Text(
                         AppLocalizations.of(context)!.checkLatestIssues,
-                        style: GoogleFonts.aBeeZee(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFF737373),
+                            color: BLTColors.textMuted,
                           ),
                         ),
                       ),
@@ -138,7 +139,7 @@ class IssuesPageState extends ConsumerState<IssuesPage>
                         valueColor: animationController.drive(
                           ColorTween(
                             begin: Colors.blueAccent,
-                            end: Colors.red,
+                            end: BLTColors.primary,
                           ),
                         ),
                       ),

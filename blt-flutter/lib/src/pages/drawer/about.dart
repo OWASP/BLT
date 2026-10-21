@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// Page for describing the BLT project.
 class AboutPage extends StatelessWidget {
@@ -33,7 +34,7 @@ class AboutPage extends StatelessWidget {
           ),
         ),
         backgroundColor:
-            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
+            isDarkMode ? BLTColors.darkSurface : BLTColors.primary,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 20),
@@ -43,17 +44,18 @@ class AboutPage extends StatelessWidget {
             Container(
               padding: EdgeInsets.fromLTRB(0, 36, 0, 24),
               child: SvgPicture.asset(
-                isDarkMode ? 'assets/blt_logo_dark.svg' : 'assets/blt_logo.svg',
-                width: 169.42,
+                'assets/blt_wasp.svg',
+                height: 96,
+                semanticsLabel: 'OWASP BLT',
               ),
             ),
             Container(
               padding: EdgeInsets.fromLTRB(0, 0, 0, 24),
               child: Text(
                 aboutBLT,
-                style: GoogleFonts.aBeeZee(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFF737373),
+                    color: BLTColors.textMuted,
                   ),
                 ),
               ),
@@ -63,9 +65,9 @@ class AboutPage extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 AppLocalizations.of(context)!.whatsInItForYou,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFFDC4654),
+                    color: BLTColors.primary,
                     fontSize: 20,
                   ),
                   fontWeight: FontWeight.bold,
@@ -76,9 +78,9 @@ class AboutPage extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
               child: Text(
                 forYou,
-                style: GoogleFonts.aBeeZee(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFF737373),
+                    color: BLTColors.textMuted,
                   ),
                 ),
               ),
@@ -88,9 +90,9 @@ class AboutPage extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 AppLocalizations.of(context)!.howItWorks,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFFDC4654),
+                    color: BLTColors.primary,
                     fontSize: 17.5,
                   ),
                   fontWeight: FontWeight.bold,
@@ -102,9 +104,9 @@ class AboutPage extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 AppLocalizations.of(context)!.forTesters,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFF737373),
+                    color: BLTColors.textMuted,
                     fontSize: 15,
                   ),
                   fontWeight: FontWeight.bold,
@@ -115,9 +117,9 @@ class AboutPage extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
               child: Text(
                 forTesters,
-                style: GoogleFonts.aBeeZee(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFF737373),
+                    color: BLTColors.textMuted,
                   ),
                 ),
               ),
@@ -127,9 +129,9 @@ class AboutPage extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 AppLocalizations.of(context)!.forOrganizations,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFF737373),
+                    color: BLTColors.textMuted,
                     fontSize: 15,
                   ),
                   fontWeight: FontWeight.bold,
@@ -140,9 +142,9 @@ class AboutPage extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(0, 0, 0, 24),
               child: Text(
                 forOrgs,
-                style: GoogleFonts.aBeeZee(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFF737373),
+                    color: BLTColors.textMuted,
                   ),
                 ),
               ),
@@ -152,9 +154,9 @@ class AboutPage extends StatelessWidget {
             //   alignment: Alignment.centerLeft,
             //   child: Text(
             //     AppLocalizations.of(context)!.contributors,
-            //     style: GoogleFonts.ubuntu(
+            //     style: BLTFonts.system(
             //       textStyle: TextStyle(
-            //         color: Color(0xFFDC4654),
+            //         color: BLTColors.primary,
             //         fontSize: 20,
             //       ),
             //       fontWeight: FontWeight.bold,
@@ -198,9 +200,9 @@ class AboutPage extends StatelessWidget {
             //                     child: Text(
             //                       contributor["name"]!.replaceAll(" ", "\n"),
             //                       textAlign: TextAlign.center,
-            //                       style: GoogleFonts.aBeeZee(
+            //                       style: BLTFonts.system(
             //                         textStyle: TextStyle(
-            //                           color: Color(0xFF737373),
+            //                           color: BLTColors.textMuted,
             //                         ),
             //                         fontWeight: FontWeight.bold,
             //                         fontSize: 14.0,
@@ -233,11 +235,11 @@ class AboutPage extends StatelessWidget {
                     children: [
                       Text(
                         AppLocalizations.of(context)!.joinUsOn,
-                        style: GoogleFonts.aBeeZee(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
                             fontSize: 20,
                             color:
-                                isDarkMode ? Colors.white : Color(0xFFDC4654),
+                                isDarkMode ? Colors.white : BLTColors.primary,
                           ),
                           fontWeight: FontWeight.bold,
                         ),
@@ -256,8 +258,8 @@ class AboutPage extends StatelessWidget {
                                   top: 10, bottom: 10, left: 20, right: 20),
                               decoration: BoxDecoration(
                                   color: isDarkMode
-                                      ? Color.fromRGBO(82, 30, 44, 1)
-                                      : Color(0xFFDC4654),
+                                      ? BLTColors.darkCard
+                                      : BLTColors.primary,
                                   borderRadius: BorderRadius.circular(10)),
                               width: MediaQuery.of(context).size.width * 0.85,
                               child: Row(
@@ -270,7 +272,7 @@ class AboutPage extends StatelessWidget {
                                   ),
                                   Text(
                                     "X",
-                                    style: GoogleFonts.aBeeZee(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
                                         fontSize: 20,
                                       ),
@@ -301,8 +303,8 @@ class AboutPage extends StatelessWidget {
                             top: 10, bottom: 10, left: 20, right: 20),
                         decoration: BoxDecoration(
                             color: isDarkMode
-                                ? Color.fromRGBO(82, 30, 44, 1)
-                                : Color(0xFFDC4654),
+                                ? BLTColors.darkCard
+                                : BLTColors.primary,
                             borderRadius: BorderRadius.circular(10)),
                         width: MediaQuery.of(context).size.width * 0.85,
                         child: Row(
@@ -314,7 +316,7 @@ class AboutPage extends StatelessWidget {
                             ),
                             Text(
                               "Slack",
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   fontSize: 20,
                                 ),
@@ -342,8 +344,8 @@ class AboutPage extends StatelessWidget {
                             top: 10, bottom: 10, left: 20, right: 20),
                         decoration: BoxDecoration(
                             color: isDarkMode
-                                ? Color.fromRGBO(82, 30, 44, 1)
-                                : Color(0xFFDC4654),
+                                ? BLTColors.darkCard
+                                : BLTColors.primary,
                             borderRadius: BorderRadius.circular(10)),
                         width: MediaQuery.of(context).size.width * 0.85,
                         child: Row(
@@ -355,7 +357,7 @@ class AboutPage extends StatelessWidget {
                             ),
                             Text(
                               "GitHub",
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   fontSize: 20,
                                 ),

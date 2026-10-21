@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:blt/src/pages/home/home_imports.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// Start Bug Hunt Page
 /// companies and individuals
@@ -94,9 +95,9 @@ class _HuntFormState extends State<HuntForm> {
             padding: const EdgeInsets.only(top: 12.0),
             child: Text(
               AppLocalizations.of(context)!.appNameOrURL,
-              style: GoogleFonts.ubuntu(
+              style: BLTFonts.system(
                 textStyle: TextStyle(
-                  color: Color(0xFFDC4654),
+                  color: BLTColors.primary,
                   fontSize: 15,
                 ),
               ),
@@ -124,8 +125,8 @@ class _HuntFormState extends State<HuntForm> {
                   borderSide: BorderSide(color: Colors.grey),
                 ),
               ),
-              cursorColor: Color(0xFFDC4654),
-              style: GoogleFonts.aBeeZee(
+              cursorColor: BLTColors.primary,
+              style: BLTFonts.system(
                 textStyle: TextStyle(
                   fontSize: 12,
                 ),
@@ -140,7 +141,7 @@ class _HuntFormState extends State<HuntForm> {
                   child: TextButton(
                     child: Text(
                       AppLocalizations.of(context)!.chooseImage,
-                      style: GoogleFonts.ubuntu(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -153,8 +154,8 @@ class _HuntFormState extends State<HuntForm> {
                     style: ButtonStyle(
                       backgroundColor: WidgetStateProperty.all(
                         isDarkMode
-                            ? Color.fromRGBO(126, 33, 58, 1)
-                            : Color(0xFFDC4654),
+                            ? BLTColors.primaryDark
+                            : BLTColors.primary,
                       ),
                     ),
                   ),
@@ -166,7 +167,7 @@ class _HuntFormState extends State<HuntForm> {
                   child: TextButton(
                     child: Text(
                       AppLocalizations.of(context)!.chooseFromClipboard,
-                      style: GoogleFonts.ubuntu(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -179,8 +180,8 @@ class _HuntFormState extends State<HuntForm> {
                     style: ButtonStyle(
                       backgroundColor: WidgetStateProperty.all(
                         isDarkMode
-                            ? Color.fromRGBO(126, 33, 58, 1)
-                            : Color(0xFFDC4654),
+                            ? BLTColors.primaryDark
+                            : BLTColors.primary,
                       ),
                     ),
                   ),
@@ -196,9 +197,9 @@ class _HuntFormState extends State<HuntForm> {
                 ? Center(
                     child: Text(
                       AppLocalizations.of(context)!.noImageSelected,
-                      style: GoogleFonts.aBeeZee(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
-                          color: Color(0xFF737373),
+                          color: BLTColors.textMuted,
                         ),
                       ),
                     ),
@@ -211,8 +212,8 @@ class _HuntFormState extends State<HuntForm> {
               border: _image.path == ""
                   ? Border.all(
                       color: isDarkMode
-                          ? Color.fromRGBO(126, 33, 58, 1)
-                          : Color(0xFFDC4654),
+                          ? BLTColors.primaryDark
+                          : BLTColors.primary,
                       width: 0.5,
                     )
                   : null,
@@ -227,9 +228,9 @@ class _HuntFormState extends State<HuntForm> {
               children: [
                 Text(
                   AppLocalizations.of(context)!.setPrizeMoney,
-                  style: GoogleFonts.ubuntu(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
-                      color: Color(0xFFDC4654),
+                      color: BLTColors.primary,
                       fontSize: 20,
                     ),
                   ),
@@ -238,9 +239,9 @@ class _HuntFormState extends State<HuntForm> {
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Text(
                     AppLocalizations.of(context)!.rewardToUsersHuntingBugs,
-                    style: GoogleFonts.aBeeZee(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
-                        color: Color(0xFF737373),
+                        color: BLTColors.textMuted,
                       ),
                     ),
                   ),
@@ -249,9 +250,9 @@ class _HuntFormState extends State<HuntForm> {
                   children: [
                     Text(
                       "\$ $prizeMoney",
-                      style: GoogleFonts.ubuntu(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
-                            color: Color(0xFFDC4654),
+                            color: BLTColors.primary,
                             fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -279,7 +280,7 @@ class _HuntFormState extends State<HuntForm> {
             child: TextButton(
               child: Text(
                 AppLocalizations.of(context)!.startHunt,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -294,8 +295,8 @@ class _HuntFormState extends State<HuntForm> {
                 ),
                 backgroundColor: WidgetStateProperty.all(
                   isDarkMode
-                      ? Color.fromRGBO(126, 33, 58, 1)
-                      : Color(0xFFDC4654),
+                      ? BLTColors.primaryDark
+                      : BLTColors.primary,
                 ),
               ),
               onPressed: () {},

@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// Page for showing social activity of BLT, new issues,
 /// top premium subscribers.
@@ -24,9 +25,9 @@ class _FeedState extends ConsumerState<Feed> {
           FittedBox(
             child: Text(
               '${AppLocalizations.of(context)!.goodAfternoon}, \n${currentUser!.username}',
-              style: GoogleFonts.ubuntu(
+              style: BLTFonts.system(
                 textStyle: TextStyle(
-                  color: Color(0xFFDC4654),
+                  color: BLTColors.primary,
                   fontSize: 30,
                 ),
               ),
@@ -37,9 +38,9 @@ class _FeedState extends ConsumerState<Feed> {
           ),
           Text(
             AppLocalizations.of(context)!.checkLatestHappenings,
-            style: GoogleFonts.aBeeZee(
+            style: BLTFonts.system(
               textStyle: TextStyle(
-                color: Color(0xFF737373),
+                color: BLTColors.textMuted,
               ),
             ),
           ),
@@ -48,9 +49,9 @@ class _FeedState extends ConsumerState<Feed> {
           ),
           Text(
             AppLocalizations.of(context)!.latestIssues,
-            style: GoogleFonts.ubuntu(
+            style: BLTFonts.system(
               textStyle: TextStyle(
-                color: Color(0xFFDC4654),
+                color: BLTColors.primary,
                 fontSize: 20,
               ),
               fontWeight: FontWeight.bold,
@@ -99,9 +100,9 @@ class _FeedState extends ConsumerState<Feed> {
           // ),
           Text(
             AppLocalizations.of(context)!.bugSocials,
-            style: GoogleFonts.ubuntu(
+            style: BLTFonts.system(
               textStyle: TextStyle(
-                color: Color(0xFFDC4654),
+                color: BLTColors.primary,
                 fontSize: 20,
               ),
               fontWeight: FontWeight.bold,
@@ -112,9 +113,9 @@ class _FeedState extends ConsumerState<Feed> {
           ),
           Text(
             AppLocalizations.of(context)!.ourSponsors,
-            style: GoogleFonts.ubuntu(
+            style: BLTFonts.system(
               textStyle: TextStyle(
-                color: Color(0xFFDC4654),
+                color: BLTColors.primary,
                 fontSize: 20,
               ),
               fontWeight: FontWeight.bold,

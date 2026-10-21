@@ -1,5 +1,6 @@
 import 'package:blt/src/pages/home/home_imports.dart';
 import 'package:primer_progress_bar/primer_progress_bar.dart';
+import 'package:blt/src/util/brand.dart';
 
 class CompanyDetailWithIssues extends ConsumerStatefulWidget {
   const CompanyDetailWithIssues({super.key, required this.company});
@@ -27,7 +28,7 @@ class CompanyDetailWithIssuesState
   @override
   void initState() {
     // paginatedUrl = IssueEndPoints.issues;
-    companyColor = Color(0xFFDC4654);
+    companyColor = BLTColors.primary;
 
     animationController =
         AnimationController(duration: new Duration(seconds: 2), vsync: this);
@@ -93,7 +94,7 @@ class CompanyDetailWithIssuesState
 
     return Scaffold(
       backgroundColor: isDarkMode
-          ? Color.fromRGBO(34, 22, 23, 1)
+          ? BLTColors.darkBackground
           : Theme.of(context).canvasColor,
       appBar: AppBar(
         backgroundColor: companyColor,
@@ -139,9 +140,9 @@ class CompanyDetailWithIssuesState
               SizedBox(height: 8),
               Text(
                 company.companyName,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFF737373),
+                    color: BLTColors.textMuted,
                     fontSize: 18,
                   ),
                 ),
@@ -150,9 +151,9 @@ class CompanyDetailWithIssuesState
               if (company.email != null && company.email != "") ...[
                 Text(
                   company.email!,
-                  style: GoogleFonts.ubuntu(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
-                      color: Color(0xFF737373),
+                      color: BLTColors.textMuted,
                       fontSize: 16,
                     ),
                   ),
@@ -198,7 +199,7 @@ class CompanyDetailWithIssuesState
                     },
                     child: Text(
                       "Report Issue",
-                      style: GoogleFonts.ubuntu(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -213,8 +214,8 @@ class CompanyDetailWithIssuesState
                       ),
                       backgroundColor: WidgetStateProperty.all(
                         isDarkMode
-                            ? Color.fromRGBO(126, 33, 58, 1)
-                            : Color(0xFFDC4654),
+                            ? BLTColors.primaryDark
+                            : BLTColors.primary,
                       ),
                     ),
                   );
@@ -228,7 +229,7 @@ class CompanyDetailWithIssuesState
               //     return TextButton(
               //       child: Text(
               //         "Subscribe",
-              //         style: GoogleFonts.ubuntu(
+              //         style: BLTFonts.system(
               //           textStyle: TextStyle(
               //             color: Colors.white,
               //             fontSize: 20,
@@ -243,8 +244,8 @@ class CompanyDetailWithIssuesState
               //         ),
               //         backgroundColor: WidgetStateProperty.all(
               //           isDarkMode
-              //               ? Color.fromRGBO(126, 33, 58, 1)
-              //               : Color(0xFFDC4654),
+              //               ? BLTColors.primaryDark
+              //               : BLTColors.primary,
               //         ),
               //       ),
               //       onPressed: () async {},
@@ -258,9 +259,9 @@ class CompanyDetailWithIssuesState
                   alignment: Alignment.centerLeft,
                   child: Text(
                     "About Us:",
-                    style: GoogleFonts.ubuntu(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
-                        color: Color(0xFFDC4654),
+                        color: BLTColors.primary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -272,9 +273,9 @@ class CompanyDetailWithIssuesState
                   alignment: Alignment.centerLeft,
                   child: Text(
                     "${company.description}",
-                    style: GoogleFonts.aBeeZee(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
-                        color: Color(0xFF737373),
+                        color: BLTColors.textMuted,
                       ),
                     ),
                     textAlign: TextAlign.justify,
@@ -288,9 +289,9 @@ class CompanyDetailWithIssuesState
                   alignment: Alignment.centerLeft,
                   child: Text(
                     "Progress",
-                    style: GoogleFonts.ubuntu(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
-                        color: Color(0xFFDC4654),
+                        color: BLTColors.primary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -321,9 +322,9 @@ class CompanyDetailWithIssuesState
                         children: [
                           Text(
                             "Open Issues",
-                            style: GoogleFonts.ubuntu(
+                            style: BLTFonts.system(
                               textStyle: TextStyle(
-                                color: Color(0xFFDC4654),
+                                color: BLTColors.primary,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -332,7 +333,7 @@ class CompanyDetailWithIssuesState
                           IconButton(
                             icon: Icon(
                               Icons.arrow_forward_ios_rounded,
-                              color: Color(0xFFDC4654),
+                              color: BLTColors.primary,
                             ),
                             onPressed: () {
                               Navigator.pushNamed(
@@ -345,9 +346,9 @@ class CompanyDetailWithIssuesState
                         ]),
                     Text(
                       "Check all the open issues from ${company.companyName}!",
-                      style: GoogleFonts.aBeeZee(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
-                          color: Color(0xFF737373),
+                          color: BLTColors.textMuted,
                         ),
                       ),
                     ),
@@ -397,33 +398,33 @@ class CompanyDetailWithIssuesState
                                 // leading: buildAvatar(leaderList[index].image),
                                 title: Text(
                                   openIssues[index].title,
-                                  style: GoogleFonts.ubuntu(
+                                  style: BLTFonts.system(
                                     textStyle: TextStyle(
                                       color: isDarkMode
                                           ? Colors.white
-                                          : Color(0xFFDC4654),
+                                          : BLTColors.primary,
                                     ),
                                   ),
                                   maxLines: 6,
                                 ),
                                 subtitle: Text(
                                   "${openIssues[index].created!.day}/${openIssues[index].created!.month}/${openIssues[index].created!.year}",
-                                  style: GoogleFonts.aBeeZee(
+                                  style: BLTFonts.system(
                                     textStyle: TextStyle(
                                       color: isDarkMode
                                           ? Colors.grey[400]
-                                          : Color(0xFF737373),
+                                          : BLTColors.textMuted,
                                       fontSize: 12,
                                     ),
                                   ),
                                 ),
                                 trailing: Text(
                                   "# " + (index + 1).toString(),
-                                  style: GoogleFonts.ubuntu(
+                                  style: BLTFonts.system(
                                     textStyle: TextStyle(
                                       color: isDarkMode
                                           ? Colors.grey[400]
-                                          : Color(0xFF737373),
+                                          : BLTColors.textMuted,
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -440,7 +441,7 @@ class CompanyDetailWithIssuesState
                           valueColor: animationController.drive(
                             ColorTween(
                               begin: Colors.blueAccent,
-                              end: Colors.red,
+                              end: BLTColors.primary,
                             ),
                           ),
                         ),
@@ -459,9 +460,9 @@ class CompanyDetailWithIssuesState
                               children: [
                                 Text(
                                   "Closed Issues",
-                                  style: GoogleFonts.ubuntu(
+                                  style: BLTFonts.system(
                                     textStyle: TextStyle(
-                                      color: Color(0xFFDC4654),
+                                      color: BLTColors.primary,
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -470,7 +471,7 @@ class CompanyDetailWithIssuesState
                                 IconButton(
                                   icon: Icon(
                                     Icons.arrow_forward_ios_rounded,
-                                    color: Color(0xFFDC4654),
+                                    color: BLTColors.primary,
                                   ),
                                   onPressed: () {
                                     Navigator.pushNamed(
@@ -483,9 +484,9 @@ class CompanyDetailWithIssuesState
                               ]),
                           Text(
                             "Check all the closed issues from ${company.companyName}!",
-                            style: GoogleFonts.aBeeZee(
+                            style: BLTFonts.system(
                               textStyle: TextStyle(
-                                color: Color(0xFF737373),
+                                color: BLTColors.textMuted,
                               ),
                             ),
                           ),
@@ -537,33 +538,33 @@ class CompanyDetailWithIssuesState
                                       // leading: buildAvatar(leaderList[index].image),
                                       title: Text(
                                         closedIssues[index].title,
-                                        style: GoogleFonts.ubuntu(
+                                        style: BLTFonts.system(
                                           textStyle: TextStyle(
                                             color: isDarkMode
                                                 ? Colors.white
-                                                : Color(0xFFDC4654),
+                                                : BLTColors.primary,
                                           ),
                                         ),
                                         maxLines: 6,
                                       ),
                                       subtitle: Text(
                                         "${closedIssues[index].created!.day}/${closedIssues[index].created!.month}/${closedIssues[index].created!.year}",
-                                        style: GoogleFonts.aBeeZee(
+                                        style: BLTFonts.system(
                                           textStyle: TextStyle(
                                             color: isDarkMode
                                                 ? Colors.grey[400]
-                                                : Color(0xFF737373),
+                                                : BLTColors.textMuted,
                                             fontSize: 12,
                                           ),
                                         ),
                                       ),
                                       trailing: Text(
                                         "# " + (index + 1).toString(),
-                                        style: GoogleFonts.ubuntu(
+                                        style: BLTFonts.system(
                                           textStyle: TextStyle(
                                             color: isDarkMode
                                                 ? Colors.grey[400]
-                                                : Color(0xFF737373),
+                                                : BLTColors.textMuted,
                                             fontSize: 15,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -580,7 +581,7 @@ class CompanyDetailWithIssuesState
                                 valueColor: animationController.drive(
                                   ColorTween(
                                     begin: Colors.blueAccent,
-                                    end: Colors.red,
+                                    end: BLTColors.primary,
                                   ),
                                 ),
                               ),

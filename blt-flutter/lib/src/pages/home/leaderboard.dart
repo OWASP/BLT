@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/home/home_imports.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// The Leaderboards dashboard page, contains the Global,
 /// Monthly leaderboard, and Company Scoreboard.
@@ -28,7 +29,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
           radius: 20,
           child: Icon(
             Icons.account_circle_outlined,
-            color: Color(0xFFDC4654),
+            color: BLTColors.primary,
             size: 40,
           ),
         );
@@ -59,7 +60,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
           radius: 20,
           child: Icon(
             Icons.account_circle_outlined,
-            color: Color(0xFFDC4654),
+            color: BLTColors.primary,
             size: 40,
           ),
         );
@@ -99,8 +100,8 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
             alignment: Alignment.centerLeft,
             child: Text(
               AppLocalizations.of(context)!.leaderboards,
-              style: GoogleFonts.ubuntu(
-                textStyle: TextStyle(color: Color(0xFF737373), fontSize: 30),
+              style: BLTFonts.system(
+                textStyle: TextStyle(color: BLTColors.textMuted, fontSize: 30),
               ),
             ),
           ),
@@ -108,9 +109,9 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
             padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
             child: Text(
               AppLocalizations.of(context)!.findOutUsersBest,
-              style: GoogleFonts.aBeeZee(
+              style: BLTFonts.system(
                 textStyle: TextStyle(
-                  color: Color(0xFF737373),
+                  color: BLTColors.textMuted,
                 ),
               ),
             ),
@@ -123,9 +124,9 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                 ListTile(
                   title: Text(
                     AppLocalizations.of(context)!.globalLeaderboard,
-                    style: GoogleFonts.ubuntu(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
-                        color: Color(0xFFDC4654),
+                        color: BLTColors.primary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -134,7 +135,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                   trailing: IconButton(
                     icon: Icon(
                       Icons.arrow_forward_ios_rounded,
-                      color: Color(0xFFDC4654),
+                      color: BLTColors.primary,
                     ),
                     onPressed: () {
                       Navigator.pushNamed(
@@ -146,9 +147,9 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                 ),
                 Text(
                   AppLocalizations.of(context)!.findOutBestOfBest,
-                  style: GoogleFonts.aBeeZee(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
-                      color: Color(0xFF737373),
+                      color: BLTColors.textMuted,
                     ),
                   ),
                 ),
@@ -203,11 +204,11 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                       buildAvatar(leaderList![index].image),
                                   title: Text(
                                     leaderList[index].user,
-                                    style: GoogleFonts.ubuntu(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
                                         color: isDarkMode
                                             ? Colors.white
-                                            : Color(0xFFDC4654),
+                                            : BLTColors.primary,
                                       ),
                                     ),
                                     maxLines: 6,
@@ -215,22 +216,22 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                   subtitle: Text(
                                     leaderList[index].score.toString() +
                                         AppLocalizations.of(context)!.points,
-                                    style: GoogleFonts.aBeeZee(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
                                         color: isDarkMode
                                             ? Colors.grey[400]
-                                            : Color(0xFF737373),
+                                            : BLTColors.textMuted,
                                         fontSize: 12,
                                       ),
                                     ),
                                   ),
                                   trailing: Text(
                                     "# " + (index + 1).toString(),
-                                    style: GoogleFonts.ubuntu(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
                                         color: isDarkMode
                                             ? Colors.grey[400]
-                                            : Color(0xFF737373),
+                                            : BLTColors.textMuted,
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -270,9 +271,9 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                 ListTile(
                   title: Text(
                     AppLocalizations.of(context)!.monthlyLeaderboard,
-                    style: GoogleFonts.ubuntu(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
-                        color: Color(0xFFDC4654),
+                        color: BLTColors.primary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -281,7 +282,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                   trailing: IconButton(
                     icon: Icon(
                       Icons.arrow_forward_ios_rounded,
-                      color: Color(0xFFDC4654),
+                      color: BLTColors.primary,
                     ),
                     onPressed: () {
                       Navigator.pushNamed(
@@ -293,9 +294,9 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                 ),
                 Text(
                   "${AppLocalizations.of(context)!.checkBestBugHuntersIn} ${monthsInYear[DateTime.now().month]}.!",
-                  style: GoogleFonts.aBeeZee(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
-                      color: Color(0xFF737373),
+                      color: BLTColors.textMuted,
                     ),
                   ),
                 ),
@@ -351,11 +352,11 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                   leading: buildAvatar(leaderList[index].image),
                                   title: Text(
                                     leaderList[index].user,
-                                    style: GoogleFonts.ubuntu(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
                                         color: isDarkMode
                                             ? Colors.white
-                                            : Color(0xFFDC4654),
+                                            : BLTColors.primary,
                                       ),
                                     ),
                                     maxLines: 6,
@@ -363,22 +364,22 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                   subtitle: Text(
                                     leaderList[index].score.toString() +
                                         AppLocalizations.of(context)!.points,
-                                    style: GoogleFonts.aBeeZee(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
                                         color: isDarkMode
                                             ? Colors.grey[400]
-                                            : Color(0xFF737373),
+                                            : BLTColors.textMuted,
                                         fontSize: 12,
                                       ),
                                     ),
                                   ),
                                   trailing: Text(
                                     "# " + (index + 1).toString(),
-                                    style: GoogleFonts.ubuntu(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
                                         color: isDarkMode
                                             ? Colors.grey[400]
-                                            : Color(0xFF737373),
+                                            : BLTColors.textMuted,
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -417,9 +418,9 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                 ListTile(
                   title: Text(
                     "Global Leaderboard",
-                    style: GoogleFonts.ubuntu(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
-                        color: Color(0xFFDC4654),
+                        color: BLTColors.primary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -428,7 +429,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                   trailing: IconButton(
                     icon: Icon(
                       Icons.arrow_forward_ios_rounded,
-                      color: Color(0xFFDC4654),
+                      color: BLTColors.primary,
                     ),
                     onPressed: () {
                       Navigator.pushNamed(
@@ -440,9 +441,9 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                 ),
                 Text(
                   "Find out the best of the best, the all time finest bug finders!",
-                  style: GoogleFonts.aBeeZee(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
-                      color: Color(0xFF737373),
+                      color: BLTColors.textMuted,
                     ),
                   ),
                 ),
@@ -497,11 +498,11 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                       buildAvatar(leaderList![index].image),
                                   title: Text(
                                     leaderList[index].user,
-                                    style: GoogleFonts.ubuntu(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
                                         color: isDarkMode
                                             ? Colors.white
-                                            : Color(0xFFDC4654),
+                                            : BLTColors.primary,
                                       ),
                                     ),
                                     maxLines: 6,
@@ -509,22 +510,22 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                   subtitle: Text(
                                     leaderList[index].score.toString() +
                                         " points",
-                                    style: GoogleFonts.aBeeZee(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
                                         color: isDarkMode
                                             ? Colors.grey[400]
-                                            : Color(0xFF737373),
+                                            : BLTColors.textMuted,
                                         fontSize: 12,
                                       ),
                                     ),
                                   ),
                                   trailing: Text(
                                     "# " + (index + 1).toString(),
-                                    style: GoogleFonts.ubuntu(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
                                         color: isDarkMode
                                             ? Colors.grey[400]
-                                            : Color(0xFF737373),
+                                            : BLTColors.textMuted,
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -564,9 +565,9 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                 ListTile(
                   title: Text(
                     AppLocalizations.of(context)!.companyScoreboard,
-                    style: GoogleFonts.ubuntu(
+                    style: BLTFonts.system(
                       textStyle: TextStyle(
-                        color: Color(0xFFDC4654),
+                        color: BLTColors.primary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -575,7 +576,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                   trailing: IconButton(
                     icon: Icon(
                       Icons.arrow_forward_ios_rounded,
-                      color: Color(0xFFDC4654),
+                      color: BLTColors.primary,
                     ),
                     onPressed: () {
                       Navigator.pushNamed(
@@ -587,9 +588,9 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                 ),
                 Text(
                   AppLocalizations.of(context)!.takeLookAtMostActive,
-                  style: GoogleFonts.aBeeZee(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
-                      color: Color(0xFF737373),
+                      color: BLTColors.textMuted,
                     ),
                   ),
                 ),
@@ -647,9 +648,9 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                     ),
                                     title: Text(
                                       companyData[index].companyName,
-                                      style: GoogleFonts.ubuntu(
+                                      style: BLTFonts.system(
                                         textStyle: TextStyle(
-                                          color: Color(0xFFDC4654),
+                                          color: BLTColors.primary,
                                         ),
                                       ),
                                       maxLines: 6,
@@ -663,18 +664,18 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                           companyData[index]
                                               .closedIssues
                                               .toString(),
-                                      style: GoogleFonts.aBeeZee(
+                                      style: BLTFonts.system(
                                         textStyle: TextStyle(
-                                          color: Color(0xFF737373),
+                                          color: BLTColors.textMuted,
                                           fontSize: 12,
                                         ),
                                       ),
                                     ),
                                     trailing: Text(
                                       companyData[index].topTester.toString(),
-                                      style: GoogleFonts.ubuntu(
+                                      style: BLTFonts.system(
                                         textStyle: TextStyle(
-                                          color: Color(0xFF737373),
+                                          color: BLTColors.textMuted,
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
                                         ),

@@ -1,6 +1,5 @@
 export 'package:blt/src/util/endpoints/leaderboard_endpoints.dart';
 export 'package:cached_network_image/cached_network_image.dart';
-export 'package:google_fonts/google_fonts.dart';
 export '../../routes/routing.dart';
 export '../../util/api/company_api.dart';
 export '../../util/api/leaderboard_api.dart';

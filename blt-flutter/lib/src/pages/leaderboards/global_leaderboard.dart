@@ -2,6 +2,7 @@ import 'package:blt/src/pages/leaderboards/leaderboards_imports.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:blt/src/util/brand.dart';
 
 /// Page showing the all time top contributing users.
 class GlobalLeaderBoardPage extends StatefulWidget {
@@ -34,7 +35,7 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
           radius: 20,
           child: Icon(
             Icons.account_circle_outlined,
-            color: Color(0xFFDC4654),
+            color: BLTColors.primary,
             size: 40,
           ),
         );
@@ -72,7 +73,7 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
           },
         ),
         title: Text(AppLocalizations.of(context)!.globalLeaderboard),
-        backgroundColor: Color(0xFFDC4654),
+        backgroundColor: BLTColors.primary,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -89,9 +90,9 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
                     padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                     child: Text(
                       AppLocalizations.of(context)!.globalLeaderboard,
-                      style: GoogleFonts.ubuntu(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
-                          color: Color(0xFF737373),
+                          color: BLTColors.textMuted,
                           fontSize: 25,
                         ),
                       ),
@@ -101,9 +102,9 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
                     padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                     child: Text(
                       AppLocalizations.of(context)!.theseAreBestFinders,
-                      style: GoogleFonts.aBeeZee(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
-                          color: Color(0xFF737373),
+                          color: BLTColors.textMuted,
                         ),
                       ),
                     ),
@@ -166,9 +167,9 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
                                 leading: buildAvatar(list[index].image),
                                 title: Text(
                                   list[index].user,
-                                  style: GoogleFonts.ubuntu(
+                                  style: BLTFonts.system(
                                     textStyle: TextStyle(
-                                      color: Color(0xFFDC4654),
+                                      color: BLTColors.primary,
                                     ),
                                   ),
                                   maxLines: 6,
@@ -176,18 +177,18 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
                                 subtitle: Text(
                                   list[index].score.toString() +
                                       AppLocalizations.of(context)!.points,
-                                  style: GoogleFonts.aBeeZee(
+                                  style: BLTFonts.system(
                                     textStyle: TextStyle(
-                                      color: Color(0xFF737373),
+                                      color: BLTColors.textMuted,
                                       fontSize: 12,
                                     ),
                                   ),
                                 ),
                                 trailing: Text(
                                   "# " + (index + 1).toString(),
-                                  style: GoogleFonts.ubuntu(
+                                  style: BLTFonts.system(
                                     textStyle: TextStyle(
-                                      color: Color(0xFF737373),
+                                      color: BLTColors.textMuted,
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                     ),

@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/home/home_imports.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// Issues page for viewing all the open issues for a company posted via the website and app.
 class OpenIssuesPage extends ConsumerStatefulWidget {
@@ -68,10 +69,10 @@ class OpenIssuesPageState extends ConsumerState<OpenIssuesPage>
 
     return Scaffold(
       backgroundColor: isDarkMode
-          ? Color.fromRGBO(34, 22, 23, 1)
+          ? BLTColors.darkBackground
           : Theme.of(context).canvasColor,
       appBar: AppBar(
-        backgroundColor: Color(0xFFDC4654),
+        backgroundColor: BLTColors.primary,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
@@ -102,7 +103,7 @@ class OpenIssuesPageState extends ConsumerState<OpenIssuesPage>
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 width: size.width,
                 color: isDarkMode
-                    ? Color.fromRGBO(34, 22, 23, 1)
+                    ? BLTColors.darkBackground
                     : Theme.of(context).canvasColor,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,9 +112,9 @@ class OpenIssuesPageState extends ConsumerState<OpenIssuesPage>
                       padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                       child: Text(
                         "Open Issues",
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFF737373),
+                            color: BLTColors.textMuted,
                             fontSize: 25,
                           ),
                         ),
@@ -123,9 +124,9 @@ class OpenIssuesPageState extends ConsumerState<OpenIssuesPage>
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                       child: Text(
                         "Check out the open issues found and reported by ${widget.company.companyName}. Maybe find a fix too?",
-                        style: GoogleFonts.aBeeZee(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFF737373),
+                            color: BLTColors.textMuted,
                           ),
                         ),
                       ),
@@ -175,7 +176,7 @@ class OpenIssuesPageState extends ConsumerState<OpenIssuesPage>
                         valueColor: animationController.drive(
                           ColorTween(
                             begin: Colors.blueAccent,
-                            end: Colors.red,
+                            end: BLTColors.primary,
                           ),
                         ),
                       ),

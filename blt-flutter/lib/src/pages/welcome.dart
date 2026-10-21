@@ -1,5 +1,6 @@
 import 'package:blt/src/pages/pages_import.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// The Landing page for unauthenticated users, or if a
 /// user wants to try the guest mode of the app.
@@ -41,7 +42,7 @@ class _WelcomePageState extends State<WelcomePage> {
                 width: size.width,
                 decoration: BoxDecoration(
                   color: isDarkMode
-                      ? Color.fromRGBO(42, 38, 38, 1)
+                      ? BLTColors.darkCard
                       : Theme.of(context).canvasColor,
                   boxShadow: [
                     BoxShadow(
@@ -84,7 +85,7 @@ class _WelcomePageState extends State<WelcomePage> {
     return Container(
       width: size.width,
       height: size.height,
-      color: isDarkMode ? Color.fromRGBO(34, 22, 23, 1) : Color(0xFFDC4654),
+      color: isDarkMode ? BLTColors.darkBackground : BLTColors.primary,
       child: Column(
         children: [
           SizedBox(
@@ -94,7 +95,7 @@ class _WelcomePageState extends State<WelcomePage> {
               padding: EdgeInsets.symmetric(
                   horizontal: 0.15 * size.width, vertical: 0.1 * size.height),
               child: Center(
-                child: SvgPicture.asset('assets/logo_white.svg',
+                child: SvgPicture.asset('assets/blt_wasp_white.svg',
                     fit: BoxFit.contain, height: 192.0),
               ),
             ),
@@ -116,7 +117,7 @@ class _WelcomePageState extends State<WelcomePage> {
               Navigator.of(context).pushNamed(RouteManager.loginPage),
           icon: Icon(Icons.person, color: Colors.white),
           label: Text(AppLocalizations.of(context)!.login,
-              style: GoogleFonts.ubuntu(
+              style: BLTFonts.system(
                   textStyle: TextStyle(color: Colors.white, fontSize: 20))),
           style: ButtonStyle(
             elevation: WidgetStateProperty.all(12),
@@ -124,7 +125,7 @@ class _WelcomePageState extends State<WelcomePage> {
             shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                 RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0))),
-            backgroundColor: WidgetStateProperty.all(Color(0xFFDC4654)),
+            backgroundColor: WidgetStateProperty.all(BLTColors.primary),
           ),
         ),
       ),
@@ -144,9 +145,9 @@ class _WelcomePageState extends State<WelcomePage> {
               Navigator.of(context).pushNamed(RouteManager.homePage);
             },
             child: Text(AppLocalizations.of(context)!.exploreAnonymously,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                     textStyle:
-                        TextStyle(color: Color(0xFF737373), fontSize: 20))),
+                        TextStyle(color: BLTColors.textMuted, fontSize: 20))),
             style: ButtonStyle(
               elevation: WidgetStateProperty.all(12),
               shadowColor:
@@ -154,11 +155,11 @@ class _WelcomePageState extends State<WelcomePage> {
               shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                 RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
-                    side: BorderSide(color: Color(0xFF737373))),
+                    side: BorderSide(color: BLTColors.textMuted)),
               ),
               backgroundColor: WidgetStateProperty.all(
                 isDarkMode
-                    ? Color.fromRGBO(43, 42, 42, 1)
+                    ? BLTColors.darkCard
                     : Theme.of(context).canvasColor,
               ),
             ),
@@ -190,7 +191,7 @@ class _WelcomePageState extends State<WelcomePage> {
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           decoration: BoxDecoration(
             color: isDarkMode
-                ? Color.fromRGBO(43, 42, 42, 1)
+                ? BLTColors.darkCard
                 : Theme.of(context).canvasColor.withOpacity(0.8),
             borderRadius: BorderRadius.circular(15),
             border: Border.all(color: Colors.grey.shade300),

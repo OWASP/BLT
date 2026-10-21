@@ -1,4 +1,5 @@
 import 'package:blt/src/components/components_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 class ContributorCard extends StatelessWidget {
   final Map<String, String> contributor;
@@ -35,7 +36,7 @@ class ContributorCard extends StatelessWidget {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: Color(0xFFDC4654),
+                            color: BLTColors.primary,
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(20),
                               topRight: Radius.circular(20),
@@ -95,7 +96,7 @@ class ContributorCard extends StatelessWidget {
                                       color: Colors.transparent,
                                       child: Text(
                                         contributor["name"]!,
-                                        style: GoogleFonts.aBeeZee(
+                                        style: BLTFonts.system(
                                           textStyle: TextStyle(
                                             color: Colors.white,
                                           ),
@@ -108,9 +109,9 @@ class ContributorCard extends StatelessWidget {
                                   Spacer(),
                                   Text(
                                     contributor["repository"]!,
-                                    style: GoogleFonts.aBeeZee(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
-                                        color: Color(0xFF737373),
+                                        color: BLTColors.textMuted,
                                       ),
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14.0,
@@ -131,9 +132,9 @@ class ContributorCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 32.0),
                           child: Text(
                             contributor["short_description"]!,
-                            style: GoogleFonts.aBeeZee(
+                            style: BLTFonts.system(
                               textStyle: TextStyle(
-                                color: Color(0xFF737373),
+                                color: BLTColors.textMuted,
                               ),
                               fontSize: 14.0,
                             ),
@@ -146,9 +147,9 @@ class ContributorCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 32.0),
                           child: Text(
                             contributor["long_description"]!,
-                            style: GoogleFonts.aBeeZee(
+                            style: BLTFonts.system(
                               textStyle: TextStyle(
-                                color: Color(0xFF737373),
+                                color: BLTColors.textMuted,
                               ),
                               fontSize: 14.0,
                             ),
@@ -164,7 +165,7 @@ class ContributorCard extends StatelessWidget {
                             ),
                             Icon(
                               Icons.location_pin,
-                              color: Color(0xFF737373),
+                              color: BLTColors.textMuted,
                               size: 28.0,
                             ),
                             SizedBox(
@@ -172,9 +173,9 @@ class ContributorCard extends StatelessWidget {
                             ),
                             Text(
                               contributor["location"]!,
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
-                                  color: Color(0xFF737373),
+                                  color: BLTColors.textMuted,
                                 ),
                                 fontSize: 14.0,
                               ),

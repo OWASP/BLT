@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// Popup page for viewing company details when a company
 /// is clicked on the Company Scoreboard page.
@@ -56,7 +57,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
       height: 0.3 * size.height,
       margin: EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        border: Border.all(color: Color(0xFF737373), width: 0.5),
+        border: Border.all(color: BLTColors.textMuted, width: 0.5),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Center(
@@ -64,9 +65,9 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
           widget.company.openIssues! > 0
               ? AppLocalizations.of(context)!.unableToGetInfo
               : AppLocalizations.of(context)!.noOpenIssues,
-          style: GoogleFonts.aBeeZee(
+          style: BLTFonts.system(
             textStyle: TextStyle(
-              color: Color(0xFF737373),
+              color: BLTColors.textMuted,
             ),
           ),
         ),
@@ -80,7 +81,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
       height: 0.3 * size.height,
       margin: EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        border: Border.all(color: Color(0xFF737373), width: 0.5),
+        border: Border.all(color: BLTColors.textMuted, width: 0.5),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Center(
@@ -88,9 +89,9 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
           widget.company.closedIssues! > 0
               ? AppLocalizations.of(context)!.unableToGetInfo
               : AppLocalizations.of(context)!.noOpenIssues,
-          style: GoogleFonts.aBeeZee(
+          style: BLTFonts.system(
             textStyle: TextStyle(
-              color: Color(0xFF737373),
+              color: BLTColors.textMuted,
             ),
           ),
         ),
@@ -100,7 +101,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
 
   @override
   void initState() {
-    companyColor = widget.company.valueColor ?? Color(0xFFDC4654);
+    companyColor = widget.company.valueColor ?? BLTColors.primary;
     super.initState();
   }
 
@@ -126,7 +127,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF737373).withOpacity(0.125),
+              BLTColors.textMuted.withOpacity(0.125),
               Colors.transparent,
             ],
           ),
@@ -168,7 +169,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
                           children: [
                             Text(
                               widget.company.companyName,
-                              style: GoogleFonts.ubuntu(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   color: companyColor,
                                   fontWeight: FontWeight.bold,
@@ -178,9 +179,9 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
                             ),
                             Text(
                               '  ${(widget.company.id != null) ? "#${widget.company.id}" : ""}',
-                              style: GoogleFonts.ubuntu(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
-                                  color: Color(0xFF737373),
+                                  color: BLTColors.textMuted,
                                   fontSize: 12,
                                 ),
                               ),
@@ -195,9 +196,9 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
                           ),
                           child: Text(
                             "${AppLocalizations.of(context)!.topTester}: ${widget.company.topTester}",
-                            style: GoogleFonts.aBeeZee(
+                            style: BLTFonts.system(
                               textStyle: TextStyle(
-                                color: Color(0xFF737373),
+                                color: BLTColors.textMuted,
                                 fontSize: 15,
                               ),
                             ),
@@ -217,7 +218,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
                             ),
                             label: Text(
                               AppLocalizations.of(context)!.email,
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   color: Colors.white,
                                   fontSize: 15,
@@ -240,7 +241,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
                             ),
                             label: Text(
                               AppLocalizations.of(context)!.site,
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   color: Colors.white,
                                   fontSize: 15,
@@ -281,7 +282,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
                                   ),
                                   Text(
                                     AppLocalizations.of(context)!.openIssues,
-                                    style: GoogleFonts.ubuntu(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
                                         color: companyColor,
                                         fontSize: 17.5,
@@ -316,7 +317,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
                                   ),
                                   Text(
                                     AppLocalizations.of(context)!.closedIssues,
-                                    style: GoogleFonts.ubuntu(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
                                         color: companyColor,
                                         fontSize: 17.5,

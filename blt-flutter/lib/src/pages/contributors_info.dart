@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 class ContributorsInfoPage extends StatefulWidget {
   const ContributorsInfoPage({super.key, required this.project});
@@ -15,11 +16,11 @@ class _ContributorsInfoPageState extends State<ContributorsInfoPage> {
     final Size size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: isDarkMode
-          ? Color.fromRGBO(34, 22, 23, 1)
+          ? BLTColors.darkBackground
           : Theme.of(context).canvasColor,
       appBar: AppBar(
         backgroundColor:
-            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
+            isDarkMode ? BLTColors.darkSurface : BLTColors.primary,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
@@ -47,7 +48,7 @@ class _ContributorsInfoPageState extends State<ContributorsInfoPage> {
               Container(
                 width: size.width,
                 color: isDarkMode
-                    ? Color.fromRGBO(34, 22, 23, 1)
+                    ? BLTColors.darkBackground
                     : Theme.of(context).canvasColor,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,9 +57,9 @@ class _ContributorsInfoPageState extends State<ContributorsInfoPage> {
                       padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                       child: Text(
                         "${widget.project.name} Contributors",
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFF737373),
+                            color: BLTColors.textMuted,
                             fontSize: 25,
                           ),
                         ),
@@ -68,9 +69,9 @@ class _ContributorsInfoPageState extends State<ContributorsInfoPage> {
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                       child: Text(
                         "Check out the awesome contributors we have. Maybe contribute and become a contributor too?",
-                        style: GoogleFonts.aBeeZee(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFF737373),
+                            color: BLTColors.textMuted,
                           ),
                         ),
                       ),
@@ -122,9 +123,9 @@ class _ContributorsInfoPageState extends State<ContributorsInfoPage> {
                             widget.project.contributors![index].name,
                             maxLines: 2,
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.aBeeZee(
+                            style: BLTFonts.system(
                               textStyle: TextStyle(
-                                color: Color(0xFF737373),
+                                color: BLTColors.textMuted,
                               ),
                             ),
                           )
@@ -204,8 +205,8 @@ class _ContributorCardState extends State<ContributorCard> {
                         Container(
                           decoration: BoxDecoration(
                             color: isDarkMode
-                                ? Color.fromRGBO(58, 21, 31, 1)
-                                : Color(0xFFDC4654),
+                                ? BLTColors.darkSurface
+                                : BLTColors.primary,
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(20),
                               bottomLeft: Radius.circular(20),
@@ -216,7 +217,7 @@ class _ContributorCardState extends State<ContributorCard> {
                         Container(
                           decoration: BoxDecoration(
                             color: isDarkMode
-                                ? Color.fromRGBO(34, 22, 23, 1)
+                                ? BLTColors.darkBackground
                                 : Theme.of(context).canvasColor,
                             borderRadius: BorderRadius.only(
                               bottomRight: Radius.circular(20),
@@ -265,9 +266,9 @@ class _ContributorCardState extends State<ContributorCard> {
                                       color: Colors.transparent,
                                       child: Text(
                                         widget.contributor.name,
-                                        style: GoogleFonts.aBeeZee(
+                                        style: BLTFonts.system(
                                           textStyle: TextStyle(
-                                            color: Colors.red,
+                                            color: BLTColors.primary,
                                           ),
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18.0,
@@ -277,9 +278,9 @@ class _ContributorCardState extends State<ContributorCard> {
                                   ),
                                   Text(
                                     '${widget.contributor.contributions} contributions',
-                                    style: GoogleFonts.aBeeZee(
+                                    style: BLTFonts.system(
                                       textStyle: TextStyle(
-                                        color: Colors.red,
+                                        color: BLTColors.primary,
                                       ),
                                       fontWeight: FontWeight.w500,
                                       fontSize: 16.0,

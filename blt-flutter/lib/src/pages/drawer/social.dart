@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 class SocialPage extends ConsumerStatefulWidget {
   const SocialPage({Key? key}) : super(key: key);
@@ -40,7 +41,7 @@ class _SocialPageState extends ConsumerState<SocialPage> {
             ),
           ),
           backgroundColor:
-              isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
+              isDarkMode ? BLTColors.darkSurface : BLTColors.primary,
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -55,11 +56,11 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                       ),
                       child: Text(
                         AppLocalizations.of(context)!.joinUsOn,
-                        style: GoogleFonts.aBeeZee(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
                             fontSize: 20,
                             color:
-                                isDarkMode ? Colors.white : Color(0xFFDC4654),
+                                isDarkMode ? Colors.white : BLTColors.primary,
                           ),
                           fontWeight: FontWeight.bold,
                         ),
@@ -78,8 +79,8 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                               top: 10, bottom: 10, left: 20, right: 20),
                           decoration: BoxDecoration(
                               color: isDarkMode
-                                  ? Color.fromRGBO(82, 30, 44, 1)
-                                  : Color(0xFFDC4654),
+                                  ? BLTColors.darkCard
+                                  : BLTColors.primary,
                               borderRadius: BorderRadius.circular(10)),
                           width: MediaQuery.of(context).size.width * 0.85,
                           child: Row(
@@ -92,7 +93,7 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                               ),
                               Text(
                                 "X",
-                                style: GoogleFonts.aBeeZee(
+                                style: BLTFonts.system(
                                   textStyle: TextStyle(
                                     fontSize: 20,
                                   ),
@@ -123,8 +124,8 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                         top: 10, bottom: 10, left: 20, right: 20),
                     decoration: BoxDecoration(
                         color: isDarkMode
-                            ? Color.fromRGBO(82, 30, 44, 1)
-                            : Color(0xFFDC4654),
+                            ? BLTColors.darkCard
+                            : BLTColors.primary,
                         borderRadius: BorderRadius.circular(10)),
                     width: MediaQuery.of(context).size.width * 0.85,
                     child: Row(
@@ -136,7 +137,7 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                         ),
                         Text(
                           "Slack",
-                          style: GoogleFonts.aBeeZee(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
                               fontSize: 20,
                             ),
@@ -164,8 +165,8 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                         top: 10, bottom: 10, left: 20, right: 20),
                     decoration: BoxDecoration(
                         color: isDarkMode
-                            ? Color.fromRGBO(82, 30, 44, 1)
-                            : Color(0xFFDC4654),
+                            ? BLTColors.darkCard
+                            : BLTColors.primary,
                         borderRadius: BorderRadius.circular(10)),
                     width: MediaQuery.of(context).size.width * 0.85,
                     child: Row(
@@ -177,7 +178,7 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                         ),
                         Text(
                           "GitHub",
-                          style: GoogleFonts.aBeeZee(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
                               fontSize: 20,
                             ),

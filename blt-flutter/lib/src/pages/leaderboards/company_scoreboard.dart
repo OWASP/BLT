@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/home/home_imports.dart';
+import 'package:blt/src/util/brand.dart';
 
 class CompanyScoreboardPage extends ConsumerStatefulWidget {
   const CompanyScoreboardPage({super.key});
@@ -21,7 +22,7 @@ class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
   @override
   void initState() {
     // paginatedUrl = IssueEndPoints.issues;
-    companyColor = Color(0xFFDC4654);
+    companyColor = BLTColors.primary;
 
     animationController =
         AnimationController(duration: new Duration(seconds: 2), vsync: this);
@@ -44,7 +45,7 @@ class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
           radius: 20,
           child: Icon(
             Icons.account_circle_outlined,
-            color: Color(0xFFDC4654),
+            color: BLTColors.primary,
             size: 40,
           ),
         );
@@ -87,7 +88,7 @@ class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
 
     return Scaffold(
       backgroundColor: isDarkMode
-          ? Color.fromRGBO(34, 22, 23, 1)
+          ? BLTColors.darkBackground
           : Theme.of(context).canvasColor,
       appBar: AppBar(
         backgroundColor: companyColor,
@@ -121,7 +122,7 @@ class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 width: size.width,
                 color: isDarkMode
-                    ? Color.fromRGBO(34, 22, 23, 1)
+                    ? BLTColors.darkBackground
                     : Theme.of(context).canvasColor,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,9 +131,9 @@ class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
                       padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                       child: Text(
                         "Company Leaderboard",
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFF737373),
+                            color: BLTColors.textMuted,
                             fontSize: 25,
                           ),
                         ),
@@ -142,9 +143,9 @@ class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                       child: Text(
                         "Check out the list of awesome companies out here. Maybe try to fix there issues too?",
-                        style: GoogleFonts.aBeeZee(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFF737373),
+                            color: BLTColors.textMuted,
                           ),
                         ),
                       ),
@@ -229,27 +230,27 @@ class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
                             leading: buildLogo(company.logoLink),
                             title: Text(
                               company.companyName,
-                              style: GoogleFonts.ubuntu(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
-                                  color: Color(0xFFDC4654),
+                                  color: BLTColors.primary,
                                 ),
                               ),
                               maxLines: 6,
                             ),
                             subtitle: Text(
                               "Total issue count: ${company.issueCount}",
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
-                                  color: Color(0xFF737373),
+                                  color: BLTColors.textMuted,
                                   fontSize: 12,
                                 ),
                               ),
                             ),
                             trailing: Text(
                               "# ${index + 1}",
-                              style: GoogleFonts.ubuntu(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
-                                  color: Color(0xFF737373),
+                                  color: BLTColors.textMuted,
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -277,7 +278,7 @@ class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
                         valueColor: animationController.drive(
                           ColorTween(
                             begin: Colors.blueAccent,
-                            end: Colors.red,
+                            end: BLTColors.primary,
                           ),
                         ),
                       ),

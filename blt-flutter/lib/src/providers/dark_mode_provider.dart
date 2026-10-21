@@ -6,12 +6,23 @@ final darkModeProvider = ChangeNotifierProvider((ref) {
   return DarkModeNotifier();
 });
 
+/// Dark mode follows the system until the user flips the toggle; the choice
+/// is then saved and wins over the system setting.
 class DarkModeNotifier extends ChangeNotifier {
   static const _isDarkModeKey = 'isDarkMode';
 
-  bool _isDarkMode = false;
+  /// null = no saved choice, follow the system.
+  bool? _savedDarkMode;
 
-  bool get isDarkMode => _isDarkMode;
+  bool get isDarkMode => _savedDarkMode ?? _systemIsDark;
+
+  ThemeMode get themeMode => _savedDarkMode == null
+      ? ThemeMode.system
+      : (_savedDarkMode! ? ThemeMode.dark : ThemeMode.light);
+
+  static bool get _systemIsDark =>
+      WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+      Brightness.dark;
 
   DarkModeNotifier() {
     _loadDarkMode();
@@ -19,15 +30,15 @@ class DarkModeNotifier extends ChangeNotifier {
 
   Future<void> _loadDarkMode() async {
     final prefs = await SharedPreferences.getInstance();
-    _isDarkMode = prefs.getBool(_isDarkModeKey) ?? false;
+    _savedDarkMode = prefs.getBool(_isDarkModeKey);
     notifyListeners();
   }
 
   Future<void> toggleDarkMode() async {
-    _isDarkMode = !_isDarkMode;
+    _savedDarkMode = !isDarkMode;
     notifyListeners();
 
     final prefs = await SharedPreferences.getInstance();
-    prefs.setBool(_isDarkModeKey, _isDarkMode);
+    prefs.setBool(_isDarkModeKey, _savedDarkMode!);
   }
 }

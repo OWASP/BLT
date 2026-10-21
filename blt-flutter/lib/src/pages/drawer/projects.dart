@@ -1,5 +1,6 @@
 import 'package:blt/src/pages/drawer/drawer_imports.dart';
 import 'package:blt/src/providers/projects_provider.dart';
+import 'package:blt/src/util/brand.dart';
 
 class ContributorsPage extends ConsumerStatefulWidget {
   const ContributorsPage({super.key});
@@ -32,11 +33,11 @@ class _ContributorsPageState extends ConsumerState<ContributorsPage>
     var projects = ref.watch(projectListProvider);
     return Scaffold(
       backgroundColor: isDarkMode
-          ? Color.fromRGBO(34, 22, 23, 1)
+          ? BLTColors.darkBackground
           : Theme.of(context).canvasColor,
       appBar: AppBar(
         backgroundColor:
-            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
+            isDarkMode ? BLTColors.darkSurface : BLTColors.primary,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
@@ -68,7 +69,7 @@ class _ContributorsPageState extends ConsumerState<ContributorsPage>
                 Container(
                   width: size.width,
                   color: isDarkMode
-                      ? Color.fromRGBO(34, 22, 23, 1)
+                      ? BLTColors.darkBackground
                       : Theme.of(context).canvasColor,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,9 +78,9 @@ class _ContributorsPageState extends ConsumerState<ContributorsPage>
                         padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                         child: Text(
                           "Projects",
-                          style: GoogleFonts.ubuntu(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
-                              color: Color(0xFF737373),
+                              color: BLTColors.textMuted,
                               fontSize: 25,
                             ),
                           ),
@@ -89,9 +90,9 @@ class _ContributorsPageState extends ConsumerState<ContributorsPage>
                         padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                         child: Text(
                           "Check out the list of awesome projects we have. Maybe contribute and become a contributor too?",
-                          style: GoogleFonts.aBeeZee(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
-                              color: Color(0xFF737373),
+                              color: BLTColors.textMuted,
                             ),
                           ),
                         ),
@@ -137,7 +138,7 @@ class _ContributorsPageState extends ConsumerState<ContributorsPage>
                           valueColor: animationController.drive(
                             ColorTween(
                               begin: Colors.blueAccent,
-                              end: Colors.red,
+                              end: BLTColors.primary,
                             ),
                           ),
                         ),
@@ -194,9 +195,9 @@ class _ProjectSectionState extends State<ProjectSection> {
               child: Text(
                 widget.project.name,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.ubuntu(
+                style: BLTFonts.system(
                   textStyle: TextStyle(
-                    color: Color(0xFFDC4654),
+                    color: BLTColors.primary,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -208,9 +209,9 @@ class _ProjectSectionState extends State<ProjectSection> {
         SizedBox(height: size.height * 0.01),
         Text(
           widget.project.description,
-          style: GoogleFonts.aBeeZee(
+          style: BLTFonts.system(
             textStyle: TextStyle(
-              color: Color(0xFF737373),
+              color: BLTColors.textMuted,
             ),
           ),
           textAlign: TextAlign.justify,
@@ -230,7 +231,7 @@ class _ProjectSectionState extends State<ProjectSection> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               color: isDarkMode
-                  ? Color.fromRGBO(56, 24, 27, 1)
+                  ? BLTColors.darkCard
                   : Color.fromARGB(255, 250, 247, 241),
               boxShadow: [
                 BoxShadow(
@@ -250,9 +251,9 @@ class _ProjectSectionState extends State<ProjectSection> {
                   children: [
                     Text(
                       "Contributors",
-                      style: GoogleFonts.ubuntu(
+                      style: BLTFonts.system(
                         textStyle: TextStyle(
-                          color: Color(0xFFDC4654),
+                          color: BLTColors.primary,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -277,9 +278,9 @@ class _ProjectSectionState extends State<ProjectSection> {
                       SizedBox(width: 5),
                       Text(
                         "+${contributors!.length - 3} others",
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFFDC4654),
+                            color: BLTColors.primary,
                             fontSize: 12,
                           ),
                         ),
@@ -289,7 +290,7 @@ class _ProjectSectionState extends State<ProjectSection> {
                 ),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
-                  color: Color(0xFFDC4654),
+                  color: BLTColors.primary,
                   size: 20,
                 )
               ],

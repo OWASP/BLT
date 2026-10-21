@@ -1,4 +1,5 @@
 import 'package:blt/src/components/components_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 class Onboarding extends StatefulWidget {
   final Map<String, String> stats;
@@ -75,7 +76,7 @@ class _OnboardingState extends State<Onboarding> {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xff305067),
+                        color: BLTColors.gray900,
                       ),
                     ),
                   ),
@@ -95,7 +96,7 @@ class _OnboardingState extends State<Onboarding> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14.0),
                         ),
-                        backgroundColor: Color(0xff305067),
+                        backgroundColor: BLTColors.gray900,
                       ),
                       child: Text(
                         'Skip',
@@ -118,8 +119,8 @@ class _OnboardingState extends State<Onboarding> {
                 controller: pageController,
                 count: 3,
                 effect: WormEffect(
-                  dotColor: Color(0xff305067),
-                  activeDotColor: Color(0xff305067),
+                  dotColor: BLTColors.gray900,
+                  activeDotColor: BLTColors.gray900,
                   dotHeight: 16,
                   dotWidth: 16,
                   type: WormType.normal,

@@ -1,5 +1,6 @@
 import 'package:blt/src/constants/labels_constants.dart';
 import 'package:blt/src/components/components_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 // The card used to display issues in the list of issues on the Issue Page.
 class IssueCard extends StatelessWidget {
@@ -16,7 +17,7 @@ class IssueCard extends StatelessWidget {
       margin: EdgeInsets.all(10),
       elevation: 0,
       clipBehavior: Clip.antiAlias,
-      color: Color(0xFF737373).withOpacity(0.15),
+      color: BLTColors.textMuted.withOpacity(0.15),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -64,9 +65,9 @@ class IssueCard extends StatelessWidget {
                         "Issue #${issue.id}",
                         overflow: TextOverflow.ellipsis,
                         softWrap: true,
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFFDC4654),
+                            color: BLTColors.primary,
                             fontSize: 17.5,
                           ),
                           fontWeight: FontWeight.bold,
@@ -84,7 +85,7 @@ class IssueCard extends StatelessWidget {
                                 .copyWith(left: 10, right: 10),
                             child: Text(
                               "${labels[issue.label]}",
-                              style: GoogleFonts.aBeeZee(
+                              style: BLTFonts.system(
                                 textStyle: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
@@ -105,11 +106,11 @@ class IssueCard extends StatelessWidget {
                           issue.title.replaceAll("\n", " "),
                           overflow: TextOverflow.ellipsis,
                           softWrap: true,
-                          style: GoogleFonts.aBeeZee(
+                          style: BLTFonts.system(
                             textStyle: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF737373),
+                              color: BLTColors.textMuted,
                             ),
                           ),
                         ),
@@ -118,10 +119,10 @@ class IssueCard extends StatelessWidget {
                         issue.created_date,
                         overflow: TextOverflow.ellipsis,
                         softWrap: true,
-                        style: GoogleFonts.aBeeZee(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
                             fontSize: 10,
-                            color: Color(0xFFA3A3A3),
+                            color: BLTColors.gray400,
                           ),
                         ),
                       ),
@@ -142,9 +143,9 @@ class IssueCard extends StatelessWidget {
                 //         "Issue #${issue.id}",
                 //         overflow: TextOverflow.ellipsis,
                 //         softWrap: true,
-                //         style: GoogleFonts.ubuntu(
+                //         style: BLTFonts.system(
                 //           textStyle: TextStyle(
-                //             color: Color(0xFFDC4654),
+                //             color: BLTColors.primary,
                 //             fontSize: 17.5,
                 //           ),
                 //           fontWeight: FontWeight.bold,
@@ -157,10 +158,10 @@ class IssueCard extends StatelessWidget {
                 //         issue.description.replaceAll("\n", " "),
                 //         overflow: TextOverflow.ellipsis,
                 //         softWrap: true,
-                //         style: GoogleFonts.aBeeZee(
+                //         style: BLTFonts.system(
                 //           textStyle: TextStyle(
                 //             fontSize: 12,
-                //             color: Color(0xFF737373),
+                //             color: BLTColors.textMuted,
                 //           ),
                 //         ),
                 //       ),
@@ -173,10 +174,10 @@ class IssueCard extends StatelessWidget {
                 //             issue.created_date,
                 //             overflow: TextOverflow.ellipsis,
                 //             softWrap: true,
-                //             style: GoogleFonts.aBeeZee(
+                //             style: BLTFonts.system(
                 //               textStyle: TextStyle(
                 //                 fontSize: 10,
-                //                 color: Color(0xFFA3A3A3),
+                //                 color: BLTColors.gray400,
                 //               ),
                 //             ),
                 //           ),

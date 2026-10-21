@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/drawer/drawer_imports.dart';
+import 'package:blt/src/util/brand.dart';
 
 class ShowBugHunts extends ConsumerStatefulWidget {
   const ShowBugHunts({Key? key}) : super(key: key);
@@ -29,11 +30,11 @@ class _ShowBugHuntsState extends ConsumerState<ShowBugHunts>
 
     return Scaffold(
       backgroundColor: isDarkMode
-          ? Color.fromRGBO(34, 22, 23, 1)
+          ? BLTColors.darkBackground
           : Theme.of(context).canvasColor,
       appBar: AppBar(
         backgroundColor:
-            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
+            isDarkMode ? BLTColors.darkSurface : BLTColors.primary,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
@@ -94,7 +95,7 @@ class _ShowBugHuntsState extends ConsumerState<ShowBugHunts>
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 width: size.width,
                 color: isDarkMode
-                    ? Color.fromRGBO(34, 22, 23, 1)
+                    ? BLTColors.darkBackground
                     : Theme.of(context).canvasColor,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,9 +104,9 @@ class _ShowBugHuntsState extends ConsumerState<ShowBugHunts>
                       padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                       child: Text(
                         "Bug Hunts",
-                        style: GoogleFonts.ubuntu(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFF737373),
+                            color: BLTColors.textMuted,
                             fontSize: 25,
                           ),
                         ),
@@ -115,9 +116,9 @@ class _ShowBugHuntsState extends ConsumerState<ShowBugHunts>
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                       child: Text(
                         "Check out the list of awesome active and upcoming Bug Hunts. Maybe try to participate in them too?",
-                        style: GoogleFonts.aBeeZee(
+                        style: BLTFonts.system(
                           textStyle: TextStyle(
-                            color: Color(0xFF737373),
+                            color: BLTColors.textMuted,
                           ),
                         ),
                       ),
@@ -173,7 +174,7 @@ class _ShowBugHuntsState extends ConsumerState<ShowBugHunts>
                         valueColor: animationController.drive(
                           ColorTween(
                             begin: Colors.blueAccent,
-                            end: Colors.red,
+                            end: BLTColors.primary,
                           ),
                         ),
                       ),

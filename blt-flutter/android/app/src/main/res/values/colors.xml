@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Adaptive launcher icon background (white tile behind the wasp) -->
+    <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- Launch splash background (Tailwind white; dark: gray-950 in values-night) -->
+    <color name="launch_background">#FFFFFF</color>
+</resources>

@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/pages_import.dart';
+import 'package:blt/src/util/brand.dart';
 
 /// This page is thrown in case when a Navigation exception occurs.
 class ErrorPage extends StatelessWidget {
@@ -17,9 +18,9 @@ class ErrorPage extends StatelessWidget {
           children: [
             Text(
               AppLocalizations.of(context)!.error,
-              style: GoogleFonts.aBeeZee(
+              style: BLTFonts.system(
                 textStyle: TextStyle(
-                  color: Color(0xFFDC4654),
+                  color: BLTColors.primary,
                   fontWeight: FontWeight.bold,
                   fontSize: 30,
                 ),
@@ -34,9 +35,9 @@ class ErrorPage extends StatelessWidget {
             ),
             Text(
               AppLocalizations.of(context)!.yikes,
-              style: GoogleFonts.aBeeZee(
+              style: BLTFonts.system(
                 textStyle: TextStyle(
-                  color: Color(0xFF737373),
+                  color: BLTColors.textMuted,
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
                 ),
@@ -47,9 +48,9 @@ class ErrorPage extends StatelessWidget {
             ),
             Text(
               "${AppLocalizations.of(context)!.foundBugOnBLT}\n${AppLocalizations.of(context)!.reportItOrGoHome}",
-              style: GoogleFonts.aBeeZee(
+              style: BLTFonts.system(
                 textStyle: TextStyle(
-                  color: Color(0xFF737373),
+                  color: BLTColors.textMuted,
                 ),
               ),
             ),
@@ -62,7 +63,7 @@ class ErrorPage extends StatelessWidget {
               child: TextButton(
                 child: Text(
                   AppLocalizations.of(context)!.addIssue,
-                  style: GoogleFonts.ubuntu(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -76,7 +77,7 @@ class ErrorPage extends StatelessWidget {
                     ),
                   ),
                   backgroundColor: WidgetStateProperty.all(
-                    Color(0xFFDC4654),
+                    BLTColors.primary,
                   ),
                 ),
                 onPressed: () {
@@ -97,9 +98,9 @@ class ErrorPage extends StatelessWidget {
               child: TextButton(
                 child: Text(
                   AppLocalizations.of(context)!.home,
-                  style: GoogleFonts.ubuntu(
+                  style: BLTFonts.system(
                     textStyle: TextStyle(
-                      color: Color(0xFFDC4654),
+                      color: BLTColors.primary,
                       fontSize: 20,
                     ),
                   ),
@@ -108,7 +109,7 @@ class ErrorPage extends StatelessWidget {
                   shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.0),
-                      side: BorderSide(color: Colors.red),
+                      side: BorderSide(color: BLTColors.primary),
                     ),
                   ),
                   backgroundColor: WidgetStateProperty.all(
