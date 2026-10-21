@@ -55,6 +55,14 @@
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 
     <style>
+      /* ── Shared bar: hide its links until it has loaded ── */
+      blt-nav:not(:defined) {
+        display: block;
+        min-height: 62px;
+      }
+      blt-nav:not(:defined) > * {
+        display: none;
+      }
       /* ── dot field for hero ── */
       .dot-field {
         background-image: radial-gradient(
@@ -220,55 +228,12 @@
   <body
     class="blt-page min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
   >
-    <!-- ══ Header ══ -->
-    <header
-      class="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
-      id="site-header"
-    >
-      <div
-        class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3.5 max-md:px-4"
-      >
-        <!-- Back -->
-        <a
-          href="index.html"
-          class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-900"
-          aria-label="Back to events"
-        >
-          <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
-          <span class="hidden sm:inline">Back to events</span>
-        </a>
-
-        <!-- Actions -->
-        <div class="flex items-center gap-2">
-          <span
-            id="hackathon-status"
-            class="blt-status blt-status--upcoming hidden sm:inline-flex"
-            >Loading</span
-          >
-          <a
-            href="https://git.owaspblt.org/BLT/BLT-Hackathons"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="hidden items-center justify-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 sm:inline-flex"
-          >
-            <i
-              class="fas fa-code-branch text-xs text-gray-500"
-              aria-hidden="true"
-            ></i>
-            Source
-          </a>
-          <a
-            href="https://git.owaspblt.org/BLT/issues"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center justify-center gap-1.5 rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:-translate-y-px"
-          >
-            <i class="fas fa-code-branch text-xs" aria-hidden="true"></i>
-            Contribute
-          </a>
-        </div>
-      </div>
-    </header>
+    <!-- ══ Header: the shared OWASP BLT bar with this site's links ══ -->
+    <blt-nav project="blt-hackathons" name="Hackathons" home="index.html" data-sticky>
+      <a href="index.html">All events</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-Hackathons" target="_blank" rel="noopener noreferrer" slot="actions">Source</a>
+      <a href="https://git.owaspblt.org/BLT/issues" target="_blank" rel="noopener noreferrer" slot="actions" data-primary>Contribute</a>
+    </blt-nav>
 
     <main>
       <!-- ══ Page header ══ -->
@@ -286,6 +251,9 @@
             <span
               class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600"
               >Live event data</span
+            >
+            <span id="hackathon-status" class="blt-status blt-status--upcoming"
+              >Loading</span
             >
           </div>
 

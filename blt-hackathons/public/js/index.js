@@ -20,8 +20,8 @@ class HackathonIndex {
         const global = this.config.global || {};
         const siteTitle = document.getElementById('site-title');
 
-        if (global.siteName && siteTitle) {
-            siteTitle.textContent = String(global.siteName);
+        if (global.siteName) {
+            if (siteTitle) siteTitle.textContent = String(global.siteName);
             document.title = `${String(global.siteName)} - OWASP BLT Contribution Events`;
         }
 

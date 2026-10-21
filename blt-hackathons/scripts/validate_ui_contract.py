@@ -26,8 +26,6 @@ REQUIRED_FILES = [
 ]
 
 INDEX_REQUIRED_IDS = [
-    "site-header",
-    "site-title",
     "hero-title",
     "hero-description",
     "platform-stats",
@@ -88,12 +86,13 @@ INDEX_REQUIRED_SNIPPETS = [
     "filterHackathons('ongoing')",
     "filterHackathons('upcoming')",
     "filterHackathons('ended')",
+    '<blt-nav project="blt-hackathons"',
     "data-theme-toggle",
     "position: sticky",
 ]
 
 DASHBOARD_REQUIRED_TEXT = [
-    "Back to events",
+    "All events",
     "Source",
     "Contribute",
     "Event timeline",
@@ -108,6 +107,7 @@ DASHBOARD_REQUIRED_TEXT = [
 ]
 
 DASHBOARD_REQUIRED_SNIPPETS = [
+    '<blt-nav project="blt-hackathons"',
     "position: sticky",
     "data-theme-toggle",
     "id=\"prActivityChart\"",

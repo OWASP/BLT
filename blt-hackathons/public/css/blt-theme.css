@@ -1501,11 +1501,6 @@ body.blt-page {
 
 /* Dark mode for the page chrome and the hand-written colours the gray-class overrides above
    don't reach (html.dark, set by js/theme.js and the shared <blt-nav> toggle). */
-.dark body.blt-page #site-header,
-.dark body.blt-page #mobile-menu {
-    background-color: rgba(3, 7, 18, 0.9) !important;
-    border-color: var(--blt-border) !important;
-}
 .dark body.blt-page .bg-white\/40,
 .dark body.blt-page .bg-white\/90,
 .dark body.blt-page .bg-\[\#f6f6f6\] {
