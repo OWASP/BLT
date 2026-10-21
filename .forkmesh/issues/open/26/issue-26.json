@@ -96,6 +96,17 @@
             "sig": "ytP5Qr0gfk8X6KhF5Uu0dbMPIuEf7-PjAZ0XKLMnvpR0PBuvKgdeKL83rPEolOqNUih51U6xnYz-uzuWf62iDg",
             "ts": 1792517322505,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "authorVerified": true,
+            "body": "@navodit I have already assigned to this issue. and currently working on it.",
+            "id": "comment-web-1792553488557",
+            "sig": "yqtNKoIH3zc8AsaJtjI4T7f1WYjaURyehZVmRyVEZPRc4XhI5QgL3lZqKjYMR_ZnADe67R_TnS9RbubyQe0FAg",
+            "ts": 1792553488557,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -110,6 +121,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-newsletter: fix: mobile responsiveness",
-    "updatedAt": 1792517322505,
+    "updatedAt": 1792553488557,
     "votes": 0
 }
