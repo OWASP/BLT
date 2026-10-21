@@ -16,7 +16,7 @@ class RepoPlugin(MachineBasePlugin):
         super().__init__(client, settings, storage)
 
         project_home = "/home/DonnieBLT/BLT-Lettuce"
-        data_path = os.path.join(project_home, "data", "repos.json")
+        data_path = os.path.join(project_home, "public", "data", "repos.json")
         with open(data_path) as f:
             self.repo_data = json.load(f)
 

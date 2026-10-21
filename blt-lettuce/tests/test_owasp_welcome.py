@@ -477,7 +477,7 @@ def test_welcome_blocks_have_static_logo_and_tracked_footer(db, slack):
         "https://lettuce.owaspblt.org/welcome-logo?tid=" + tid)
     assert "<#C0C8JS08KN1>" in section["text"]["text"]
     assert post["channel"] == "D123"
-    assert (ROOT / "docs" / "static" / "blt-logo.png").exists()
+    assert (ROOT / "public" / "docs" / "static" / "blt-logo.png").exists()
 
 
 def test_top_channels_from_stats_are_appended(db, slack):

@@ -1,6 +1,6 @@
 ### File Naming Convention
 
-Welcome message files in the `data/` directory use the following naming pattern:
+Welcome message files in the `public/data/` directory use the following naming pattern:
 
 `message-<team_id>-<channel_id>-ephemeral.md`
 
@@ -396,12 +396,10 @@ BLT-Lettuce/
 │   └── lettuce/            # Bot plugins and modules (for reference)
 ├── wrangler.toml           # Worker configuration
 ├── manifest.yaml           # Slack App manifest for easy setup
-├── docs/
-│   └── index.html          # GitHub Pages stats (reference)
+├── public/                 # The only folder served as static assets (env.ASSETS)
+│   ├── docs/               # Stats page (reference) and static/ logos
+│   └── data/               # Channel-join .md templates, projects.json, repos.json
 ├── app.py                  # Legacy Flask application (kept for reference)
-├── data/
-│   ├── projects.json       # OWASP project metadata cache
-│   └── repos.json          # Repository categorization
 ├── tests/                  # Test suite
 ├── pyproject.toml          # Python dependencies
 └── README.md               # This file

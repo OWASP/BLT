@@ -13,7 +13,7 @@ class ProjectPlugin(MachineBasePlugin):
         self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage
     ):
         super().__init__(client, settings, storage)
-        data_path = Path(__file__).parents[3] / "data" / "projects.json"
+        data_path = Path(__file__).parents[3] / "public" / "data" / "projects.json"
         with open(data_path) as f:
             self.repo_data = json.load(f)
 

@@ -2552,12 +2552,10 @@ def get_channel_join_message(team_id, channel_id):
 
         filename = f"message-{team_id}-{channel_id}-ephemeral.md"
 
-        # Production/deployment paths that actually work in Cloudflare Workers runtime.
+        # Local/dev filesystem paths (production reads public/data through env.ASSETS).
         search_dirs = [
-            "data",  # Relative to worker root
-            "src/data",  # Alternative structure
-            "/data",  # Absolute paths in case we're in /session/
-            "/src/data",
+            os.path.join(os.path.dirname(__file__), "..", "public", "data"),
+            "public/data",  # Relative to the project root
         ]
 
         for base_dir in search_dirs:
@@ -2660,27 +2658,26 @@ async def get_channel_join_message_runtime(env, team_id, channel_id):
 
     filename = f"message-{team_id}-{channel_id}-ephemeral.md"
 
-    # First try ASSETS binding paths (deployment-safe in Workers runtime).
-    for base in ("data", "src/data"):
-        asset_rel_path = f"{base}/{filename}"
-        content = await _read_asset_text(env, asset_rel_path)
-        if content.strip():
-            try:
-                print(
-                    "[get_channel_join_message]",
-                    json.dumps(
-                        {
-                            "status": "asset_read_success",
-                            "asset_path": f"/{asset_rel_path}",
-                            "team_id": team_id,
-                            "channel_id": channel_id,
-                            "content_length": len(content.strip()),
-                        }
-                    ),
-                )
-            except Exception:
-                pass
-            return content.strip()
+    # First try the ASSETS binding (public/data, deployment-safe in Workers runtime).
+    asset_rel_path = f"data/{filename}"
+    content = await _read_asset_text(env, asset_rel_path)
+    if content.strip():
+        try:
+            print(
+                "[get_channel_join_message]",
+                json.dumps(
+                    {
+                        "status": "asset_read_success",
+                        "asset_path": f"/{asset_rel_path}",
+                        "team_id": team_id,
+                        "channel_id": channel_id,
+                        "content_length": len(content.strip()),
+                    }
+                ),
+            )
+        except Exception:
+            pass
+        return content.strip()
 
     # Fallback to filesystem lookup for local/dev modes.
     return get_channel_join_message(team_id, channel_id)
@@ -6987,7 +6984,7 @@ async def handle_request(request, env, ctx=None):
             import os
 
             static_dir = os.path.normpath(
-                os.path.join(os.path.dirname(__file__), "..", "docs", "static")
+                os.path.join(os.path.dirname(__file__), "..", "public", "docs", "static")
             )
             for filename in ("favicon.png", "logo.png"):
                 favicon_path = os.path.join(static_dir, filename)
@@ -7151,7 +7148,8 @@ async def handle_request(request, env, ctx=None):
     # ------------------------------------------------------------------ #
     #  GET /terms  →  terms of service                                   #
     # ------------------------------------------------------------------ #
-    if pathname == "/terms" and method == "GET":
+    # /terms.html was served from the old project-root assets; keep the URL working.
+    if pathname in ("/terms", "/terms.html") and method == "GET":
         return _html_response(
             get_terms_html(),
             extra_headers={"Cache-Control": "public, max-age=3600"},

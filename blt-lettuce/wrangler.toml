@@ -6,10 +6,12 @@ compatibility_flags = ["python_workers"]
 [build]
 command = "python scripts/migrate.py"
 
+# Only public/ is served (Wrangler has no "include" filter: everything in the directory is
+# public). public/data holds the channel-join .md templates read through env.ASSETS;
+# public/docs/static the logos. tests/test_public_assets.py keeps code and config out of it.
 [assets]
-directory = "."
+directory = "public"
 binding = "ASSETS"
-include = ["data/**", "src/data/**", "docs/static/**"]
 
 [[d1_databases]]
 binding = "DB"
