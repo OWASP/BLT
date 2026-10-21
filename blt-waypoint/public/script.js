@@ -73,25 +73,7 @@ let currentDataSource = 'main';
 /* ------------------------------------------------------------------ */
 /*  DARK MODE                                                           */
 /* ------------------------------------------------------------------ */
-(function initDark() {
-  const saved = localStorage.getItem('blt-dark');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (saved === 'dark' || (!saved && prefersDark)) {
-    document.documentElement.classList.add('dark');
-    const icon = document.getElementById('dark-icon');
-    if (icon) icon.className = 'fa-solid fa-sun text-sm';
-  }
-})();
-
-const darkToggle = document.getElementById('dark-toggle');
-if (darkToggle) darkToggle.addEventListener('click', () => {
-  const isDark = document.documentElement.classList.toggle('dark');
-  localStorage.setItem('blt-dark', isDark ? 'dark' : 'light');
-  const icon = document.getElementById('dark-icon');
-  if (icon) icon.className = isDark
-    ? 'fa-solid fa-sun text-sm'
-    : 'fa-solid fa-moon text-sm';
-});
+// The theme is applied before paint by theme-init.js and toggled from the BLT top bar.
 
 /* ------------------------------------------------------------------ */
 /*  UTILITY HELPERS                                                     */
