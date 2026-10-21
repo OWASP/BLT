@@ -9,22 +9,25 @@
     content="BLT-MCP is an MCP server giving AI agents structured access to the OWASP BLT ecosystem for bug logging, vulnerability management, and security workflows." />
 
   <!-- Tailwind CSS CDN -->
+  <script src="_brand/theme-init.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            primary: '#E10101',
+            primary: '#dc2626',
             'primary-hover': '#b91c1c',
             'dark-base': '#111827',
-            'dark-surface': '#1F2937',
+            'dark-surface': '#1f2937',
             'neutral-border': '#E5E5E5',
-            'sidebar-active-bg': '#feeae9',
-            'sidebar-active-text': '#E10101',
+            'sidebar-active-bg': '#fef2f2',
+            'sidebar-active-text': '#dc2626',
           },
           fontFamily: {
-            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
           },
         },
       },
@@ -39,10 +42,9 @@
     crossorigin="anonymous"
     referrerpolicy="no-referrer"
   />
-  <!-- Google Fonts: Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="logo.svg" />
+  <link rel="stylesheet" href="_brand/blt-dark.css" />
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 
   <style>
     /* Custom scrollbar */
@@ -55,7 +57,7 @@
     }
 
     ::-webkit-scrollbar-thumb {
-      background: #E10101;
+      background: #dc2626;
       border-radius: 3px;
     }
 
@@ -63,7 +65,7 @@
     .code-block {
       background: #1F2937;
       color: #f3f4f6;
-      font-family: 'Courier New', Courier, monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 0.875rem;
       line-height: 1.6;
       border-radius: 0.5rem;
@@ -88,7 +90,7 @@
 
     /* Gradient hero text */
     .hero-gradient {
-      background: linear-gradient(135deg, #E10101 0%, #ff6b6b 100%);
+      background: linear-gradient(135deg, #dc2626 0%, #f87171 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -99,7 +101,7 @@
       content: '';
       display: block;
       height: 2px;
-      background: #E10101;
+      background: #dc2626;
       transform: scaleX(0);
       transition: transform 0.2s ease;
     }
@@ -107,6 +109,15 @@
     .nav-link:hover::after {
       transform: scaleX(1);
     }
+
+    /* Dark mode (html.dark, set by the OWASP BLT bar); gray utilities are in _brand/blt-dark.css */
+    html.dark .border-neutral-border { border-color: #1f2937; }
+    html.dark .bg-sidebar-active-bg { background-color: rgba(127, 29, 29, .35); }
+    html.dark .text-primary { color: #f87171; }
+    html.dark .bg-dark-base { background-color: #111827; }
+    html.dark ::-webkit-scrollbar-track { background: #030712; }
+    html.dark .from-gray-50.to-white { background-image: none; background-color: #030712; }
+    html.dark .bg-gray-50\/50 { background-color: rgba(17, 24, 39, .5); }
   </style>
 </head>
 
@@ -119,11 +130,7 @@
 
         <!-- Logo -->
         <a href="#" class="flex items-center gap-2 group" aria-label="BLT-MCP home">
-          <span
-            class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-primary text-white font-bold text-sm"
-            aria-hidden="true">
-            BLT
-          </span>
+          <img src="logo.svg" alt="" class="w-8 h-8 rounded-full" width="32" height="32" />
           <span class="font-bold text-lg text-gray-900 group-hover:text-primary transition-colors">
             BLT<span class="text-primary">-MCP</span>
           </span>
@@ -151,8 +158,8 @@
         <!-- Mobile menu button -->
         <button id="mobile-menu-btn" type="button"
           class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-primary hover:bg-gray-100 transition-colors"
-          aria-controls="mobile-menu" aria-expanded="false" aria-label="Toggle menu">
-          <i class="fa-solid fa-bars text-lg" aria-hidden="true"></i>
+          aria-controls="mobile-menu" aria-expanded="false" aria-label="BLT-MCP menu">
+          <i class="fa-solid fa-ellipsis text-lg" aria-hidden="true"></i>
         </button>
       </div>
 
@@ -832,9 +839,7 @@
         <!-- Brand -->
         <div class="lg:col-span-2">
           <div class="flex items-center gap-2 mb-3">
-            <span
-              class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-primary text-white font-bold text-sm"
-              aria-hidden="true">BLT</span>
+            <img src="logo.svg" alt="" class="w-8 h-8 rounded-full" width="32" height="32" />
             <span class="font-bold text-lg text-white">BLT<span class="text-primary">-MCP</span></span>
           </div>
           <p class="text-sm leading-relaxed max-w-xs">
@@ -902,7 +907,7 @@
       menu.classList.toggle('hidden');
       // Toggle icon
       const icon = btn.querySelector('i');
-      icon.classList.toggle('fa-bars');
+      icon.classList.toggle('fa-ellipsis');
       icon.classList.toggle('fa-xmark');
     });
 
@@ -912,7 +917,7 @@
         menu.classList.add('hidden');
         btn.setAttribute('aria-expanded', 'false');
         const icon = btn.querySelector('i');
-        icon.classList.add('fa-bars');
+        icon.classList.add('fa-ellipsis');
         icon.classList.remove('fa-xmark');
       });
     });
