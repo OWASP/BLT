@@ -82,36 +82,8 @@
             color: var(--blt-text);
         }
 
-        .nav-bar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: var(--c-surface-a);
-            border-bottom: 1px solid var(--blt-border);
-            backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.7rem 1.5rem;
-        }
-
-        .nav-logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 800;
-            font-size: 1rem;
-            color: var(--blt-text);
-            text-decoration: none;
-        }
-
-        .nav-logo i { color: var(--blt-primary); }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
+        blt-nav:not(:defined) { display: block; min-height: 61px; }
+        blt-nav:not(:defined) > * { display: none; }
 
         .btn-primary {
             display: inline-flex;
@@ -198,23 +170,11 @@
 </head>
 <body class="font-sans text-gray-900 antialiased">
 
-    <!-- Navigation Bar -->
-    <nav class="nav-bar" aria-label="Site navigation">
-        <a class="nav-logo" href="landing.html">
-            <i class="fa-solid fa-tower-broadcast" aria-hidden="true"></i>
-            BLT Sportscaster
-        </a>
-        <div class="nav-links">
-            <a href="https://git.owaspblt.org/BLT/BLT-Gitcaster" target="_blank" rel="noopener noreferrer" class="btn-outline">
-                <i class="fa-brands fa-github" aria-hidden="true"></i>
-                View Source
-            </a>
-            <a href="index.html" class="btn-primary">
-                <i class="fa-solid fa-tower-broadcast" aria-hidden="true"></i>
-                Live Dashboard
-            </a>
-        </div>
-    </nav>
+    <blt-nav project="blt-gitcaster" name="Gitcaster" data-sticky>
+        <a href="landing.html" aria-current="page">About</a>
+        <a href="https://git.owaspblt.org/BLT/BLT-Gitcaster" target="_blank" rel="noopener noreferrer">Source Code</a>
+        <a href="index.html" slot="actions" data-primary>Live Dashboard</a>
+    </blt-nav>
 
     <main class="pt-8 pb-10">
 

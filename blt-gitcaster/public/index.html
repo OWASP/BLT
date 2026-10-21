@@ -86,63 +86,25 @@
             color: var(--blt-text);
         }
 
-        /* In the page flow under the OWASP BLT bar (was fixed to the viewport corner). */
-        .top-bar {
-            position: relative;
-            padding: 14px 14px 0;
-            display: flex;
-            gap: 6px;
-            z-index: 1000;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
+        blt-nav:not(:defined) { display: block; min-height: 61px; }
+        blt-nav:not(:defined) > * { display: none; }
 
-        .top-bar-btn {
-            height: 40px;
-            min-width: 40px;
-            padding: 0 0.75rem;
-            border-radius: 0.75rem;
-            border: 1px solid var(--blt-border);
-            background: var(--c-surface-a);
-            color: var(--c-text2);
+        /* This page's controls inside the OWASP BLT bar: icon + label; "on" = class active
+           (the bar shows it in red), "off" = muted / disabled (dimmed). */
+        blt-nav > button {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 0.4rem;
-            font-size: 0.82rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            text-decoration: none;
-            box-shadow: 0 1px 2px rgba(17, 24, 39, 0.08);
-            white-space: nowrap;
         }
 
-        .top-bar-btn:hover {
-            border-color: var(--c-line-strong);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(17, 24, 39, 0.12);
-        }
-
-        .top-bar-btn.active {
-            background: var(--blt-outline-soft);
-            border-color: var(--c-red-line);
-            color: var(--blt-primary);
-        }
-
-        .top-bar-btn.muted,
-        .top-bar-btn.disabled {
+        blt-nav > .muted,
+        blt-nav > .disabled {
             opacity: 0.55;
-        }
-
-        .top-bar-label {
-            font-size: 0.78rem;
-            font-weight: 600;
         }
 
         .config-panel {
             position: absolute;
-            top: 126px;
+            top: 66px; /* just under the OWASP BLT bar */
             right: 14px;
             width: min(380px, calc(100vw - 28px));
             background: var(--blt-surface);
@@ -152,7 +114,7 @@
             box-shadow: 0 18px 40px rgba(17, 24, 39, 0.18);
             z-index: 999;
             display: none;
-            max-height: calc(100vh - 140px);
+            max-height: calc(100vh - 80px);
             overflow-y: auto;
         }
 
@@ -1215,10 +1177,6 @@
         }
 
         @media (max-width: 768px) {
-            .top-bar {
-                padding: 8px 8px 0;
-            }
-
             .sportscaster-section {
                 flex-direction: column;
             }
@@ -1240,12 +1198,6 @@
         }
 
         @media (max-width: 600px) {
-            .top-bar-label {
-                display: none;
-            }
-            .top-bar-btn {
-                padding: 0 0.5rem;
-            }
         }
 
         /* Event detail info (PR title, issue title, release name, etc.) */
@@ -1304,33 +1256,27 @@
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 <body class="font-sans text-gray-900 antialiased">
-    <!-- Top Bar Controls -->
-    <div class="top-bar">
-        <a class="top-bar-btn" href="landing.html" title="About this tool">
-            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-            <span class="top-bar-label">About</span>
-        </a>
-        <a class="top-bar-btn" href="https://git.owaspblt.org/BLT/BLT-Gitcaster" target="_blank" rel="noopener noreferrer" title="View source code">
-            <i class="fa-brands fa-github" aria-hidden="true"></i>
-            <span class="top-bar-label">Source Code</span>
-        </a>
-        <button class="top-bar-btn" id="sound-toggle" title="Toggle Sound Effects" type="button" aria-label="Toggle sound effects">
+    <!-- OWASP BLT bar: this page's links and its sound / voice / AI / settings controls -->
+    <blt-nav project="blt-gitcaster" name="Gitcaster">
+        <a href="landing.html" title="About this tool">About</a>
+        <a href="https://git.owaspblt.org/BLT/BLT-Gitcaster" target="_blank" rel="noopener noreferrer" title="View source code">Source Code</a>
+        <button id="sound-toggle" title="Toggle Sound Effects" type="button" aria-label="Toggle sound effects">
             <i class="fa-solid fa-volume-high" id="sound-icon" aria-hidden="true"></i>
-            <span class="top-bar-label" id="sound-label">Sound</span>
+            <span id="sound-label">Sound</span>
         </button>
-        <button class="top-bar-btn" id="tts-toggle" title="Toggle Text-to-Speech" type="button" aria-label="Toggle text-to-speech">
+        <button id="tts-toggle" title="Toggle Text-to-Speech" type="button" aria-label="Toggle text-to-speech">
             <i class="fa-solid fa-microphone-lines" aria-hidden="true"></i>
-            <span class="top-bar-label">Voice</span>
+            <span>Voice</span>
         </button>
-        <button class="top-bar-btn" id="ai-toggle" title="Toggle AI Commentary" type="button" aria-label="Toggle AI commentary">
+        <button id="ai-toggle" title="Toggle AI Commentary" type="button" aria-label="Toggle AI commentary">
             <i class="fa-solid fa-robot" aria-hidden="true"></i>
-            <span class="top-bar-label">AI</span>
+            <span>AI</span>
         </button>
-        <button class="top-bar-btn" id="config-toggle" title="Settings" type="button" aria-label="Open settings">
+        <button id="config-toggle" slot="actions" title="Settings" type="button" aria-label="Open settings">
             <i class="fa-solid fa-sliders" aria-hidden="true"></i>
-            <span class="top-bar-label">Settings</span>
+            <span>Settings</span>
         </button>
-    </div>
+    </blt-nav>
 
     <!-- Configuration Panel -->
     <div class="config-panel" id="config-panel" role="dialog" aria-label="Configuration panel">
