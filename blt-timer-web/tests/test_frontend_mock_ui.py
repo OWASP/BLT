@@ -163,7 +163,7 @@ class FrontendProductionUITests(unittest.TestCase):
     def test_dashboard_shell_uses_the_blt_logo_without_redundant_header_content(self):
         shared = SHARED_DASHBOARD_JS.read_text()
 
-        self.assertIn('src="/assets/logo.png"', shared)
+        self.assertIn('src="/assets/logo.svg"', shared)
         self.assertNotIn('<span aria-hidden="true">⌂</span><span>Home</span>', shared)
         self.assertNotIn('<p class="section-kicker">BLT Timer</p>', shared)
         self.assertNotIn('<p>${subtitle}</p>', shared)

@@ -6,10 +6,58 @@
   --border: #e2e8f0;
   --text: #0f172a;
   --muted: #64748b;
+  --muted-soft: #94a3b8;
+  --text-soft: #334155;
+  --text-label: #475569;
+  --border-strong: #cbd5e1;
+  --danger-bg: #fef2f2;
+  --danger-border: #fecaca;
+  --danger-text: #b91c1c;
+  --success-bg: #f0fdf4;
+  --success-border: #bbf7d0;
+  --success-text: #166534;
 }
 
+/* Dark mode (html.dark, set by /theme-init.js and the BLT top bar): owaspblt.org palette,
+   gray-950 page, gray-900 surfaces, gray-800 borders, red-400/500 accents. */
+html.dark {
+  color-scheme: dark;
+  --primary: #dc2626;
+  --surface: #111827;
+  --background: #030712;
+  --border: #1f2937;
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+  --muted-soft: #6b7280;
+  --text-soft: #d1d5db;
+  --text-label: #9ca3af;
+  --border-strong: #374151;
+  --danger-bg: rgba(127, 29, 29, 0.25);
+  --danger-border: rgba(153, 27, 27, 0.6);
+  --danger-text: #fca5a5;
+  --success-bg: rgba(6, 78, 59, 0.3);
+  --success-border: rgba(6, 95, 70, 0.7);
+  --success-text: #6ee7b7;
+}
+
+/* The pages also use light Tailwind utilities; map them for dark mode. */
+html.dark body { background-color: #030712; color: #f3f4f6; }
+html.dark .bg-slate-50 { background-color: #030712; }
+html.dark .bg-white { background-color: #111827; }
+html.dark .bg-white\/95 { background-color: rgba(17, 24, 39, 0.95); }
+html.dark .border-slate-100,
+html.dark .border-slate-200 { border-color: #1f2937; }
+html.dark .border-slate-300 { border-color: #374151; }
+html.dark .border-red-100 { border-color: rgba(153, 27, 27, 0.6); }
+html.dark .text-slate-950 { color: #f9fafb; }
+html.dark .text-slate-600 { color: #9ca3af; }
+html.dark .text-slate-500 { color: #9ca3af; }
+html.dark .text-slate-300 { color: #4b5563; }
+html.dark .text-red-600 { color: #f87171; }
+html.dark .bg-red-50 { background-color: rgba(127, 29, 29, 0.25); }
+
 * {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 .card {
@@ -45,24 +93,24 @@
 }
 
 .btn-secondary {
-  background: #ffffff;
-  color: #334155;
+  background: var(--surface);
+  color: var(--text-soft);
   border-color: var(--border);
 }
 
 .btn-secondary:hover {
-  border-color: #cbd5e1;
-  background: #f8fafc;
+  border-color: var(--border-strong);
+  background: var(--background);
 }
 
 .btn-danger {
-  background: #fff1f2;
-  color: #be123c;
-  border-color: #ffe4e6;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border-color: var(--danger-border);
 }
 
 .btn-danger:hover {
-  background: #ffe4e6;
+  background: var(--danger-border);
 }
 
 button:disabled {
@@ -71,13 +119,13 @@ button:disabled {
 }
 
 .nav-link {
-  color: #64748b;
+  color: var(--muted);
   font-size: 0.875rem;
   transition: color 160ms ease;
 }
 
 .nav-link:hover {
-  color: #0f172a;
+  color: var(--text);
 }
 
 .section-kicker {
@@ -100,7 +148,7 @@ button:disabled {
 
 .field-label {
   display: block;
-  color: #475569;
+  color: var(--text-label);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -111,7 +159,7 @@ button:disabled {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--surface);
   color: var(--text);
   padding: 0.65rem 0.8rem;
   font-size: 0.875rem;
@@ -127,9 +175,9 @@ button:disabled {
 .status-muted {
   display: inline-flex;
   border-radius: 999px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #64748b;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--muted);
   padding: 0.25rem 0.6rem;
   font-size: 0.75rem;
   font-weight: 600;
@@ -141,9 +189,9 @@ button:disabled {
   width: 2.75rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: #f8fafc;
+  background: var(--background);
   color: var(--primary);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.8rem;
@@ -152,19 +200,19 @@ button:disabled {
 
 .sidebar-item {
   border-radius: 8px;
-  color: #64748b;
+  color: var(--muted);
   padding: 0.65rem 0.8rem;
   transition: background-color 160ms ease, color 160ms ease;
 }
 
 .sidebar-item:hover,
 .sidebar-item.active {
-  background: #fef2f2;
+  background: var(--danger-bg);
   color: var(--primary);
 }
 
 .stat-label {
-  color: #64748b;
+  color: var(--muted);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -172,15 +220,15 @@ button:disabled {
 }
 
 .log-card {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1rem;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .duration-badge {
   border-radius: 999px;
-  background: #fef2f2;
+  background: var(--danger-bg);
   color: var(--primary);
   padding: 0.25rem 0.65rem;
   font-size: 0.75rem;
@@ -207,8 +255,8 @@ button:disabled {
   max-height: 92vh;
   overflow-y: auto;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  border: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .toast {
@@ -217,11 +265,11 @@ button:disabled {
   bottom: 1.25rem;
   z-index: 80;
   max-width: 24rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-left: 4px solid var(--primary);
   border-radius: 10px;
-  background: #ffffff;
-  color: #0f172a;
+  background: var(--surface);
+  color: var(--text);
   padding: 0.9rem 1rem;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
   font-size: 0.875rem;
@@ -232,7 +280,7 @@ button:disabled {
   display: grid;
   min-height: 100vh;
   grid-template-columns: 17.5rem minmax(0, 1fr);
-  background: #f8fafc;
+  background: var(--background);
 }
 
 .dashboard-sidebar {
@@ -242,7 +290,7 @@ button:disabled {
   height: 100vh;
   flex-direction: column;
   border-right: 1px solid var(--border);
-  background: #ffffff;
+  background: var(--surface);
   padding: 1.5rem 1rem;
 }
 
@@ -250,7 +298,7 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   gap: 0.7rem;
-  color: #0f172a;
+  color: var(--text);
   font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -258,7 +306,7 @@ button:disabled {
 }
 
 .dashboard-brand:hover {
-  color: #0f172a;
+  color: var(--text);
 }
 
 .dashboard-brand-logo {
@@ -271,7 +319,7 @@ button:disabled {
 .sidebar-label {
   margin: 2.5rem 0 0.55rem;
   padding: 0 0.8rem;
-  color: #94a3b8;
+  color: var(--muted-soft);
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -292,7 +340,7 @@ button:disabled {
   border: 0;
   border-radius: 0.5rem;
   background: transparent;
-  color: #64748b;
+  color: var(--muted);
   padding: 0.72rem 0.8rem;
   font-size: 0.9rem;
   font-weight: 600;
@@ -302,7 +350,7 @@ button:disabled {
 
 .sidebar-item:hover,
 .sidebar-item.active {
-  background: #fef2f2;
+  background: var(--danger-bg);
   color: var(--primary);
 }
 
@@ -338,7 +386,7 @@ button:disabled {
 .dashboard-user-card strong {
   min-width: 0;
   overflow: hidden;
-  color: #0f172a;
+  color: var(--text);
   font-size: 0.8rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -368,13 +416,13 @@ button:disabled {
   justify-content: space-between;
   gap: 1rem;
   border-bottom: 1px solid var(--border);
-  background: #ffffff;
+  background: var(--surface);
   padding: 1.35rem clamp(1.25rem, 4vw, 3rem);
 }
 
 .dashboard-page-header h1 {
   margin: 0;
-  color: #0f172a;
+  color: var(--text);
   font-size: clamp(1.5rem, 2vw, 2rem);
   font-weight: 750;
   letter-spacing: -0.04em;
@@ -400,15 +448,15 @@ button:disabled {
 }
 
 .page-alert-error {
-  border-color: #fecaca;
-  background: #fef2f2;
-  color: #b91c1c;
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger-text);
 }
 
 .page-alert-success {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
-  color: #166534;
+  border-color: var(--success-border);
+  background: var(--success-bg);
+  color: var(--success-text);
 }
 
 .log-modal-overlay {
@@ -432,13 +480,13 @@ button:disabled {
   overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: 1rem;
-  background: #ffffff;
+  background: var(--surface);
   box-shadow: 0 20px 45px rgba(15, 23, 42, 0.2);
 }
 
 .form-error {
   min-height: 1.25rem;
-  color: #b91c1c;
+  color: var(--danger-text);
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -447,7 +495,7 @@ button:disabled {
   overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: 0.9rem;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 @media (max-width: 720px) {

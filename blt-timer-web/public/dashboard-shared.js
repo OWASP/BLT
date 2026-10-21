@@ -139,7 +139,7 @@ export async function mountDashboardShell(pageId, { title, content }) {
   root.innerHTML = `
     <div class="dashboard-shell">
       <aside class="dashboard-sidebar" aria-label="Dashboard navigation">
-        <a class="dashboard-brand" href="/dashboard" aria-label="BLT Timer dashboard"><img class="dashboard-brand-logo" src="/assets/logo.png" alt="" /><span>BLT<br />Timer</span></a>
+        <a class="dashboard-brand" href="/dashboard" aria-label="BLT Timer dashboard"><img class="dashboard-brand-logo" src="/assets/logo.svg" alt="" /><span>BLT<br />Timer</span></a>
         <p class="sidebar-label">Workspace</p>
         <nav class="dashboard-navigation">${navigationMarkup(pageId)}</nav>
         <div class="dashboard-sidebar-footer">
