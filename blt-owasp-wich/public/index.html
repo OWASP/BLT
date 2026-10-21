@@ -44,25 +44,12 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-slate-50 font-sans text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+    <blt-nav project="blt-owasp-wich" name="Wich">
+        <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Wich" slot="actions" target="_blank" rel="noopener">View Source</a>
+        <a href="#checker" slot="actions" data-primary>Start Compliance Check</a>
+    </blt-nav>
     <div class="container mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <header class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-border px-6 py-4 dark:border-gray-800">
-                <a href="/" class="inline-flex items-center gap-2.5 font-extrabold text-gray-900 hover:no-underline dark:text-white" aria-label="OWASP-Wich home">
-                    <img src="wich-logo.svg" alt="" class="h-9 w-9 rounded-full" width="36" height="36">
-                    <span>OWASP-Wich</span>
-                </a>
-                <div class="flex flex-wrap items-center gap-3">
-                    <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Wich" target="_blank" rel="noopener" class="btn-outline">
-                        <i class="fa-solid fa-code-branch" aria-hidden="true"></i>
-                        <span>View Source</span>
-                    </a>
-                    <a href="#checker" class="btn-primary">
-                        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
-                        <span>Start Compliance Check</span>
-                    </a>
-                </div>
-            </div>
-
+        <section class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <div class="grid gap-8 px-6 py-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
                 <div>
                     <p class="mb-4 inline-flex items-center rounded-full bg-[#feeae9] px-3 py-1 text-sm font-semibold text-primary dark:bg-red-950/50 dark:text-red-400">
@@ -108,7 +95,7 @@
                     </ul>
                 </div>
             </div>
-        </header>
+        </section>
 
         <main class="mt-8 grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
             <aside class="sidebar-card">
