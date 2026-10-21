@@ -1,10 +1,20 @@
 (function () {
-  var storageKey = "blt-theme";
+  // Same contract as every BLT site: class "dark" on <html>, saved as localStorage "theme".
+  var storageKey = "theme";
+  var legacyKey = "blt-theme"; // this guide's old key, read once as a fallback
   var root = document.documentElement;
 
   function getStoredTheme() {
     try {
-      return localStorage.getItem(storageKey);
+      var theme = localStorage.getItem(storageKey);
+      if (theme) return theme;
+      var legacy = localStorage.getItem(legacyKey);
+      if (legacy === "dark" || legacy === "light") {
+        localStorage.setItem(storageKey, legacy);
+        localStorage.removeItem(legacyKey);
+        return legacy;
+      }
+      return null;
     } catch (error) {
       return null;
     }
@@ -21,7 +31,7 @@
       meta.setAttribute("name", "theme-color");
       document.head.appendChild(meta);
     }
-    meta.setAttribute("content", theme === "dark" ? "#111827" : "#f8fafc");
+    meta.setAttribute("content", theme === "dark" ? "#030712" : "#f9fafb");
   }
 
   function applyTheme(theme, persist) {
@@ -59,6 +69,12 @@
   });
 
   document.addEventListener("DOMContentLoaded", syncThemeControls);
+
+  // The OWASP BLT top bar (blt-nav.js) has the site's theme toggle; keep the meta colour
+  // and any demo controls in step with it.
+  window.addEventListener("blt-theme-change", function (event) {
+    applyTheme(event.detail && event.detail.dark ? "dark" : "light", true);
+  });
 
   window.BLTTheme = {
     apply: applyTheme,

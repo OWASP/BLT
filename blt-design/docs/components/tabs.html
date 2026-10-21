@@ -3,15 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="/docs/assets/img/favicon.png" type="image/png" />
+    <link rel="icon" href="/docs/assets/img/blt-design.svg" type="image/svg+xml" />
     <title>Tabs | BLT Design Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Manrope', 'system-ui', 'sans-serif'] } } } };</script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'], mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'] } } } };</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <script src="../assets/js/theme.js"></script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <link rel="stylesheet" href="../assets/css/blt-design.css" />
   </head>
   <body class="min-h-screen font-sans text-slate-900 antialiased">
@@ -30,7 +28,7 @@
         <section class="blt-card p-5">
           <div class="rounded-xl border border-slate-200 bg-white p-2">
             <div class="flex flex-wrap gap-2" role="tablist" aria-label="BLT module settings">
-              <button class="inline-flex items-center gap-2 rounded-lg bg-[#feeae9] px-3 py-2 text-sm font-extrabold text-red-600" type="button" role="tab" aria-selected="true"><i class="fa-solid fa-key" aria-hidden="true"></i> Auth</button>
+              <button class="inline-flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-extrabold text-red-600" type="button" role="tab" aria-selected="true"><i class="fa-solid fa-key" aria-hidden="true"></i> Auth</button>
               <button class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-red-600" type="button" role="tab" aria-selected="false"><i class="fa-solid fa-cloud" aria-hidden="true"></i> Cloud</button>
               <button class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-red-600" type="button" role="tab" aria-selected="false"><i class="fa-solid fa-bug" aria-hidden="true"></i> Issues</button>
             </div>
@@ -40,7 +38,7 @@
             </div>
           </div>
           <pre class="mt-4 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200"><code>&lt;div class="flex flex-wrap gap-2" role="tablist" aria-label="BLT module settings"&gt;
-  &lt;button class="inline-flex items-center gap-2 rounded-lg bg-[#feeae9] px-3 py-2 text-sm font-extrabold text-red-600" role="tab" aria-selected="true"&gt;Auth&lt;/button&gt;
+  &lt;button class="inline-flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-extrabold text-red-600" role="tab" aria-selected="true"&gt;Auth&lt;/button&gt;
   &lt;button class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-red-600" role="tab" aria-selected="false"&gt;Cloud&lt;/button&gt;
 &lt;/div&gt;</code></pre>
         </section>

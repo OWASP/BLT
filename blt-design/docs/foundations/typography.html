@@ -3,15 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="/docs/assets/img/favicon.png" type="image/png" />
+    <link rel="icon" href="/docs/assets/img/blt-design.svg" type="image/svg+xml" />
     <title>Typography | BLT Design Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Manrope', 'system-ui', 'sans-serif'] } } } };</script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'], mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'] } } } };</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <script src="../assets/js/theme.js"></script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <link rel="stylesheet" href="../assets/css/blt-design.css" />
   </head>
   <body class="min-h-screen font-sans text-slate-900 antialiased">
@@ -22,13 +20,8 @@
           <div>
             <span class="blt-badge"><i class="fa-solid fa-font" aria-hidden="true"></i> Foundations</span>
             <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Typography</h1>
-            <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">BLT uses Manrope for product UI and JetBrains Mono for code. Keep headings tight, body copy readable, and compact UI labels scannable.</p>
+            <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">BLT uses the system font stack for product UI and the system monospace stack for code, the same as owaspblt.org. No web fonts to download. Keep headings tight, body copy readable, and compact UI labels scannable.</p>
           </div>
-          <button class="blt-theme-toggle self-start" type="button" data-theme-toggle>
-            <i class="fa-solid fa-moon theme-icon-light" aria-hidden="true"></i>
-            <i class="fa-solid fa-sun theme-icon-dark" aria-hidden="true"></i>
-            <span data-theme-label>Dark</span>
-          </button>
         </header>
 
         <section class="blt-card p-6">
@@ -42,13 +35,13 @@
               <p class="mt-2 text-sm text-slate-500">text-2xl font-bold tracking-tight</p>
               <p class="mt-8 max-w-2xl text-base leading-7 text-slate-600">Body text should sit at `text-base leading-7` for docs and longer explanations. Compact panels can use `text-sm leading-6`, but avoid dense paragraphs below that size.</p>
             </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-4">
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
               <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Type tokens</p>
               <dl class="mt-4 space-y-3 text-sm">
-                <div class="flex items-center justify-between gap-3"><dt class="text-slate-600">Font family</dt><dd class="font-bold">Manrope</dd></div>
+                <div class="flex items-center justify-between gap-3"><dt class="text-slate-600">Font family</dt><dd class="font-bold">System sans</dd></div>
                 <div class="flex items-center justify-between gap-3"><dt class="text-slate-600">Body</dt><dd class="font-mono text-xs">16 / 28</dd></div>
                 <div class="flex items-center justify-between gap-3"><dt class="text-slate-600">Compact</dt><dd class="font-mono text-xs">14 / 24</dd></div>
-                <div class="flex items-center justify-between gap-3"><dt class="text-slate-600">Code</dt><dd class="font-mono text-xs">JetBrains Mono</dd></div>
+                <div class="flex items-center justify-between gap-3"><dt class="text-slate-600">Code</dt><dd class="font-mono text-xs">ui-monospace</dd></div>
               </dl>
             </div>
           </div>
@@ -72,7 +65,11 @@
         <section class="mt-5 blt-card p-5">
           <h2 class="text-xl font-extrabold tracking-tight">Snippet</h2>
           <pre class="mt-4 overflow-x-auto rounded-lg border p-3 text-xs"><code>&lt;h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl"&gt;Page title&lt;/h1&gt;
-&lt;p class="mt-3 text-base leading-7 text-slate-600"&gt;Readable product copy.&lt;/p&gt;</code></pre>
+&lt;p class="mt-3 text-base leading-7 text-gray-600 dark:text-gray-400"&gt;Readable product copy.&lt;/p&gt;
+
+/* Font stacks (Tailwind's default font-sans / font-mono) */
+font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;</code></pre>
         </section>
       </main>
     </div>

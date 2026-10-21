@@ -3,17 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="/docs/assets/img/favicon.png" type="image/png" />
+    <link rel="icon" href="/docs/assets/img/blt-design.svg" type="image/svg+xml" />
     <title>BLT CSS Reference | BLT Design Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      tailwind.config = { theme: { extend: { fontFamily: { sans: ['Manrope', 'system-ui', 'sans-serif'] } } } };
+      tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'], mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'] } } } };
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <script src="../assets/js/theme.js"></script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <link rel="stylesheet" href="../assets/css/blt-design.css" />
   </head>
   <body class="min-h-screen font-sans text-slate-900 antialiased">
@@ -26,38 +24,41 @@
             <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">BLT CSS Reference</h1>
             <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">The shared library file is `docs/assets/css/blt-design.css`. Product pages can copy this smaller token block when they do not consume the full guide CSS.</p>
           </div>
-          <button class="blt-theme-toggle self-start" type="button" data-theme-toggle>
-            <i class="fa-solid fa-moon theme-icon-light" aria-hidden="true"></i>
-            <i class="fa-solid fa-sun theme-icon-dark" aria-hidden="true"></i>
-            <span data-theme-label>Dark</span>
-          </button>
         </header>
 
         <section class="blt-card p-5">
           <h3 class="text-base font-bold">Copy-paste style block</h3>
           <pre class="mt-3 overflow-x-auto rounded-lg border p-3 text-xs"><code>&lt;style&gt;
+/* BLT tokens, matched to owaspblt.org. Dark mode: class "dark" on &lt;html&gt;, saved as localStorage "theme". */
 :root {
-  --blt-primary: #E10101;
-  --blt-primary-hover: #B91C1C;
-  --blt-primary-soft: #feeae9;
-  --blt-background: #f8fafc;
+  --blt-primary: #dc2626;       /* red-600 */
+  --blt-primary-hover: #b91c1c; /* red-700 */
+  --blt-primary-soft: #fef2f2;  /* red-50 */
+  --blt-background: #f9fafb;    /* gray-50 */
   --blt-surface: #ffffff;
-  --blt-border: #e5e7eb;
-  --blt-text: #111827;
-  --blt-muted: #64748b;
-  --blt-radius: 0.75rem;
-  --blt-font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --blt-border: #e5e7eb;        /* gray-200 */
+  --blt-text: #111827;          /* gray-900 */
+  --blt-muted: #4b5563;         /* gray-600 */
+  --blt-radius: 1rem;           /* rounded-2xl */
+  --blt-font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --blt-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 .dark {
-  --blt-primary: #EF4444;
-  --blt-primary-hover: #DC2626;
-  --blt-primary-soft: rgba(127, 29, 29, 0.34);
-  --blt-background: #111827;
-  --blt-surface: #1F2937;
-  --blt-border: #2B3546;
-  --blt-text: #F9FAFB;
-  --blt-muted: #CBD5E1;
+  --blt-primary: #ef4444;       /* red-500 */
+  --blt-primary-hover: #f87171; /* red-400 */
+  --blt-primary-soft: rgba(127, 29, 29, 0.3);
+  --blt-background: #030712;    /* gray-950 */
+  --blt-surface: #111827;       /* gray-900 */
+  --blt-border: #1f2937;        /* gray-800 */
+  --blt-text: #f3f4f6;          /* gray-100 */
+  --blt-muted: #9ca3af;         /* gray-400 */
+}
+
+body {
+  background: var(--blt-background);
+  color: var(--blt-text);
+  font-family: var(--blt-font-sans);
 }
 
 .blt-card {
@@ -73,15 +74,26 @@
   font-weight: 700;
   padding: 0.625rem 0.875rem;
 }
-&lt;/style&gt;</code></pre>
+&lt;/style&gt;
+
+&lt;!-- Theme before first paint (saved choice, else the system preference), then the shared top bar --&gt;
+&lt;script&gt;
+  (function () {
+    var saved = null;
+    try { saved = localStorage.getItem("theme"); } catch (e) {}
+    var dark = saved === "dark" || (saved !== "light" &amp;&amp; matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.classList.toggle("dark", dark);
+  })();
+&lt;/script&gt;
+&lt;script src="https://owaspblt.org/_shared/blt-nav.js" defer&gt;&lt;/script&gt;</code></pre>
         </section>
 
         <section class="mt-5 grid gap-4 sm:grid-cols-2">
           <article class="blt-card p-5">
             <h3 class="text-base font-bold">Do</h3>
             <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-600">
-              <li>Use `blt-theme` for persisted dark mode.</li>
-              <li>Keep dark borders subdued and slate-based.</li>
+              <li>Use class `dark` on html and localStorage `theme` for dark mode, and let the OWASP BLT top bar own the toggle.</li>
+              <li>Keep dark borders subdued: gray-800.</li>
               <li>Use variables for cross-page surfaces and focus states.</li>
             </ul>
           </article>
@@ -89,8 +101,9 @@
             <h3 class="text-base font-bold">Do Not</h3>
             <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-600">
               <li>Use white borders or pure black surfaces in dark mode.</li>
-              <li>Mix unrelated reds with `#E10101` and `#B91C1C`.</li>
+              <li>Mix unrelated reds with `#dc2626` and `#b91c1c`.</li>
               <li>Create page-local theme variables unless the shared file cannot be used.</li>
+              <li>Load web fonts; BLT uses the system font stacks.</li>
             </ul>
           </article>
         </section>

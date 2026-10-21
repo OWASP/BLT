@@ -44,7 +44,10 @@ Open `http://127.0.0.1:8765/index.html`. Do not use `file://` directly, because 
 - Shared CSS: `docs/assets/css/blt-design.css`
 - Shared theme script: `docs/assets/js/theme.js`
 - Dark mode uses the `dark` class on `<html>`.
-- Theme preference is stored in `localStorage` under `blt-theme`.
+- Theme preference is stored in `localStorage` under `theme` (`dark` / `light`), the same key every BLT site
+  uses; the old `blt-theme` key is read once as a fallback.
+- Every page loads the shared OWASP BLT top bar (`https://owaspblt.org/_shared/blt-nav.js`), which has the
+  theme toggle.
 
 ## Component Coverage
 
@@ -59,11 +62,15 @@ Every page should include the shared CSS and theme script, show a preview, and k
 
 ## Design Direction
 
-- Primary red: `#E10101`
-- Hover red: `#B91C1C`
-- Dark base: `#111827`
-- Dark surface: `#1F2937`
-- Dark borders: subdued slate, not white
-- UI font: Manrope with system fallbacks
+The guide matches the owaspblt.org homepage:
+
+- Primary red: `#dc2626` (red-600); hover `#b91c1c` (red-700); dark-mode accent red-400/500
+- Surfaces: neutral Tailwind grays (white / gray-50 light; gray-950 page, gray-900 cards dark)
+- Borders: gray-200 light, gray-800 dark (never white in dark mode)
+- Cards: rounded-2xl
+- UI font: the system font stack; code: `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`
+- Brand mark: the OWASP wasp is the primary OWASP BLT mark; the old red circle mark is secondary/legacy
+- Logos: sites show logos from SVG sources; rasters only where a platform requires them (favicon.ico,
+  app icons, extension manifest PNGs, og:image)
 
 Keep new pages token-driven and copy-paste friendly.

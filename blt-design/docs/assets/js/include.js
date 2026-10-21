@@ -31,7 +31,7 @@ function normalizePath(path) {
 
 function setActive(link) {
   link.classList.remove('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
-  link.classList.add('blt-active', 'bg-[#feeae9]', 'font-semibold', 'text-red-600');
+  link.classList.add('blt-active', 'bg-red-50', 'font-semibold', 'text-red-600');
 
   const icon = link.querySelector('i');
   if (icon) {
