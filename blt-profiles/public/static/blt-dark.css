@@ -3,7 +3,6 @@
    Tailwind utilities these pages use onto the owaspblt.org dark palette. */
 html.dark { color-scheme: dark; }
 html.dark body.bg-gray-50 { background-color: #030712; color: #f3f4f6; }
-html.dark header.bg-white,
 html.dark .bg-white,
 html.dark .section-card,
 html.dark .stat-card { background-color: #111827; border-color: #1f2937; }

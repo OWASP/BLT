@@ -36,34 +36,18 @@
     .sidebar-link-active { background:#feeae9; color:#dc2626; font-weight:600; }
     .sidebar-link { display:flex; align-items:center; gap:.625rem; padding:.5rem .75rem; border-radius:.5rem; font-size:.875rem; color:#4B5563; transition:background .15s,color .15s; }
     .sidebar-link:hover:not(.sidebar-link-active) { background:#f9fafb; color:#111827; }
+    blt-nav:not(:defined) { display: block; min-height: 61px; }
+    blt-nav:not(:defined) > * { display: none; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col">
 
-  <!-- ── NAV ── -->
-  <header class="bg-white border-b border-[#E5E5E5] sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-      <a id="homeLink" href="index.html" class="flex items-center gap-2 font-bold text-xl tracking-tight" aria-label="BLT Profiles home">
-        <span class="text-[#dc2626]"><i class="fa-solid fa-bug" aria-hidden="true"></i></span>
-        <span>BLT<span class="text-[#dc2626]"> Profiles</span></span>
-      </a>
-      <nav class="hidden md:flex items-center gap-6 text-sm font-medium" aria-label="Main navigation">
-        <a id="navHome" href="index.html" class="text-gray-600 hover:text-[#dc2626]">Home</a>
-        <a href="https://git.owaspblt.org/BLT/issues/new" target="_blank" rel="noopener"
-           class="text-gray-600 hover:text-[#dc2626]">Add Profile</a>
-        <a href="https://git.owaspblt.org/BLT/blob/main/blt-profiles/issue-templates/add-profile.md" target="_blank" rel="noopener"
-           class="text-gray-600 hover:text-[#dc2626]">Profile Template</a>
-        <a href="https://git.owaspblt.org/BLT/tree/main/blt-profiles" target="_blank" rel="noopener"
-           class="text-gray-600 hover:text-[#dc2626]">
-          <i class="fa-solid fa-code-branch text-lg" aria-hidden="true"></i> Source
-        </a>
-      </nav>
-      <a id="allProfilesLink" href="index.html" class="btn-outline inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-        All Profiles
-      </a>
-    </div>
-  </header>
+  <blt-nav project="blt-profiles" name="Profiles" current="auto" data-sticky>
+    <a id="navHome" href="index.html">Home</a>
+    <a href="https://git.owaspblt.org/BLT/blob/main/blt-profiles/issue-templates/add-profile.md" target="_blank" rel="noopener">Profile Template</a>
+    <a href="https://git.owaspblt.org/BLT/tree/main/blt-profiles" target="_blank" rel="noopener">Source</a>
+    <a href="https://git.owaspblt.org/BLT/issues/new" slot="actions" data-primary target="_blank" rel="noopener">Add Your Profile</a>
+  </blt-nav>
 
   <!-- ── NOT FOUND banner (hidden by default) ── -->
   <div id="notFoundBanner" class="hidden bg-red-50 border-b border-red-200 px-4 py-3 text-center text-sm text-red-700" role="alert">
@@ -474,9 +458,7 @@
 
       // Fix up nav links to be relative to base
       var homeHref = base + 'index.html';
-      document.getElementById('homeLink').href = homeHref;
       document.getElementById('navHome').href = homeHref;
-      document.getElementById('allProfilesLink').href = homeHref;
       document.getElementById('notFoundHome').href = homeHref;
       document.getElementById('notFoundPageHome').href = homeHref;
 
