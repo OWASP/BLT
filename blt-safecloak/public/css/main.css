@@ -5,7 +5,7 @@
 /* === Root Variables - Light Theme (Default) === */
 :root {
   /* Primary Colors */
-  --blt-primary: #e10101;
+  --blt-primary: #dc2626;
   --blt-primary-hover: #b91c1c;
 
   /* Background Colors */
@@ -40,14 +40,14 @@
 /* === Dark Theme === */
 html.dark {
   /* Primary Colors */
-  --blt-primary: #ff4444;
-  --blt-primary-hover: #ff6b6b;
+  --blt-primary: #ef4444;
+  --blt-primary-hover: #f87171;
 
   /* Background Colors */
-  --blt-bg-primary: #0f172a;
-  --blt-bg-secondary: #1f2937;
-  --blt-bg-secondary-translucent: rgba(31, 41, 55, 0.86);
-  --blt-bg-surface: #1f2937;
+  --blt-bg-primary: #030712;
+  --blt-bg-secondary: #111827;
+  --blt-bg-secondary-translucent: rgba(17, 24, 39, 0.9);
+  --blt-bg-surface: #111827;
   --blt-bg-hover: #2d3748;
   --blt-bg-active: #3d2419;
   --blt-bg-light-panel: #111827;
@@ -60,16 +60,16 @@ html.dark {
   --blt-text-lightest: #f1f5f9;
 
   /* Border Colors */
-  --blt-border: #374151;
+  --blt-border: #1f2937;
   --blt-border-light: #2d3748;
   --blt-border-accent: #7f1d1d;
 
   /* Neutral Border (legacy) */
-  --blt-neutral-border: #374151;
+  --blt-neutral-border: #1f2937;
 
   /* Dark Base (legacy) */
-  --blt-dark-base: #0f172a;
-  --blt-dark-surface: #1f2937;
+  --blt-dark-base: #030712;
+  --blt-dark-surface: #111827;
 }
 
 /* === Base Styles === */

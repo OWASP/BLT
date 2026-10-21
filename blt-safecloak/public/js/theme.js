@@ -1,15 +1,18 @@
 /**
- * Theme Management - Dark/Light Mode Toggle
- * Manages theme preference with localStorage persistence
+ * Theme Management - Dark/Light Mode
+ * The toggle lives in the shared OWASP BLT bar (<blt-nav>), which sets class "dark"
+ * on <html> and saves localStorage "theme". This keeps the same contract and reads
+ * the old 'blt-theme-preference' key once so earlier choices carry over.
  */
 
 const ThemeManager = (() => {
-  const STORAGE_KEY = 'blt-theme-preference';
+  const STORAGE_KEY = 'theme';
+  const LEGACY_STORAGE_KEY = 'blt-theme-preference';
   const DARK_CLASS = 'dark';
 
   function readStoredTheme() {
     try {
-      return localStorage.getItem(STORAGE_KEY);
+      return localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
     } catch (error) {
       return null;
     }
@@ -24,13 +27,14 @@ const ThemeManager = (() => {
   }
 
   /**
-   * Initialize theme from localStorage or default to light
+   * Initialize theme from localStorage, else the system preference
    */
   function init() {
     const savedTheme = readStoredTheme();
-    if (savedTheme === 'dark') {
-      document.documentElement.classList.add(DARK_CLASS);
-    }
+    const prefersDark =
+      window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const dark = savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark);
+    document.documentElement.classList.toggle(DARK_CLASS, dark);
 
     updateToggleButton(getCurrentTheme());
   }

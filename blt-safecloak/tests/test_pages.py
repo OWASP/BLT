@@ -3,7 +3,7 @@ Static HTML structure tests for all pages in src/pages/.
 
 These tests verify that:
   - Each page has the expected <title>, charset, and viewport meta.
-  - Navigation elements are present (navbar, theme toggle).
+  - Navigation elements are present (navbar, shared BLT nav with the theme toggle).
   - Page-specific UI elements are present (editor, consent form, etc.).
   - The correct JS/CSS assets are referenced.
   - Source links point at the BLT monorepo on git.owaspblt.org.
@@ -50,11 +50,13 @@ def test_all_pages_have_navbar_toggle():
         assert 'id="navbar-toggle"' in html, f'{page} is missing #navbar-toggle'
 
 
-def test_all_pages_have_theme_toggle_button():
-    """Dark/light mode toggle must be present on every page."""
+def test_all_pages_load_the_blt_nav():
+    """Every page loads the shared OWASP BLT bar, which carries the dark/light toggle."""
     for page in ALL_PAGES:
         html = _read(page)
-        assert 'id="theme-toggle-btn"' in html, f'{page} is missing #theme-toggle-btn'
+        assert 'src="https://owaspblt.org/_shared/blt-nav.js"' in html, (
+            f'{page} does not load the shared BLT nav')
+        assert 'id="theme-toggle-btn"' not in html, f'{page} has a second theme toggle'
 
 
 def test_all_pages_include_theme_js():
