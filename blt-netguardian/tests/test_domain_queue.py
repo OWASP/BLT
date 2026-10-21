@@ -32,7 +32,9 @@ class FakeRequest:
     def __init__(self, url, method="GET", payload=None, headers=None):
         self.url = url
         self.method = method
-        self.headers = dict(headers or {})
+        # Queue writes need the org token; reads fall back to the demo org.
+        default = {"Authorization": "Bearer triage-token"} if method != "GET" else {}
+        self.headers = dict(default if headers is None else headers)
         if payload is None:
             self._body = b""
         else:
@@ -241,3 +243,33 @@ async def test_heartbeat_extends_lease():
     assert beat["job"]["status"] == "in_progress"
     assert beat["job"]["claim_until"] >= until
 
+
+
+@pytest.mark.asyncio
+async def test_anonymous_queue_writes_are_refused_even_with_open_reads():
+    env, db = env_with_db()
+    worker = BLTWorker(env)
+    for path in ("api/domains", "api/domains/claim", "api/domains/abc/complete",
+                 "api/domains/abc/fail", "api/domains/abc/heartbeat"):
+        resp = await worker.handle_request(FakeRequest(
+            f"http://127.0.0.1:8787/{path}", method="POST",
+            payload={"domains": ["owasp.org"]}, headers={},
+        ))
+        assert resp.status == 401, path
+    row = await db.prepare("SELECT COUNT(*) AS n FROM domain_jobs").first()
+    assert row["n"] == 0
+
+    listed = await worker.handle_request(FakeRequest("http://127.0.0.1:8787/api/domains"))
+    assert listed.status == 200
+    assert parse(listed)["org_id"] == "org-demo"
+
+
+@pytest.mark.asyncio
+async def test_unknown_token_cannot_write_queue():
+    env, _db = env_with_db()
+    worker = BLTWorker(env)
+    resp = await worker.handle_request(FakeRequest(
+        "http://127.0.0.1:8787/api/domains", method="POST",
+        payload={"domains": ["owasp.org"]}, headers={"Authorization": "Bearer nope"},
+    ))
+    assert resp.status == 401

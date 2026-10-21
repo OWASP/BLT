@@ -7,7 +7,7 @@ import json
 from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
 
-from auth import AuthError, resolve_org_auth_async
+from auth import AuthError, require_org_auth_async, resolve_org_auth_async
 from domain_normalize import normalize_domain
 from domain_queue_store import CLAIMABLE, DomainQueueStore, MAX_RETRIES, STATUSES
 
@@ -45,7 +45,17 @@ def _sender_id(body: Mapping[str, Any], headers: Mapping[str, str]) -> str:
 
 
 async def _auth(env, headers, db):
+    """Reads: Bearer, session, or the demo default org when reads are open."""
     return await resolve_org_auth_async(env, headers, db=db)
+
+
+async def _auth_write(env, headers, db):
+    """Writes (submit/claim/heartbeat/complete/fail): Bearer token or GitHub session.
+
+    No demo fallback: with open reads, anonymous callers could otherwise fill
+    the queue and spend the account's shared D1 write budget.
+    """
+    return await require_org_auth_async(env, headers, db=db)
 
 
 def error_body(exc: DomainQueueError | AuthError) -> tuple[int, dict]:
@@ -61,7 +71,7 @@ async def submit_domains_for_request(
     headers: Mapping[str, str],
     body: Mapping[str, Any],
 ) -> tuple[int, dict]:
-    ctx = await _auth(env, headers, db)
+    ctx = await _auth_write(env, headers, db)
     if db is None:
         raise DomainQueueError("database unavailable", status=503, code="no_db")
     store = DomainQueueStore(db)
@@ -113,7 +123,7 @@ async def claim_domain_for_request(
     headers: Mapping[str, str],
     body: Mapping[str, Any],
 ) -> tuple[int, dict]:
-    ctx = await _auth(env, headers, db)
+    ctx = await _auth_write(env, headers, db)
     if db is None:
         raise DomainQueueError("database unavailable", status=503, code="no_db")
     store = DomainQueueStore(db)
@@ -144,7 +154,7 @@ async def heartbeat_domain_for_request(
     body: Mapping[str, Any],
     job_id: str,
 ) -> tuple[int, dict]:
-    ctx = await _auth(env, headers, db)
+    ctx = await _auth_write(env, headers, db)
     if db is None:
         raise DomainQueueError("database unavailable", status=503, code="no_db")
     store = DomainQueueStore(db)
@@ -168,7 +178,7 @@ async def complete_domain_for_request(
     body: Mapping[str, Any],
     job_id: str,
 ) -> tuple[int, dict]:
-    ctx = await _auth(env, headers, db)
+    ctx = await _auth_write(env, headers, db)
     if db is None:
         raise DomainQueueError("database unavailable", status=503, code="no_db")
     store = DomainQueueStore(db)
@@ -194,7 +204,7 @@ async def fail_domain_for_request(
     body: Mapping[str, Any],
     job_id: str,
 ) -> tuple[int, dict]:
-    ctx = await _auth(env, headers, db)
+    ctx = await _auth_write(env, headers, db)
     if db is None:
         raise DomainQueueError("database unavailable", status=503, code="no_db")
     store = DomainQueueStore(db)
