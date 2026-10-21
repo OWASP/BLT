@@ -103,3 +103,11 @@ test("the site's own links are slotted light DOM, never copied or parsed as HTML
   // the site's hidden links stay hidden: the bar never forces display on slotted elements
   for (const m of src.matchAll(/::slotted\([^)]*\)\{[^}]*\}/g)) assert.doesNotMatch(m[0], /display:/, m[0]);
 });
+
+test('current="auto" compares paths without index.html, .html or a trailing slash', () => {
+  const { normPath } = load();
+  for (const [a, b] of [["/", "/index.html"], ["/docs/", "/docs"], ["/docs/index.html", "/docs"], ["/about.html", "/about"], ["/pages/x.html", "/pages/x/"]]) {
+    assert.equal(normPath(a), normPath(b), `${a} vs ${b}`);
+  }
+  assert.notEqual(normPath("/a"), normPath("/b"));
+});

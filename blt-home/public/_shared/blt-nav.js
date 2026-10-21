@@ -21,6 +21,8 @@
 //                     project="none" shows no project part (the owaspblt.org bar).
 //   name="X"          the project's short name next to its symbol (default: from APPS, "BLT-" dropped)
 //   home="/"          where the project's symbol and name link to (default "/")
+//   current="auto"    mark the child link to this page (same path) with aria-current="page",
+//                     unless the site's own code marks one
 //   Children: <a> or <button>. slot="actions" puts one on the right; data-primary makes it the
 //   red button. aria-current="page" (or class "active") marks the current page. A child the site
 //   hides (hidden, class "hidden", display:none) stays hidden. The bar sets their look; site
@@ -382,6 +384,9 @@
       return u.hostname === location.hostname && (u.pathname === "/" || location.pathname.indexOf(u.pathname) === 0);
     } catch (e) { return false; }
   }
+  function normPath(p) {
+    return (p || "/").replace(/\/index\.html?$/, "/").replace(/\.html?$/, "").replace(/\/+$/, "") || "/";
+  }
   function bltLinks(cls) {
     return LINKS.map(function (l) { return el("a", { href: l[1], text: l[0], class: cls || null }); });
   }
@@ -391,6 +396,7 @@
     connectedCallback() { build(this); }
   }
   BltNav.resolveConfig = resolveConfig; // for tests
+  BltNav.normPath = normPath;
 
   function build(host) {
     if (host._built) return;
@@ -584,6 +590,25 @@
     // fit differently. (Not slotchange: moving the slots in layout() fires it too.)
     new MutationObserver(relayout).observe(host, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class", "hidden", "style", "slot"] });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+
+    // current="auto": mark the site's link to this page, unless the site marks one itself
+    function markCurrent() {
+      if (opt(host, "current") !== "auto") return;
+      var kids = Array.prototype.slice.call(host.querySelectorAll("a[href]"));
+      if (kids.some(function (a) { return a.hasAttribute("aria-current") && !a.hasAttribute("data-blt-current"); })) return;
+      var here = normPath(location.pathname);
+      kids.forEach(function (a) {
+        var match = false;
+        try {
+          var u = new URL(a.getAttribute("href"), location.href);
+          match = u.origin === location.origin && normPath(u.pathname) === here && !u.hash;
+        } catch (e) { /* not a URL */ }
+        if (match && !a.hasAttribute("aria-current")) { a.setAttribute("aria-current", "page"); a.setAttribute("data-blt-current", ""); }
+        else if (!match && a.hasAttribute("data-blt-current")) { a.removeAttribute("aria-current"); a.removeAttribute("data-blt-current"); }
+      });
+    }
+    markCurrent();
+    window.addEventListener("popstate", markCurrent);
 
     // follow the page's theme, whoever changes it
     function sync() {
