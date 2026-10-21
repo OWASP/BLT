@@ -34,34 +34,18 @@
         integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+    <style>blt-nav:not(:defined){display:block;min-height:61px}blt-nav:not(:defined)>*{display:none}</style>
 </head>
 
 <body class="flex min-h-screen flex-col bg-white text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
 
-    <!-- Header -->
-    <header
-        class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/95">
-        <div class="mx-auto flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center gap-3">
-                <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    <img width="26" height="26" src="./static/blt-leaf-logo.svg" alt="BLT-Leaf" onerror="this.style.display='none'" />
-                    <span class="font-bold text-slate-900 dark:text-white text-sm tracking-tight">BLT-LEAF</span>
-                </a>
-            </div>
-            <nav class="flex items-center gap-4 text-sm">
-                <a href="/"
-                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Dashboard</a>
-                <a href="/how-it-works.html"
-                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">How It Works</a>
-                <a href="/diagnostics.html"
-                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Diagnostics</a>
-                <a href="/test-error.html" class="text-red-600 font-semibold dark:text-red-400">Test Error</a>
-                <a href="https://git.owaspblt.org/BLT/BLT-Leaf" target="_blank"
-                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
-                    <i class="fab fa-github"></i>Source Code</a>
-            </nav>
-        </div>
-    </header>
+    <blt-nav project="blt-leaf" name="Leaf" data-sticky>
+        <a href="/">Dashboard</a>
+        <a href="/how-it-works.html">How It Works</a>
+        <a href="/diagnostics.html">Diagnostics</a>
+        <a href="/test-error.html" aria-current="page">Test Error</a>
+        <a href="https://git.owaspblt.org/BLT/BLT-Leaf" slot="actions" target="_blank" rel="noopener noreferrer">Source Code</a>
+    </blt-nav>
 
     <!-- Main Content -->
     <main class="flex-1 mx-auto max-w-3xl w-full px-4 py-8 sm:px-6 lg:px-8">

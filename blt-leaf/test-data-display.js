@@ -122,8 +122,9 @@ function testHTMLStructure() {
       { pattern: /fetch\(['"`]\/api\/repos/, name: 'API fetch for repos' },
       { pattern: /fetch\(['"`]\/api\/authors/, name: 'API fetch for authors' },
       { pattern: /fetch\(['"`]\/api\/auth\/user/, name: 'API fetch for auth user state' },
-      { pattern: /id=["']authControlsDesktop["']/, name: 'Desktop auth controls container' },
-      { pattern: /id=["']authControlsMobile["']/, name: 'Mobile auth controls container' },
+      { pattern: /<blt-nav project="blt-leaf"/, name: 'Shared OWASP BLT bar configured for BLT-Leaf' },
+      { pattern: /<a id=["']authSignIn["'][^>]*slot="actions"/, name: 'Sign in action in the bar' },
+      { pattern: /<button id=["']authSignOut["'][^>]*slot="actions"/, name: 'Sign out action in the bar' },
       { pattern: /<table/, name: 'Table element for data display' },
     ];
 

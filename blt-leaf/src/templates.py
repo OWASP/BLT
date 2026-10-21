@@ -17,12 +17,19 @@ def get_404_html():
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config = { darkMode: 'class' };</script>
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+    <style>blt-nav:not(:defined){display:block;min-height:61px}blt-nav:not(:defined)>*{display:none}</style>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 </head>
 <body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300">
-   
+    <blt-nav project="blt-leaf" name="Leaf">
+        <a href="/">Dashboard</a>
+        <a href="/how-it-works.html">How It Works</a>
+        <a href="/diagnostics.html">Diagnostics</a>
+        <a href="https://git.owaspblt.org/BLT/BLT-Leaf" slot="actions" target="_blank" rel="noopener noreferrer">Source Code</a>
+    </blt-nav>
+
 
     <main class="flex-1 flex flex-col items-center justify-center p-6 text-center">
         <div class="relative mb-8">

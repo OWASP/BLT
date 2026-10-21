@@ -309,181 +309,19 @@
         }
     </style>
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+    <style>blt-nav:not(:defined){display:block;min-height:61px}blt-nav:not(:defined)>*{display:none}</style>
 </head>
 
 <body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
-    <header class="sticky top-0 z-30 border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
-        <div class="mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Mobile: Compact two-line layout -->
-            <div class="flex flex-col gap-1.5 py-2 md:hidden">
-                <!-- First line: Logo and Hamburger Menu -->
-                <div class="flex items-center justify-between">
-                    <a href="/" class="flex shrink-0 items-center gap-1.5 hover:opacity-80 transition-opacity">
-                        <img width="20" height="20" src="./static/blt-leaf-logo.svg" alt="BLT-Leaf" onerror="this.style.display='none'" />
-                        <h1 class="text-xs font-bold text-slate-900 dark:text-white">BLT-LEAF</h1>
-                    </a>
-                    
-                    <button id="mobileMenuBtn" 
-                        class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 focus:outline-none dark:text-slate-400 dark:hover:bg-slate-700" 
-                        aria-label="BLT-Leaf menu">
-                        <i class="fas fa-ellipsis-vertical text-lg" id="menuIcon"></i>
-                    </button>
-                </div>
-
-                <!-- Mobile Drawer (Initially Hidden) -->
-                <div id="mobileDrawer" 
-                    class="hidden absolute top-full left-0 right-0 z-40 bg-white border-b border-slate-200 shadow-xl dark:bg-slate-800 dark:border-slate-700 transition-all duration-300 origin-top overflow-y-auto max-h-[70vh]">
-                    <div class="flex flex-col p-4 gap-4">
-                        <!-- Auth Controls Injection Point -->
-                        <div id="authControlsMobile" class="flex flex-col gap-2"></div>
-                        
-                        <div class="grid grid-cols-2 gap-2">
-                             <button id="autoRefreshToggleMobile" 
-                                class="flex flex-col items-center justify-center gap-2 rounded-xl p-3 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 dark:text-slate-300 dark:bg-slate-900/50 dark:hover:bg-slate-900 transition-colors">
-                                <i class="fas fa-sync-alt" id="autoRefreshIconMobile"></i>
-                                <span class="text-[10px] uppercase tracking-wider">Sync</span>
-                            </button>
-                        </div>
-
-                        <div class="flex flex-col gap-2">
-                            <a href="/how-it-works.html" class="flex items-center justify-between rounded-xl p-4 text-sm font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 dark:text-slate-300 dark:bg-slate-900/50 dark:hover:bg-slate-900 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
-                                        <i class="fas fa-question-circle"></i>
-                                    </div>
-                                    <span>How It Works</span>
-                                </div>
-                                <i class="fas fa-chevron-right text-xs text-slate-400"></i>
-                            </a>
-                            <a href="/diagnostics.html" class="flex items-center justify-between rounded-xl p-4 text-sm font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 dark:text-slate-300 dark:bg-slate-900/50 dark:hover:bg-slate-900 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
-                                        <i class="fas fa-stethoscope"></i>
-                                    </div>
-                                    <span>API Diagnostics</span>
-                                </div>
-                                <i class="fas fa-chevron-right text-xs text-slate-400"></i>
-                            </a>
-                            <a href="https://git.owaspblt.org/BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between rounded-xl p-4 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-md shadow-red-500/20">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
-                                        <i class="fab fa-github"></i>
-                                    </div>
-                                    <span>Contribute on GitHub</span>
-                                </div>
-                                <i class="fas fa-external-link-alt text-xs opacity-70"></i>
-                            </a>
-                            <a href="https://git.owaspblt.org/BLT/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between rounded-xl p-4 text-sm font-semibold text-white bg-slate-600 hover:bg-slate-700 transition-colors shadow-md shadow-slate-500/20">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
-                                        <i class="fas fa-comment-alt"></i>
-                                    </div>
-                                    <span>Send Feedback</span>
-                                </div>
-                                <i class="fas fa-external-link-alt text-xs opacity-70"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Second line: Search bar and API limit -->
-                <div class="flex items-center gap-1.5">
-                    <div class="relative flex-1">
-                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
-                            <i class="fas fa-search text-slate-400 text-xs"></i>
-                        </div>
-                        <input type="text" id="prSearchInputMobile"
-                            class="block w-full rounded-md border border-[#e74c3c] bg-slate-50 py-1.5 pl-7 pr-2 text-xs text-slate-900 placeholder:text-slate-500 dark:border-[#e74c3c] dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400"
-                            placeholder="Search PRs..." autocomplete="off">
-                    </div>
-                    <button id="searchBtnMobile" aria-label="Search PRs" title="Search PRs"
-                        class="rounded-md bg-red-600 px-2 py-1.5 text-xs font-semibold text-white hover:bg-red-700 whitespace-nowrap">
-                        <i class="fas fa-search"></i>
-                    </button>
-                    <button id="clearSearchBtnMobile" aria-label="Clear PR search" title="Clear PR search"
-                        class="rounded-md bg-slate-500 px-2 py-1.5 text-xs font-semibold text-white hover:bg-slate-600 whitespace-nowrap">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Desktop: Original single-line layout -->
-            <div class="hidden md:flex h-16 items-center justify-between">
-                <div class="flex items-center gap-4 lg:gap-6">
-                    <a href="/" class="flex shrink-0 items-center gap-2 hover:opacity-80 transition-opacity">
-                        <img width="28" height="28" src="./static/blt-leaf-logo.svg" alt="BLT-Leaf" onerror="this.style.display='none'" />
-                        <h1 class="text-sm font-bold text-slate-900 dark:text-white sm:text-base">BLT-LEAF</h1>
-                    </a>
-
-                    <div class="flex items-center gap-1 sm:gap-2 pl-3 sm:pl-4 border-l border-slate-200 dark:border-slate-700 h-8">
-                        <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">API Limit:</span>
-                        <div class="rate-limit-bar h-1.5 w-20 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                            <div class="h-full w-0 rounded-full bg-green-500 transition-all duration-300"
-                                id="rateLimitFill"></div>
-                        </div>
-                        <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400"
-                            id="rateLimitText">N/A</span>
-                        <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitUsed"></span>
-                        <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitReset"></span>
-                        <span class="text-[10px] font-medium hidden" id="rateLimitTokenIndicator"></span>
-                    </div>
-                </div>
-
-                <div class="flex flex-1 items-center justify-center px-4 md:px-8 lg:px-12">
-                    <div class="flex w-full max-w-lg gap-2">
-                        <div class="relative flex-1">
-                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                <i class="fas fa-search text-slate-400"></i>
-                            </div>
-                            <input type="text" id="prSearchInput"
-                                class="block w-full rounded-md border border-[#e74c3c] bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-500 dark:border-[#e74c3c] dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-red-500 transition-colors shadow-sm"
-                                placeholder="Search PRs..." autocomplete="off">
-                        </div>
-                        <button id="searchBtn"
-                            class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors shadow-sm whitespace-nowrap">
-                            <i class="fas fa-search"></i> Search
-                        </button>
-                        <button id="clearSearchBtn"
-                            class="rounded-md bg-slate-500 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors shadow-sm whitespace-nowrap">
-                            <i class="fas fa-times"></i> Clear
-                        </button>
-                    </div>
-                </div>
-
-                <div class="flex shrink-0 items-center gap-3">
-                    <div id="authControlsDesktop" class="flex items-center gap-2"></div>
-                    <button id="autoRefreshToggle"
-                        class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600 transition-colors"
-                        title="Toggle auto-refresh">
-                        <i class="fas fa-sync-alt" id="autoRefreshIcon"></i>
-                    </button>
-                    <a href="/how-it-works.html"
-                        class="inline-flex items-center gap-2 rounded-lg px-2 sm:px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
-                        title="How It Works">
-                        <i class="fas fa-question-circle"></i>
-                        <span class="hidden sm:inline">How It Works</span>
-                    </a>
-                    <a href="/diagnostics.html"
-                        class="inline-flex items-center rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600 transition-colors"
-                        title="API Diagnostics">
-                        <i class="fas fa-stethoscope"></i>
-                    </a>
-                    <span id="releaseVersion"
-                        class="text-xs text-slate-500 dark:text-slate-400 inline-block"></span>
-                    <a href="https://git.owaspblt.org/BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer"
-                        class="rounded-lg bg-red-600 px-2 sm:px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 inline-flex items-center gap-2 transition-colors shadow-sm"
-                        title="Contribute">
-                        <i class="fab fa-github"></i> <span class="hidden sm:inline">Contribute</span>
-                    </a>
-                    <a href="https://git.owaspblt.org/BLT/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer"
-                        class="rounded-lg bg-slate-600 px-2 sm:px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 inline-flex items-center gap-2 transition-colors shadow-sm"
-                        title="Send Feedback">
-                        <i class="fas fa-comment-alt"></i> <span class="hidden sm:inline">Feedback</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
+    <blt-nav project="blt-leaf" name="Leaf" data-sticky>
+        <a href="/" aria-current="page">Dashboard</a>
+        <a href="/how-it-works.html">How It Works</a>
+        <a href="/diagnostics.html">Diagnostics</a>
+        <a href="https://git.owaspblt.org/BLT/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer">Feedback</a>
+        <a id="authSignIn" href="/api/auth/login" slot="actions" hidden>Sign in with GitHub</a>
+        <button id="authSignOut" type="button" slot="actions" data-auth-action="logout" hidden>Sign out</button>
+        <a href="https://git.owaspblt.org/BLT/BLT-Leaf" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Contribute</a>
+    </blt-nav>
 
     <div class="mx-auto flex min-h-0 w-full flex-1 flex-col md:flex-row">
         <aside
@@ -584,6 +422,47 @@
         </aside>
 
         <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+            <!-- PR search, GitHub API limit, auto-refresh and release (were in the old site header) -->
+            <section class="mb-4 flex flex-wrap items-center gap-3" aria-label="Pull request tools">
+                <div class="flex w-full max-w-lg flex-1 gap-2">
+                    <div class="relative flex-1">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i class="fas fa-search text-slate-400"></i>
+                        </div>
+                        <input type="text" id="prSearchInput"
+                            class="block w-full rounded-md border border-[#e74c3c] bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-500 dark:border-[#e74c3c] dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-red-500 transition-colors shadow-sm"
+                            placeholder="Search PRs..." autocomplete="off">
+                    </div>
+                    <button id="searchBtn"
+                        class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors shadow-sm whitespace-nowrap">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button id="clearSearchBtn"
+                        class="rounded-md bg-slate-500 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors shadow-sm whitespace-nowrap">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+                <div class="flex items-center gap-1 sm:gap-2 h-8">
+                    <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">API Limit:</span>
+                    <div class="rate-limit-bar h-1.5 w-20 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                        <div class="h-full w-0 rounded-full bg-green-500 transition-all duration-300"
+                            id="rateLimitFill"></div>
+                    </div>
+                    <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400"
+                        id="rateLimitText">N/A</span>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitUsed"></span>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitReset"></span>
+                    <span class="text-[10px] font-medium hidden" id="rateLimitTokenIndicator"></span>
+                </div>
+                <button id="autoRefreshToggle"
+                    class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600 transition-colors"
+                    title="Toggle auto-refresh">
+                    <i class="fas fa-sync-alt" id="autoRefreshIcon"></i>
+                </button>
+                <span id="releaseVersion"
+                    class="text-xs text-slate-500 dark:text-slate-400 inline-block"></span>
+            </section>
+
             <section class="mb-6 space-y-3">
                 <div class="flex w-full max-w-4xl flex-col gap-2 sm:flex-row">
                     <input type="text" id="prUrlInput"
@@ -1004,62 +883,23 @@
             }
         }
 
-        function getSafeAuthAvatarUrl(user) {
-            const avatar = user?.avatar_url || '';
-            if (avatar.startsWith('https://avatars.githubusercontent.com/') || avatar.startsWith('https://github.com/')) {
-                return escapeHtml(avatar);
-            }
-            return 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Crect width=%2220%22 height=%2220%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E';
-        }
-
+        // Sign in / Sign out live in the shared OWASP BLT bar (<blt-nav> children, slot="actions").
         function renderAuthControls() {
-            const mobileEl = document.getElementById('authControlsMobile');
-            const desktopEl = document.getElementById('authControlsDesktop');
-            if (!mobileEl || !desktopEl) return;
+            const signIn = document.getElementById('authSignIn');
+            const signOut = document.getElementById('authSignOut');
+            if (!signIn || !signOut) return;
 
-            const renderContent = (isMobile) => {
-                const textSize = isMobile ? 'text-xs' : 'text-sm';
-                const padding = isMobile ? 'px-4 py-2' : 'px-3 py-2';
-                const avatarSize = isMobile ? 'h-8 w-8' : 'h-6 w-6';
+            const signedIn = Boolean(authState.authenticated && authState.user?.login);
+            signIn.hidden = signedIn || !authState.oauth_enabled;
+            signOut.hidden = !signedIn;
+            if (signedIn) {
+                signOut.title = `Signed in as ${authState.user.login}`;
+                signOut.setAttribute('aria-label', `Sign out (signed in as ${authState.user.login})`);
+            }
 
-                if (authState.authenticated && authState.user?.login) {
-                    const safeLogin = escapeHtml(authState.user.login);
-                    const safeAvatar = getSafeAuthAvatarUrl(authState.user);
-
-                    return `
-                        <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-900/50">
-                            <img src="${safeAvatar}" alt="${safeLogin}" title="${safeLogin}" class="${avatarSize} rounded-full border border-slate-300 dark:border-slate-600">
-                            <div class="flex flex-col">
-                                <span class="text-xs font-bold text-slate-900 dark:text-white">${safeLogin}</span>
-                                <button type="button" data-auth-action="logout" class="text-left text-[10px] font-semibold text-red-600 hover:text-red-700 dark:text-red-400">
-                                    Sign Out
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                } else if (authState.oauth_enabled) {
-                    return `
-                        <a href="/api/auth/login"
-                            class="flex items-center justify-center gap-2 rounded-xl bg-slate-700 ${padding} ${textSize} font-semibold text-white hover:bg-slate-800 transition-colors shadow-sm">
-                            <i class="fab fa-github"></i>
-                            Sign In with GitHub
-                        </a>
-                    `;
-                } else {
-                    return `
-                        <div class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 ${padding} ${textSize} text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">
-                            <i class="fas fa-lock text-xs opacity-50"></i>
-                            OAuth Not Configured
-                        </div>
-                    `;
-                }
-            };
-
-            mobileEl.innerHTML = renderContent(true);
-            desktopEl.innerHTML = renderContent(false);
-
-            document.querySelectorAll('[data-auth-action="logout"]').forEach((button) => {
-                button.addEventListener('click', async () => {
+            if (!signOut.dataset.bound) {
+                signOut.dataset.bound = '1';
+                signOut.addEventListener('click', async () => {
                     try {
                         await fetch('/api/auth/logout', {
                             method: 'POST',
@@ -1072,7 +912,7 @@
                     await loadAuthState();
                     await loadRateLimit(true);
                 });
-            });
+            }
         }
 
         async function loadAuthState() {
@@ -3382,50 +3222,6 @@
             scrollToTop();
             loadPrs();
         });
-
-        // Mobile Menu / Drawer Functionality
-        (function initMobileDrawer() {
-            const menuBtn = document.getElementById('mobileMenuBtn');
-            const drawer = document.getElementById('mobileDrawer');
-            const menuIcon = document.getElementById('menuIcon');
-            
-            if (!menuBtn || !drawer) return;
-            
-            function toggleDrawer() {
-                const isOpen = !drawer.classList.contains('hidden');
-                if (isOpen) {
-                    drawer.classList.add('hidden');
-                    menuIcon.classList.replace('fa-times', 'fa-ellipsis-vertical');
-                    document.body.style.overflow = '';
-                } else {
-                    drawer.classList.remove('hidden');
-                    menuIcon.classList.replace('fa-ellipsis-vertical', 'fa-times');
-                    document.body.style.overflow = 'hidden';
-                }
-            }
-            
-            menuBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleDrawer();
-            });
-            
-            // Close drawer when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!drawer.classList.contains('hidden') && !drawer.contains(e.target) && !menuBtn.contains(e.target)) {
-                    toggleDrawer();
-                }
-            });
-            
-            // Close drawer on navigation within the page
-             drawer.addEventListener('click', (e) => {
-               const action = e.target.closest('a, button');
-                if (!action || !drawer.contains(action)) return;
-
-                setTimeout(() => {
-                    if (!drawer.classList.contains('hidden')) toggleDrawer();
-                }, 150);
-            });
-        })();
 
         // Theme toggle functionality
         function initTheme() {
