@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { MoreHorizontal, X } from 'lucide-react';
 import { useLocation, Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
@@ -14,16 +15,27 @@ const pageTitles = {
 export default function Layout() {
   const location = useLocation();
   const pageInfo = pageTitles[location.pathname] || pageTitles['/dashboard'];
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div className="min-h-screen lg:flex">
-      <Sidebar />
+      <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
       <div className="flex min-h-screen flex-1 flex-col">
         {/* Glassmorphic Header */}
         <header className="sticky top-0 z-20 border-b border-neutral-border glass px-5 py-4 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="pl-12 lg:pl-0">
+            {/* Mobile sidebar toggle: an ellipsis, so it isn't a second hamburger under the <blt-nav> one */}
+            <button
+              type="button"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-neutral-border bg-white shadow-soft lg:hidden"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="BLT-Toasty menu"
+              aria-expanded={mobileOpen}
+            >
+              {mobileOpen ? <X size={20} /> : <MoreHorizontal size={20} />}
+            </button>
+            <div className="mr-auto">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
                 {pageInfo.eyebrow}
               </p>

@@ -8,10 +8,16 @@
           content="BLT-Toasty is an AI-powered triage and responsible disclosure assistant for the OWASP Bug Logging Tool (BLT). Monitor webhooks, PII redaction, duplicate detection, and triage operations in real time." />
     <meta name="keywords"
           content="OWASP, BLT, Bug Logging Tool, AI, Triage, Bug Bounty" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet" />
+    <script>
+      // Before first paint: the saved theme (localStorage "theme", shared with the <blt-nav> bar), else the system preference.
+      (function () {
+        var saved = null;
+        try { saved = localStorage.getItem("theme"); } catch (e) { saved = null; }
+        var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   </head>
   <body class="min-h-screen overflow-x-hidden font-sans text-dark-base antialiased">

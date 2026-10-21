@@ -4,17 +4,17 @@
 
 /* ─── CSS Variables (merged from blt-university + blt-netguardian) ─── */
 :root {
-  --blt-primary: #e10101;
+  --blt-primary: #dc2626;
   --blt-primary-hover: #b91c1c;
   --blt-neutral-border: #e5e5e5;
   --blt-dark-base: #111827;
-  --blt-dark-surface: #1f2937;
+  --blt-dark-surface: #111827;
   --blt-bg: #f8fafc;
   --blt-card: #ffffff;
   --blt-footer: #0e0d0c;
   --blt-text-muted: #6b7280;
   --blt-text-secondary: #4b5563;
-  --blt-focus-ring: rgba(225, 1, 1, 0.24);
+  --blt-focus-ring: rgba(220, 38, 38, 0.24);
 }
 
 /* ─── Base Styles ─── */
@@ -179,9 +179,9 @@ body {
 }
 
 @keyframes indicator-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(225, 1, 1, 0.45); }
-  70% { box-shadow: 0 0 0 9px rgba(225, 1, 1, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(225, 1, 1, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.45); }
+  70% { box-shadow: 0 0 0 9px rgba(220, 38, 38, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
 }
 
 /* ─── Footer Grid Pattern (from blt-university) ─── */
@@ -263,3 +263,67 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 10px 24px -18px rgba(220, 38, 38, 0.8);
 }
+
+/* ─── Dark mode (html.dark, set by the pre-paint script in index.html and the <blt-nav> theme
+   toggle). Remaps the light surfaces/text the pages use onto the owaspblt.org dark palette:
+   gray-950 page, gray-900 cards, gray-800 borders, red-400 accents. ─── */
+html.dark { color-scheme: dark; }
+html.dark body { background: #030712; color: #f3f4f6; }
+html.dark ::selection { background-color: rgba(127, 29, 29, 0.6); color: #fee2e2; }
+html.dark .glass { background: rgba(3, 7, 18, 0.85); }
+html.dark .bg-white,
+html.dark .card,
+html.dark .btn-ghost,
+html.dark .btn-outline { background-color: #111827; }
+html.dark .bg-gray-50,
+html.dark .bg-gray-100,
+html.dark .hover\:bg-gray-50:hover,
+html.dark .hover\:bg-gray-100:hover,
+html.dark .btn-ghost:hover { background-color: #1f2937; }
+html.dark .bg-gray-50\/50,
+html.dark .bg-gray-50\/60,
+html.dark .hover\:bg-gray-50\/50:hover,
+html.dark .data-table th,
+html.dark .data-table tbody tr:hover { background-color: rgba(31, 41, 55, 0.6); }
+html.dark .bg-gray-200,
+html.dark .confidence-bar { background-color: #374151; }
+html.dark .bg-nav-active { background-color: rgba(127, 29, 29, 0.35); }
+html.dark .bg-red-50,
+html.dark .bg-brand\/5 { background-color: rgba(127, 29, 29, 0.25); }
+html.dark .bg-amber-50 { background-color: rgba(120, 53, 15, 0.25); }
+html.dark .bg-emerald-50 { background-color: rgba(6, 78, 59, 0.3); }
+html.dark .bg-blue-50 { background-color: rgba(30, 58, 138, 0.3); }
+html.dark .bg-indigo-50 { background-color: rgba(49, 46, 129, 0.3); }
+html.dark .bg-violet-50,
+html.dark .bg-purple-50 { background-color: rgba(76, 29, 149, 0.3); }
+html.dark .from-red-50\/60 { --tw-gradient-from: rgba(127, 29, 29, 0.18) var(--tw-gradient-from-position); }
+html.dark .border-neutral-border,
+html.dark .border-gray-200,
+html.dark .card,
+html.dark .card-header,
+html.dark .btn-ghost,
+html.dark .data-table th,
+html.dark .data-table td,
+html.dark .divide-neutral-border > :not([hidden]) ~ :not([hidden]) { border-color: #1f2937; }
+html.dark .border-red-200 { border-color: rgba(185, 28, 28, 0.45); }
+html.dark .border-amber-200 { border-color: rgba(180, 83, 9, 0.45); }
+html.dark .border-emerald-200 { border-color: rgba(4, 120, 87, 0.45); }
+html.dark .text-dark-base,
+html.dark .btn-ghost:hover { color: #f3f4f6; }
+html.dark .text-gray-700,
+html.dark .btn-ghost { color: #d1d5db; }
+html.dark .text-gray-600,
+html.dark .text-gray-500 { color: #9ca3af; }
+html.dark .text-brand,
+html.dark .hover\:text-brand:hover,
+html.dark .btn-outline,
+html.dark .text-red-600,
+html.dark .text-red-700 { color: #f87171; }
+html.dark .btn-outline:hover { color: #ffffff; }
+html.dark .text-amber-800,
+html.dark .text-amber-600 { color: #fbbf24; }
+html.dark .text-emerald-700 { color: #34d399; }
+html.dark .text-blue-600 { color: #60a5fa; }
+html.dark .text-indigo-600 { color: #818cf8; }
+html.dark .text-violet-600,
+html.dark .text-purple-600 { color: #a78bfa; }

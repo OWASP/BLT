@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -6,8 +6,6 @@ import {
   Lock,
   Activity,
   Settings,
-  Menu,
-  X,
   Home,
 } from 'lucide-react';
 
@@ -37,8 +35,9 @@ const navigation = [
   // },
 ];
 
-export default function Sidebar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+// The mobile open state and its toggle button live in Layout, so the button sits in the sticky
+// page header below the shared <blt-nav> bar instead of floating over it.
+export default function Sidebar({ mobileOpen, setMobileOpen }) {
   const location = useLocation();
 
   const navContent = (
@@ -117,15 +116,6 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile hamburger */}
-      <button
-        className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-lg border border-neutral-border bg-white shadow-soft lg:hidden"
-        onClick={() => setMobileOpen(!mobileOpen)}
-        aria-label="Toggle navigation"
-      >
-        {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
-
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
