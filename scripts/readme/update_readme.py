@@ -9,6 +9,10 @@ Sections are delimited by <!-- NAME-START --> / <!-- NAME-END --> markers:
   DEPLOY        one row per Cloudflare deploy, from scripts/deploy/projects.tsv
   BLOG-POSTS    latest posts from dev.to/owaspblt (only with --blog; needs network)
 
+Everything outside the markers is hand-written and kept as it is: edit README.md directly for the intro,
+"Using AI", "Contributing and project policies" (links to CONTRIBUTING.md, SECURITY.md and the other root
+policy files) and "License".
+
 Run from anywhere inside the repo:  python3 scripts/readme/update_readme.py [--blog] [--offline]
 Needs requests and Pillow (pip install requests pillow). --offline skips every network lookup and
 download for the contributor wall; cached results and existing avatars are reused.

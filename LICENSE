@@ -1,0 +1,17 @@
+OWASP BLT monorepo: licensing notice
+
+This repository holds many separately licensed projects. There is no single licence for the whole
+repository. Each project folder carries its own LICENSE file, and that file governs the folder's contents.
+
+  Most projects:   GNU Affero General Public License v3.0 (AGPL-3.0)
+                   https://www.gnu.org/licenses/agpl-3.0.html
+  Exceptions:      blt-leaf/     MIT License
+                   blt-lettuce/  GNU General Public License v3.0 (GPL-3.0)
+  No LICENSE yet:  blt-autopatch/, blt-cli/, blt-cron/, blt-gsoc/, blt-hackerhouse/, blt-mayo/
+                   Ask the project leaders before reusing code from these folders.
+
+Always check the LICENSE file in the folder you use or change. Contributions to a folder are made under
+that folder's licence.
+
+Files outside the project folders (scripts/, docs/, .forkmesh/ and the root documents) do not yet have a
+declared licence.
