@@ -187,7 +187,7 @@
                                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                                             {% for domain in top_domains %}
                                                 <button type="button"
-                                                        onclick="fillUrl('{{ domain.domain__name }}')"
+                                                        onclick="fillUrl('{{ domain.domain__name|escapejs }}')"
                                                         class="group flex items-center gap-3 p-2 bg-white dark:bg-gray-800 hover:bg-gray-50 border border-gray-200 dark:border-gray-700 rounded-lg transition-all duration-200 hover:border-[#e74c3c] hover:shadow-sm">
                                                     <div class="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg group-hover:bg-white transition-colors">
                                                         <img src="https://www.google.com/s2/favicons?sz=32&domain_url={{ domain.domain__name }}"
@@ -615,9 +615,10 @@
     const screenshots = document.getElementById('screenshots');
     let manage_div = document.getElementById("files_manage");
 
-    function escapeHtml(str) {return str.replace(/[&<>"']/g, function (s) {var entityMap = {"&": "&amp;","<": "&lt;",">": "&gt;",'"': '&quot;',"'": '&#39;',};return entityMap[s];});}
-    function previewFile(file_name) {
-        event.preventDefault();
+    function escapeHtml(str) {return String(str == null ? "" : str).replace(/[&<>"']/g, function (s) {var entityMap = {"&": "&amp;","<": "&lt;",">": "&gt;",'"': '&quot;',"'": '&#39;',};return entityMap[s];});}
+    function previewFile(file_name, evt) {
+        const e = evt || window.event;
+        if (e) e.preventDefault();
         Array.from(screenshots.files).map(file => {
             if (file.name === file_name) {
                 let src = URL.createObjectURL(file);
@@ -649,7 +650,8 @@
             let safeName = $("<div>").text(file.name).html();
             let safeNameDisplay = safeName.slice(0, 20) + (safeName.length > 20 ? "..." : "");
             // Use the safe name for display and in the onclick handler
-            let fileDiv = $("<div>").addClass("w-full md:w-[300px] h-[180px] overflow-hidden rounded-lg").attr("onclick", `previewFile('${safeName}')`);
+            // Bind the handler directly: building an onclick string from the file name lets a quote break out.
+            let fileDiv = $("<div>").addClass("w-full md:w-[300px] h-[180px] overflow-hidden rounded-lg").on("click", function (event) { previewFile(file.name, event); });
             let titleDiv = $("<div>").addClass("w-full h-10 flex justify-center rounded-t-lg p-2 bg-gray-500");
             let titleP = $("<p>").addClass("text-xl text-white font-bold").text(safeNameDisplay);
             let img = $("<img>").addClass("object-cover").attr("src", escapeHtml(src));
@@ -773,14 +775,14 @@
                     <div class="flex items-start space-x-4 px-4">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-2">
-                                <a href="/issue/${bug.id}" target="_blank" class="text-lg font-bold text-blue-600 hover:text-blue-800 dark:text-blue-400">
-                                    Bug #${bug.id}
+                                <a href="/issue/${encodeURIComponent(parseInt(bug.id, 10))}" target="_blank" class="text-lg font-bold text-blue-600 hover:text-blue-800 dark:text-blue-400">
+                                    Bug #${escapeHtml(bug.id)}
                                 </a>
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full ${confidenceColor}">
                                     ${similarityPercent}% match
                                 </span>
                                 <span class="px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
-                                    ${bugStatus}
+                                    ${escapeHtml(bugStatus)}
                                 </span>
                             </div>
                             <p class="text-sm text-gray-700 dark:text-gray-300 mb-2">
@@ -788,8 +790,8 @@
                             </p>
                             <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                                 <span><i class="fas fa-user mr-1"></i>${escapeHtml(bugUser)}</span>
-                                <span><i class="fas fa-calendar mr-1"></i>${formattedDate}</span>
-                                <span><i class="fas fa-thumbs-up mr-1"></i>${bugUpvotes} upvotes</span>
+                                <span><i class="fas fa-calendar mr-1"></i>${escapeHtml(formattedDate)}</span>
+                                <span><i class="fas fa-thumbs-up mr-1"></i>${escapeHtml(bugUpvotes)} upvotes</span>
                             </div>
                             <div class="mt-2 text-xs text-gray-500 dark:text-gray-400 truncate">
                                 <i class="fas fa-link mr-1"></i>${escapeHtml(bugUrl)}
@@ -932,10 +934,11 @@ function showToast(message, type = 'success') {
     
     // Add icon based on type
     const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-    toast.innerHTML = `
-        <i class="fas ${icon} mr-2"></i>
-        <span>${message}</span>
-    `;
+    const iconEl = document.createElement('i');
+    iconEl.className = `fas ${icon} mr-2`;
+    const textEl = document.createElement('span');
+    textEl.textContent = message == null ? '' : String(message);
+    toast.append(iconEl, textEl);
     
     toastContainer.appendChild(toast);
     
@@ -971,7 +974,9 @@ function showToast(message, type = 'success') {
         const hashValue = params.get('hash');
         const screenshotsInput = document.getElementById('screenshots');
         
-        if (hashValue) {
+        // hashValue comes from the URL query string (attacker-controlled): only
+        // accept the same plain token the server accepts (validate_screenshot_hash).
+        if (hashValue && /^[A-Za-z0-9_-]+$/.test(hashValue)) {
             // Hide the upload container
             document.getElementById('screenshot-container').style.display = 'none';
             
@@ -980,10 +985,21 @@ function showToast(message, type = 'success') {
             
             // Create and show the hash image
             const container = document.getElementById('screenshot-hash-container');
-            container.innerHTML = `
-                <img src="{{ MEDIA_URL }}uploads/${hashValue}.png" class="img-responsive img-thumbnail screenshot-hash" width="100%" height="100%" alt="Uploaded bug report screenshot">
-                <input type="hidden" required class="required" name="screenshot-hash" value="${hashValue}">
-            `;
+            // Build with DOM methods rather than interpolating into HTML.
+            const hashImg = document.createElement('img');
+            hashImg.src = "{{ MEDIA_URL|escapejs }}uploads/" + hashValue + ".png";
+            hashImg.className = 'img-responsive img-thumbnail screenshot-hash';
+            hashImg.setAttribute('width', '100%');
+            hashImg.setAttribute('height', '100%');
+            hashImg.alt = 'Uploaded bug report screenshot';
+            const hashInput = document.createElement('input');
+            hashInput.type = 'hidden';
+            hashInput.required = true;
+            hashInput.className = 'required';
+            hashInput.name = 'screenshot-hash';
+            hashInput.value = hashValue;
+            container.replaceChildren(hashImg, hashInput);
+
         } else {
             // Hide the hash container
             document.getElementById('screenshot-hash-container').style.display = 'none';

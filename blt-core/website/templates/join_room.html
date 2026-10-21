@@ -197,7 +197,7 @@ async function initEmojiPicker() {
             QUICK_EMOJIS.forEach(({ emoji, name, keywords }) => {
                 const button = document.createElement('button');
                 button.className = 'p-2 hover:bg-gray-100 rounded text-xl transition-colors duration-200';
-                button.innerHTML = emoji;
+                button.textContent = emoji;
                 button.title = `${name} ${keywords.join(' ')}`;
                 button.onclick = () => {
                     if (activeEmojiButton) {
@@ -437,10 +437,14 @@ function updateReactions(messageId, reactions) {
 
                 const reactionButton = document.createElement('button');
                 reactionButton.className = 'inline-flex items-center px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200';
-                reactionButton.innerHTML = `
-                    <span class="mr-1">${emoji}</span>
-                    <span class="text-xs text-gray-600 dark:text-gray-400">${users.length}</span>
-                `;
+                // Reaction keys are arbitrary client-sent strings: render as text.
+                const emojiSpan = document.createElement('span');
+                emojiSpan.className = 'mr-1';
+                emojiSpan.textContent = emoji;
+                const countSpan = document.createElement('span');
+                countSpan.className = 'text-xs text-gray-600 dark:text-gray-400';
+                countSpan.textContent = String(users.length);
+                reactionButton.append(emojiSpan, countSpan);
                 reactionButton.onclick = () => addReaction(messageId, emoji);
                 reactionsContainer.appendChild(reactionButton);
                 displayedEmojis.add(emoji); // Mark as displayed
@@ -451,7 +455,9 @@ function updateReactions(messageId, reactions) {
             if (!displayedEmojis.has(emoji)) {
                 const quickReactionBtn = document.createElement('button');
                 quickReactionBtn.className = 'inline-flex items-center px-2 py-1 rounded-full bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 border border-gray-200 dark:border-gray-700';
-                quickReactionBtn.innerHTML = `<span>${emoji}</span>`;
+                const quickEmojiSpan = document.createElement('span');
+                quickEmojiSpan.textContent = emoji;
+                quickReactionBtn.appendChild(quickEmojiSpan);
                  quickReactionBtn.title = `React with ${emoji}`; // Add title for accessibility
                 quickReactionBtn.onclick = () => addReaction(messageId, emoji);
                 reactionsContainer.appendChild(quickReactionBtn);
@@ -633,7 +639,7 @@ function deleteMessage(messageId) {
 }
 
 function escapeHtml(unsafe) {
-    return unsafe
+    return String(unsafe == null ? "" : unsafe)
         .replace(/&/g, "&amp;")
         .replace(/</g , "&lt;") .replace( />/g, "&gt;")
         .replace(/"/g, "&quot;")

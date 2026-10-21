@@ -147,6 +147,16 @@
                 src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
         <script type="text/javascript">
            $(function() {
+                // Issue titles (from GitHub) and other report fields: escape before building HTML.
+                function escapeHtml(value) {
+                    return String(value == null ? "" : value)
+                        .replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(/"/g, "&quot;")
+                        .replace(/'/g, "&#39;");
+                }
+
                 // Initialize daterange picker
                 $('input[name="daterange"]').daterangepicker({
                     opens: 'left',
@@ -170,7 +180,7 @@
                                 $('#report-table').append(`
                                     <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden mb-8">
                                         <div class="bg-red-500 text-white text-center py-4 text-lg font-semibold">
-                                            ${item.date}
+                                            ${escapeHtml(item.date)}
                                         </div>
                                         <table class="min-w-full bg-white dark:bg-gray-800">
                                             <thead>
@@ -183,14 +193,14 @@
                                             </thead>
                                             <tbody>
                                                 <tr>
-                                                    <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700">${item.issue_title}</td>
-                                                    <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700">${item.start_time}</td>
-                                                    <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700">${item.duration}</td>
+                                                    <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700">${escapeHtml(item.issue_title)}</td>
+                                                    <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700">${escapeHtml(item.start_time)}</td>
+                                                    <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700">${escapeHtml(item.duration)}</td>
                                                     <td class="py-3 px-4 border-b border-gray-200 dark:border-gray-700">
-                                                        <button class="delete-entry bg-red-500 text-white py-1 px-3 rounded" data-id="${item.id}">
+                                                        <button class="delete-entry bg-red-500 text-white py-1 px-3 rounded" data-id="${escapeHtml(item.id)}">
                                                             Delete
                                                         </button>
-                                                        <span>Item ID: ${item.id}</span>
+                                                        <span>Item ID: ${escapeHtml(item.id)}</span>
                                                     </td>
                                                 </tr>
                                             </tbody>

@@ -348,13 +348,31 @@
             updateUserSelections();
         }
 
+        // Usernames/emails are user-controlled: emit them as JS strings with
+        // escapejs (HTML escaping alone leaves `${...}` live inside a template
+        // literal) and HTML-escape them when building option markup.
+        const DOMAIN_USER_CHOICES = [
+            {% for user in users %}
+                { username: "{{ user.username|escapejs }}", email: "{{ user.email|escapejs }}" },
+            {% endfor %}
+        ];
+
+        function escapeHtml(value) {
+            return String(value == null ? "" : value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
         function getUserOptions(excludeList) {
             let optionsHtml = '<option value="" disabled selected>Select a user</option>';
-            {% for user in users %}
-                if (!excludeList.includes('{{ user.email }}')) {
-                    optionsHtml += `<option value="{{ user.email }}">{{ user.username }} ({{ user.email }})</option>`;
+            DOMAIN_USER_CHOICES.forEach((user) => {
+                if (!excludeList.includes(user.email)) {
+                    optionsHtml += `<option value="${escapeHtml(user.email)}">${escapeHtml(user.username)} (${escapeHtml(user.email)})</option>`;
                 }
-            {% endfor %}
+            });
             return optionsHtml;
         }
 

@@ -77,19 +77,19 @@
                             </p>
                             <div class="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
                                 {% if contributor.twitter %}
-                                    <button onclick="window.open('{{ contributor.twitter }}', '_blank'); event.preventDefault();"
+                                    <button onclick="window.open('{{ contributor.twitter|escapejs }}', '_blank'); event.preventDefault();"
                                             class="text-gray-400 dark:text-gray-600 hover:text-[#e74c3c] transform hover:scale-125 transition-all duration-300 z-10">
                                         <i class="fa-brands fa-x-twitter fa-lg"></i>
                                     </button>
                                 {% endif %}
                                 {% if contributor.linkedin %}
-                                    <button onclick="window.open('{{ contributor.linkedin }}', '_blank'); event.preventDefault();"
+                                    <button onclick="window.open('{{ contributor.linkedin|escapejs }}', '_blank'); event.preventDefault();"
                                             class="text-gray-400 dark:text-gray-600 hover:text-[#e74c3c] transform hover:scale-125 transition-all duration-300 z-10">
                                         <i class="fa-brands fa-linkedin fa-lg"></i>
                                     </button>
                                 {% endif %}
                                 {% if contributor.website %}
-                                    <button onclick="window.open('{{ contributor.website }}', '_blank'); event.preventDefault();"
+                                    <button onclick="window.open('{{ contributor.website|escapejs }}', '_blank'); event.preventDefault();"
                                             class="text-gray-400 dark:text-gray-600 hover:text-[#e74c3c] transform hover:scale-125 transition-all duration-300 z-10">
                                         <i class="fa-solid fa-globe fa-lg"></i>
                                     </button>

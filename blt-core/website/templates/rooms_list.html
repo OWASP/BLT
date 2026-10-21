@@ -507,7 +507,7 @@
                 messageDiv.innerHTML = `
             <p class="text-sm font-medium">${escapeHtml(message.username)}</p>
             <p class="text-sm text-gray-700 dark:text-gray-300 break-words whitespace-pre-wrap">${formatMessageWithLinks(message.content)}</p>
-            <span class="text-xs text-gray-500 dark:text-gray-500">${message.timestamp_display}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-500">${escapeHtml(message.timestamp_display)}</span>
                 `;
 
                 messagesContainer.appendChild(messageDiv);
@@ -533,7 +533,7 @@
         }
 
         function escapeHtml(unsafe) {
-            return unsafe
+            return String(unsafe == null ? "" : unsafe)
                 .replace(/&/g, "&amp;")
                 .replace(/</g , "&lt;") .replace( />/g, "&gt;")
                 .replace(/"/g, "&quot;")

@@ -63,13 +63,13 @@
                     "Content-Type": "application/json",
                     "X-CSRFToken": "{{ csrf_token }}",
                 },
-                body: JSON.stringify({ github_username: "{{ username }}" }),
+                body: JSON.stringify({ github_username: "{{ username|escapejs }}" }),
             })
             .then(response => response.text())
             .then(html => {
                 // Hide GitHub loader and display fetched data
                 githubLoader.classList.add("hidden");
-                githubDataContainer.innerHTML = html;
+                githubDataContainer.textContent = html; // JSON from GitHub-derived data: never parse as HTML
                 githubDataContainer.classList.remove("hidden");
     
                 // Fetch recommended repos
@@ -80,14 +80,14 @@
                         "Content-Type": "application/json",
                         "X-CSRFToken": "{{ csrf_token }}",
                     },
-                    body: JSON.stringify({ github_username: "{{ username }}" }),
+                    body: JSON.stringify({ github_username: "{{ username|escapejs }}" }),
                 });
             })
             .then(response => response.text())
             .then(html => {
                 // Hide repos loader and display fetched repos
                 reposLoader.classList.add("hidden");
-                reposContainer.innerHTML = html;
+                reposContainer.textContent = html; // JSON from GitHub-derived data: never parse as HTML
                 reposContainer.classList.remove("hidden");
     
                 // Fetch recommended communities
@@ -98,14 +98,14 @@
                         "Content-Type": "application/json",
                         "X-CSRFToken": "{{ csrf_token }}",
                     },
-                    body: JSON.stringify({ github_username: "{{ username }}" }),
+                    body: JSON.stringify({ github_username: "{{ username|escapejs }}" }),
                 });
             })
             .then(response => response.text())
             .then(html => {
                 // Hide communities loader and display fetched communities
                 communitiesLoader.classList.add("hidden");
-                communitiesContainer.innerHTML = html;
+                communitiesContainer.textContent = html; // JSON from GitHub-derived data: never parse as HTML
                 communitiesContainer.classList.remove("hidden");
     
                 // Fetch recommended channels
@@ -116,14 +116,14 @@
                         "Content-Type": "application/json",
                         "X-CSRFToken": "{{ csrf_token }}",
                     },
-                    body: JSON.stringify({ github_username: "{{ username }}" }),
+                    body: JSON.stringify({ github_username: "{{ username|escapejs }}" }),
                 });
             })
             .then(response => response.text())
             .then(html => {
                 // Hide channels loader and display fetched channels
                 channelsLoader.classList.add("hidden");
-                channelsContainer.innerHTML = html;
+                channelsContainer.textContent = html; // JSON from GitHub-derived data: never parse as HTML
                 channelsContainer.classList.remove("hidden");
     
                 // Fetch recommended articles
@@ -134,14 +134,14 @@
                         "Content-Type": "application/json",
                         "X-CSRFToken": "{{ csrf_token }}",
                     },
-                    body: JSON.stringify({ github_username: "{{ username }}" }),
+                    body: JSON.stringify({ github_username: "{{ username|escapejs }}" }),
                 });
             })
             .then(response => response.text())
             .then(html => {
                 // Hide articles loader and display fetched articles
                 articlesLoader.classList.add("hidden");
-                articlesContainer.innerHTML = html;
+                articlesContainer.textContent = html; // JSON from GitHub-derived data: never parse as HTML
                 articlesContainer.classList.remove("hidden");
             })
             .catch(error => {

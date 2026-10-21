@@ -80,7 +80,7 @@
                 <button type="button"
                         id="openModal-{{ leader.id }}"
                         class="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-1.5"
-                        onclick="openModal('{{ leader.userprofile.btc_address }}','{{ leader.userprofile.eth_address }}','{{ leader.userprofile.bch_address }}', '{{ leader.id }}')">
+                        onclick="openModal('{{ leader.userprofile.btc_address|escapejs }}','{{ leader.userprofile.eth_address|escapejs }}','{{ leader.userprofile.bch_address|escapejs }}', '{{ leader.id }}')">
                     <i class="fab fa-btc text-[#e74c3c]"></i>
                     <span>Tip</span>
                 </button>

@@ -149,7 +149,7 @@
     <script type="text/javascript">
   function sanitizeInput(input) {
     var div = document.createElement('div');
-    div.appendChild(document.createTextNode(input));
+    div.appendChild(document.createTextNode(input == null ? "" : String(input)));
     return div.innerHTML;
   }
   $(function () {
@@ -175,16 +175,17 @@
           if (trint.number == 3) {
             $('.message').html("<br>Sweet! We haven't got any bug from this domain till now");
           } else if (trint.number == 2) {
-            var link = "{% env 'FQDN' %}/domain/" + trint.domain;
+            // Domain names and bug descriptions are user-supplied: escape before building HTML.
+            var link = "{% env 'FQDN' %}/domain/" + encodeURIComponent(trint.domain);
             $('.message').html(
               "<br>Multiple bugs already exist on this domain, ensure you are not submitting a duplicate bug by going here:<br> " +
-              link);
+              sanitizeInput(link));
           } else if (trint.number == 1) {
-            var link = "{% env 'FQDN' %}/issue/" + trint.id;
+            var link = "{% env 'FQDN' %}/issue/" + encodeURIComponent(trint.id);
             $('.message').html(
-              "<br><div class='row'>A bug with same URL already exists <br>Description: " + trint
-              .description + "<br>Created on: " + trint.date + "/" + trint.month + "/" + trint.year +
-              "<br>Ensure you are not submitting a duplicate bug by checking here</div>: " + link);
+              "<br><div class='row'>A bug with same URL already exists <br>Description: " + sanitizeInput(trint
+              .description) + "<br>Created on: " + sanitizeInput(trint.date + "/" + trint.month + "/" + trint.year) +
+              "<br>Ensure you are not submitting a duplicate bug by checking here</div>: " + sanitizeInput(link));
           }
         },
         error: function (response) {

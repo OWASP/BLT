@@ -1,3 +1,18 @@
+// Only same-origin paths ("/x", not "//host") or http(s) URLs may be used as image sources.
+function safeImageUrl(value) {
+    if (typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.startsWith('/\\')) return trimmed;
+    try {
+        const url = new URL(trimmed);
+        if (url.protocol === 'http:' || url.protocol === 'https:') return url.href;
+    } catch (e) {
+        return null;
+    }
+    return null;
+}
+
 // Toggle row expansion for team overview table
 function toggleRow(row) {
     const expandableContents = row.getElementsByClassName('expandable-content');
@@ -57,16 +72,18 @@ document.addEventListener('DOMContentLoaded', function() {
             row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 cursor-pointer';
             row.onclick = () => toggleRow(row);
             
-            const avatarUrl = report.avatar_url || '/static/images/dummy-user.webp';
+            const avatarUrl = safeImageUrl(report.avatar_url) || '/static/images/dummy-user.webp';
             const previousWork = report.previous_work || '';
             const nextPlan = report.next_plan || '';
             const blockers = report.blockers || '';
             
             // Helper to escape HTML
+            // (textContent -> innerHTML alone leaves quotes intact, which lets a
+            // value break out of an attribute such as src="..." / alt="...".)
             const escapeHtml = (text) => {
                 const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
+                div.textContent = text == null ? '' : String(text);
+                return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
             };
             
             const escapedUsername     = escapeHtml(report.username);
@@ -189,11 +206,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </svg>
                             </div>
                             <div class="text-sm text-red-600 dark:text-red-400 font-medium mb-2">Error loading reports</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">${error.message || 'Please try refreshing the page.'}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400" data-error-message></div>
                         </div>
                     </td>
                 </tr>
             `;
+            tableBody.querySelector('[data-error-message]').textContent =
+                error.message || 'Please try refreshing the page.';
         });
     }
 

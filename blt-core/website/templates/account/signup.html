@@ -234,10 +234,22 @@
             })
             .then(response => response.json())
             .then(data => {
-                captchaContainer.innerHTML = `
-                    <input type="hidden" name="captcha_0" value="${data.key}">
-                    <img id="captcha-image" src="${data.image_url}?${Date.now()}" alt="Captcha Image" width="150" height="50" class="border border-gray-300 dark:border-gray-600 rounded">
-                `;
+                const keyInput = document.createElement('input');
+                keyInput.type = 'hidden';
+                keyInput.name = 'captcha_0';
+                keyInput.value = data.key == null ? '' : String(data.key);
+                const img = document.createElement('img');
+                img.id = 'captcha-image';
+                const imageUrl = typeof data.image_url === 'string' ? data.image_url : '';
+                // Only same-origin paths ("/x", not "//host") for the captcha image.
+                if (imageUrl.startsWith('/') && !imageUrl.startsWith('//') && !imageUrl.startsWith('/\\')) {
+                    img.src = `${imageUrl}?${Date.now()}`;
+                }
+                img.alt = 'Captcha Image';
+                img.width = 150;
+                img.height = 50;
+                img.className = 'border border-gray-300 dark:border-gray-600 rounded';
+                captchaContainer.replaceChildren(keyInput, img);
             })
             .catch(error => console.error('Error:', error));
         }

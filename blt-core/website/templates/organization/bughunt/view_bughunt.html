@@ -369,7 +369,7 @@
                                             <button type="button"
                                                     id="openModal-{{ winner.winner.id }}"
                                                     class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors duration-300 ease-in-out"
-                                                    onclick="openModal('{{ winner.winner.userprofile.btc_address }}', '{{ winner.winner.userprofile.eth_address }}', '{{ winner.winner.userprofile.bch_address }}', '{{ winner.winner.id }}')">
+                                                    onclick="openModal('{{ winner.winner.userprofile.btc_address|escapejs }}', '{{ winner.winner.userprofile.eth_address|escapejs }}', '{{ winner.winner.userprofile.bch_address|escapejs }}', '{{ winner.winner.id }}')">
                                                 Pay The Prize
                                             </button>
                                         </td>
@@ -619,7 +619,8 @@
             convertedContent: '',
             convertedMarkdown() {
                 this.showConvertedMarkdown = true;
-                this.convertedContent = marked(`{{ hunt_obj.description }}`, { sanitize: true });
+                // Plain string + escapejs: inside a template literal, `${...}` in the description would run.
+                this.convertedContent = marked("{{ hunt_obj.description|escapejs }}", { sanitize: true });
             },
             convertHtmlToMarkdown() {
                 turndownService = new TurndownService({

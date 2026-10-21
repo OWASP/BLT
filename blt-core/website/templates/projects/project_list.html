@@ -479,7 +479,7 @@
 
                     toast.innerHTML = `
             <div class="flex items-center justify-between">
-                <span class="font-medium">${message}</span>
+                <span class="font-medium"></span>
                 <button onclick="this.parentElement.parentElement.remove()" class="ml-4 hover:opacity-75">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -487,6 +487,8 @@
                 </button>
             </div>
         `;
+                    // Error text can echo server/user input: set as text.
+                    toast.querySelector('span.font-medium').textContent = message == null ? '' : String(message);
 
                     document.getElementById('toastContainer').appendChild(toast);
 

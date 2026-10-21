@@ -278,9 +278,10 @@
                 document.getElementById('BidDisplay').innerHTML = `
                     <div class="flex items-center gap-2 text-gray-900 dark:text-gray-100">
                         <i class="fas fa-info-circle text-[#e74c3c]"></i>
-                        Current Bid: <span class="font-bold">$${currentBid}</span>
+                        Current Bid: <span class="font-bold"></span>
                     </div>
                 `;
+                document.querySelector('#BidDisplay span.font-bold').textContent = `$${currentBid}`;
                     const bidAmountInput = document.getElementById('bid_amount');
                     bidAmountInput.setAttribute('max', currentBid - 1);
                 } else {

@@ -262,7 +262,7 @@
                                         {% if request.user.is_superuser %}
                                             {% if command.arguments %}
                                                 <button type="button"
-                                                        onclick="openCommandModal('{{ command.name }}')"
+                                                        onclick="openCommandModal('{{ command.name|escapejs }}')"
                                                         class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-[#e74c3c] hover:bg-[#c0392b] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c]"
                                                         title="Run command with arguments">
                                                     <svg class="h-4 w-4 mr-1"
@@ -679,17 +679,25 @@
                 
                 if (data.success) {
                     if (outputContainer) {
-                        outputContainer.innerHTML = `
-                            <div class="text-green-600 mb-2">✅ Command executed successfully</div>
-                            <div class="whitespace-pre-wrap">${data.output || 'No output returned'}</div>
-                        `;
+                        // Command output can contain database text (usernames, titles): render as text.
+                        const statusLine = document.createElement('div');
+                        statusLine.className = 'text-green-600 mb-2';
+                        statusLine.textContent = '✅ Command executed successfully';
+                        const outputText = document.createElement('div');
+                        outputText.className = 'whitespace-pre-wrap';
+                        outputText.textContent = String(data.output || 'No output returned');
+                        outputContainer.replaceChildren(statusLine, outputText);
                     }
                 } else {
                     if (outputContainer) {
-                        outputContainer.innerHTML = `
-                            <div class="text-red-600 mb-2">❌ Command failed</div>
-                            <div class="whitespace-pre-wrap">${data.error || 'Unknown error occurred'}</div>
-                        `;
+                        // Command output can contain database text (usernames, titles): render as text.
+                        const statusLine = document.createElement('div');
+                        statusLine.className = 'text-red-600 mb-2';
+                        statusLine.textContent = '❌ Command failed';
+                        const outputText = document.createElement('div');
+                        outputText.className = 'whitespace-pre-wrap';
+                        outputText.textContent = String(data.error || 'Unknown error occurred');
+                        outputContainer.replaceChildren(statusLine, outputText);
                     }
                 }
             })

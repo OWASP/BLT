@@ -474,7 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = 'suggestion-item';
             div.dataset.issueNumber = issue.id;
-            div.innerHTML = `<strong>#${issue.id}</strong>: ${escapeHTML(issue.description)}`;
+            div.innerHTML = `<strong>#${escapeHTML(issue.id)}</strong>: ${escapeHTML(issue.description)}`;
             div.style.cssText = `
                 padding: 8px 10px;
                 cursor: pointer;
@@ -670,7 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Escape HTML to prevent XSS
     function escapeHTML(str) {
-        return str
+        return String(str == null ? '' : str)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')

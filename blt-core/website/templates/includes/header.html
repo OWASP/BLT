@@ -1294,6 +1294,14 @@
         const recentSearchesDropdown = document.getElementById("recent-searches-dropdown");
         const recentSearchesList = document.getElementById("recent-searches-list");
         const clearHistoryBtn = document.getElementById("clear-search-history-header");
+
+        // Search queries are user-typed text: escape before building HTML. (The
+        // chatbot's escapeHtml lives in another script's scope and is not visible here.)
+        function escapeHtml(value) {
+            const div = document.createElement("div");
+            div.textContent = value == null ? "" : String(value);
+            return div.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        }
         
         if (!queryInput || !recentSearchesDropdown) return;
         

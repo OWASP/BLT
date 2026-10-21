@@ -55,7 +55,8 @@
                         document.getElementById('pr_label').textContent = "Bid is not selected: Status is Open/Closed";
                     }
                     document.getElementById('bid_amount').value = currentBid;
-                    document.getElementById('BidDisplay').innerHTML = `Current Bid: ${currentBid} <br>`;
+                    const bidDisplay = document.getElementById('BidDisplay');
+                    bidDisplay.replaceChildren(document.createTextNode(`Current Bid: ${currentBid}`), document.createElement('br'));
                 } else {
                     document.getElementById('BidDisplay').innerHTML = 'No current bid';
                 }
