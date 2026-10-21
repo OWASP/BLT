@@ -21,71 +21,49 @@
 </head>
 <body class="h-full bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 font-sans flex flex-col">
 
-  <!-- ====== TOP NAV ====== -->
-  <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700 z-30 shrink-0">
-    <div class="flex items-center justify-between px-4 h-14">
-
-      <!-- Left: back + breadcrumb -->
-      <div class="flex items-center gap-3 min-w-0">
-        <a href="index.html" class="shrink-0 text-gray-500 hover:text-[#E10101] transition-colors p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#E10101]" aria-label="Back to engagements">
-          <i class="fa-solid fa-chevron-left text-sm" aria-hidden="true"></i>
-        </a>
-        <div class="min-w-0">
-          <div class="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 truncate">
-            <a href="index.html" class="hover:text-[#E10101] hover:underline truncate">Engagements</a>
-            <i class="fa-solid fa-chevron-right text-xs" aria-hidden="true"></i>
-            <span class="font-medium text-gray-900 dark:text-gray-100 truncate">Acme Corp — External Network</span>
-          </div>
-          <div class="flex items-center gap-2 mt-0.5">
-            <span class="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-              <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" aria-hidden="true"></span>
-              Live · 3 collaborators
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Center: presence avatars -->
-      <div class="hidden md:flex items-center gap-2">
-        <div class="flex -space-x-2" aria-label="Online: Alex, Jordan, Sam">
-          <div class="relative">
-            <img src="https://ui-avatars.com/api/?name=Alex+P&background=E10101&color=fff&size=28" alt="Alex P (you)" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-[#1F2937]" />
-            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 ring-1 ring-white dark:ring-[#1F2937]" aria-hidden="true"></span>
-          </div>
-          <div class="relative">
-            <img src="https://ui-avatars.com/api/?name=Jordan+K&background=374151&color=fff&size=28" alt="Jordan K" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-[#1F2937]" />
-            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 ring-1 ring-white dark:ring-[#1F2937]" aria-hidden="true"></span>
-          </div>
-          <div class="relative">
-            <img src="https://ui-avatars.com/api/?name=Sam+R&background=6B7280&color=fff&size=28" alt="Sam R" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-[#1F2937]" />
-            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-yellow-400 ring-1 ring-white dark:ring-[#1F2937]" aria-hidden="true"></span>
-          </div>
-        </div>
-        <button class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md border border-[#E5E5E5] dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-[#E10101] hover:text-[#E10101] transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101]">
-          <i class="fa-solid fa-user-plus text-xs" aria-hidden="true"></i>
-          Invite
-        </button>
-      </div>
-
-      <!-- Right: actions -->
-      <div class="flex items-center gap-2">
-        <button class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-[#E5E5E5] dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-[#E10101] hover:text-[#E10101] transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101]">
-          <i class="fa-solid fa-file-export" aria-hidden="true"></i>
-          Export Report
-        </button>
-        <button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-[#E10101] text-white hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#E10101]">
-          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
-          Escalate to BLT
-        </button>
-      </div>
-    </div>
-  </header>
+  <blt-nav project="blt-ketchup" name="Ketchup">
+    <a href="index.html">Engagements</a>
+    <a href="workspace.html" aria-current="page">Workspace</a>
+    <button type="button" slot="actions">Export Report</button>
+    <button type="button" slot="actions" data-primary>Escalate to BLT</button>
+  </blt-nav>
 
   <!-- ====== 3-COLUMN WORKSPACE ====== -->
   <div class="flex flex-1 min-h-0">
 
     <!-- ===== LEFT SIDEBAR: Findings list ===== -->
     <aside class="w-72 shrink-0 bg-white dark:bg-[#1F2937] border-r border-[#E5E5E5] dark:border-gray-700 flex flex-col hidden lg:flex" aria-label="Findings sidebar">
+
+      <!-- Engagement: name, live status, who is online -->
+      <div class="px-4 py-3 border-b border-[#E5E5E5] dark:border-gray-700">
+        <p class="text-sm font-semibold truncate">Acme Corp — External Network</p>
+        <span class="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400 mt-0.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" aria-hidden="true"></span>
+          Live · 3 collaborators
+        </span>
+        <div class="flex items-center justify-between gap-2 mt-2">
+          <div class="flex items-center gap-2">
+            <div class="flex -space-x-2" aria-label="Online: Alex, Jordan, Sam">
+              <div class="relative">
+                <img src="https://ui-avatars.com/api/?name=Alex+P&background=E10101&color=fff&size=28" alt="Alex P (you)" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-[#1F2937]" />
+                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 ring-1 ring-white dark:ring-[#1F2937]" aria-hidden="true"></span>
+              </div>
+              <div class="relative">
+                <img src="https://ui-avatars.com/api/?name=Jordan+K&background=374151&color=fff&size=28" alt="Jordan K" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-[#1F2937]" />
+                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 ring-1 ring-white dark:ring-[#1F2937]" aria-hidden="true"></span>
+              </div>
+              <div class="relative">
+                <img src="https://ui-avatars.com/api/?name=Sam+R&background=6B7280&color=fff&size=28" alt="Sam R" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-[#1F2937]" />
+                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-yellow-400 ring-1 ring-white dark:ring-[#1F2937]" aria-hidden="true"></span>
+              </div>
+            </div>
+            <button class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md border border-[#E5E5E5] dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-[#E10101] hover:text-[#E10101] transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101]">
+              <i class="fa-solid fa-user-plus text-xs" aria-hidden="true"></i>
+              Invite
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- Sidebar header -->
       <div class="px-4 py-3 border-b border-[#E5E5E5] dark:border-gray-700">

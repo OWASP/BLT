@@ -12,20 +12,23 @@
 </head>
 <body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
 
-  <!-- ====== TOP NAV ====== -->
-  <header class="bg-white dark:bg-gray-800 border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+  <blt-nav project="blt-ketchup" name="Ketchup" data-sticky>
+    <a href="index.html" aria-current="page">Engagements</a>
+    <a href="workspace.html">Workspace</a>
+    <button type="button" slot="actions" aria-label="User menu: Alex Pentest">Alex Pentest</button>
+    <button type="button" slot="actions" data-primary>New Engagement</button>
+  </blt-nav>
 
-      <!-- Logo -->
-      <a href="index.html" class="flex items-center gap-2 shrink-0">
-        <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[#E10101]">
-          <i class="fa-solid fa-shield-halved text-white text-sm" aria-hidden="true"></i>
-        </span>
-        <span class="font-bold text-lg tracking-tight">BLT <span class="text-[#E10101]">Ketchup</span></span>
-      </a>
+  <!-- ====== MAIN LAYOUT ====== -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-      <!-- Search -->
-      <div class="hidden md:flex flex-1 max-w-md mx-8">
+    <!-- Page heading -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-bold">Engagements</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">All active and completed red-team engagements</p>
+      </div>
+      <div class="flex flex-1 max-w-md">
         <label for="global-search" class="sr-only">Search engagements</label>
         <div class="relative w-full">
           <span class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400" aria-hidden="true">
@@ -38,38 +41,6 @@
             class="w-full border border-gray-400 rounded-md pl-9 pr-4 py-2 text-sm bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600"
           />
         </div>
-      </div>
-
-      <!-- Right actions -->
-      <div class="flex items-center gap-3">
-        <button
-          class="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-[#E10101] text-white hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#E10101]"
-          aria-label="New engagement"
-        >
-          <i class="fa-solid fa-plus" aria-hidden="true"></i>
-          New Engagement
-        </button>
-
-        <button class="relative text-gray-500 hover:text-[#E10101] transition-colors p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#E10101]" aria-label="Notifications">
-          <i class="fa-solid fa-bell text-lg" aria-hidden="true"></i>
-          <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#E10101]" aria-hidden="true"></span>
-        </button>
-
-        <button class="focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded-full" aria-label="User menu">
-          <img src="https://ui-avatars.com/api/?name=Alex+Pentest&background=E10101&color=fff&size=32" alt="Alex Pentest" class="w-8 h-8 rounded-full" />
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- ====== MAIN LAYOUT ====== -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-    <!-- Page heading -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-      <div>
-        <h1 class="text-2xl font-bold">Engagements</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">All active and completed red-team engagements</p>
       </div>
       <div class="flex gap-2">
         <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md border border-[#E10101] text-[#E10101] hover:bg-[#E10101] hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101]">
