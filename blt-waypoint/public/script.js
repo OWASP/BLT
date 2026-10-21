@@ -256,6 +256,7 @@ const PROJECT_LOGOS = {
   '.github': 'project-logos/.github.svg',
   'blt': 'project-logos-v2/BLT-Core.svg',
   'blt-core': 'project-logos-v2/BLT-Core.svg',
+  'blt-legacy': 'project-logos-v2/BLT-Legacy.svg',
   'dot_github': 'project-logos/.github.svg',
   'blt-gitcaster': 'canonical-logos/github-sport-caster.png',
   'blt-vanish': 'canonical-logos/blt-vanish.png',

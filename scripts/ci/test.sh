@@ -30,7 +30,7 @@ esac
 # Suites too big for a small runner. On a machine with under 3 GB of memory (the git.owaspblt.org
 # runner shares 1 GB with the website) they are skipped in --changed/--all runs, so they can't
 # push the site into swap; name them explicitly to run them anyway.
-HEAVY=(blt-core)
+HEAVY=(blt-legacy)
 mem_kb="$(awk '/^MemTotal:/ {print $2}' /proc/meminfo 2>/dev/null || echo 0)"
 low_memory=0; [[ "${mem_kb:-0}" -gt 0 && "${mem_kb}" -lt 3000000 ]] && low_memory=1
 

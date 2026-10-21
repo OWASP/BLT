@@ -12,9 +12,9 @@ const summaryPath = "public/hackathon-data/gsoc-2027-warmup-summary.json";
 const HACKATHONS_CONFIG = eval(`${configSource}\nHACKATHONS_CONFIG`);
 
 // The 57 gitlab.com/owasp-blt projects the event was announced with, now folders of the BLT
-// monorepo on git.owaspblt.org (owasp-blt/blt is blt-core).
+// monorepo on git.owaspblt.org (owasp-blt/blt is blt-legacy, formerly blt-core).
 const requiredFolders = [
-  "blt-core", "blt-action", "blt-api", "blt-autopatch", "blt-byte", "blt-cve", "blt-dash",
+  "blt-legacy", "blt-action", "blt-api", "blt-autopatch", "blt-byte", "blt-cve", "blt-dash",
   "blt-design", "blt-design-contest", "blt-docs", "blt-enforcement", "blt-extension",
   "blt-flutter", "blt-gitcaster", "blt-gsoc", "blt-hackathons", "blt-hackerhouse", "blt-ideas",
   "blt-jobs", "blt-ketchup", "blt-leaf", "blt-lettuce", "blt-mayo", "blt-mcp", "blt-monitor",

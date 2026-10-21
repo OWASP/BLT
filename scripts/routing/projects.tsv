@@ -5,7 +5,6 @@ blt-api	BLT-API	OWASP-BLT-API,BLT-API-on-Cloudflare
 blt-autopatch	BLT-Autopatch	
 blt-byte	BLT-Byte	BLT--Byte
 blt-cli	BLT-CLI	
-blt-core	BLT-Core	BLT,BLT-on-Cloudflare
 blt-cron	BLT-Cron	
 blt-cve	BLT-CVE	
 blt-dash	BLT-Dash	
@@ -23,6 +22,7 @@ blt-ideas	BLT-Ideas
 blt-jobs	BLT-Jobs	
 blt-ketchup	BLT-Ketchup	
 blt-leaf	BLT-Leaf	
+blt-legacy	BLT-Legacy	BLT-Core,blt-core,BLT,BLT-on-Cloudflare
 blt-lettuce	BLT-Lettuce	BLT-Lettuce-on-Cloudflare
 blt-mayo	BLT-Mayo	
 blt-mcp	BLT-MCP	

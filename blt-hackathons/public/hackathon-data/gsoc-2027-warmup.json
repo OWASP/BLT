@@ -16,7 +16,7 @@
       "blt-autopatch",
       "blt-byte",
       "blt-cli",
-      "blt-core",
+      "blt-legacy",
       "blt-cron",
       "blt-cve",
       "blt-dash",
@@ -78,7 +78,7 @@
     "blt-autopatch",
     "blt-byte",
     "blt-cli",
-    "blt-core",
+    "blt-legacy",
     "blt-cron",
     "blt-cve",
     "blt-dash",
@@ -173,7 +173,7 @@
         "issues": 0,
         "closedIssues": 0
       },
-      "blt-core": {
+      "blt-legacy": {
         "total": 0,
         "merged": 0,
         "issues": 0,
@@ -1298,9 +1298,9 @@
         "issues_url": "https://git.owaspblt.org/BLT/issues"
       },
       {
-        "full_name": "blt-core",
+        "full_name": "blt-legacy",
         "description": null,
-        "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-core",
+        "html_url": "https://git.owaspblt.org/BLT/tree/main/blt-legacy",
         "pulls_url": "https://git.owaspblt.org/BLT/pulls",
         "issues_url": "https://git.owaspblt.org/BLT/issues"
       },

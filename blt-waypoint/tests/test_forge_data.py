@@ -12,7 +12,7 @@ import forge_urls  # noqa: E402
 import generate_forge_data as gen  # noqa: E402
 
 NOW = datetime(2026, 10, 18, 6, 29, tzinfo=timezone.utc)
-TSV = "# folder\tname\taliases\nblt-leaf\tBLT-Leaf\t\nblt-core\tBLT-Core\tBLT,BLT-on-Cloudflare\n-\t-\tBLT-Claw\n"
+TSV = "# folder\tname\taliases\nblt-leaf\tBLT-Leaf\t\nblt-legacy\tBLT-Legacy\tBLT-Core,blt-core,BLT,BLT-on-Cloudflare\n-\t-\tBLT-Claw\n"
 
 
 def ago(days):
@@ -76,7 +76,7 @@ class GeneratorTest(unittest.TestCase):
         issues = [
             {"number": 7, "title": "[blt-leaf] broken", "status": "open", "labels": [], "authorName": "cat",
              "createdAt": 1792290689619, "updatedAt": 1792290689619, "events": []},
-            {"number": 8, "title": "Other", "status": "open", "labels": ["project:blt-core"], "authorName": "dan",
+            {"number": 8, "title": "Other", "status": "open", "labels": ["project:blt-legacy"], "authorName": "dan",
              "createdAt": 1792290689000, "events": [{"type": "vote", "authorName": "x"}]},
             {"number": 9, "title": "blt-leaf: done", "status": "closed", "labels": [], "events": []},
             {"number": 10, "title": "general", "status": "open", "labels": [], "events": []},
@@ -84,7 +84,7 @@ class GeneratorTest(unittest.TestCase):
         client = FakeClient({"blt-leaf": leaf}, issues)
         data = gen.build(client, root=self.root, now=NOW)
         leaf_row, core = data["repos"]
-        self.assertEqual([r["folder"] for r in data["repos"]], ["blt-leaf", "blt-core"])
+        self.assertEqual([r["folder"] for r in data["repos"]], ["blt-leaf", "blt-legacy"])
         self.assertEqual(leaf_row["html_url"], "https://git.owaspblt.org/BLT/tree/main/blt-leaf")
         self.assertEqual((leaf_row["commits_30d"], leaf_row["commits_90d"], leaf_row["commits_365d"]), (1, 2, 3))
         self.assertEqual(leaf_row["contributor_count"], 2)
@@ -126,7 +126,7 @@ class GeneratorTest(unittest.TestCase):
 
     def test_pulls_attributed_by_title(self):
         self.assertEqual(gen.pull_projects({"title": "[blt-leaf] x"}, {"blt-leaf"}), ["blt-leaf"])
-        self.assertEqual(gen.pull_projects({"title": "x", "labels": ["project:blt-core"]}, {"blt-core"}), ["blt-core"])
+        self.assertEqual(gen.pull_projects({"title": "x", "labels": ["project:blt-legacy"]}, {"blt-legacy"}), ["blt-legacy"])
         self.assertEqual(gen.pull_entry({"number": 3, "status": "merged", "authorName": "a", "ts": 1792290689619})["state"],
                          "merged")
 
@@ -145,7 +145,7 @@ class UrlTest(unittest.TestCase):
         index = forge_urls.folder_index()
         text = "see https://gitlab.com/owasp-blt/blt and https://gitlab.com/owasp-blt/toasty/-/issues/3 or https://gitlab.com/owasp-blt/nope"
         self.assertEqual(forge_urls.rewrite_text(text, index),
-                         "see https://git.owaspblt.org/BLT/tree/main/blt-core and "
+                         "see https://git.owaspblt.org/BLT/tree/main/blt-legacy and "
                          "https://git.owaspblt.org/BLT/tree/main/blt-toasty or https://git.owaspblt.org/BLT")
         self.assertEqual(forge_urls.resolve(".github", index), "dot_github")
         self.assertEqual(forge_urls.resolve("BLT-Github-Sportscaster", index), "blt-gitcaster")

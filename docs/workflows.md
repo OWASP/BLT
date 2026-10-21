@@ -282,7 +282,7 @@ this server:
 - Flutter projects (`blt-flutter`, `blt-netguardian-client`, `blt-timer-flutter`, `blt-vanish-flutter`)
   and `blt-cli` (Rust) are reported as skipped.
 - `blt-mcp` requires Python 3.12; its `tests.tsv` row installs with `--ignore-requires-python`, so it runs on the server's 3.13 (the OAuth and SSE tests need loopback connections).
-- `blt-core` passes only if xvfb, Chromium and libmemcached are installed, and that needs sudo.
+- `blt-legacy` (formerly `blt-core`) passes only if xvfb, Chromium and libmemcached are installed, and that needs sudo.
 - `blt-safecloak` runs `playwright install --with-deps`, which needs sudo.
 
 Run these on a machine with the toolchain: `scripts/ci/test.sh <project>`.

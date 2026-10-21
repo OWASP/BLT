@@ -240,7 +240,7 @@ class LegacyRouteListTests(unittest.TestCase):
     DELIBERATELY_SKIPPED = {'', 'api', '.well-known', '__debug__', '500', 'test-sentry', 'favicon.ico', 'robots.txt'}
 
     def legacy_urls(self):
-        for name in ('blt-legacy', 'blt-core'):
+        for name in ('blt-legacy',):
             path = PROJECT.parent / name / 'blt' / 'urls.py'
             if path.exists():
                 return path.read_text()

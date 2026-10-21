@@ -18,7 +18,7 @@ It means BLT-docs does not currently have enough evidence to publish a canonical
 
 | Service | Project folder | Public URL | Deployment role |
 | ------- | ----------------- | ---------- | --------------- |
-| OWASP BLT | [blt-core](https://git.owaspblt.org/BLT/BLT-Core) | [owaspblt.org](https://owaspblt.org) | Main BLT public site. |
+| BLT Legacy | [blt-legacy](https://git.owaspblt.org/BLT/BLT-Legacy) | [legacy.owaspblt.org](https://legacy.owaspblt.org) | The original Django app (formerly blt-core), being replaced feature by feature. Offline while its data is migrated. |
 | BLT Docs | [blt-docs](https://git.owaspblt.org/BLT/BLT-Docs) | [docs.owaspblt.org](https://docs.owaspblt.org) | MkDocs documentation served as Worker static assets. |
 | BLT Next | [blt-next](https://git.owaspblt.org/BLT/BLT-Next) | [next.owaspblt.org](https://next.owaspblt.org) | Static frontend with Python Worker application routes. |
 | BLT API | [blt-api](https://git.owaspblt.org/BLT/BLT-API) | [api.owaspblt.org](https://api.owaspblt.org) | D1-backed Python Worker API and API dashboard. |
@@ -46,7 +46,7 @@ Projects without a public URL in the previous table must not be assigned a guess
 
 | Project | Folder |
 | ------- | ----------------- |
-| BLT | [blt-core](https://git.owaspblt.org/BLT/BLT-Core) |
+| BLT Legacy | [blt-legacy](https://git.owaspblt.org/BLT/BLT-Legacy) |
 | BLT Action | [blt-action](https://git.owaspblt.org/BLT/BLT-Action) |
 | BLT API | [blt-api](https://git.owaspblt.org/BLT/BLT-API) |
 | BLT Autopatch | [blt-autopatch](https://git.owaspblt.org/BLT/BLT-Autopatch) |

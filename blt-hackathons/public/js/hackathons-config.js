@@ -7,14 +7,13 @@
 
 // Every project folder of the BLT monorepo on git.owaspblt.org (scripts/routing/projects.tsv;
 // test/test_forkmesh.py checks that the two lists match). gitlab.com/owasp-blt is closed; the
-// 57 GitLab projects these replace map one to one (owasp-blt/blt is blt-core).
+// 57 GitLab projects these replace map one to one (owasp-blt/blt is blt-legacy, formerly blt-core).
 const OWASP_BLT_PROJECT_FOLDERS = [
     "blt-action",
     "blt-api",
     "blt-autopatch",
     "blt-byte",
     "blt-cli",
-    "blt-core",
     "blt-cron",
     "blt-cve",
     "blt-dash",
@@ -32,6 +31,7 @@ const OWASP_BLT_PROJECT_FOLDERS = [
     "blt-jobs",
     "blt-ketchup",
     "blt-leaf",
+    "blt-legacy",
     "blt-lettuce",
     "blt-mayo",
     "blt-mcp",

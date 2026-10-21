@@ -598,7 +598,7 @@ async def route_request(request, env):
             print(f"Handler Error: {e}")
             raise e
 
-    # Old blt-core deep links go to the legacy app.
+    # Old blt.owasp.org deep links go to the legacy app.
     location = legacy_redirect_target(path, url.search)
     if location:
         return legacy_redirect_response(location, request.method)

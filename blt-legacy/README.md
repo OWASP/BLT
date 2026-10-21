@@ -1,7 +1,17 @@
-<h1 align="center"> 🐛 OWASP BLT </h1>
+<h1 align="center"> 🐛 BLT Legacy </h1>
 
-**Live Site:** [https://owaspblt.org/](https://owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT-Core](https://git.owaspblt.org/BLT/BLT-Core)
+**Live Site:** [https://legacy.owaspblt.org/](https://legacy.owaspblt.org/)<br>
+**Source Code:** [https://git.owaspblt.org/BLT/BLT-Legacy](https://git.owaspblt.org/BLT/BLT-Legacy)
+
+BLT Legacy is the original OWASP BLT Django app (formerly BLT-Core). It is being replaced, feature by feature, by the newer BLT projects.
+
+> [!WARNING]
+> **BLT Legacy is being retired.** It is being replaced feature by feature by the BLT projects in this monorepo
+> (see the [project list](https://git.owaspblt.org/BLT#-projects)). The app at
+> [legacy.owaspblt.org](https://legacy.owaspblt.org/) is offline while its data is migrated; old `blt.owasp.org` links
+> land on a "this page has moved" page on [owaspblt.org](https://owaspblt.org/), and bug reports go through the new
+> site. New features belong in the new projects; fixes here should be small. See
+> [Retirement status](#retirement-status) below.
 
 <h3 align="center">Bug Logging Tool - Gamified Crowd-Sourced QA Testing & Vulnerability Disclosure</h3>
 
@@ -11,20 +21,37 @@
 
 <p align="center">
   <a href="https://legacy.owaspblt.org">🌐 Website</a> •
-  <a href="https://git.owaspblt.org/BLT/BLT-Core/blob/main/CONTRIBUTING.md">📖 Contributing Guide</a> •
+  <a href="https://git.owaspblt.org/BLT/BLT-Legacy/blob/main/CONTRIBUTING.md">📖 Contributing Guide</a> •
   <a href="https://owasp.org/slack/invite">💬 Join Slack</a> •
   <a href="https://git.owaspblt.org/BLT/issues">🐛 Report Bug</a>
 </p>
 
 ---
 
+## Retirement status
+
+Summary of the October 2026 feature-parity audit (115 features: 24 covered by a new project, 41 partial or mock,
+33 missing, 17 drop candidates):
+
+- **Moved:** the community features (hackathons, jobs, GSoC, OSSH, the Slack bots, check-ins, courses) have
+  working new homes.
+- **Not replaced yet:** browsing the bug archive, accounts and logins, organizations, domains and bug hunts,
+  points, badges and the global leaderboard, BACON rewards, notifications and email digests, and the security-team
+  tools (incidents, trademark search, IP reports).
+- **Bug reports** go through the new site (owaspblt.org) and BLT-API (api.owaspblt.org); BLT-Flutter and
+  BLT-Extension use those too.
+- **Data migration:** the database and uploaded files are to be migrated or archived, and existing accounts need a
+  path to the new sign-in. The old data comes back after that migration.
+
+---
+
 ## 📊 Project Stats
 
 <p align="center">
-  <a href="https://git.owaspblt.org/BLT/BLT-Core/blob/main/LICENSE.md">
+  <a href="https://git.owaspblt.org/BLT/BLT-Legacy/blob/main/LICENSE.md">
     <img src="https://img.shields.io/badge/license-AGPL--3.0-blue" alt="License">
   </a>
-  <a href="https://git.owaspblt.org/BLT/BLT-Core">
+  <a href="https://git.owaspblt.org/BLT/BLT-Legacy">
     <img src="https://img.shields.io/github/stars/OWASP-BLT/BLT?style=social" alt="GitHub stars">
   </a>
 </p>
@@ -33,7 +60,7 @@
   <a href="https://git.owaspblt.org/BLT/graphs/contributors">
     <img src="https://img.shields.io/github/contributors/OWASP-BLT/BLT?color=%23e74c3c" alt="Contributors">
   </a>
-  <a href="https://git.owaspblt.org/BLT/BLT-Core/commits/main">
+  <a href="https://git.owaspblt.org/BLT/BLT-Legacy/commits/main">
     <img src="https://img.shields.io/github/last-commit/OWASP-BLT/BLT?color=%23e74c3c" alt="Last Commit">
   </a>
   <a href="https://git.owaspblt.org/BLT/issues">
@@ -45,10 +72,10 @@
 </p>
 
 <p align="center">
-  <a href="https://git.owaspblt.org/BLT/BLT-Core">
+  <a href="https://git.owaspblt.org/BLT/BLT-Legacy">
     <img src="https://img.shields.io/github/languages/top/OWASP-BLT/BLT?color=%23e74c3c" alt="Top Language">
   </a>
-  <a href="https://git.owaspblt.org/BLT/BLT-Core">
+  <a href="https://git.owaspblt.org/BLT/BLT-Legacy">
     <img src="https://img.shields.io/github/repo-size/OWASP-BLT/BLT?color=%23e74c3c" alt="Repo Size">
   </a>
   <a href="https://git.owaspblt.org/BLT/fork">
@@ -167,7 +194,7 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-For detailed setup instructions, see our [Contributing Guide](https://git.owaspblt.org/BLT/BLT-Core/blob/main/CONTRIBUTING.md).
+For detailed setup instructions, see our [Contributing Guide](https://git.owaspblt.org/BLT/BLT-Legacy/blob/main/CONTRIBUTING.md).
 
 ---
 
@@ -197,7 +224,7 @@ Docker/virtualization issues on Windows? Use uv + SQLite in GitHub Codespaces (f
 
 We welcome contributions from everyone! Whether you're fixing bugs, adding features, improving documentation, or spreading the word, your help is appreciated.
 
-- 📚 Read our [Contributing Guide](https://git.owaspblt.org/BLT/BLT-Core/blob/main/CONTRIBUTING.md)
+- 📚 Read our [Contributing Guide](https://git.owaspblt.org/BLT/BLT-Legacy/blob/main/CONTRIBUTING.md)
 - 🐛 Check out [open issues](https://git.owaspblt.org/BLT/issues)
 - 💡 Look for issues tagged with `good first issue` if you're new
 - 🎨 Follow our coding standards (Black, isort, ruff)
