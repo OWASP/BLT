@@ -623,25 +623,34 @@ def generate_html(ideas, overlap_matrix):
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {{
+      darkMode: 'class',
       theme: {{
         extend: {{
           colors: {{
-            primary: '#E10101',
+            primary: '#dc2626',
             'primary-hover': '#b91c1c',
-            'neutral-border': '#E5E5E5',
-            'dark-base': '#111827',
-            'dark-surface': '#1F2937'
+            'neutral-border': '#e5e7eb',
+            'dark-base': '#030712',
+            'dark-surface': '#111827'
           }},
           fontFamily: {{
-            sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif']
+            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif']
           }}
         }}
       }}
     }};
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    // Theme before first paint: saved choice (localStorage "theme", shared with the OWASP BLT
+    // top bar, which has the toggle), else the system preference.
+    (function () {{
+      var saved = null;
+      try {{ saved = localStorage.getItem('theme'); }} catch (e) {{}}
+      var dark = saved === 'dark' || (saved !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.classList.toggle('dark', dark);
+    }})();
+  </script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -651,17 +660,17 @@ def generate_html(ideas, overlap_matrix):
   />
   <style>
     :root {{
-      --blt-primary: #E10101;
+      --blt-primary: #dc2626;
       --blt-primary-hover: #b91c1c;
-      --blt-neutral-border: #E5E5E5;
-      --blt-dark-base: #111827;
-      --blt-dark-surface: #1F2937;
+      --blt-neutral-border: #e5e7eb;
+      --blt-dark-base: #030712;
+      --blt-dark-surface: #111827;
     }}
     body {{
       background:
-        radial-gradient(circle at 5% 0%, rgba(225, 1, 1, 0.08), transparent 24%),
-        radial-gradient(circle at 95% 8%, rgba(225, 1, 1, 0.06), transparent 20%),
-        #ffffff;
+        radial-gradient(circle at 5% 0%, rgba(220, 38, 38, 0.08), transparent 24%),
+        radial-gradient(circle at 95% 8%, rgba(220, 38, 38, 0.06), transparent 20%),
+        #f9fafb;
       color: #111827;
     }}
     a {{
@@ -701,11 +710,11 @@ def generate_html(ideas, overlap_matrix):
     }}
     #ideas-table thead th.sorted-asc::after {{
       content: " ↑";
-      color: #E10101;
+      color: #dc2626;
     }}
     #ideas-table thead th.sorted-desc::after {{
       content: " ↓";
-      color: #E10101;
+      color: #dc2626;
     }}
     #ideas-table tbody tr:hover {{
       background: #fff7f7;
@@ -811,6 +820,42 @@ def generate_html(ideas, overlap_matrix):
       }}
       #ideas-table tbody td.oneliner {{ max-width: none; }}
     }}
+    /* ── Dark mode (html.dark, set by the theme script / OWASP BLT top bar) ── */
+    html.dark {{ color-scheme: dark; --blt-neutral-border: #1f2937; }}
+    html.dark body {{
+      background:
+        radial-gradient(circle at 5% 0%, rgba(220, 38, 38, 0.10), transparent 24%),
+        radial-gradient(circle at 95% 8%, rgba(220, 38, 38, 0.08), transparent 20%),
+        #030712;
+      color: #f3f4f6;
+    }}
+    html.dark a {{ color: #f87171; }}
+    html.dark a.text-white, html.dark a.hover\\:text-white:hover {{ color: #ffffff; }}
+    html.dark .bg-white, html.dark .bg-white\\/95, html.dark .bg-white\\/80, html.dark .bg-white\\/70,
+    html.dark .table-wrap, html.dark .matrix-wrap, html.dark .input-core, html.dark .matrix-no {{ background: #111827; }}
+    html.dark .bg-gray-50, html.dark .matrix-head, html.dark .matrix-label, html.dark .matrix-self {{ background: #1f2937; }}
+    html.dark .border-neutral-border {{ border-color: #1f2937; }}
+    html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]), html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {{ border-color: #1f2937; }}
+    html.dark .matrix-wrap th, html.dark .matrix-wrap td {{ border-color: #1f2937; }}
+    html.dark .text-gray-900, html.dark .text-gray-800 {{ color: #f3f4f6; }}
+    html.dark .text-gray-700, html.dark .text-gray-600, html.dark .matrix-head, html.dark .matrix-label, html.dark td.oneliner {{ color: #d1d5db; }}
+    html.dark .text-gray-500, html.dark .text-gray-400, html.dark .muted {{ color: #9ca3af; }}
+    html.dark .input-core {{ border-color: #374151; color: #f3f4f6; }}
+    html.dark .bg-red-50, html.dark .bg-red-50\\/60, html.dark .bg-\\[\\#fee2e2\\], html.dark .matrix-yes {{ background: rgba(127, 29, 29, 0.3); }}
+    html.dark .bg-amber-50\\/60 {{ background: rgba(120, 53, 15, 0.25); }}
+    html.dark .bg-emerald-50\\/60 {{ background: rgba(6, 78, 59, 0.25); }}
+    html.dark .border-red-100, html.dark .divide-red-100 > :not([hidden]) ~ :not([hidden]) {{ border-color: rgba(153, 27, 27, 0.5); }}
+    html.dark .border-amber-100, html.dark .divide-amber-100 > :not([hidden]) ~ :not([hidden]) {{ border-color: rgba(146, 64, 14, 0.5); }}
+    html.dark .border-emerald-100, html.dark .divide-emerald-100 > :not([hidden]) ~ :not([hidden]) {{ border-color: rgba(6, 95, 70, 0.5); }}
+    html.dark .text-red-700, html.dark .text-red-800, html.dark .matrix-yes, html.dark .text-\\[\\#dc2626\\] {{ color: #f87171; }}
+    html.dark .text-amber-800, html.dark .text-amber-900 {{ color: #fbbf24; }}
+    html.dark .text-emerald-800, html.dark .text-emerald-900 {{ color: #34d399; }}
+    html.dark .badge {{ background: rgba(127, 29, 29, 0.3); border-color: rgba(153, 27, 27, 0.6); color: #fca5a5; }}
+    html.dark #ideas-table tbody tr:hover {{ background: #1f2937; }}
+    html.dark .hover\\:bg-gray-50:hover {{ background: #1f2937; }}
+    @media (max-width: 767px) {{
+      html.dark #ideas-table tbody tr {{ background: #111827; border-color: #1f2937; }}
+    }}
   </style>
 </head>
 <body class="font-sans antialiased">
@@ -852,7 +897,7 @@ def generate_html(ideas, overlap_matrix):
           <nav class="rounded-xl border border-neutral-border bg-white p-4" aria-label="Page navigation">
             <p class="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">Navigate</p>
             <ul class="space-y-1 text-sm font-semibold">
-              <li><a href="#landing" class="btn-link block rounded-md bg-[#feeae9] px-3 py-2 text-[#E10101]">Overview</a></li>
+              <li><a href="#landing" class="btn-link block rounded-md bg-[#fee2e2] px-3 py-2 text-[#dc2626]">Overview</a></li>
               <li><a href="#project-groups" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Project Groups</a></li>
               <li><a href="#ideas-overview" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Feature Catalog</a></li>
               <li><a href="#overlap-matrix" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Overlap Matrix</a></li>
