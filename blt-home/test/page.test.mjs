@@ -110,3 +110,13 @@ test("Explore cards link only to live sites listed in the root README", { skip: 
 test("external links use https", () => {
   for (const href of attrs("href").filter((h) => /^[a-z]+:/i.test(h))) assert.match(href, /^https:\/\//, href);
 });
+
+test("the shared top bar lists the same apps as the Explore cards", () => {
+  const nav = readFileSync(join(publicDir, "_shared", "blt-nav.js"), "utf8");
+  const apps = [...nav.matchAll(/^\s*\["([^"]+)", "([^"]+)", "([^"]+)"\],$/gm)].map((m) => `${m[1]}|${m[2]}|/_home/logos/${m[3]}`);
+  const cards = [...html.matchAll(/class="product-card" href="([^"]+)"><img src="([^"]+)"[^>]*><span><strong>([^<]+)</g)].map((m) => `${m[3]}|${m[1]}|${m[2]}`);
+  assert.ok(cards.length > 40);
+  assert.deepEqual(apps, cards);
+  for (const a of apps) assert.ok(existsSync(join(publicDir, a.split("|")[2])), a);
+  assert.doesNotMatch(nav, /innerHTML|outerHTML|insertAdjacentHTML|document\.write/);
+});

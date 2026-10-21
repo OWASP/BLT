@@ -3,6 +3,8 @@
 // The Worker runs first for every request (run_worker_first in wrangler.toml):
 //   /                 -> the landing page (public/index.html)
 //   /_home/*, a few root files -> static assets from public/ (a prefix neither blt-next nor legacy uses)
+//   /_shared/*        -> the BLT top bar (blt-nav.js) that every BLT site loads; it and the
+//                        logos it shows may be embedded from other origins (see SHARED_HEADERS)
 //   /api/home-stats   -> live numbers, cached for 15 minutes
 //   legacy Django paths (/issue/1/, /profile/x/, /api/v1/, ... see legacy.js)
 //                     -> 308 to next.owaspblt.org/moved?from=<path + query, URL-encoded>
@@ -31,8 +33,18 @@ export const SECURITY_HEADERS = {
   "X-Permitted-Cross-Domain-Policies": "none",
 };
 
+// Files other BLT sites load from here: the shared top bar and the images it shows.
+export const SHARED_HEADERS = {
+  "Cross-Origin-Resource-Policy": "cross-origin",
+  "Access-Control-Allow-Origin": "*",
+};
+
 export function isHomePath(pathname) {
-  return ROOT_FILES.has(pathname) || pathname.startsWith("/_home/");
+  return ROOT_FILES.has(pathname) || pathname.startsWith("/_home/") || pathname.startsWith("/_shared/");
+}
+
+export function isSharedPath(pathname) {
+  return pathname.startsWith("/_shared/") || pathname.startsWith("/_home/logos/") || pathname === "/_home/blt-logo.svg";
 }
 
 export function redirectTarget(url) {
@@ -104,8 +116,10 @@ export async function handle(request, env, ctx, { fetcher = fetch, cache } = {})
 
   if (isHomePath(pathname) && (request.method === "GET" || request.method === "HEAD")) {
     const res = await env.ASSETS.fetch(request);
-    const cacheControl = pathname.startsWith("/_home/") ? "public, max-age=3600" : "public, max-age=300";
-    return withHeaders(res, res.ok ? { "Cache-Control": cacheControl } : {});
+    const cacheControl = pathname.startsWith("/_home/") || pathname.startsWith("/_shared/") ? "public, max-age=3600" : "public, max-age=300";
+    const extra = res.ok ? { "Cache-Control": cacheControl } : {};
+    if (res.ok && isSharedPath(pathname)) Object.assign(extra, SHARED_HEADERS);
+    return withHeaders(res, extra);
   }
 
   return withHeaders(new Response(null, { status: 308, headers: { Location: redirectTarget(request.url) } }));

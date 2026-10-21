@@ -15,6 +15,7 @@ One Cloudflare Worker (`blt-home`) with static assets from `public/`. The Worker
 |---|---|
 | `/` | `public/index.html` |
 | `/_home/*`, `/favicon.ico`, `/robots.txt` | static files from `public/` |
+| `/_shared/blt-nav.js` | the OWASP BLT top bar every BLT site loads (see below); it, `/_home/blt-logo.svg` and `/_home/logos/*` are sent with `Cross-Origin-Resource-Policy: cross-origin` |
 | `/api/home-stats` | live numbers as JSON, cached for 15 minutes |
 | legacy Django paths (`/issue/…`, `/profile/…`, `/api/v1/…`, `/static/…`, … see `src/legacy.js`) | 308 to `https://next.owaspblt.org/moved?from=<path + query, URL-encoded>`, BLT-Next's "this page moved" page (the legacy app is off until its data is migrated) |
 | anything else (`/pages/report-bug.html`, `/api/stats`, `/assets/…`, …) | 308 to the same path and query on `https://next.owaspblt.org` (BLT-Next) |
@@ -37,6 +38,7 @@ The page inserts values with `textContent` only. A number whose source is down s
 
 - **Banner:** the `<a id="announcement">` element near the top of `public/index.html`. Edit its text and `href`, or delete it.
 - **Products:** the Explore cards in `public/index.html` are the single list; the tabs, the logo orbit and the apps menu are built from them. Logos are in `public/_home/logos/` (SVGs copied from each project folder, PNGs resized to 96 px WebP). Only projects with a live site belong here.
+- **Shared top bar:** `public/_shared/blt-nav.js` is the same header for every other BLT site: `<script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>` puts it at the top of the page (options are at the top of the file). Its `APPS` list must match the Explore cards; `npm test` checks that, so update both together.
 - **Styles:** Tailwind is compiled once, so there is no CDN at runtime. After changing classes, run:
 
 ```bash

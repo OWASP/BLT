@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { handle, homeStats, isHomePath, redirectTarget, resetMemo, SECURITY_HEADERS, STATS_TTL_SECONDS } from "../src/app.js";
+import { handle, homeStats, isHomePath, redirectTarget, resetMemo, SECURITY_HEADERS, SHARED_HEADERS, STATS_TTL_SECONDS } from "../src/app.js";
 import { SOURCES, collectStats, summariseForge, summarisePages, summarisePool, weeklyCommits } from "../src/stats.js";
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -48,7 +48,7 @@ const env = {
   ASSETS: {
     async fetch(request) {
       const { pathname } = new URL(request.url);
-      if (pathname === "/" || pathname === "/_home/home.css") return new Response("ok", { status: 200 });
+      if (["/", "/_home/home.css", "/_shared/blt-nav.js", "/_home/logos/blt-zero.webp"].includes(pathname)) return new Response("ok", { status: 200 });
       return new Response("missing", { status: 404 });
     },
   },
@@ -180,6 +180,19 @@ test("landing page and its assets are served with security headers", async () =>
   assert.equal((await handle(new Request("https://owaspblt.org/_home/missing.js"), env, {})).status, 404);
 });
 
+test("the shared top bar and its logos can be embedded by other BLT sites; the page cannot", async () => {
+  for (const path of ["/_shared/blt-nav.js", "/_home/logos/blt-zero.webp"]) {
+    const res = await handle(new Request("https://owaspblt.org" + path), env, {});
+    assert.equal(res.status, 200, path);
+    for (const [k, v] of Object.entries(SHARED_HEADERS)) assert.equal(res.headers.get(k), v, `${path} ${k}`);
+  }
+  for (const path of ["/", "/_home/home.css"]) {
+    const res = await handle(new Request("https://owaspblt.org" + path), env, {});
+    assert.equal(res.headers.get("Cross-Origin-Resource-Policy"), "same-site", path);
+    assert.equal(res.headers.get("Access-Control-Allow-Origin"), null, path);
+  }
+});
+
 test("CSP allows only this origin: no CDNs", () => {
   const csp = SECURITY_HEADERS["Content-Security-Policy"];
   assert.doesNotMatch(csp, /https?:|unsafe-inline|unsafe-eval/);
@@ -188,6 +201,7 @@ test("CSP allows only this origin: no CDNs", () => {
 test("isHomePath", () => {
   assert.ok(isHomePath("/"));
   assert.ok(isHomePath("/_home/logos/blt-zero.webp"));
+  assert.ok(isHomePath("/_shared/blt-nav.js"));
   assert.ok(!isHomePath("/static/img/logo.png"));
   assert.ok(!isHomePath("/pages/report-bug.html"));
 });
