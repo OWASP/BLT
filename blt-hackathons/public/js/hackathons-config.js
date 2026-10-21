@@ -27,6 +27,7 @@ const OWASP_BLT_PROJECT_FOLDERS = [
     "blt-gsoc",
     "blt-hackathons",
     "blt-hackerhouse",
+    "blt-home",
     "blt-ideas",
     "blt-jobs",
     "blt-ketchup",
@@ -245,7 +246,9 @@ const HACKATHONS_CONFIG = {
                 maxLeaderboardEntries: Infinity,
                 showPRsInLeaderboard: true,
                 showReviewsInLeaderboard: true
-            }
+            },
+
+            bannerImage: "images/gsoc-2027-warmup.webp"
         },
         {
             slug: "may-2025-hackathon",

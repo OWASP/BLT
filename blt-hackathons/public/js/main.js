@@ -162,6 +162,29 @@ class HackathonDashboard {
     /**
      * Update basic hackathon information
      */
+    renderBannerImage() {
+        const description = document.getElementById('hackathon-description');
+        const src = String(this.config.bannerImage || '').trim();
+        let figure = document.getElementById('hackathon-banner');
+        if (!description || !src || /^(javascript|data):/i.test(src)) {
+            if (figure) figure.remove();
+            return;
+        }
+        if (!figure) {
+            figure = document.createElement('figure');
+            figure.id = 'hackathon-banner';
+            figure.className = 'mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-gray-900 shadow-sm dark:border-gray-800';
+            const img = document.createElement('img');
+            img.className = 'block h-auto w-full';
+            img.decoding = 'async';
+            figure.appendChild(img);
+            description.insertAdjacentElement('afterend', figure);
+        }
+        const img = figure.querySelector('img');
+        img.src = src;
+        img.alt = `${this.config.name || 'Hackathon'} banner`;
+    }
+
     updateBasicInfo() {
         this.updateProviderLabels();
 
@@ -182,6 +205,10 @@ class HackathonDashboard {
             'hackathon-description',
             (this.config.description || 'Track progress, activity, repositories, and prizes for this hackathon.').trim()
         );
+
+        // A configured banner is artwork with its own text, so it is shown as
+        // an image under the description rather than behind the header.
+        this.renderBannerImage();
 
         // Update rules if provided
         const rulesSection = document.getElementById('rules-section');
