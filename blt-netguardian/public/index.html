@@ -4,19 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>NetGuardian</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <script>
+    // Before first paint: the saved theme (localStorage "theme", shared with the <blt-nav> bar), else the system preference.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("theme"); } catch (e) { saved = null; }
+      var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", dark);
+    })();
+  </script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <style>
-    :root { --bg: #0d0000; --panel: #0d0000; --red: #ff2020; --gold: #c9a227; --muted: #888; }
+    /* owaspblt.org palette: gray surfaces, BLT red accent; html.dark for dark mode */
+    :root { --bg: #f9fafb; --panel: #ffffff; --line: #e5e7eb; --ink: #111827; --red: #dc2626; --gold: #b91c1c; --muted: #6b7280; --code-bg: #f3f4f6; }
+    :root.dark { color-scheme: dark; --bg: #030712; --panel: #111827; --line: #1f2937; --ink: #f3f4f6; --red: #f87171; --gold: #f87171; --muted: #9ca3af; --code-bg: #111827; }
     * { box-sizing: border-box; }
     body {
-      margin: 0; min-height: 100vh; background: var(--bg); color: #eee;
-      font-family: "Share Tech Mono", ui-monospace, monospace;
-      display: flex; align-items: center; justify-content: center; padding: 24px;
+      margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      display: flex; flex-direction: column;
     }
-    main { max-width: 680px; width: 100%; }
+    main { max-width: 680px; width: 100%; margin: auto; padding: 32px 24px; }
     h1 {
-      font-family: Orbitron, sans-serif; color: var(--red); letter-spacing: 0.18em;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-weight: 800; color: var(--red); letter-spacing: 0.18em;
       font-size: 1.1rem; margin: 0 0 8px;
     }
     p { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 0 0 16px; }
@@ -24,20 +34,20 @@
     @media (min-width: 560px) { .row { grid-template-columns: 1fr 1fr; } }
     a.card {
       display: block; text-decoration: none; color: inherit;
-      border: 1px solid var(--red); padding: 20px; background: var(--panel);
+      border: 1px solid var(--line); border-radius: 1rem; padding: 20px; background: var(--panel);
     }
-    a.card:hover { border-color: var(--gold); }
+    a.card:hover { border-color: var(--red); }
     a.card strong {
-      font-family: Orbitron, sans-serif; color: var(--gold);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-weight: 800; color: var(--gold);
       letter-spacing: 0.12em; font-size: 12px; display: block; margin-bottom: 8px;
     }
     a.card span { color: var(--muted); font-size: 12px; }
     a.doc { color: var(--gold); }
-    code { color: var(--gold); font-size: 11px; word-break: break-all; }
+    code { color: var(--gold); font-size: 12px; word-break: break-all; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
     ul { color: var(--muted); font-size: 13px; line-height: 1.55; margin: 0 0 16px; padding-left: 1.2em; }
     .links { font-size: 12px; margin: 0 0 20px; }
     .links a { color: var(--gold); margin-right: 16px; }
-    strong.hl { color: #eee; font-weight: 600; }
+    strong.hl { color: var(--ink); font-weight: 600; }
   </style>
 </head>
 <body>

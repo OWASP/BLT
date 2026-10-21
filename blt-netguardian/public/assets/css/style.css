@@ -1,5 +1,5 @@
 :root {
-    --blt-primary: #e10101;
+    --blt-primary: #dc2626;
     --blt-neutral-border: #e5e5e5;
     --blt-dark-base: #111827;
     --blt-dark-surface: #1f2937;
@@ -301,7 +301,7 @@ a:hover {
 }
 
 .discovery-target {
-    font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.84rem;
     color: #1f2937;
     font-weight: 600;
@@ -381,3 +381,49 @@ tbody tr:hover {
         align-items: flex-start;
     }
 }
+
+/* Dark mode (html.dark: pre-paint script + the <blt-nav> theme toggle). Remaps the light
+   surfaces onto the owaspblt.org dark palette: gray-950 page, gray-900 cards, gray-800 borders. */
+html.dark { color-scheme: dark; }
+html.dark body { background: #030712; color: #f3f4f6; }
+html.dark a { color: #f87171; }
+html.dark .bg-white,
+html.dark .btn-outline,
+html.dark .textarea-field,
+html.dark .discovery-item,
+html.dark .btn-download-client { background-color: #111827; }
+html.dark .bg-white\/90 { background-color: rgba(3, 7, 18, 0.9); }
+html.dark .bg-gray-50,
+html.dark .hover\:bg-gray-100:hover,
+html.dark .btn-download-client:hover,
+html.dark tbody tr:hover { background-color: #1f2937; }
+html.dark .bg-gray-200 { background-color: #374151; }
+html.dark .bg-\[\#feeae9\],
+html.dark .discovery-item.vulnerability-found { background-color: rgba(127, 29, 29, 0.3); }
+html.dark .border-neutral-border,
+html.dark .discovery-item,
+html.dark .btn-download-client,
+html.dark .textarea-field,
+html.dark td,
+html.dark th { border-color: #1f2937; }
+html.dark .text-dark-base,
+html.dark .text-gray-900,
+html.dark .textarea-field,
+html.dark .discovery-target,
+html.dark .btn-download-client:hover { color: #f3f4f6; }
+html.dark .text-gray-700,
+html.dark .btn-download-client,
+html.dark th { color: #d1d5db; }
+html.dark .text-gray-500,
+html.dark .discovery-time { color: #9ca3af; }
+html.dark .text-brand,
+html.dark .btn-outline { color: #f87171; }
+html.dark .btn-outline:hover { color: #ffffff; }
+html.dark .message.success { color: #86efac; background: rgba(6, 78, 59, 0.3); border-color: rgba(4, 120, 87, 0.5); }
+html.dark .message.error { color: #fca5a5; background: rgba(127, 29, 29, 0.3); border-color: rgba(185, 28, 28, 0.5); }
+html.dark .message.info { color: #67e8f9; background: rgba(22, 78, 99, 0.3); border-color: rgba(14, 116, 144, 0.5); }
+html.dark th { background: #111827; }
+html.dark .input-field,
+html.dark .select-field,
+html.dark input,
+html.dark select { background-color: #111827; color: #f3f4f6; border-color: #374151; }
