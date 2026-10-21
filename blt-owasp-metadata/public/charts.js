@@ -394,7 +394,7 @@ function formatFieldName(field) {
 }
 
 function generateColors(count, opacity = 1) {
-    const baseColor = [251, 126, 0]; 
+    const baseColor = [220, 38, 38]; 
     const colors = [];
     
     for (let i = 0; i < count; i++) {
@@ -443,10 +443,8 @@ function showError(message) {
 }
 
 // Event Listeners
-document.getElementById('toggle-theme').addEventListener('click', () => {
-    document.body.classList.toggle('dark');
-    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-    // Refresh charts to update colors
+// Theme: the toggle is in the OWASP BLT bar; refresh charts to update colors when it flips.
+window.addEventListener('blt-theme-change', () => {
     setTimeout(renderAllCharts, 100);
 });
 
@@ -488,11 +486,6 @@ document.getElementById('export-charts').addEventListener('click', () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 });
-
-// Initialize theme
-if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark');
-}
 
 // Load data when page loads
 document.addEventListener('DOMContentLoaded', loadData);

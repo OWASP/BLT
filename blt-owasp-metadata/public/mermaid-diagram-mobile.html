@@ -5,11 +5,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   <title>OWASP SDLC Diagram - Mobile View</title>
+  <script src="theme-init.js"></script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <link rel="stylesheet" href="styles.css" />
   <script src="mermaid.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
+    }
+
+    /* Height of the OWASP BLT bar (<blt-nav>) above the fixed header and viewport. */
+    :root {
+      --blt-bar-h: 61px;
     }
 
     body {
@@ -21,7 +28,7 @@
 
     .mobile-header {
       position: fixed;
-      top: 0;
+      top: var(--blt-bar-h);
       left: 0;
       right: 0;
       background: var(--bg-secondary);
@@ -82,7 +89,7 @@
 
     .diagram-viewport {
       position: fixed;
-      top: 54px;
+      top: calc(54px + var(--blt-bar-h));
       left: 0;
       right: 0;
       bottom: 70px;
@@ -232,7 +239,7 @@
     }
 
     .fullscreen .diagram-viewport {
-      top: 0;
+      top: var(--blt-bar-h);
       bottom: 0;
     }
 
@@ -289,7 +296,7 @@
     }
 
     /* Dark theme adjustments */
-    body.dark .zoom-btn {
+    html.dark .zoom-btn {
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     }
   </style>
@@ -306,7 +313,6 @@
     <div class="mobile-header-buttons">
       <span class="project-badge" id="project-count">Loading...</span>
       <a href="mermaid-diagram.html" class="mobile-btn mobile-btn-secondary" title="Desktop View">🖥️</a>
-      <button class="mobile-btn mobile-btn-secondary" id="toggle-theme" title="Toggle Theme">🌓</button>
     </div>
   </header>
 
@@ -405,7 +411,7 @@
     // Initialize mermaid
     mermaid.initialize({
       startOnLoad: false,
-      theme: document.body.classList.contains('dark') ? 'dark' : 'base',
+      theme: document.documentElement.classList.contains('dark') ? 'dark' : 'base',
       securityLevel: 'loose',
       themeVariables: {
         primaryColor: '#34568b',
@@ -796,11 +802,9 @@
       updateTransform();
     }
 
-    // Toggle theme
+    // Theme changed (the toggle is in the OWASP BLT bar, which sets html.dark)
     function toggleTheme() {
-      document.body.classList.toggle('dark');
-      const isDark = document.body.classList.contains('dark');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      const isDark = document.documentElement.classList.contains('dark');
 
       // Re-initialize mermaid with appropriate theme
       mermaid.initialize({
@@ -840,11 +844,6 @@
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-      // Initialize theme from localStorage
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark');
-      }
-
       // Set up event listeners
       const viewport = document.getElementById('diagram-viewport');
       viewport.addEventListener('touchstart', handleTouchStart, { passive: false });
@@ -859,7 +858,7 @@
       document.getElementById('zoom-in').addEventListener('click', zoomIn);
       document.getElementById('zoom-out').addEventListener('click', zoomOut);
       document.getElementById('zoom-reset').addEventListener('click', fitToScreen);
-      document.getElementById('toggle-theme').addEventListener('click', toggleTheme);
+      window.addEventListener('blt-theme-change', toggleTheme);
 
       // Load data
       loadData();

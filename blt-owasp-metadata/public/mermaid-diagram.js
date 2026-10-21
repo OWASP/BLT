@@ -439,11 +439,9 @@ function applyZoom() {
     }
 }
 
-// Toggle theme
+// Theme changed (the toggle is in the OWASP BLT bar, which sets html.dark)
 function toggleTheme() {
-    document.body.classList.toggle('dark');
-    const isDark = document.body.classList.contains('dark');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    const isDark = document.documentElement.classList.contains('dark');
     
     // Re-initialize mermaid with appropriate theme
     // Note: 'loose' is required for Mermaid's click callback functionality
@@ -492,7 +490,7 @@ window.openProject = function(nodeId) {
 };
 
 // Event listeners
-document.getElementById('toggle-theme').addEventListener('click', toggleTheme);
+window.addEventListener('blt-theme-change', toggleTheme);
 document.getElementById('download-diagram').addEventListener('click', downloadDiagram);
 document.getElementById('refresh-diagram').addEventListener('click', () => {
     loadData();
@@ -501,10 +499,9 @@ document.getElementById('zoom-in').addEventListener('click', zoomIn);
 document.getElementById('zoom-out').addEventListener('click', zoomOut);
 document.getElementById('zoom-reset').addEventListener('click', zoomReset);
 
-// Initialize theme from localStorage
+// Initialize the dark Mermaid theme when html.dark is already set (theme-init.js)
 // Note: 'loose' is required for Mermaid's click callback functionality
-if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark');
+if (document.documentElement.classList.contains('dark')) {
     mermaid.initialize({
         startOnLoad: false,
         theme: 'dark',

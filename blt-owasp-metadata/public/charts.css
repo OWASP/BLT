@@ -135,9 +135,11 @@
     }
 
     .toolbar {
-      position: fixed;
-      top: 20px;
-      right: 20px;
+      /* In the flow, below the OWASP BLT bar (it was fixed to the top right, over the bar). */
+      position: static;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      padding: 20px 20px 0;
       display: flex;
       gap: 8px;
       z-index: 1000;

@@ -306,11 +306,11 @@ function downloadDiagram() {
 // Get tree styles for export
 function getTreeStyles() {
     return `
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; }
+        body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; padding: 20px; }
         .tree-diagram { padding: 20px; }
         .tree-root { display: flex; flex-direction: column; align-items: center; }
         .tree-node { padding: 12px 20px; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; }
-        .root-node { background: #fb7e00; color: white; font-weight: bold; font-size: 18px; }
+        .root-node { background: #dc2626; color: white; font-weight: bold; font-size: 18px; }
         .type-node { background: #f1f5f9; color: #1e293b; font-weight: 600; cursor: pointer; }
         .maturity-node { background: #e2e8f0; color: #475569; font-size: 14px; }
         .project-node { background: white; border: 1px solid #e2e8f0; font-size: 13px; text-decoration: none; color: inherit; }
@@ -325,15 +325,7 @@ function getTreeStyles() {
     `;
 }
 
-// Toggle theme
-function toggleTheme() {
-    document.body.classList.toggle('dark');
-    const isDark = document.body.classList.contains('dark');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-}
-
 // Event listeners
-document.getElementById('toggle-theme').addEventListener('click', toggleTheme);
 document.getElementById('download-svg').addEventListener('click', downloadDiagram);
 document.getElementById('refresh-diagram').addEventListener('click', () => {
     loadData();
@@ -341,10 +333,7 @@ document.getElementById('refresh-diagram').addEventListener('click', () => {
 document.getElementById('type-filter').addEventListener('change', applyFilters);
 document.getElementById('level-filter').addEventListener('change', applyFilters);
 
-// Initialize theme from localStorage
-if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark');
-}
+// Theme: html.dark is set before paint (theme-init.js) and by the OWASP BLT bar's toggle.
 
 // Load data on page load
 document.addEventListener('DOMContentLoaded', loadData);

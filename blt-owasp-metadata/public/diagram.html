@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OWASP Project Wayfinder Diagram</title>
+  <script src="theme-init.js"></script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="charts.css" />
   <style>
@@ -140,7 +142,7 @@
       margin: 20px 0;
     }
 
-    body.dark .error-message {
+    html.dark .error-message {
       background: #450a0a;
     }
 
@@ -168,7 +170,7 @@
     }
 
     .root-node {
-      background: linear-gradient(135deg, #fb7e00, #e57200);
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
       color: white;
       font-weight: bold;
       font-size: 20px;
@@ -365,7 +367,6 @@
 <body>
   <div class="toolbar">
     <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Metadata" target="_blank" rel="noopener" title="View source code">📦 Source code</a>
-    <button id="toggle-theme" title="Toggle dark mode">🌓 Theme</button>
     <button id="download-svg" title="Download SVG">📥 Download</button>
     <button id="refresh-diagram" title="Refresh diagram">🔄 Refresh</button>
   </div>

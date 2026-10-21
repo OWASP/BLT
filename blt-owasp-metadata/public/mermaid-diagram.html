@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OWASP SDLC Integration Diagram</title>
+  <script src="theme-init.js"></script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="charts.css" />
   <script src="mermaid.min.js"></script>
@@ -96,7 +98,7 @@
       margin: 20px 0;
     }
 
-    body.dark .error-message {
+    html.dark .error-message {
       background: #450a0a;
     }
 
@@ -185,7 +187,6 @@
 <body>
   <div class="toolbar">
     <a href="mermaid-diagram-mobile.html" class="mobile-view-btn" title="Open mobile-optimized view">📱 Mobile View</a>
-    <button id="toggle-theme" title="Toggle dark mode">🌓 Theme</button>
     <button id="download-diagram" title="Download SVG">📥 Download</button>
     <button id="refresh-diagram" title="Refresh diagram">🔄 Refresh</button>
   </div>

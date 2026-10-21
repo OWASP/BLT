@@ -10,7 +10,6 @@ const elements = {
     search: document.getElementById('search'),
     
     // Buttons
-    toggleTheme: document.getElementById('toggle-theme'),
     toggleFilters: document.getElementById('toggle-filters'),
     toggleColumns: document.getElementById('toggle-columns'),
     exportBtn: document.getElementById('export-btn'),
@@ -108,13 +107,9 @@ function initializeUI() {
     setupEventListeners();
     populateFieldFilter();
     populateColumnToggles();
-    loadThemePreference();
 }
 
 function setupEventListeners() {
-    // Theme
-    elements.toggleTheme.addEventListener('click', toggleTheme);
-    
     // Panel toggles
     elements.toggleFilters.addEventListener('click', () => togglePanel(elements.filtersPanel));
     elements.toggleColumns.addEventListener('click', () => togglePanel(elements.columnsPanel));
@@ -488,17 +483,7 @@ function togglePanel(panel) {
     });
 }
 
-function toggleTheme() {
-    document.body.classList.toggle('dark');
-    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-}
-
-function loadThemePreference() {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark');
-    }
-}
+// Theme: html.dark is set before paint (theme-init.js) and by the OWASP BLT bar's toggle.
 
 function exportToCSV() {
     const filteredData = getFilteredData();
