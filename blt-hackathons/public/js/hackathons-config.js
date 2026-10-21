@@ -206,7 +206,7 @@ const HACKATHONS_CONFIG = {
 
             // Optional rules section
             rules: `
-                1. All pull requests must be submitted during the hackathon period (Nov 01, 2026 - May 09, 2027)
+                1. All pull requests must be submitted during the hackathon period (Oct 31, 2026 - May 09, 2027)
                 2. Pull requests must be merged to count towards the leaderboard
                 3. All projects in the BLT repository on git.owaspblt.org are eligible
                 4. Be respectful and follow each project's contribution guidelines
@@ -214,7 +214,7 @@ const HACKATHONS_CONFIG = {
             `,
 
             // Hackathon Timeline (ISO 8601 format)
-            startTime: "2026-11-01T00:00:00Z",
+            startTime: "2026-10-31T00:00:00Z",
             endTime: "2027-05-09T23:59:59Z",
 
             // Source: the BLT monorepo on git.owaspblt.org, one folder per project.
