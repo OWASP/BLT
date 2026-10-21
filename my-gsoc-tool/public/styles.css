@@ -1,15 +1,36 @@
 :root {
-    --primary-color: #4285f4;
-    --secondary-color: #34a853;
-    --accent-color: #fbbc04;
-    --danger-color: #ea4335;
-    --bg-color: #f8f9fa;
+    color-scheme: light;
+    --primary-color: #dc2626;
+    --primary-hover: #b91c1c;
+    --primary-deep: #991b1b;
+    --secondary-color: #16a34a;
+    --secondary-hover: #15803d;
+    --accent-color: #f59e0b;
+    --danger-color: #dc2626;
+    --bg-color: #f9fafb;
     --card-bg: #ffffff;
-    --text-primary: #202124;
-    --text-secondary: #5f6368;
-    --border-color: #dadce0;
-    --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    --shadow-hover: 0 4px 8px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --border-color: #e5e7eb;
+    --shadow: 0 1px 2px rgba(0,0,0,0.06), 0 0 0 1px var(--border-color);
+    --shadow-hover: 0 8px 20px -8px rgba(0,0,0,0.18), 0 0 0 1px var(--border-color);
+}
+
+/* Dark mode: class "dark" on <html> (theme-init.js and the shared <blt-nav> toggle). */
+html.dark {
+    color-scheme: dark;
+    --primary-color: #ef4444;
+    --primary-hover: #f87171;
+    --primary-deep: #991b1b;
+    --secondary-color: #22c55e;
+    --secondary-hover: #4ade80;
+    --bg-color: #030712;
+    --card-bg: #111827;
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --border-color: #1f2937;
+    --shadow: 0 0 0 1px var(--border-color);
+    --shadow-hover: 0 8px 20px -8px rgba(0,0,0,0.6), 0 0 0 1px #374151;
 }
 
 * {
@@ -19,7 +40,7 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-primary);
     line-height: 1.6;
@@ -33,10 +54,10 @@ body {
 
 /* Header Section */
 .dashboard-header {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: linear-gradient(135deg, #dc2626, var(--primary-deep));
     color: white;
     padding: 40px;
-    border-radius: 12px;
+    border-radius: 16px;
     margin-bottom: 30px;
     box-shadow: var(--shadow);
 }
@@ -93,7 +114,7 @@ body {
 /* Card Styles */
 .card {
     background: var(--card-bg);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 30px;
     margin-bottom: 30px;
     box-shadow: var(--shadow);
@@ -158,10 +179,10 @@ body {
 }
 
 .stat-card {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: linear-gradient(135deg, #dc2626, var(--primary-deep));
     color: white;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 16px;
     text-align: center;
     transition: all 0.3s;
 }
@@ -198,7 +219,7 @@ body {
 }
 
 .contribution-item:hover {
-    background: #e8f0fe;
+    background: rgba(220, 38, 38, 0.08);
     transform: translateX(5px);
 }
 
@@ -293,7 +314,7 @@ body {
     gap: 20px;
     padding: 20px;
     background: var(--bg-color);
-    border-radius: 12px;
+    border-radius: 16px;
     border: 1px solid var(--border-color);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -328,7 +349,7 @@ body {
 .feedback-item {
     padding: 20px;
     background: var(--bg-color);
-    border-radius: 12px;
+    border-radius: 16px;
     margin-bottom: 15px;
     border-left: 4px solid var(--secondary-color);
 }
@@ -415,7 +436,7 @@ body {
 .milestone-item {
     padding: 20px;
     background: var(--bg-color);
-    border-radius: 12px;
+    border-radius: 16px;
     margin-bottom: 15px;
     display: flex;
     align-items: start;
@@ -460,7 +481,7 @@ body {
 }
 
 .btn-primary:hover {
-    background: #3367d6;
+    background: var(--primary-hover);
     transform: translateY(-2px);
     box-shadow: var(--shadow-hover);
 }
@@ -471,7 +492,7 @@ body {
 }
 
 .btn-secondary:hover {
-    background: #2d8e47;
+    background: var(--secondary-hover);
     transform: translateY(-2px);
     box-shadow: var(--shadow-hover);
 }
