@@ -3,6 +3,8 @@ import json
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 
+from d1_compat import d1_row, d1_rows
+
 
 class JobStateStore:
     """Manages job state storage using Cloudflare D1."""
@@ -42,6 +44,7 @@ class JobStateStore:
         row = await self.db.prepare(
             "SELECT * FROM jobs WHERE job_id = ?"
         ).bind(job_id).first()
+        row = d1_row(row)
         if row is None:
             return None
         return {
@@ -79,7 +82,7 @@ class JobStateStore:
             "SELECT * FROM jobs ORDER BY created_at DESC LIMIT ?"
         ).bind(limit).all()
         jobs = []
-        for row in (result.results if result else []):
+        for row in d1_rows(result):
             jobs.append({
                 'job_id': row['job_id'],
                 'target_id': row['target_id'],
@@ -133,6 +136,7 @@ class TaskQueueStore:
         row = await self.db.prepare(
             "SELECT * FROM tasks WHERE task_id = ?"
         ).bind(task_id).first()
+        row = d1_row(row)
         if row is None:
             return None
         return {
@@ -172,6 +176,7 @@ class TaskQueueStore:
                FROM tasks
                WHERE status = 'completed' AND date(completed_at) = date('now')"""
         ).first()
+        row = d1_row(row)
         if row is None:
             return 0
         return int(row['count']) if row['count'] is not None else 0
@@ -212,6 +217,7 @@ class TargetRegistryStore:
         row = await self.db.prepare(
             "SELECT * FROM targets WHERE target_id = ?"
         ).bind(target_id).first()
+        row = d1_row(row)
         if row is None:
             return None
         return {
@@ -258,6 +264,7 @@ class VulnerabilityDatabase:
         row = await self.db.prepare(
             "SELECT data FROM vulnerabilities WHERE vuln_id = ?"
         ).bind(vuln_id).first()
+        row = d1_row(row)
         if row is None:
             return None
         return json.loads(row['data'])
@@ -276,7 +283,7 @@ class VulnerabilityDatabase:
                 "SELECT data FROM vulnerabilities ORDER BY discovered_at DESC LIMIT ?"
             ).bind(limit).all()
         vulns = []
-        for row in (result.results if result else []):
+        for row in d1_rows(result):
             vulns.append(json.loads(row['data']))
         return vulns
 
@@ -301,7 +308,7 @@ class VulnerabilityDatabase:
             "SELECT severity, COUNT(*) as count FROM vulnerabilities GROUP BY severity"
         ).all()
         stats = {'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0}
-        for row in (result.results if result else []):
+        for row in d1_rows(result):
             severity = row['severity'] or 'info'
             count = row['count']
             stats[severity] = count

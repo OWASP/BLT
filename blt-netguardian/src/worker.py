@@ -28,7 +28,7 @@ from utils.storage import JobStateStore, TaskQueueStore, TargetRegistryStore, Vu
 from scanners.coordinator import ScannerCoordinator
 from scanners.autonomous_discovery import AutonomousDiscovery
 from scanners.contact_notifier import ContactNotifier
-from auth import AuthError, read_endpoints_require_auth
+from auth import AuthError, default_org_id, read_endpoints_require_auth
 from blt_api_client import is_blt_api_configured
 from errors import IngestError, IngestErrorCode
 from events_service import (
@@ -97,7 +97,7 @@ class BLTWorker:
         self.target_registry = TargetRegistryStore(db)
         self.deduplicator = TaskDeduplicator()
         self.coordinator = ScannerCoordinator()
-        self.discovery = AutonomousDiscovery()
+        self.discovery = AutonomousDiscovery(db, default_org_id(env))
         self.notifier = ContactNotifier()
     
     async def handle_request(self, request):
@@ -260,30 +260,25 @@ class BLTWorker:
             return self.internal_error_response('Failed to process suggestion', e)
     
     async def handle_discovery_status(self, request):
-        """Get current status of autonomous discovery system."""
+        """Discovery status from D1: queue counts, current lease, self-scan config."""
         try:
-            # Get statistics
             stats = await self.discovery.get_discovery_stats()
-
-            # Get current scanning target
             current_target = await self.discovery.get_current_scanning_target()
-
-            scanned_today = await self.task_queue.count_completed_tasks_today()
-            vulnerability_stats = await self.vuln_db.get_stats()
-            vulnerabilities_found = vulnerability_stats.get('total', 0)
+            day_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            scanned_today = await self.discovery.count_scanned_since(int(day_start.timestamp()))
             current_target_name = current_target.get('target') if isinstance(current_target, dict) else None
 
             return self.json_response({
-                'status': 'active',
+                'status': 'active' if current_target_name else 'idle',
                 'current_target': current_target_name,
                 'scanned_today': scanned_today,
-                'vulnerabilities_found': vulnerabilities_found,
+                'vulnerabilities_found': stats.get('findings_open', 0),
                 'stats': stats
             })
 
         except Exception as e:
             return self.internal_error_response('Failed to get discovery status', e)
-    
+
     async def handle_discovery_recent(self, request):
         """Get recently discovered targets."""
         limit = self.parse_limit_param(request, default=20)
@@ -291,7 +286,6 @@ class BLTWorker:
             return self.json_response({'error': 'Invalid limit parameter'}, status=400)
 
         try:
-            # Get recent discoveries (in production, query from D1 database)
             discoveries = await self.discovery.discover_targets(limit)
 
             return self.json_response({
