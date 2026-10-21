@@ -1,4 +1,4 @@
-from js import Response, Headers, URL, Request
+from js import Response, Headers, URL
 import json
 import hashlib
 from datetime import datetime
@@ -460,40 +460,163 @@ ROUTES = {
     },
 }
 
+# ===================================
+# Legacy redirects and 404
+# ===================================
+
+# The old Django app (blt-legacy, formerly blt-core) still runs here. blt.owasp.org now
+# redirects to owaspblt.org, so its old deep links (/issue/1/, /profile/<u>/, /api/v1/...)
+# arrive at this Worker. Send them on to the legacy app with the same path and query.
+LEGACY_ORIGIN = 'https://legacy.owaspblt.org'
+
+# First path segments of the legacy app's routes (blt-legacy/blt/urls.py). An allowlist,
+# so blt-next's own routes and pages are never redirected. Left out on purpose: '' (the
+# home page), favicon.ico, robots.txt, .well-known, and debug-only routes (__debug__, 500,
+# test-sentry). 'api' is not listed as a whole: see LEGACY_API_SEGMENTS.
+LEGACY_SEGMENTS = frozenset({
+    'Submitpr', 'about', 'accounts', 'activity', 'add-sizzle-checkin', 'add_domain_to_organization',
+    'add_repo', 'adventures', 'all_activity', 'apps', 'assign-badge', 'auth', 'authenticate', 'bacon',
+    'bacon-requests', 'badges', 'batch-send-bacon-tokens', 'bidding', 'blt-tomato', 'bounties',
+    'bounty_payout', 'captcha', 'change_bid_status', 'check-in', 'check_domain_security_txt',
+    'check_owasp_compliance', 'comment', 'content', 'contribute', 'contributor-stats', 'contributors',
+    'create', 'create_github_issue', 'dashboard', 'delete_issue', 'delete_time_entry', 'deletions',
+    'discussion-rooms', 'dislike_issue', 'distribute_bacon', 'domain', 'domains', 'donate',
+    'duplicate-check-example', 'education', 'extension', 'features', 'feed', 'fetch-current-bid',
+    'flag_issue', 'follow', 'generate_bid_image', 'get-github-data', 'get-recommended-articles',
+    'get-recommended-communities', 'get-recommended-discussion-channels', 'get-recommended-repos',
+    'get_unique_issues', 'github-issues', 'github-webhook', 'googleplayapp', 'gsoc', 'hackathons', 'hunt',
+    'i18n', 'initiate-transaction', 'invite', 'invite-friend', 'issue', 'issues', 'jobs', 'join',
+    'label_activity', 'leaderboard', 'like_issue', 'map', 'messaging', 'notifications', 'oauth',
+    'open-source-sorting-hat', 'organization', 'organizations', 'owasp', 'page-vote',
+    'pending-transactions', 'privacypolicy', 'profile', 'project', 'projects', 'queue', 'ratings',
+    'redoc', 'referral', 'reminder-settings', 'remove_user_from_issue', 'repo_list', 'report',
+    'report-ip', 'reported-ips', 'repos', 'repository', 'resolve', 'rest-auth', 'review', 'roadmap',
+    'save_issue', 'scoreboard', 'search', 'security', 'select_bid', 'select_contribution',
+    'send-test-reminder', 'sendgrid_webhook', 'set-theme', 'similarity_scan', 'simulation', 'sitemap',
+    'sizzle', 'sizzle-daily-log', 'sizzle-docs', 'slack', 'social', 'socialaccounts', 'sponsor',
+    'staking', 'start', 'stats', 'stats-dashboard', 'status', 'status_page', 'style-guide',
+    'submit-roadmap-pr', 'swagger', 'swagger.json', 'swagger.yaml', 'teams', 'template_list', 'terms',
+    'time-logs', 'trademarks', 'tz_detect', 'update-submission-status', 'update_bch_address', 'upload',
+    'user-sizzle-report', 'user_challenges', 'users', 'video_call', 'view-pr-analysis', 'vote_count',
+    'website_stats', 'weekly-report',
+})
+
+# blt-next serves /api/stats, /api/bugs, /api/auth/... itself. Only the legacy app's own
+# /api/<segment>/ families are redirected (not the debug-only /api/debug/).
+LEGACY_API_SEGMENTS = frozenset({
+    'v1', 'v2', 'bacon', 'get-wallet-balance', 'load-more-issues', 'messaging', 'organization', 'ossh',
+    'room-messages', 'send-message', 'timelogsreport', 'trademarks',
+})
+
+
+def legacy_redirect_target(path, search=''):
+    """Return the legacy.owaspblt.org URL for a legacy-only path, or None.
+
+    Only the path and query are copied; the host is fixed, so this can't be used as an
+    open redirect.
+    """
+    if not path.startswith('/'):
+        return None
+    parts = path.split('/')
+    first = parts[1] if len(parts) > 1 else ''
+    if first == 'api':
+        second = parts[2] if len(parts) > 2 else ''
+        if second not in LEGACY_API_SEGMENTS:
+            return None
+    elif first not in LEGACY_SEGMENTS:
+        return None
+    return LEGACY_ORIGIN + path + (search or '')
+
+
+def legacy_redirect_response(location, method):
+    """301 for GET/HEAD; 308 for other methods so the method and body are kept."""
+    js_headers = Headers.new()
+    js_headers.set('Location', location)
+    js_headers.set('Cache-Control', 'public, max-age=3600')
+    apply_security_headers(js_headers)
+    status = 301 if method in ('GET', 'HEAD') else 308
+    return Response.new('', status=status, headers=js_headers)
+
+
+NOT_FOUND_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page not found | OWASP BLT</title>
+  <link rel="icon" href="/favicon.ico">
+  <style>
+    body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+           font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: #f9fafb; color: #111827; }
+    main { max-width: 32rem; padding: 2rem 1rem; text-align: center; }
+    h1 { font-size: 3rem; margin: 0; color: #dc2626; }
+    p { line-height: 1.6; color: #4b5563; }
+    a { color: #dc2626; font-weight: 600; }
+    @media (prefers-color-scheme: dark) { body { background: #111827; color: #f9fafb; } p { color: #d1d5db; } a, h1 { color: #f87171; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>404</h1>
+    <p>This page doesn't exist on OWASP BLT.</p>
+    <p><a href="/">Go to the home page</a></p>
+    <p>Looking for an old bug, profile or organization page? Try
+      <a href="https://legacy.owaspblt.org/">legacy.owaspblt.org</a>.</p>
+  </main>
+</body>
+</html>
+"""
+
+
+def not_found_response(path, request):
+    """A clean 404: an HTML page for browsers, JSON for /api/ paths."""
+    origin = request.headers.get('Origin')
+    if path.startswith('/api/'):
+        return create_response({'error': 'Not found', 'path': path}, status=404, origin=origin)
+    js_headers = Headers.new()
+    js_headers.set('Content-Type', 'text/html; charset=utf-8')
+    apply_security_headers(js_headers)
+    return Response.new(NOT_FOUND_HTML, status=404, headers=js_headers)
+
+
 async def route_request(request, env):
     """Route the request to the appropriate handler"""
     url = URL.new(request.url)
     path = url.pathname
-    
+
     # Handle CORS preflight
     if request.method == 'OPTIONS':
         return handle_cors_preflight(request.headers.get('Origin'))
-    
+
     # Find and execute handler
     handler = ROUTES.get(request.method, {}).get(path)
-    
+
     if handler:
         try:
             return await handler(request, env)
         except Exception as e:
             print(f"Handler Error: {e}")
             raise e
-    
-    # Handle root and static assets
-    if hasattr(env, 'ASSETS'):
-        try:
-            fetch_url = request.url
-            if path == '/':
-                fetch_url = str(url).replace(path, '/index.html')
 
-            # Use a Request object to preserve original method and headers
-            asset_request = Request.new(fetch_url, { 'method': request.method, 'headers': request.headers })
-            asset_response = await env.ASSETS.fetch(asset_request)
-            return apply_frontend_security_headers(asset_response)
+    # Old blt-core deep links go to the legacy app.
+    location = legacy_redirect_target(path, url.search)
+    if location:
+        return legacy_redirect_response(location, request.method)
+
+    # Static assets. Cloudflare serves files that exist before the Worker runs, so this
+    # is mostly a fallback (e.g. a request that skipped asset routing).
+    # Pass the original Request through: building one from a Python dict
+    # (Request.new(url, {...})) crashes Pyodide with an uncatchable fatal error, which is
+    # what made every unknown path answer with Cloudflare error 1101.
+    if request.method in ('GET', 'HEAD') and hasattr(env, 'ASSETS'):
+        try:
+            asset_response = await env.ASSETS.fetch(request)
+            if asset_response.status != 404:
+                return apply_frontend_security_headers(asset_response)
         except Exception as e:
             print(f"Assets Error: {e}")
-    
-    return create_response({'error': 'Not found', 'path': path}, status=404, origin=request.headers.get('Origin'))
+
+    return not_found_response(path, request)
 
 # ===================================
 # Main Entry Point
