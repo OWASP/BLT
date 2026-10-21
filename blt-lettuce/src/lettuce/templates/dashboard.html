@@ -14,37 +14,18 @@
   <script src="/_brand/theme-init.js"></script>
   <link rel="stylesheet" href="/_brand/blt-dark.css" />
   <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <style>blt-nav:not(:defined) { display: block; min-height: 62px; } blt-nav:not(:defined) > * { display: none; }</style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 min-h-screen">
 
-<nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between items-center h-14">
-      <div class="flex items-center gap-3">
-        <a href="/dashboard" class="inline-flex items-center gap-3 text-gray-800 hover:text-red-700 transition-colors">
-          <img src="/logo.svg"
-               alt="BLT-Lettuce logo" class="w-7 h-7"/>
-          <span class="font-bold">BLT-Lettuce</span>
-        </a>
-        <span class="text-gray-300">|</span>
-        <a href="/dashboard" class="text-sm text-gray-500 hover:text-red-700 transition-colors">Dashboard</a>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          {{ USER_AVATAR }}
-          <div class="leading-tight">
-            <div class="text-sm text-gray-700 font-medium">{{ USER_NAME }}</div>
-            <div class="text-[10px] text-gray-400 font-mono">{{ USER_SLACK_ID }}</div>
-          </div>
-        </div>
-        <a href="/" class="text-sm text-gray-500 hover:text-gray-800">Home</a>
-        <a href="/logout"
-           class="text-sm px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600
-                  hover:bg-gray-50 transition-colors">Logout</a>
-      </div>
-    </div>
-  </div>
-</nav>
+<blt-nav project="blt-lettuce" name="Lettuce" current="auto" data-sticky>
+  <a href="/">Home</a>
+  <a href="/docs/">Docs</a>
+  <a href="/status">Status</a>
+  <a href="/dashboard">Dashboard</a>
+  <a href="/dashboard" slot="actions" aria-current="false" title="{{ USER_SLACK_ID }}">{{ USER_NAME }}</a>
+  <a href="/logout" slot="actions">Logout</a>
+</blt-nav>
 
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <div class="grid gap-6 lg:grid-cols-[280px,1fr]">

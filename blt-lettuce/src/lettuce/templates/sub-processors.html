@@ -6,6 +6,7 @@
     <title>Sub-Processors - BLT-Lettuce</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <style>
+    blt-nav:not(:defined) { display: block; min-height: 62px; } blt-nav:not(:defined) > * { display: none; }
         :root {
             --page: #f9fafb; --card: #fff; --fg: #111827; --fg2: #374151; --muted: #6b7280;
             --line: #e5e7eb; --soft: #f9fafb; --tint: #fef2f2; --accent: #dc2626;
@@ -215,6 +216,14 @@
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 <body>
+    <blt-nav project="blt-lettuce" name="Lettuce" current="auto" data-sticky>
+      <a href="/">Home</a>
+      <a href="/docs/">Docs</a>
+      <a href="/status">Status</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-Lettuce" target="_blank" rel="noopener noreferrer" slot="actions">Source</a>
+      <a href="/workspace/add" slot="actions" data-primary>Connect Workspace</a>
+    </blt-nav>
     <div class="container">
         <div class="nav-back">
             <a href="/">&larr; Back to Home</a>

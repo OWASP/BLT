@@ -6,6 +6,7 @@
     <title>500 Internal Server Error - BLT Lettuce</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <style>
+    blt-nav:not(:defined) { display: block; min-height: 62px; } blt-nav:not(:defined) > * { display: none; }
         * {
             margin: 0;
             padding: 0;
@@ -141,6 +142,14 @@
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 <body>
+    <blt-nav project="blt-lettuce" name="Lettuce" current="auto" data-sticky>
+      <a href="/">Home</a>
+      <a href="/docs/">Docs</a>
+      <a href="/status">Status</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-Lettuce" target="_blank" rel="noopener noreferrer" slot="actions">Source</a>
+      <a href="/workspace/add" slot="actions" data-primary>Connect Workspace</a>
+    </blt-nav>
     <div class="container">
         <div class="error-code">500</div>
         <h1>Something Went Wrong</h1>

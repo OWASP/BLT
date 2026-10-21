@@ -12,9 +12,17 @@
   <script src="/_brand/theme-init.js"></script>
   <link rel="stylesheet" href="/_brand/blt-dark.css" />
   <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <style>blt-nav:not(:defined) { display: block; min-height: 62px; } blt-nav:not(:defined) > * { display: none; }</style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-<div class="min-h-screen flex items-center justify-center">
+    <blt-nav project="blt-lettuce" name="Lettuce" current="auto" data-sticky>
+      <a href="/">Home</a>
+      <a href="/docs/">Docs</a>
+      <a href="/status">Status</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-Lettuce" target="_blank" rel="noopener noreferrer" slot="actions">Source</a>
+    </blt-nav>
+<div class="min-h-[calc(100vh-62px)] flex items-center justify-center">
   <div class="bg-white rounded-2xl shadow-lg p-10 w-full max-w-md text-center">
     <img src="/logo.svg"
          alt="BLT-Lettuce logo" class="w-16 h-16 mx-auto mb-4"/>

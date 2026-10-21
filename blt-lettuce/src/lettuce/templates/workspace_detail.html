@@ -13,29 +13,17 @@
   <script src="/_brand/theme-init.js"></script>
   <link rel="stylesheet" href="/_brand/blt-dark.css" />
   <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <style>blt-nav:not(:defined) { display: block; min-height: 62px; } blt-nav:not(:defined) > * { display: none; }</style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 min-h-screen">
 
-<nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between items-center h-14">
-      <div class="flex items-center gap-3 min-w-0">
-        <a href="/" class="inline-flex items-center gap-3 text-gray-800 hover:text-red-700 transition-colors flex-shrink-0">
-          <img src="/logo.svg"
-               alt="BLT-Lettuce logo" class="w-7 h-7"/>
-          <span class="font-bold">BLT-Lettuce</span>
-        </a>
-        <span class="text-gray-300 flex-shrink-0">|</span>
-        <a href="/" class="text-sm text-gray-500 hover:text-red-700 transition-colors flex-shrink-0">Home</a>
-        <span class="text-gray-300 flex-shrink-0">/</span>
-        <span class="text-sm text-gray-700 font-medium truncate">{{ WS_NAME }}</span>
-      </div>
-      <div class="flex items-center gap-4 flex-shrink-0">
-        <a href="/" class="text-sm text-gray-500 hover:text-gray-800">Home</a>
-      </div>
-    </div>
-  </div>
-</nav>
+<blt-nav project="blt-lettuce" name="Lettuce" current="auto" data-sticky>
+  <a href="/">Home</a>
+  <a href="/docs/">Docs</a>
+  <a href="/status">Status</a>
+  <a href="/dashboard">Dashboard</a>
+  <a href="/logout" slot="actions">Logout</a>
+</blt-nav>
 
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 

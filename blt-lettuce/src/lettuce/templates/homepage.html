@@ -17,38 +17,17 @@
     <script src="/_brand/theme-init.js"></script>
     <link rel="stylesheet" href="/_brand/blt-dark.css" />
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
-  </head>
+    <style>blt-nav:not(:defined) { display: block; min-height: 62px; } blt-nav:not(:defined) > * { display: none; }</style>
+</head>
   <body class="bg-gray-50 font-sans text-gray-900">
-    <nav class="bg-white shadow-lg sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center">
-            <img class="w-10 h-10 mr-2" src="/logo.svg" alt="BLT-Lettuce logo" />
-            <h1 class="text-xl font-bold text-gray-900 whitespace-nowrap">BLT-Lettuce</h1>
-          </div>
-          <div class="flex items-center gap-4">
-            <a href="https://git.owaspblt.org/BLT/BLT-Lettuce" target="_blank" class="hidden sm:inline text-gray-500 hover:text-gray-900 text-sm">
-              <i class="fab fa-github text-xl mr-1"></i>Contribute
-            </a>
-            <a href="{{ AUTH_BUTTON_HREF }}"
-               class="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-[#4A154B] text-white
-                      rounded-lg hover:bg-[#3b1040] transition-colors text-sm font-semibold shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.8 122.8" class="w-4 h-4">
-                <path d="M25.8 77.6a12.9 12.9 0 1 1-12.9-12.9h12.9z" fill="#e01e5a"/>
-                <path d="M32.3 77.6a12.9 12.9 0 0 1 25.8 0v32.3a12.9 12.9 0 1 1-25.8 0z" fill="#e01e5a"/>
-                <path d="M45.2 25.8a12.9 12.9 0 1 1 12.9-12.9v12.9z" fill="#36c5f0"/>
-                <path d="M45.2 32.3a12.9 12.9 0 0 1 0 25.8H12.9a12.9 12.9 0 1 1 0-25.8z" fill="#36c5f0"/>
-                <path d="M97 45.2a12.9 12.9 0 1 1 12.9 12.9H97z" fill="#2eb67d"/>
-                <path d="M90.5 45.2a12.9 12.9 0 0 1-25.8 0V12.9a12.9 12.9 0 1 1 25.8 0z" fill="#2eb67d"/>
-                <path d="M77.6 97a12.9 12.9 0 1 1-12.9 12.9V97z" fill="#ecb22e"/>
-                <path d="M77.6 90.5a12.9 12.9 0 0 1 0-25.8h32.3a12.9 12.9 0 1 1 0 25.8z" fill="#ecb22e"/>
-              </svg>
-              {{ AUTH_BUTTON_TEXT }}
-            </a>
-          </div>
-        </div>
-      </div>
-    </nav>
+    <blt-nav project="blt-lettuce" name="Lettuce" current="auto" data-sticky>
+      <a href="/">Home</a>
+      <a href="/docs/">Docs</a>
+      <a href="/status">Status</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-Lettuce" target="_blank" rel="noopener noreferrer" slot="actions">Source</a>
+      <a href="{{ AUTH_BUTTON_HREF }}" slot="actions" data-primary>{{ AUTH_BUTTON_TEXT }}</a>
+    </blt-nav>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <section class="bg-white rounded-lg shadow p-8 mb-8 text-center relative overflow-hidden">

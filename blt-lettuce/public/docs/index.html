@@ -21,25 +21,17 @@
     <script src="/_brand/theme-init.js"></script>
     <link rel="stylesheet" href="/_brand/blt-dark.css" />
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
-  </head>
+    <style>blt-nav:not(:defined) { display: block; min-height: 62px; } blt-nav:not(:defined) > * { display: none; }</style>
+</head>
   <body class="bg-gray-50 font-sans text-gray-900">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center">
-            <img class="w-10 h-10 mr-2" src="/logo.svg" alt="BLT-Lettuce logo" />
-            <h1 class="text-xl font-bold text-gray-900">BLT-Lettuce</h1>
-          </div>
-          <div class="flex items-center justify-center space-x-4">
-            <a href="https://git.owaspblt.org/BLT/BLT-Lettuce" target="_blank" class="text-gray-500 hover:text-gray-900">
-              <i class="fab fa-github text-xl"></i>
-              Contribute
-            </a>
-          </div>
-        </div>
-      </div>
-    </nav>
+    <blt-nav project="blt-lettuce" name="Lettuce" current="auto" data-sticky>
+      <a href="/">Home</a>
+      <a href="/docs/">Docs</a>
+      <a href="/status">Status</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-Lettuce" target="_blank" rel="noopener noreferrer" slot="actions">Source</a>
+      <a href="/workspace/add" slot="actions" data-primary>Connect Workspace</a>
+    </blt-nav>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
