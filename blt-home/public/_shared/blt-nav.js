@@ -576,7 +576,7 @@
         host.setAttribute("blt-compact", "");
         siteGrp.appendChild(defSlot);
         siteGrp.appendChild(actSlot);
-        if (pname && mtoggle && pname.scrollWidth > pname.clientWidth + 1) host.setAttribute("blt-tight", "");
+        if (pname && mtoggle && pname.scrollWidth > pname.clientWidth) host.setAttribute("blt-tight", "");
       } else {
         setMobile(false);
       }
