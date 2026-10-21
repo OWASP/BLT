@@ -40,18 +40,9 @@ const resultsSection = document.getElementById('resultsSection');
 const appsGrid = document.getElementById('appsGrid');
 const noResults = document.getElementById('noResults');
 const countryInfo = document.getElementById('countryInfo');
-const themeToggle = document.getElementById('themeToggle');
-const sunIcon = document.getElementById('sunIcon');
-const moonIcon = document.getElementById('moonIcon');
 
 // Initialization
 document.addEventListener('DOMContentLoaded', async () => {
-    // Check system preference for dark mode
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.classList.add('dark');
-        updateThemeIcon(true);
-    }
-
     try {
         const response = await fetch('banned_apps.json');
         const data = await response.json();
@@ -93,8 +84,8 @@ function setupEventListeners() {
     mapViewBtn.addEventListener('click', () => switchView('map'));
     slackViewBtn.addEventListener('click', () => switchView('slack'));
 
-    // Theme Toggle
-    themeToggle.addEventListener('click', toggleTheme);
+    // Theme: the toggle is in the OWASP BLT bar (<blt-nav>); redraw the map tiles when it flips.
+    window.addEventListener('blt-theme-change', refreshMapTheme);
 
     // Close Info Panel
     document.getElementById('closeInfoBtn').addEventListener('click', () => {
@@ -578,30 +569,10 @@ function debounce(func, wait) {
     };
 }
 
-// Theme
-function toggleTheme() {
-    const html = document.documentElement;
-    if (html.classList.contains('dark')) {
-        html.classList.remove('dark');
-        updateThemeIcon(false);
-    } else {
-        html.classList.add('dark');
-        updateThemeIcon(true);
-    }
-
-    // Re-initialize map tiles if necessary (simple reload or layer swap)
+// Theme (html.dark is set before paint and by the OWASP BLT bar's toggle)
+function refreshMapTheme() {
     if (map) {
         map.remove();
         initMap(); // Simplest way to swap tile styles properly
-    }
-}
-
-function updateThemeIcon(isDark) {
-    if (isDark) {
-        sunIcon.classList.remove('hidden');
-        moonIcon.classList.add('hidden');
-    } else {
-        sunIcon.classList.add('hidden');
-        moonIcon.classList.remove('hidden');
     }
 }
