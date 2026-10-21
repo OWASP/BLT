@@ -5,11 +5,11 @@
 //   /_home/*, a few root files -> static assets from public/ (a prefix neither blt-next nor legacy uses)
 //   /api/home-stats   -> live numbers, cached for 15 minutes
 //   legacy Django paths (/issue/1/, /profile/x/, /api/v1/, ... see legacy.js)
-//                     -> 308 to the same path on legacy.owaspblt.org
+//                     -> 308 to next.owaspblt.org/legacy?from=<path + query, URL-encoded>
 //   anything else     -> 308 to the same path on blt-next (next.owaspblt.org),
 //                        so old owaspblt.org links (/pages/report-bug.html, /api/stats, ...) keep working.
 
-import { LEGACY_ORIGIN, isLegacyPath } from "./legacy.js";
+import { isLegacyPath, legacyTarget } from "./legacy.js";
 import { collectStats } from "./stats.js";
 
 export const NEXT_ORIGIN = "https://next.owaspblt.org";
@@ -37,7 +37,7 @@ export function isHomePath(pathname) {
 
 export function redirectTarget(url) {
   const u = new URL(url);
-  return (isLegacyPath(u.pathname) ? LEGACY_ORIGIN : NEXT_ORIGIN) + u.pathname + u.search;
+  return isLegacyPath(u.pathname) ? legacyTarget(u.pathname, u.search) : NEXT_ORIGIN + u.pathname + u.search;
 }
 
 function withHeaders(response, extra = {}) {

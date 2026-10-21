@@ -40,7 +40,7 @@ test("fetched data is only inserted as text", () => {
 });
 
 test("no stale banner or GitLab-era links", () => {
-  for (const s of ["April 15, 2026", "Design context", "contest now live", "gitlab.com", "owaspblt.slack.com", "owaspblt.org/leaderboard.html"]) {
+  for (const s of ["April 15, 2026", "Design context", "contest now live", "gitlab.com", "owaspblt.slack.com", "owaspblt.org/leaderboard.html", "legacy.owaspblt.org"]) {
     assert.ok(!html.includes(s), s);
   }
 });

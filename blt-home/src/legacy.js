@@ -1,12 +1,17 @@
-// Paths that belong to the legacy Django app (blt-core, possibly renamed
-// blt-legacy), which still runs at legacy.owaspblt.org. Old blt.owasp.org and
-// owaspblt.org deep links such as /issue/123/ or /profile/alice/ are sent there.
+// Paths that belonged to the legacy Django app (blt-core, possibly renamed
+// blt-legacy). That app is off until its data is migrated, so old blt.owasp.org
+// and owaspblt.org deep links such as /issue/123/ or /profile/alice/ go to
+// blt-next's "this page moved" route: /legacy?from=<original path + query>.
 //
 // Built from the first path segment of every route in blt-core/blt/urls.py.
 // test/legacy.test.mjs re-reads urls.py and fails if a route segment is
 // neither listed here nor in LEGACY_EXCLUDED, so the two cannot drift apart.
 
-export const LEGACY_ORIGIN = "https://legacy.owaspblt.org";
+export const LEGACY_PAGE = "https://next.owaspblt.org/legacy";
+
+export function legacyTarget(pathname, search = "") {
+  return LEGACY_PAGE + "?from=" + encodeURIComponent(pathname + search);
+}
 
 // First path segment -> legacy. Matching is exact on the segment, so
 // /issue/1/ matches "issue" but /issues-new does not.

@@ -199,32 +199,41 @@ test("blt-next paths 308 to next.owaspblt.org with path and query", async () => 
   assert.equal(post.headers.get("Location"), "https://next.owaspblt.org/api/bugs");
 });
 
-test("legacy Django paths 308 to legacy.owaspblt.org with path and query", async () => {
+test("legacy Django paths 308 to blt-next's /legacy page with the original path and query", async () => {
+  const L = "https://next.owaspblt.org/legacy?from=";
   const cases = {
-    "/issue/1234/": "https://legacy.owaspblt.org/issue/1234/",
-    "/profile/alice/": "https://legacy.owaspblt.org/profile/alice/",
-    "/domain/example.com/": "https://legacy.owaspblt.org/domain/example.com/",
-    "/report/": "https://legacy.owaspblt.org/report/",
-    "/api/v1/issues/?page=2": "https://legacy.owaspblt.org/api/v1/issues/?page=2",
-    "/accounts/login/?next=/": "https://legacy.owaspblt.org/accounts/login/?next=/",
-    "/organization/acme/": "https://legacy.owaspblt.org/organization/acme/",
-    "/hunt/7/": "https://legacy.owaspblt.org/hunt/7/",
-    "/leaderboard/": "https://legacy.owaspblt.org/leaderboard/",
-    "/bounties/": "https://legacy.owaspblt.org/bounties/",
-    "/scoreboard/": "https://legacy.owaspblt.org/scoreboard/",
-    "/static/img/logo.png": "https://legacy.owaspblt.org/static/img/logo.png",
-    "/media/screenshots/a.png": "https://legacy.owaspblt.org/media/screenshots/a.png",
+    "/issue/1234/": L + "%2Fissue%2F1234%2F",
+    "/profile/alice/": L + "%2Fprofile%2Falice%2F",
+    "/domain/example.com/": L + "%2Fdomain%2Fexample.com%2F",
+    "/report/": L + "%2Freport%2F",
+    "/api/v1/issues/?page=2": L + "%2Fapi%2Fv1%2Fissues%2F%3Fpage%3D2",
+    "/accounts/login/?next=/&x=a%20b": L + "%2Faccounts%2Flogin%2F%3Fnext%3D%2F%26x%3Da%2520b",
+    "/organization/acme/": L + "%2Forganization%2Facme%2F",
+    "/hunt/7/": L + "%2Fhunt%2F7%2F",
+    "/leaderboard/": L + "%2Fleaderboard%2F",
+    "/bounties/": L + "%2Fbounties%2F",
+    "/scoreboard/": L + "%2Fscoreboard%2F",
+    "/static/img/logo.png": L + "%2Fstatic%2Fimg%2Flogo.png",
+    "/media/screenshots/a.png": L + "%2Fmedia%2Fscreenshots%2Fa.png",
   };
   for (const [path, target] of Object.entries(cases)) {
     assert.equal(redirectTarget("https://owaspblt.org" + path), target, path);
     const res = await handle(new Request("https://owaspblt.org" + path), env, {});
     assert.equal(res.status, 308, path);
     assert.equal(res.headers.get("Location"), target, path);
+    // the from= value decodes back to exactly the original path and query
+    assert.equal(new URL(target).searchParams.get("from"), new URL("https://owaspblt.org" + path).pathname + new URL("https://owaspblt.org" + path).search);
+  }
+});
+
+test("nothing redirects to the retired legacy host", () => {
+  for (const path of ["/issue/1/", "/api/v1/x", "/pages/report-bug.html", "/whatever"]) {
+    assert.doesNotMatch(redirectTarget("https://owaspblt.org" + path), /legacy\.owaspblt\.org/);
   }
 });
 
 test("segment matching is exact", () => {
   assert.equal(redirectTarget("https://owaspblt.org/issues-archive"), "https://next.owaspblt.org/issues-archive");
   assert.equal(redirectTarget("https://owaspblt.org/api/leaderboard"), "https://next.owaspblt.org/api/leaderboard");
-  assert.equal(redirectTarget("https://owaspblt.org/api/v2/x"), "https://legacy.owaspblt.org/api/v2/x");
+  assert.equal(redirectTarget("https://owaspblt.org/api/v2/x"), "https://next.owaspblt.org/legacy?from=%2Fapi%2Fv2%2Fx");
 });
