@@ -6,13 +6,21 @@
   <title>Final Blog — GSoC 2026 BLT-NetGuardian</title>
   <meta name="description" content="Final blog for BLT-NetGuardian GSoC 2026.">
   <link rel="icon" type="image/x-icon" href="../../../favicon.ico">
+  <script>
+    // Saved theme (localStorage "theme", shared with the <blt-nav> toggle) or the system preference.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("theme"); } catch (e) {}
+      var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", dark);
+    })();
+  </script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <style>
-    :root { --bg:#fafafa; --fg:#111; --muted:#444; --brand:#E10101; --border:#e5e5e5; --card:#fff; }
-    @media (prefers-color-scheme: dark) {
-      :root { --bg:#111827; --fg:#f3f4f6; --muted:#9ca3af; --border:#374151; --card:#1f2937; }
-    }
+    :root { --bg:#fafafa; --fg:#111; --muted:#444; --brand:#dc2626; --border:#e5e5e5; --card:#fff; }
+    html.dark { --bg:#030712; --fg:#f3f4f6; --muted:#9ca3af; --border:#1f2937; --card:#111827; color-scheme:dark; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--fg); line-height:1.55; }
+    body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background:var(--bg); color:var(--fg); line-height:1.55; }
     a { color: var(--brand); }
     header { position:sticky; top:0; z-index:10; border-bottom:1px solid var(--border); background:var(--card); }
     header > div { max-width:56rem; margin:0 auto; padding:0.85rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
@@ -38,7 +46,7 @@
 <body>
 <header>
   <div>
-    <a href="../../../index.html" style="display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:inherit"><img src="../../../images/logo.png" alt="OWASP BLT"><div><p style="margin:0;font-size:0.9rem;font-weight:800">OWASP BLT</p><p style="margin:0;font-size:0.75rem;color:var(--muted)">GSoC 2026</p></div></a>
+    <a href="../../../index.html" style="display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:inherit"><img src="../../../logo.svg" alt="" width="32" height="32" style="border-radius:999px"><div><p style="margin:0;font-size:0.9rem;font-weight:800">BLT-GSoC</p><p style="margin:0;font-size:0.75rem;color:var(--muted)">GSoC 2026</p></div></a>
     <a href="../../../gsoc2026.html" style="border:1px solid var(--brand);color:var(--brand);text-decoration:none;padding:0.4rem 0.75rem;border-radius:0.4rem;font-size:0.85rem;font-weight:600">GSoC 2026</a>
   </div>
 </header>

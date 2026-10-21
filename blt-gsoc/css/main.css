@@ -89,7 +89,7 @@ a {
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #e10101 0%, #ff7f7f 100%);
+    background: linear-gradient(90deg, #dc2626 0%, #ff7f7f 100%);
 }
 
 #gsoc-student-cards > article:hover,
@@ -192,7 +192,7 @@ a {
     margin-top: 0.15rem;
     font-size: 0.78rem;
     font-weight: 700;
-    color: #e10101;
+    color: #dc2626;
     text-decoration: none;
 }
 
@@ -236,7 +236,7 @@ a {
 }
 
 .project-stat-pill i {
-    color: #e10101;
+    color: #dc2626;
 }
 
 .project-stat-label {
@@ -419,7 +419,7 @@ button.inline-flex {
 
 /* ------ Accessibility: focus-visible ring ------ */
 :focus-visible {
-    outline: 2px solid #E10101;
+    outline: 2px solid #dc2626;
     outline-offset: 3px;
     border-radius: 4px;
 }
