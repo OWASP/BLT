@@ -52,11 +52,22 @@ In-repo Flutter desktop producer ([`client/`](client/README.md)): distributed do
 | POST | `/api/domains/{id}/complete` | Record scan result |
 | POST | `/api/domains/{id}/fail` | Fail → retry_required (lease expiry also retries) |
 
-Storage is **D1** (not KV). Optional R2 binding `EVIDENCE`. Every 5 minutes (`*/5 * * * *`) a scheduled run retries pending webhooks; the schedule runs from the [blt-cron](../blt-cron) dispatcher Worker, which calls `POST /__scheduled` with the shared `CRON_SECRET` secret (`wrangler secret put CRON_SECRET`).
+Storage is **D1** (not KV). Optional R2 binding `EVIDENCE`. Every 5 minutes (`*/5 * * * *`) a scheduled run expires stale queue leases, runs the self-scan below, and retries pending webhooks; the schedule runs from the [blt-cron](../blt-cron) dispatcher Worker, which calls `POST /__scheduled` with the shared `CRON_SECRET` secret (`wrangler secret put CRON_SECRET`).
+
+Writes to the domain queue (`POST /api/domains*`) need an org Bearer token or a GitHub session, even when `AUTHENTICATE_READ_ENDPOINTS=false` opens reads to the demo org.
+
+## Self-scan (operator-owned hosts)
+
+The cron header-checks the hosts listed in `NG_SELF_SCAN_TARGETS` ([`src/self_scan.py`](src/self_scan.py)) and writes findings to the triage queue of `NG_SELF_SCAN_ORG` (default `NG_DEFAULT_ORG`). Listing a host is the operator's consent to scan it, so list only hosts you run; everything else is scanned by researchers' clients, never by this Worker.
+
+- One GET of `https://<host>/` per host per `NG_SELF_SCAN_INTERVAL_HOURS` (default 24), at most `NG_SELF_SCAN_MAX_PER_RUN` hosts per run (default 1, max 3).
+- Hostnames only: IP literals, ports, userinfo and internal suffixes (`.local`, `.internal`, ...) are dropped. Redirects are followed only within the same host (2 hops, 5 s timeout each).
+- A finding is written only for a fingerprint the org does not already have; an unchanged host costs one queue-row update per scan.
+- Empty or unset `NG_SELF_SCAN_TARGETS` turns it off.
 
 ## Legacy surfaces (not the product)
 
-`/api/discovery/*`, `/api/tasks/*`, `/api/vulnerabilities`, and the ops HTML pages still exist but return **sample/stub** data. Do not demo them as live autonomous CT/Web3 scanning.
+`/api/discovery/status` and `/api/discovery/recent` report the real domain queue (counts, current lease, recent hosts). `/api/tasks/*`, `/api/vulnerabilities` and the ops HTML pages are legacy; there is no CT-log, GitHub or Web3 discovery, so do not demo them as autonomous scanning.
 
 ## Architecture
 

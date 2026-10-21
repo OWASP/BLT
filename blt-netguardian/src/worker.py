@@ -66,6 +66,7 @@ from domain_queue_service import (
     submit_domains_for_request,
 )
 from ingest_service import ingest_error_response, process_ingest
+from self_scan import configured_targets, run_self_scan
 from ingest_store import IngestStore
 from install_sh import INSTALL_SH
 from get_client_page import GET_CLIENT_HTML
@@ -273,6 +274,7 @@ class BLTWorker:
                 'current_target': current_target_name,
                 'scanned_today': scanned_today,
                 'vulnerabilities_found': stats.get('findings_open', 0),
+                'self_scan_targets': len(configured_targets(self.env)),
                 'stats': stats
             })
 
@@ -986,10 +988,37 @@ class BLTWorker:
         return self.json_response(result.body, status=result.status, headers=result.headers)
 
     async def handle_scheduled(self):
-        """Cron: drain pending verified-event webhooks + expire domain leases."""
+        """Cron: expire domain leases, scan due allowlisted hosts, drain webhooks.
+
+        Each step is isolated so a failure in one (say, a target that times
+        out) does not stop the others; the summary is logged on one line.
+        """
         db = getattr(self.env, 'DB', None)
-        await expire_domain_leases(db=db)
-        return await drain_pending_webhooks(env=self.env, db=db)
+        summary: Dict[str, Any] = {}
+        try:
+            summary['leases_expired'] = await expire_domain_leases(db=db)
+        except Exception as exc:  # noqa: BLE001
+            self.log_exception('Scheduled lease expiry failed', exc)
+        try:
+            scan = await run_self_scan(env=self.env, db=db)
+            summary['self_scan'] = {
+                'enabled': scan.get('enabled'),
+                'due': scan.get('due', 0),
+                'scanned': [
+                    {k: r.get(k) for k in ('host', 'http_status', 'findings', 'new_findings', 'error', 'skipped')
+                     if r.get(k) is not None}
+                    for r in scan.get('scanned', [])
+                ],
+            }
+        except Exception as exc:  # noqa: BLE001
+            self.log_exception('Scheduled self-scan failed', exc)
+        try:
+            delivered = await drain_pending_webhooks(env=self.env, db=db)
+            summary['webhooks'] = len(delivered)
+        except Exception as exc:  # noqa: BLE001
+            self.log_exception('Scheduled webhook drain failed', exc)
+        print(f"[scheduled] {json.dumps(summary, separators=(',', ':'))}")
+        return summary
 
     async def _read_request_body(self, request) -> bytes:
         text = getattr(request, 'body', None)
