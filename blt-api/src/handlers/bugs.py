@@ -26,6 +26,15 @@ _UPDATABLE_FIELDS = {
 
 _VALID_STATUSES = {"open", "closed", "in-progress", "reviewing"}
 
+# Stored for abuse handling only; never returned by the API (GET /bugs/{id} is public).
+_PRIVATE_FIELDS = ("reporter_ip_address",)
+
+
+def _without_private_fields(bug: Dict[str, Any]) -> Dict[str, Any]:
+    for field in _PRIVATE_FIELDS:
+        bug.pop(field, None)
+    return bug
+
 
 def _get_header(request: Any, name: str) -> str:
     """Safely read a request header in Workers and tests."""
@@ -163,7 +172,6 @@ async def handle_bugs(
                 b.modified,
                 b.is_hidden,
                 b.rewarded,
-                b.reporter_ip_address,
                 b.cve_id,
                 b.cve_score,
                 b.hunt,
@@ -189,6 +197,7 @@ async def handle_bugs(
         
         if not bug_data:
             return error_response("Bug not found", status=404)
+        _without_private_fields(bug_data)
         
         # Get screenshots for this bug
         screenshots_result = await db.prepare('''
@@ -424,7 +433,7 @@ async def handle_bugs(
                 return Response.json({
                     "success": True,
                     "message": "Bug created successfully",
-                    "data": bug_data
+                    "data": _without_private_fields(bug_data)
                 }, status=201)
             else:
                 return Response.json({

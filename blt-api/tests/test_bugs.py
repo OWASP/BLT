@@ -215,6 +215,15 @@ class TestGetBugById:
             resp = await handle_bugs(MockRequest(), MockEnv(), {"id": "3"}, {}, "/bugs/3")
         assert resp.data["data"]["tags"] == [tag]
 
+    async def test_reporter_ip_is_never_returned(self):
+        db = MockDB()
+        db.set_first({"id": 4, "url": "https://z.com", "description": "z", "reporter_ip_address": "203.0.113.9"})
+        db.set_all([])
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)):
+            resp = await handle_bugs(MockRequest(), MockEnv(), {"id": "4"}, {}, "/bugs/4")
+        assert resp.data["success"] is True
+        assert "reporter_ip_address" not in resp.data["data"]
+
 
 class TestCreateBug:
     async def test_empty_body_returns_400(self):

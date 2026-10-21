@@ -344,3 +344,39 @@ async def test_post_bugs_jwt_user_bypasses_scope_check(monkeypatch):
     )
     assert getattr(response, "status", None) == 201
     assert fake_db.insert_params is not None
+
+
+@pytest.mark.asyncio
+async def test_create_bug_response_does_not_echo_reporter_ip(monkeypatch):
+    class StoredIpStatement(FakeStatement):
+        async def first(self):
+            if "SELECT * FROM bugs WHERE id = ?" in self._sql:
+                return {"id": 1, "url": "https://example.com/vuln", "description": "test",
+                        "reporter_ip_address": "8.8.8.8"}
+            return await super().first()
+
+    class StoredIpDB(FakeDB):
+        def prepare(self, sql):
+            return StoredIpStatement(self, sql)
+
+    fake_db = StoredIpDB()
+
+    async def _fake_get_db_safe(_env):
+        return fake_db
+
+    monkeypatch.setattr(bugs_handler, "get_db_safe", _fake_get_db_safe)
+    bugs_handler.BUG_RATE_LIMIT.clear()
+
+    response = await bugs_handler.handle_bugs(
+        request=MockRequest(json.dumps({"url": "https://example.com/vuln", "description": "test"}),
+                            headers={"CF-Connecting-IP": "8.8.8.8"}),
+        env=MockEnv(),
+        path_params={},
+        query_params={},
+        path="/bugs",
+    )
+
+    payload = response.get("data") if isinstance(response, dict) else json.loads(response.body)
+    assert payload["success"] is True
+    assert payload["data"]["id"] == 1
+    assert "reporter_ip_address" not in payload["data"]
