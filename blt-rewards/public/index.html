@@ -35,34 +35,19 @@
     </script>
     <style>
         body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        blt-nav:not(:defined) { display: block; min-height: 61px; }
+        blt-nav:not(:defined) > * { display: none; }
     </style>
     <link rel="stylesheet" href="static/blt-theme.css">
 </head>
 <body class="bg-white">
-    <!-- Navigation -->
-    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center gap-2">
-                    <img src="./static/images/blt-rewards-logo.svg" alt="BLT-Rewards logo" class="h-8 w-8">
-                    <a href="index.html" class="text-xl font-bold text-gray-900">BACON</a>
-                </div>
-                <ul class="hidden md:flex items-center gap-8 text-sm font-medium">
-                    <li><a href="#about" class="text-gray-700 hover:text-blt-red transition-colors">About</a></li>
-                    <li><a href="#features" class="text-gray-700 hover:text-blt-red transition-colors">Features</a></li>
-                    <li><a href="#blockchains" class="text-gray-700 hover:text-blt-red transition-colors">Blockchains</a></li>
-                    <li><a href="#docs" class="text-gray-700 hover:text-blt-red transition-colors">Documentation</a></li>
-                    <li>
-                        <a href="https://git.owaspblt.org/BLT/BLT-Rewards" target="_blank" rel="noopener noreferrer"
-                           class="inline-flex items-center gap-2 px-4 py-2 border border-blt-red text-blt-red rounded-md hover:bg-blt-red hover:text-white transition-colors">
-                            <i class="fab fa-github"></i>
-                            <span>Source Code</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </header>
+    <blt-nav project="blt-rewards" name="Rewards" data-sticky>
+        <a href="#about">About</a>
+        <a href="#features">Features</a>
+        <a href="#blockchains">Blockchains</a>
+        <a href="#docs">Documentation</a>
+        <a href="https://git.owaspblt.org/BLT/BLT-Rewards" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source Code</a>
+    </blt-nav>
 
     <!-- Hero Section -->
     <section class="relative bg-gradient-to-br from-gray-50 to-white pt-20 pb-32">
