@@ -4,55 +4,97 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cyber Security Dashboard - BLT-Dash</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml" />
+  <script>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('theme'); } catch (e) {}
+      var dark = saved === 'dark' || (saved !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.classList.toggle('dark', dark);
+    })();
+  </script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <style>
     /* ─── Reset & Base ──────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* Tokens follow owaspblt.org: gray/white surfaces, BLT red (#dc2626) accent, system fonts,
+       dark mode via html.dark (set by the pre-paint script below and the BLT top bar). */
     :root {
-      --bg:          #050a14;
-      --bg2:         #070d1a;
-      --bg3:         #0a1525;
-      --border:      #0f2a4a;
-      --border2:     #1a3a5c;
-      --green:       #00ff41;
-      --green-dim:   #00cc33;
-      --green-dark:  #004d00;
-      --cyan:        #00e5ff;
-      --cyan-dim:    #00b8cc;
-      --blue:        #0080ff;
-      --blue-dim:    #004d99;
-      --yellow:      #ffd700;
-      --yellow-dim:  #b39700;
-      --red:         #ff3333;
-      --red-dim:     #991f1f;
-      --orange:      #ff6600;
-      --white:       #e0f0ff;
-      --tile-bg:     #0a1828;
-      --tile-border: #1e4060;
-      --section-title: #00e5ff;
-      --font: 'Courier New', monospace;
+      --bg:          #f9fafb;
+      --bg2:         #ffffff;
+      --bg3:         #f3f4f6;
+      --border:      #e5e7eb;
+      --border2:     #e5e7eb;
+      --text:        #111827;
+      --muted:       #6b7280;
+      --accent:      #dc2626;
+      --hover-bg:    #fef2f2;
+      --green:       #16a34a;
+      --green-dim:   #22c55e;
+      --green-dark:  #dcfce7;
+      --green-bg:    #f0fdf4;
+      --cyan:        #dc2626;
+      --cyan-dim:    #6b7280;
+      --blue:        #d1d5db;
+      --blue-dim:    #f3f4f6;
+      --yellow:      #ca8a04;
+      --yellow-dim:  #eab308;
+      --yellow-bg:   #fefce8;
+      --red:         #dc2626;
+      --red-dim:     #fee2e2;
+      --red-text:    #991b1b;
+      --red-bg:      #fef2f2;
+      --orange:      #ea580c;
+      --white:       #111827;
+      --tile-bg:     #f9fafb;
+      --tile-border: #e5e7eb;
+      --section-title: #dc2626;
+      --font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    html.dark {
+      color-scheme: dark;
+      --bg:          #030712;
+      --bg2:         #111827;
+      --bg3:         #1f2937;
+      --border:      #1f2937;
+      --border2:     #1f2937;
+      --text:        #f3f4f6;
+      --muted:       #9ca3af;
+      --accent:      #f87171;
+      --hover-bg:    rgba(127, 29, 29, 0.25);
+      --green:       #4ade80;
+      --green-dim:   #16a34a;
+      --green-dark:  rgba(20, 83, 45, 0.45);
+      --green-bg:    rgba(20, 83, 45, 0.3);
+      --cyan:        #f87171;
+      --cyan-dim:    #9ca3af;
+      --blue:        #374151;
+      --blue-dim:    #1f2937;
+      --yellow:      #facc15;
+      --yellow-dim:  #a16207;
+      --yellow-bg:   rgba(113, 63, 18, 0.3);
+      --red:         #ef4444;
+      --red-dim:     rgba(127, 29, 29, 0.5);
+      --red-text:    #fecaca;
+      --red-bg:      rgba(127, 29, 29, 0.3);
+      --orange:      #fb923c;
+      --white:       #f3f4f6;
+      --tile-bg:     #030712;
+      --tile-border: #1f2937;
+      --section-title: #f87171;
     }
 
     html, body {
       width: 100%; height: 100%;
       background: var(--bg);
-      color: var(--green);
+      color: var(--text);
       font-family: var(--font);
-      font-size: 11px;
       overflow-x: hidden;
     }
+    /* 11px base on body only, so rem-sized UI (the BLT top bar) keeps the browser default */
+    body { font-size: 11px; }
 
-    /* Subtle grid/dot background */
-    body::before {
-      content: '';
-      position: fixed; inset: 0; z-index: 0;
-      background-image:
-        radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,80,160,0.08) 0%, transparent 70%),
-        linear-gradient(rgba(0,80,160,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,80,160,0.04) 1px, transparent 1px);
-      background-size: 100% 100%, 40px 40px, 40px 40px;
-      pointer-events: none;
-    }
 
     /* ─── Layout ──────────────────────────────────────────────────────── */
     .dashboard {
@@ -131,8 +173,8 @@
       transition: border-color .15s, background .15s;
     }
     .tile:hover {
-      border-color: var(--cyan);
-      background: #0d1f35;
+      border-color: var(--accent);
+      background: var(--hover-bg);
     }
     .tile.highlight {
       border-color: var(--green);
@@ -140,18 +182,18 @@
     }
     .tile.highlight-yellow {
       border-color: var(--yellow);
-      background: #1a1500;
+      background: var(--yellow-bg);
     }
     .tile.highlight-red {
       border-color: var(--red);
-      background: #1a0000;
+      background: var(--red-bg);
     }
     .tile.highlight-green {
       border-color: var(--green);
-      background: #001a00;
+      background: var(--green-bg);
     }
     .tile.active {
-      background: #0d2a1a;
+      background: var(--green-bg);
       border-color: var(--green);
     }
 
@@ -183,9 +225,8 @@
     .dash-title {
       font-size: 18px;
       font-weight: 700;
-      color: var(--green);
+      color: var(--text);
       text-align: center;
-      text-shadow: 0 0 12px var(--green-dark);
       margin-bottom: 8px;
       letter-spacing: 1px;
     }
@@ -294,9 +335,9 @@
     }
     .nist-item.blue  { background: var(--blue-dim);   color: var(--white); border: 1px solid var(--blue); }
     .nist-item.green { background: var(--green-dark); color: var(--green); border: 1px solid var(--green-dim); }
-    .nist-item.yellow { background: #2a1e00; color: var(--yellow); border: 1px solid var(--yellow-dim); }
-    .nist-item.red   { background: var(--red-dim);   color: #ffd0d0;     border: 1px solid var(--red); }
-    .nist-item.gr    { background: #001400; color: var(--green);  border: 1px solid var(--green-dim); }
+    .nist-item.yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow-dim); }
+    .nist-item.red   { background: var(--red-dim);   color: var(--red-text);     border: 1px solid var(--red); }
+    .nist-item.gr    { background: var(--green-bg); color: var(--green);  border: 1px solid var(--green-dim); }
 
     /* ─── Bottom panels ─────────────────────────────────────────────── */
     .bot-title {
@@ -325,18 +366,6 @@
       min-height: 46px;
     }
 
-    /* Scan-line overlay */
-    .scanlines {
-      position: fixed; inset: 0; z-index: 999;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.08) 2px,
-        rgba(0,0,0,0.08) 4px
-      );
-      pointer-events: none;
-    }
 
     /* Corner decorations */
     .corner-tl, .corner-tr, .corner-bl, .corner-br {
@@ -357,7 +386,7 @@
       50% { box-shadow: 0 0 10px var(--green); }
     }
     @keyframes pulse-red {
-      0%, 100% { box-shadow: 0 0 3px #400000; }
+      0%, 100% { box-shadow: 0 0 3px var(--red-dim); }
       50% { box-shadow: 0 0 10px var(--red); }
     }
     .tile.active { animation: pulse-green 2s ease-in-out infinite; }
@@ -375,7 +404,6 @@
   </style>
 </head>
 <body>
-<div class="scanlines"></div>
 
 <div class="dashboard">
 
@@ -877,8 +905,8 @@
   function animateTiles() {
     const tiles = document.querySelectorAll('.tile');
     const randomTile = tiles[Math.floor(Math.random() * tiles.length)];
-    randomTile.style.borderColor = '#00e5ff';
-    randomTile.style.boxShadow = '0 0 8px #00e5ff55';
+    randomTile.style.borderColor = 'var(--accent)';
+    randomTile.style.boxShadow = '0 0 6px var(--red-dim)';
     setTimeout(() => {
       randomTile.style.borderColor = '';
       randomTile.style.boxShadow = '';
