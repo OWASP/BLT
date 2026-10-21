@@ -32,12 +32,26 @@
             "sig": "4I4Rvh4N5KiSpbxIGxJPLqiEDU-OcudoGAcioF4WNqo7iC-Un-0J9ybrKwNxYV0637oD0NM6okErJymPIUrWBQ",
             "ts": 1792547523290,
             "type": "labels"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-relabel-43",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-legacy",
+                "accessibility"
+            ],
+            "sig": "ZU1v7LAi9CSTreNQpNk7fLGQOLhMOJ7xzYYY1ld-mpfY49Hen4mgFgQ6GHQeN6cHEWVJiRuNEPzV43onU0fjCA",
+            "ts": 1792550467208,
+            "type": "labels"
         }
     ],
     "labels": [
         "hacktoberfest",
         "good first issue",
-        "blt-core",
+        "blt-legacy",
         "accessibility"
     ],
     "milestone": "",
@@ -48,6 +62,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: add accessible names to the icon-only buttons in the site header",
-    "updatedAt": 1792547523290,
+    "updatedAt": 1792550467208,
     "votes": 0
 }

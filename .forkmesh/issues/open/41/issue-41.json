@@ -31,11 +31,24 @@
             "sig": "V_6M7794y_UlseGyLshL-VWD3wvT0IkFvrKcscoI87BVRAB-EqaFxCnqNZZgGJPJFonFtLX39-tMZNe2yTa3CQ",
             "ts": 1792547523270,
             "type": "labels"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-relabel-41",
+            "labels": [
+                "hacktoberfest",
+                "blt-legacy",
+                "enhancement"
+            ],
+            "sig": "qxIMHSQMpEcQpUUH-R4miGmIHoAfIo_IWh0eRCIiF3eUPLRYWP3hrTtEPAQ-MbJG0EmO4fmL3CgSUG3H3kP2Cg",
+            "ts": 1792550467206,
+            "type": "labels"
         }
     ],
     "labels": [
         "hacktoberfest",
-        "blt-core",
+        "blt-legacy",
         "enhancement"
     ],
     "milestone": "",
@@ -46,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: drop the unused `cffi<2` pin and upgrade cryptography, aiohttp and pillow",
-    "updatedAt": 1792547523270,
+    "updatedAt": 1792550467206,
     "votes": 0
 }

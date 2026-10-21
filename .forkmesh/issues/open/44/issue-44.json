@@ -32,12 +32,26 @@
             "sig": "9JU3p83pfT89jdknTtIoMNz2naxusoiTJV1EUYexmFnIJVKVE8GKnRTFbw1CK3I3nKv_YIAwl8EIXyFchCCeBQ",
             "ts": 1792547523300,
             "type": "labels"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-relabel-44",
+            "labels": [
+                "hacktoberfest",
+                "good first issue",
+                "blt-legacy",
+                "tests"
+            ],
+            "sig": "VBow6So4XIvI1WhYAs2nu01Q-R--6yDpexrcKmy-GcKA4VMsRC5vCfWyLcponAZKunfdywDCFKw5zQayLdo0Cw",
+            "ts": 1792550467209,
+            "type": "labels"
         }
     ],
     "labels": [
         "hacktoberfest",
         "good first issue",
-        "blt-core",
+        "blt-legacy",
         "tests"
     ],
     "milestone": "",
@@ -48,6 +62,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: add tests for the /api/ossh/catalog/ endpoint",
-    "updatedAt": 1792547523300,
+    "updatedAt": 1792550467209,
     "votes": 0
 }

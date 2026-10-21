@@ -31,11 +31,24 @@
             "sig": "b75VGI4KQS5ibU8qSzjl3lg1L2b5sZUiDzngiEqoHRJRYbv86jjewaGO0GQv0rTGGUCi0H0ygZuNb-sLK0VQAQ",
             "ts": 1792547523280,
             "type": "labels"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-relabel-42",
+            "labels": [
+                "hacktoberfest",
+                "blt-legacy",
+                "enhancement"
+            ],
+            "sig": "YSFYUbhCFbRy_u8iHpsTW0Ju5-biUITUiQKkK6SETtpHkViJ-OhLCQaz52HVh0ENLeaOerABXOI5pyPx79JNBA",
+            "ts": 1792550467207,
+            "type": "labels"
         }
     ],
     "labels": [
         "hacktoberfest",
-        "blt-core",
+        "blt-legacy",
         "enhancement"
     ],
     "milestone": "",
@@ -46,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: replace deprecated bleach (django-bleach) with nh3 for GitHub issue bodies",
-    "updatedAt": 1792547523280,
+    "updatedAt": 1792550467207,
     "votes": 0
 }
