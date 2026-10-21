@@ -9,8 +9,8 @@
     --blt-blue-soft: #dbeafe;
     --blt-amber: #d97706;
     --blt-amber-soft: #fef3c7;
-    --blt-bg: #f8fafc;
-    --blt-bg-muted: #f1f5f9;
+    --blt-bg: #f9fafb;
+    --blt-bg-muted: #f3f4f6;
     --blt-surface: #ffffff;
     --blt-surface-strong: #f9fafb;
     --blt-border: rgba(15, 23, 42, 0.1);
@@ -32,14 +32,14 @@
     --blt-blue-soft: rgba(96, 165, 250, 0.14);
     --blt-amber: #fbbf24;
     --blt-amber-soft: rgba(251, 191, 36, 0.14);
-    --blt-bg: #0f1117;
-    --blt-bg-muted: #151923;
-    --blt-surface: #1b202b;
-    --blt-surface-strong: #222837;
-    --blt-border: rgba(226, 232, 240, 0.12);
-    --blt-border-strong: rgba(226, 232, 240, 0.22);
-    --blt-text: #f8fafc;
-    --blt-muted: #a6adbb;
+    --blt-bg: #030712;
+    --blt-bg-muted: #111827;
+    --blt-surface: #111827;
+    --blt-surface-strong: #1f2937;
+    --blt-border: #1f2937;
+    --blt-border-strong: #374151;
+    --blt-text: #f3f4f6;
+    --blt-muted: #9ca3af;
     --blt-focus: rgba(248, 113, 113, 0.5);
     --blt-shadow: 0 22px 65px -42px rgba(0, 0, 0, 0.95);
 }
@@ -52,7 +52,7 @@ body.blt-page {
     min-height: 100vh;
     background-color: var(--blt-bg);
     color: var(--blt-text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 :where(a, button, input, textarea, select, [tabindex]):focus-visible {
@@ -1497,4 +1497,60 @@ body.blt-page {
 .dashboard-slack-table th {
     color: #6b7280;
     font-weight: 600;
+}
+
+/* Dark mode for the page chrome and the hand-written colours the gray-class overrides above
+   don't reach (html.dark, set by js/theme.js and the shared <blt-nav> toggle). */
+.dark body.blt-page #site-header,
+.dark body.blt-page #mobile-menu {
+    background-color: rgba(3, 7, 18, 0.9) !important;
+    border-color: var(--blt-border) !important;
+}
+.dark body.blt-page .bg-white\/40,
+.dark body.blt-page .bg-white\/90,
+.dark body.blt-page .bg-\[\#f6f6f6\] {
+    background-color: var(--blt-surface) !important;
+}
+.dark body.blt-page .text-gray-900.text-\[clamp\(3rem\,8\.5vw\,6\.2rem\)\],
+.dark body.blt-page .hero-stat strong,
+.dark body.blt-page .dash-stat strong,
+.dark body.blt-page h1,
+.dark body.blt-page h2,
+.dark body.blt-page h3 {
+    color: var(--blt-text);
+}
+.dark body.blt-page .hover\:bg-gray-50:hover {
+    background-color: var(--blt-surface-strong) !important;
+}
+.dark body.blt-page .bg-red-50 {
+    background-color: rgba(220, 38, 38, 0.12) !important;
+}
+.dark body.blt-page .border-red-200 {
+    border-color: rgba(248, 113, 113, 0.3) !important;
+}
+.dark body.blt-page .text-red-600 {
+    color: #f87171 !important;
+}
+.dark body.blt-page .dot-field {
+    background-image: radial-gradient(rgba(243, 244, 246, 0.12) 1px, transparent 1px);
+}
+.dark body.blt-page .feature-divider::before {
+    background: linear-gradient(to right, transparent, #374151);
+}
+.dark body.blt-page .feature-divider::after {
+    background: linear-gradient(to left, transparent, #374151);
+}
+.dark body.blt-page .wave-dots i {
+    background: #4b5563;
+}
+.dark body.blt-page .dashboard-slack-table th,
+.dark body.blt-page .dashboard-slack-table td {
+    border-bottom-color: var(--blt-border);
+}
+.dark body.blt-page #site-footer {
+    background-color: #000;
+    border-color: var(--blt-border) !important;
+}
+.dark body.blt-page .dash-progress-track {
+    background: var(--blt-surface-strong);
 }

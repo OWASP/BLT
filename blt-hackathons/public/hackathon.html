@@ -12,6 +12,7 @@
     <script>
       window.tailwind = window.tailwind || {};
       window.tailwind.config = {
+        darkMode: "class",
         theme: {
           extend: {
             colors: {
@@ -19,12 +20,14 @@
             },
             fontFamily: {
               sans: [
-                "Inter",
                 "ui-sans-serif",
                 "system-ui",
                 "-apple-system",
                 "BlinkMacSystemFont",
                 "Segoe UI",
+                "Roboto",
+                "Helvetica Neue",
+                "Arial",
                 "sans-serif",
               ],
               mono: [
@@ -46,9 +49,10 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <link rel="icon" type="image/png" href="logo.png" />
+    <link rel="icon" type="image/svg+xml" href="logo.svg" />
     <link rel="stylesheet" href="css/blt-theme.css" />
     <script src="js/theme.js"></script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 
     <style>
       /* ── dot field for hero ── */
@@ -214,11 +218,11 @@
     </style>
   </head>
   <body
-    class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
+    class="blt-page min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
   >
     <!-- ══ Header ══ -->
     <header
-      class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
+      class="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
       id="site-header"
     >
       <div
@@ -266,7 +270,7 @@
       </div>
     </header>
 
-    <main class="pt-[3.5rem]">
+    <main>
       <!-- ══ Page header ══ -->
       <section
         class="border-b border-gray-100 bg-[#f6f6f6]"

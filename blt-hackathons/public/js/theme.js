@@ -1,95 +1,32 @@
+// Runs before first paint: apply the saved theme, or the system preference.
+// Same contract as owaspblt.org and the shared <blt-nav> bar (which owns the toggle):
+// class "dark" on <html>, saved as localStorage "theme" = "dark" | "light".
+// The old key "blt-theme" is read once as a fallback so an earlier choice carries over.
 (function () {
-    var STORAGE_KEY = "blt-theme";
     var root = document.documentElement;
-    var storage = null;
-
+    var saved = null;
     try {
-        var testKey = "__blt_theme_test__";
-        window.localStorage.setItem(testKey, "1");
-        window.localStorage.removeItem(testKey);
-        storage = window.localStorage;
+        saved = window.localStorage.getItem("theme") || window.localStorage.getItem("blt-theme");
     } catch (error) {
-        storage = null;
+        saved = null;
+    }
+    var dark = saved === "dark" ||
+        (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+    function apply(isDark) {
+        root.classList.toggle("dark", isDark);
+        root.setAttribute("data-theme", isDark ? "dark" : "light");
     }
 
-    function readStoredTheme() {
-        if (!storage) return null;
-        try {
-            return storage.getItem(STORAGE_KEY);
-        } catch (error) {
-            return null;
-        }
-    }
+    apply(dark);
 
-    function writeStoredTheme(theme) {
-        if (!storage) return;
-        try {
-            storage.setItem(STORAGE_KEY, theme);
-        } catch (error) {
-            // Ignore persistence failures; the in-page state still updates.
-        }
-    }
-
-    function currentTheme() {
-        return root.classList.contains("dark") ? "dark" : "light";
-    }
-
-    function updateControls() {
-        var isDark = currentTheme() === "dark";
-        var nextTheme = isDark ? "light" : "dark";
-        var controls = document.querySelectorAll("[data-theme-toggle]");
-
-        controls.forEach(function (control) {
-            control.setAttribute("aria-label", "Switch to " + nextTheme + " theme");
-            control.setAttribute("aria-pressed", String(isDark));
-            control.setAttribute("title", "Switch to " + nextTheme + " theme");
-
-            var icon = control.querySelector("[data-theme-icon]");
-            if (icon) {
-                icon.classList.toggle("fa-moon", !isDark);
-                icon.classList.toggle("fa-sun", isDark);
-            }
-
-            var label = control.querySelector("[data-theme-label]");
-            if (label) {
-                label.textContent = isDark ? "Light" : "Dark";
-            }
-        });
-    }
-
-    function applyTheme(theme, persist) {
-        var normalized = theme === "dark" ? "dark" : "light";
-        root.classList.toggle("dark", normalized === "dark");
-        root.setAttribute("data-theme", normalized);
-
-        if (persist) {
-            writeStoredTheme(normalized);
-        }
-
-        updateControls();
-    }
-
-    function initControls() {
-        updateControls();
-        document.querySelectorAll("[data-theme-toggle]").forEach(function (control) {
-            control.addEventListener("click", function () {
-                applyTheme(currentTheme() === "dark" ? "light" : "dark", true);
-            });
-        });
-    }
-
-    applyTheme(readStoredTheme(), false);
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initControls);
-    } else {
-        initControls();
-    }
+    window.addEventListener("blt-theme-change", function (event) {
+        apply(!!(event.detail && event.detail.dark));
+    });
 
     window.BLTTheme = {
-        applyTheme: function (theme) {
-            applyTheme(theme, true);
+        getTheme: function () {
+            return root.classList.contains("dark") ? "dark" : "light";
         },
-        getTheme: currentTheme,
     };
 })();
