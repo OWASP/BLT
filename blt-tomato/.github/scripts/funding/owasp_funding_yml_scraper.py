@@ -1,5 +1,7 @@
+import html
 import json
 import os
+from urllib.parse import urlsplit
 
 import requests
 import yaml
@@ -65,53 +67,7 @@ def parse_funding_file(funding_url):
     return ""
 
 
-# Fetch OWASP repos
-owasp_repos = get_owasp_repos()
-owasp_repos_data = [
-    {"name": repo["name"], "repo_url": repo["html_url"]} for repo in owasp_repos
-]
-
-# Combine OWASP repos and additional projects
-data = owasp_repos_data + ADDITIONAL_PROJECTS
-
-# Remove duplicates based on the 'repo_url' key
-unique_data = {project["repo_url"]: project for project in data}.values()
-
-project_links = []
-
-for project in unique_data:
-    project_name = project["name"]
-    repo_url = project["repo_url"]
-
-    if project_name.startswith("www-"):
-        print(f"Skipping repository: {project_name}")
-        continue
-
-    print("project name", project_name)
-    funding_url = check_funding_file(repo_url)
-    if funding_url:
-        funding_details = parse_funding_file(funding_url)
-        project_links.append(
-            {
-                "project_name": project_name,
-                "repo_url": repo_url,
-                "funding_url": funding_url,
-                "funding_details": funding_details,
-            }
-        )
-        print(f"Added project: {project_name} with funding details: {funding_details}")
-
-# Write the JSON output file
-OUTPUT_DIR = os.environ.get("OUTPUT_DIR", ".")
-output_file = os.path.join(OUTPUT_DIR, "project_repos_links.json")
-with open(output_file, "w") as f:
-    json.dump(project_links, f, indent=2)
-
-print(f"Output written to '{output_file}'")
-
-# Generate the index.html file
-html_content = """
-<!DOCTYPE html>
+PAGE_HEAD = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -189,19 +145,7 @@ html_content = """
         <ul>
 """
 
-for index, project in enumerate(
-    sorted(project_links, key=lambda p: p["project_name"]), start=1
-):
-    funding_links_html = ""
-    funding_details = project["funding_details"].split(", ")
-    for link in funding_details:
-        if "https://owasp.org/donate/" in link:
-            funding_links_html += f'<a href="{link}" class="donate-button">Donate</a> '
-        else:
-            funding_links_html += f'<a href="{link}" class="heart-icon">&#10084;</a> '
-    html_content += f'<li>{index}. <a href="{project["repo_url"]}">{project["project_name"]}</a> {funding_links_html}<span>{project["funding_details"]}</span></li>\n'
-
-html_content += """
+PAGE_FOOT = """
         </ul>
     </main>
     <footer>
@@ -211,7 +155,111 @@ html_content += """
 </html>
 """
 
-with open(os.path.join(OUTPUT_DIR, "index.html"), "w") as f:
-    f.write(html_content)
 
-print("index.html file has been created.")
+def esc(value):
+    """HTML-escape any value for text or a double/single-quoted attribute."""
+    return html.escape("" if value is None else str(value), quote=True)
+
+
+def safe_href(value):
+    """Return the URL if it is an absolute http(s) URL, else None (no javascript:, data:, etc.)."""
+    if not isinstance(value, str):
+        return None
+    url = value.strip()
+    if any(ord(c) < 0x20 or c.isspace() for c in url):
+        return None
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        return None
+    if parts.scheme.lower() not in ("http", "https") or not parts.netloc:
+        return None
+    return url
+
+
+def render_project_item(index, project):
+    """One <li> for a project. Names, URLs and FUNDING.yml values come from third-party repos,
+    so every value is escaped and only http(s) URLs become links."""
+    funding_links_html = ""
+    for link in str(project.get("funding_details") or "").split(", "):
+        href = safe_href(link)
+        if not href:
+            continue
+        if "https://owasp.org/donate/" in href:
+            funding_links_html += f'<a href="{esc(href)}" class="donate-button">Donate</a> '
+        else:
+            funding_links_html += f'<a href="{esc(href)}" class="heart-icon">&#10084;</a> '
+    repo_href = safe_href(project.get("repo_url"))
+    name = esc(project.get("project_name"))
+    name_html = f'<a href="{esc(repo_href)}">{name}</a>' if repo_href else name
+    return (
+        f"<li>{index}. {name_html} {funding_links_html}"
+        f'<span>{esc(project.get("funding_details"))}</span></li>\n'
+    )
+
+
+def render_index_html(project_links):
+    items = "".join(
+        render_project_item(index, project)
+        for index, project in enumerate(
+            sorted(project_links, key=lambda p: str(p.get("project_name", ""))), start=1
+        )
+    )
+    return PAGE_HEAD + items + PAGE_FOOT
+
+
+def main():
+    # Fetch OWASP repos
+    owasp_repos = get_owasp_repos()
+    owasp_repos_data = [
+        {"name": repo["name"], "repo_url": repo["html_url"]} for repo in owasp_repos
+    ]
+
+    # Combine OWASP repos and additional projects
+    data = owasp_repos_data + ADDITIONAL_PROJECTS
+
+    # Remove duplicates based on the 'repo_url' key
+    unique_data = {project["repo_url"]: project for project in data}.values()
+
+    project_links = []
+
+    for project in unique_data:
+        project_name = project["name"]
+        repo_url = project["repo_url"]
+
+        if project_name.startswith("www-"):
+            print(f"Skipping repository: {project_name}")
+            continue
+
+        print("project name", project_name)
+        funding_url = check_funding_file(repo_url)
+        if funding_url:
+            funding_details = parse_funding_file(funding_url)
+            project_links.append(
+                {
+                    "project_name": project_name,
+                    "repo_url": repo_url,
+                    "funding_url": funding_url,
+                    "funding_details": funding_details,
+                }
+            )
+            print(f"Added project: {project_name} with funding details: {funding_details}")
+
+    # Write the JSON output file
+    OUTPUT_DIR = os.environ.get("OUTPUT_DIR", ".")
+    output_file = os.path.join(OUTPUT_DIR, "project_repos_links.json")
+    with open(output_file, "w") as f:
+        json.dump(project_links, f, indent=2)
+
+    print(f"Output written to '{output_file}'")
+
+    html_content = render_index_html(project_links)
+
+    with open(os.path.join(OUTPUT_DIR, "index.html"), "w") as f:
+        f.write(html_content)
+
+    print("index.html file has been created.")
+
+
+if __name__ == "__main__":
+    main()
