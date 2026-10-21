@@ -60,10 +60,9 @@
         };
     </script>
     <style>
-        /* The site header sits under the OWASP BLT top bar and sticks; the negative margin keeps
-           the page's own top padding (sized for the old fixed header) unchanged. */
-        #site-header { margin-bottom: -81px; }
-        @media (min-width: 640px) { #site-header { margin-bottom: -89px; } }
+        /* The OWASP BLT top bar (<blt-nav>, sticky) is the only header. */
+        blt-nav:not(:defined) { display: block; min-height: 61px; }
+        blt-nav:not(:defined) > * { display: none; }
         /* Basic dark mode for pages without their own dark: variants (explicit dark: classes win). */
         html.dark { color-scheme: dark; }
         html.dark .bg-white { background-color: #111827; }
@@ -85,18 +84,6 @@
             background-size: 18px 18px;
             mask-image: radial-gradient(circle at center, black 0, transparent 74%);
             -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 74%);
-        }
-        .mobile-menu.open {
-            display: flex;
-        }
-        .mobile-toggle.active span:nth-child(1) {
-            transform: translateY(6px) rotate(45deg);
-        }
-        .mobile-toggle.active span:nth-child(2) {
-            opacity: 0;
-        }
-        .mobile-toggle.active span:nth-child(3) {
-            transform: translateY(-6px) rotate(-45deg);
         }
         .feature-divider::before,
         .feature-divider::after {
@@ -176,134 +163,15 @@
 </head>
 <body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-gray-950 dark:text-gray-100 flex flex-col">
 
-    <header
-  class="sticky inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900"
-  id="site-header"
->
-  <div
-    class="relative mx-auto flex max-w-[104rem] items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-6 xl:px-6"
-  >
-    <a
-      href="/"
-      class="inline-flex items-center gap-2.5"
-      aria-label="BLT University home"
-    >
-      <img
-        src="/assets/images/blt-university-logo.svg"
-        alt="BLT University logo"
-        class="h-12 w-12 rounded-full sm:h-14 sm:w-14"
-      />
-      <div class="flex flex-col">
-        <span class="text-sm font-semibold uppercase tracking-wide">BLT UNIVERSITY</span>
-      </div>
-    </a>
-
-    <nav
-      class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-7 lg:flex"
-      aria-label="Primary navigation"
-    >
-      
-      
-      <a
-        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
-        href="/courses/"
-        >Courses</a
-      >
-      
-      <a
-        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
-        href="/labs/"
-        >Labs</a
-      >
-      
-      <a
-        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
-        href="/progress/"
-        >Progress</a
-      >
-      
-      <a
-        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
-        href="/dashboard/"
-        >Security Trends</a
-      >
-      
-      <a
-        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
-        href="/instructors/"
-        >Instructors</a
-      >
-      
-    </nav>
-
-    <div class="hidden items-center gap-3 lg:flex">
-      
-      
-      
-      <a
-        class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
-        href="/request/"
-        >Request course</a
-      >
-      
-      
-      
-      <a
-        class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
-        href="/enroll/"
-        >Enroll now</a
-      >
-      
-      
-    </div>
-
-    <button
-      class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-lg:flex"
-      id="mobile-toggle"
-      type="button"
-      aria-label="BLT University menu"
-      aria-expanded="false"
-      aria-controls="mobile-menu"
-    >
-      <svg class="h-5 w-5 text-gray-600 dark:text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
-    </button>
-  </div>
-
-  <nav
-    class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-800 dark:bg-gray-900"
-    id="mobile-menu"
-    aria-label="Mobile navigation"
-  >
-    
-    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/courses/">Courses</a>
-    
-    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
-    
-    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/progress/">Progress</a>
-    
-    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/dashboard/">Security Trends</a>
-    
-    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
-    
-    
-    
-    <a
-      class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
-      href="/request/"
-      >Request course</a
-    >
-    
-    
-    
-    <a
-      class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
-      href="/enroll/"
-      >Enroll now</a
-    >
-    
-    
-  </nav>
-</header>
+    <blt-nav project="blt-university" name="University" current="auto" data-sticky>
+  <a href="/courses/">Courses</a>
+  <a href="/labs/">Labs</a>
+  <a href="/progress/">Progress</a>
+  <a href="/dashboard/">Security Trends</a>
+  <a href="/instructors/">Instructors</a>
+  <a href="/request/" slot="actions">Request course</a>
+  <a href="/enroll/" slot="actions" data-primary>Enroll now</a>
+</blt-nav>
 
 
     
@@ -365,7 +233,7 @@
 }</script>
 
 
-<main class="min-h-screen bg-[#fafafa] px-4 pb-24 pt-32 transition-colors dark:bg-gray-950 sm:px-6 sm:pt-36">
+<main class="min-h-screen bg-[#fafafa] px-4 pb-24 pt-12 transition-colors dark:bg-gray-950 sm:px-6 sm:pt-16">
   <section class="mx-auto max-w-6xl" aria-labelledby="progress-page-heading">
     <div class="mb-8 max-w-3xl">
       <p class="text-xs font-bold uppercase tracking-[0.2em] text-bltRed">Your activity</p>

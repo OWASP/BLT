@@ -3,9 +3,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // top-level script with no module system, so the key is repeated rather than imported.
     const LAB_PROGRESS_STORAGE_KEY = 'blt-lab-progress';
 
-    const mobileToggle = document.getElementById('mobile-toggle');
-    const mobileMenu = document.getElementById('mobile-menu');
-
     const returnCourseLink = document.querySelector('[data-return-course]');
     const coursesUrl = returnCourseLink?.getAttribute('href');
     const courseSlug = new URLSearchParams(window.location.search).get('course');
@@ -14,31 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
         returnCourseLink.setAttribute('href', `${normalizedCoursesUrl}${courseSlug}/`);
         returnCourseLink.classList.remove('hidden');
         returnCourseLink.classList.add('inline-flex');
-    }
-
-    if (mobileToggle && mobileMenu) {
-        mobileToggle.addEventListener('click', () => {
-            const open = !mobileMenu.classList.contains('open');
-            mobileMenu.classList.toggle('open', open);
-            mobileToggle.classList.toggle('active', open);
-            mobileToggle.setAttribute('aria-expanded', String(open));
-        });
-
-        mobileMenu.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                mobileMenu.classList.remove('open');
-                mobileToggle.classList.remove('active');
-                mobileToggle.setAttribute('aria-expanded', 'false');
-            });
-        });
-
-        document.addEventListener('keydown', event => {
-            if (event.key === 'Escape') {
-                mobileMenu.classList.remove('open');
-                mobileToggle.classList.remove('active');
-                mobileToggle.setAttribute('aria-expanded', 'false');
-            }
-        });
     }
 
     // Course Filtering
