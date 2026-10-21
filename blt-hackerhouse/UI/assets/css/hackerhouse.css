@@ -81,7 +81,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--blt-font-sans);
   font-weight: 700;
   font-size: 0.75rem;
   cursor: pointer;

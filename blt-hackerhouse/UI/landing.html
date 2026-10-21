@@ -8,9 +8,10 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,200&display=swap" rel="stylesheet">
 <script src="assets/js/theme.js"></script>
+<script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="stylesheet" href="assets/css/blt-design.css">
 <link rel="stylesheet" href="assets/css/hackerhouse.css">
 <script>
@@ -19,8 +20,8 @@ tailwind.config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+        sans: ["ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
       },
     },
   },
@@ -511,7 +512,7 @@ body::after {
 <!-- ═══ HEADER ═══ -->
 <header class="hh-header flex items-center justify-between px-4 lg:px-6 h-14 border-b border-[var(--blt-border)] bg-[var(--blt-surface)]/80 backdrop-blur-md sticky top-0 z-40">
   <div class="flex items-center gap-3">
-    <div class="w-8 h-8 rounded-md bg-[var(--blt-primary)] flex items-center justify-center text-white font-extrabold text-sm">B</div>
+    <img src="logo.svg" alt="" class="w-8 h-8" width="32" height="32">
     <div>
       <span class="text-sm font-semibold tracking-tight text-[var(--blt-text)]">BLT HackerHouse</span>
       <p class="text-[10px] font-mono text-[var(--blt-text-subtle)] tracking-wider hidden sm:block">COMMAND CENTER v0.4</p>
@@ -525,10 +526,6 @@ body::after {
     <a href="https://git.owaspblt.org/BLT/BLT-HackerHouse" target="_blank" rel="noopener" class="hh-icon-btn" aria-label="Source code" title="Source code">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M23.6 9.9l-2.6-8c-.1-.3-.4-.5-.8-.5-.3 0-.6.1-.7.4l-2.2 6.8H6.7L4.5 1.8c-.1-.3-.4-.4-.7-.4-.3 0-.6.2-.8.5l-2.6 8c-.1.2-.1.5.1.7l11.5 8.4 11.5-8.4c.2-.2.2-.5.1-.7z"/></svg>
     </a>
-    <button class="btn-secondary text-xs px-2" data-theme-toggle>
-      <span class="material-symbols-outlined text-sm theme-icon-light">dark_mode</span>
-      <span class="material-symbols-outlined text-sm theme-icon-dark" style="display:none">light_mode</span>
-    </button>
   </div>
 </header>
 

@@ -1,10 +1,13 @@
 (function () {
-  var storageKey = "blt-theme";
+  // Same contract as owaspblt.org and its <blt-nav> bar: class "dark" on <html>, saved as
+  // localStorage "theme". "blt-theme" is the key this site used before; still read once.
+  var storageKey = "theme";
+  var legacyKey = "blt-theme";
   var root = document.documentElement;
 
   function getStoredTheme() {
     try {
-      return localStorage.getItem(storageKey);
+      return localStorage.getItem(storageKey) || localStorage.getItem(legacyKey);
     } catch (error) {
       return null;
     }
@@ -21,7 +24,7 @@
       meta.setAttribute("name", "theme-color");
       document.head.appendChild(meta);
     }
-    meta.setAttribute("content", theme === "dark" ? "#111827" : "#f8fafc");
+    meta.setAttribute("content", theme === "dark" ? "#030712" : "#f9fafb");
   }
 
   function applyTheme(theme, persist) {
@@ -59,6 +62,12 @@
   });
 
   document.addEventListener("DOMContentLoaded", syncThemeControls);
+
+  // The bar's toggle has already set html.dark and saved the choice; keep data-theme and
+  // the theme-color meta in step.
+  window.addEventListener("blt-theme-change", function (event) {
+    applyTheme(event.detail && event.detail.dark ? "dark" : "light", false);
+  });
 
   window.BLTTheme = {
     apply: applyTheme,

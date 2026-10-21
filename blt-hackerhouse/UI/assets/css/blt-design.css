@@ -1,25 +1,23 @@
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap");
-
 :root {
   color-scheme: light;
-  --blt-primary: #e10101;
+  --blt-primary: #dc2626;
   --blt-primary-hover: #b91c1c;
-  --blt-primary-soft: #feeae9;
-  --blt-background: #f8fafc;
-  --blt-background-glow: rgba(225, 1, 1, 0.1);
+  --blt-primary-soft: #fef2f2;
+  --blt-background: #f9fafb;
+  --blt-background-glow: transparent;
   --blt-surface: #ffffff;
   --blt-surface-raised: #ffffff;
-  --blt-surface-muted: #f8fafc;
+  --blt-surface-muted: #f9fafb;
   --blt-border: #e5e7eb;
-  --blt-border-strong: #cbd5e1;
+  --blt-border-strong: #d1d5db;
   --blt-text: #111827;
-  --blt-text-muted: #64748b;
-  --blt-text-subtle: #94a3b8;
+  --blt-text-muted: #6b7280;
+  --blt-text-subtle: #9ca3af;
   --blt-code-bg: #111827;
   --blt-code-text: #e5e7eb;
   --blt-shadow-soft: 0 14px 40px -28px rgba(17, 24, 39, 0.35);
-  --blt-font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --blt-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --blt-font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --blt-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 .dark {
@@ -27,17 +25,17 @@
   --blt-primary: #ef4444;
   --blt-primary-hover: #dc2626;
   --blt-primary-soft: rgba(127, 29, 29, 0.34);
-  --blt-background: #111827;
-  --blt-background-glow: rgba(239, 68, 68, 0.12);
-  --blt-surface: #1f2937;
-  --blt-surface-raised: #273244;
-  --blt-surface-muted: #182230;
-  --blt-border: #2b3546;
-  --blt-border-strong: #3b4658;
+  --blt-background: #030712;
+  --blt-background-glow: transparent;
+  --blt-surface: #111827;
+  --blt-surface-raised: #1f2937;
+  --blt-surface-muted: #0b1120;
+  --blt-border: #1f2937;
+  --blt-border-strong: #374151;
   --blt-text: #f9fafb;
-  --blt-text-muted: #cbd5e1;
-  --blt-text-subtle: #94a3b8;
-  --blt-code-bg: #0b1220;
+  --blt-text-muted: #d1d5db;
+  --blt-text-subtle: #9ca3af;
+  --blt-code-bg: #030712;
   --blt-code-text: #dbe4f0;
   --blt-shadow-soft: 0 18px 48px -30px rgba(0, 0, 0, 0.55);
 }
@@ -58,9 +56,7 @@ pre {
 }
 
 body {
-  background:
-    radial-gradient(circle at 18% 0%, var(--blt-background-glow), transparent 30rem),
-    linear-gradient(to bottom, var(--blt-background), var(--blt-surface-muted) 48%, var(--blt-background));
+  background: var(--blt-background);
   color: var(--blt-text);
   transition:
     background-color 180ms ease,
@@ -227,7 +223,7 @@ code:not(pre code) {
 .blt-page-main::before {
   background:
     radial-gradient(circle at 20% 0%, var(--blt-background-glow), transparent 28rem),
-    radial-gradient(circle at 80% 0%, rgba(225, 1, 1, 0.06), transparent 24rem);
+    radial-gradient(circle at 80% 0%, var(--blt-background-glow), transparent 24rem);
   content: "";
   height: 28rem;
   inset: 0 0 auto;

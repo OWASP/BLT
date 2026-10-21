@@ -9,9 +9,10 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,200&display=swap" rel="stylesheet">
 <script src="assets/js/theme.js"></script>
+<script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="stylesheet" href="assets/css/blt-design.css">
 <link rel="stylesheet" href="assets/css/hackerhouse.css">
 <script>
@@ -20,8 +21,8 @@ tailwind.config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+        sans: ["ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
       },
     },
   },
@@ -90,7 +91,7 @@ tailwind.config = {
     <!-- Brand -->
     <div class="flex items-center justify-between px-4 pt-5 pb-4">
       <a class="flex items-center gap-2.5" href="landing.html">
-        <div class="w-8 h-8 rounded-md bg-[var(--blt-primary)] flex items-center justify-center text-white font-extrabold text-sm">B</div>
+        <img src="logo.svg" alt="" class="w-8 h-8" width="32" height="32">
         <div>
           <span class="text-sm font-semibold tracking-tight text-[var(--blt-text)]">BLT HackerHouse</span>
           <p class="text-[10px] font-mono text-[var(--blt-text-subtle)] tracking-wider">COMMAND CENTER</p>
@@ -124,15 +125,6 @@ tailwind.config = {
       </a>
     </nav>
 
-    <!-- Theme Toggle -->
-    <div class="px-3 pt-3">
-      <button class="hh-theme-toggle w-full" type="button" data-theme-toggle>
-        <span class="material-symbols-outlined text-sm theme-icon-light">dark_mode</span>
-        <span class="material-symbols-outlined text-sm theme-icon-dark" style="display:none">light_mode</span>
-        <span class="text-xs font-semibold" data-theme-label>Dark</span>
-      </button>
-    </div>
-
     <!-- Footer -->
     <div class="mt-3 mb-4 px-3 pt-3 border-t border-[var(--blt-border)]">
       <button class="blt-button-primary w-full text-xs" onclick="alert('Node connection coming soon')">
@@ -143,14 +135,14 @@ tailwind.config = {
   </aside>
 
   <!-- ═══ MAIN CONTENT ═══ -->
-  <main class="blt-page-main flex flex-col h-screen overflow-hidden">
+  <main class="blt-page-main flex flex-col h-[calc(100vh-61px)] overflow-hidden">
 
     <!-- ── Top Bar ── -->
     <header class="hh-header flex-none flex items-center justify-between px-4 lg:px-6 h-14 border-b border-[var(--blt-border)] bg-[var(--blt-surface)]/80 backdrop-blur-md z-30">
       <div class="flex items-center gap-4">
         <!-- Mobile hamburger -->
-        <button class="lg:hidden p-1.5 rounded-md text-[var(--blt-text-muted)] hover:text-[var(--blt-text)] hover:bg-[var(--blt-surface-muted)] transition-colors" onclick="document.querySelector('aside').classList.toggle('hidden')">
-          <span class="material-symbols-outlined text-lg">menu</span>
+        <button class="lg:hidden p-1.5 rounded-md text-[var(--blt-text-muted)] hover:text-[var(--blt-text)] hover:bg-[var(--blt-surface-muted)] transition-colors" aria-label="HackerHouse menu" onclick="document.querySelector('aside').classList.toggle('hidden')">
+          <span class="material-symbols-outlined text-lg">more_horiz</span>
         </button>
         <nav class="hidden sm:flex items-center gap-1.5 hh-breadcrumbs" aria-label="Breadcrumb">
           <a href="index.html" class="hover:text-[var(--blt-text)] transition-colors">HackerHouse</a>
