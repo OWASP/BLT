@@ -1,0 +1,111 @@
+{
+  "blt-api": [
+    "blt-api/static/blt-api.svg"
+  ],
+  "blt-byte": [
+    "blt-byte/public/static/byte-logo.svg"
+  ],
+  "blt-dash": [
+    "blt-dash/public/logo.svg"
+  ],
+  "blt-design-contest": [
+    "blt-design-contest/public/logo.svg"
+  ],
+  "blt-design": [
+    "blt-design/docs/assets/img/blt-design.svg"
+  ],
+  "blt-docs": [
+    "blt-docs/docs/assets/logo.svg"
+  ],
+  "blt-extension": [
+    "blt-extension/public/logo.svg"
+  ],
+  "blt-flutter": [
+    "blt-flutter/public/assets/blt-flutter-logo.svg"
+  ],
+  "blt-hackathons": [
+    "blt-hackathons/public/logo.svg"
+  ],
+  "blt-hackerhouse": [
+    "blt-hackerhouse/UI/logo.svg"
+  ],
+  "blt-jobs": [
+    "blt-jobs/public/assets/images/blt-logo.svg"
+  ],
+  "blt-ketchup": [
+    "blt-ketchup/public/logo.svg"
+  ],
+  "blt-leaf": [
+    "blt-leaf/public/static/blt-leaf-logo.svg"
+  ],
+  "blt-lettuce": [
+    "blt-lettuce/public/logo.svg"
+  ],
+  "blt-mcp": [
+    "blt-mcp/public/logo.svg"
+  ],
+  "blt-monitor": [
+    "blt-monitor/public/logo.svg"
+  ],
+  "blt-netguardian": [
+    "blt-netguardian/public/assets/img/blt-netguardian-logo.svg"
+  ],
+  "blt-newsletter": [
+    "blt-newsletter/public/static/images/logo.svg"
+  ],
+  "blt-nexus": [
+    "blt-nexus/public/logo.svg"
+  ],
+  "blt-ossh": [
+    "blt-ossh/public/static/ossh-logo.svg"
+  ],
+  "blt-owasp-wich": [
+    "blt-owasp-wich/public/wich-logo.svg"
+  ],
+  "blt-pages": [
+    "blt-pages/public/static/blt-pages-logo.svg"
+  ],
+  "blt-panini": [
+    "blt-panini/public/panini-logo.svg"
+  ],
+  "blt-pool": [
+    "blt-pool/public/blt-pool-logo.svg"
+  ],
+  "blt-preflight": [
+    "blt-preflight/public/logo.svg"
+  ],
+  "blt-rewards": [
+    "blt-rewards/public/static/images/blt-rewards-logo.svg"
+  ],
+  "blt-safecloak": [
+    "blt-safecloak/public/img/logo.svg"
+  ],
+  "blt-sammich": [
+    "blt-sammich/public/static/sammich-logo.svg"
+  ],
+  "blt-sizzle": [
+    "blt-sizzle/src/assets/logo.svg"
+  ],
+  "blt-start": [
+    "blt-start/public/logo.svg"
+  ],
+  "blt-timer-web": [
+    "blt-timer-web/public/assets/logo.svg"
+  ],
+  "blt-tomato": [
+    "blt-tomato/public/logo.svg"
+  ],
+  "blt-university": [
+    "blt-university/assets/images/blt-university-logo.svg",
+    "blt-university/public/assets/images/blt-university-logo.svg"
+  ],
+  "blt-vanish": [
+    "blt-vanish/web_client/assets/blt-vanish-logo.svg"
+  ],
+  "blt-waypoint": [
+    "blt-waypoint/public/imgs/project-logos-v2/BLT-Waypoint.svg"
+  ],
+  "blt-zero": [
+    "blt-zero/static/blt-zero-logo.svg"
+  ]
+}

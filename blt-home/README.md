@@ -37,7 +37,7 @@ The page inserts values with `textContent` only. A number whose source is down s
 ## Changing the page
 
 - **Banner:** the `<a id="announcement">` element near the top of `public/index.html`. Edit its text and `href`, or delete it.
-- **Products:** the Explore cards in `public/index.html` are the single list; the tabs, the logo orbit and the apps menu are built from them. Logos are in `public/_home/logos/`: each is a copy of the project folder's `logo.svg` (SVG only; keep them identical). Only projects with a live site belong here.
+- **Products:** the Explore cards in `public/index.html` are the single list; the tabs, the logo orbit and the apps menu are built from them. Logos are in `public/_home/logos/`: each is the project's `logo.svg`, a wasp badge made by `scripts/wasp-badges/build.mjs` (see its README; `npm test` checks they are current). Only projects with a live site belong here.
 - **Shared top bar:** `public/_shared/blt-nav.js` is the same header for every other BLT site: `<script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>` puts it at the top of the page (options are at the top of the file). Its `APPS` list must match the Explore cards; `npm test` checks that, so update both together.
 - **Styles:** Tailwind is compiled once, so there is no CDN at runtime. After changing classes, run:
 
