@@ -7,6 +7,16 @@
   <meta name="description" content="BLT-Zero - zero-trust vulnerability reporting platform" />
   <meta name="theme-color" content="#f9fafb" />
   <script>
+    // Before first paint: the saved theme (localStorage "theme", shared with the <blt-nav> bar), else the system preference.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("theme"); } catch (e) { saved = null; }
+      var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", dark);
+    })();
+  </script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <script>
     window.tailwind = window.tailwind || {};
     window.tailwind.config = {
       darkMode: "class",
@@ -27,17 +37,14 @@
             button: "0 12px 26px -18px rgba(220, 38, 38, .85)"
           },
           fontFamily: {
-            sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
-            mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"]
+            sans: ["ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", '"Segoe UI"', "Roboto", '"Helvetica Neue"', "Arial", "sans-serif"],
+            mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"]
           }
         }
       }
     };
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     html,
     body {
@@ -50,7 +57,7 @@
         radial-gradient(circle at top left, rgba(220, 38, 38, .08), transparent 28rem),
         #f9fafb;
       color: #111827;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
     .dot-field {
@@ -75,9 +82,6 @@
     .text-pretty { text-wrap: pretty; }
 
     .mobile-menu.open { display: flex; }
-    .mobile-toggle.active span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-    .mobile-toggle.active span:nth-child(2) { opacity: 0; }
-    .mobile-toggle.active span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
     .footer-panel::before {
       content: "";
@@ -100,7 +104,7 @@
       margin: 0;
       color: #059669;
       white-space: pre-wrap;
-      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: .875rem;
       line-height: 1.5rem;
     }
@@ -109,18 +113,50 @@
       margin: 0;
       color: #dc2626;
       white-space: pre-wrap;
-      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: .875rem;
       line-height: 1.5rem;
     }
+
+    /* Dark mode (html.dark, set by the pre-paint script and the <blt-nav> toggle): remap the
+       light utility classes the pages use onto the owaspblt.org dark palette (gray-950 page,
+       gray-900 cards, gray-800 borders). */
+    html.dark body {
+      background:
+        radial-gradient(circle at top left, rgba(220, 38, 38, .10), transparent 28rem),
+        #030712;
+      color: #f3f4f6;
+    }
+    html.dark .dot-field { background-image: radial-gradient(rgba(255, 255, 255, .10) 1px, transparent 1px); }
+    html.dark header.site-header { background-color: rgba(3, 7, 18, .9); border-color: #1f2937; }
+    html.dark .bg-white, html.dark .hover\:bg-white:hover { background-color: #111827; }
+    html.dark .bg-white\/50, html.dark .bg-white\/90, html.dark .bg-white\/95 { background-color: rgba(17, 24, 39, .85); }
+    html.dark .bg-gray-50, html.dark .hover\:bg-gray-50:hover { background-color: #030712; }
+    html.dark .bg-gray-100, html.dark .hover\:bg-gray-100:hover { background-color: #1f2937; }
+    html.dark .bg-gray-900 { background-color: #374151; }
+    html.dark .bg-red-50 { background-color: rgba(127, 29, 29, .25); }
+    html.dark .bg-amber-50 { background-color: rgba(120, 53, 15, .25); }
+    html.dark .border-gray-100, html.dark .border-gray-200, html.dark .border-gray-300, html.dark .border-black\/5 { border-color: #1f2937; }
+    html.dark .border-red-100, html.dark .border-red-200 { border-color: rgba(185, 28, 28, .45); }
+    html.dark .border-amber-200 { border-color: rgba(180, 83, 9, .45); }
+    html.dark .text-gray-900, html.dark .hover\:text-gray-900:hover { color: #f3f4f6; }
+    html.dark .text-gray-700 { color: #d1d5db; }
+    html.dark .text-gray-600, html.dark .text-gray-500 { color: #9ca3af; }
+    html.dark .text-red-600, html.dark .text-red-500 { color: #f87171; }
+    html.dark .text-amber-700 { color: #fbbf24; }
+    html.dark .bg-gray-600 { background-color: #9ca3af; }
+    html.dark input, html.dark textarea { color-scheme: dark; }
+    html.dark .focus\:ring-red-100:focus { --tw-ring-color: rgba(127, 29, 29, .5); }
+    html.dark .msg-ok { color: #34d399; }
+    html.dark .msg-error { color: #f87171; }
   </style>
   {{TURNSTILE_SCRIPT}}
 </head>
 <body class="font-sans antialiased selection:bg-red-100 selection:text-red-700">
-  <header class="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]">
+  <header class="site-header sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]">
     <nav class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-6 max-md:px-4">
       <a href="/" class="inline-flex items-center gap-2.5" aria-label="BLT-Zero home">
-        <img src="/logo.png" alt="BLT-Zero Logo" class="h-9 w-9 rounded-lg border border-red-100 bg-white p-1 shadow-sm" />
+        <img src="/blt-zero-logo.svg" alt="BLT-Zero logo" class="h-9 w-9 rounded-full" />
         <span class="text-sm font-semibold tracking-tight text-gray-900">BLT-Zero</span>
       </a>
 
@@ -139,10 +175,8 @@
         </a>
       </div>
 
-      <button class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-md:flex" id="mobile-toggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
-        <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
-        <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
-        <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <button class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-md:flex" id="mobile-toggle" type="button" aria-label="BLT-Zero menu" aria-expanded="false" aria-controls="mobile-menu">
+        <svg class="h-5 w-5 text-gray-600" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
       </button>
     </nav>
 
