@@ -277,6 +277,7 @@
     "@media (max-width:767px){.panel{position:fixed;left:16px;right:16px;top:var(--blt-apps-top,68px);margin-top:0;width:auto;max-width:none}.scroll{max-height:calc(100vh - var(--blt-apps-top,68px) - 96px)}}",
     // Small phones with a project part: everything a little tighter so the name fits.
     "@media (max-width:479px){:host([blt-project]) .in{gap:6px;padding:12px 10px 12px 12px}:host([blt-project]) .brand{gap:8px}:host([blt-project]) .brand img{width:28px;height:28px}:host([blt-project]) .brand span{font-size:16px}:host([blt-project]) .sep{margin:0 5px 0 2px}:host([blt-project]) .proj{gap:6px}:host([blt-project]) .proj img{width:22px;height:22px}:host([blt-project]) .proj span{font-size:15px}:host([blt-project]) .right{gap:2px}:host([blt-project]) .icon{width:32px}}",
+    "@media (max-width:399px){:host([blt-project]) .brand{gap:6px}:host([blt-project]) .brand span{font-size:15px}:host([blt-project]) .proj img{width:20px;height:20px}:host([blt-project]) .proj span{font-size:14px}}",
     // dark
     ":host([dark]){color:#f3f4f6;color-scheme:dark}",
     ":host([dark]) .bar{background:rgba(3,7,18,.85);border-bottom-color:rgba(255,255,255,.1)}",
