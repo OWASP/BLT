@@ -313,10 +313,10 @@ def test_ui_js_copy_to_clipboard_has_fallback():
     assert 'textarea' in js
 
 
-def test_ui_js_navbar_toggle_closes_on_outside_click():
+def test_ui_js_marks_the_current_link_in_the_shared_bar():
     js = _read('ui.js')
-    assert 'navbar-nav' in js
-    assert 'navbar-toggle' in js
+    assert 'blt-nav > a' in js
+    assert 'navbar-toggle' not in js
 
 
 # ── theme.js ──────────────────────────────────────────────────────────────────

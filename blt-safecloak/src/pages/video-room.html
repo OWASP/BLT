@@ -63,39 +63,26 @@
   </head>
   <body class="font-sans antialiased">
     <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
+    <blt-nav project="blt-safecloak" name="SafeCloak">
+      <a href="/video-chat">Video Chat</a>
+      <a href="/notes">Secure Notes</a>
+      <a href="/consent">Consent</a>
+    </blt-nav>
 
-    <div class="mx-auto flex min-h-screen w-full flex-col">
-      <header
-        class="mb-4 flex items-center justify-between border border-neutral-border bg-white/95 px-4 py-3 shadow-sm backdrop-blur"
-      >
-        <a class="flex items-center gap-3" href="/" aria-label="BLT-SafeCloak Home">
-          <img
-            src="img/logo.svg"
-            alt="BLT-SafeCloak logo"
-            class="h-10 w-10 rounded-md object-contain"
-            onerror="
-              this.style.display = 'none';
-              this.nextElementSibling.style.display = 'flex';
-            "
-          />
-          <div>
-            <p class="text-sm font-extrabold leading-none sm:text-base">BLT-SafeCloak</p>
-          </div>
-        </a>
-
-        <div class="inline-flex items-center gap-2">
-          <div
-            class="inline-flex items-center gap-2 rounded-full border border-neutral-border bg-white px-3 py-1.5 text-xs shadow-sm sm:text-sm"
-          >
-            <span
-              class="status-dot connecting"
-              id="status-dot"
-              aria-label="Connection status"
-            ></span>
-            <span id="connection-status" class="text-muted">Initializing...</span>
-          </div>
+    <div class="mx-auto flex min-h-[calc(100vh-62px)] w-full flex-col">
+      <!-- Connection status (the header row moved into the shared BLT bar) -->
+      <div class="mb-4 flex justify-end px-4 pt-3">
+        <div
+          class="inline-flex items-center gap-2 rounded-full border border-neutral-border bg-white px-3 py-1.5 text-xs shadow-sm sm:text-sm"
+        >
+          <span
+            class="status-dot connecting"
+            id="status-dot"
+            aria-label="Connection status"
+          ></span>
+          <span id="connection-status" class="text-muted">Initializing...</span>
         </div>
-      </header>
+      </div>
 
       <main id="voice" class="flex-1 px-10">
         <div class="alert alert-info mb-4" id="perm-alert">

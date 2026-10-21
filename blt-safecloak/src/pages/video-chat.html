@@ -63,83 +63,18 @@
   <body class="font-sans antialiased">
     <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
 
-    <nav
-      class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur"
-      role="navigation"
-      aria-label="Main navigation"
-    >
-      <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <a class="flex items-center gap-3" href="/" aria-label="BLT-SafeCloak Home">
-          <img
-            src="img/logo.svg"
-            alt="BLT-SafeCloak logo"
-            class="h-10 w-10 rounded-md object-contain"
-            onerror="
-              this.style.display = 'none';
-              this.nextElementSibling.style.display = 'flex';
-            "
-          />
-          <div>
-            <p class="text-sm font-extrabold leading-none sm:text-base">BLT-SafeCloak</p>
-          </div>
-        </a>
-
-        <button
-          class="rounded-md border border-neutral-border p-2 text-gray-700 md:hidden"
-          id="navbar-toggle"
-          aria-label="SafeCloak menu"
-          aria-expanded="false"
-          type="button"
-        >
-          <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
-        </button>
-
-        <ul
-          class="navbar-nav hidden absolute left-4 right-4 top-[4.2rem] flex-col gap-2 rounded-lg border border-neutral-border bg-white p-3 md:static md:flex md:flex-row md:items-center md:gap-1 md:border-0 md:bg-transparent md:p-0"
-          id="navbar-nav"
-          role="list"
-        >
-          <li>
-            <a
-              href="/"
-              class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
-              >Home</a
-            >
-          </li>
-          <li>
-            <a
-              href="/video-chat"
-              class="nav-link active block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
-              >Video Chat</a
-            >
-          </li>
-          <li>
-            <a
-              href="/notes"
-              class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
-              >Secure Notes</a
-            >
-          </li>
-          <li>
-            <a
-              href="/consent"
-              class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
-              >Consent</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
-              target="_blank"
-              rel="noopener"
-              class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
-            >
-              <i class="fa-solid fa-code mr-2" aria-hidden="true"></i>Source code
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
+    <blt-nav project="blt-safecloak" name="SafeCloak" data-sticky>
+      <a href="/video-chat" aria-current="page">Video Chat</a>
+      <a href="/notes">Secure Notes</a>
+      <a href="/consent">Consent</a>
+      <a
+        href="https://git.owaspblt.org/BLT/tree/main/blt-safecloak"
+        target="_blank"
+        rel="noopener"
+        slot="actions"
+        >Source code</a
+      >
+    </blt-nav>
 
     <div class="mx-auto w-full max-w-6xl px-4 pb-10 pt-8 sm:px-6 lg:px-8">
       <header class="mb-6 text-center sm:mb-8">

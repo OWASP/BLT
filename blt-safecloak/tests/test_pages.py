@@ -3,7 +3,7 @@ Static HTML structure tests for all pages in src/pages/.
 
 These tests verify that:
   - Each page has the expected <title>, charset, and viewport meta.
-  - Navigation elements are present (navbar, shared BLT nav with the theme toggle).
+  - Navigation is the shared BLT bar (<blt-nav>, with the theme toggle); no own navbar.
   - Page-specific UI elements are present (editor, consent form, etc.).
   - The correct JS/CSS assets are referenced.
   - Source links point at the BLT monorepo on git.owaspblt.org.
@@ -40,14 +40,27 @@ def test_all_pages_have_viewport_meta():
         assert 'name="viewport"' in html, f'{page} is missing viewport meta tag'
 
 
-def test_all_pages_have_navbar_toggle():
-    """Mobile hamburger menu must be present on informational and lobby pages."""
-    # video-room.html is the in-call room: it has a simplified header without
-    # the mobile hamburger toggle (by design).
-    pages_with_navbar = ['index.html', 'notes.html', 'consent.html', 'video-chat.html']
-    for page in pages_with_navbar:
+def test_all_pages_use_the_shared_bar_as_their_only_header():
+    """The SafeCloak links live in <blt-nav>; no page has its own navbar or mobile menu."""
+    pages_with_links = {
+        'index.html': None,
+        'notes.html': '/notes',
+        'consent.html': '/consent',
+        'video-chat.html': '/video-chat',
+    }
+    for page, current in pages_with_links.items():
         html = _read(page)
-        assert 'id="navbar-toggle"' in html, f'{page} is missing #navbar-toggle'
+        assert '<blt-nav project="blt-safecloak" name="SafeCloak" data-sticky>' in html, page
+        assert 'id="navbar-toggle"' not in html, f'{page} still has its own mobile menu'
+        assert 'id="navbar-nav"' not in html, f'{page} still has its own navbar'
+        assert 'slot="actions"\n        >Source code</a' in html, page
+        if current:
+            assert f'<a href="{current}" aria-current="page">' in html, page
+    assert 'slot="actions" data-primary>Start Secure Call</a>' in _read('index.html')
+    room = _read('video-room.html')
+    assert '<blt-nav project="blt-safecloak" name="SafeCloak">' in room
+    assert '<header' not in room
+    assert 'id="connection-status"' in room
 
 
 def test_all_pages_load_the_blt_nav():

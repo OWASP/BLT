@@ -32,32 +32,13 @@ function showToast(message, type = "info", duration = 3500) {
   }, duration);
 }
 
-/* ── Navbar toggle ── */
+/* ── Site links in the shared BLT bar ── */
+// The pages mark their own link with aria-current="page"; this covers any page that doesn't.
 document.addEventListener("DOMContentLoaded", () => {
-  const toggle = document.getElementById("navbar-toggle");
-  const nav = document.getElementById("navbar-nav");
-  if (toggle && nav) {
-    toggle.addEventListener("click", () => {
-      const isOpen = nav.classList.toggle("open");
-      toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
-    });
-    // Close on outside click
-    document.addEventListener("click", (e) => {
-      if (!toggle.contains(e.target) && !nav.contains(e.target)) {
-        nav.classList.remove("open");
-        toggle.setAttribute("aria-expanded", "false");
-      }
-    });
-  }
-
-  // Mark active nav link
-  const currentPage = window.location.pathname.split("/").pop() || "index.html";
-  const links = document.querySelectorAll(".navbar-nav a");
+  const links = Array.from(document.querySelectorAll("blt-nav > a"));
+  if (links.some((link) => link.getAttribute("aria-current") === "page")) return;
   links.forEach((link) => {
-    const href = link.getAttribute("href");
-    if (link.href === window.location.href || href === currentPage) {
-      link.classList.add("active");
-    }
+    if (link.href === window.location.href) link.setAttribute("aria-current", "page");
   });
 });
 

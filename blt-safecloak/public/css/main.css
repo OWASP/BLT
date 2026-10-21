@@ -115,8 +115,13 @@ body {
   border-color: var(--blt-primary);
 }
 
-.navbar-nav.open {
-  display: flex;
+blt-nav:not(:defined) {
+  display: block;
+  min-height: 61px;
+}
+
+blt-nav:not(:defined) > * {
+  display: none;
 }
 
 /* === Cards === */
