@@ -715,7 +715,7 @@ class Listbounties(TemplateView):
 
             headers = {
                 "Accept": "application/vnd.github.v3+json",
-                "User-Agent": "OWASP_BLT-App/1.0 (+https://blt.owasp.org)",
+                "User-Agent": "OWASP_BLT-App/1.0 (+https://legacy.owaspblt.org)",
             }
 
             # Try both token names since the code is using inconsistent environment variable names
@@ -4091,7 +4091,7 @@ class BountyPayoutsView(ListView):
         headers = {
             "Accept": "application/vnd.github.mockingbird-preview+json",  # Preview header for timeline events
             "Authorization": f"token {settings.GITHUB_TOKEN}",
-            "User-Agent": "OWASP_BLT-App/1.0 (+https://blt.owasp.org)",  # Good practice to use a proper user agent
+            "User-Agent": "OWASP_BLT-App/1.0 (+https://legacy.owaspblt.org)",  # Good practice to use a proper user agent
         }
 
         try:
@@ -4354,7 +4354,7 @@ class BountyPayoutsView(ListView):
         headers = {
             "Accept": "application/vnd.github.v3+json",
             "Authorization": f"token {settings.GITHUB_TOKEN}",
-            "User-Agent": "OWASP_BLT-App/1.0 (+https://blt.owasp.org)",
+            "User-Agent": "OWASP_BLT-App/1.0 (+https://legacy.owaspblt.org)",
         }
 
         try:

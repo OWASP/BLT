@@ -190,7 +190,7 @@ class Command(LoggedBaseCommand):
         subject = f"{organization.name} - Weekly Bug Report Digest"
 
         # Validate and sanitize domain_name to prevent URL injection
-        domain_name = getattr(settings, "DOMAIN_NAME", "blt.owasp.org")
+        domain_name = getattr(settings, "DOMAIN_NAME", "legacy.owaspblt.org")
         # Remove any protocol and whitespace
         domain_name = domain_name.strip().replace("http://", "").replace("https://", "")
         # Validate it's a reasonable domain (proper format with labels separated by dots)
@@ -198,7 +198,7 @@ class Command(LoggedBaseCommand):
             r"^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$", domain_name
         ):
             logger.error("Invalid DOMAIN_NAME in settings, using default")
-            domain_name = "blt.owasp.org"  # Fallback to safe default
+            domain_name = "legacy.owaspblt.org"  # Fallback to safe default
 
         # Prepare context for email template
         context = {

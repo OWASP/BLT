@@ -28,13 +28,15 @@ DISCORD_BOT_TOKEN = os.environ.get("DISCORD_BOT_TOKEN", "blank")
 GITHUB_WEBHOOK_SECRET = os.environ.get("GITHUB_WEBHOOK_SECRET", "")
 
 PROJECT_NAME = "BLT"
-DOMAIN_NAME = "blt.owasp.org"
-FQDN = "blt.owasp.org"
+# The app now lives at legacy.owaspblt.org (blt.owasp.org redirects to the new site).
+# Both can be overridden from the environment, like PRODUCTION_DOMAIN below.
+DOMAIN_NAME = os.environ.get("DOMAIN_NAME", "legacy.owaspblt.org")
+FQDN = os.environ.get("FQDN", DOMAIN_NAME)
 DOMAIN_NAME_PREVIOUS = os.environ.get("DOMAIN_NAME_PREVIOUS", "BLT")
 
 # Staging to production redirect settings
 STAGING_DOMAIN = os.environ.get("STAGING_DOMAIN", "blt-staging.herokuapp.com")
-PRODUCTION_DOMAIN = os.environ.get("PRODUCTION_DOMAIN", "blt.owasp.org")
+PRODUCTION_DOMAIN = os.environ.get("PRODUCTION_DOMAIN", "legacy.owaspblt.org")
 ENABLE_STAGING_REDIRECT = os.environ.get("ENABLE_STAGING_REDIRECT", "False").lower() == "true"
 
 PROJECT_NAME_LOWER = PROJECT_NAME.lower()
@@ -403,8 +405,15 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "0.0.0.0",
+    "legacy.owaspblt.org",
+    "blt.owasp.org",  # the old address, kept so requests that still reach it work
 ]
 ALLOWED_HOSTS.extend(os.environ.get("ALLOWED_HOSTS", "").split(","))
+
+# HTTPS origins whose form posts are accepted. More can be added from the environment
+# (comma-separated, with the scheme, e.g. "https://example.org").
+CSRF_TRUSTED_ORIGINS = ["https://legacy.owaspblt.org", "https://blt.owasp.org"]
+CSRF_TRUSTED_ORIGINS.extend(o.strip() for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip())
 
 if DEBUG:
     ALLOWED_HOSTS = ["*"]

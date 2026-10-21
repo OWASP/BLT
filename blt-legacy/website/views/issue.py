@@ -992,7 +992,7 @@ def SaveBiddingData(request):
         bid.modified = current_time
         bid.save()
 
-        bid_link = f"https://blt.owasp.org/generate_bid_image/{amount}/"
+        bid_link = f"https://{settings.FQDN}/generate_bid_image/{amount}/"
 
         # For test requests, return a 200 response
         if is_test:
