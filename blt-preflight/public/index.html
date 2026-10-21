@@ -6,10 +6,12 @@
   <meta name="description" content="BLT Preflight UI examples for contributor security guidance.">
   <title>BLT Preflight UI</title>
   <script>
-    const savedTheme = localStorage.getItem('blt-theme');
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
-    }
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('theme') || localStorage.getItem('blt-theme'); } catch (e) {}
+      var dark = saved === 'dark' || (saved !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.classList.toggle('dark', dark);
+    })();
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -18,34 +20,32 @@
       theme: {
         extend: {
           colors: {
-            blt: { red: '#E10101', hover: '#B91C1C' },
-            ink: '#111827',
-            panel: '#1F2937',
-            line: '#2B3546'
+            blt: { red: '#dc2626', hover: '#b91c1c' },
+            ink: '#030712',
+            panel: '#111827',
+            line: '#1f2937'
           },
           fontFamily: {
-            sans: ['Manrope', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace']
+            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
           }
         }
       }
     };
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    ::selection { background: #E10101; color: white; }
-    .hero-glow { background: radial-gradient(circle, rgba(225, 1, 1, .16), transparent 68%); }
+    ::selection { background: #dc2626; color: white; }
+    .hero-glow { background: radial-gradient(circle, rgba(220, 38, 38, .16), transparent 68%); }
     .code-scroll::-webkit-scrollbar { height: 6px; }
     .code-scroll::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 999px; }
   </style>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 antialiased dark:bg-ink dark:text-slate-100">
   <header class="sticky top-0 z-30 border-b border-gray-200 bg-white/90 backdrop-blur dark:border-line dark:bg-ink/90">
     <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
       <a href="#" class="flex items-center gap-3" aria-label="BLT Preflight home">
-        <img src="logo.png" alt="BLT Preflight logo" class="h-9 w-9 rounded-lg object-contain" width="36" height="36">
+        <img src="logo.svg" alt="BLT Preflight logo" class="h-9 w-9 rounded-lg object-contain" width="36" height="36">
         <span>
           <span class="block text-sm font-extrabold tracking-tight">BLT Preflight</span>
           <span class="block text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">UI field guide</span>
@@ -56,10 +56,6 @@
         <a href="#principles" class="transition hover:text-blt-red">Principles</a>
       </nav>
       <div class="flex items-center gap-2">
-        <button id="theme-toggle" type="button" class="grid h-9 w-9 place-items-center rounded-md border border-gray-200 bg-white text-slate-600 transition hover:border-blt-red hover:text-blt-red dark:border-line dark:bg-panel dark:text-slate-300" aria-label="Switch to dark mode">
-          <svg class="h-4 w-4 dark:hidden" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2m0 14v2M3 12h2m14 0h2m-3.6-6.4-1.4 1.4M8 16l-1.4 1.4m0-11.8L8 7m8 9 1.4 1.4"/><circle cx="12" cy="12" r="4"/></svg>
-          <svg class="hidden h-4 w-4 dark:block" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.5 14.4A8 8 0 0 1 9.6 3.5 8.5 8.5 0 1 0 20.5 14.4Z"/></svg>
-        </button>
         <a href="https://git.owaspblt.org/BLT/BLT-Preflight" class="rounded-md bg-blt-red px-3 py-2 text-xs font-bold text-white transition hover:bg-blt-hover sm:px-4 sm:text-sm">View GitHub</a>
       </div>
     </div>
@@ -213,19 +209,6 @@
   </footer>
 
   <script>
-    const themeToggle = document.getElementById('theme-toggle');
-    const setThemeLabel = () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
-    };
-
-    setThemeLabel();
-    themeToggle.addEventListener('click', () => {
-      const isDark = document.documentElement.classList.toggle('dark');
-      localStorage.setItem('blt-theme', isDark ? 'dark' : 'light');
-      setThemeLabel();
-    });
-
     document.querySelectorAll('.copy-btn').forEach((button) => {
       button.addEventListener('click', async () => {
         const snippet = document.getElementById(button.dataset.copy).textContent;
