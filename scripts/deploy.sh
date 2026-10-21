@@ -44,7 +44,9 @@ if [[ $CHANGED -eq 1 ]]; then
   while IFS=$'\t' read -r project dir _; do
     [[ -z "$project" || "$project" == \#* ]] && continue
     for f in "${changed_files[@]}"; do
-      if [[ "$f" == "$dir/"* ]]; then TARGETS+=("$project"); break; fi
+      # Watch the whole project folder: blt-vanish deploys from cloudflare_workers/ but serves
+      # ../web_client, so a change anywhere under blt-vanish/ must redeploy it.
+      if [[ "$f" == "${dir%%/*}/"* ]]; then TARGETS+=("$project"); break; fi
     done
   done < "$TABLE"
   if [[ ${#TARGETS[@]} -eq 0 ]]; then echo "no deployable project changed since $BASE"; exit 0; fi
