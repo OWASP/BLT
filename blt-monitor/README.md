@@ -20,6 +20,13 @@ visual dashboard with a compact list view and detailed monitor pages.
 - Deployable on Cloudflare Python Workers with static assets
 - Configurable websites and keywords via `monitors.json`
 
+### OWASP welcome check
+
+`lettuce_owasp_welcome` fetches `https://lettuce.owaspblt.org/health/welcome`, which answers
+503 when the OWASP Slack welcome is failing and contains `welcome-healthy` only when it works
+(see blt-lettuce's README, "OWASP welcome bot"). It ships with `"enabled": false` and is turned
+on after the welcome cut-over. Alerts need the `SLACK_WEBHOOK_URL` secret, which isn't set yet.
+
 ## Dashboard Structure
 
 - **Homepage (`public/index.html`)**: Displays a compact list of all monitors with inline sparkline charts

@@ -35,6 +35,13 @@
     "enabled": true
   },
   {
+    "id": "lettuce_owasp_welcome",
+    "name": "OWASP Slack welcome (Lettuce)",
+    "url": "https://lettuce.owaspblt.org/health/welcome",
+    "keyword": "welcome-healthy",
+    "enabled": false
+  },
+  {
     "id": "next_owaspblt",
     "name": "BLT Next",
     "url": "https://next.owaspblt.org",
