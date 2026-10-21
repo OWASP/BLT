@@ -352,15 +352,15 @@
   {
     "id": "repo_blt_monitor",
     "name": "BLT Monitor Repo",
-    "url": "https://git.owaspblt.org/BLT/BLT-Monitor",
-    "keyword": "blt-monitor",
+    "url": "https://git.owaspblt.org/api/repo/owasp-blt/BLT/tree?path=blt-monitor",
+    "keyword": "\"blt-monitor/README.md\"",
     "enabled": true
   },
   {
     "id": "repo_blt_zero",
     "name": "BLT Zero Repo",
-    "url": "https://git.owaspblt.org/BLT/BLT-Zero",
-    "keyword": "blt-zero",
+    "url": "https://git.owaspblt.org/api/repo/owasp-blt/BLT/tree?path=blt-zero",
+    "keyword": "\"blt-zero/README.md\"",
     "enabled": true
   }
 ]
