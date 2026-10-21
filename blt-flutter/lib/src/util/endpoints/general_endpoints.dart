@@ -2,9 +2,11 @@
 class GeneralEndPoints {
   GeneralEndPoints._();
 
-  static const String domain = "blt.owasp.org/api/";
+  // The app talks to the legacy Django app (blt-legacy), which serves /api/v1/*,
+  // /authenticate/ and /auth/*. blt.owasp.org now redirects to the new site.
+  static const String domain = "legacy.owaspblt.org/api/";
 
-  static const String baseUrl = "https://blt.owasp.org/";
+  static const String baseUrl = "https://legacy.owaspblt.org/";
 
   static const String apiBaseUrl = baseUrl + "api/v1/";
 

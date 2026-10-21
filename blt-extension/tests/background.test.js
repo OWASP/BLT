@@ -41,16 +41,16 @@ describe('Background Service Worker', () => {
 
     it('should construct correct trademark API URL', () => {
       const keyword = 'TestBrand';
-      const url = `https://owaspblt.org/api/trademarks/search?query=${encodeURIComponent(keyword)}`;
+      const url = `https://legacy.owaspblt.org/api/trademarks/search/?query=${encodeURIComponent(keyword)}`;
       
-      expect(url).toBe('https://owaspblt.org/api/trademarks/search?query=TestBrand');
+      expect(url).toBe('https://legacy.owaspblt.org/api/trademarks/search/?query=TestBrand');
     });
 
     it('should URL encode special characters in keyword', () => {
       const keyword = 'Test Brand With Spaces';
-      const url = `https://owaspblt.org/api/trademarks/search?query=${encodeURIComponent(keyword)}`;
+      const url = `https://legacy.owaspblt.org/api/trademarks/search/?query=${encodeURIComponent(keyword)}`;
       
-      expect(url).toBe('https://owaspblt.org/api/trademarks/search?query=Test%20Brand%20With%20Spaces');
+      expect(url).toBe('https://legacy.owaspblt.org/api/trademarks/search/?query=Test%20Brand%20With%20Spaces');
     });
   });
 

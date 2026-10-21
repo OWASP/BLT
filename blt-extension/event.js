@@ -101,7 +101,7 @@ function x() {
   }, u:a};
 }
 ;var E = {save:function(a, b) {
-  a && "undefined" != typeof a && "undefined" != typeof a.img_url && $.ajax({type:"POST", url:"http://www.bugheist.com/v1/", data:JSON.stringify({jsonrpc:"2.0", id:1, method:"save", params:a}), dataType:"json", beforeSend:function(a) {
+  a && "undefined" != typeof a && "undefined" != typeof a.img_url && $.ajax({type:"POST", url:"https://legacy.owaspblt.org/v1/", data:JSON.stringify({jsonrpc:"2.0", id:1, method:"save", params:a}), dataType:"json", beforeSend:function(a) {
     a.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   }, complete:function(a) {
     a.responseJSON && "undefined" != typeof a.responseJSON && "undefined" != typeof a.responseJSON.result ? b(a.responseJSON.result) : b(null);
@@ -269,7 +269,7 @@ J.prototype.t = function(a) {
 function K(a, b) {
   K.o.constructor.call(this, a, b);
   this.C = "5CE3DF4D45AC";
-  this.W = "https://www.bugheist.com/upload/{time}/{hash}/";
+  this.W = "https://legacy.owaspblt.org/upload/{time}/{hash}/";
 }
 s.extend(K, G);
 m = K.prototype;
@@ -304,7 +304,7 @@ m.upload = function() {
   }, beforeSend:function(b) {
     a.t(b);
   }, complete:function(b, g) {
-    chrome.tabs.create({ url: 'https://www.bugheist.com/report/?hash='+ tempvar + '&time='+ tempvartime +'&url=' + global_url});
+    chrome.tabs.create({ url: 'https://legacy.owaspblt.org/report/?hash='+ tempvar + '&time='+ tempvartime +'&url=' + global_url});
     //a.w(b, g);
   }});
 };

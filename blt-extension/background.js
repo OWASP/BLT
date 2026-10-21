@@ -1,6 +1,6 @@
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "CHECK_TRADEMARK") {
-    const url = `https://owaspblt.org/api/trademarks/search?query=${encodeURIComponent(msg.keyword)}`;
+    const url = `https://legacy.owaspblt.org/api/trademarks/search/?query=${encodeURIComponent(msg.keyword)}`;
 
     fetch(url)
       .then(res => {
