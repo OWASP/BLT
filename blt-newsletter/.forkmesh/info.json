@@ -1,0 +1,5 @@
+{
+  "name": "BLT-Newsletter",
+  "about": "OWASP BLT newsletter platform: a Python Cloudflare Worker with D1 storage, an admin dashboard for subscribers and campaigns, and SendGrid delivery.",
+  "website": "https://newsletter.owaspblt.org/"
+}

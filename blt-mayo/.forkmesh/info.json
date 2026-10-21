@@ -1,0 +1,4 @@
+{
+  "name": "BLT-Mayo",
+  "about": "Read-only Linux security auditing tool (Monitor, Analyze, Yield, Observe) that scans filesystem artifacts for dangerous shell execution and reports explainable findings."
+}

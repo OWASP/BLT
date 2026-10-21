@@ -1,0 +1,5 @@
+{
+  "name": "BLT-Lettuce",
+  "about": "Slack bot for the OWASP community, running on Cloudflare Workers: welcome messages for new members, project discovery and contributor help.",
+  "website": "https://lettuce.owaspblt.org/"
+}

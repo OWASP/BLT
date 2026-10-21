@@ -1,0 +1,5 @@
+{
+  "name": "BLT-Preflight",
+  "about": "Advisory tool that gives contributors security guidance and risk notes before they open a pull request; it advises and never blocks.",
+  "website": "https://preflight.owaspblt.org/"
+}

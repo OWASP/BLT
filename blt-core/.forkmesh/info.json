@@ -1,0 +1,5 @@
+{
+  "name": "BLT-Core",
+  "about": "The main OWASP BLT platform: a Django app for gamified, crowd-sourced bug reporting and vulnerability disclosure across websites, apps and Git repositories.",
+  "website": "https://owaspblt.org/"
+}

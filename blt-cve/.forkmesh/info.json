@@ -1,0 +1,5 @@
+{
+  "name": "BLT-CVE",
+  "about": "Community vulnerability registry under the BLT-YYYY-NNNN namespace, published as static, machine-readable JSON on Cloudflare with no backend.",
+  "website": "https://cve.owaspblt.org/"
+}

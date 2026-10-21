@@ -1,0 +1,5 @@
+{
+  "name": "BLT-OWASP-Bumper",
+  "about": "Daily-generated dashboard of every repository in the OWASP GitHub organization, with activity sparklines and project metadata.",
+  "website": "https://bumper.owaspblt.org/"
+}

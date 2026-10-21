@@ -1,5 +1,7 @@
 # BLT Cron
 
+<p align="center"><img src="logo.svg" alt="blt-cron logo" width="160" height="160"></p>
+
 One Cloudflare Worker holds the account's only cron trigger (`* * * * *`) and runs every BLT Worker's scheduled job on that job's own schedule. Cloudflare's free plan allows 5 cron triggers per account; this keeps all of them in one.
 
 Each minute, `blt-cron` checks the jobs in `src/jobs.js` and, for each one whose cron expression (UTC) matches, sends `POST /__scheduled` with `{cron, scheduledTime}` (plus `task` when the row has one) to that Worker through a service binding. The Worker runs the same code its cron trigger used to run.

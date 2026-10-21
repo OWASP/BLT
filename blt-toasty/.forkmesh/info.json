@@ -1,0 +1,5 @@
+{
+  "name": "BLT-Toasty",
+  "about": "AI triage and responsible-disclosure assistant for BLT on Cloudflare Workers: redacts PII and secrets, detects duplicate reports and summarizes them.",
+  "website": "https://toasty.owaspblt.org/"
+}

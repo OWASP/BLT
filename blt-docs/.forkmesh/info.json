@@ -1,0 +1,5 @@
+{
+  "name": "BLT-Docs",
+  "about": "MkDocs source of the OWASP BLT documentation: user workflows, contributor guidance, API notes and platform maintenance.",
+  "website": "https://docs.owaspblt.org/"
+}

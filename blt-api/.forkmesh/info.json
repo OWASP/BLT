@@ -1,0 +1,5 @@
+{
+  "name": "BLT-API",
+  "about": "REST API for OWASP BLT, written in Python on Cloudflare Workers: bugs, users, domains, organizations, projects, bug hunts, leaderboards and statistics.",
+  "website": "https://api.owaspblt.org/"
+}
