@@ -82,6 +82,8 @@ def test_agents_md_maps_browser_pages_and_local_backups():
         "src/handlers/auth_page.py",
         "get /blt-api.png",
         "static/blt-api.png",
+        "get /blt-api.svg",
+        "static/blt-api.svg",
         "old-dashboard.html",
         "gitignored local backup",
     ]:
@@ -104,6 +106,7 @@ def test_route_page_handlers_have_micro_route_map():
     assert "GET / -> src/pages/index.html" in text
     assert "GET /dashboard -> src/pages/dashboard.html" in text
     assert "GET /blt-api.png -> static/blt-api.png" in text
+    assert "GET /blt-api.svg -> static/blt-api.svg" in text
 
 
 def test_auth_page_handler_marks_browser_alias_not_json_api():

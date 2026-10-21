@@ -31,6 +31,7 @@ from handlers import (
     handle_hackathons,
     handle_health,
     handle_blt_api_logo,
+    handle_blt_api_logo_svg,
     handle_llm_txt,
     handle_dashboard,
     handle_homepage,
@@ -61,6 +62,7 @@ def _add_route(method: str, pattern: str, handler) -> None:
 # Homepage and health check
 _add_route("GET", "/", handle_homepage)
 _add_route("GET", "/blt-api.png", handle_blt_api_logo)
+_add_route("GET", "/blt-api.svg", handle_blt_api_logo_svg)
 _add_route("GET", "/llm.txt", handle_llm_txt)
 _add_route("GET", "/dashboard", handle_dashboard)
 _add_route("GET", "/auth", handle_auth_page)

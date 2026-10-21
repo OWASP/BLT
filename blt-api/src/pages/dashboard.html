@@ -11,7 +11,8 @@
     />
     <script>
       (function () {
-        var savedTheme = localStorage.getItem("blt-theme");
+        // owaspblt.org theme contract (shared with the <blt-nav> bar); "blt-theme" was this page's old key.
+        var savedTheme = localStorage.getItem("theme") || localStorage.getItem("blt-theme");
         var prefersDark =
           window.matchMedia &&
           window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -21,20 +22,21 @@
       })();
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <script>
       tailwind.config = {
         darkMode: "class",
         theme: {
           extend: {
             colors: {
-              "slate-950": "#09090b",
-              "slate-900": "#18181b",
-              "slate-800": "#27272a",
-              "slate-700": "#3f3f46",
-              "slate-600": "#52525b",
-              "slate-400": "#a1a1aa",
-              "slate-200": "#e4e4e7",
-              "slate-100": "#f4f4f5",
+              "slate-950": "#030712",
+              "slate-900": "#111827",
+              "slate-800": "#1f2937",
+              "slate-700": "#374151",
+              "slate-600": "#4b5563",
+              "slate-400": "#9ca3af",
+              "slate-200": "#e5e7eb",
+              "slate-100": "#f3f4f6",
             },
           },
         },
@@ -54,10 +56,11 @@
       }
       body {
         font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, "Helvetica Neue", Arial, sans-serif;
       }
       .endpoint-code {
-        font-family: "Monaco", "Menlo", monospace;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-size: 12px;
       }
       .fade-enter {
@@ -89,7 +92,7 @@
     class="overflow-x-hidden bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors"
   >
     <div
-      class="flex min-h-screen flex-col overflow-x-hidden md:h-screen md:flex-row md:overflow-hidden"
+      class="flex min-h-screen flex-col overflow-x-hidden md:h-[calc(100vh-61px)] md:min-h-0 md:flex-row md:overflow-hidden"
     >
       <aside
         id="sidebar"
@@ -103,7 +106,7 @@
             class="inline-flex min-w-0 items-center gap-2.5"
             aria-label="BLT API home"
           >
-            <img src="/blt-api.png" alt="BLT API logo" class="h-14" />
+            <img src="/blt-api.svg" alt="BLT API logo" width="56" height="56" class="h-14 w-14" />
             <div class="flex flex-col">
               <span
                 class="text-sm font-medium tracking-tight text-gray-900 dark:text-slate-100"
@@ -159,7 +162,7 @@
         <div
           class="p-4 border-t border-gray-200 dark:border-slate-800 text-xs text-gray-600 dark:text-slate-400"
         >
-          <div class="grid grid-cols-2 gap-2 md:hidden">
+          <div class="grid grid-cols-1 gap-2 md:hidden">
             <a
               id="mobileHealthLink"
               href="[[API_BASE_URL]]/health"
@@ -167,24 +170,6 @@
             >
               Health
             </a>
-            <button
-              id="mobileThemeToggle"
-              type="button"
-              class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-              aria-label="Toggle dark mode"
-            >
-              <svg
-                class="h-4 w-4"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <path
-                  d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
-                ></path>
-              </svg>
-              Theme
-            </button>
           </div>
           <p
             id="endpointCount"
@@ -205,7 +190,7 @@
             id="mobileNavToggle"
             type="button"
             class="inline-flex h-10 w-10 flex-none items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 md:hidden"
-            aria-label="Open route menu"
+            aria-label="BLT API route menu"
             aria-controls="sidebar"
             aria-expanded="false"
           >
@@ -219,8 +204,8 @@
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16"
+                stroke-width="3"
+                d="M5 12h.01M12 12h.01M19 12h.01"
               ></path>
             </svg>
           </button>
@@ -282,23 +267,6 @@
                 </button>
               </div>
             </div>
-            <button
-              id="themeToggle"
-              type="button"
-              class="hidden p-2 rounded hover:bg-gray-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500 md:inline-flex"
-              aria-label="Toggle dark mode"
-            >
-              <svg
-                class="w-5 h-5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <path
-                  d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
-                ></path>
-              </svg>
-            </button>
           </div>
         </header>
 
@@ -964,7 +932,6 @@
       const API_KEY_STORAGE_KEY = "blt-dashboard-api-key";
       const SESSION_TOKEN_STORAGE_KEY = "blt-dashboard-session-token";
       const SESSION_USERNAME_STORAGE_KEY = "blt-dashboard-session-username";
-      const THEME_STORAGE_KEY = "blt-theme";
       const DEMO_RESPONSE_DELAY_MS = 450;
       let activeRoute = null;
       let sessionToken = "";
@@ -2684,8 +2651,6 @@
         refreshStatsButton: document.getElementById("refreshStatsButton"),
         accountOpenButton: document.getElementById("accountOpenButton"),
         accountStatusChip: document.getElementById("accountStatusChip"),
-        themeToggle: document.getElementById("themeToggle"),
-        mobileThemeToggle: document.getElementById("mobileThemeToggle"),
         consoleMethodBadge: document.getElementById("consoleMethodBadge"),
         baseUrlInput: document.getElementById("baseUrlInput"),
         methodInput: document.getElementById("methodInput"),
@@ -4068,11 +4033,6 @@
         setRequestStatus("Sample body restored.", "success");
       }
 
-      function toggleTheme() {
-        var isDark = document.documentElement.classList.toggle("dark");
-        localStorage.setItem(THEME_STORAGE_KEY, isDark ? "dark" : "light");
-      }
-
       function wireEvents() {
         // ── Mobile nav ────────────────────────────────────────────────────
         if (elements.mobileNavToggle) {
@@ -4110,11 +4070,6 @@
         // ── Health / stats ────────────────────────────────────────────────
         elements.refreshHealthButton.addEventListener("click", loadHealth);
         elements.refreshStatsButton.addEventListener("click", loadStats);
-        // ── Theme toggle ──────────────────────────────────────────────────
-        elements.themeToggle.addEventListener("click", toggleTheme);
-        if (elements.mobileThemeToggle) {
-          elements.mobileThemeToggle.addEventListener("click", toggleTheme);
-        }
         // ── Header account button ─────────────────────────────────────────
         elements.accountOpenButton.addEventListener("click", function (event) {
           event.stopPropagation();

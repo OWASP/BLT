@@ -5,6 +5,7 @@ Route map:
 - GET / -> src/pages/index.html
 - GET /dashboard -> src/pages/dashboard.html
 - GET /blt-api.png -> static/blt-api.png
+- GET /blt-api.svg -> static/blt-api.svg
 """
 
 from pathlib import Path
@@ -221,6 +222,17 @@ async def handle_blt_api_logo(
 ) -> Any:
     """Serve the BLT API logo when static asset passthrough is unavailable."""
     return _serve_static_file("blt-api.png", "image/png")
+
+
+async def handle_blt_api_logo_svg(
+    request: Any,
+    env: Any,
+    path_params: Dict[str, str],
+    query_params: Dict[str, str],
+    path: str,
+) -> Any:
+    """Serve the BLT API logo as SVG (used by the landing page and dashboard)."""
+    return _serve_static_file("blt-api.svg", "image/svg+xml")
 
 
 async def handle_llm_txt(

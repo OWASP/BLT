@@ -52,6 +52,7 @@ def _response_data(response):
         ("GET", "https://api.example.com/v2/auth"),
         ("GET", "https://api.example.com/dashboard"),
         ("GET", "https://api.example.com/blt-api.png"),
+        ("GET", "https://api.example.com/blt-api.svg"),
         ("GET", "https://api.example.com/llm.txt"),
         ("GET", "https://api.example.com/health"),
         ("GET", "https://api.example.com/v2/health"),
