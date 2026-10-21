@@ -1492,25 +1492,41 @@
                         !notification.is_read ? "font-semibold" : "font-normal" 
                     );
 
-                    if (notification.link) {
+                    const safeLink = safeNotificationLink(notification.link);
+                    if (safeLink) {
                         notificationItem.addEventListener("click", () => {
-                            window.location.href = notification.link;
+                            window.location.href = safeLink;
                         });
                         notificationItem.classList.add("cursor-pointer");
                     }
 
-                    notificationItem.innerHTML = `
-                        <div class="flex-shrink-0">
-                            ${getNotificationIcon(notification.notification_type)}
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm">${notification.message}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-500">${timeSince(notification.created_at)} ago</p>
-                        </div>
-                        <button class="delete-notification p-1 text-gray-400 dark:text-gray-600 hover:text-red-500 transition-colors" data-notification-id="${notification.id}">
-                            <i class="fa fa-times"></i>
-                        </button>
-                    `;
+                    // Build with DOM methods: notification messages can carry
+                    // user-supplied text (usernames, team names, comments).
+                    const iconWrap = document.createElement("div");
+                    iconWrap.className = "flex-shrink-0";
+                    iconWrap.innerHTML = getNotificationIcon(notification.notification_type); // static markup only
+
+                    const body = document.createElement("div");
+                    body.className = "flex-1";
+                    const messageEl = document.createElement("p");
+                    messageEl.className = "text-sm";
+                    messageEl.textContent = notification.message == null ? "" : String(notification.message);
+                    const timeEl = document.createElement("p");
+                    timeEl.className = "text-xs text-gray-500 dark:text-gray-500";
+                    timeEl.textContent = `${timeSince(notification.created_at)} ago`;
+                    body.append(messageEl, timeEl);
+
+                    const deleteButton = document.createElement("button");
+                    deleteButton.className = "delete-notification p-1 text-gray-400 dark:text-gray-600 hover:text-red-500 transition-colors";
+                    const notificationId = parseInt(notification.id, 10);
+                    if (!Number.isNaN(notificationId)) {
+                        deleteButton.setAttribute("data-notification-id", String(notificationId));
+                    }
+                    const deleteIcon = document.createElement("i");
+                    deleteIcon.className = "fa fa-times";
+                    deleteButton.appendChild(deleteIcon);
+
+                    notificationItem.append(iconWrap, body, deleteButton);
 
                     notificationList.appendChild(notificationItem);
                 });
@@ -1526,6 +1542,21 @@
                 console.error(error);
                 notificationList.innerHTML = "<p class='text-sm text-gray-500 dark:text-gray-500'>Error loading notifications.</p>";
             }
+        }
+
+        // Only same-origin paths ("/x", not "//host") or http(s) URLs may be followed.
+        function safeNotificationLink(link) {
+            if (typeof link !== "string") return null;
+            const trimmed = link.trim();
+            if (!trimmed) return null;
+            if (trimmed.startsWith("/") && !trimmed.startsWith("//") && !trimmed.startsWith("/\\")) return trimmed;
+            try {
+                const url = new URL(trimmed);
+                if (url.protocol === "http:" || url.protocol === "https:") return url.href;
+            } catch (e) {
+                return null;
+            }
+            return null;
         }
 
         function getNotificationIcon(type) {

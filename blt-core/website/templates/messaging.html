@@ -311,12 +311,19 @@
             }
         }
 
+        // Usernames and (decrypted) message bodies are user input: render them as text only.
+        function renderMessageContent(messageDiv, username, content) {
+            const strong = document.createElement("strong");
+            strong.textContent = `${username ?? ""}:`;
+            messageDiv.replaceChildren(strong, document.createTextNode(` ${content ?? ""}`));
+        }
+
         function appendMessage(data) {
             const messageList = document.getElementById("message-list");
             if (!messageList) return;
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message';
-            messageDiv.innerHTML = `<strong>${data.username}:</strong> ${data.content}`;
+            renderMessageContent(messageDiv, data.username, data.content);
             messageList.appendChild(messageDiv);
             messageList.scrollTop = messageList.scrollHeight;
         }
@@ -346,7 +353,7 @@
                             const decryptedContent = await decryptWithSharedKey(sharedKey, message.content);
                             const messageDiv = document.createElement("div");
                             messageDiv.classList.add("message");
-                            messageDiv.innerHTML = `<strong>${message.username}:</strong> ${decryptedContent}`;
+                            renderMessageContent(messageDiv, message.username, decryptedContent);
                             messageList.appendChild(messageDiv);
                         } catch (err) {
                             console.error("Error decrypting message:", err);
