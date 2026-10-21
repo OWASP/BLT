@@ -3,6 +3,7 @@
 {% block extrahead %}
   {{ super() }}
   <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <style>blt-nav:not(:defined){display:block;min-height:62px}blt-nav:not(:defined)>*{display:none}</style>
   <script>
     // One theme for every BLT site: class "dark" on <html> and localStorage "theme"
     // ("dark" | "light"), switched by the OWASP BLT top bar. Map it onto Material's
@@ -22,6 +23,59 @@
         var d = !!(e.detail && e.detail.dark);
         __md_set("__palette", palette(d));
         document.body.setAttribute("data-md-color-scheme", d ? "slate" : "default");
+      });
+    })();
+  </script>
+{% endblock %}
+
+{#- One header: the OWASP BLT top bar carries the docs sections (Material's tabs), Search and,
+    below the wide layout, Contents (the navigation drawer). Material's own header is hidden
+    (blt-theme.css) and only shown, over the bar, while the search is open. -#}
+{% block header %}
+  <blt-nav project="blt-docs" name="Docs" home="{{ nav.homepage.url | url }}" data-sticky>
+    {%- for nav_item in nav.items %}
+      {%- set ns = namespace(item=nav_item) %}
+      {%- for _ in range(4) %}{% if ns.item.children %}{% set ns.item = ns.item.children | first %}{% endif %}{% endfor %}
+      {%- set section = ns.item.url.split("/")[0] ~ "/" if nav_item.children else "" %}
+    <a href="{{ ns.item.url | url }}" data-section="{{ section }}"{% if nav_item.active %} aria-current="page"{% endif %}>{{ nav_item.title }}</a>
+    {%- endfor %}
+    <label for="__drawer" slot="actions" class="blt-docs-contents" role="button" tabindex="0">Contents</label>
+    <label for="__search" slot="actions" role="button" tabindex="0">Search</label>
+    {%- if config.repo_url %}
+    <a href="{{ config.repo_url }}" slot="actions" target="_blank" rel="noopener noreferrer">Source</a>
+    {%- endif %}
+  </blt-nav>
+  {{ super() }}
+{% endblock %}
+
+{#- Material's tab row is in the bar now; navigation.tabs stays on for the sidebar's scoping. -#}
+{% block tabs %}{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    // Instant navigation swaps the page without reloading the bar: its links must not be
+    // relative to the first page, and the current section is marked on every page.
+    (function () {
+      var root = new URL("{{ nav.homepage.url | url }}", location.href).pathname;
+      var bar = document.querySelector("blt-nav[project=blt-docs]");
+      if (bar) bar.setAttribute("home", root);
+      document.querySelectorAll("blt-nav > a[href]").forEach(function (a) { a.setAttribute("href", a.href); });
+      function mark() {
+        var rel = location.pathname.indexOf(root) === 0 ? location.pathname.slice(root.length) : location.pathname;
+        var links = document.querySelectorAll("blt-nav > a[data-section]");
+        links.forEach(function (a) {
+          var s = a.getAttribute("data-section");
+          var on = s ? rel.indexOf(s) === 0 : rel === "" || rel === "index.html";
+          if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+        });
+      }
+      if (window.document$ && window.document$.subscribe) window.document$.subscribe(mark); else mark();
+      // The labels act as buttons from the keyboard too.
+      document.querySelectorAll("blt-nav > label[for]").forEach(function (l) {
+        l.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); l.click(); }
+        });
       });
     })();
   </script>

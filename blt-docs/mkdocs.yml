@@ -8,7 +8,8 @@ edit_uri: ""
 
 theme:
   name: material
-  # overrides/main.html adds the OWASP BLT top bar and ties Material's palette to its theme toggle.
+  # overrides/main.html puts the docs sections, Search and Contents in the OWASP BLT top bar (the one
+  # header), hides Material's header and tab row, and ties Material's palette to the bar's theme toggle.
   custom_dir: overrides
   palette:
     # Light mode
@@ -30,13 +31,12 @@ theme:
   # System font stacks (set in blt-theme.css), like owaspblt.org.
   font: false
   favicon: assets/favicon.ico
-  # BLT-Docs project logo in the docs header (the OWASP BLT wasp is in the top bar above it).
+  # BLT-Docs project logo (navigation drawer and search; the top bar shows the project symbol).
   logo: assets/logo.svg
   features:
     - navigation.instant
     - navigation.tracking
     - navigation.tabs
-    - navigation.tabs.sticky
     - navigation.sections
     - navigation.expand
     - navigation.path
@@ -50,7 +50,7 @@ theme:
     - content.code.annotate
   icon:
     repo: fontawesome/brands/git-alt
-    # The OWASP BLT top bar already has a hamburger on phones; use an ellipsis for the docs menu.
+    # Material's menu icon (its header is hidden; Contents in the top bar opens the drawer).
     menu: material/dots-horizontal
 
 extra_css:

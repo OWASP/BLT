@@ -36,6 +36,44 @@ body {
   --md-code-bg-color: #111827;
 }
 
+/* One header: the OWASP BLT top bar (overrides/main.html) has the docs sections, Search and
+   Contents. Material's header only appears, over the bar, while the search is open. */
+.md-header {
+  display: none;
+}
+
+[data-md-toggle="search"]:checked ~ .md-header {
+  display: block;
+  position: fixed;
+  top: 0;
+  z-index: 1001;
+}
+
+/* Sidebars and anchors sit below the bar (62px) instead of Material's header. */
+html {
+  scroll-padding-top: 4.5rem;
+}
+
+.md-sidebar {
+  top: 62px;
+  max-height: calc(100vh - 62px);
+}
+
+/* Narrower screens: the navigation drawer slides in below the bar. */
+@media screen and (max-width: 76.234375em) {
+  .md-sidebar--primary {
+    top: 62px;
+    height: calc(100% - 62px);
+  }
+}
+
+/* The navigation drawer is always open on wide screens: no Contents button there. */
+@media screen and (min-width: 76.25em) {
+  blt-nav > .blt-docs-contents {
+    display: none;
+  }
+}
+
 /* The OWASP BLT top bar has the theme toggle; Material's own palette toggle is hidden. */
 .md-header__option[data-md-component="palette"] {
   display: none;
@@ -54,18 +92,6 @@ body {
   background-image: none;
   color: #f3f4f6;
   border-bottom-color: var(--blt-dark-surface);
-}
-
-.md-tabs {
-  background-color: #ffffff;
-  color: #4b5563;
-  border-bottom: 1px solid var(--blt-light-border);
-}
-
-[data-md-color-scheme="slate"] .md-tabs {
-  background-color: var(--blt-dark);
-  color: #9ca3af;
-  border-bottom: 1px solid var(--blt-dark-surface);
 }
 
 .md-header__button.md-logo {
@@ -95,17 +121,6 @@ body {
 .md-search__input::placeholder,
 .md-search__input ~ .md-search__icon {
   color: inherit;
-}
-
-.md-tabs__link--active,
-.md-tabs__link:is(:focus, :hover) {
-  color: var(--blt-primary);
-  opacity: 1;
-}
-
-[data-md-color-scheme="slate"] .md-tabs__link--active,
-[data-md-color-scheme="slate"] .md-tabs__link:is(:focus, :hover) {
-  color: #f87171;
 }
 
 .md-typeset a:hover {
