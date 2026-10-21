@@ -202,17 +202,12 @@
       .job-card-preview:hover {
         transform: translateY(-1px);
       }
-      .mobile-menu.open {
-        display: flex;
+      blt-nav:not(:defined) {
+        display: block;
+        min-height: 61px;
       }
-      .mobile-toggle.active span:nth-child(1) {
-        transform: translateY(6px) rotate(45deg);
-      }
-      .mobile-toggle.active span:nth-child(2) {
-        opacity: 0;
-      }
-      .mobile-toggle.active span:nth-child(3) {
-        transform: translateY(-6px) rotate(-45deg);
+      blt-nav:not(:defined) > * {
+        display: none;
       }
 
       /* Minimal scrollbar for accessibility */
@@ -238,134 +233,14 @@
   <body
     class="min-h-screen overflow-x-clip bg-gray-50 font-sans text-gray-900 antialiased transition-colors duration-300 selection:bg-red-100 selection:text-red-700 dark:bg-gray-950 dark:text-gray-100"
   >
-    <header
-      class="sticky top-0 z-50 overflow-x-clip border-b border-black/5 bg-white/90 dark:border-white/10 dark:bg-gray-950/90 backdrop-blur-[18px]"
-      id="site-header"
-    >
-      <div
-        class="mx-auto flex max-w-7xl min-w-0 items-center justify-between gap-6 px-6 py-3 max-md:px-4"
-      >
-        <a
-          href="./index.html"
-          class="inline-flex min-w-0 items-center gap-2.5"
-          aria-label="BLT Jobs home"
-        >
-          <img
-            src="assets/images/blt-logo.svg"
-            alt="BLT Jobs logo"
-            width="40"
-            height="40"
-            class="h-10 w-10 p-1"
-          />
-          <span class="truncate text-lg font-medium tracking-tight text-gray-900 dark:text-white"
-            >BLT Jobs</span
-          >
-        </a>
-
-        <nav
-          class="hidden items-center gap-7 md:flex"
-          aria-label="Primary navigation"
-        >
-          <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-            href="#how-it-works"
-            >How it works</a
-          >
-          <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-            href="./jobs.html"
-            >Browse Jobs</a
-          >
-          <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-            href="./seekers.html"
-            >Find Talent</a
-          >
-          <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-            href="./leaderboard.html"
-            >Leaderboard</a
-          >
-          <a
-            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-            href="https://git.owaspblt.org/BLT/tree/main/blt-jobs"
-            data-provider-repository
-            target="_blank"
-            rel="noopener noreferrer"
-            >Source</a
-          >
-        </nav>
-
-        <div class="hidden items-center gap-3 md:flex">
-          <a
-            class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-            href="./seekers.html"
-            >Find Talent</a
-          >
-          <a
-            class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
-            href="./add.html"
-            >Post a Job</a
-          >
-        </div>
-
-        <button
-          class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-md:flex"
-          id="mobile-toggle"
-          type="button"
-          aria-label="BLT Jobs menu"
-          aria-expanded="false"
-          aria-controls="mobile-menu"
-        >
-          <i class="fa-solid fa-ellipsis text-lg text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
-        </button>
-      </div>
-
-      <nav
-        class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur-md dark:border-gray-800 dark:bg-gray-950/95"
-        id="mobile-menu"
-        aria-label="Mobile navigation"
-      >
-        <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-          href="#how-it-works"
-          >How it works</a
-        >
-        <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-          href="./jobs.html"
-          >Browse Jobs</a
-        >
-        <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-          href="./seekers.html"
-          >Find Talent</a
-        >
-        <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-          href="./leaderboard.html"
-          >Leaderboard</a
-        >
-        <a
-          class="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-          href="https://git.owaspblt.org/BLT/tree/main/blt-jobs"
-          data-provider-repository
-          target="_blank"
-          rel="noopener noreferrer"
-          >Source</a
-        >
-        <a
-          class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-gray-500 dark:hover:bg-gray-700"
-          href="./seekers.html"
-          >Find Talent</a
-        >
-        <a
-          class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
-          href="./add.html"
-          >Post a Job</a
-        >
-      </nav>
-    </header>
+    <blt-nav project="blt-jobs" name="Jobs" home="./index.html" data-sticky>
+      <a href="#how-it-works">How it works</a>
+      <a href="./jobs.html">Browse Jobs</a>
+      <a href="./seekers.html">Find Talent</a>
+      <a href="./leaderboard.html">Leaderboard</a>
+      <a href="https://git.owaspblt.org/BLT/tree/main/blt-jobs" slot="actions" data-provider-repository target="_blank" rel="noopener noreferrer">Source</a>
+      <a href="./add.html" slot="actions" data-primary>Post a Job</a>
+    </blt-nav>
 
     <main>
       <!-- ─── HERO ─────────────────────────────────────────────────────── -->
@@ -1453,27 +1328,6 @@
             seekersContainer.innerHTML =
               '<p class="col-span-full text-sm text-gray-500 dark:text-gray-400">Unable to load recent job seekers.</p>';
           });
-      })();
-    </script>
-    <script>
-      (function () {
-        var mobileToggle = document.getElementById("mobile-toggle");
-        var mobileMenu = document.getElementById("mobile-menu");
-        if (mobileToggle && mobileMenu) {
-          mobileToggle.addEventListener("click", function () {
-            var open = !mobileMenu.classList.contains("open");
-            mobileMenu.classList.toggle("open", open);
-            mobileToggle.classList.toggle("active", open);
-            mobileToggle.setAttribute("aria-expanded", String(open));
-          });
-          mobileMenu.querySelectorAll("a").forEach(function (link) {
-            link.addEventListener("click", function () {
-              mobileMenu.classList.remove("open");
-              mobileToggle.classList.remove("active");
-              mobileToggle.setAttribute("aria-expanded", "false");
-            });
-          });
-        }
       })();
     </script>
   </body>

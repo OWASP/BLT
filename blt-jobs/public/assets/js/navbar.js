@@ -1,114 +1,63 @@
+// BLT Jobs links in the shared OWASP BLT bar (<blt-nav>, from owaspblt.org/_shared/blt-nav.js).
+// This script runs before the bar's deferred script, and puts the <blt-nav> element with the
+// BLT Jobs links and buttons where the page's #navbar-placeholder is (first in <body>).
+// The bar is the only header: it shows the links, its menu on phones, and the theme toggle.
 (function () {
   const links = [
-    { name: "Home", href: "./index.html" },
-    { name: "Browse Jobs", href: "./jobs.html" },
-    { name: "Saved", href: "./saved-jobs.html", icon: "fa-regular fa-bookmark", showBadge: true },
-    { name: "Find Talent", href: "./seekers.html" },
+    { name: "Browse Jobs", href: "./jobs.html", also: ["job.html"] },
+    { name: "Saved", href: "./saved-jobs.html", showBadge: true },
+    { name: "Find Talent", href: "./seekers.html", also: ["seeker.html"] },
     { name: "Leaderboard", href: "./leaderboard.html" },
   ];
 
   const provider = window.BLTProvider || {
-    name: "git.owaspblt.org",
-    iconClass: "fa-solid fa-code-branch",
     repositoryUrl: "https://git.owaspblt.org/BLT/tree/main/blt-jobs",
   };
 
-  // Determine which page is current to highlight the active link
+  // The current page's link gets aria-current="page" (a job page marks Browse Jobs,
+  // a seeker page marks Find Talent).
   const currentPath = window.location.pathname.split("/").pop() || "index.html";
 
-  function getLinkHtml(link, isMobile) {
-    const linkPath = link.href.split("/").pop();
-    
-    // Normalize active state detection
-    let isActive = currentPath === linkPath;
-    
-    // Special case: 'Browse Jobs' should be active when viewing a single 'job.html'
-    if (linkPath === "jobs.html" && currentPath === "job.html") {
-      isActive = true;
-    }
-    
-    // Special case: 'Find Talent' should be active when viewing a single 'seeker.html'
-    if (linkPath === "seekers.html" && currentPath === "seeker.html") {
-      isActive = true;
-    }
+  const nav = document.createElement("blt-nav");
+  nav.setAttribute("project", "blt-jobs");
+  nav.setAttribute("name", "Jobs");
+  nav.setAttribute("home", "./index.html");
+  nav.setAttribute("data-sticky", "");
 
-    const baseClasses = "rounded-lg px-3 py-2 text-sm font-medium transition";
-    const activeClasses = "bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50";
-    const inactiveClasses = "text-slate-700 hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800";
-    
-    const classes = `${baseClasses} ${isActive ? activeClasses : inactiveClasses} ${link.showBadge ? "flex items-center gap-1" : ""}`;
+  function addLink(text, href, attrs) {
+    const a = document.createElement("a");
+    a.href = href;
+    a.textContent = text;
+    Object.keys(attrs || {}).forEach((k) => a.setAttribute(k, attrs[k]));
+    nav.appendChild(a);
+    return a;
+  }
 
-    let content = "";
-    if (link.icon) content += `<i class="${link.icon} text-xs" aria-hidden="true"></i> `;
-    content += isMobile && link.name === "Saved" ? "Saved Jobs" : link.name;
-    
+  links.forEach((link) => {
+    const file = link.href.split("/").pop();
+    const active = currentPath === file || (link.also || []).includes(currentPath);
+    const a = addLink(link.name, link.href, active ? { "aria-current": "page" } : {});
     if (link.showBadge) {
-      content += ` <span class="saved-count-badge hidden ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full"></span>`;
+      const badge = document.createElement("span");
+      badge.className =
+        "saved-count-badge hidden ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full";
+      a.appendChild(badge);
     }
+  });
+  addLink("Source", provider.repositoryUrl, {
+    id: "nav-gitlab",
+    slot: "actions",
+    "data-provider-repository": "",
+    target: "_blank",
+    rel: "noreferrer noopener",
+  });
+  addLink("Post a Job", "./add.html", { slot: "actions", "data-primary": "" });
 
-    return `<a href="${link.href}" class="${classes}">${content}</a>`;
-  }
-
-  const desktopLinksHtml = links.map((l) => getLinkHtml(l, false)).join("");
-  const mobileLinksHtml = links.map((l) => getLinkHtml(l, true)).join("");
-
-  const gitlabLinkHtml = `
-    <a id="nav-gitlab" href="${provider.repositoryUrl}" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-      <i class="${provider.iconClass || "fa-solid fa-code-branch"}" aria-hidden="true"></i>
-      ${provider.name}
-    </a>
-  `;
-
-  const navbarHtml = `
-    <nav class="border-b w-full border-slate-200 bg-white/95 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-950/95">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex h-16 items-center justify-between">
-          <a href="./index.html" class="flex items-center gap-2 select-none">
-            <img src="assets/images/blt-logo.svg" class="h-9 sm:h-10 w-auto" alt="" width="50" height="50" />
-            <span class="text-xl font-bold text-slate-900 dark:text-white">BLT Jobs</span>
-          </a>
-          <div class="hidden sm:flex items-center gap-1">
-            ${desktopLinksHtml}
-            ${gitlabLinkHtml}
-          </div>
-          <div class="flex items-center gap-2">
-            <button id="mobile-menu-toggle" class="sm:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border-2 border-slate-200 text-slate-700 transition hover:bg-slate-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800" aria-label="BLT Jobs menu" aria-controls="mobile-menu" aria-expanded="false">
-              <i class="fa-solid fa-ellipsis text-lg" aria-hidden="true"></i>
-            </button>
-          </div>
-        </div>
-        <div id="mobile-menu" class="hidden border-t border-slate-200 py-3 sm:hidden dark:border-gray-700">
-          <div class="flex flex-col gap-1">
-            ${mobileLinksHtml}
-            <div class="px-3 py-2">
-               <a href="${provider.repositoryUrl}" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-                <i class="${provider.iconClass || "fa-solid fa-code-branch"}" aria-hidden="true"></i>
-                ${provider.name}
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
-  `;
-
-  // Inject the navbar. The placeholder sticks to the top (below the shared OWASP BLT bar,
-  // <blt-nav>, which scrolls away), so the page keeps the BLT Jobs links in view.
-  const STICKY = ["sticky", "top-0", "z-[100]"];
   const placeholder = document.getElementById("navbar-placeholder");
-  if (placeholder) {
-    placeholder.classList.add(...STICKY);
-    placeholder.innerHTML = navbarHtml;
-  } else {
-    // Fallback: prepend to body if no placeholder exists
-    const div = document.createElement("div");
-    div.id = "navbar-placeholder";
-    div.classList.add(...STICKY);
-    div.innerHTML = navbarHtml;
-    document.body.insertBefore(div, document.body.firstChild);
-  }
+  if (placeholder) placeholder.replaceWith(nav);
+  else document.body.insertBefore(nav, document.body.firstChild);
 
-  // Handle saved count badge updates
+  // Saved jobs count on the "Saved" link
   function updateSavedCountBadge() {
     const badges = document.querySelectorAll(".saved-count-badge");
     if (badges.length > 0 && typeof SavedJobs !== "undefined") {
@@ -124,7 +73,6 @@
     }
   }
 
-  // Initial update and event listener
   updateSavedCountBadge();
   window.addEventListener("savedJobsChanged", updateSavedCountBadge);
 })();
