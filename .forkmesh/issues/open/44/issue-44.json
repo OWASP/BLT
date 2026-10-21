@@ -12,7 +12,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\n`website/views/ossh_catalog.py` (routed at `blt/urls.py`, name `ossh_catalog`) has no tests; `test_ossh_recommender.py` only covers `/api/ossh/github/`. Its docstring promises `prefetch_related` to avoid N+1 queries, and nothing checks that.\n\n## What to do\n\n1. Create `website/tests/test_ossh_catalog.py`.\n2. Seed a Repo, OsshCommunity, OsshDiscussionChannel and OsshArticle with tags; assert the top-level keys and per-item fields.\n3. Assert the empty-database response and that POST returns 405.\n4. Use `assertNumQueries` to show the query count stays the same with 1 or 3 items.\n\n## Acceptance criteria\n\n- [ ] JSON shape, empty case and 405 are covered\n- [ ] Query count does not grow with rows\n- [ ] Passes in CI\n\n## How to test locally\n\n```bash\ncd blt-core && uv run python manage.py test website.tests.test_ossh_catalog\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\n`website/views/ossh_catalog.py` (routed at `blt/urls.py`, name `ossh_catalog`) has no tests; `test_ossh_recommender.py` only covers `/api/ossh/github/`. Its docstring promises `prefetch_related` to avoid N+1 queries, and nothing checks that.\n\n## What to do\n\n1. Create `website/tests/test_ossh_catalog.py`.\n2. Seed a Repo, OsshCommunity, OsshDiscussionChannel and OsshArticle with tags; assert the top-level keys and per-item fields.\n3. Assert the empty-database response and that POST returns 405.\n4. Use `assertNumQueries` to show the query count stays the same with 1 or 3 items.\n\n## Acceptance criteria\n\n- [ ] JSON shape, empty case and 405 are covered\n- [ ] Query count does not grow with rows\n- [ ] Passes in CI\n\n## How to test locally\n\n```bash\ncd blt-core \u0026\u0026 uv run python manage.py test website.tests.test_ossh_catalog\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-44",
             "sig": "sU2aVSrzYR-D3fX5-lp7jEz90qsK8x4Pxodj-qtmNcewfk8Px0SNAw1moNe65jMnVmwjloAzcTWNpHMXiYG7DQ",
             "title": "blt-core: add tests for the /api/ossh/catalog/ endpoint",
@@ -46,6 +46,17 @@
             "sig": "VBow6So4XIvI1WhYAs2nu01Q-R--6yDpexrcKmy-GcKA4VMsRC5vCfWyLcponAZKunfdywDCFKw5zQayLdo0Cw",
             "ts": 1792550467209,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "gKYk725y-DlKjRB7i6nng7fXWReWZOGMBHLdNYPIxRI",
+            "authorName": "psamuelvijay",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1792612026615",
+            "sig": "4qlbWM87WA9bqjcp5spZ_HU5-11TMQL5fqzPJV5hY4ie_Xu6zGURIDbwUWZy1lOW8tCrVynmh_3dKKAa2TzDCw",
+            "ts": 1792612026615,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -62,6 +73,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: add tests for the /api/ossh/catalog/ endpoint",
-    "updatedAt": 1792550467209,
+    "updatedAt": 1792612026615,
     "votes": 0
 }
