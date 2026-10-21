@@ -42,66 +42,21 @@
   <style>
     /* Smooth transitions for interactive states */
     a, button { transition: all 0.15s ease; }
+    blt-nav:not(:defined) { display: block; min-height: 61px; }
+    blt-nav:not(:defined) > * { display: none; }
   </style>
 </head>
 
 <body class="bg-gray-50 dark:bg-blt-dark text-gray-800 dark:text-gray-100 font-sans antialiased">
 
-  <!-- ───────────────────────────── TOP NAV ───────────────────────────── -->
-  <header class="sticky top-0 z-50 bg-white dark:bg-blt-surface border-b border-blt-border dark:border-gray-700 shadow-sm">
-    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-
-      <!-- Project logo + name (the OWASP BLT brand is in the top bar above) -->
-      <a href="#" class="flex items-center gap-2 shrink-0" aria-label="BLT-Start home">
-        <img src="/logo.svg" alt="" width="36" height="36" class="w-9 h-9" />
-        <span class="hidden sm:inline font-bold text-lg text-gray-900 dark:text-white">
-          BLT-Start
-        </span>
-      </a>
-
-      <!-- Search -->
-      <div class="flex-1 max-w-md hidden md:block">
-        <div class="relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" aria-hidden="true"></i>
-          <input
-            type="search"
-            placeholder="Search docs, issues, MRs…"
-            class="w-full border border-gray-400 rounded-md pl-9 pr-4 py-2 text-sm
-                   focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600
-                   dark:bg-blt-surface dark:border-gray-600 dark:text-gray-100
-                   dark:placeholder-gray-400 dark:focus:border-red-500 dark:focus:ring-red-500"
-            aria-label="Search"
-          />
-        </div>
-      </div>
-
-      <!-- CTA buttons -->
-      <nav class="flex items-center gap-2 shrink-0" aria-label="Header actions">
-        <a
-          href="https://git.owaspblt.org/BLT/issues?label_name[]=good%20first%20issue"
-          target="_blank" rel="noopener noreferrer"
-          class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-md
-                 border border-blt-primary text-blt-primary text-sm font-medium
-                 hover:bg-blt-primary hover:text-white"
-          aria-label="Browse good first issues"
-        >
-          <i class="fa-solid fa-bug" aria-hidden="true"></i>
-          Good First Issues
-        </a>
-        <a
-          href="https://git.owaspblt.org/BLT/BLT-Core"
-          target="_blank" rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-md
-                 bg-blt-primary text-white text-sm font-medium
-                 hover:bg-blt-hover"
-          aria-label="View BLT source code"
-        >
-          <i class="fa-solid fa-code-branch" aria-hidden="true"></i>
-          Source code
-        </a>
-      </nav>
-    </div>
-  </header>
+  <blt-nav project="blt-start" name="Start" data-sticky>
+    <a href="#setup">Setup</a>
+    <a href="#creating-mrs">Merge requests</a>
+    <a href="#buttons">Design</a>
+    <a href="#mentors">Mentors</a>
+    <a href="https://git.owaspblt.org/BLT/issues?label_name[]=good%20first%20issue" target="_blank" rel="noopener noreferrer" slot="actions">Good First Issues</a>
+    <a href="https://git.owaspblt.org/BLT/BLT-Core" target="_blank" rel="noopener noreferrer" slot="actions" data-primary>Source code</a>
+  </blt-nav>
 
   <!-- ──────────────────────── LAYOUT: SIDEBAR + MAIN ──────────────────── -->
   <div class="max-w-screen-xl mx-auto px-4 sm:px-6 py-8 flex gap-8">
