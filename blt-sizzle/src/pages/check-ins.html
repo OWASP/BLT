@@ -11,13 +11,12 @@
   <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 <body>
+  <blt-nav project="blt-sizzle" name="Sizzle" data-sticky>
+    <a href="https://git.owaspblt.org/BLT/BLT-Sizzle" target="_blank" rel="noopener noreferrer" title="View Source" slot="actions">View Source</a>
+  </blt-nav>
   <div class="sizzle-shell">
 
 <aside class="sizzle-sidebar">
-  <a class="brand" href="/dashboard" aria-label="BLT Sizzle dashboard">
-    <img src="/assets/logo.svg" alt="Sizzle logo" />
-    <span><strong>BLT Sizzle</strong><span>Daily check-ins</span></span>
-  </a>
   <div>
     <nav class="sidebar-nav" aria-label="Dashboard navigation">
       <a class="sidebar-item" href="/dashboard"><span>Overview</span></a><a class="sidebar-item" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item" href="/organizations"><span>Organizations</span></a><a class="sidebar-item active" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item" href="/profile"><span>Profile</span></a><a class="sidebar-item" href="/settings"><span>Settings</span></a>
@@ -29,13 +28,12 @@
   </div>
 </aside>
     <main class="main-panel">
-      <header class="page-header">
+      <div class="page-header">
         <div>
           <h1>Check-ins</h1>
           <p class="page-description">Review previous check-ins by organization, date, blocker, and mood.</p>
         </div>
-        <div><a class="btn btn-secondary" href="https://git.owaspblt.org/BLT/BLT-Sizzle" target="_blank" rel="noopener noreferrer" title="View Source">View Source</a></div>
-      </header>
+      </div>
 
 <section class="card card-pad">
   <div class="page-header"><div><h2>Check-in history</h2><p class="page-description">Filter by organization, date range, blockers, and mood.</p></div><select id="historyOrgFilter" class="select" style="max-width:220px"><option value="">All organizations</option></select></div>

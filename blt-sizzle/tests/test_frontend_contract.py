@@ -23,11 +23,15 @@ class TestAppRefactorFrontendContracts(unittest.TestCase):
         self.assertNotIn("id=\"checkinForm\"", html)
         self.assertNotIn("Login with GitHub", html)
 
-    def test_landing_header_uses_public_logo_asset(self):
+    def test_landing_header_is_the_shared_blt_bar(self):
         html = self.read("src/index.html")
-        self.assertIn('src="/assets/logo.svg"', html)
+        self.assertIn('<blt-nav project="blt-sizzle" name="Sizzle" data-sticky>', html)
+        self.assertIn('<a href="/login" slot="actions" data-primary>Start check-in</a>', html)
+        self.assertNotIn("<header", html)
         self.assertNotIn("/assets/images/owasp-blt-logo.svg", html)
         self.assertTrue((SRC / "assets" / "logo.svg").is_file())
+        self.assertIn('<blt-nav project="blt-sizzle" name="Sizzle">', self.read("src/pages/login.html"))
+        self.assertNotIn("<header", self.read("src/pages/login.html"))
 
     def test_landing_footer_has_sizzle_domain_and_link_groups(self):
         html = self.read("src/index.html")
@@ -78,7 +82,7 @@ class TestAppRefactorFrontendContracts(unittest.TestCase):
         self.assertIn("/api/auth/verify-otp", html)
         self.assertIn("#dc2626", html)
         self.assertIn("BLT Sizzle", html)
-        self.assertIn('src="/assets/logo.svg"', html)
+        self.assertIn('<blt-nav project="blt-sizzle" name="Sizzle">', html)
         self.assertNotIn("/assets/images/owasp-blt-logo.svg", html)
         self.assertIn("setPending", html)
         self.assertIn("Network error while requesting the verification code", html)
@@ -161,7 +165,6 @@ class TestAppRefactorFrontendContracts(unittest.TestCase):
 
     def test_dashboard_typography_keeps_navigation_and_metrics_normal_weight(self):
         css = self.read("src/styles/sizzle-dashboard.css")
-        self.assertIn(".brand strong {\n  display: block;\n  color: var(--ink);\n  font-size: 15px;\n  line-height: 1.25;\n  font-weight: 600;", css)
         self.assertIn(".sidebar-item {\n  --nav-icon", css)
         self.assertIn("font-weight: 500;\n  line-height: 1.25;", css)
         self.assertNotIn("font-weight: 600;\n  line-height: 1.25;", css)
@@ -194,6 +197,12 @@ class TestAppRefactorFrontendContracts(unittest.TestCase):
                 self.assertNotIn(link, nav, page)
             self.assertNotIn("Login with GitHub", html, page)
             self.assertNotIn('href="/api/auth/login"', html, page)
+            # One header: the shared BLT bar; the sidebar stays, without its own brand row,
+            # and the page title is content, not a second header row.
+            self.assertIn('<blt-nav project="blt-sizzle" name="Sizzle" data-sticky>', html, page)
+            self.assertIn('title="View Source" slot="actions">View Source</a>', html, page)
+            self.assertNotIn("<header", html, page)
+            self.assertNotIn('class="brand"', html, page)
 
     def test_app_pages_do_not_show_internal_phase_or_inspiration_labels(self):
         internal_labels = ["BLT-Newsletter-inspired", "Phase 1", "Phase 2", "Phase 2A", "Phase 2B", "Phase 2C"]

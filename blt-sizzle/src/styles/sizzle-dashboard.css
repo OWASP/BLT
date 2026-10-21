@@ -71,8 +71,12 @@ body {
 
 a { color: inherit; text-decoration: none; }
 
+blt-nav:not(:defined) { display: block; min-height: 61px; }
+blt-nav:not(:defined) > * { display: none; }
+
+/* The shared BLT bar (sticky, 62px) is the only header; the sidebar sits under it. */
 .sizzle-shell {
-  min-height: 100vh;
+  min-height: calc(100vh - 62px);
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
   background: var(--background);
@@ -80,56 +84,15 @@ a { color: inherit; text-decoration: none; }
 
 .sizzle-sidebar {
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: 62px;
+  height: calc(100vh - 62px);
+  overflow-y: auto;
   border-right: 1px solid var(--border);
   background: var(--surface);
   padding: 24px 20px;
   display: flex;
   flex-direction: column;
   gap: 26px;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--divider);
-}
-
-.brand img {
-  width: 44px;
-  height: 44px;
-  padding: 8px;
-  border: 1px solid var(--brand-ring);
-  border-radius: var(--radius);
-  background: var(--surface);
-  object-fit: contain;
-}
-
-.brand strong {
-  display: block;
-  color: var(--ink);
-  font-size: 15px;
-  line-height: 1.25;
-  font-weight: 600;
-  letter-spacing: 0;
-}
-
-.brand span {
-  display: block;
-  color: var(--soft-muted);
-  font-size: 12px;
-  line-height: 1.35;
-  font-weight: 500;
-  letter-spacing: 0;
-}
-
-.brand > span > span {
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 500;
 }
 
 .sidebar-section-label {
@@ -278,12 +241,11 @@ a { color: inherit; text-decoration: none; }
   margin-bottom: 22px;
 }
 
+/* The page title opens the content; it is not a second header row. */
 .main-panel > .page-header {
   align-items: center;
-  margin: 0 0 28px;
-  padding: 24px 32px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  margin: 0 0 24px;
+  padding: 28px 32px 0;
 }
 
 .main-panel > section {
@@ -589,7 +551,7 @@ h2 {
   .sidebar-footer { grid-template-columns: repeat(2, max-content); column-gap: 22px; }
   .main-panel > .page-header {
     display: grid;
-    padding: 22px 20px;
+    padding: 22px 20px 0;
   }
   .main-panel > section {
     margin-left: 20px;

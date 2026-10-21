@@ -138,52 +138,14 @@
   <body
     class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
   >
-    <header
-      class="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
-    >
-      <div
-        class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-md:px-4"
-      >
-        <a href="/" class="" aria-label="BLT Sizzle home">
-          <img src="/assets/logo.svg" alt="Sizzle logo" class="h-12 w-12" />
-        </a>
-        <nav
-          class="hidden items-center gap-7 md:flex"
-          aria-label="Primary navigation"
-        >
-          <a
-            class="text-sm text-gray-500 transition hover:text-gray-900"
-            href="#workflow"
-            >Workflow</a
-          >
-          <a
-            class="text-sm text-gray-500 transition hover:text-gray-900"
-            href="#organizations"
-            >Organizations</a
-          >
-          <a
-            class="text-sm text-gray-500 transition hover:text-gray-900"
-            href="#dashboard"
-            >Dashboard</a
-          >
-          <a
-            class="text-sm text-gray-500 transition hover:text-gray-900"
-            href="#production"
-            >Production</a
-          >
-        </nav>
-        <div class="hidden items-center gap-3 md:flex">
-          <a
-            class="rounded-md px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
-            href="/login"
-            >Log in</a
-          >
-          <a class="btn-primary px-4 py-2 text-sm" href="/login"
-            >Start check-in</a
-          >
-        </div>
-      </div>
-    </header>
+    <blt-nav project="blt-sizzle" name="Sizzle" data-sticky>
+      <a href="#workflow">Workflow</a>
+      <a href="#organizations">Organizations</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#production">Production</a>
+      <a href="/login" slot="actions">Log in</a>
+      <a href="/login" slot="actions" data-primary>Start check-in</a>
+    </blt-nav>
 
     <main>
       <section
