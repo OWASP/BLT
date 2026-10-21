@@ -39,59 +39,21 @@
         mask-image: radial-gradient(circle at center, black 0, transparent 72%);
         -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 72%);
       }
-      .mobile-menu.open { display: flex; }
-      .mobile-toggle.active span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-      .mobile-toggle.active span:nth-child(2) { opacity: 0; }
-      .mobile-toggle.active span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+      blt-nav:not(:defined) { display: block; min-height: 61px; }
+      blt-nav:not(:defined) > * { display: none; }
     </style>
     <link rel="stylesheet" href="dark.css">
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
 </head>
 <body class="min-h-screen overflow-x-hidden bg-gray-50 text-gray-900 antialiased selection:bg-red-100 selection:text-red-700">
 
-<header class="sticky top-0 z-50 border-b border-gray-200 bg-white/90 backdrop-blur-xl">
-  <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-    <a href="index.html" class="inline-flex items-center gap-2.5 no-underline" aria-label="BLT Monitor home">
-      <img src="logo.svg" class="h-9 w-9" width="36" height="36" alt=""/>
-      <span class="text-sm font-semibold text-gray-950">BLT-Monitor</span>
-    </a>
+<blt-nav project="blt-monitor" name="Monitor" data-sticky>
+  <a href="index.html">Monitors</a>
+  <a href="/api/health">Health</a>
+  <a href="https://git.owaspblt.org/BLT/BLT-Monitor" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source code</a>
+</blt-nav>
 
-    <nav class="hidden items-center gap-6 md:flex" aria-label="Primary navigation">
-      <a class="text-sm text-gray-500 transition-colors hover:text-gray-950" href="index.html">Monitors</a>
-      <a class="text-sm text-gray-500 transition-colors hover:text-gray-950" href="/api/health">Health</a>
-      <a class="text-sm text-gray-500 transition-colors hover:text-gray-950" href="https://owaspblt.org" target="_blank" rel="noopener noreferrer">OWASP BLT</a>
-    </nav>
-
-    <div class="hidden items-center gap-2 md:flex">
-      <a href="/api/health"
-         class="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-300 hover:bg-gray-50">
-        <i class="fa-solid fa-heart-pulse text-red-500"></i>
-        <span>Health</span>
-      </a>
-      <a href="https://git.owaspblt.org/BLT/BLT-Monitor" target="_blank" rel="noopener noreferrer"
-         class="inline-flex items-center gap-2 rounded-md border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-red-700">
-        <i class="fa-solid fa-code-branch"></i>
-        <span>Source code</span>
-      </a>
-    </div>
-
-    <button class="mobile-toggle flex h-9 w-9 flex-col items-center justify-center gap-[5px] rounded-md border border-gray-200 bg-white md:hidden" id="mobile-toggle" type="button" aria-label="BLT-Monitor menu" aria-expanded="false" aria-controls="mobile-menu">
-      <i class="fa-solid fa-ellipsis-vertical text-gray-700" aria-hidden="true"></i>
-    </button>
-  </div>
-
-  <nav class="mobile-menu hidden flex-col gap-3 border-t border-gray-100 bg-white px-4 py-4 md:hidden" id="mobile-menu" aria-label="Mobile navigation">
-    <a class="text-sm text-gray-600" href="index.html">Monitors</a>
-    <a class="text-sm text-gray-600" href="/api/health">Health</a>
-    <a class="text-sm text-gray-600" href="https://owaspblt.org" target="_blank" rel="noopener noreferrer">OWASP BLT</a>
-    <a class="inline-flex items-center justify-center gap-2 rounded-md border border-red-700 bg-red-600 px-4 py-2 text-sm font-medium text-white" href="https://git.owaspblt.org/BLT/BLT-Monitor" target="_blank" rel="noopener noreferrer">
-      <i class="fa-solid fa-code-branch"></i>
-      <span>Source code</span>
-    </a>
-  </nav>
-</header>
-
-<main id="main-content" class="relative min-h-[calc(100vh-65px)] overflow-hidden">
+<main id="main-content" class="relative min-h-[calc(100vh-62px)] overflow-hidden">
   <div class="dot-field pointer-events-none absolute inset-x-0 top-0 mx-auto h-72 w-[min(70rem,140vw)] opacity-70" aria-hidden="true"></div>
 
   <section class="relative border-b border-gray-200 bg-white px-4 py-6 sm:px-6">
@@ -229,28 +191,6 @@
 </main>
 
 <script>
-  (function () {
-    var mobileToggle = document.getElementById("mobile-toggle");
-    var mobileMenu = document.getElementById("mobile-menu");
-
-    if (mobileToggle && mobileMenu) {
-      mobileToggle.addEventListener("click", function () {
-        var open = !mobileMenu.classList.contains("open");
-        mobileMenu.classList.toggle("open", open);
-        mobileToggle.classList.toggle("active", open);
-        mobileToggle.setAttribute("aria-expanded", String(open));
-      });
-
-      mobileMenu.querySelectorAll("a").forEach(function (link) {
-        link.addEventListener("click", function () {
-          mobileMenu.classList.remove("open");
-          mobileToggle.classList.remove("active");
-          mobileToggle.setAttribute("aria-expanded", "false");
-        });
-      });
-    }
-  })();
-
   // --- Utilities ---
 
   function escapeHTML(str) {
