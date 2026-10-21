@@ -1,5 +1,5 @@
 :root {
-    --primary-color: #E10101;
+    --primary-color: #dc2626;
     --primary-hover: #b91c1c;
     --neutral-border: #E5E5E5;
     --dark-base: #111827;
@@ -22,9 +22,110 @@ html {
     scroll-behavior: smooth;
 }
 
+/* Dark mode: html.dark, set before paint and by the OWASP BLT bar's toggle. */
+html.dark {
+    color-scheme: dark;
+    --primary-color: #ef4444;
+    --primary-hover: #dc2626;
+    --neutral-border: #1f2937;
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+    --card-bg: #111827;
+    --page-bg: #030712;
+    --soft-shadow: none;
+}
+
+html.dark a {
+    color: #f87171;
+}
+
+html.dark .btn-primary {
+    color: #ffffff;
+}
+
+html.dark .btn-outline,
+html.dark .hero-stat,
+html.dark .feature-card,
+html.dark .how-card,
+html.dark .category-item,
+html.dark .input-field,
+html.dark .search-input {
+    background: #111827;
+}
+
+html.dark .input-field,
+html.dark .search-input {
+    background: #030712;
+    border-color: #374151;
+}
+
+html.dark .btn-outline:hover {
+    background: var(--primary-color);
+    color: #ffffff;
+}
+
+html.dark .token-section details {
+    background: #030712;
+}
+
+html.dark .sidebar-link:hover,
+html.dark .category-header:hover {
+    background: #1f2937;
+}
+
+html.dark .sidebar-link.active,
+html.dark .category-score,
+html.dark .check-howtofix,
+html.dark .error-message {
+    background: rgba(127, 29, 29, 0.25);
+    border-color: rgba(127, 29, 29, 0.6);
+}
+
+html.dark .category-header {
+    background: #111827;
+}
+
+html.dark .category-score,
+html.dark .error-message {
+    color: #fca5a5;
+}
+
+html.dark .check-howtofix strong {
+    color: #fca5a5;
+}
+
+html.dark .sidebar-link,
+html.dark .token-section summary,
+html.dark .check-howtofix {
+    color: #d1d5db;
+}
+
+html.dark .description,
+html.dark .repo-info,
+html.dark .info-section p {
+    color: #9ca3af;
+}
+
+html.dark .score-value,
+html.dark .category-header,
+html.dark .check-name,
+html.dark .feature-card h3,
+html.dark .how-card h4,
+html.dark .category-item strong {
+    color: #f3f4f6;
+}
+
+html.dark .score-bg {
+    stroke: #1f2937;
+}
+
+html.dark .check-item {
+    border-bottom-color: #1f2937;
+}
+
 body {
     margin: 0;
-    background: radial-gradient(1000px 420px at 88% -8%, rgba(225, 1, 1, 0.09), transparent 60%), var(--page-bg);
+    background: radial-gradient(1000px 420px at 88% -8%, rgba(220, 38, 38, 0.09), transparent 60%), var(--page-bg);
     color: var(--text-main);
 }
 
@@ -35,29 +136,6 @@ a {
 
 a:hover {
     text-decoration: underline;
-}
-
-.owasp-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    border: 1px solid var(--neutral-border);
-    border-radius: 999px;
-    background: #fff5f5;
-    padding: 0.45rem 0.9rem;
-}
-
-.badge-text {
-    color: var(--primary-color);
-    font-size: 0.82rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-}
-
-.badge-project {
-    color: #374151;
-    font-size: 0.82rem;
-    font-weight: 600;
 }
 
 .subtitle {

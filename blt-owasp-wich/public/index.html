@@ -5,27 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="OWASP-Wich checks GitHub repositories against OWASP project standards with a 100-point compliance framework.">
     <title>OWASP-Wich: OWASP Project Compliance Checker</title>
+    <script>
+        // Before first paint: the saved OWASP BLT theme (localStorage "theme"), else the system preference.
+        (function () {
+            var saved = null;
+            try { saved = localStorage.getItem("theme"); } catch (e) { saved = null; }
+            var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+            document.documentElement.classList.toggle("dark", dark);
+        })();
+    </script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        primary: '#E10101',
+                        primary: '#dc2626',
                         'neutral-border': '#E5E5E5',
                         'dark-base': '#111827',
                         'dark-surface': '#1F2937'
                     },
                     fontFamily: {
-                        sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif']
                     }
                 }
             }
         };
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -35,14 +43,14 @@
     >
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-slate-50 font-sans text-gray-900 antialiased">
+<body class="bg-slate-50 font-sans text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
     <div class="container mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <header class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-sm">
-            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-border px-6 py-4">
-                <div class="owasp-badge">
-                    <span class="badge-text">OWASP</span>
-                    <span class="badge-project">BLT Project</span>
-                </div>
+        <header class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-border px-6 py-4 dark:border-gray-800">
+                <a href="/" class="inline-flex items-center gap-2.5 font-extrabold text-gray-900 hover:no-underline dark:text-white" aria-label="OWASP-Wich home">
+                    <img src="wich-logo.svg" alt="" class="h-9 w-9 rounded-full" width="36" height="36">
+                    <span>OWASP-Wich</span>
+                </a>
                 <div class="flex flex-wrap items-center gap-3">
                     <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Wich" target="_blank" rel="noopener" class="btn-outline">
                         <i class="fa-solid fa-code-branch" aria-hidden="true"></i>
@@ -57,7 +65,7 @@
 
             <div class="grid gap-8 px-6 py-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
                 <div>
-                    <p class="mb-4 inline-flex items-center rounded-full bg-[#feeae9] px-3 py-1 text-sm font-semibold text-primary">
+                    <p class="mb-4 inline-flex items-center rounded-full bg-[#feeae9] px-3 py-1 text-sm font-semibold text-primary dark:bg-red-950/50 dark:text-red-400">
                         <i class="fa-solid fa-bolt mr-2" aria-hidden="true"></i>
                         Built for OWASP project governance
                     </p>
@@ -82,9 +90,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="rounded-xl border border-neutral-border bg-gradient-to-b from-white to-rose-50 p-6">
-                    <h2 class="text-xl font-bold text-gray-900">Why teams use OWASP-Wich</h2>
-                    <ul class="mt-4 space-y-3 text-sm text-gray-700">
+                <div class="rounded-xl border border-neutral-border bg-gradient-to-b from-white to-rose-50 p-6 dark:border-gray-800 dark:from-gray-900 dark:to-gray-900">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Why teams use OWASP-Wich</h2>
+                    <ul class="mt-4 space-y-3 text-sm text-gray-700 dark:text-gray-300">
                         <li class="flex gap-3">
                             <i class="fa-solid fa-check text-primary pt-0.5" aria-hidden="true"></i>
                             <span>Standardized compliance checks across governance, security, quality, and legal controls.</span>
@@ -122,8 +130,8 @@
             <div class="space-y-8">
                 <div id="checker" class="input-section">
                     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-                        <h2 class="text-2xl font-bold text-gray-900">Run Compliance Check</h2>
-                        <p class="text-sm text-gray-500">Paste any public GitHub repository URL</p>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Run Compliance Check</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Paste any public GitHub repository URL</p>
                     </div>
                     <div class="input-group">
                         <div class="relative flex-1">
