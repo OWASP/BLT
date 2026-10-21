@@ -15,8 +15,27 @@ ALLOWED_ORIGIN = "http://localhost"  # Override in production via Cloudflare das
 # ENVIRONMENT = "production"
 
 # Secrets (set via wrangler secret put)
+# - BLT_API_KEY: the X-BLT-API-Key that blt-api accepts. Bug reports are saved through
+#   blt-api's POST /bugs; without this secret /api/bugs answers 503.
 # - JWT_SECRET
 # - ENCRYPTION_KEY
+# Optional var: BLT_API_URL (default https://api.owaspblt.org), used when the BLT_API
+# binding below is absent.
+
+# Bug reports go to the blt-api Worker over a service binding (no public round trip).
+[[services]]
+binding = "BLT_API"
+service = "blt-api"
+
+# Per-IP limit on POST /api/bugs. Workers rate limiting needs no setup beyond this block;
+# namespace_id is any number unique to this account.
+[[ratelimits]]
+name = "BUG_REPORT_LIMITER"
+namespace_id = "2101"
+
+  [ratelimits.simple]
+  limit = 5
+  period = 60
 
 # KV Namespaces for caching
 # [[kv_namespaces]]

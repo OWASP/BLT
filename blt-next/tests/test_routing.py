@@ -205,7 +205,8 @@ class OwnRoutesAreNotShadowedTests(unittest.TestCase):
         self.assertEqual(fetch('/api/stats').status, 200)
         self.assertEqual(fetch('/api/leaderboard').status, 200)
         self.assertEqual(fetch('/api/projects').status, 200)
-        self.assertEqual(fetch('/api/bugs').status, 200)
+        # /api/bugs proxies blt-api (tests/test_bug_reports.py); with no BLT_API_KEY it's a 503.
+        self.assertEqual(fetch('/api/bugs').status, 503)
         response = fetch('/api/auth/login', method='POST', body=json.dumps({'email': 'a@b.c', 'password': 'x'}))
         self.assertEqual(response.status, 200)
 

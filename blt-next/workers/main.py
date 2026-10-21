@@ -1,6 +1,8 @@
 from js import Response, Headers, URL
 import json
 import hashlib
+from html import escape as html_escape
+from urllib.parse import parse_qs, urlparse, urlsplit
 from datetime import datetime
 from workers import WorkerEntrypoint #Added this new import to use the modern class-based structure for Cloudflare Workers. 
 
@@ -8,7 +10,9 @@ from workers import WorkerEntrypoint #Added this new import to use the modern cl
 # Configuration
 # ===================================
 ALLOWED_ORIGINS = [
-    'https://next.owaspbt.org',
+    'https://next.owaspblt.org',
+    'https://owaspblt.org',
+    'https://www.owaspblt.org',
     'http://localhost:3000',
     'http://localhost:8000',
 ]
@@ -111,25 +115,6 @@ STATS = {
     'rewards_distributed': '$248,500',
     'projects_protected': '892',
 }
-
-BUGS = [
-    {
-        'id': 1,
-        'title': 'Reflected XSS in search results',
-        'description': 'Search query is rendered without escaping in the demo target.',
-        'severity': 'high',
-        'status': 'open',
-        'created_at': '2026-05-01T12:00:00Z',
-    },
-    {
-        'id': 2,
-        'title': 'Missing security headers',
-        'description': 'Several pages are missing strict transport and frame protection headers.',
-        'severity': 'medium',
-        'status': 'triaged',
-        'created_at': '2026-05-02T12:00:00Z',
-    },
-]
 
 LEADERBOARD = [
     {'rank': 1, 'username': 'redteam_ria', 'points': 12840, 'bugs': 84, 'rewards': '$1,840'},
@@ -346,32 +331,356 @@ async def handle_auth_logout(request, env=None):
         'success': True
     }, origin=request.headers.get('Origin'))
 
-async def handle_bugs_list(request, env=None):
-    """Handle /api/bugs endpoint (GET and POST)"""
-    if request.method == 'POST':
+# ===================================
+# Bug reports (stored by blt-api)
+# ===================================
+#
+# blt-next has no database. A report is checked here and then forwarded to blt-api's
+# POST /bugs, which saves it in blt-api's D1. blt-api wants an X-BLT-API-Key header; the
+# key is the BLT_API_KEY secret of this Worker. blt-api is reached through the BLT_API
+# service binding when there is one (wrangler.toml), else over HTTPS at BLT_API_URL.
+
+BLT_API_DEFAULT_URL = 'https://api.owaspblt.org'
+
+BUG_SEVERITIES = ('critical', 'high', 'medium', 'low', 'info')
+BUG_TYPES = ('security', 'functional', 'ui', 'performance', 'other')
+
+# Length caps. url and user_agent match blt-api's column checks (200 and 255).
+BUG_FIELD_LIMITS = {
+    'title': 200,
+    'url': 200,
+    'description': 5000,
+    'steps': 5000,
+}
+BUG_USER_AGENT_LIMIT = 255
+BUG_MAX_BODY_BYTES = 32 * 1024
+
+# Hidden form field that people never see or fill in; bots that fill every input do.
+BUG_HONEYPOT_FIELD = 'website'
+
+# Per-IP limit: the BUG_REPORT_LIMITER rate-limit binding when configured, otherwise
+# (local dev, tests) a per-isolate in-memory window with the same numbers.
+BUG_RATE_LIMIT = 5
+BUG_RATE_WINDOW_SECONDS = 60
+_bug_rate_memory = {}
+
+# Fields of a blt-api bug that blt-next shows. blt-api's GET /bugs/<id> also returns
+# reporter_ip_address and user_agent, which must never reach a page.
+BUG_PUBLIC_FIELDS = ('id', 'title', 'url', 'severity', 'bug_type', 'status', 'created')
+BUG_DETAIL_FIELDS = BUG_PUBLIC_FIELDS + ('description', 'steps_to_reproduce')
+
+
+class BugReportError(Exception):
+    """A report that can't be accepted; the message is safe to show to the reporter."""
+
+    def __init__(self, message, status=400, field=None):
+        super().__init__(message)
+        self.message = message
+        self.status = status
+        self.field = field
+
+
+def _to_js(value):
+    """Convert a dict to a plain JS object inside the Workers runtime; unchanged elsewhere."""
+    try:
+        from pyodide.ffi import to_js
+        from js import Object
+    except ImportError:
+        return value
+    return to_js(value, dict_converter=Object.fromEntries)
+
+
+def _env_value(env, name, default=None):
+    value = getattr(env, name, None) if env is not None else None
+    if value is None:
+        return default
+    value = str(value).strip()
+    return value or default
+
+
+def _header(request, name):
+    try:
+        value = request.headers.get(name)
+    except Exception:
+        return ''
+    return str(value) if value is not None else ''
+
+
+def _client_ip(request):
+    return _header(request, 'CF-Connecting-IP').strip() or 'unknown'
+
+
+def _request_origin(request):
+    parts = urlsplit(str(request.url))
+    return f'{parts.scheme}://{parts.netloc}'
+
+
+def _origin_allowed(request):
+    """Browsers send Origin on POST. Refuse reports posted from other sites."""
+    origin = _header(request, 'Origin')
+    if not origin:
+        return True  # not a browser form post (curl, tests); blt-api is public anyway
+    return origin in ALLOWED_ORIGINS or origin == _request_origin(request)
+
+
+def _wants_json(request):
+    accept = _header(request, 'Accept').lower()
+    ctype = _header(request, 'Content-Type').lower()
+    return 'application/json' in accept or ctype.startswith('application/json')
+
+
+async def _bug_rate_limited(env, ip):
+    limiter = getattr(env, 'BUG_REPORT_LIMITER', None) if env is not None else None
+    if limiter is not None:
         try:
-            body = await request.json()
-            title = body.get('title')
-            description = body.get('description')
-            severity = body.get('severity')
-
-            if not title or not description or not severity:
-                return create_response({'error': 'Missing required bug report fields'}, status=400, origin=request.headers.get('Origin'))
-
-            # Mock success response in HTML for HTMX
-            html = """
-                <div style="background: #ecfdf5; color: #065f46; padding: 2rem; border-radius: 0.5rem; text-align: center; border: 1px solid #10b981;">
-                    <h2 style="margin-bottom: 1rem;">✅ Report Submitted!</h2>
-                    <p>Thank you for contributing to OWASP BLT. Our team will review your report shortly.</p>
-                    <a href="/" class="btn btn-primary" style="margin-top: 1.5rem; display: inline-block;">Back to Home</a>
-                </div>
-            """
-            return handle_html_response(html, origin=request.headers.get('Origin'))
+            outcome = await limiter.limit(_to_js({'key': ip}))
+            success = outcome.get('success') if isinstance(outcome, dict) else getattr(outcome, 'success', True)
+            return not success
         except Exception as e:
-            return create_response({'error': str(e)}, status=500, origin=request.headers.get('Origin'))
+            print(f"Rate limiter error: {e}")
+    now = datetime.now().timestamp()
+    recent = [t for t in _bug_rate_memory.get(ip, []) if now - t < BUG_RATE_WINDOW_SECONDS]
+    if len(recent) >= BUG_RATE_LIMIT:
+        _bug_rate_memory[ip] = recent
+        return True
+    recent.append(now)
+    _bug_rate_memory[ip] = recent
+    if len(_bug_rate_memory) > 5000:  # keep memory bounded
+        for key in [k for k, v in _bug_rate_memory.items() if not v or now - v[-1] >= BUG_RATE_WINDOW_SECONDS]:
+            _bug_rate_memory.pop(key, None)
+    return False
 
-    # GET case (list bugs)
-    return create_response({'bugs': BUGS}, origin=request.headers.get('Origin'))
+
+async def read_bug_form(request):
+    """Return the submitted fields as a dict of strings. Accepts JSON or a urlencoded form."""
+    length = _header(request, 'Content-Length')
+    if length.isdigit() and int(length) > BUG_MAX_BODY_BYTES:
+        raise BugReportError('The report is too large.', status=413)
+    ctype = _header(request, 'Content-Type').lower()
+    if ctype.startswith('multipart/'):
+        raise BugReportError('File uploads are not supported yet. Please link to a screenshot in the description.', status=415)
+    raw = await request.text()
+    raw = '' if raw is None else str(raw)
+    if len(raw.encode('utf-8')) > BUG_MAX_BODY_BYTES:
+        raise BugReportError('The report is too large.', status=413)
+    if ctype.startswith('application/json'):
+        try:
+            data = json.loads(raw or '{}')
+        except ValueError:
+            raise BugReportError('The request body is not valid JSON.')
+        if not isinstance(data, dict):
+            raise BugReportError('The request body must be a JSON object.')
+    else:
+        data = {k: v[0] for k, v in parse_qs(raw, keep_blank_values=True).items()}
+    fields = {}
+    for key, value in data.items():
+        if value is None:
+            continue
+        if not isinstance(value, (str, int, float)) or isinstance(value, bool):
+            raise BugReportError(f'{key} must be text.', field=key)
+        fields[str(key)] = str(value)
+    return fields
+
+
+def validate_bug_report(fields):
+    """Check a submitted report and return the cleaned values (raises BugReportError)."""
+    if fields.get(BUG_HONEYPOT_FIELD, '').strip():
+        raise BugReportError('The report could not be accepted.', field=BUG_HONEYPOT_FIELD)
+
+    clean = {}
+    labels = {'title': 'Bug title', 'url': 'Affected URL', 'description': 'Description', 'steps': 'Steps to reproduce'}
+    for name, limit in BUG_FIELD_LIMITS.items():
+        value = fields.get(name, '').replace('\r\n', '\n').strip()
+        if not value and name != 'steps':
+            raise BugReportError(f'{labels[name]} is required.', field=name)
+        if len(value) > limit:
+            raise BugReportError(f'{labels[name]} must be {limit} characters or fewer.', field=name)
+        clean[name] = value
+
+    url = clean['url']
+    parsed = urlparse(url)
+    if parsed.scheme not in ('http', 'https') or not parsed.hostname or any(c.isspace() for c in url):
+        raise BugReportError('Affected URL must be a full http:// or https:// address.', field='url')
+
+    severity = fields.get('severity', '').strip().lower()
+    if severity not in BUG_SEVERITIES:
+        raise BugReportError('Choose a severity.', field='severity')
+    clean['severity'] = severity
+
+    bug_type = fields.get('type', fields.get('bug_type', '')).strip().lower()
+    if bug_type not in BUG_TYPES:
+        raise BugReportError('Choose a bug type.', field='type')
+    clean['type'] = bug_type
+    return clean
+
+
+def blt_api_payload(clean, user_agent=''):
+    """Map the form's fields onto blt-api's POST /bugs body."""
+    payload = {
+        'url': clean['url'],
+        'title': clean['title'],
+        'description': clean['description'],
+        'severity': clean['severity'],
+        'bug_type': clean['type'],
+    }
+    if clean.get('steps'):
+        payload['steps_to_reproduce'] = clean['steps']
+    if user_agent:
+        payload['user_agent'] = user_agent[:BUG_USER_AGENT_LIMIT]
+    return payload
+
+
+async def call_blt_api(env, method, path, payload=None, client_ip=None):
+    """Call blt-api and return (status, parsed JSON or None). Raises BugReportError when
+    blt-next isn't configured or blt-api can't be reached."""
+    api_key = _env_value(env, 'BLT_API_KEY')
+    if not api_key:
+        print('blt-api call skipped: the BLT_API_KEY secret is not set')
+        raise BugReportError('Bug reporting is not configured on this site yet.', status=503)
+
+    base = _env_value(env, 'BLT_API_URL', BLT_API_DEFAULT_URL).rstrip('/')
+    headers = {'X-BLT-API-Key': api_key, 'Accept': 'application/json'}
+    if client_ip and client_ip != 'unknown':
+        # blt-api rate-limits by client IP; without this every report would share one bucket.
+        headers['X-Forwarded-For'] = client_ip
+    init = {'method': method, 'headers': headers}
+    if payload is not None:
+        headers['Content-Type'] = 'application/json'
+        init['body'] = json.dumps(payload)
+
+    binding = getattr(env, 'BLT_API', None) if env is not None else None
+    try:
+        if binding is not None:
+            response = await binding.fetch(base + path, _to_js(init))
+        else:
+            from js import fetch as js_fetch
+            response = await js_fetch(base + path, _to_js(init))
+        text = await response.text()
+        status = int(response.status)
+    except Exception as e:
+        print(f'blt-api {method} {path} failed: {e}')
+        raise BugReportError("Couldn't reach the bug tracker. Please try again in a minute.", status=502)
+    try:
+        data = json.loads(text) if text else None
+    except ValueError:
+        data = None
+    return status, data
+
+
+def _blt_api_failure(status, data, action):
+    """Turn a non-2xx blt-api answer into an error that is safe to show."""
+    message = data.get('message') if isinstance(data, dict) else None
+    print(f'blt-api {action} answered {status}: {message}')
+    if status == 400 and isinstance(message, str):
+        return BugReportError(message[:300], status=400)
+    if status == 404:
+        return BugReportError('Bug report not found.', status=404)
+    if status == 429:
+        return BugReportError('Too many reports right now. Please wait a minute and try again.', status=429)
+    if status in (401, 403):
+        return BugReportError('Bug reporting is misconfigured on this site. The maintainers have been notified in the logs.', status=502)
+    return BugReportError('The bug tracker had a problem saving your report. Please try again later.', status=502)
+
+
+def _pick(bug, fields):
+    return {k: bug.get(k) for k in fields if k in bug}
+
+
+def bug_page_link(bug_id):
+    return f'/pages/bugs.html?id={bug_id}'
+
+
+def _bug_json(data, status, request, cache=False):
+    js_headers = Headers.new()
+    js_headers.set('Content-Type', 'application/json')
+    js_headers.set('Cache-Control', 'public, max-age=30' if cache else 'no-store')
+    apply_security_headers(js_headers)
+    for k, v in get_cors_headers(request.headers.get('Origin')).items():
+        js_headers.set(k, v)
+    return Response.new(json.dumps(data), status=status, headers=js_headers)
+
+
+def _bug_result_html(title, message_html, status, link=None):
+    """Small page for a report posted without JavaScript."""
+    extra = f'<p><a href="{html_escape(link)}">View your report</a></p>' if link else ''
+    page = NOT_FOUND_HTML.replace('Page not found | OWASP BLT', html_escape(title) + ' | OWASP BLT')
+    body = (f'<main><h1 style="font-size:2rem">{html_escape(title)}</h1><p>{message_html}</p>{extra}'
+            '<p><a href="/pages/report-bug.html">Report another bug</a> &middot; <a href="/">Home</a></p></main>')
+    page = page[:page.index('<main>')] + body + page[page.index('</main>') + len('</main>'):]
+    js_headers = Headers.new()
+    js_headers.set('Content-Type', 'text/html; charset=utf-8')
+    js_headers.set('Cache-Control', 'no-store')
+    apply_security_headers(js_headers)
+    return Response.new(page, status=status, headers=js_headers)
+
+
+def _bug_error(request, err):
+    if _wants_json(request):
+        body = {'success': False, 'error': err.message}
+        if err.field and err.field != BUG_HONEYPOT_FIELD:
+            body['field'] = err.field
+        return _bug_json(body, err.status, request)
+    return _bug_result_html('Report not sent', html_escape(err.message), err.status)
+
+
+async def create_bug_report(request, env):
+    """POST /api/bugs: check the report, save it through blt-api, answer honestly."""
+    try:
+        if not _origin_allowed(request):
+            raise BugReportError('Reports can only be sent from the OWASP BLT site.', status=403)
+        fields = await read_bug_form(request)
+        clean = validate_bug_report(fields)
+        ip = _client_ip(request)
+        if await _bug_rate_limited(env, ip):
+            raise BugReportError('Too many reports from your network. Please wait a minute and try again.', status=429)
+        payload = blt_api_payload(clean, _header(request, 'User-Agent'))
+        status, data = await call_blt_api(env, 'POST', '/bugs', payload, client_ip=ip)
+        if status not in (200, 201) or not isinstance(data, dict) or not data.get('success'):
+            raise _blt_api_failure(status, data, 'POST /bugs')
+    except BugReportError as err:
+        return _bug_error(request, err)
+
+    bug = data.get('data') if isinstance(data.get('data'), dict) else {}
+    bug_id = bug.get('id')
+    link = bug_page_link(bug_id) if isinstance(bug_id, int) else None
+    if _wants_json(request):
+        return _bug_json({'success': True, 'id': bug_id, 'link': link, 'bug': _pick(bug, BUG_PUBLIC_FIELDS)}, 201, request)
+    number = f' as #{bug_id}' if bug_id is not None else ''
+    return _bug_result_html('Report submitted', f'Thank you. Your report was saved{html_escape(number)}.', 201, link)
+
+
+async def list_bug_reports(request, env):
+    """GET /api/bugs (recent reports) and GET /api/bugs?id=N (one report), as JSON."""
+    params = parse_qs(URL.new(request.url).search.lstrip('?'))
+    bug_id = (params.get('id') or [''])[0].strip()
+    try:
+        if bug_id:
+            if not bug_id.isdigit() or len(bug_id) > 12:
+                raise BugReportError('Bug id must be a number.', status=400)
+            status, data = await call_blt_api(env, 'GET', f'/bugs/{bug_id}')
+            if status != 200 or not isinstance(data, dict) or not isinstance(data.get('data'), dict):
+                raise _blt_api_failure(status, data, f'GET /bugs/{bug_id}')
+            bug = data['data']
+            if bug.get('is_hidden'):
+                raise BugReportError('Bug report not found.', status=404)
+            return _bug_json({'success': True, 'bug': _pick(bug, BUG_DETAIL_FIELDS)}, 200, request, cache=True)
+
+        status, data = await call_blt_api(env, 'GET', '/bugs?per_page=20')
+        if status != 200 or not isinstance(data, dict) or not isinstance(data.get('data'), list):
+            raise _blt_api_failure(status, data, 'GET /bugs')
+        bugs = [_pick(b, BUG_PUBLIC_FIELDS) for b in data['data'] if isinstance(b, dict) and not b.get('is_hidden')]
+        total = (data.get('pagination') or {}).get('total') if isinstance(data.get('pagination'), dict) else None
+        return _bug_json({'success': True, 'bugs': bugs, 'total': total}, 200, request, cache=True)
+    except BugReportError as err:
+        return _bug_json({'success': False, 'error': err.message}, err.status, request)
+
+
+async def handle_bugs_list(request, env=None):
+    """Handle /api/bugs: POST creates a report, GET lists recent ones (or one, with ?id=)."""
+    if request.method == 'POST':
+        return await create_bug_report(request, env)
+    return await list_bug_reports(request, env)
+
 
 async def handle_leaderboard(request, env=None):
     """Handle /api/leaderboard endpoint.

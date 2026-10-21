@@ -22,6 +22,7 @@
   <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
   <script src="../assets/js/main.js" type="module" defer></script>
   <script src="../assets/js/report-prefill.js" defer></script>
+  <script src="../assets/js/bug-reports.js" defer></script>
   <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
 </head>
 
@@ -92,11 +93,15 @@
 
           <!-- Main form -->
           <div>
-            <form id="bugReportForm" hx-post="/api/bugs" hx-swap="outerHTML" class="space-y-6" novalidate>
+            <form id="bugReportForm" action="/api/bugs" method="post" class="space-y-6" novalidate>
+
+              <p class="p-3 text-xs rounded-md border border-yellow-200 bg-yellow-50 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-900/50 dark:text-yellow-300">
+                Reports are public. For a serious vulnerability, describe the problem without a working exploit or secrets, and contact the site's owner privately as well.
+              </p>
 
               <div>
                 <label for="bugTitle" class="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1.5">Bug Title <span class="text-red-600">*</span></label>
-                <input type="text" id="bugTitle" name="title" required placeholder="e.g. XSS vulnerability in login form"
+                <input type="text" id="bugTitle" name="title" required maxlength="200" placeholder="e.g. XSS vulnerability in login form"
                   class="w-full px-4 py-2.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-colors">
               </div>
 
@@ -104,7 +109,7 @@
                 <label for="bugUrl" class="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1.5">Affected URL / Project <span class="text-red-600">*</span></label>
                 <div class="relative">
                   <i class="fa-solid fa-link absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-xs" aria-hidden="true"></i>
-                  <input type="url" id="bugUrl" name="url" required placeholder="https://example.com/vulnerable-page"
+                  <input type="url" id="bugUrl" name="url" required maxlength="200" placeholder="https://example.com/vulnerable-page"
                     class="w-full pl-9 pr-4 py-2.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-colors">
                 </div>
               </div>
@@ -138,35 +143,37 @@
 
               <div>
                 <label for="bugDescription" class="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1.5">Description <span class="text-red-600">*</span></label>
-                <textarea id="bugDescription" name="description" required rows="5"
+                <textarea id="bugDescription" name="description" required maxlength="5000" rows="5"
                   placeholder="Describe the bug in detail — what it is, where it occurs, and what the impact is."
                   class="w-full px-4 py-2.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-vertical transition-colors"></textarea>
-                <div id="custom-error-box" role="alert" aria-live="assertive" class="hidden mt-2 p-3 text-sm rounded-md border border-red-200 bg-red-50 text-red-600 dark:bg-red-900/20 dark:border-red-900/50 dark:text-red-400 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-                    <span class="font-medium">Description cannot be empty or just spaces!</span>
-                </div>
               </div>
 
               <div>
                 <label for="bugSteps" class="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1.5">Steps to Reproduce</label>
-                <textarea id="bugSteps" name="steps" rows="4"
+                <textarea id="bugSteps" name="steps" maxlength="5000" rows="4"
                   placeholder="1. Navigate to...&#10;2. Click on...&#10;3. Observe..."
                   class="w-full px-4 py-2.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-vertical transition-colors"></textarea>
               </div>
 
-              <div>
-                <label for="bugFiles" class="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1.5">Screenshots / Proof of Concept</label>
-                <label for="bugFiles" class="flex flex-col items-center justify-center w-full px-4 py-6 border border-dashed border-gray-300 dark:border-gray-600 rounded-md cursor-pointer hover:border-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
-                  <i class="fa-solid fa-cloud-arrow-up text-gray-400 dark:text-gray-500 text-xl mb-2" aria-hidden="true"></i>
-                  <span class="text-sm text-gray-500 dark:text-gray-400">Drag files here or <span class="text-red-600 dark:text-red-400 font-medium">click to browse</span></span>
-                  <span class="text-xs text-gray-400 dark:text-gray-500 mt-1">PNG, JPG, GIF, PDF — max 10MB each</span>
-                  <input type="file" id="bugFiles" name="attachments" multiple accept="image/*,.pdf" class="hidden">
-                </label>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-image mr-1" aria-hidden="true"></i>
+                Screenshot uploads aren't available yet. To include one, upload it somewhere public and paste the link in the description.
+              </p>
+
+              <!-- Left empty by people; bots that fill every field get turned away. -->
+              <div style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+                <label for="bugWebsite">Leave this field empty</label>
+                <input type="text" id="bugWebsite" name="website" tabindex="-1" autocomplete="off">
+              </div>
+
+              <div id="custom-error-box" role="alert" aria-live="assertive" class="hidden p-3 text-sm rounded-md border border-red-200 bg-red-50 text-red-600 dark:bg-red-900/20 dark:border-red-900/50 dark:text-red-400 flex items-center gap-2">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span id="custom-error-text" class="font-medium"></span>
               </div>
 
               <div class="flex items-center justify-end gap-3 pt-2">
                 <a href="../index.html" class="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 border border-[#E5E5E5] dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Cancel</a>
-                <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">
+                <button type="submit" id="bugSubmit" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">
                   <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Submit Bug Report
                 </button>
               </div>
@@ -176,6 +183,9 @@
 
           <!-- Sidebar -->
           <aside class="space-y-4">
+            <a href="bugs.html" class="block border border-[#E5E5E5] dark:border-gray-700 rounded-lg p-5 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">
+              <i class="fa-solid fa-list mr-2" aria-hidden="true"></i>See recent reports
+            </a>
             <div class="border border-[#E5E5E5] dark:border-gray-700 rounded-lg p-5 dark:bg-gray-800/50">
               <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-circle-info text-red-600 dark:text-red-400 text-sm" aria-hidden="true"></i> Reporting Tips
@@ -191,7 +201,7 @@
                 </li>
                 <li class="flex items-start gap-2.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                   <i class="fa-solid fa-check text-red-600 dark:text-red-400 mt-0.5 shrink-0" aria-hidden="true"></i>
-                  Attach screenshots or screen recordings for visual bugs.
+                  Link to screenshots or recordings for visual bugs.
                 </li>
                 <li class="flex items-start gap-2.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                   <i class="fa-solid fa-check text-red-600 dark:text-red-400 mt-0.5 shrink-0" aria-hidden="true"></i>

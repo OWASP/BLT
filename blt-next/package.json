@@ -6,6 +6,7 @@
     "dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
     "lint": "echo 'Linting not configured'",
+    "test": "node --test tests/*.test.js",
     "setup": "npm install"
   },
   "repository": {
