@@ -361,3 +361,147 @@ def test_slack_apps_audit_page_html_escapes_and_loads_json():
     html = worker.render_slack_apps_audit_html(env, "T04T40NHX")
     assert '"/admin-x?view=slack-apps&format=json&team_id=T04T40NHX"' in html
     assert "textContent" in html and "innerHTML" not in html
+
+
+# --- welcome logo, delivery and open tracking -------------------------------------------------
+
+
+def send_welcomes(env, count, send_results):
+    sent = []
+
+    async def fake_send(channel_id, text, env_, team_id="", app_id="", blocks=None, branding_tracking_id=""):
+        # Build the real payload blocks the way slack_api_send_message does.
+        sent.append(list(blocks) + [worker.build_blt_branding_block(env_, channel_id, tracking_id=branding_tracking_id)])
+        return send_results[len(sent) - 1]
+
+    original = worker.slack_api_send_message
+    worker.slack_api_send_message = fake_send
+    try:
+        for index in range(count):
+            run(worker.send_tracked_welcome(
+                env, 15, "U{0}".format(index), "T04T40NHX", "D{0}".format(index), "Welcome!",
+                {"event_id": "Ev{0}".format(index)}, webhook_event_id="Ev{0}".format(index),
+                webhook_event_subtype="team_join",
+            ))
+    finally:
+        worker.slack_api_send_message = original
+    return sent
+
+
+def welcome_rows(env):
+    return env.DB.rows(
+        "SELECT user_slack_id, status, tracking_id, delivered_at, opened_at, opened_via, verified, "
+        "request_data, slack_response_data FROM events WHERE event_type = 'Team_Join_Welcome' ORDER BY id"
+    )
+
+
+def test_welcome_dm_shows_the_blt_logo_and_a_tracked_image():
+    env = sqlite_env()
+    sent = send_welcomes(env, 1, [{"ok": True, "ts": "1.1", "channel": "D0"}])
+    section, footer = sent[0]
+    assert section["accessory"] == {
+        "type": "image",
+        "image_url": "https://sammich.owaspblt.org/static/blt-logo.png",
+        "alt_text": "OWASP BLT logo",
+    }
+    tracking_id = welcome_rows(env)[0]["tracking_id"]
+    image = footer["elements"][0]
+    assert image["type"] == "image" and image["image_url"].startswith("https://sammich.owaspblt.org/logo-hit?")
+    assert "tid={0}".format(tracking_id) in image["image_url"]
+    assert "blt-logo.png" not in section["text"]["text"]
+    # The PNG Slack is pointed at ships with the Worker's static assets.
+    png = (worker.ROOT_DIR / "public" / "static" / "blt-logo.png").read_bytes()
+    assert png[:8] == b"\x89PNG\r\n\x1a\n" and int.from_bytes(png[16:20], "big") == 256
+
+
+def test_each_welcome_gets_its_own_tracking_id_and_one_row():
+    env = sqlite_env()
+    send_welcomes(env, 3, [{"ok": True, "ts": "1.{0}".format(i), "channel": "D{0}".format(i)} for i in range(3)])
+    rows = welcome_rows(env)
+    ids = [row["tracking_id"] for row in rows]
+    assert len(rows) == 3 and len(set(ids)) == 3
+    assert all(worker.LOGO_TRACKING_ID_PATTERN.fullmatch(value) for value in ids)
+    assert all(json.loads(row["request_data"])["logo_tracking_id"] == row["tracking_id"] for row in rows)
+
+
+def test_delivery_is_recorded_from_the_post_message_response():
+    env = sqlite_env()
+    send_welcomes(env, 2, [
+        {"ok": True, "ts": "1.5", "channel": "D0", "message": {"blocks": []}},
+        {"ok": False, "error": "cannot_dm_bot"},
+    ])
+    delivered, failed = welcome_rows(env)
+    assert delivered["status"] == "success" and delivered["delivered_at"]
+    assert json.loads(delivered["slack_response_data"]) == {"ok": True, "ts": "1.5", "channel": "D0"}
+    assert failed["status"] == "failed" and failed["delivered_at"] == ""
+    assert json.loads(failed["slack_response_data"])["error"] == "cannot_dm_bot"
+
+
+def test_logo_hit_records_opened_once():
+    env = sqlite_env()
+    send_welcomes(env, 1, [{"ok": True, "ts": "1.1", "channel": "D0"}])
+    tracking_id = welcome_rows(env)[0]["tracking_id"]
+    proxy = "Slack-ImgProxy (+https://api.slack.com/robots)"
+    assert run(worker.db_mark_join_message_verified_by_tracking(env, tracking_id, "203.0.113.7", proxy)) is True
+    first = welcome_rows(env)[0]
+    assert first["opened_at"] and first["verified"] == 1
+    assert first["opened_via"].startswith("slack-imgproxy: Slack-ImgProxy")
+    assert "203.0.113.7" not in json.dumps(first)  # IP addresses aren't stored
+
+    assert run(worker.db_mark_join_message_verified_by_tracking(env, tracking_id, "198.51.100.1", "Slack/4.0")) is False
+    assert welcome_rows(env)[0]["opened_at"] == first["opened_at"]
+    assert welcome_rows(env)[0]["opened_via"] == first["opened_via"]
+
+
+def test_logo_hit_ignores_malformed_and_unknown_ids():
+    env = sqlite_env()
+    assert run(worker.db_mark_join_message_verified_by_tracking(env, "x' OR 1=1 --", "", "")) is False
+    assert env.DB.queries == []
+    assert run(worker.db_mark_join_message_verified_by_tracking(env, "ab" * 12, "", "")) is False
+
+
+def test_logo_hit_still_verifies_welcomes_sent_before_the_tracking_column():
+    env = sqlite_env()
+    tracking_id = "0123456789abcdef01234567"
+    env.DB.conn.execute(
+        "INSERT INTO events (workspace_id, event_type, request_data, status, created_at) VALUES (15, 'Team_Join_Welcome', ?, 'success', ?)",
+        (json.dumps({"logo_tracking_id": tracking_id}, separators=(",", ":")), worker.utc_now()),
+    )
+    env.DB.conn.commit()
+    assert run(worker.db_mark_join_message_verified_by_tracking(env, tracking_id, "", "Slack/4.0")) is True
+    row = env.DB.rows("SELECT opened_at, opened_via, verified FROM events")[0]
+    assert row["verified"] == 1 and row["opened_at"] and row["opened_via"].startswith("slack-client")
+    assert run(worker.db_mark_join_message_verified_by_tracking(env, tracking_id, "", "Slack/4.0")) is False
+
+
+def test_welcome_delivery_report_summarizes_7_and_30_days():
+    env = sqlite_env()
+    now = datetime(2026, 10, 21, 12, 0, tzinfo=timezone.utc)
+
+    def add(days_ago, status, delivered=False, opened=False, tracking="", verified=0, subtype="team_join"):
+        created = (now - worker.timedelta(days=days_ago)).isoformat()
+        env.DB.conn.execute(
+            "INSERT INTO events (workspace_id, event_type, user_slack_id, status, created_at, tracking_id, "
+            "delivered_at, opened_at, verified, webhook_event_subtype, request_data) "
+            "VALUES (15, 'Team_Join_Welcome', 'U1', ?, ?, ?, ?, ?, ?, ?, '{}')",
+            (status, created, tracking, created if delivered else "", created if opened else "", verified, subtype),
+        )
+
+    add(1, "success", delivered=True, opened=True, tracking="a" * 24)
+    add(2, "success", delivered=True, tracking="b" * 24)
+    add(3, "failed", tracking="c" * 24)
+    add(4, "pending", tracking="d" * 24)  # the post never answered
+    add(5, "skipped")  # bots: not a welcome
+    add(20, "success", verified=1)  # pre-0024 row: delivered and opened
+    add(25, "success", subtype="blt_welcome")  # pre-0024, delivered, not opened
+    add(40, "success", delivered=True, opened=True, tracking="e" * 24)  # outside 30 days
+    env.DB.conn.commit()
+
+    report = run(worker.db_welcome_delivery_report(env, now=now))
+    assert report["last_7_days"] == {"sent": 4, "delivered": 2, "opened": 1, "delivered_pct": 50.0, "opened_pct": 50.0}
+    assert report["last_30_days"] == {"sent": 6, "delivered": 4, "opened": 2, "delivered_pct": 66.7, "opened_pct": 50.0}
+    assert len(report["welcomes"]) == 8
+    latest = report["welcomes"][0]
+    assert latest["delivered_at"] and latest["opened_at"]
+    html = worker.render_welcome_delivery_html(env, report)
+    assert "Opened (logo loaded)" in html and "Slack-ImgProxy" in html and "66.7%" in html

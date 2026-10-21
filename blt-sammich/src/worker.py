@@ -184,6 +184,10 @@ ADMIN_TABLE_SCHEMAS = {
             ("webhook_retry_reason", "TEXT"),
             ("slack_response_data", "TEXT"),
             ("internal_error", "TEXT"),
+            ("tracking_id", "TEXT"),
+            ("delivered_at", "TEXT"),
+            ("opened_at", "TEXT"),
+            ("opened_via", "TEXT"),
             ("created_at", "TEXT"),
         ],
     },
@@ -466,8 +470,18 @@ def app_base_url(env: Any) -> str:
     return base_url or "https://sammich.owaspblt.org"
 
 
+# The OWASP BLT logo (logo.svg at the BLT repo root) as a 256px PNG; Slack doesn't render SVG.
+BLT_LOGO_PATH = "/static/blt-logo.png"
+LOGO_TRACKING_ID_PATTERN = re.compile(r"[0-9a-f]{24}")
+
+
 def blt_logo_url(env: Any) -> str:
-    return "{0}/static/logo.png".format(app_base_url(env))
+    return "{0}{1}".format(app_base_url(env), BLT_LOGO_PATH)
+
+
+def new_logo_tracking_id() -> str:
+    """The per-message id in a logo URL: 96 random bits, so hits can't be forged by guessing."""
+    return secrets.token_hex(12)
 
 
 def app_version(env: Any = None) -> str:
@@ -3337,12 +3351,50 @@ async def db_has_team_join_welcome_event_id(
     return row is not None
 
 
+def logo_hit_agent(user_agent: str) -> str:
+    """Who loaded the logo, from the User-Agent: Slack's image proxy, a Slack app, or other."""
+    agent = str(user_agent or "")
+    if "Slack-ImgProxy" in agent:
+        return "slack-imgproxy"
+    if "chatlyio" in agent or "Slack/" in agent or "Slack_SSB" in agent:
+        return "slack-client"
+    return "other"
+
+
 async def db_mark_join_message_verified_by_tracking(
     env: Any, tracking_id: str, ip_address: str, user_agent: str
 ) -> bool:
-    if not tracking_id:
+    """Record the first logo load of a tracked message: sets opened_at once, never again.
+
+    Rows written since migration 0024 carry tracking_id (partial index): one UPDATE, which
+    writes only on the first hit. Older rows (before the column) still match by request_data
+    within LOGO_TRACKING_DAYS. The IP address isn't stored.
+    """
+    tracking_id = str(tracking_id or "").strip()
+    if not LOGO_TRACKING_ID_PATTERN.fullmatch(tracking_id):
         return False
     await ensure_schema(env)
+    now = utc_now()
+    agent = str(user_agent or "")[:160]
+    result = await d1_run(
+        env,
+        (
+            "UPDATE events SET opened_at = ?, opened_via = ?, verified = 1 "
+            "WHERE tracking_id = ? AND tracking_id != '' AND opened_at = ''"
+        ),
+        [now, "{0}: {1}".format(logo_hit_agent(agent), agent), tracking_id],
+    )
+    if int(((result or {}).get("meta") or {}).get("changes") or 0) > 0:
+        return True
+    known = result_first(
+        await d1_run(
+            env,
+            "SELECT id FROM events WHERE tracking_id = ? AND tracking_id != '' LIMIT 1",
+            [tracking_id],
+        )
+    )
+    if known:
+        return False  # already opened: the first load is the one recorded
     row = result_first(
         await d1_run(
             env,
@@ -3350,35 +3402,142 @@ async def db_mark_join_message_verified_by_tracking(
                 "SELECT id, request_data FROM events "
                 # Only these two types carry a logo_tracking_id; Team_Join rows never match.
                 "WHERE event_type IN ('Channel_Join_Message', 'Team_Join_Welcome') "
-                "AND created_at >= ? AND request_data LIKE ? AND request_data LIKE ? "
+                "AND created_at >= ? AND verified = 0 AND request_data LIKE ? "
                 "ORDER BY id DESC LIMIT 1"
             ),
             [
-                # Logo hits arrive when a welcome is first opened; older messages aren't
-                # verified, so the scan stays on recent rows (idx_events_type_created).
                 (datetime.now(timezone.utc) - timedelta(days=LOGO_TRACKING_DAYS)).isoformat(),
-                '%"logo_tracking_id"%',
-                '%"{0}"%'.format(tracking_id),
+                '%"logo_tracking_id":"{0}"%'.format(tracking_id),
             ],
         )
     )
     if not row:
         return False
-    try:
-        payload = json.loads(row.get("request_data") or "{}")
-    except Exception:
-        payload = {}
-    if not isinstance(payload, dict):
-        payload = {}
-    payload["verification_ip"] = ip_address or ""
-    payload["verification_user_agent"] = str(user_agent or "")[:512]
-    payload["verified_at"] = utc_now()
     await d1_run(
         env,
-        "UPDATE events SET request_data = ?, verified = 1 WHERE id = ?",
-        [json.dumps(payload), row.get("id")],
+        "UPDATE events SET opened_at = ?, opened_via = ?, verified = 1 WHERE id = ? AND opened_at = ''",
+        [now, "{0}: {1}".format(logo_hit_agent(agent), agent), row.get("id")],
     )
     return True
+
+
+async def db_insert_welcome_row(
+    env: Any,
+    workspace_id: Any,
+    user_id: str,
+    team_id: str,
+    dm_channel: str,
+    tracking_id: str,
+    request_data: Dict[str, Any],
+    webhook_body_type: str = "",
+    webhook_event_id: str = "",
+    webhook_event_time: str = "",
+    webhook_event_subtype: str = "",
+) -> None:
+    """The Team_Join_Welcome row, written before the send (status 'pending') so a logo load
+    that beats the post's response still finds it."""
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        (
+            "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, channel_id, "
+            "slack_team_id, request_data, verified, status, created_at, webhook_body_type, "
+            "webhook_event_id, webhook_event_time, webhook_event_subtype, tracking_id) "
+            "VALUES (?, 'Team_Join_Welcome', ?, 'Direct Message', ?, ?, ?, 0, 'pending', ?, ?, ?, ?, ?, ?)"
+        ),
+        [
+            workspace_id,
+            user_id,
+            dm_channel,
+            team_id or "",
+            json.dumps(request_data, separators=(",", ":")),
+            utc_now(),
+            webhook_body_type,
+            webhook_event_id,
+            webhook_event_time,
+            webhook_event_subtype,
+            tracking_id,
+        ],
+    )
+
+
+async def db_mark_welcome_delivery(
+    env: Any, tracking_id: str, send_result: Dict[str, Any]
+) -> None:
+    """Record chat.postMessage's answer: delivered when ok with a ts and a channel."""
+    summary = slack_response_summary(send_result)
+    delivered = bool(summary.get("ok") and summary.get("ts") and summary.get("channel"))
+    await d1_run(
+        env,
+        (
+            "UPDATE events SET status = ?, delivered_at = ?, slack_response_data = ? "
+            "WHERE tracking_id = ? AND tracking_id != ''"
+        ),
+        [
+            "success" if summary.get("ok") else "failed",
+            utc_now() if delivered else "",
+            json.dumps(summary, sort_keys=True),
+            tracking_id,
+        ],
+    )
+
+
+def build_welcome_blocks(env: Any, welcome_text: str) -> List[Dict[str, Any]]:
+    """The welcome section with the BLT logo beside it.
+
+    The visible logo is the plain static PNG. Slack may fetch a block's image when the message
+    is posted, which would mark every welcome opened, so the per-message tracking URL stays in
+    the footer's small context image (slack_api_send_message), which Slack loads lazily.
+    """
+    return [
+        {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": str(welcome_text or "").strip()},
+            "accessory": {
+                "type": "image",
+                "image_url": blt_logo_url(env),
+                "alt_text": "OWASP BLT logo",
+            },
+        }
+    ]
+
+
+async def send_tracked_welcome(
+    env: Any,
+    workspace_id: Any,
+    user_id: str,
+    team_id: str,
+    dm_channel: str,
+    welcome_text: str,
+    request_data: Dict[str, Any],
+    **row_fields: str,
+) -> Dict[str, Any]:
+    """Post a welcome DM and keep one Team_Join_Welcome row with sent/delivered/opened."""
+    tracking_id = new_logo_tracking_id()
+    if workspace_id:
+        data = dict(request_data)
+        data.update(dm_channel=dm_channel, logo_url=blt_logo_url(env), logo_tracking_id=tracking_id)
+        try:
+            await db_insert_welcome_row(
+                env, workspace_id, user_id, team_id, dm_channel, tracking_id, data, **row_fields
+            )
+        except Exception as error:
+            log_exception_one_line(error, "welcome_row_insert_failed", {"team_id": team_id})
+            workspace_id = None
+    send_result = await slack_api_send_message(
+        dm_channel,
+        "Welcome to the OWASP Slack Community!",
+        env,
+        team_id=team_id,
+        blocks=build_welcome_blocks(env, welcome_text),
+        branding_tracking_id=tracking_id,
+    )
+    if workspace_id:
+        try:
+            await db_mark_welcome_delivery(env, tracking_id, send_result)
+        except Exception as error:
+            log_exception_one_line(error, "welcome_delivery_update_failed", {"team_id": team_id})
+    return send_result
 
 
 async def db_get_daily_stats(
@@ -3997,10 +4156,6 @@ async def blt_welcome_response(form: Dict[str, str], env: Any) -> Dict[str, Any]
     if workspace_id:
         _, mentioned = await db_get_welcome_channels(env, workspace_id, welcome_text, top=0)
         welcome_text = link_workspace_channel_names(welcome_text, mentioned)
-    blocks = [
-        {"type": "section", "text": {"type": "mrkdwn", "text": welcome_text.strip()}}
-    ]
-
     dm_response = await slack_api_open_conversation(user_id, env, team_id=team_id)
     dm_channel = ""
     if isinstance(dm_response.get("channel"), dict):
@@ -4017,39 +4172,17 @@ async def blt_welcome_response(form: Dict[str, str], env: Any) -> Dict[str, Any]
             "blocks": [make_section_block(message)],
         }
 
-    logo_tracking_id = secrets.token_hex(12)
-    send_result = await slack_api_send_message(
-        dm_channel,
-        "Welcome to the OWASP Slack Community!",
+    send_result = await send_tracked_welcome(
         env,
-        team_id=team_id,
-        blocks=blocks,
-        branding_tracking_id=logo_tracking_id,
+        workspace_id,
+        user_id,
+        team_id,
+        dm_channel,
+        welcome_text,
+        {"command": "/blt-welcome"},
+        webhook_body_type="slash_command",
+        webhook_event_subtype="blt_welcome",
     )
-    if workspace_id:
-        await db_log_event(
-            env,
-            workspace_id,
-            "Team_Join_Welcome",
-            user_slack_id=user_id,
-            status="success" if send_result.get("ok") else "failed",
-            channel_name="Direct Message",
-            request_data=json.dumps(
-                {
-                    "dm_channel": dm_channel,
-                    "command": "/blt-welcome",
-                    "logo_url": blt_logo_url(env),
-                    "logo_tracking_id": logo_tracking_id,
-                    "slack_response": slack_response_summary(send_result),
-                },
-                separators=(",", ":"),
-            ),
-            channel_id=dm_channel,
-            slack_team_id=team_id,
-            slack_response_data=json.dumps(slack_response_summary(send_result), sort_keys=True),
-            webhook_body_type="slash_command",
-            webhook_event_subtype="blt_welcome",
-        )
 
     if send_result.get("ok"):
         message = "I sent the BLT welcome message to your DM."
@@ -5982,9 +6115,6 @@ async def handle_team_join_event(
             )
         )
     welcome_text = link_workspace_channel_names(welcome_text, mentioned)
-    blocks = [
-        {"type": "section", "text": {"type": "mrkdwn", "text": welcome_text.strip()}}
-    ]
 
     dm_response = await slack_api_open_conversation(
         user_id, env, team_id=effective_team_id
@@ -6023,43 +6153,19 @@ async def handle_team_join_event(
             )
         return {"ok": False, "error": error_code}
 
-    logo_tracking_id = secrets.token_hex(12)
-    send_result = await slack_api_send_message(
-        dm_channel,
-        "Welcome to the OWASP Slack Community!",
+    send_result = await send_tracked_welcome(
         env,
-        team_id=effective_team_id,
-        blocks=blocks,
-        branding_tracking_id=logo_tracking_id,
+        workspace_id,
+        user_id,
+        effective_team_id,
+        dm_channel,
+        welcome_text,
+        {"event_id": event_id, "source_team_id": team_id, "user_team_id": user_team_id},
+        webhook_body_type="event_callback",
+        webhook_event_id=event_id,
+        webhook_event_time=str((envelope or {}).get("event_time") or ""),
+        webhook_event_subtype="team_join",
     )
-    if workspace_id:
-        await db_log_event(
-            env,
-            workspace_id,
-            "Team_Join_Welcome",
-            user_slack_id=user_id,
-            status="success" if send_result.get("ok") else "failed",
-            channel_name="Direct Message",
-            request_data=json.dumps(
-                {
-                    "dm_channel": dm_channel,
-                    "event_id": event_id,
-                    "logo_url": blt_logo_url(env),
-                    "logo_tracking_id": logo_tracking_id,
-                    "source_team_id": team_id,
-                    "user_team_id": user_team_id,
-                    "slack_response": slack_response_summary(send_result),
-                },
-                separators=(",", ":"),
-            ),
-            channel_id=dm_channel,
-            slack_team_id=effective_team_id,
-            slack_response_data=json.dumps(slack_response_summary(send_result), sort_keys=True),
-            webhook_body_type="event_callback",
-            webhook_event_id=event_id,
-            webhook_event_time=str((envelope or {}).get("event_time") or ""),
-            webhook_event_subtype="team_join",
-        )
     return {"ok": bool(send_result.get("ok")), "action": "team_join_welcome_sent"}
 
 
@@ -6172,7 +6278,7 @@ async def handle_channel_join_event(
         return {"ok": True, "action": "channel_join_empty_template"}
 
     blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": rendered}}]
-    logo_tracking_id = secrets.token_hex(12)
+    logo_tracking_id = new_logo_tracking_id()
     send_result = await slack_api_send_ephemeral(
         channel_id,
         user_id,
@@ -7243,6 +7349,7 @@ def render_admin_html(
         <p class="text-gray-500 text-sm">Browse, edit, create, and delete database records.</p>
       </div>
       <div class="flex gap-2">
+        <a href="{admin_url}?view=welcomes" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50"><i class="fas fa-envelope-open"></i>Welcome delivery</a>
         <a href="{admin_url}?view=slack-apps" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50"><i class="fas fa-robot"></i>Slack app audit</a>
         <a href="/" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50"><i class="fas fa-home"></i>Homepage</a>
       </div>
@@ -7578,6 +7685,135 @@ async def handle_slack_apps_audit(request: Any, env: Any, params: Dict[str, List
     )
 
 
+# --- Welcome delivery (admin) -------------------------------------------------------------
+WELCOME_OPENED_EXPLANATION = (
+    "Sent: sammich posted the DM (the row is written just before chat.postMessage). "
+    "Delivered: chat.postMessage answered ok with a message ts and channel. "
+    "Opened (logo loaded): the message's tracked BLT logo was first fetched, by a Slack app or by "
+    "Slack's image proxy (Slack-ImgProxy) on a client's behalf. Slack loads that image lazily "
+    "(seconds to hours after sending), so it usually means a client rendered the message, but "
+    "it can also be a notification preview or another device, and the proxy caches the image, "
+    "so only the first load is seen. No load doesn't prove the DM was unread (images off, "
+    "cached, or never scrolled into view). Before migration 0024, opened was the last load "
+    "instead of the first."
+)
+
+
+def welcome_delivery_percentages(row: Dict[str, Any], window: str) -> Dict[str, Any]:
+    sent = int(row.get("sent_" + window) or 0)
+    delivered = int(row.get("delivered_" + window) or 0)
+    opened = int(row.get("opened_" + window) or 0)
+    return {
+        "sent": sent,
+        "delivered": delivered,
+        "opened": opened,
+        "delivered_pct": round(delivered * 100.0 / sent, 1) if sent else 0.0,
+        "opened_pct": round(opened * 100.0 / delivered, 1) if delivered else 0.0,
+    }
+
+
+async def db_welcome_delivery_report(
+    env: Any, now: Optional[datetime] = None, limit: int = 100
+) -> Dict[str, Any]:
+    """Sent/delivered/opened for welcome DMs over 7 and 30 days, and the latest `limit` rows.
+
+    Rows from before migration 0024 count as delivered when their status was success (they
+    were written after a successful post) and as opened when verified.
+    """
+    await ensure_schema(env)
+    current = now or datetime.now(timezone.utc)
+    since_7 = (current - timedelta(days=7)).isoformat()
+    since_30 = (current - timedelta(days=30)).isoformat()
+    delivered = "(delivered_at != '' OR (tracking_id = '' AND status = 'success'))"
+    opened = "(opened_at != '' OR verified = 1)"
+    summary = result_first(
+        await d1_run(
+            env,
+            (
+                "SELECT COUNT(*) AS sent_30, "
+                "SUM(CASE WHEN {0} THEN 1 ELSE 0 END) AS delivered_30, "
+                "SUM(CASE WHEN {0} AND {1} THEN 1 ELSE 0 END) AS opened_30, "
+                "SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) AS sent_7, "
+                "SUM(CASE WHEN created_at >= ? AND {0} THEN 1 ELSE 0 END) AS delivered_7, "
+                "SUM(CASE WHEN created_at >= ? AND {0} AND {1} THEN 1 ELSE 0 END) AS opened_7 "
+                "FROM events WHERE event_type = 'Team_Join_Welcome' AND created_at >= ? "
+                "AND status != 'skipped'"
+            ).format(delivered, opened),
+            [since_7, since_7, since_7, since_30],
+        )
+    ) or {}
+    rows = result_rows(
+        await d1_run(
+            env,
+            (
+                "SELECT id, created_at, user_slack_id, status, webhook_event_subtype, "
+                "CASE WHEN delivered_at != '' THEN delivered_at "
+                "WHEN tracking_id = '' AND status = 'success' THEN created_at ELSE '' END AS delivered_at, "
+                "CASE WHEN opened_at != '' THEN opened_at WHEN verified = 1 "
+                "THEN COALESCE(CASE WHEN json_valid(request_data) THEN json_extract(request_data, '$.verified_at') END, '') ELSE '' END AS opened_at, "
+                "CASE WHEN opened_via != '' THEN opened_via ELSE "
+                "COALESCE(CASE WHEN json_valid(request_data) THEN json_extract(request_data, '$.verification_user_agent') END, '') END AS opened_via, "
+                "COALESCE(CASE WHEN json_valid(slack_response_data) THEN json_extract(slack_response_data, '$.error') END, "
+                "CASE WHEN json_valid(request_data) THEN json_extract(request_data, '$.error') END, CASE WHEN json_valid(request_data) THEN json_extract(request_data, '$.reason') END, '') AS error "
+                "FROM events WHERE event_type = 'Team_Join_Welcome' ORDER BY created_at DESC LIMIT ?"
+            ),
+            [int(limit)],
+        )
+    )
+    return {
+        "last_7_days": welcome_delivery_percentages(summary, "7"),
+        "last_30_days": welcome_delivery_percentages(summary, "30"),
+        "welcomes": rows,
+    }
+
+
+def render_welcome_delivery_html(env: Any, report: Dict[str, Any]) -> str:
+    def stat(label: str, data: Dict[str, Any]) -> str:
+        return (
+            "<tr><th>{0}</th><td>{1}</td><td>{2} ({3}%)</td><td>{4} ({5}% of delivered)</td></tr>".format(
+                html_escape(label),
+                data["sent"],
+                data["delivered"],
+                data["delivered_pct"],
+                data["opened"],
+                data["opened_pct"],
+            )
+        )
+
+    rows = []
+    for row in report.get("welcomes") or []:
+        status = str(row.get("status") or "")
+        rows.append(
+            "<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td><small>{6}</small></td><td>{7}</td></tr>".format(
+                html_escape(str(row.get("created_at") or "")[:19]),
+                html_escape(str(row.get("user_slack_id") or "")),
+                html_escape("/blt-welcome" if row.get("webhook_event_subtype") == "blt_welcome" else "team_join"),
+                html_escape(status),
+                html_escape(str(row.get("delivered_at") or "")[:19]),
+                html_escape(str(row.get("opened_at") or "")[:19]),
+                html_escape(str(row.get("opened_via") or "")[:80]),
+                html_escape(str(row.get("error") or "")),
+            )
+        )
+    return (
+        "<!doctype html><html><head><meta charset='utf-8'>"
+        "<meta name='viewport' content='width=device-width,initial-scale=1'><title>Welcome delivery</title>"
+        "<style>body{font:14px system-ui,sans-serif;margin:16px;color:#111;background:#fff}"
+        "table{border-collapse:collapse;margin-bottom:16px}th,td{border-bottom:1px solid #ddd;padding:4px 8px;"
+        "text-align:left;vertical-align:top}small{color:#555}.note{max-width:900px;color:#333}</style></head><body>"
+        "<p><a href='" + html_escape(admin_path(env)) + "'>&larr; Admin</a></p>"
+        "<h1>Welcome DM delivery</h1>"
+        "<table><tr><th></th><th>Sent</th><th>Delivered</th><th>Opened (logo loaded)</th></tr>"
+        + stat("Last 7 days", report["last_7_days"])
+        + stat("Last 30 days", report["last_30_days"])
+        + "</table><p class='note'>" + html_escape(WELCOME_OPENED_EXPLANATION) + "</p>"
+        "<h2>Latest welcomes</h2><table><tr><th>Sent (UTC)</th><th>User</th><th>Source</th><th>Status</th>"
+        "<th>Delivered</th><th>Opened (logo loaded)</th><th>Loaded by</th><th>Error</th></tr>"
+        + "".join(rows)
+        + "</table></body></html>"
+    )
+
+
 async def handle_admin_get(request: Any, env: Any) -> Any:
     if not is_admin_request(request, env):
         return basic_auth_response()
@@ -7585,6 +7821,15 @@ async def handle_admin_get(request: Any, env: Any) -> Any:
     params = parse_qs(parsed_url.query)
     if (params.get("view") or [""])[0] == "slack-apps":
         return await handle_slack_apps_audit(request, env, params)
+    if (params.get("view") or [""])[0] == "welcomes":
+        try:
+            report = await db_welcome_delivery_report(env)
+        except Exception as error:
+            log_exception_one_line(error, "welcome_delivery_report_failed")
+            return html_response("<h1>Welcome delivery report failed</h1>", status=500)
+        if (params.get("format") or [""])[0] == "json":
+            return json_response(report)
+        return html_response(render_welcome_delivery_html(env, report))
     message = params.get("message", [""])[0]
     selected_table = params.get("table", ["teams"])[0]
     edit_pk = params.get("edit", [""])[0]

@@ -1943,52 +1943,6 @@ def test_slack_api_send_ephemeral_adds_tracking_branding_block():
     assert "u=U123" in image_element["image_url"]
 
 
-def test_db_mark_join_message_verified_by_tracking_matches_compact_json():
-    captured = {}
-    original_d1_run = worker.d1_run
-    original_schema_ready = worker.SCHEMA_READY
-
-    async def fake_d1_run(env, query, params=None):
-        if query.startswith("SELECT id, request_data FROM events"):
-            captured["select_query"] = query
-            captured["select_params"] = params
-            return {
-                "results": [
-                    {
-                        "id": 42,
-                        "request_data": '{"logo_tracking_id":"tid-123","kind":"team_join"}',
-                    }
-                ]
-            }
-        if query.startswith("UPDATE events SET request_data"):
-            captured["update_params"] = params
-            return {"success": True}
-        return {"success": True}
-
-    env = _Env()
-    setattr(env, "DB", object())
-    worker.d1_run = fake_d1_run
-    worker.SCHEMA_READY = True
-    try:
-        result = asyncio.run(
-            worker.db_mark_join_message_verified_by_tracking(
-                env, "tid-123", "203.0.113.7", "Slackbot"
-            )
-        )
-    finally:
-        worker.d1_run = original_d1_run
-        worker.SCHEMA_READY = original_schema_ready
-
-    assert result is True
-    assert "Team_Join_Welcome" in captured["select_query"]
-    assert "created_at >= ?" in captured["select_query"]
-    assert captured["select_params"][1:] == ['%"logo_tracking_id"%', '%"tid-123"%']
-    updated = json.loads(captured["update_params"][0])
-    assert updated["verification_ip"] == "203.0.113.7"
-    assert updated["verification_user_agent"] == "Slackbot"
-    assert captured["update_params"][1] == 42
-
-
 def test_blt_welcome_command_sends_welcome_dm():
     captured = {"sent": None, "logs": []}
     original_get_workspace = worker.db_get_workspace_by_team
@@ -2028,6 +1982,14 @@ def test_blt_welcome_command_sends_welcome_dm():
         captured["logs"].append((workspace_id, event_type, kwargs))
         return True
 
+    async def fake_insert(env, workspace_id, user_id, team_id, dm_channel, tracking_id, data, **fields):
+        captured["logs"].append((workspace_id, tracking_id, data, fields))
+
+    async def fake_delivery(env, tracking_id, send_result):
+        captured["delivery"] = (tracking_id, send_result)
+
+    original_insert, original_delivery = worker.db_insert_welcome_row, worker.db_mark_welcome_delivery
+    worker.db_insert_welcome_row, worker.db_mark_welcome_delivery = fake_insert, fake_delivery
     worker.db_get_workspace_by_team = fake_get_workspace
     worker.db_get_welcome_channels = fake_get_channels
     worker.slack_api_open_conversation = fake_open
@@ -2046,7 +2008,11 @@ def test_blt_welcome_command_sends_welcome_dm():
         worker.slack_api_open_conversation = original_open
         worker.slack_api_send_message = original_send
         worker.db_log_event = original_log
+        worker.db_insert_welcome_row, worker.db_mark_welcome_delivery = original_insert, original_delivery
 
+    assert captured["logs"][0][1] == captured["sent"]["branding_tracking_id"] == captured["delivery"][0]
+    assert captured["logs"][0][2]["command"] == "/blt-welcome"
+    assert captured["logs"][0][3]["webhook_event_subtype"] == "blt_welcome"
     assert response["response_type"] == "ephemeral"
     assert "sent" in response["text"]
     assert captured["sent"]["channel_id"] == "D123"
@@ -2055,7 +2021,7 @@ def test_blt_welcome_command_sends_welcome_dm():
     rendered = captured["sent"]["blocks"][0]["text"]["text"]
     assert "Welcome to the OWASP Slack Community, <@U123>!" in rendered
     assert "<#C077QBBLY1Z|contribute>" in rendered
-    assert captured["logs"][0][1] == "Team_Join_Welcome"
+    assert captured["sent"]["blocks"][0]["accessory"]["image_url"].endswith("/static/blt-logo.png")
 
 
 def test_handle_team_join_event_uses_joined_users_team_for_real_member_dm():
@@ -2106,6 +2072,14 @@ def test_handle_team_join_event_uses_joined_users_team_for_real_member_dm():
         captured["logs"].append((workspace_id, event_type, kwargs))
         return True
 
+    async def fake_insert(env, workspace_id, user_id, team_id, dm_channel, tracking_id, data, **fields):
+        captured["logs"].append((workspace_id, "Team_Join_Welcome", {"slack_team_id": team_id, "request_data": json.dumps(data)}))
+
+    async def fake_delivery(env, tracking_id, send_result):
+        captured["delivery"] = send_result
+
+    original_insert, original_delivery = worker.db_insert_welcome_row, worker.db_mark_welcome_delivery
+    worker.db_insert_welcome_row, worker.db_mark_welcome_delivery = fake_insert, fake_delivery
     worker.db_get_workspace_by_team = fake_get_workspace
     worker.db_get_workspace_bot_user_id = fake_bot_user_id
     worker.db_has_team_join_welcome_event_id = fake_has_event
@@ -2130,8 +2104,10 @@ def test_handle_team_join_event_uses_joined_users_team_for_real_member_dm():
         worker.slack_api_open_conversation = original_open
         worker.slack_api_send_message = original_send
         worker.db_log_event = original_log
+        worker.db_insert_welcome_row, worker.db_mark_welcome_delivery = original_insert, original_delivery
 
     assert result == {"ok": True, "action": "team_join_welcome_sent"}
+    assert captured["delivery"] == {"ok": True, "ts": "123.456"}
     assert captured["workspace_lookups"][0] == "TUSER"
     assert captured["opened"] == {"user_id": "UREAL", "team_id": "TUSER"}
     assert captured["sent"]["team_id"] == "TUSER"

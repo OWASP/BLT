@@ -318,6 +318,18 @@ The first call of each hour also prunes the event log: it deletes up to `EVENT_R
 
 team_join deliveries are answered at once and the welcome is sent after the response (`ctx.waitUntil`). The event id is claimed first in `slack_event_claims`, so a Slack retry never sends a second welcome.
 
+### Welcome delivery
+
+Each welcome DM (team_join or `/blt-welcome`) shows the OWASP BLT logo (`public/static/blt-logo.png`, a 256px PNG of `logo.svg` from the BLT repo root) beside the text, and its footer has a small logo loaded through `/logo-hit?tid=<id>`. The id is 96 random bits, unique per message. One `Team_Join_Welcome` row per welcome holds:
+
+- **sent**: the row's `created_at`. It is written just before `chat.postMessage` with status `pending`.
+- **delivered** (`delivered_at`): `chat.postMessage` answered `ok` with a message `ts` and channel.
+- **opened, logo loaded** (`opened_at`, `opened_via`): the first fetch of that message's tracked logo. Later fetches don't change it. The IP address isn't stored.
+
+What "opened" means: the existing data shows the tracked image is fetched from seconds to hours after sending. The fetch comes either from Slack's image proxy (`Slack-ImgProxy`, on a client's behalf) or directly from a Slack app (e.g. the iOS app). It isn't fetched when the message is posted. So it usually means a Slack client rendered the message. It can also be a notification preview or another of the user's devices, and the proxy caches the image, so only the first load is seen. No load doesn't prove the DM went unread. The visible logo next to the text is the plain static PNG, because Slack may fetch a block's image at post time and that would mark every welcome as opened. No third-party tracker is involved.
+
+`<ADMIN_URL>?view=welcomes` shows sent / delivered / opened per welcome (the latest 100) and 7- and 30-day totals (delivered % of sent, opened % of delivered). Add `&format=json` for the JSON. Rows from before migration 0024 count as delivered when their status was `success`, and as opened when `verified` (for those rows, opened was the last load rather than the first).
+
 ### Slack app audit
 
 `<ADMIN_URL>?view=slack-apps` (same Basic auth as the admin) lists the bots and apps in the OWASP workspace (`team_id` query parameter for another one) from `users.list`, and matches each against blt-panini's `slack_apps.json` and `banned_apps.json` (`PANINI_BASE_URL`, default `https://panini.owaspblt.org`). Add `&format=json` for the JSON, one batch of up to 5 `users.list` pages per request (`next_cursor` continues). It is read-only. A bot token can't see other apps' scopes or install dates, so those come only from the Slack admin console.
