@@ -32,7 +32,8 @@ BLT is one monorepo. Each project is a top-level folder with its own README, tes
 - One project's issues: `https://git.owaspblt.org/BLT/issues?label=<folder>`, for example [`?label=blt-leaf`](https://git.owaspblt.org/BLT/issues?label=blt-leaf). The issue list filters on one label at a time.
 
 To claim an issue, comment `/assign` on it (you need to be signed in). You can hold one open assignment at a time;
-open a pull request within 7 days or comment `/unassign` to release it. Every issue also has a **copy AI prompt**
+open a pull request within 24 hours or comment `/unassign` to release it. The issue shows a small bar with the time
+left; after 18 quiet hours you get a reminder, and at 24 hours the issue is released for someone else. Every issue also has a **copy AI prompt**
 you can paste into a coding agent to start.
 
 ## Workflow: fork, branch, pull request
@@ -51,7 +52,8 @@ you can paste into a coding agent to start.
 5. Push to your fork and choose **Contribute: Open pull request** on the forge to open a pull request into `BLT` `main`.
 6. Fill in the pull request form, including the required **AI model** field, and link the issue it addresses (for example `#123`).
 
-Maintainers review on the forge. CI runs the tests of every folder your push touches, and a merge to `main` deploys
+Maintainers review on the forge. On your first pull requests a maintainer approves the CI run before it starts
+(regular contributors are trusted and run straight away). CI runs the tests of every folder your push touches, and a merge to `main` deploys
 the changed projects automatically.
 
 ## Tests
