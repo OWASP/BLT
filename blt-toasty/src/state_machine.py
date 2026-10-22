@@ -121,6 +121,7 @@ async def quarantine_event(db, event_id: str, reason: str, env=None, has_vector:
         event_id (str): The ID of the triage event.
         reason (str): The reason for quarantining the event.
         env: The Cloudflare Worker environment (optional if has_vector=False).
+            When given, maintainers are notified in Slack if configured.
         has_vector: Whether the event has been vectorized and needs cleanup.
 
     Raises:
@@ -177,3 +178,9 @@ async def quarantine_event(db, event_id: str, reason: str, env=None, has_vector:
             await db.prepare("UPDATE triage_events SET quarantine_reason = ? WHERE id = ?").bind(
                 f"{reason}; vector_cleanup_pending", event_id
             ).run()
+
+    # 4. Notify maintainers (best effort, never raises)
+    if env is not None:
+        from slack_notifier import notify_triage
+
+        await notify_triage(env, db, event_id, quarantined=True)
