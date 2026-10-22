@@ -18,6 +18,7 @@ import re
 import sys
 from datetime import datetime, timezone
 from typing import List, Dict, Optional, Tuple
+import urllib.parse
 import urllib.request
 import urllib.error
 
@@ -259,6 +260,36 @@ def fetch_repos(org: str, token: str = None) -> List[Dict]:
     
     return repos
 
+# Titles of open issues that already ask whether a repo is maintained: Bumper's own reminders (old
+# and current title) and ones people opened by hand. A repo with one is waiting on its maintainers.
+REMINDER_QUERIES = ['"Repository Activity Reminder"', '"still maintained"']
+
+
+def fetch_open_reminders(org: str, token: str = None) -> Dict[str, Dict]:
+    """Open reminder issues in the org, by repo name (oldest kept). A few search requests."""
+    found: Dict[str, Dict] = {}
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "OWASP-Bumper-Repo-List-Generator"}
+    if token:
+        headers["Authorization"] = f"token {token}"
+    for phrase in REMINDER_QUERIES:
+        q = urllib.parse.quote(f"org:{org} is:issue is:open in:title {phrase}")
+        for page in range(1, 11):
+            url = f"https://api.github.com/search/issues?q={q}&per_page=100&page={page}&sort=created&order=asc"
+            try:
+                with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=20) as response:
+                    items = json.loads(response.read().decode()).get("items", [])
+            except Exception as exc:
+                print(f"Warning: reminder search failed ({phrase}): {exc}", file=sys.stderr)
+                break
+            for item in items:
+                name = item.get("repository_url", "").rsplit("/", 1)[-1]
+                if name and name not in found:
+                    found[name] = {"number": item.get("number"), "url": item.get("html_url", ""), "created": item.get("created_at", "")}
+            if len(items) < 100:
+                break
+    return found
+
+
 def repo_record(repo: Dict) -> Dict:
     """The fields the page uses, with empty values left out to keep the file small."""
     index_md = repo.get("index_md") or {}
@@ -279,6 +310,10 @@ def repo_record(repo: Dict) -> Dict:
         "topics": repo.get("topics") or [],
         "archived": bool(repo.get("archived")),
         "issues_off": repo.get("has_issues") is False,
+        "fork": bool(repo.get("fork")),
+        "template": bool(repo.get("is_template")),
+        "empty": repo.get("size") == 0,
+        "reminder": repo.get("open_reminder") or {},
         "kind": "project" if "www-project" in name.lower() else "chapter" if "www-chapter" in name.lower() else "other",
         "sparkline": repo.get("sparkline") or [],
         "commit": {k: last_commit.get(k, "") for k in ("message", "author", "author_url", "date")} if last_commit else {},
@@ -360,6 +395,10 @@ def main():
     print(f"Fetching repositories for organization: {org}")
     repos = fetch_repos(org, token)
     print(f"Found {len(repos)} repositories")
+    reminders = fetch_open_reminders(org, token)
+    print(f"Found open reminder issues on {len(reminders)} repositories")
+    for repo in repos:
+        repo["open_reminder"] = reminders.get(repo.get("name", ""))
 
     if (fetch_sparklines and token) or (fetch_metadata and token):
         print(f"Fetching extra data for {len(repos)} repositories using {max_workers} parallel workers...")

@@ -24,7 +24,7 @@
     :root {
       --primary: #dc2626; --primary-hover: #b91c1c; --accent: #fef2f2; --red-text: #b91c1c;
       --bg: #f9fafb; --surface: #fff; --border: #e5e7eb; --row-hover: #f9fafb;
-      --text: #111827; --muted: #6b7280; --faint: #9ca3af;
+      --text: #111827; --muted: #6b7280; --faint: #9ca3af; --chip: #f3f4f6; --warn-bg: #fffbeb;
       --ok: #15803d; --warn: #b45309; --bad: #b91c1c;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       color-scheme: light;
@@ -32,7 +32,7 @@
     html.dark {
       --accent: rgba(239, 68, 68, .12); --red-text: #f87171;
       --bg: #030712; --surface: #111827; --border: #1f2937; --row-hover: #1a2231;
-      --text: #f3f4f6; --muted: #9ca3af; --faint: #6b7280;
+      --text: #f3f4f6; --muted: #9ca3af; --faint: #6b7280; --chip: #1f2937; --warn-bg: rgba(251, 191, 36, .12);
       --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
       color-scheme: dark;
     }
@@ -108,6 +108,17 @@
     .bump:hover { border-color: var(--primary); color: var(--red-text); }
     .bump.done { color: var(--ok); }
     .muted { color: var(--faint); font-size: 12px; }
+    .rem {
+      display: inline-block; padding: 0 6px; border-radius: 999px; font-size: 11px; line-height: 18px; font-weight: 600; white-space: nowrap;
+      vertical-align: 1px; text-decoration: none; color: var(--warn); background: var(--warn-bg); border: 1px solid transparent;
+    }
+    .rem:hover { border-color: var(--warn); }
+    .whys { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 4px; vertical-align: 1px; }
+    .why { font-size: 11px; line-height: 16px; padding: 0 6px; border-radius: 4px; background: var(--chip); color: var(--muted); white-space: nowrap; }
+    .why.down { background: transparent; border: 1px dashed var(--border); color: var(--faint); }
+    .score { display: inline-block; min-width: 32px; padding: 0 6px; border-radius: 6px; font-weight: 700; font-size: 13px; line-height: 22px; text-align: center; background: var(--accent); color: var(--red-text); cursor: help; }
+    .score.low { background: transparent; color: var(--faint); font-weight: 400; }
+    .noise-note { padding: 8px 12px; border-top: 1px solid var(--border); font-size: 13px; color: var(--muted); }
     .empty { padding: 32px 16px; text-align: center; color: var(--muted); }
     .more { display: block; margin: 12px auto 0; }
 
@@ -153,6 +164,7 @@
       .c-sel { width: 30px; padding-left: 8px; }
       th.c-age { width: 62px; }
       th.c-bump { width: 44px; }
+      .c-score, .whys { display: none; }
       .c-stars, .c-issues, .c-bump .label, .c-age .sub { display: none; }
       .bump { padding: 0 8px; }
       .desc { -webkit-line-clamp: 2; }
@@ -190,12 +202,18 @@
       <select name="idle" aria-label="Activity"></select>
       <select name="lang" aria-label="Language"><option value="">Any language</option></select>
       <select name="created" aria-label="Created"><option value="">Created any year</option></select>
+      <select name="reminder" aria-label="Open reminder issue">
+        <option value="any">Reminder issue: any</option>
+        <option value="open">Open reminder</option>
+        <option value="none">No open reminder</option>
+      </select>
       <select name="bumped" aria-label="Bumped by you">
         <option value="any">Bumped or not</option>
         <option value="not">Not bumped by me</option>
         <option value="yes">Bumped by me</option>
       </select>
       <select name="sort" aria-label="Sort">
+        <option value="score-desc">Best to bump</option>
         <option value="idle-desc">Most idle first</option>
         <option value="idle-asc">Most recent first</option>
         <option value="stars-desc">Most stars</option>
@@ -205,6 +223,7 @@
         <option value="created-asc">Oldest</option>
       </select>
       <label class="check"><input type="checkbox" name="archived"> Archived</label>
+      <label class="check" title="Forks, templates, empty repos, ones that say they moved or are defunct, near-duplicates, and repos that already have an open reminder issue"><input type="checkbox" name="noise"> Low-signal</label>
       <button type="button" class="linkbtn" id="reset">Reset</button>
     </form>
 
@@ -214,6 +233,7 @@
           <tr>
             <th class="c-sel"><input type="checkbox" id="headAll" aria-label="Select all matching"></th>
             <th><button type="button" data-sort="name">Repository</button></th>
+            <th class="num c-score"><button type="button" data-sort="score" title="Best to bump: importance × staleness × noise. Hover a score for its reasons.">Score</button></th>
             <th class="c-kind">Type</th>
             <th class="c-age"><button type="button" data-sort="idle">Last push</button></th>
             <th class="c-created"><button type="button" data-sort="created">Created</button></th>
@@ -225,6 +245,7 @@
         <tbody id="rows"></tbody>
       </table>
       <div class="empty" id="empty" hidden>No repositories match these filters.</div>
+      <div class="noise-note" id="noiseNote" hidden></div>
     </div>
     <button type="button" class="btn more" id="more" hidden></button>
 
@@ -232,7 +253,8 @@
       <summary>How it works</summary>
       <p>Every day Bumper lists the repositories in the <a href="https://github.com/OWASP">OWASP GitHub organization</a> with their last push, type and language. Pick the idle ones with the filters, tick them (or <em>Select all matching</em>), then <em>Open issue forms</em>: each opens GitHub's new-issue form on that repository, prefilled with a short reminder asking a maintainer whether the project is still maintained. You review and submit each one, signed in as yourself.</p>
       <p>Browsers allow only a few tabs per click, so forms open in batches of 10; click again for the next batch. If your browser blocks them, allow pop-ups for this site. <em>Copy checklist</em> copies the selection as a Markdown task list with each repository's reminder link, for a tracking issue or for working through later.</p>
-      <p>Repositories you have opened a form for are remembered in this browser (<em>Bumped by me</em>). Archived repositories and ones with issues turned off can't be bumped.</p>
+      <p><strong>Best to bump</strong> (the default order) scores each repository as importance × staleness × noise. Importance counts stars, forks, open issues and pull requests, OWASP projects and their level, and stars arriving after the last push. Staleness grows with the years since the last push; commits by bots don't count. Noise pushes down forks, templates, empty repositories, ones that say they moved or are defunct (archive them instead), "-old" copies, near-duplicate siblings, and repositories that already have an open reminder issue; the clearest cases are collapsed as <em>Low-signal</em>. Hover a score or its chips for the reasons. The other orders are in the sort menu and the column headers.</p>
+      <p>Repositories you have opened a form for are remembered in this browser (<em>Bumped by me</em>). Archived repositories and ones with issues turned off can't be bumped. Open reminder issues (Bumper's own, and any titled "still maintained") show as a 🔔 link on their row; filter with <em>Open reminder</em>. A repository whose reminder was opened less than a year ago links to it instead of offering a second one: follow up there.</p>
     </details>
   </main>
 

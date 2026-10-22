@@ -2,7 +2,7 @@
 // and sorts it, and opens prefilled reminder issues for the selected repositories in batches.
 import {
   BATCH_SIZE, DEFAULT_FILTERS, IDLE, ago, bumpBlocker, bumpUrl, checklist, escapeHtml, filtersFromQuery,
-  filtersToQuery, idleYears, lastActive, matches, safeUrl, sortRepos,
+  filtersToQuery, idleYears, lastActive, matches, openReminder, safeUrl, scoreAll, sortRepos,
 } from "./bumper.js";
 
 const PAGE = 200;
@@ -36,7 +36,7 @@ function save() {
 }
 const fmt = (n) => n.toLocaleString("en-US");
 const plural = (n, word) => `${fmt(n)} ${word}${n === 1 ? "" : "s"}`;
-const bumpable = (r) => !bumpBlocker(r);
+const bumpable = (r) => !bumpBlocker(r, now);
 
 async function init() {
   for (const [value, { label }] of Object.entries(IDLE)) form.idle.add(new Option(label, value));
@@ -51,8 +51,12 @@ async function init() {
     return;
   }
   byName = new Map(repos.map((r) => [r.name, r]));
+  scoreAll(repos, { now, bumped });
   fillSelect(form.lang, repos.map((r) => r.language || "none"), (v) => (v === "none" ? "No language" : v), true);
   fillSelect(form.created, repos.map((r) => String(r.created || "").slice(0, 4)).filter(Boolean), (v) => `Created ${v}`, false);
+  const reminders = repos.filter((r) => openReminder(r)).length;
+  form.reminder.options[1].text = `Open reminder (${fmt(reminders)})`;
+  form.reminder.options[2].text = `No open reminder (${fmt(repos.length - reminders)})`;
   writeForm();
   update();
 }
@@ -84,15 +88,42 @@ function readForm() {
   return f;
 }
 
-function update({ keepLimit = false } = {}) {
+function update({ keepLimit = false, rescore = false } = {}) {
   if (!keepLimit) limit = PAGE;
+  if (rescore) scoreAll(repos, { now, bumped });
   const ctx = { now, bumped };
   matched = sortRepos(repos.filter((r) => matches(r, filters, ctx)), filters.sort);
   history.replaceState(null, "", location.pathname + filtersToQuery(filters) + location.hash);
   renderTiles(ctx);
   renderRows();
+  renderNoise(ctx);
   renderSortHeaders();
   renderBar();
+}
+
+const NOISE_GROUPS = [
+  [/^reminder/, "already reminded"], [/^Issues are turned off/, "issues off"], [/^fork/, "fork"], [/^empty/, "empty"],
+  [/^template/, "template"], [/^says it moved/, "moved / defunct"], [/^looks superseded/, "-old / -backup copy"],
+  [/similar repos$/, "near-duplicate"],
+];
+function noiseGroup(reason) {
+  const hit = NOISE_GROUPS.find(([re]) => re.test(reason));
+  return hit ? hit[1] : reason;
+}
+
+// Low-signal rows are collapsed into one line under the table, with what they are.
+function renderNoise(ctx) {
+  const hidden = filters.noise ? [] : repos.filter((r) => !r.archived && r._sig.noise && matches(r, { ...filters, noise: true }, ctx));
+  const note = $("noiseNote");
+  note.hidden = hidden.length === 0;
+  if (!hidden.length) return;
+  const kinds = new Map();
+  for (const r of hidden) {
+    const k = noiseGroup(r._sig.bad[0]);
+    kinds.set(k, (kinds.get(k) || 0) + 1);
+  }
+  const list = [...kinds].sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} (${n})`).join(" · ");
+  note.innerHTML = `<b>${plural(hidden.length, "low-signal repo")}</b> collapsed: ${escapeHtml(list)}. <button type="button" class="linkbtn" id="showNoise">Show them</button>`;
 }
 
 function renderTiles(ctx) {
@@ -111,26 +142,35 @@ function ageClass(years) {
 }
 
 function row(r, i) {
-  const blocker = bumpBlocker(r);
+  const blocker = bumpBlocker(r, now);
+  const rem = openReminder(r);
+  const remLink = rem ? `<a class="rem" href="${escapeHtml(safeUrl(rem.url))}" target="_blank" rel="noopener" title="Open reminder issue since ${escapeHtml(String(rem.created).slice(0, 10))}: comment there to follow up">🔔 #${escapeHtml(rem.number)} · ${escapeHtml(ago(rem.created, now))}</a>` : "";
   const sel = selected.has(r.name);
   const years = idleYears(r, now);
   const when = bumped[r.name];
   const pills = [
+    remLink,
     r.archived ? `<span class="pill">Archived</span>` : "",
     r.issues_off && !r.archived ? `<span class="pill">Issues off</span>` : "",
     when ? `<span class="pill red" title="You opened a reminder form on ${escapeHtml(when.slice(0, 10))}">Bumped ${escapeHtml(ago(when, now))} ago</span>` : "",
   ].join(" ");
+  const sig = r._sig;
+  const chips = sig.bad.filter((b) => b !== blocker && !b.startsWith("you bumped") && !b.startsWith("reminder #")).slice(0, 2).map((b) => `<span class="why down">${escapeHtml(b)}</span>`)
+    .concat(sig.good.slice(0, 2).map((g) => `<span class="why">${escapeHtml(g)}</span>`)).slice(0, 2).join("");
   const lang = r.language || "";
   const created = String(r.created || "").slice(0, 4);
   const desc = r.title || r.description || "";
-  const bump = blocker
+  const bump = rem && blocker && !r.archived && !r.issues_off
+    ? `<a class="bump" href="${escapeHtml(safeUrl(rem.url))}" target="_blank" rel="noopener" title="${escapeHtml(blocker)}: view it">#${escapeHtml(rem.number)}<span class="label">&nbsp;View</span></a>`
+    : blocker
     ? `<span class="muted" title="${escapeHtml(blocker)}">–</span>`
     : `<a class="bump${when ? " done" : ""}" href="${escapeHtml(bumpUrl(r, now))}" target="_blank" rel="noopener" data-bump="${escapeHtml(r.name)}" title="Open a prefilled reminder issue on GitHub">🔔<span class="label">&nbsp;${when ? "Again" : "Bump"}</span></a>`;
   return `<tr data-i="${i}"${sel ? ' class="sel"' : ""}>
     <td class="c-sel"><input type="checkbox" data-name="${escapeHtml(r.name)}"${sel ? " checked" : ""}${blocker ? ` disabled title="${escapeHtml(blocker)}"` : ""} aria-label="Select ${escapeHtml(r.name)}"></td>
-    <td><a class="name" href="${escapeHtml(safeUrl(r.url))}" target="_blank" rel="noopener">${escapeHtml(r.name)}</a> ${pills}
+    <td><a class="name" href="${escapeHtml(safeUrl(r.url))}" target="_blank" rel="noopener">${escapeHtml(r.name)}</a> ${pills}${chips ? `<span class="whys" title="${escapeHtml(sig.why)}">${chips}</span>` : ""}
       ${desc ? `<div class="desc" title="${escapeHtml(desc)}">${escapeHtml(desc)}</div>` : ""}
-      <div class="meta">${escapeHtml([KIND_LABEL[r.kind], lang, created && `created ${created}`, r.stars ? `★ ${fmt(r.stars)}` : ""].filter(Boolean).join(" · "))}</div></td>
+      <div class="meta" title="${escapeHtml(sig.why)}">${escapeHtml([blocker ? "" : `score ${sig.score}`, KIND_LABEL[r.kind], lang, created && `created ${created}`].filter(Boolean).join(" · "))}</div></td>
+    <td class="num c-score"><span class="score${sig.noise ? " low" : ""}" title="${escapeHtml(sig.why)}">${blocker ? "–" : sig.score}</span></td>
     <td class="c-kind nowrap"><span class="pill">${KIND_LABEL[r.kind] || "Repo"}</span><span class="sub">${escapeHtml(lang)}</span></td>
     <td class="c-age nowrap"><span class="age ${ageClass(years)}">${escapeHtml(ago(lastActive(r), now))}</span><span class="sub">${escapeHtml(lastActive(r).slice(0, 10))}</span></td>
     <td class="c-created nowrap">${escapeHtml(created)}</td>
@@ -223,7 +263,7 @@ function openBatch() {
   }
   save();
   const left = selected.size;
-  update({ keepLimit: true });
+  update({ keepLimit: true, rescore: true });
   if (opened === 0) {
     say("Your browser blocked the new tabs. Allow pop-ups for this site (the icon in the address bar), then click again.", true);
   } else if (opened < batch.length) {
@@ -290,11 +330,17 @@ $("rows").addEventListener("click", (e) => {
   if (bump) {
     bumped[bump.dataset.bump] = new Date().toISOString();
     save();
-    setTimeout(() => update({ keepLimit: true }), 0);
+    setTimeout(() => update({ keepLimit: true, rescore: true }), 0);
   }
 });
 $("selAll").addEventListener("click", () => { setSelected(matched.map((r) => r.name), true); afterSelect(); });
 $("clear").addEventListener("click", () => { selected.clear(); lastClicked = -1; afterSelect(); });
+$("noiseNote").addEventListener("click", (e) => {
+  if (!e.target.closest("#showNoise")) return;
+  filters.noise = true;
+  form.noise.checked = true;
+  update({ keepLimit: true });
+});
 $("more").addEventListener("click", () => { limit = Infinity; renderRows(); });
 $("open").addEventListener("click", openBatch);
 $("copy").addEventListener("click", copyChecklist);

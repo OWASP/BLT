@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import test from "node:test";
 import {
   DEFAULT_FILTERS, bumpBlocker, bumpUrl, checklist, escapeHtml, filtersFromQuery, filtersToQuery, idleYears,
-  matches, safeUrl, sortRepos,
+  matches, safeUrl, scoreAll, signal, siblingStem, sortRepos,
 } from "../public/bumper.js";
 
 const NOW = Date.parse("2026-10-22T00:00:00Z");
@@ -64,9 +64,11 @@ test("checklist lists each repo with its reminder link", () => {
 test("sorting and the shareable query string", () => {
   const list = [repo({ name: "a", pushed: "2020-01-01" }), repo({ name: "b", pushed: "2024-01-01" })];
   assert.deepEqual(sortRepos(list, "idle-desc").map((r) => r.name), ["a", "b"]);
+  assert.equal(DEFAULT_FILTERS.sort, "score-desc");
   assert.deepEqual(sortRepos(list, "idle-asc").map((r) => r.name), ["b", "a"]);
   const q = filtersToQuery(f({ q: "zap", idle: "3y", archived: true }));
   assert.equal(q, "?q=zap&idle=3y&archived=1");
+  assert.equal(filtersToQuery(f({ reminder: "open", noise: true })), "?reminder=open&noise=1");
   assert.deepEqual(filtersFromQuery(q), f({ q: "zap", idle: "3y", archived: true }));
   assert.equal(filtersFromQuery("?idle=bogus").idle, DEFAULT_FILTERS.idle);
 });
@@ -76,12 +78,64 @@ test("the generator writes compact records the page reads", () => {
   const out = execFileSync("python3", ["-c", `
 import json, sys; sys.path.insert(0, '.'); import generate_repo_list as g
 d = g.build_data([{"name": "www-chapter-x", "html_url": "https://github.com/OWASP/www-chapter-x", "archived": False,
-  "has_issues": False, "pushed_at": "2020-01-01T00:00:00Z", "stargazers_count": 0, "topics": ["a"]}], "owasp")
+  "has_issues": False, "fork": True, "pushed_at": "2020-01-01T00:00:00Z", "stargazers_count": 0, "topics": ["a"]}], "owasp")
 print(json.dumps(d))`], { cwd: here, encoding: "utf8" });
   const data = JSON.parse(out);
   assert.equal(data.total, 1);
   assert.deepEqual(data.repos[0], {
     name: "www-chapter-x", url: "https://github.com/OWASP/www-chapter-x", pushed: "2020-01-01T00:00:00Z",
-    topics: ["a"], archived: false, issues_off: true, kind: "chapter",
+    topics: ["a"], archived: false, issues_off: true, fork: true, kind: "chapter",
   });
+});
+
+test("Best to bump: important idle repos lead, quiet or recent ones follow", () => {
+  const big = signal(repo({ stars: 2000, forks: 3000, issues: 100 }), { now: NOW });
+  const small = signal(repo({ stars: 2 }), { now: NOW });
+  const fresh = signal(repo({ stars: 2000, forks: 3000, issues: 100, pushed: "2026-09-01T00:00:00Z" }), { now: NOW });
+  assert.ok(big.score > small.score && big.score > fresh.score);
+  assert.ok(big.good.includes("★ 2k") && big.good.includes("idle 4y"));
+  assert.match(big.why, /^Score \d+ = importance [\d.]+ × staleness [\d.]+ × noise 1\.00\nUp: /);
+  // A bot's push doesn't count as upkeep.
+  const bot = signal(repo({ stars: 50, pushed: "2026-09-01T00:00:00Z", commit: { author: "dependabot[bot]" } }), { now: NOW });
+  const human = signal(repo({ stars: 50, pushed: "2026-09-01T00:00:00Z", commit: { author: "alice" } }), { now: NOW });
+  assert.ok(bot.score > human.score && bot.good.includes("only bot commits lately"));
+});
+
+test("noise is pushed down and the clearest cases are low-signal", () => {
+  const base = { stars: 300, forks: 50 };
+  const clean = signal(repo(base), { now: NOW });
+  assert.equal(clean.noise, false);
+  for (const over of [{ fork: true }, { empty: true }, { description: "Deprecated: moved to OWASP/foo" }, { name: "www-project-x-old" },
+    { reminder: { number: 4, url: "https://github.com/OWASP/x/issues/4", created: "2020-01-01T00:00:00Z" } }]) {
+    const s = signal(repo({ ...base, ...over }), { now: NOW });
+    assert.ok(s.noise, JSON.stringify(over));
+    assert.ok(s.score < clean.score / 3);
+  }
+  assert.ok(!signal(repo({ ...base, template: true }), { now: NOW }).noise);
+  assert.ok(signal(repo(base), { now: NOW, bumped: { "www-project-x": "2026-10-01" } }).score < clean.score);
+  const ctx = { now: NOW, bumped: {} };
+  const list = scoreAll([repo({ ...base, fork: true })], ctx);
+  assert.ok(!matches(list[0], f(), ctx));
+  assert.ok(matches(list[0], f({ noise: true }), ctx));
+});
+
+test("near-duplicate siblings: only the best one leads", () => {
+  assert.equal(siblingStem("owasp-mstg-crackme-a1"), "owasp-mstg-crackme");
+  assert.equal(siblingStem("www-event-gassf-old"), "www-event-gassf");
+  assert.equal(siblingStem("Top10"), "top10");
+  const list = scoreAll([repo({ name: "crackme-a1", stars: 50 }), repo({ name: "crackme-a2", stars: 1 }), repo({ name: "crackme-a3" })], { now: NOW });
+  assert.deepEqual(list.map((r) => r._sig.bad.some((b) => /1 of 3 similar/.test(b))), [false, true, true]);
+});
+
+test("open reminders: a recent one blocks a second bump and has its own filter", () => {
+  const recent = repo({ reminder: { number: 1, url: "https://github.com/OWASP/x/issues/1", created: "2026-03-19T00:00:00Z" } });
+  const old = repo({ reminder: { number: 79, url: "https://github.com/OWASP/x/issues/79", created: "2016-04-15T00:00:00Z" } });
+  assert.match(bumpBlocker(recent, NOW), /Reminder #1 is already open \(since 2026-03-19\)/);
+  assert.equal(bumpBlocker(old, NOW), "");
+  const ctx = { now: NOW, bumped: {} };
+  scoreAll([recent, old, repo({ name: "other" })], ctx);
+  assert.ok(matches(old, f({ reminder: "open" }), ctx));
+  assert.ok(matches(recent, f({ reminder: "open" }), ctx));
+  assert.ok(!matches(repo({ name: "other" }), f({ reminder: "open" }), ctx));
+  assert.ok(!matches(old, f({ reminder: "none", noise: true }), ctx));
 });
