@@ -2,7 +2,7 @@
 // and sorts it, and opens prefilled reminder issues for the selected repositories in batches.
 import {
   BATCH_SIZE, DEFAULT_FILTERS, IDLE, ago, bumpBlocker, bumpUrl, checklist, escapeHtml, filtersFromQuery,
-  filtersToQuery, idleYears, lastActive, matches, openReminder, safeUrl, scoreAll, sortRepos,
+  filtersToQuery, idleYears, lastActive, lastBump, matches, openReminder, reminderStatus, safeUrl, scoreAll, sortRepos,
 } from "./bumper.js";
 
 const PAGE = 200;
@@ -54,9 +54,10 @@ async function init() {
   scoreAll(repos, { now, bumped });
   fillSelect(form.lang, repos.map((r) => r.language || "none"), (v) => (v === "none" ? "No language" : v), true);
   fillSelect(form.created, repos.map((r) => String(r.created || "").slice(0, 4)).filter(Boolean), (v) => `Created ${v}`, false);
-  const reminders = repos.filter((r) => openReminder(r)).length;
-  form.reminder.options[1].text = `Open reminder (${fmt(reminders)})`;
-  form.reminder.options[2].text = `No open reminder (${fmt(repos.length - reminders)})`;
+  const counts = {};
+  for (const r of repos) counts[reminderStatus(r)] = (counts[reminderStatus(r)] || 0) + 1;
+  counts.open = (counts.waiting || 0) + (counts.replied || 0);
+  for (const o of form.reminder.options) if (o.value !== "any") o.text += ` (${fmt(counts[o.value] || 0)})`;
   writeForm();
   update();
 }
@@ -137,6 +138,28 @@ function renderTiles(ctx) {
   }).join("");
 }
 
+// Score colour: top tenth of idle repos (70+) solid, top quarter (40+) tinted, the rest plain.
+function scoreTier(sig) {
+  if (sig.noise) return "low";
+  return sig.score >= 70 ? "hot" : sig.score >= 40 ? "warm" : "plain";
+}
+
+// One short note under the score, only when it says something the other columns don't.
+const NOTES = [
+  [/^fork$/, "fork", "down"], [/^empty/, "empty", "down"], [/^template/, "template", "down"],
+  [/^says it moved/, "moved/defunct?", "down"], [/^looks superseded/, "-old copy", "down"],
+  [/similar repos$/, "duplicate", "down"], [/^reminder #\d+ closed/, "recently closed", "down"], [/^you bumped/, "bumped", "down"],
+  [/PRs? waiting$/, "PRs waiting", "up"], [/^only bot commits/, "bot-only", "up"],
+];
+function scoreNote(sig, blocker) {
+  if (blocker) return null;
+  for (const reason of [...sig.bad, ...sig.good]) {
+    const hit = NOTES.find(([re]) => re.test(reason));
+    if (hit) return [hit[1], hit[2]];
+  }
+  return null;
+}
+
 function ageClass(years) {
   return years < 1 ? "ok" : years < 3 ? "warn" : "bad";
 }
@@ -144,7 +167,8 @@ function ageClass(years) {
 function row(r, i) {
   const blocker = bumpBlocker(r, now);
   const rem = openReminder(r);
-  const remLink = rem ? `<a class="rem" href="${escapeHtml(safeUrl(rem.url))}" target="_blank" rel="noopener" title="Open reminder issue since ${escapeHtml(String(rem.created).slice(0, 10))}: comment there to follow up">🔔 #${escapeHtml(rem.number)} · ${escapeHtml(ago(rem.created, now))}</a>` : "";
+  const remCell = reminderCell(r);
+  const remLink = remCell.pill;
   const sel = selected.has(r.name);
   const years = idleYears(r, now);
   const when = bumped[r.name];
@@ -155,29 +179,54 @@ function row(r, i) {
     when ? `<span class="pill red" title="You opened a reminder form on ${escapeHtml(when.slice(0, 10))}">Bumped ${escapeHtml(ago(when, now))} ago</span>` : "",
   ].join(" ");
   const sig = r._sig;
-  const chips = sig.bad.filter((b) => b !== blocker && !b.startsWith("you bumped") && !b.startsWith("reminder #")).slice(0, 2).map((b) => `<span class="why down">${escapeHtml(b)}</span>`)
-    .concat(sig.good.slice(0, 2).map((g) => `<span class="why">${escapeHtml(g)}</span>`)).slice(0, 2).join("");
+  const note = scoreNote(sig, blocker);
   const lang = r.language || "";
   const created = String(r.created || "").slice(0, 4);
   const desc = r.title || r.description || "";
-  const bump = rem && blocker && !r.archived && !r.issues_off
-    ? `<a class="bump" href="${escapeHtml(safeUrl(rem.url))}" target="_blank" rel="noopener" title="${escapeHtml(blocker)}: view it">#${escapeHtml(rem.number)}<span class="label">&nbsp;View</span></a>`
-    : blocker
+  const bump = blocker
     ? `<span class="muted" title="${escapeHtml(blocker)}">–</span>`
     : `<a class="bump${when ? " done" : ""}" href="${escapeHtml(bumpUrl(r, now))}" target="_blank" rel="noopener" data-bump="${escapeHtml(r.name)}" title="Open a prefilled reminder issue on GitHub">🔔<span class="label">&nbsp;${when ? "Again" : "Bump"}</span></a>`;
   return `<tr data-i="${i}"${sel ? ' class="sel"' : ""}>
     <td class="c-sel"><input type="checkbox" data-name="${escapeHtml(r.name)}"${sel ? " checked" : ""}${blocker ? ` disabled title="${escapeHtml(blocker)}"` : ""} aria-label="Select ${escapeHtml(r.name)}"></td>
-    <td><a class="name" href="${escapeHtml(safeUrl(r.url))}" target="_blank" rel="noopener">${escapeHtml(r.name)}</a> ${pills}${chips ? `<span class="whys" title="${escapeHtml(sig.why)}">${chips}</span>` : ""}
+    <td><a class="name" href="${escapeHtml(safeUrl(r.url))}" target="_blank" rel="noopener">${escapeHtml(r.name)}</a> ${pills}
       ${desc ? `<div class="desc" title="${escapeHtml(desc)}">${escapeHtml(desc)}</div>` : ""}
       <div class="meta" title="${escapeHtml(sig.why)}">${escapeHtml([blocker ? "" : `score ${sig.score}`, KIND_LABEL[r.kind], lang, created && `created ${created}`].filter(Boolean).join(" · "))}</div></td>
-    <td class="num c-score"><span class="score${sig.noise ? " low" : ""}" title="${escapeHtml(sig.why)}">${blocker ? "–" : sig.score}</span></td>
-    <td class="c-kind nowrap"><span class="pill">${KIND_LABEL[r.kind] || "Repo"}</span><span class="sub">${escapeHtml(lang)}</span></td>
+    <td class="num c-score" title="${escapeHtml(sig.why)}"><span class="score ${blocker ? "none" : scoreTier(sig)}">${blocker ? "–" : sig.score}</span>${note ? `<span class="sub note ${note[1]}">${escapeHtml(note[0])}</span>` : ""}</td>
+    <td class="c-kind nowrap"><span class="pill kind-${r.kind}">${KIND_LABEL[r.kind] || "Repo"}</span><span class="sub">${escapeHtml([lang, created].filter(Boolean).join(" · "))}</span></td>
+    <td class="c-last nowrap">${remCell.cell}</td>
     <td class="c-age nowrap"><span class="age ${ageClass(years)}">${escapeHtml(ago(lastActive(r), now))}</span><span class="sub">${escapeHtml(lastActive(r).slice(0, 10))}</span></td>
-    <td class="c-created nowrap">${escapeHtml(created)}</td>
-    <td class="num c-stars">${fmt(r.stars || 0)}</td>
+    <td class="num c-stars"><span class="${r.stars >= 100 ? "strong" : ""}">${fmt(r.stars || 0)}</span><span class="sub">${r.forks ? `${fmt(r.forks)} forks` : "&nbsp;"}</span></td>
     <td class="num c-issues">${fmt(r.issues || 0)}</td>
     <td class="c-bump">${bump}</td>
   </tr>`;
+}
+
+// The repo's last bump: its latest reminder issue (link, age, replies) or a form you opened here.
+function reminderCell(r) {
+  const rem = r.reminder && r.reminder.number ? r.reminder : null;
+  const mine = bumped[r.name];
+  if (!rem) {
+    return mine
+      ? { pill: "", cell: `<span class="rem rem-mine" title="You opened a reminder form on ${escapeHtml(mine.slice(0, 10))}">🔔 ${escapeHtml(ago(mine, now))}</span><span class="sub">by you, here</span>` }
+      : { pill: "", cell: `<span class="never">never</span><span class="sub">&nbsp;</span>` };
+  }
+  const status = reminderStatus(r);
+  const n = rem.bumps || 1;
+  const reply = rem.last_reply && rem.last_reply.date ? rem.last_reply : null;
+  const replies = rem.replies ? `${rem.replies} repl${rem.replies === 1 ? "y" : "ies"}` : "no reply";
+  const title = [
+    `Bumped ${n} time${n === 1 ? "" : "s"}. Latest: reminder #${rem.number}${rem.author ? ` by ${rem.author}` : ""}, opened ${String(rem.created).slice(0, 10)}`,
+    status === "closed" ? `closed ${String(rem.closed).slice(0, 10)}` : "still open",
+    reply ? `last reply by ${reply.author} on ${reply.date.slice(0, 10)}` : rem.replies ? replies : "no replies yet",
+  ].join(" · ");
+  const top = `🔔 ${n}× · ${ago(rem.created, now)}`;
+  const sub = `#${rem.number} · ${status === "closed" ? `closed ${ago(rem.closed, now)} ago` : reply ? `${replies}, last ${ago(reply.date, now)} ago` : replies}`;
+  const href = escapeHtml(safeUrl(reply && reply.url ? reply.url : rem.url));
+  return {
+    pill: `<a class="rem rem-${status} rem-inline" href="${escapeHtml(safeUrl(rem.url))}" target="_blank" rel="noopener" title="${escapeHtml(title)}">${escapeHtml(top)} · ${escapeHtml(status === "closed" ? "closed" : replies)}</a>`,
+    cell: `<a class="rem rem-${status}" href="${escapeHtml(safeUrl(rem.url))}" target="_blank" rel="noopener" title="${escapeHtml(title)}">${escapeHtml(top)}</a>`
+      + `<a class="sub rem-sub rem-sub-${status}" href="${href}" target="_blank" rel="noopener" title="${escapeHtml(title)}">${escapeHtml(sub)}</a>`,
+  };
 }
 
 function renderRows() {

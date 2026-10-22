@@ -31,8 +31,24 @@ export function idleYears(repo, now = Date.now()) {
   return Number.isNaN(t) ? 0 : (now - t) / YEAR;
 }
 
+// The repo's latest reminder issue (Bumper's or a hand-written "still maintained?"), if open.
 export function openReminder(repo) {
-  return repo.reminder && repo.reminder.number ? repo.reminder : null;
+  const rem = repo.reminder;
+  return rem && rem.number && rem.state !== "closed" ? rem : null;
+}
+
+// "none" | "waiting" (open, no reply) | "replied" (open, with replies) | "closed".
+export function reminderStatus(repo) {
+  const rem = repo.reminder;
+  if (!rem || !rem.number) return "none";
+  if (rem.state === "closed") return "closed";
+  return rem.replies ? "replied" : "waiting";
+}
+
+// When this repo was last bumped: its latest reminder issue, or a form you opened here.
+export function lastBump(repo, bumped = {}) {
+  const dates = [repo.reminder && repo.reminder.created, bumped[repo.name]].filter(Boolean);
+  return dates.sort().pop() || "";
 }
 
 // Why a repo can't get a reminder issue, or "" when it can. A reminder opened within the last
@@ -118,6 +134,9 @@ export function signal(repo, { now = Date.now(), bumped = {}, siblings = 1, lead
   let noise = 1;
   const down = (factor, label) => { noise *= factor; bad.push(label); };
   if (openReminder(repo)) down(0.1, `reminder #${repo.reminder.number} open since ${String(repo.reminder.created).slice(0, 10)}`);
+  else if (repo.reminder && repo.reminder.closed && now - Date.parse(repo.reminder.closed) < YEAR) {
+    down(0.3, `reminder #${repo.reminder.number} closed ${String(repo.reminder.closed).slice(0, 10)}`);
+  }
   if (repo.fork) down(0.2, "fork");
   if (repo.empty) down(0.1, "empty repo");
   if (repo.template) down(0.4, "template");
@@ -156,9 +175,12 @@ export function scoreAll(repos, ctx = {}) {
 
 export function matches(repo, f, { now = Date.now(), bumped = {} } = {}) {
   if (!f.archived && repo.archived) return false;
-  if (f.reminder === "open" && !openReminder(repo)) return false;
-  if (f.reminder === "none" && openReminder(repo)) return false;
-  if (!f.noise && f.reminder !== "open" && repo._sig && repo._sig.noise && !repo.archived) return false;
+  if (f.reminder !== "any") {
+    const status = reminderStatus(repo);
+    const want = { open: ["waiting", "replied"], waiting: ["waiting"], replied: ["replied"], closed: ["closed"], none: ["none"] }[f.reminder];
+    if (want && !want.includes(status)) return false;
+  }
+  if (!f.noise && f.reminder === "any" && repo._sig && repo._sig.noise && !repo.archived) return false;
   if (f.kind !== "all" && repo.kind !== f.kind) return false;
   if (!(IDLE[f.idle] || IDLE.any).test(idleYears(repo, now))) return false;
   if (f.lang && (repo.language || "none") !== f.lang) return false;
@@ -176,6 +198,7 @@ export function matches(repo, f, { now = Date.now(), bumped = {} } = {}) {
 
 const SORT_KEYS = {
   score: (r) => (r._sig ? r._sig.score : 0),
+  bump: (r) => Date.parse((r.reminder && r.reminder.created) || "") || 0,
   idle: (r) => -Date.parse(lastActive(r)) || 0,
   name: (r) => r.name.toLowerCase(),
   stars: (r) => r.stars || 0,

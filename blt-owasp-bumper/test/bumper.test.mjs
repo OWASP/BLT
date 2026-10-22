@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import test from "node:test";
 import {
   DEFAULT_FILTERS, bumpBlocker, bumpUrl, checklist, escapeHtml, filtersFromQuery, filtersToQuery, idleYears,
-  matches, safeUrl, scoreAll, signal, siblingStem, sortRepos,
+  lastBump, matches, reminderStatus, safeUrl, scoreAll, signal, siblingStem, sortRepos,
 } from "../public/bumper.js";
 
 const NOW = Date.parse("2026-10-22T00:00:00Z");
@@ -138,4 +138,26 @@ test("open reminders: a recent one blocks a second bump and has its own filter",
   assert.ok(matches(recent, f({ reminder: "open" }), ctx));
   assert.ok(!matches(repo({ name: "other" }), f({ reminder: "open" }), ctx));
   assert.ok(!matches(old, f({ reminder: "none", noise: true }), ctx));
+});
+
+test("last bump: reminder status, replies, closed reminders and your own bumps", () => {
+  const rem = (over) => repo({ reminder: { number: 3, url: "https://github.com/OWASP/x/issues/3", created: "2025-06-01T00:00:00Z", state: "open", bumps: 2, ...over } });
+  assert.equal(reminderStatus(repo()), "none");
+  assert.equal(reminderStatus(rem({ replies: 0 })), "waiting");
+  assert.equal(reminderStatus(rem({ replies: 4 })), "replied");
+  assert.equal(reminderStatus(rem({ state: "closed", closed: "2026-09-01T00:00:00Z" })), "closed");
+  const ctx = { now: NOW, bumped: {} };
+  const closed = rem({ state: "closed", closed: "2026-09-01T00:00:00Z" });
+  scoreAll([closed], ctx);
+  assert.equal(bumpBlocker(closed, NOW), "");
+  assert.ok(closed._sig.bad.some((b) => /reminder #3 closed 2026-09-01/.test(b)));
+  assert.ok(matches(closed, f({ reminder: "closed", idle: "any" }), ctx));
+  assert.ok(!matches(closed, f({ reminder: "open", idle: "any" }), ctx));
+  const replied = rem({ replies: 4 });
+  scoreAll([replied], ctx);
+  assert.ok(matches(replied, f({ reminder: "replied", idle: "any" }), ctx));
+  assert.ok(!matches(replied, f({ reminder: "waiting", idle: "any" }), ctx));
+  assert.equal(lastBump(rem({}), { "www-project-x": "2026-10-01T00:00:00Z" }), "2026-10-01T00:00:00Z");
+  assert.equal(lastBump(repo()), "");
+  assert.deepEqual(sortRepos([repo({ name: "a" }), rem({})], "bump-desc").map((r) => r.name), ["www-project-x", "a"]);
 });

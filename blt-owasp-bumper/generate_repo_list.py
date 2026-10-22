@@ -260,33 +260,64 @@ def fetch_repos(org: str, token: str = None) -> List[Dict]:
     
     return repos
 
-# Titles of open issues that already ask whether a repo is maintained: Bumper's own reminders (old
-# and current title) and ones people opened by hand. A repo with one is waiting on its maintainers.
+# Titles of issues that ask whether a repo is maintained: Bumper's own reminders (old and current
+# title) and ones people opened by hand. An open one means the repo is waiting on its maintainers.
 REMINDER_QUERIES = ['"Repository Activity Reminder"', '"still maintained"']
 
 
-def fetch_open_reminders(org: str, token: str = None) -> Dict[str, Dict]:
-    """Open reminder issues in the org, by repo name (oldest kept). A few search requests."""
-    found: Dict[str, Dict] = {}
+def _get_json(url: str, token: str = None, timeout: int = 20):
     headers = {"Accept": "application/vnd.github+json", "User-Agent": "OWASP-Bumper-Repo-List-Generator"}
     if token:
         headers["Authorization"] = f"token {token}"
+    with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=timeout) as response:
+        return json.loads(response.read().decode())
+
+
+def fetch_last_reply(owner: str, repo: str, number: int, count: int, token: str = None) -> Dict:
+    """Author and date of an issue's last comment (one request: page `count` of 1 per page)."""
+    try:
+        items = _get_json(f"https://api.github.com/repos/{owner}/{repo}/issues/{number}/comments?per_page=1&page={count}", token)
+    except Exception as exc:
+        print(f"Warning: comments for {repo}#{number} failed: {exc}", file=sys.stderr)
+        return {}
+    if not items:
+        return {}
+    c = items[-1]
+    return {"author": (c.get("user") or {}).get("login", ""), "date": c.get("created_at", ""), "url": c.get("html_url", "")}
+
+
+def fetch_reminders(org: str, token: str = None) -> Dict[str, Dict]:
+    """Each repo's latest reminder issue (open or closed), with its replies and how many reminders
+    the repo has had in all. A few requests."""
+    found: Dict[str, Dict] = {}
+    seen: Dict[str, set] = {}
     for phrase in REMINDER_QUERIES:
-        q = urllib.parse.quote(f"org:{org} is:issue is:open in:title {phrase}")
+        q = urllib.parse.quote(f"org:{org} is:issue in:title {phrase}")
         for page in range(1, 11):
-            url = f"https://api.github.com/search/issues?q={q}&per_page=100&page={page}&sort=created&order=asc"
+            url = f"https://api.github.com/search/issues?q={q}&per_page=100&page={page}&sort=created&order=desc"
             try:
-                with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=20) as response:
-                    items = json.loads(response.read().decode()).get("items", [])
+                items = _get_json(url, token).get("items", [])
             except Exception as exc:
                 print(f"Warning: reminder search failed ({phrase}): {exc}", file=sys.stderr)
                 break
             for item in items:
                 name = item.get("repository_url", "").rsplit("/", 1)[-1]
-                if name and name not in found:
-                    found[name] = {"number": item.get("number"), "url": item.get("html_url", ""), "created": item.get("created_at", "")}
+                seen.setdefault(name, set()).add(item.get("number"))
+                prev = found.get(name)
+                # Prefer an open reminder over a closed one, then the newest.
+                key = (item.get("state") == "open", item.get("created_at", ""))
+                if name and (not prev or key > (prev["state"] == "open", prev["created"])):
+                    found[name] = {
+                        "number": item.get("number"), "url": item.get("html_url", ""), "created": item.get("created_at", ""),
+                        "state": item.get("state", ""), "closed": item.get("closed_at") or "", "replies": item.get("comments", 0),
+                        "author": (item.get("user") or {}).get("login", ""),
+                    }
             if len(items) < 100:
                 break
+    for name, rem in found.items():
+        rem["bumps"] = len(seen.get(name, ()))
+        if rem["replies"]:
+            rem["last_reply"] = fetch_last_reply(org, name, rem["number"], rem["replies"], token)
     return found
 
 
@@ -395,8 +426,8 @@ def main():
     print(f"Fetching repositories for organization: {org}")
     repos = fetch_repos(org, token)
     print(f"Found {len(repos)} repositories")
-    reminders = fetch_open_reminders(org, token)
-    print(f"Found open reminder issues on {len(reminders)} repositories")
+    reminders = fetch_reminders(org, token)
+    print(f"Found reminder issues on {len(reminders)} repositories ({sum(r['state'] == 'open' for r in reminders.values())} open)")
     for repo in repos:
         repo["open_reminder"] = reminders.get(repo.get("name", ""))
 
