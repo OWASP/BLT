@@ -9,7 +9,7 @@ const PAGE = 200;
 const BUMPED_KEY = "bumper-bumped";
 const KIND_LABEL = { project: "Project", chapter: "Chapter", other: "Repo" };
 const TILES = [
-  { idle: "any", label: "All repositories", minor: true },
+  { idle: "all", label: "All repositories", minor: true },
   { idle: "active", label: "Active < 1y", color: "var(--ok)" },
   { idle: "1y", label: "Idle 1y+", color: "var(--warn)" },
   { idle: "3y", label: "Idle 3y+", color: "var(--bad)" },
@@ -20,6 +20,7 @@ const $ = (id) => document.getElementById(id);
 const form = $("filters");
 const now = Date.now();
 let repos = [];
+let dataInfo = "";
 let byName = new Map();
 let filters = filtersFromQuery(location.search);
 let matched = [];
@@ -45,7 +46,8 @@ async function init() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     repos = data.repos || [];
-    $("stamp").textContent = `${fmt(repos.length)} ${String(data.org || "OWASP").toUpperCase()} repositories · data from ${new Date(data.generated_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}`;
+    const when = new Date(data.generated_at);
+    dataInfo = `data from ${when.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}, ${when.toISOString().slice(11, 16)} UTC`;
   } catch (err) {
     $("stamp").textContent = `Couldn't load the repository list (${err.message}).`;
     return;
@@ -95,6 +97,7 @@ function update({ keepLimit = false, rescore = false } = {}) {
   const ctx = { now, bumped };
   matched = sortRepos(repos.filter((r) => matches(r, filters, ctx)), filters.sort);
   history.replaceState(null, "", location.pathname + filtersToQuery(filters) + location.hash);
+  renderStamp(ctx);
   renderTiles(ctx);
   renderRows();
   renderNoise(ctx);
@@ -103,7 +106,7 @@ function update({ keepLimit = false, rescore = false } = {}) {
 }
 
 const NOISE_GROUPS = [
-  [/^reminder/, "already reminded"], [/^Issues are turned off/, "issues off"], [/^fork/, "fork"], [/^empty/, "empty"],
+  [/^reminder/i, "already reminded"], [/^Issues are turned off/, "issues off"], [/^fork/, "fork"], [/^empty/, "empty"],
   [/^template/, "template"], [/^says it moved/, "moved / defunct"], [/^looks superseded/, "-old / -backup copy"],
   [/similar repos$/, "near-duplicate"],
 ];
@@ -127,13 +130,25 @@ function renderNoise(ctx) {
   note.innerHTML = `<b>${plural(hidden.length, "low-signal repo")}</b> collapsed: ${escapeHtml(list)}. <button type="button" class="linkbtn" id="showNoise">Show them</button>`;
 }
 
+// Every repo is counted once: in view, or hidden as archived or low-signal (each with its toggle).
+function renderStamp(ctx) {
+  const archived = filters.archived ? 0 : repos.filter((r) => r.archived).length;
+  const noise = filters.noise ? 0 : repos.filter((r) => !r.archived && r._sig.noise).length;
+  const hidden = [archived && `${fmt(archived)} archived`, noise && `${fmt(noise)} low-signal`].filter(Boolean);
+  const inView = repos.length - archived - noise;
+  $("stamp").textContent = `${fmt(repos.length)} repositories${hidden.length ? `: ${fmt(inView)} in view, ${hidden.join(" and ")} hidden` : ""} · ${dataInfo}`;
+}
+
 function renderTiles(ctx) {
-  // Counts honour every filter except Activity, so each tile says what that preset would show.
+  // "All repositories" is the whole dataset and shows everything when clicked. The activity
+  // tiles honour every other filter, so each says what that preset would show.
   const base = repos.filter((r) => matches(r, { ...filters, idle: "any" }, ctx));
+  const everything = filters.idle === "any" && filters.archived && filters.noise;
   $("tiles").innerHTML = TILES.map((t) => {
-    const n = base.filter((r) => IDLE[t.idle].test(idleYears(r, now))).length;
+    const n = t.idle === "all" ? repos.length : base.filter((r) => IDLE[t.idle].test(idleYears(r, now))).length;
+    const pressed = t.idle === "all" ? everything : filters.idle === t.idle && !everything;
     const dot = t.color ? `<i class="dot" style="background:${t.color}"></i>` : "";
-    return `<button type="button" class="tile${t.minor ? " minor" : ""}" data-idle="${t.idle}" aria-pressed="${filters.idle === t.idle}">
+    return `<button type="button" class="tile${t.minor ? " minor" : ""}" data-idle="${t.idle}" aria-pressed="${pressed}">
       <b>${fmt(n)}</b><span>${dot}${escapeHtml(t.label)}</span></button>`;
   }).join("");
 }
@@ -149,7 +164,7 @@ const NOTES = [
   [/^fork$/, "fork", "down"], [/^empty/, "empty", "down"], [/^template/, "template", "down"],
   [/^says it moved/, "moved/defunct?", "down"], [/^looks superseded/, "-old copy", "down"],
   [/similar repos$/, "duplicate", "down"], [/^reminder #\d+ closed/, "recently closed", "down"], [/^you bumped/, "bumped", "down"],
-  [/PRs? waiting$/, "PRs waiting", "up"], [/^only bot commits/, "bot-only", "up"],
+  [/^([5-9]|\d{2,}) open PRs waiting$/, "PRs waiting", "up"], [/^only bot commits/, "bot-only", "up"],
 ];
 function scoreNote(sig, blocker) {
   if (blocker) return null;
@@ -346,8 +361,13 @@ $("reset").addEventListener("click", () => { filters = { ...DEFAULT_FILTERS }; w
 $("tiles").addEventListener("click", (e) => {
   const t = e.target.closest(".tile");
   if (!t) return;
-  filters.idle = t.dataset.idle;
-  form.idle.value = filters.idle;
+  if (t.dataset.idle === "all") {
+    filters = { ...filters, idle: "any", archived: true, noise: true };
+    writeForm();
+  } else {
+    filters.idle = t.dataset.idle;
+    form.idle.value = filters.idle;
+  }
   update();
 });
 document.querySelector("thead").addEventListener("click", (e) => {

@@ -12,8 +12,8 @@ maintainers with a reminder issue, one at a time or in batches.
 
 - **Best to bump** is the default order. Each repository gets a score: importance × staleness ×
   noise. Importance counts stars, forks, open issues and PRs, OWASP projects and their level, and
-  stars that keep arriving after the last push. Staleness grows with the years since the last push,
-  and pushes by bots don't count as upkeep. Noise pushes down repos a reminder won't help: forks,
+  stars that keep arriving after the last push. Staleness grows with the years since the last
+  commit by a person: bot commits (dependabot, GitHub Actions…) don't count as upkeep. Noise pushes down repos a reminder won't help: forks,
   templates, empty repos, ones whose description says they moved or are defunct (archive those
   instead), `-old` / `-backup` copies, near-duplicate siblings (`crackme-a1`, `-a2`…; only the
   best-scoring one leads), repos with an open reminder issue, and ones you've bumped. The clearest
@@ -30,7 +30,7 @@ maintainers with a reminder issue, one at a time or in batches.
   no reply yet, replied, closed or never bumped; *Recently bumped* sorts by it. A reminder opened
   less than a year ago takes the place of the Bump button, so nobody files a second one; one closed
   in the last year pushes the repo down.
-- **Filter** by activity (last push: active < 1 year, idle 1, 2, 3 or 5+ years), type (project,
+- **Filter** by activity (last commit by a person, else last push: active < 1 year, idle 1, 2, 3 or 5+ years), type (project,
   chapter, other), language, creation year, archived, and whether you've bumped it already. Search
   covers names, descriptions and topics. The summary tiles are activity presets with live counts.
   The filters are in the URL, so a filtered view can be shared.
@@ -38,7 +38,7 @@ maintainers with a reminder issue, one at a time or in batches.
   *Select all N matching*. The bar at the bottom shows the count, including selected rows the
   current filters hide.
 - **Open issue forms** opens GitHub's new-issue form on each selected repository, prefilled with a
-  short reminder that names the last push. You review and submit each one, signed in as yourself.
+  short reminder that names the last commit. You review and submit each one, signed in as yourself.
   Browsers allow only a few tabs per click, so forms open 10 at a time: click again for the next
   batch. If the browser blocks them, the page says so and keeps the rest selected; allow pop-ups
   for the site and click again.
@@ -56,7 +56,7 @@ account, after they've read it, with no token to store.
 
 | Piece | What it does |
 | --- | --- |
-| `generate_repo_list.py` | Fetches every repo in the org from the GitHub API and writes `public/data/repos.json` (standard library only). It also finds reminder issues and their last replies (two searches plus one request per reminder with replies). With `GITHUB_TOKEN` it also fetches 52-week activity, `index.md` front matter, open PRs and the last commit (about 4 requests per repo); without one, just the repo list (about 15 requests). |
+| `generate_repo_list.py` | Writes `public/data/repos.json` for every repo in the org (standard library only). With `GITHUB_TOKEN` it uses one GraphQL query per 25 repos (about 60 requests, ~5 minutes; a page GitHub times out is retried at half the size): stars, forks, open issues and PRs, the last 5 commits (so bot commits can be skipped), topics and `index.md` front matter. Before, it made about 4 REST requests per repo (~5,800). Without a token it falls back to the REST repo list (about 15 requests; no PR counts, last commit or front matter). Either way it then finds reminder issues and their last replies (two searches plus one request per reminder with replies). |
 | `public/index.html`, `public/app.js`, `public/bumper.js` | The static page. `bumper.js` holds the filtering, sorting and link logic (tested under Node); `app.js` draws the page. It uses the shared OWASP BLT bar (`blt-nav.js`) for the header and theme toggle. |
 | `worker/index.js` | Serves `/data/repos.json` from Workers KV, falling back to the committed copy in `public/data/`. Everything else is static. |
 | `scripts/refresh-kv.sh` | Regenerates the data and writes it to KV, unless it lists fewer than half as many repositories as before. Run daily by `.forkmesh/blt-owasp-bumper--generate-repo-list.yml` (monorepo root). |

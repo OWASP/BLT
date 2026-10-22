@@ -21,9 +21,10 @@ export function safeUrl(url) {
   return /^https?:\/\//i.test(value) ? value : "#";
 }
 
-// Last push is the best activity signal; `updated` also moves when someone stars the repo.
+// Upkeep is the last commit by a person on the default branch (with a token the generator
+// skips bot commits); else the last push. `updated` also moves when someone stars the repo.
 export function lastActive(repo) {
-  return repo.pushed || repo.updated || repo.created || "";
+  return repo.human || repo.pushed || repo.updated || repo.created || "";
 }
 
 export function idleYears(repo, now = Date.now()) {
@@ -94,7 +95,6 @@ export const DEFAULT_FILTERS = { q: "", kind: "all", idle: "1y", lang: "", creat
 // siblings, and repos already waiting on maintainers (an open reminder issue). Rows whose noise
 // multiplier is 0.3 or less are "low-signal" and hidden by default.
 
-const BOT = /\[bot\]$|^(dependabot|renovate|github-actions|owasp-?bot|snyk-bot|allcontributors)/i;
 const DEFUNCT = /\b(defunct|deprecated|obsolete|unmaintained|no longer (maintained|active|supported)|(has )?moved to|migrated to|superseded by|archived)\b/i;
 const SUPERSEDED = /[-_.](old|archive|archived|backup|bak|deprecated|legacy)$/i;
 const SIBLING = /[-_.](v?\d+(\.\d+)*|[a-z]\d+|\d{4})$/i;
@@ -118,18 +118,17 @@ export function signal(repo, { now = Date.now(), bumped = {}, siblings = 1, lead
   add(3 * log(repo.stars), repo.stars ? `★ ${compact(repo.stars)}` : "");
   add(2 * log(repo.forks), repo.forks >= 10 ? `${compact(repo.forks)} forks` : "");
   add(2 * log(repo.issues), repo.issues ? `${compact(repo.issues)} open issue${repo.issues === 1 ? "" : "s"}` : "");
-  if (repo.prs) add(3 + 2 * log(repo.prs), `${repo.prs} open PR${repo.prs === 1 ? "" : "s"} waiting`);
+  if (repo.prs) add(2 + 2 * log(repo.prs), `${repo.prs} open PR${repo.prs === 1 ? "" : "s"} waiting`);
   add(repo.kind === "project" ? 3 : repo.kind === "other" ? 1 : 0, repo.kind === "project" ? "OWASP project" : "");
   if (repo.level) add(Number(repo.level) || 0, `level ${repo.level}`);
   if (repo.description || repo.title) add(0.5);
   const pushed = Date.parse(lastActive(repo)), touched = Date.parse(repo.updated);
   if (touched - pushed > 180 * DAY && repo.stars >= 5) add(1.5, "still getting stars");
 
-  let years = idleYears(repo, now);
-  const bot = repo.commit && BOT.test(repo.commit.author || "");
-  if (bot && years < 1) years = 1;
+  const years = idleYears(repo, now);
   const staleness = years < 1 ? 0.15 : Math.min(1, 0.45 + 0.11 * years);
-  if (years >= 1) good.push([0.5 + years, bot ? "only bot commits lately" : `idle ${ago(lastActive(repo), now)}`]);
+  if (years >= 1) good.push([0.5 + years, `idle ${ago(lastActive(repo), now)}`]);
+  if (repo.bot_only && years >= 1) good.push([0, "only bot commits lately"]);
 
   let noise = 1;
   const down = (factor, label) => { noise *= factor; bad.push(label); };
@@ -224,7 +223,7 @@ export function bumpBody(repo, now = Date.now()) {
   const when = lastActive(repo).slice(0, 10) || "a while ago";
   return `Hello from the OWASP BLT team 👋
 
-The last push to this repository was on ${when} (${ago(lastActive(repo), now)} ago). Could a maintainer let us know where it stands?
+The last commit to this repository was on ${when} (${ago(lastActive(repo), now)} ago). Could a maintainer let us know where it stands?
 
 - **Still active?** A short update or a commit shows the project is maintained.
 - **No longer maintained?** Please consider archiving it to keep the OWASP organization tidy.
@@ -246,7 +245,7 @@ export function bumpUrl(repo, now = Date.now()) {
 export function checklist(repos, now = Date.now()) {
   const day = new Date(now).toISOString().slice(0, 10);
   const lines = repos.map(
-    (r) => `- [ ] [${r.name}](${safeUrl(r.url)}): last push ${lastActive(r).slice(0, 10) || "unknown"} · [open reminder](${bumpUrl(r, now)})`,
+    (r) => `- [ ] [${r.name}](${safeUrl(r.url)}): last active ${lastActive(r).slice(0, 10) || "unknown"} · [open reminder](${bumpUrl(r, now)})`,
   );
   return `OWASP repositories to bump (${repos.length}, from https://bumper.owaspblt.org/ on ${day})\n\n${lines.join("\n")}\n`;
 }

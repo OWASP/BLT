@@ -45,11 +45,11 @@ test("archived repos and ones with issues off can't be bumped", () => {
   assert.match(bumpBlocker(repo({ issues_off: true })), /turned off/);
 });
 
-test("the reminder is GitHub's prefilled new-issue form, naming the last push", () => {
+test("the reminder is GitHub's prefilled new-issue form, naming the last activity", () => {
   const url = new URL(bumpUrl(repo(), NOW));
   assert.equal(url.origin + url.pathname, "https://github.com/OWASP/www-project-x/issues/new");
   assert.match(url.searchParams.get("title"), /still maintained/);
-  assert.match(url.searchParams.get("body"), /last push to this repository was on 2022-10-22 \(4y ago\)/);
+  assert.match(url.searchParams.get("body"), /last commit to this repository was on 2022-10-22 \(4y ago\)/);
   assert.match(url.searchParams.get("body"), /https:\/\/bumper\.owaspblt\.org\//);
   assert.doesNotMatch(url.searchParams.get("body"), /github\.com\/OWASP-BLT|gitlab/i);
 });
@@ -57,7 +57,7 @@ test("the reminder is GitHub's prefilled new-issue form, naming the last push", 
 test("checklist lists each repo with its reminder link", () => {
   const text = checklist([repo(), repo({ name: "b", url: "https://github.com/OWASP/b" })], NOW);
   assert.match(text, /^OWASP repositories to bump \(2, from https:\/\/bumper\.owaspblt\.org\/ on 2026-10-22\)/);
-  assert.match(text, /- \[ \] \[www-project-x\]\(https:\/\/github\.com\/OWASP\/www-project-x\): last push 2022-10-22 · \[open reminder\]\(https:\/\/github\.com\/OWASP\/www-project-x\/issues\/new\?/);
+  assert.match(text, /- \[ \] \[www-project-x\]\(https:\/\/github\.com\/OWASP\/www-project-x\): last active 2022-10-22 · \[open reminder\]\(https:\/\/github\.com\/OWASP\/www-project-x\/issues\/new\?/);
   assert.equal(text.trim().split("\n").length, 4);
 });
 
@@ -95,9 +95,9 @@ test("Best to bump: important idle repos lead, quiet or recent ones follow", () 
   assert.ok(big.score > small.score && big.score > fresh.score);
   assert.ok(big.good.includes("★ 2k") && big.good.includes("idle 4y"));
   assert.match(big.why, /^Score \d+ = importance [\d.]+ × staleness [\d.]+ × noise 1\.00\nUp: /);
-  // A bot's push doesn't count as upkeep.
-  const bot = signal(repo({ stars: 50, pushed: "2026-09-01T00:00:00Z", commit: { author: "dependabot[bot]" } }), { now: NOW });
-  const human = signal(repo({ stars: 50, pushed: "2026-09-01T00:00:00Z", commit: { author: "alice" } }), { now: NOW });
+  // A bot's push doesn't count as upkeep: idleness runs from the last commit by a person.
+  const bot = signal(repo({ stars: 50, pushed: "2026-09-01T00:00:00Z", human: "2021-01-01T00:00:00Z", bot_only: true }), { now: NOW });
+  const human = signal(repo({ stars: 50, pushed: "2026-09-01T00:00:00Z", human: "2026-09-01T00:00:00Z" }), { now: NOW });
   assert.ok(bot.score > human.score && bot.good.includes("only bot commits lately"));
 });
 
@@ -160,4 +160,30 @@ test("last bump: reminder status, replies, closed reminders and your own bumps",
   assert.equal(lastBump(rem({}), { "www-project-x": "2026-10-01T00:00:00Z" }), "2026-10-01T00:00:00Z");
   assert.equal(lastBump(repo()), "");
   assert.deepEqual(sortRepos([repo({ name: "a" }), rem({})], "bump-desc").map((r) => r.name), ["www-project-x", "a"]);
+});
+
+test("the GraphQL path maps a repository node to the same record", () => {
+  const here = new URL("..", import.meta.url).pathname;
+  const out = execFileSync("python3", ["-c", `
+import json, sys; sys.path.insert(0, '.'); import generate_repo_list as g
+node = {"name": "www-project-x", "url": "https://github.com/OWASP/www-project-x", "stargazerCount": 12, "forkCount": 3,
+  "createdAt": "2015-01-01T00:00:00Z", "pushedAt": "2020-01-01T00:00:00Z", "isArchived": False, "isFork": False,
+  "isTemplate": False, "hasIssuesEnabled": True, "diskUsage": 40, "primaryLanguage": {"name": "HTML"},
+  "repositoryTopics": {"nodes": [{"topic": {"name": "owasp"}}]}, "issues": {"totalCount": 2}, "pullRequests": {"totalCount": 1},
+  "defaultBranchRef": {"target": {"history": {"nodes": [
+    {"committedDate": "2020-01-01T00:00:00Z", "messageHeadline": "bump", "author": {"name": "dependabot[bot]", "user": None}},
+    {"committedDate": "2019-05-01T00:00:00Z", "messageHeadline": "ci", "author": {"name": "x", "user": {"login": "github-actions[bot]", "url": ""}}}]}}},
+  "indexMd": {"text": "---\\ntitle: OWASP X\\nlevel: 2\\npitch: Short pitch\\n---\\nbody"}}
+print(json.dumps(g.repo_record(g._rest_shape(node))))`], { cwd: here, encoding: "utf8" });
+  const r = JSON.parse(out);
+  assert.equal(r.prs, 1);
+  assert.equal(r.issues, 2);
+  assert.equal(r.language, "HTML");
+  assert.deepEqual(r.topics, ["owasp"]);
+  assert.equal(r.commit.author, "dependabot[bot]");
+  assert.equal(r.bot_only, true);
+  assert.equal(r.human, "2019-05-01T00:00:00Z");
+  assert.equal(r.title, "OWASP X");
+  assert.equal(r.level, 2);
+  assert.equal(r.kind, "project");
 });
