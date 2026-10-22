@@ -44,4 +44,4 @@ uvx --with-requirements requirements.txt mkdocs serve -a 127.0.0.1:8000
 
 ## Contributing
 
-Keep documentation changes small, verifiable, and easy to review. See [the contributing guide](docs/developer-guide/contributing.md) before opening a merge request.
+Keep documentation changes small, verifiable, and easy to review. See [the contributing guide](docs/developer-guide/contributing.md) before opening a pull request.

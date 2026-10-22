@@ -32,7 +32,7 @@ Do not commit credentials, webhook URLs, API keys, or local environment files wh
 
 BLT-docs should describe the role of BLT-Jobs in the broader platform and point contributors to the current repository. The BLT-Jobs README should own exact local commands, deployment workflow details, data file formats, and automation behavior.
 
-If the jobs workflow changes, update BLT-Jobs first or in the same merge request as any BLT-docs update.
+If the jobs workflow changes, update BLT-Jobs first or in the same pull request as any BLT-docs update.
 
 ## Related pages
 

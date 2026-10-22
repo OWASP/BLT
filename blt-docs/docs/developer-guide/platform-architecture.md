@@ -17,7 +17,7 @@ BLT's active services follow four proven deployment patterns. Each pattern names
 
 ## Owner-boundary rule
 
-BLT-docs owns the documentation map and cross-project architecture described on this page. Each service repository owns its application code, Worker configuration, database migrations, secrets, API schema, and production operation instructions. When implementation details change, update the owning repository first or in the same merge request, then update BLT-docs with stable, concept-level guidance.
+BLT-docs owns the documentation map and cross-project architecture described on this page. Each service repository owns its application code, Worker configuration, database migrations, secrets, API schema, and production operation instructions. When implementation details change, update the owning repository first or in the same pull request, then update BLT-docs with stable, concept-level guidance.
 
 ## High-level flow
 
@@ -75,7 +75,7 @@ User identity concepts such as sessions or JWTs represent an authenticated user 
 
 BLT-docs should explain concepts, contributor workflows, and stable cross-repository guidance. Repository README files should keep quick-start and repository-specific commands close to the code. Agent-specific context belongs in approved agent files or developer documentation, not in human-facing README content unless maintainers explicitly request it.
 
-When implementation details change, update the owning repository first or in the same merge request. Then update BLT-docs with stable contributor guidance.
+When implementation details change, update the owning repository first or in the same pull request. Then update BLT-docs with stable contributor guidance.
 
 ## Related pages
 

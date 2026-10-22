@@ -35,7 +35,7 @@ Generated output is not evidence by itself. Treat it as a draft until a human co
 3. Use the agent for scoped changes.
 4. Review the diff manually.
 5. Run strict documentation builds or repository tests.
-6. Open a merge request with a human-written summary and verification notes.
+6. Open a pull request with a human-written summary and verification notes.
 
 ## What belongs where
 

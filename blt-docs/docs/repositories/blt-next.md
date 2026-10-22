@@ -29,7 +29,7 @@ Keep local environment files and secrets out of git. Use placeholder names for v
 
 ## Documentation notes
 
-Keep BLT-docs focused on BLT-Next's role in the platform, its deployment pattern, and its ownership boundary with BLT-API. When frontend behavior or Worker routes change, update the BLT-Next repository first or in the same merge request as any BLT-docs update.
+Keep BLT-docs focused on BLT-Next's role in the platform, its deployment pattern, and its ownership boundary with BLT-API. When frontend behavior or Worker routes change, update the BLT-Next repository first or in the same pull request as any BLT-docs update.
 
 ## Documentation boundaries
 
