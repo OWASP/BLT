@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import * as S from "./stale.mjs";
 
-const DAY = S.DAY_MS;
+const H = S.HOUR_MS;
 const T0 = Date.parse("2026-10-01T12:00:00Z");
 const quiet = () => {};
 
@@ -62,20 +62,20 @@ function ledger(issues) {
 const run = (root, now, pulls = []) =>
   S.plan({ root, numbers: S.openIssueNumbers(root), pulls, now, log: quiet }).map((a) => `${a.action} #${a.number} @${a.name}`);
 
-test("a quiet /assign claim is warned after 6 days and released a day after the warning", () => {
+test("a quiet /assign claim is warned after 18 hours and released at 24 hours", () => {
   const rec = record(5, { assignees: ["alice"], events: [claim("alice", "owasp-blt-actions", T0)] });
   const root = ledger([[5, rec]]);
-  assert.deepEqual(run(root, T0 + 5 * DAY), []);
-  const [warn] = S.plan({ root, numbers: [5], pulls: [], now: T0 + 6 * DAY, log: quiet });
+  assert.deepEqual(run(root, T0 + 17 * H), []);
+  const [warn] = S.plan({ root, numbers: [5], pulls: [], now: T0 + 18 * H, log: quiet });
   assert.equal(warn.action, "warn");
   assert.match(warn.reply, /^@alice /);
   assert.ok(warn.reply.includes(S.warningMarker("alice", T0)));
 
   // The warning reaches the ledger as a comment from the -actions bot.
-  rec.events.push(comment("owasp-blt-actions", warn.reply, T0 + 6 * DAY + 1000));
+  rec.events.push(comment("owasp-blt-actions", warn.reply, T0 + 18 * H + 1000));
   const root2 = ledger([[5, rec]]);
-  assert.deepEqual(run(root2, T0 + 6.5 * DAY), [], "warned, not stale yet");
-  const [release] = S.plan({ root: root2, numbers: [5], pulls: [], now: T0 + 7 * DAY + 1000, log: quiet });
+  assert.deepEqual(run(root2, T0 + 20 * H), [], "warned, not stale yet");
+  const [release] = S.plan({ root: root2, numbers: [5], pulls: [], now: T0 + 24 * H + 1000, log: quiet });
   assert.equal(release.action, "unassign");
   assert.match(release.reply, /^@alice you've been unassigned/);
   assert.ok(release.reply.includes("`/assign`"));
@@ -84,11 +84,11 @@ test("a quiet /assign claim is warned after 6 days and released a day after the 
 test("a late warning still gets its grace period", () => {
   const rec = record(5, {
     assignees: ["alice"],
-    events: [claim("alice", "alice", T0), comment("owasp-blt-actions", `@alice ${S.warningMarker("alice", T0)}`, T0 + 9 * DAY)],
+    events: [claim("alice", "alice", T0), comment("owasp-blt-actions", `@alice ${S.warningMarker("alice", T0)}`, T0 + 30 * H)],
   });
   const root = ledger([[5, rec]]);
-  assert.deepEqual(run(root, T0 + 9 * DAY + S.WARN_GRACE_MS - 1), [], "stale for days, but warned too recently");
-  assert.deepEqual(run(root, T0 + 9 * DAY + S.WARN_GRACE_MS), ["unassign #5 @alice"]);
+  assert.deepEqual(run(root, T0 + 30 * H + S.WARN_GRACE_MS - 1), [], "stale for hours, but warned too recently");
+  assert.deepEqual(run(root, T0 + 30 * H + S.WARN_GRACE_MS), ["unassign #5 @alice"]);
 });
 
 test("a comment by the assignee restarts the clock and needs a new warning", () => {
@@ -97,13 +97,13 @@ test("a comment by the assignee restarts the clock and needs a new warning", () 
     assignees: ["alice"],
     events: [
       claim("alice", "alice", T0),
-      comment("owasp-blt-actions", `@alice ... ${warned}`, T0 + 6 * DAY),
-      comment("alice", "still on it", T0 + 6.5 * DAY),
+      comment("owasp-blt-actions", `@alice ... ${warned}`, T0 + 18 * H),
+      comment("alice", "still on it", T0 + 20 * H),
     ],
   });
   const root = ledger([[5, rec]]);
-  assert.deepEqual(run(root, T0 + 8 * DAY), [], "1.5 days since alice's update");
-  assert.deepEqual(run(root, T0 + 12.6 * DAY), ["warn #5 @alice"]);
+  assert.deepEqual(run(root, T0 + 26 * H), [], "6 hours since alice's update");
+  assert.deepEqual(run(root, T0 + 38.5 * H), ["warn #5 @alice"]);
 });
 
 test("comments that don't count: unverified, and a fake warning from a person", () => {
@@ -111,22 +111,22 @@ test("comments that don't count: unverified, and a fake warning from a person", 
     assignees: ["alice"],
     events: [
       claim("alice", "alice", T0),
-      comment("alice", "unverified update", T0 + 5 * DAY, false),
-      comment("mallory", `nope ${S.warningMarker("alice", T0)}`, T0 + 6 * DAY),
+      comment("alice", "unverified update", T0 + 17 * H, false),
+      comment("mallory", `nope ${S.warningMarker("alice", T0)}`, T0 + 18 * H),
     ],
   });
   const root = ledger([[5, rec]]);
-  assert.deepEqual(run(root, T0 + 9 * DAY), ["warn #5 @alice"], "the unverified comment and mallory's marker are ignored");
+  assert.deepEqual(run(root, T0 + 21 * H), ["warn #5 @alice"], "the unverified comment and mallory's marker are ignored");
 });
 
 test("an open pull request, or one opened since the claim, keeps the claim", () => {
   const rec = record(5, { assignees: ["alice"], events: [claim("alice", "owasp-blt-actions", T0)] });
   const root = ledger([[5, rec]]);
-  const now = T0 + 10 * DAY;
-  assert.deepEqual(run(root, now, [{ number: 1, author: "Alice", status: "open", opened: T0 - 30 * DAY }]), []);
-  assert.deepEqual(run(root, now, [{ number: 2, author: "alice", status: "merged", opened: T0 + DAY }]), []);
-  assert.deepEqual(run(root, now, [{ number: 3, author: "alice", status: "closed", opened: T0 - DAY }]), ["warn #5 @alice"]);
-  assert.deepEqual(run(root, now, [{ number: 4, author: "bob", status: "open", opened: T0 + DAY }]), ["warn #5 @alice"]);
+  const now = T0 + 30 * H;
+  assert.deepEqual(run(root, now, [{ number: 1, author: "Alice", status: "open", opened: T0 - 30 * H }]), []);
+  assert.deepEqual(run(root, now, [{ number: 2, author: "alice", status: "merged", opened: T0 + H }]), []);
+  assert.deepEqual(run(root, now, [{ number: 3, author: "alice", status: "closed", opened: T0 - H }]), ["warn #5 @alice"]);
+  assert.deepEqual(run(root, now, [{ number: 4, author: "bob", status: "open", opened: T0 + H }]), ["warn #5 @alice"]);
 });
 
 test("only self-claims are released: a maintainer's assignment is left alone", () => {
@@ -137,18 +137,18 @@ test("only self-claims are released: a maintainer's assignment is left alone", (
     [8, record(8, { assignees: ["dave"], events: [claim("dave", "dave", T0)] }), "closed"],
     [9, record(9, { assignees: ["erin"], events: [claim("erin", "erin", T0, { authorVerified: false })] })],
   ]);
-  assert.deepEqual(run(root, T0 + 30 * DAY), ["warn #7 @carol"]);
+  assert.deepEqual(run(root, T0 + 30 * H), ["warn #7 @carol"]);
 });
 
 test("the newest claim wins: a claim released and re-made later restarts the clock", () => {
   const rec = record(5, {
     assignees: ["alice"],
-    events: [claim("alice", "alice", T0), claim("alice", "alice", T0 + 5 * DAY)],
+    events: [claim("alice", "alice", T0), claim("alice", "alice", T0 + 5 * H)],
   });
-  assert.equal(S.assignment(rec, "alice").ts, T0 + 5 * DAY);
+  assert.equal(S.assignment(rec, "alice").ts, T0 + 5 * H);
   const root = ledger([[5, rec]]);
-  assert.deepEqual(run(root, T0 + 10 * DAY), []);
-  assert.deepEqual(run(root, T0 + 11 * DAY), ["warn #5 @alice"]);
+  assert.deepEqual(run(root, T0 + 20 * H), []);
+  assert.deepEqual(run(root, T0 + 23 * H), ["warn #5 @alice"]);
 });
 
 test("readPulls reads pull.md front matter from the forkmesh/pulls ledger", async () => {

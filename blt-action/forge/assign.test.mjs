@@ -83,7 +83,7 @@ test("account names, bots and command keys", () => {
 test("assign: commenter only, refused when taken, closed or over the limit", () => {
   let d = A.decide({ command: "assign", name: "alice", issue: issue(record(1)) });
   assert.deepEqual(d.change, { assignees: ["alice"] });
-  assert.match(d.reply, /^@alice you're assigned to this issue\. Please open a pull request for it within 7 days\./);
+  assert.match(d.reply, /^@alice you're assigned to this issue\. Please open a pull request for it within 24 hours\./);
 
   d = A.decide({ command: "assign", name: "alice", issue: issue(record(1, { assignees: ["Alice"] })) });
   assert.equal(d.change, null);

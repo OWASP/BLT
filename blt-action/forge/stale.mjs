@@ -6,9 +6,9 @@
 //   node blt-action/forge/stale.mjs              warn, then unassign, through the job API
 //   node blt-action/forge/stale.mjs --dry-run    print what would happen; change nothing
 //
-// A claim is stale when the assignee has been quiet on the issue for STALE_DAYS (the clock starts at
+// A claim is stale when the assignee has been quiet on the issue for STALE_HOURS (the clock starts at
 // the claim and restarts with each verified comment the assignee posts there) and has no open pull
-// request, nor one opened since the claim. A day before that, the assignee gets one warning comment;
+// request, nor one opened since the claim. After WARN_HOURS, the assignee gets one warning comment;
 // the claim is released only once that warning is WARN_GRACE_MS old. Only self-claims are released:
 // `/assign` (claims recorded by the -actions bot or blt-tasks[bot]) and the web "claim" button. An
 // assignment a maintainer made for someone else is left alone.
@@ -18,13 +18,13 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import * as forge from "../../scripts/actions/forge.mjs";
-import { PR_DAYS, isBot, ledgerComments, loadIssue, isOpen, accountName, mention } from "./assign.mjs";
+import { PR_HOURS, isBot, ledgerComments, loadIssue, isOpen, accountName, mention } from "./assign.mjs";
 
-export const DAY_MS = 24 * 60 * 60 * 1000;
-export const STALE_DAYS = PR_DAYS;
-export const WARN_DAYS = STALE_DAYS - 1;
-// The run is daily, so a warning is about a day old at the next run; allow for a late runner.
-export const WARN_GRACE_MS = 20 * 60 * 60 * 1000;
+export const HOUR_MS = 60 * 60 * 1000;
+export const STALE_HOURS = PR_HOURS;
+export const WARN_HOURS = 18;
+// The run is hourly; a released claim's warning is at least WARN_GRACE_MS old, which allows for a late runner.
+export const WARN_GRACE_MS = 5 * HOUR_MS;
 export const MAX_ACTIONS_PER_RUN = 10;
 export const FORGE_URL = "https://git.owaspblt.org";
 export const FORGE_REPO = "owasp-blt/BLT";
@@ -178,7 +178,7 @@ export function plan({ root, numbers, pulls, now = Date.now(), log = () => {} })
       }
       const since = Math.max(claim.ts, lastActivity(issue.record, name));
       const idle = now - since;
-      if (idle < WARN_DAYS * DAY_MS) continue;
+      if (idle < WARN_HOURS * HOUR_MS) continue;
       const warned = warnedAt(issue.record, name, since);
       if (!warned) {
         actions.push({
@@ -187,13 +187,13 @@ export function plan({ root, numbers, pulls, now = Date.now(), log = () => {} })
           since,
           action: "warn",
           reply:
-            `${mention(name)} there's been no pull request or comment from you here for ${WARN_DAYS} days. ` +
+            `${mention(name)} there's been no pull request or comment from you here for ${WARN_HOURS} hours. ` +
             `If you're still working on this issue, please comment with an update or open a pull request; ` +
-            `otherwise you'll be unassigned in about a day so someone else can pick it up. ${warningMarker(name, since)}`,
+            `otherwise you'll be unassigned in about 6 hours so someone else can pick it up. ${warningMarker(name, since)}`,
         });
         continue;
       }
-      if (idle >= STALE_DAYS * DAY_MS && now - warned >= WARN_GRACE_MS) {
+      if (idle >= STALE_HOURS * HOUR_MS && now - warned >= WARN_GRACE_MS) {
         actions.push({
           number,
           name,
@@ -201,7 +201,7 @@ export function plan({ root, numbers, pulls, now = Date.now(), log = () => {} })
           action: "unassign",
           reply:
             `${mention(name)} you've been unassigned from this issue because there was no pull request or update ` +
-            `for ${STALE_DAYS} days. It's open for others now; comment \`/assign\` to take it again. ${releaseMarker(name, since)}`,
+            `for ${STALE_HOURS} hours. It's open for others now; comment \`/assign\` to take it again. ${releaseMarker(name, since)}`,
         });
       }
     }

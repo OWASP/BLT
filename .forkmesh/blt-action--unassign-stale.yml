@@ -10,7 +10,7 @@ name: "blt-action: release stale /assign claims"
 # Rules: docs/workflows.md ("Stale claims"). Preview with: node blt-action/forge/stale.mjs --dry-run
 on:
   schedule:
-    - cron: "53 5 * * *"
+    - cron: "53 * * * *"
   workflow_dispatch:
 jobs:
   unassign-stale:

@@ -34,7 +34,7 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `deploy.yml` | new | push to main: `scripts/deploy.sh --changed $FORKMESH_BEFORE` (folders in `scripts/deploy/projects.tsv`); dispatch input `project` (a name, several space-separated, or `all`) | CF |
 | `readme.yml` | GitHub `readme.yml` | push to main (any path; Projects, Deploying and Contributors), `17 6 * * *` (also refreshes Blog Posts); commits `README.md` and `.forkmesh/contributors/` | `GH_API_TOKEN` (optional) |
 | `blt-action--assign.yml` | BLT-Action `/assign`, `/unassign` | issue comments (created) starting a line with `/assign` or `/unassign`; dispatch input `issue` (process the commands already in that issue). Verified authors only. Assigns through the job API (falls back to committing a signed ledger event on an older instance) and replies through the job API | `BLT_TASKS_SEED` (fallback only) |
-| `blt-action--unassign-stale.yml` | BLT-Action / BLT-Pool stale-assignment unassign | `53 5 * * *`: warns, then releases, self-claimed issues with no pull request and no update from the assignee for 7 days (see Stale claims). Job API only, no commit | none |
+| `blt-action--unassign-stale.yml` | BLT-Action / BLT-Pool stale-assignment unassign | `53 * * * *` (hourly): warns, then releases, self-claimed issues with no pull request and no update from the assignee for 24 hours (see Stale claims). Job API only, no commit | none |
 | `blt-cve--build-index.yml` | GitHub | push to main under `blt-cve/public/cves`, `public/schema`, `scripts/build_index.py` | CF |
 | `blt-design-contest--build-showcase.yml` | GitLab `build_showcase` | issue events on contest issues (project label or `[blt-design-contest]` prefix, contest labels, `winner`), `47 7 * * *` (votes raise no issue event), push under `blt-design-contest/scripts/` or `data/`; reads the git.owaspblt.org issue ledger and writes changed pages to KV (`blt-design-contest/scripts/refresh-kv.sh`), no commit | CF (with KV write) |
 | `blt-extension--release.yml` | GitHub `release.yml` + packaging from `create-release.yml` | dispatch only (input `publish`) | `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` |
@@ -66,8 +66,8 @@ only:
 - `/assign` is refused when the issue is closed, when someone else is assigned, or when the commenter
   already holds another open issue (BLT-Action allowed one issue without an open pull request; the
   forge has no issue-to-pull link, so any other open assignment counts). Otherwise the commenter is
-  assigned and asked to open a pull request within 7 days or comment `/unassign`. A claim with no
-  pull request and no update for 7 days is released by `blt-action--unassign-stale.yml` (Stale claims
+  assigned and asked to open a pull request within 24 hours or comment `/unassign`. A claim with no
+  pull request and no update for 24 hours is released by `blt-action--unassign-stale.yml` (Stale claims
   below).
 - `/unassign` removes only the commenter.
 - Comments from bots (`[bot]`, `-actions`) are ignored.
@@ -114,7 +114,7 @@ Settings tab, "Actions secrets") is needed only for the fallback.
 BLT-Action is the only bot that answers `/assign` (issue #38). BLT-Pool (`blt-pool`, the
 `blt-github-app` Worker) ignores `/assign` and `/unassign`, and its 2-hourly blt-cron job, which swept
 every GitHub App installation for stale assignments on the frozen OWASP-BLT/* GitHub repositories, is
-gone. Its stale-assignment release is ported here as `blt-action/forge/stale.mjs`, run daily by
+gone. Its stale-assignment release is ported here as `blt-action/forge/stale.mjs`, run hourly by
 `blt-action--unassign-stale.yml`:
 
 - Only self-claims are released: claims made with `/assign` (recorded by the `-actions` bot or
@@ -126,8 +126,8 @@ gone. Its stale-assignment release is ported here as `blt-action/forge/stale.mjs
   issue (the forge has no issue-to-pull link, so any pull request by them counts). Pull requests are
   read anonymously from the `forkmesh/pulls` ledger branch; when it cannot be read the run stops and
   changes nothing.
-- After 6 quiet days the assignee gets one warning (`<!-- blt-assign-stale-warning:<name>:<since> -->`).
-  At 7 days, once that warning is at least 20 hours old, they are unassigned through the job API with
+- After 18 quiet hours the assignee gets one warning (`<!-- blt-assign-stale-warning:<name>:<since> -->`).
+  At 24 hours, once that warning is at least 5 hours old, they are unassigned through the job API with
   a reply saying so. At most 10 actions per run.
 - On an instance without the job API assignees endpoint the run stops; there is no ledger fallback.
 
