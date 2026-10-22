@@ -1,5 +1,5 @@
-# Static site (public/) plus a Worker (worker/index.js) that serves the generated page (/ and
-# /index.html) from KV (binding DATA). The workflow .forkmesh/blt-owasp-bumper--generate-repo-list.yml
+# Static site (public/) plus a Worker (worker/index.js) that serves the generated data
+# (/data/repos.json) from KV (binding DATA). The workflow .forkmesh/blt-owasp-bumper--generate-repo-list.yml
 # (daily) writes it; nothing is committed to git.
 name = "blt-owasp-bumper"
 main = "worker/index.js"
@@ -8,7 +8,7 @@ compatibility_date = "2026-06-06"
 [assets]
 directory = "public"
 binding = "ASSETS"
-run_worker_first = ["/", "/index.html"]
+run_worker_first = ["/data/repos.json"]
 
 # Created by scripts/worker-data/create-kv.sh, which replaces the placeholder id.
 [[kv_namespaces]]

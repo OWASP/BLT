@@ -1,8 +1,8 @@
 name: "blt-owasp-bumper: Generate OWASP Repository List"
 # Ported from .github/workflows/blt-owasp-bumper--generate-repo-list.yml and the pages job of
-# blt-owasp-bumper/.gitlab-ci.yml. Regenerates the dashboard page and writes it to the
-# blt-owasp-bumper Worker's KV namespace (scripts/refresh-kv.sh), which serves it at / and
-# /index.html. Nothing is committed and nothing is redeployed. The generator stays here rather
+# blt-owasp-bumper/.gitlab-ci.yml. Regenerates the repository data and writes it to the
+# blt-owasp-bumper Worker's KV namespace (scripts/refresh-kv.sh), which serves it at
+# /data/repos.json. Nothing is committed and nothing is redeployed. The generator stays here rather
 # than in the Worker: it makes several thousand GitHub requests.
 on:
   schedule:
@@ -24,7 +24,7 @@ jobs:
       run:
         working-directory: blt-owasp-bumper
     steps:
-      - name: Generate the repository list and write it to KV
+      - name: Generate the repository data and write it to KV
         env:
           GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}
           GITHUB_ORG: owasp
