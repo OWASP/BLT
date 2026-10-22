@@ -2,12 +2,19 @@
 // and sorts it, and opens prefilled reminder issues for the selected repositories in batches.
 import {
   BATCH_SIZE, DEFAULT_FILTERS, IDLE, ago, bumpBlocker, bumpUrl, checklist, escapeHtml, filtersFromQuery,
-  filtersToQuery, idleYears, lastActive, lastBump, matches, openReminder, reminderStatus, safeUrl, scoreAll, sortRepos,
+  filtersToQuery, idleYears, lastActive, lastBump, lastMine, matches, myBumps, openReminder, reminderStatus, safeUrl,
+  COOLDOWN_DAYS, cooldown, since, scoreAll, sortRepos,
 } from "./bumper.js";
 
 const PAGE = 200;
 const BUMPED_KEY = "bumper-bumped";
-const KIND_LABEL = { project: "Project", chapter: "Chapter", other: "Repo" };
+const KIND_LABEL = { project: "Project", site: "Project site", chapter: "Chapter", other: "Repo" };
+const KIND_TITLE = {
+  project: "Its GitHub homepage is its owasp.org project page",
+  site: "An owasp.org project website repo (www-project-*)",
+  chapter: "An owasp.org chapter website repo (www-chapter-*)",
+  other: "Not linked to an owasp.org project page: set the repo's homepage to link it (see Why am I seeing this?)",
+};
 const TILES = [
   { idle: "all", label: "All repositories", minor: true },
   { idle: "active", label: "Active < 1y", color: "var(--ok)" },
@@ -163,7 +170,7 @@ function scoreTier(sig) {
 const NOTES = [
   [/^fork$/, "fork", "down"], [/^empty/, "empty", "down"], [/^template/, "template", "down"],
   [/^says it moved/, "moved/defunct?", "down"], [/^looks superseded/, "-old copy", "down"],
-  [/similar repos$/, "duplicate", "down"], [/^reminder #\d+ closed/, "recently closed", "down"], [/^you bumped/, "bumped", "down"],
+  [/similar repos$/, "duplicate", "down"], [/^reminder #\d+ closed/, "recently closed", "down"], [/^you opened a form/, "form opened", "down"],
   [/^([5-9]|\d{2,}) open PRs waiting$/, "PRs waiting", "up"], [/^only bot commits/, "bot-only", "up"],
 ];
 function scoreNote(sig, blocker) {
@@ -186,12 +193,12 @@ function row(r, i) {
   const remLink = remCell.pill;
   const sel = selected.has(r.name);
   const years = idleYears(r, now);
-  const when = bumped[r.name];
+  const cool = blocker ? "" : cooldown(r, bumped, now);
   const pills = [
     remLink,
     r.archived ? `<span class="pill">Archived</span>` : "",
     r.issues_off && !r.archived ? `<span class="pill">Issues off</span>` : "",
-    when ? `<span class="pill red" title="You opened a reminder form on ${escapeHtml(when.slice(0, 10))}">Bumped ${escapeHtml(ago(when, now))} ago</span>` : "",
+    r.opted_out && !r.archived ? `<span class="pill" title="The repo has the topic bumper-ignore">Opted out</span>` : "",
   ].join(" ");
   const sig = r._sig;
   const note = scoreNote(sig, blocker);
@@ -200,14 +207,16 @@ function row(r, i) {
   const desc = r.title || r.description || "";
   const bump = blocker
     ? `<span class="muted" title="${escapeHtml(blocker)}">–</span>`
-    : `<a class="bump${when ? " done" : ""}" href="${escapeHtml(bumpUrl(r, now))}" target="_blank" rel="noopener" data-bump="${escapeHtml(r.name)}" title="Open a prefilled reminder issue on GitHub">🔔<span class="label">&nbsp;${when ? "Again" : "Bump"}</span></a>`;
+    : `<a class="bump${cool ? " cool" : ""}" href="${escapeHtml(bumpUrl(r, now))}" target="_blank" rel="noopener" data-bump="${escapeHtml(r.name)}" title="${escapeHtml(cool ? `${cool} Wait ${COOLDOWN_DAYS} days between reminders.` : "Open GitHub's new-issue form on this repo, prefilled with a reminder")}">🔔<span class="label">&nbsp;${cool ? "Wait" : "Bump"}</span></a>`;
   return `<tr data-i="${i}"${sel ? ' class="sel"' : ""}>
     <td class="c-sel"><input type="checkbox" data-name="${escapeHtml(r.name)}"${sel ? " checked" : ""}${blocker ? ` disabled title="${escapeHtml(blocker)}"` : ""} aria-label="Select ${escapeHtml(r.name)}"></td>
     <td><a class="name" href="${escapeHtml(safeUrl(r.url))}" target="_blank" rel="noopener">${escapeHtml(r.name)}</a> ${pills}
       ${desc ? `<div class="desc" title="${escapeHtml(desc)}">${escapeHtml(desc)}</div>` : ""}
       <div class="meta" title="${escapeHtml(sig.why)}">${escapeHtml([blocker ? "" : `score ${sig.score}`, KIND_LABEL[r.kind], lang, created && `created ${created}`].filter(Boolean).join(" · "))}</div></td>
     <td class="num c-score" title="${escapeHtml(sig.why)}"><span class="score ${blocker ? "none" : scoreTier(sig)}">${blocker ? "–" : sig.score}</span>${note ? `<span class="sub note ${note[1]}">${escapeHtml(note[0])}</span>` : ""}</td>
-    <td class="c-kind nowrap"><span class="pill kind-${r.kind}">${KIND_LABEL[r.kind] || "Repo"}</span><span class="sub">${escapeHtml([lang, created].filter(Boolean).join(" · "))}</span></td>
+    <td class="c-kind nowrap">${r.project_page
+      ? `<a class="pill kind-${r.kind}" href="${escapeHtml(safeUrl(r.project_page))}" target="_blank" rel="noopener" title="${escapeHtml(KIND_TITLE[r.kind])}: ${escapeHtml(r.project_page)}">${KIND_LABEL[r.kind]}</a>`
+      : `<span class="pill kind-${r.kind}" title="${escapeHtml(KIND_TITLE[r.kind] || "")}">${KIND_LABEL[r.kind] || "Repo"}</span>`}<span class="sub">${escapeHtml([lang, created].filter(Boolean).join(" · "))}</span></td>
     <td class="c-last nowrap">${remCell.cell}</td>
     <td class="c-age nowrap"><span class="age ${ageClass(years)}">${escapeHtml(ago(lastActive(r), now))}</span><span class="sub">${escapeHtml(lastActive(r).slice(0, 10))}</span></td>
     <td class="num c-stars"><span class="${r.stars >= 100 ? "strong" : ""}">${fmt(r.stars || 0)}</span><span class="sub">${r.forks ? `${fmt(r.forks)} forks` : "&nbsp;"}</span></td>
@@ -219,10 +228,12 @@ function row(r, i) {
 // The repo's last bump: its latest reminder issue (link, age, replies) or a form you opened here.
 function reminderCell(r) {
   const rem = r.reminder && r.reminder.number ? r.reminder : null;
-  const mine = bumped[r.name];
+  const mine = lastMine(bumped, r.name);
+  const mineN = myBumps(bumped, r.name).length;
+  const mineNote = mine ? `You opened a reminder form here ${mineN} time${mineN === 1 ? "" : "s"}, last ${since(mine, now)}; it shows on GitHub only once submitted.` : "";
   if (!rem) {
     return mine
-      ? { pill: "", cell: `<span class="rem rem-mine" title="You opened a reminder form on ${escapeHtml(mine.slice(0, 10))}">🔔 ${escapeHtml(ago(mine, now))}</span><span class="sub">by you, here</span>` }
+      ? { pill: "", cell: `<span class="rem rem-mine" title="${escapeHtml(mineNote)}">🔔 ${mineN}× · ${escapeHtml(ago(mine, now))}</span><span class="sub">form${mineN === 1 ? "" : "s"} opened here</span>` }
       : { pill: "", cell: `<span class="never">never</span><span class="sub">&nbsp;</span>` };
   }
   const status = reminderStatus(r);
@@ -233,9 +244,10 @@ function reminderCell(r) {
     `Bumped ${n} time${n === 1 ? "" : "s"}. Latest: reminder #${rem.number}${rem.author ? ` by ${rem.author}` : ""}, opened ${String(rem.created).slice(0, 10)}`,
     status === "closed" ? `closed ${String(rem.closed).slice(0, 10)}` : "still open",
     reply ? `last reply by ${reply.author} on ${reply.date.slice(0, 10)}` : rem.replies ? replies : "no replies yet",
-  ].join(" · ");
+    mineNote,
+  ].filter(Boolean).join(" · ");
   const top = `🔔 ${n}× · ${ago(rem.created, now)}`;
-  const sub = `#${rem.number} · ${status === "closed" ? `closed ${ago(rem.closed, now)} ago` : reply ? `${replies}, last ${ago(reply.date, now)} ago` : replies}`;
+  const sub = `#${rem.number} · ${status === "closed" ? `closed ${since(rem.closed, now)}` : reply ? `${replies}, last ${since(reply.date, now)}` : replies}`;
   const href = escapeHtml(safeUrl(reply && reply.url ? reply.url : rem.url));
   return {
     pill: `<a class="rem rem-${status} rem-inline" href="${escapeHtml(safeUrl(rem.url))}" target="_blank" rel="noopener" title="${escapeHtml(title)}">${escapeHtml(top)} · ${escapeHtml(status === "closed" ? "closed" : replies)}</a>`,
@@ -312,23 +324,52 @@ function afterSelect() {
   } else say("");
 }
 
+// A message with one button; its click is a fresh user gesture, so it may open tabs.
+function sayWithAction(text, label, action, warn = true) {
+  const msg = $("msg");
+  msg.textContent = `${text} `;
+  msg.classList.toggle("warn", warn);
+  const b = Object.assign(document.createElement("button"), { type: "button", className: "linkbtn", textContent: label });
+  b.addEventListener("click", action);
+  msg.append(b);
+}
+
+function record(name, stamp = new Date().toISOString()) {
+  bumped[name] = [...myBumps(bumped, name), stamp].slice(-20);
+}
+
+function openForm(r) {
+  const w = window.open(bumpUrl(r, now), "_blank");
+  if (!w) return false;
+  try { w.opener = null; } catch { /* cross-origin already */ }
+  record(r.name);
+  return true;
+}
+
 // Opens one batch. window.open must run inside the click handler, or popup blockers stop it.
-function openBatch() {
-  const batch = selectedRepos().slice(0, BATCH_SIZE);
+// Repos inside their cooldown are held back unless the user says to open them anyway.
+function openBatch(includeCooling = false) {
+  const queue = selectedRepos();
+  const cooling = includeCooling ? [] : queue.filter((r) => cooldown(r, bumped, now));
+  const batch = queue.filter((r) => !cooling.includes(r)).slice(0, BATCH_SIZE);
+  if (!batch.length && cooling.length) {
+    sayWithAction(`${plural(cooling.length, "selected repo")} had a reminder in the last ${COOLDOWN_DAYS} days (${cooling.slice(0, 3).map((r) => r.name).join(", ")}${cooling.length > 3 ? "…" : ""}). One reminder a week is plenty.`,
+      "Open them anyway", () => openBatch(true));
+    return;
+  }
   let opened = 0;
-  const stamp = new Date().toISOString();
   for (const r of batch) {
-    const w = window.open(bumpUrl(r, now), "_blank");
-    if (!w) break;
-    try { w.opener = null; } catch { /* cross-origin already */ }
+    if (!openForm(r)) break;
     opened++;
-    bumped[r.name] = stamp;
     selected.delete(r.name);
   }
   save();
   const left = selected.size;
   update({ keepLimit: true, rescore: true });
-  if (opened === 0) {
+  if (cooling.length && opened === batch.length) {
+    sayWithAction(`Opened ${plural(opened, "form")}. Held back ${plural(cooling.length, "repo")} that had a reminder in the last ${COOLDOWN_DAYS} days.`,
+      "Open those anyway", () => openBatch(true), false);
+  } else if (opened === 0) {
     say("Your browser blocked the new tabs. Allow pop-ups for this site (the icon in the address bar), then click again.", true);
   } else if (opened < batch.length) {
     say(`Opened ${plural(opened, "form")}; the browser blocked the rest. Allow pop-ups for this site, then click again for the ${fmt(left)} left.`, true);
@@ -397,7 +438,17 @@ $("rows").addEventListener("click", (e) => {
   }
   const bump = e.target.closest("a[data-bump]");
   if (bump) {
-    bumped[bump.dataset.bump] = new Date().toISOString();
+    const r = byName.get(bump.dataset.bump);
+    const cool = r && cooldown(r, bumped, now);
+    if (cool) {
+      // Ask first: the button below is a new click, so the browser lets it open the tab.
+      e.preventDefault();
+      sayWithAction(`${cool} Another one this soon may feel like spam.`, "Open another anyway", () => {
+        if (openForm(r)) { save(); say(`Opened a form for ${r.name}.`); update({ keepLimit: true, rescore: true }); }
+      });
+      return;
+    }
+    record(bump.dataset.bump);
     save();
     setTimeout(() => update({ keepLimit: true, rescore: true }), 0);
   }
@@ -411,7 +462,14 @@ $("noiseNote").addEventListener("click", (e) => {
   update({ keepLimit: true });
 });
 $("more").addEventListener("click", () => { limit = Infinity; renderRows(); });
-$("open").addEventListener("click", openBatch);
+$("open").addEventListener("click", () => openBatch());
 $("copy").addEventListener("click", copyChecklist);
 
-init();
+// Links to #why (from every reminder issue) and #about open that section.
+function openSection() {
+  const el = document.getElementById(location.hash.slice(1));
+  if (el && el.tagName === "DETAILS") { el.open = true; el.scrollIntoView({ block: "start" }); }
+}
+window.addEventListener("hashchange", openSection);
+
+init().then(openSection);

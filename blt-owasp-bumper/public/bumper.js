@@ -48,7 +48,7 @@ export function reminderStatus(repo) {
 
 // When this repo was last bumped: its latest reminder issue, or a form you opened here.
 export function lastBump(repo, bumped = {}) {
-  const dates = [repo.reminder && repo.reminder.created, bumped[repo.name]].filter(Boolean);
+  const dates = [repo.reminder && repo.reminder.created, lastMine(bumped, repo.name)].filter(Boolean);
   return dates.sort().pop() || "";
 }
 
@@ -57,6 +57,7 @@ export function lastBump(repo, bumped = {}) {
 export function bumpBlocker(repo, now = Date.now()) {
   if (repo.archived) return "Archived: issues are read-only";
   if (repo.issues_off) return "Issues are turned off";
+  if (repo.opted_out) return "Opted out of reminders (topic bumper-ignore)";
   const rem = openReminder(repo);
   if (rem && now - Date.parse(rem.created) < YEAR) return `Reminder #${rem.number} is already open (since ${String(rem.created).slice(0, 10)})`;
   return "";
@@ -71,6 +72,37 @@ export function ago(dateStr, now = Date.now()) {
   if (days < 365) return `${Math.floor(days / 30.44)}mo`;
   const years = days / 365.25;
   return years < 10 ? `${years.toFixed(1).replace(/\.0$/, "")}y` : `${Math.floor(years)}y`;
+}
+
+// "today", "3d ago", "2.4y ago": never "today ago".
+export function since(dateStr, now = Date.now()) {
+  const a = ago(dateStr, now);
+  return a === "today" || a === "–" ? a : `${a} ago`;
+}
+
+// Reminder forms you opened from this browser: { repo: [ISO times] } (older saves held one time).
+export const COOLDOWN_DAYS = 7;
+export function myBumps(bumped, name) {
+  const v = bumped[name];
+  return Array.isArray(v) ? v : v ? [v] : [];
+}
+export function lastMine(bumped, name) {
+  return myBumps(bumped, name).slice().sort().pop() || "";
+}
+
+// Why a new reminder now would be one too many, or "" when there is none: a form opened from
+// here, or a reminder issue created, within the cooldown.
+export function cooldown(repo, bumped = {}, now = Date.now()) {
+  const recent = myBumps(bumped, repo.name).filter((d) => now - Date.parse(d) < COOLDOWN_DAYS * DAY);
+  if (recent.length) {
+    const last = recent.slice().sort().pop();
+    return `You opened a reminder form for ${repo.name} ${since(last, now)}${recent.length > 1 ? ` (${recent.length} times in the last ${COOLDOWN_DAYS} days)` : ""}.`;
+  }
+  const rem = repo.reminder;
+  if (rem && rem.created && now - Date.parse(rem.created) < COOLDOWN_DAYS * DAY) {
+    return `Reminder #${rem.number} was opened on ${repo.name} ${since(rem.created, now)}.`;
+  }
+  return "";
 }
 
 export const IDLE = {
@@ -119,7 +151,8 @@ export function signal(repo, { now = Date.now(), bumped = {}, siblings = 1, lead
   add(2 * log(repo.forks), repo.forks >= 10 ? `${compact(repo.forks)} forks` : "");
   add(2 * log(repo.issues), repo.issues ? `${compact(repo.issues)} open issue${repo.issues === 1 ? "" : "s"}` : "");
   if (repo.prs) add(2 + 2 * log(repo.prs), `${repo.prs} open PR${repo.prs === 1 ? "" : "s"} waiting`);
-  add(repo.kind === "project" ? 3 : repo.kind === "other" ? 1 : 0, repo.kind === "project" ? "OWASP project" : "");
+  const kindPoints = { project: 3, site: 2, other: 1, chapter: 0 }[repo.kind] || 0;
+  add(kindPoints, repo.kind === "project" || repo.kind === "site" ? "OWASP project" : "");
   if (repo.level) add(Number(repo.level) || 0, `level ${repo.level}`);
   if (repo.description || repo.title) add(0.5);
   const pushed = Date.parse(lastActive(repo)), touched = Date.parse(repo.updated);
@@ -143,7 +176,7 @@ export function signal(repo, { now = Date.now(), bumped = {}, siblings = 1, lead
   if (SUPERSEDED.test(repo.name)) down(0.3, "looks superseded");
   if (siblings > 1 && !lead) down(0.5, `1 of ${siblings} similar repos`);
   const low = noise <= NOISE_AT;
-  if (bumped[repo.name]) down(0.15, "you bumped it");
+  if (myBumps(bumped, repo.name).length) down(0.15, "you opened a form");
 
   const score = Math.round(importance * staleness * noise * 10);
   good.sort((a, b) => b[0] - a[0]);
@@ -184,8 +217,8 @@ export function matches(repo, f, { now = Date.now(), bumped = {} } = {}) {
   if (!(IDLE[f.idle] || IDLE.any).test(idleYears(repo, now))) return false;
   if (f.lang && (repo.language || "none") !== f.lang) return false;
   if (f.created && String(repo.created || "").slice(0, 4) !== f.created) return false;
-  if (f.bumped === "not" && bumped[repo.name]) return false;
-  if (f.bumped === "yes" && !bumped[repo.name]) return false;
+  if (f.bumped === "not" && myBumps(bumped, repo.name).length) return false;
+  if (f.bumped === "yes" && !myBumps(bumped, repo.name).length) return false;
   if (f.q) {
     const hay = [repo.name, repo.description, repo.title, repo.pitch, repo.language, repo.region, repo.country, ...(repo.topics || []), ...(repo.tags || [])]
       .join(" ")
@@ -221,9 +254,9 @@ export function bumpTitle() {
 
 export function bumpBody(repo, now = Date.now()) {
   const when = lastActive(repo).slice(0, 10) || "a while ago";
-  return `Hello from the OWASP BLT team 👋
+  return `Hi! 👋 I'm checking in on idle repositories in the OWASP organization.
 
-The last commit to this repository was on ${when} (${ago(lastActive(repo), now)} ago). Could a maintainer let us know where it stands?
+The last commit to this repository was on ${when} (${since(lastActive(repo), now)}). Could a maintainer let us know where it stands?
 
 - **Still active?** A short update or a commit shows the project is maintained.
 - **No longer maintained?** Please consider archiving it to keep the OWASP organization tidy.
@@ -232,7 +265,7 @@ The last commit to this repository was on ${when} (${ago(lastActive(repo), now)}
 Thank you for contributing to the OWASP community!
 
 ---
-*Opened with [OWASP Bumper](https://bumper.owaspblt.org/), part of [OWASP BLT](https://git.owaspblt.org/BLT).*`;
+*Opened with [OWASP Bumper](https://bumper.owaspblt.org/), part of [OWASP BLT](https://git.owaspblt.org/BLT). [Why am I seeing this, and how do I opt out?](https://bumper.owaspblt.org/#why)*`;
 }
 
 // GitHub's "new issue" form, prefilled. The maintainer-facing repos are OWASP's, on GitHub.

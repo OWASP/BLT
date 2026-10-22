@@ -98,7 +98,7 @@ query($org: String!, $cursor: String, $size: Int!) {
     repositories(first: $size, after: $cursor, orderBy: {field: PUSHED_AT, direction: DESC}) {
       pageInfo { hasNextPage endCursor }
       nodes {
-        name description url stargazerCount forkCount createdAt updatedAt pushedAt
+        name description url homepageUrl stargazerCount forkCount createdAt updatedAt pushedAt
         isArchived isFork isTemplate hasIssuesEnabled diskUsage
         primaryLanguage { name }
         repositoryTopics(first: 10) { nodes { topic { name } } }
@@ -148,6 +148,7 @@ def _rest_shape(node: Dict) -> Dict:
         "name": node.get("name", ""),
         "description": node.get("description") or "",
         "html_url": node.get("url", ""),
+        "homepage": node.get("homepageUrl") or "",
         "stargazers_count": node.get("stargazerCount", 0),
         "forks_count": node.get("forkCount", 0),
         "open_issues_count": (node.get("issues") or {}).get("totalCount", 0),
@@ -298,11 +299,36 @@ def fetch_reminders(org: str, token: str = None) -> Dict[str, Dict]:
     return found
 
 
+# A repo's GitHub homepage (About -> Website) set to its owasp.org project page links the repo to
+# that project. Maintainers control it, so it is how a leader fixes Bumper's mapping.
+PROJECT_PAGE = re.compile(r"^https?://(?:www\.)?owasp\.org/(?:projects/|www-project-)([a-z0-9-]+)/?$", re.I)
+# A repo topic that keeps Bumper from offering reminders for it.
+OPT_OUT_TOPICS = {"bumper-ignore", "no-bumper"}
+
+
+def project_page(homepage: str) -> str:
+    m = PROJECT_PAGE.match((homepage or "").strip())
+    return f"https://owasp.org/projects/{m.group(1).lower()}" if m else ""
+
+
+def repo_kind(name: str, page: str) -> str:
+    """site: an owasp.org project website repo (www-project-*); project: a repo whose homepage is
+    its owasp.org project page; chapter: a chapter website repo; other: everything else."""
+    lower = name.lower()
+    if lower.startswith("www-project-"):
+        return "site"
+    if lower.startswith("www-chapter-"):
+        return "chapter"
+    return "project" if page else "other"
+
+
 def repo_record(repo: Dict) -> Dict:
     """The fields the page uses, with empty values left out to keep the file small."""
     index_md = repo.get("index_md") or {}
     last_commit = repo.get("last_commit") or {}
     name = repo.get("name", "")
+    page = project_page(repo.get("homepage", ""))
+    topics = repo.get("topics") or []
     record = {
         "name": name,
         "description": repo.get("description") or "",
@@ -317,14 +343,16 @@ def repo_record(repo: Dict) -> Dict:
         "human": repo.get("human_at", ""),
         "bot_only": bool(repo.get("bot_only")),
         "language": repo.get("language") or "",
-        "topics": repo.get("topics") or [],
+        "topics": topics,
         "archived": bool(repo.get("archived")),
         "issues_off": repo.get("has_issues") is False,
         "fork": bool(repo.get("fork")),
         "template": bool(repo.get("is_template")),
         "empty": repo.get("size") == 0,
         "reminder": repo.get("open_reminder") or {},
-        "kind": "project" if "www-project" in name.lower() else "chapter" if "www-chapter" in name.lower() else "other",
+        "kind": repo_kind(name, page),
+        "project_page": page,
+        "opted_out": bool(OPT_OUT_TOPICS & {t.lower() for t in topics}),
         "commit": {k: last_commit.get(k, "") for k in ("message", "author", "author_url", "date")} if last_commit else {},
         "title": index_md.get("title", ""),
         "pitch": index_md.get("pitch", ""),

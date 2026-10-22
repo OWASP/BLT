@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
 import {
-  DEFAULT_FILTERS, bumpBlocker, bumpUrl, checklist, escapeHtml, filtersFromQuery, filtersToQuery, idleYears,
+  COOLDOWN_DAYS, DEFAULT_FILTERS, bumpBlocker, cooldown, since, bumpUrl, checklist, escapeHtml, filtersFromQuery, filtersToQuery, idleYears,
   lastBump, matches, reminderStatus, safeUrl, scoreAll, signal, siblingStem, sortRepos,
 } from "../public/bumper.js";
 
@@ -185,5 +185,44 @@ print(json.dumps(g.repo_record(g._rest_shape(node))))`], { cwd: here, encoding: 
   assert.equal(r.human, "2019-05-01T00:00:00Z");
   assert.equal(r.title, "OWASP X");
   assert.equal(r.level, 2);
-  assert.equal(r.kind, "project");
+  assert.equal(r.kind, "site");
+});
+
+test("project mapping: homepage links a code repo to its owasp.org project page; topic opts out", () => {
+  const here = new URL("..", import.meta.url).pathname;
+  const out = execFileSync("python3", ["-c", `
+import json, sys; sys.path.insert(0, '.'); import generate_repo_list as g
+rows = [
+  {"name": "owasp-ctf-in-a-box", "homepage": "https://owasp.github.io/owasp-ctf-in-a-box/"},
+  {"name": "owasp-ctf-in-a-box", "homepage": "https://owasp.org/projects/ctf-in-a-box"},
+  {"name": "wrongsecrets-ctf-party", "homepage": "https://owasp.org/www-project-wrongsecrets/"},
+  {"name": "www-project-zap", "homepage": ""},
+  {"name": "www-chapter-x", "homepage": ""},
+  {"name": "tool", "homepage": "https://evil.example/owasp.org/projects/x", "topics": ["Bumper-Ignore"]},
+]
+print(json.dumps([g.repo_record(r) for r in rows]))`], { cwd: here, encoding: "utf8" });
+  const r = JSON.parse(out);
+  assert.deepEqual(r.map((x) => x.kind), ["other", "project", "project", "site", "chapter", "other"]);
+  assert.equal(r[1].project_page, "https://owasp.org/projects/ctf-in-a-box");
+  assert.equal(r[2].project_page, "https://owasp.org/projects/wrongsecrets");
+  assert.equal(r[5].project_page, undefined);
+  assert.equal(r[5].opted_out, true);
+  assert.match(bumpBlocker(r[5], NOW), /Opted out/);
+});
+
+test("cooldown: a second reminder within a week needs a confirmation; wording never says 'today ago'", () => {
+  const r = repo({ name: "owasp-ctf-in-a-box" });
+  const today = new Date(NOW - 3600e3).toISOString();
+  assert.equal(since(today, NOW), "today");
+  assert.equal(since("2026-10-19T00:00:00Z", NOW), "3d ago");
+  assert.equal(cooldown(r, {}, NOW), "");
+  // Old saves held one time per repo; new ones keep a list.
+  assert.match(cooldown(r, { "owasp-ctf-in-a-box": today }, NOW), /opened a reminder form for owasp-ctf-in-a-box today\.$/);
+  assert.match(cooldown(r, { "owasp-ctf-in-a-box": [today, today, today] }, NOW), /today \(3 times in the last 7 days\)/);
+  assert.equal(cooldown(r, { "owasp-ctf-in-a-box": ["2026-10-01T00:00:00Z"] }, NOW), "");
+  const reminded = repo({ reminder: { number: 9, created: "2026-10-20T00:00:00Z", state: "open" } });
+  assert.match(cooldown(reminded, {}, NOW), /Reminder #9 was opened on www-project-x 2d ago/);
+  assert.equal(COOLDOWN_DAYS, 7);
+  assert.doesNotMatch(bumpUrl(r, NOW), /today%20ago/);
+  assert.match(decodeURIComponent(bumpUrl(r, NOW)), /Why am I seeing this, and how do I opt out\?\]\(https:\/\/bumper\.owaspblt\.org\/#why\)/);
 });

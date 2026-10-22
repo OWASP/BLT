@@ -30,8 +30,8 @@ maintainers with a reminder issue, one at a time or in batches.
   no reply yet, replied, closed or never bumped; *Recently bumped* sorts by it. A reminder opened
   less than a year ago takes the place of the Bump button, so nobody files a second one; one closed
   in the last year pushes the repo down.
-- **Filter** by activity (last commit by a person, else last push: active < 1 year, idle 1, 2, 3 or 5+ years), type (project,
-  chapter, other), language, creation year, archived, and whether you've bumped it already. Search
+- **Filter** by activity (last commit by a person, else last push: active < 1 year, idle 1, 2, 3 or 5+ years), type, language,
+  creation year, archived, and whether you've opened a form for it already. Search
   covers names, descriptions and topics. The summary tiles are activity presets with live counts.
   The filters are in the URL, so a filtered view can be shared.
 - **Select** rows with the checkboxes (shift-click ticks a range), the header box, or
@@ -45,8 +45,26 @@ maintainers with a reminder issue, one at a time or in batches.
 - **Copy checklist** copies the selection as a Markdown task list with each repository's reminder
   link, for a tracking issue or for working through later.
 
-Repositories you've opened a form for are remembered in your browser (`localStorage`) and marked
-*Bumped*. Archived repositories and ones with issues turned off can't be bumped.
+Where reminders go: always the repository's own GitHub issue tracker (`github.com/OWASP/<repo>/issues/new`),
+opened and submitted by a person under their own account. Nothing goes to forks' parents, to BLT or
+to a shared inbox.
+
+Types come from what GitHub shows, not from OWASP project status:
+
+| Type | Rule |
+| --- | --- |
+| Project | the repo's homepage (*About → Website*) is its owasp.org project page (`owasp.org/projects/<slug>` or `owasp.org/www-project-<slug>`); the pill links to it |
+| Project site | an owasp.org project website repo (`www-project-*`) |
+| Chapter | a chapter website repo (`www-chapter-*`) |
+| Repo | anything else; a maintainer links it by setting the homepage |
+
+Forms you open are remembered in your browser (`localStorage`, a list of times per repo) as
+*Form opened by me*; Bumper can't see whether you submitted them. Within 7 days of a form opened
+here, or of a reminder issue, Bumper asks before opening another (the Bump button says *Wait*;
+batches hold those repos back with an *Open them anyway* button). Archived repositories, ones with
+issues turned off and ones with the topic `bumper-ignore` can't be bumped. Every reminder links to
+the page's *Why am I seeing this?* section (`#why`), which tells maintainers how the mapping works,
+how to link their repo to their project, and how to opt out.
 
 Why tabs and not the API: the repositories are OWASP's, on GitHub, and Bumper has no GitHub
 credentials of its own. A prefilled form lets each reminder go out under the volunteer's own

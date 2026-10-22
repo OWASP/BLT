@@ -106,7 +106,11 @@
       border: 1px solid var(--border); background: var(--surface); text-decoration: none; font-size: 12px; font-weight: 600; white-space: nowrap;
     }
     .bump:hover { border-color: var(--primary); color: var(--red-text); }
-    .bump.done { color: var(--ok); }
+    .bump.cool { color: var(--faint); border-style: dashed; }
+    a.pill { text-decoration: none; }
+    a.pill:hover { text-decoration: underline; }
+    details.about h3 { margin: 10px 0 2px; font-size: 13px; color: var(--text); }
+    details.about ul { margin: 4px 0; padding-left: 18px; max-width: 72ch; }
     .muted { color: var(--faint); font-size: 12px; }
     .rem {
       display: inline-block; padding: 0 6px; border-radius: 999px; font-size: 11px; line-height: 18px; font-weight: 600; white-space: nowrap;
@@ -139,6 +143,7 @@
     .noise-note { padding: 8px 12px; border-top: 1px solid var(--border); font-size: 13px; color: var(--muted); }
     .empty { padding: 32px 16px; text-align: center; color: var(--muted); }
     .more { display: block; margin: 12px auto 0; }
+    [hidden] { display: none !important; }
 
     .btn {
       height: 34px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface);
@@ -198,6 +203,7 @@
 <body>
   <blt-nav project="blt-owasp-bumper" name="Bumper" data-sticky>
     <a href="#about">How it works</a>
+    <a href="#why">Got a reminder?</a>
     <a href="https://git.owaspblt.org/BLT/tree/blt-owasp-bumper" slot="actions" target="_blank" rel="noopener">Source</a>
   </blt-nav>
 
@@ -214,7 +220,8 @@
       <input type="search" name="q" placeholder="Search name, description, topics…" aria-label="Search" autocomplete="off">
       <select name="kind" aria-label="Type">
         <option value="all">All types</option>
-        <option value="project">Projects</option>
+        <option value="project">Projects (linked)</option>
+        <option value="site">Project sites</option>
         <option value="chapter">Chapters</option>
         <option value="other">Other repos</option>
       </select>
@@ -230,9 +237,9 @@
         <option value="none">Never bumped</option>
       </select>
       <select name="bumped" aria-label="Bumped by you">
-        <option value="any">Bumped or not</option>
-        <option value="not">Not bumped by me</option>
-        <option value="yes">Bumped by me</option>
+        <option value="any">Forms I opened: any</option>
+        <option value="not">No form opened by me</option>
+        <option value="yes">Form opened by me</option>
       </select>
       <select name="sort" aria-label="Sort">
         <option value="score-desc">Best to bump</option>
@@ -277,7 +284,28 @@
       <p>Every day Bumper lists the repositories in the <a href="https://github.com/OWASP">OWASP GitHub organization</a> with their last activity (the last commit by a person; bot commits don't count), type and language. Pick the idle ones with the filters, tick them (or <em>Select all matching</em>), then <em>Open issue forms</em>: each opens GitHub's new-issue form on that repository, prefilled with a short reminder asking a maintainer whether the project is still maintained. You review and submit each one, signed in as yourself.</p>
       <p>Browsers allow only a few tabs per click, so forms open in batches of 10; click again for the next batch. If your browser blocks them, allow pop-ups for this site. <em>Copy checklist</em> copies the selection as a Markdown task list with each repository's reminder link, for a tracking issue or for working through later.</p>
       <p><strong>Best to bump</strong> (the default order) scores each repository as importance × staleness × noise. Importance counts stars, forks, open issues and pull requests, OWASP projects and their level, and stars arriving after the last push. Staleness grows with the years since the last commit by a person: bot commits (dependabot, GitHub Actions…) don't count as upkeep. Noise pushes down forks, templates, empty repositories, ones that say they moved or are defunct (archive them instead), "-old" copies, near-duplicate siblings, and repositories that already have an open reminder issue; the clearest cases are collapsed as <em>Low-signal</em>. Hover a score for the full breakdown; a short note under it flags what the other columns don't show (fork, moved, duplicate, PRs waiting…). The other orders are in the sort menu and the column headers.</p>
-      <p>Repositories you have opened a form for are remembered in this browser (<em>Bumped by me</em>). Archived repositories and ones with issues turned off can't be bumped. <em>Last bump</em> shows each repository's latest reminder issue (Bumper's own, and any titled "still maintained"): its age, whether it is still open, and its replies, with the last reply linked (hover for who and when). Filter with the <em>Last bump</em> menu: open, no reply yet, replied, closed, or never bumped. A repository whose reminder was opened less than a year ago links to it instead of offering a second one: follow up there.</p>
+      <p>Forms you open are remembered in this browser (<em>Form opened by me</em>); Bumper can't tell whether you submitted them, so they only show up as reminders on GitHub once submitted. After a reminder, a repository waits 7 days before Bumper offers another: it asks first. Archived repositories, ones with issues turned off and ones that opted out can't be bumped. <em>Last bump</em> shows each repository's latest reminder issue (Bumper's own, and any titled "still maintained"): its age, whether it is still open, and its replies, with the last reply linked (hover for who and when). Filter with the <em>Last bump</em> menu: open, no reply yet, replied, closed, or never bumped. A repository whose reminder was opened less than a year ago links to it instead of offering a second one: follow up there.</p>
+    </details>
+
+    <details class="about" id="why">
+      <summary>Why am I seeing this? (for maintainers who got a reminder)</summary>
+      <p>Someone in the OWASP community used Bumper to check on your repository. Bumper lists every repository in the <a href="https://github.com/OWASP">OWASP GitHub organization</a> and ranks the idle ones. Each reminder is an ordinary GitHub issue that a person read and submitted under their own account, on your repository's own issue tracker. Nothing is sent anywhere else.</p>
+      <h3>How does Bumper decide a repository is a "project"?</h3>
+      <p>It doesn't decide OWASP project status; <a href="https://owasp.org/projects/">owasp.org/projects</a> does. Bumper only labels what it can see on GitHub:</p>
+      <ul>
+        <li><strong>Project</strong>: the repository's GitHub homepage (<em>About → Website</em>) is its owasp.org project page, for example <code>https://owasp.org/projects/ctf-in-a-box</code>.</li>
+        <li><strong>Project site</strong>: an owasp.org project website repository (<code>www-project-…</code>).</li>
+        <li><strong>Chapter</strong>: a chapter website repository (<code>www-chapter-…</code>).</li>
+        <li><strong>Repo</strong>: anything not linked to a project page yet.</li>
+      </ul>
+      <h3>How do I change it or opt out?</h3>
+      <ul>
+        <li><strong>Link your repository to your project:</strong> set its GitHub homepage to your owasp.org project page. Bumper picks it up on its next daily refresh.</li>
+        <li><strong>Still active?</strong> Reply on the reminder and close it. A commit also resets the clock.</li>
+        <li><strong>Finished or moved?</strong> Archive the repository; archived repositories never get reminders.</li>
+        <li><strong>Don't want reminders at all?</strong> Add the topic <code>bumper-ignore</code> to the repository.</li>
+      </ul>
+      <p>Questions or a wrong mapping: <a href="https://git.owaspblt.org/BLT/issues">open an issue on the BLT forge</a> or ask in #project-blt on OWASP Slack.</p>
     </details>
   </main>
 
