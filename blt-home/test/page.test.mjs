@@ -103,7 +103,7 @@ test("Explore cards link only to live sites listed in the root README", { skip: 
     assert.ok(live.has(href), `${href} is not a live site in the README table`);
     assert.ok(!seen.has(href), `duplicate card ${href}`);
     seen.add(href);
-    assert.match(logo, /^\/_home\/logos\/[a-z0-9-]+\.(svg|webp)$/);
+    assert.match(logo, /^\/_home\/symbols\/[a-z0-9-]+\.svg$/);
   }
 });
 
@@ -113,7 +113,7 @@ test("external links use https", () => {
 
 test("the shared top bar lists the same apps as the Explore cards", () => {
   const nav = readFileSync(join(publicDir, "_shared", "blt-nav.js"), "utf8");
-  const apps = [...nav.matchAll(/^\s*\["([^"]+)", "([^"]+)", "([^"]+)"\],$/gm)].map((m) => `${m[1]}|${m[2]}|/_home/logos/${m[3]}`);
+  const apps = [...nav.matchAll(/^\s*\["([^"]+)", "([^"]+)", "([^"]+)"\],$/gm)].map((m) => `${m[1]}|${m[2]}|/_home/symbols/${m[3]}`);
   const cards = [...html.matchAll(/class="product-card" href="([^"]+)"><img src="([^"]+)"[^>]*><span><strong>([^<]+)</g)].map((m) => `${m[3]}|${m[1]}|${m[2]}`);
   assert.ok(cards.length > 40);
   assert.deepEqual(apps, cards);
@@ -122,7 +122,7 @@ test("the shared top bar lists the same apps as the Explore cards", () => {
 });
 
 test("every Explore project has its plain symbol (no wasp) in _home/symbols/", () => {
-  const cards = [...html.matchAll(/class="product-card" href="[^"]+"><img src="\/_home\/logos\/([a-z0-9-]+)\.(?:svg|webp)"/g)].map((m) => m[1]);
+  const cards = [...html.matchAll(/class="product-card" href="[^"]+"><img src="\/_home\/symbols\/([a-z0-9-]+)\.svg"/g)].map((m) => m[1]);
   assert.ok(cards.length > 40);
   for (const p of cards) {
     const file = join(publicDir, "_home", "symbols", p + ".svg");
@@ -137,15 +137,17 @@ test("every Explore project has its plain symbol (no wasp) in _home/symbols/", (
   }
 });
 
-test("both apps choosers show the plain symbols, the Explore cards keep the badges", () => {
+test("both apps choosers, the Explore cards and the orbit show the plain symbols", () => {
   const nav = readFileSync(join(publicDir, "_shared", "blt-nav.js"), "utf8");
   assert.match(nav, /BASE \+ "\/_home\/symbols\/" \+ p\[2\]/, "blt-nav.js apps grid uses _home/symbols/");
   assert.doesNotMatch(nav, /"\/_home\/logos\/"/, "blt-nav.js loads no badge logos");
-  assert.match(js, /symbol: img \? img\.getAttribute\("src"\)\.replace\("\/_home\/logos\/", "\/_home\/symbols\/"\)/);
+  assert.match(js, /symbol: img \? img\.getAttribute\("src"\) : ""/);
+  assert.match(js, /img\.src = item\.p\.symbol;/, "the orbit uses the symbols");
+  assert.doesNotMatch(js, /_home\/logos\//);
   const apps = js.slice(js.indexOf("function buildApps"), js.indexOf("function buildApps") + 800);
   assert.match(apps, /img\.src = p\.symbol;/);
   assert.doesNotMatch(apps, /p\.logo/);
-  for (const m of html.matchAll(/class="product-card"[^>]*><img src="([^"]+)"/g)) assert.match(m[1], /^\/_home\/logos\//);
+  for (const m of html.matchAll(/class="product-card"[^>]*><img src="([^"]+)"/g)) assert.match(m[1], /^\/_home\/symbols\//);
 });
 
 test("analytics: the page and the shared bar load the forge's first-party analytics", () => {

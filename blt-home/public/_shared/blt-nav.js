@@ -79,8 +79,8 @@
   var ZERO = "https://zero.owaspblt.org/";
   var REPORT = "https://next.owaspblt.org/pages/report-bug.html";
 
-  // [name, href, file name: the Explore card's logo is owaspblt.org/_home/logos/<file>, the plain
-  //  symbol the bar and the apps chooser show is owaspblt.org/_home/symbols/<file>]
+  // [name, href, file name: the plain round symbol the Explore card, the bar and the apps chooser
+  //  show is owaspblt.org/_home/symbols/<file>]
   var APPS = [
     ["BLT-Next", "https://next.owaspblt.org/", "blt-next.svg"],
     ["BLT-Pages", "https://pages.owaspblt.org/", "blt-pages.svg"],

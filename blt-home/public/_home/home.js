@@ -49,9 +49,8 @@
     return {
       href: a.getAttribute("href"),
       name: ($("strong", a) || a).textContent.trim(),
-      logo: img ? img.getAttribute("src") : "",
-      // the apps menu shows the project's own symbol (no wasp), as the shared top bar does
-      symbol: img ? img.getAttribute("src").replace("/_home/logos/", "/_home/symbols/").replace(/\.webp$/, ".svg") : "",
+      // the project's own round symbol (no wasp), as the shared top bar shows it
+      symbol: img ? img.getAttribute("src") : "",
       group: a.closest(".explore-group").getAttribute("data-group"),
     };
   });
@@ -134,7 +133,7 @@
       node.style.top = (item.y / size) * 100 + "%";
       node.style.animationDelay = (i % 5) * -0.7 + "s";
       var img = el("img");
-      img.src = item.p.logo;
+      img.src = item.p.symbol;
       img.alt = "";
       img.loading = "lazy";
       node.appendChild(img);

@@ -38,7 +38,7 @@ The page inserts values with `textContent` only. A number whose source is down s
 ## Changing the page
 
 - **Banner:** the `<a id="announcement">` element near the top of `public/index.html`. Edit its text and `href`, or delete it.
-- **Products:** the Explore cards in `public/index.html` are the single list; the tabs, the logo orbit and the apps menu are built from them. Logos are in `public/_home/logos/`: each is the project's `logo.svg`, a wasp badge made by `scripts/wasp-badges/build.mjs` (see its README; `npm test` checks they are current). Only projects with a live site belong here.
+- **Products:** the Explore cards in `public/index.html` are the single list; the tabs, the logo orbit and the apps menu are built from them. Each card (and the orbit) shows the project's plain round symbol from `public/_home/symbols/`; the wasp badges (`public/_home/logos/`, the projects' `logo.svg`) are made by `scripts/wasp-badges/build.mjs` (see its README; `npm test` checks they are current). Only projects with a live site belong here.
 - **Shared top bar:** `public/_shared/blt-nav.js` is the one header of every other BLT site: `<script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>` puts it at the top of the page (options are at the top of the file). A site configures it on a `<blt-nav>` element: `project` (slug; its plain round symbol is `/_home/symbols/<slug>.svg`), `name` (short name shown after the OWASP BLT brand) and `home`; its own links are the element's children (`slot="actions"` for buttons on the right, `data-primary` for the red one), so the site's scripts keep working on them. Example:
   ```html
   <blt-nav project="blt-zero" name="Zero" data-sticky>
@@ -48,7 +48,7 @@ The page inserts values with `textContent` only. A number whose source is down s
   </blt-nav>
   ```
   Without centre links it shows the OWASP BLT links (and, on a `*.owaspblt.org` site in its list, that project's symbol and name, even with no config). Its `APPS` list must match the Explore cards; `npm test` checks that, so update both together.
-- **Project symbols:** `public/_home/symbols/` holds each project's own round symbol without the wasp badge (written by `scripts/wasp-badges/build.mjs` from `scripts/wasp-badges/symbols/`). The top bar's project part and both apps choosers use them; the Explore cards and project logos keep the wasp badges in `public/_home/logos/`.
+- **Project symbols:** `public/_home/symbols/` holds each project's own round symbol without the wasp badge (written by `scripts/wasp-badges/build.mjs` from `scripts/wasp-badges/symbols/`). The top bar's project part, both apps choosers and the Explore cards and orbit use them; the project logos keep the wasp badges in `public/_home/logos/`.
 - **Analytics:** see "Analytics" below.
 - **Styles:** Tailwind is compiled once, so there is no CDN at runtime. After changing classes, run:
 

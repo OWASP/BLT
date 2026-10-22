@@ -74,7 +74,7 @@
 }
 .orbit-node {
   position: absolute; z-index: 2; display: block; width: 3rem; height: 3rem; transform: translate(-50%, -50%);
-  border-radius: 0.9rem; border: 1px solid rgba(254, 202, 202, 0.9); background: #fff; padding: 0.4rem;
+  border-radius: 9999px; border: 1px solid rgba(254, 202, 202, 0.9); background: #fff; padding: 0.2rem;
   box-shadow: 0 12px 28px -22px rgba(15, 23, 42, 0.75); animation: logo-float 3.8s ease-in-out infinite;
   transition: transform 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
 }
