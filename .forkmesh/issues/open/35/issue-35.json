@@ -83,6 +83,17 @@
             "sig": "K0iZ-XCaZh9pciuMyh5dtgzq2GjmiA-ZKMe_dE5xLNkOiDxKubfkGKEajyudzXTpyQ629_optxvFGEGmPSheDA",
             "ts": 1792495723140,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@himaneeesh there's been no pull request or comment from you here for 18 hours. If you're still working on this issue, please comment with an update or open a pull request; otherwise you'll be unassigned in about 6 hours so someone else can pick it up. \u003c!-- blt-assign-stale-warning:himaneeesh:1792495723140 --\u003e",
+            "id": "actions-1792637596121-s2XK_a4G",
+            "sig": "en3RogWx6niuqcKqSZ6sdEzKef9DdNOJT4VEuKm8QHr_PH3elMvCwyZu-nDgC9VA7vBgFuEwQajBFc7AxaBWCQ",
+            "ts": 1792637596121,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -97,6 +108,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-toasty: Build Slack Notification Bot",
-    "updatedAt": 1792495723140,
+    "updatedAt": 1792637596121,
     "votes": 0
 }
