@@ -108,9 +108,9 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 <!-- BLOG-POSTS-START -->
 ## 📝 Latest Blog Posts
 
-*Last updated: 2026-10-18 10:17 UTC — from [dev.to/owaspblt](https://dev.to/owaspblt)*
+*Last updated: 2026-10-22 06:17 UTC — from [dev.to/owaspblt](https://dev.to/owaspblt)*
 
-<table><tr><td align='center' width='50%'><a href='https://dev.to/owaspblt/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026-4dck'><img src='https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fgsoc.owaspblt.org%2Fblog%2Fgsoc-2026%2Fassets%2Fowasp-blt-gsoc-2026-hero.png' width='100%'><br><b>Eleven Projects, One Remarkable Team: Celebrating OWASP BLT’s GSoC 2026</b></a></td><td align='center' width='50%'><a href='https://dev.to/owaspblt/my-gsoc-journey-with-owasp-blt-4lm8'><img src='https://media2.dev.to/dynamic/image/width=1200,height=627,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fwlgt4g7cicp0ju7tw7uo.png' width='100%'><br><b>My GSoC journey with OWASP BLT</b></a></td></tr></table>
+<table><tr><td align='center' width='50%'><a href='https://dev.to/owaspblt/when-github-went-dark-how-owasp-blt-found-a-new-home-56o9'><img src='https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fhfyyz6zh99x3c0bla3x5.png' width='100%'><br><b>When GitHub Went Dark: How OWASP BLT Found a New Home</b></a></td><td align='center' width='50%'><a href='https://dev.to/owaspblt/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026-4dck'><img src='https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fgsoc.owaspblt.org%2Fblog%2Fgsoc-2026%2Fassets%2Fowasp-blt-gsoc-2026-hero.png' width='100%'><br><b>Eleven Projects, One Remarkable Team: Celebrating OWASP BLT’s GSoC 2026</b></a></td></tr></table>
 <!-- BLOG-POSTS-END -->
 
 <!-- CONTRIBUTORS-START -->
