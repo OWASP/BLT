@@ -92,6 +92,17 @@
             "sig": "Ad1t5N2jwyFHPjtjzoTDMtDaia37siRcLeu9EcuxRJPaGK-RNdb23MSN5bUcKx2Fftq33DSJ3Kktzw0fZyWBDg",
             "ts": 1792676163592,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "gKYk725y-DlKjRB7i6nng7fXWReWZOGMBHLdNYPIxRI",
+            "authorName": "psamuelvijay",
+            "authorVerified": true,
+            "body": "@DonnieBLT #6 merged and resolved this, but the issue didn't auto-close so it's still holding my assignment slot (can't /assign the next issue). Could you close this one? Thanks!",
+            "id": "comment-web-1792678760380",
+            "sig": "87iwOGZp1QxR8bShXk8VDs0xc-oaqFTtXIwa7DHwrt-bx8KSFpwKJ8E8pW8IiXTalpc09WPHfYVbxYL9jKVeCg",
+            "ts": 1792678760380,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -108,6 +119,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: add tests for the /api/ossh/catalog/ endpoint",
-    "updatedAt": 1792676163592,
+    "updatedAt": 1792678760380,
     "votes": 0
 }
