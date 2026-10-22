@@ -1,5 +1,5 @@
 {
   "name": "BLT-OWASP-Bumper",
-  "about": "Daily-generated dashboard of every repository in the OWASP GitHub organization, with activity sparklines and project metadata.",
+  "about": "Find idle repositories in the OWASP GitHub organization, ranked by what a reminder could save, and nudge their maintainers with reminder issues one at a time or in batches.",
   "website": "https://bumper.owaspblt.org/"
 }
