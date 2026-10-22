@@ -1,9 +1,13 @@
 {
  "forge": {
   "authors": [
-   "donnieblt"
+   "donnieblt",
+   "khush173",
+   "navodit",
+   "psamuelvijay",
+   "vanshika2720"
   ],
-  "checked": "2026-10-20"
+  "checked": "2026-10-22"
  },
  "github_email": {
   "00beb61bb0c7efa4": {
