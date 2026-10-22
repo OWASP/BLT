@@ -52,6 +52,7 @@ Projects without a public URL in the previous table must not be assigned a guess
 | BLT Autopatch | [blt-autopatch](https://git.owaspblt.org/BLT/BLT-Autopatch) |
 | BLT Byte | [blt-byte](https://git.owaspblt.org/BLT/BLT-Byte) |
 | blt-cli | [blt-cli](https://git.owaspblt.org/BLT/BLT-CLI) |
+| BLT Cron | [blt-cron](https://git.owaspblt.org/BLT/BLT-Cron) |
 | BLT CVE | [blt-cve](https://git.owaspblt.org/BLT/BLT-CVE) |
 | BLT Dash | [blt-dash](https://git.owaspblt.org/BLT/BLT-Dash) |
 | BLT Design | [blt-design](https://git.owaspblt.org/BLT/BLT-Design) |
@@ -133,4 +134,4 @@ Label them as historical and do not present them as the current contribution des
 Read the issue on [git.owaspblt.org/BLT](https://git.owaspblt.org/BLT/issues) and check which project it belongs to.
 Confirm the current branch and relevant deployment environment.
 Keep changes limited to the repository that owns the behavior.
-Run the repository-specific verification before opening a merge request.
+Run the repository-specific verification before opening a pull request.

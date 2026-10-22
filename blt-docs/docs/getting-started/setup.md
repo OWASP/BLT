@@ -57,4 +57,4 @@ Most documentation changes should only touch Markdown files under `docs/`. Updat
 - Confirm new or moved pages are linked from `mkdocs.yml` when they should appear in navigation.
 - Check internal links from changed pages.
 - Keep wording factual and avoid unsupported feature, deployment, or migration claims.
-- Review the diff before opening a merge request.
+- Review the diff before opening a pull request.

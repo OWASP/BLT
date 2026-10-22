@@ -56,6 +56,6 @@ The BLT ecosystem is moving toward a clearer, more modular platform structure. T
 
 ## Contributing to these docs
 
-Documentation changes should be small, verifiable, and easy to review. Before opening a merge request, run a strict MkDocs build locally and check that new pages are linked from the navigation when needed.
+Documentation changes should be small, verifiable, and easy to review. Before opening a pull request, run a strict MkDocs build locally and check that new pages are linked from the navigation when needed.
 
 [Read the contributing guide](developer-guide/contributing.md)

@@ -32,11 +32,11 @@ uvx --with-requirements requirements.txt mkdocs serve -a 127.0.0.1:8000
 3. Use relative links for other documentation pages.
 4. Add the page to `mkdocs.yml` if it should appear in navigation.
 5. Run the strict build.
-6. Review warnings and fix them before opening a merge request.
+6. Review warnings and fix them before opening a pull request.
 
 ## Deployment contract checks
 
-Before opening a merge request that changes documentation content or navigation:
+Before opening a pull request that changes documentation content or navigation:
 
 - Run the strict MkDocs build. It must exit successfully with no warnings promoted by strict mode.
 - Confirm `site/` remains listed in `.gitignore` and is not staged as tracked content.

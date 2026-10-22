@@ -56,7 +56,7 @@ JWT or session concepts represent user identity or authenticated user flows wher
 
 ## Documentation notes
 
-Keep BLT-docs focused on contributor-facing API concepts, architecture boundaries, and stable documentation conventions. When API behavior changes, update the API repository first or in the same merge request as any BLT-docs update.
+Keep BLT-docs focused on contributor-facing API concepts, architecture boundaries, and stable documentation conventions. When API behavior changes, update the API repository first or in the same pull request as any BLT-docs update.
 
 ## Documentation boundaries
 

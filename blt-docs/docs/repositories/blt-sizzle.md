@@ -39,7 +39,7 @@ BLT-Sizzle runs a scheduled Worker trigger to check for users needing check-in r
 
 ## Documentation notes
 
-Keep BLT-docs focused on BLT-Sizzle's role in the platform, its deployment pattern, and its ownership boundary for check-in data and reminders. When Worker routes, D1 schema, or the reminder schedule change, update the BLT-Sizzle repository first or in the same merge request as any BLT-docs update.
+Keep BLT-docs focused on BLT-Sizzle's role in the platform, its deployment pattern, and its ownership boundary for check-in data and reminders. When Worker routes, D1 schema, or the reminder schedule change, update the BLT-Sizzle repository first or in the same pull request as any BLT-docs update.
 
 ## Documentation boundaries
 

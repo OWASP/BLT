@@ -24,7 +24,7 @@ Some existing user-guide pages may describe older interface behavior. Treat thos
 Contributor documentation should help people choose the right work area before editing code or docs:
 
 - Use the project map to select the right repository for documentation, API, jobs, metadata, or user-guide work.
-- Start from an issue, merge request, or clearly scoped work item.
+- Start from an issue, pull request, or clearly scoped work item.
 - Keep documentation updates focused and verify them with a strict MkDocs build.
 - Use BLT-API documentation for API behavior and integration details.
 - Use BLT-Jobs documentation for jobs, community portal, and automation workflows.

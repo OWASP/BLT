@@ -60,7 +60,7 @@ When troubleshooting:
 - Confirm the bot has been installed in the expected workspace.
 - Confirm the bot has the scopes required for the failing action.
 - Confirm slash command URLs point to the current deployment.
-- Review application logs without exposing sensitive payloads in issues or merge requests.
+- Review application logs without exposing sensitive payloads in issues or pull requests.
 
 ## Related pages
 
