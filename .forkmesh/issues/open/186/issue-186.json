@@ -12,7 +12,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\nThere are 18 \"merge request\" occurrences (e.g. `README.md`, `docs/index.md`, `docs/developer-guide/contributing.md`), but git.owaspblt.org uses pull requests. `docs/getting-started/projects.md` lists every folder except `blt-cron`.\n\n## What to do\n\n1. Replace the wording outside the internal plan.\n2. Add `| BLT Cron | [blt-cron](https://git.owaspblt.org/BLT/BLT-Cron) |` alphabetically.\n\n## Acceptance criteria\n\n- [ ] `grep -rn \"merge request\" blt-docs --include=*.md` is empty outside the plan\n- [ ] blt-cron listed\n- [ ] Strict build passes\n\n## How to test locally\n\n```bash\ncd blt-docs && mkdocs serve\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\nThere are 18 \"merge request\" occurrences (e.g. `README.md`, `docs/index.md`, `docs/developer-guide/contributing.md`), but git.owaspblt.org uses pull requests. `docs/getting-started/projects.md` lists every folder except `blt-cron`.\n\n## What to do\n\n1. Replace the wording outside the internal plan.\n2. Add `| BLT Cron | [blt-cron](https://git.owaspblt.org/BLT/BLT-Cron) |` alphabetically.\n\n## Acceptance criteria\n\n- [ ] `grep -rn \"merge request\" blt-docs --include=*.md` is empty outside the plan\n- [ ] blt-cron listed\n- [ ] Strict build passes\n\n## How to test locally\n\n```bash\ncd blt-docs \u0026\u0026 mkdocs serve\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-186",
             "sig": "Bz5ya7yjfXxAS2vatma-YJz5IHKLdSGyrQ8MeAN7SduNuozVRToN8D4vGQ9kHIrizepWi92q4tDwyHTa4t9OCg",
             "title": "blt-docs: use \"pull request\" instead of \"merge request\" and add blt-cron to the project map",
@@ -32,6 +32,17 @@
             "sig": "aYZV1C_i9nvBwjCZciwfru0SI4oxHnWoD0AqilzyrlHWtASJcGnN6_Y7VU-SjSWqwX0eXeCMCLOz42MMpYT-Dg",
             "ts": 1792547524720,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1792648221921",
+            "sig": "-xadRUbWEAjeYKRbEA_CoQ1KS2B-MwoNl_zKG23Zk17YSodyDHCCNjvo-pDJJ_FRQaBt8IT5F7lifSVRrl07Dg",
+            "ts": 1792648221921,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -48,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-docs: use \"pull request\" instead of \"merge request\" and add blt-cron to the project map",
-    "updatedAt": 1792547524720,
+    "updatedAt": 1792648221921,
     "votes": 0
 }
