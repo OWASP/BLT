@@ -121,7 +121,7 @@ The Flutter app (runs on iOS, Android, macOS, Windows, Linux) will:
 
 ### 3. Optional ZIP Download / Portable Mode
 
-For users who want a fully offline solution, no app store, self-verifiable code, or maximum privacy, SelfErase offers a **portable ZIP download** containing a self-contained Flutter desktop app.
+For users who want a fully offline solution, no app store, self-verifiable code, or maximum privacy, BLT Vanish offers a **portable ZIP download** containing a self-contained Flutter desktop app.
 
 Users can:
 
