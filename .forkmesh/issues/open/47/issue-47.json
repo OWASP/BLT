@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "navodit"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -54,6 +56,17 @@
             "sig": "BldHiqWfZtJIopjsqyuv2DiF9rF4RyH79OSjnFeOw5w-Co1uR7HEFr4LS5OlHwlYrQ9VcVJ8h-iUmcvzstAKCQ",
             "ts": 1792745923808,
             "type": "comment"
+        },
+        {
+            "assignee": "navodit",
+            "author": "FTSqIIVcAz6yrEUfHk8wm1rr_FLa2bBVWJKeRKZCwcQ",
+            "authorName": "navodit",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1792746330385-o34dew",
+            "sig": "B5f90XmXI3qGPOS0wCUtRLtqE5vNNWCWoJjJw9i53JltOyFedJQu5q0fxrPJdlVo0mD_5P4MnjTdB2ig9WxMAA",
+            "ts": 1792746330385,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -70,6 +83,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-api: fix the /health \"documentation\" link and its endpoint list",
-    "updatedAt": 1792745923808,
+    "updatedAt": 1792746330385,
     "votes": 0
 }
