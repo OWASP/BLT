@@ -12,7 +12,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\n`src/handlers/health.py:25` returns `\"documentation\": \"/docs\"`, but there is no `/docs` route; the README says docs are at `/dashboard`. The `endpoints` map (L26-37) also leaves out `/jobs`, `/hackathons` and `/routes`, which `src/main.py` registers.\n\n## What to do\n\n1. Point `documentation` at `/dashboard`.\n2. Add the missing endpoints, or build the map from the router the way `make_routes_handler` does.\n3. Add `tests/test_health.py` asserting every listed path is a registered route.\n\n## Acceptance criteria\n\n- [ ] Every path in the `/health` response resolves\n- [ ] New test passes\n- [ ] `/v2/health` otherwise unchanged\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-api\ncd blt-api && npx wrangler dev   # curl localhost:8787/health\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\n`src/handlers/health.py:25` returns `\"documentation\": \"/docs\"`, but there is no `/docs` route; the README says docs are at `/dashboard`. The `endpoints` map (L26-37) also leaves out `/jobs`, `/hackathons` and `/routes`, which `src/main.py` registers.\n\n## What to do\n\n1. Point `documentation` at `/dashboard`.\n2. Add the missing endpoints, or build the map from the router the way `make_routes_handler` does.\n3. Add `tests/test_health.py` asserting every listed path is a registered route.\n\n## Acceptance criteria\n\n- [ ] Every path in the `/health` response resolves\n- [ ] New test passes\n- [ ] `/v2/health` otherwise unchanged\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-api\ncd blt-api \u0026\u0026 npx wrangler dev   # curl localhost:8787/health\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-47",
             "sig": "8r4xPXkT5mY_lM-Y1ftInz1NYDmnywtrh7qXJxGRukNheKBwq2Y5rLzFimLIlmuq9PLE7FN-fqU8XMiNs-RrAA",
             "title": "blt-api: fix the /health \"documentation\" link and its endpoint list",
@@ -32,6 +32,17 @@
             "sig": "FQcymAO2h-YVbZ5CyRYn3lFWNqowcVG9d9ToKhhC6topVOZ14AxYDYufkIjGBTbXOMcRh5qxLCTSGddA-bF-Aw",
             "ts": 1792547523330,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "FTSqIIVcAz6yrEUfHk8wm1rr_FLa2bBVWJKeRKZCwcQ",
+            "authorName": "navodit",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1792745906929",
+            "sig": "TFGTiasWmzqzZe7E2COwoJ56F_Izy-A_PYu6FsGvs_cwxIQHcJmIWF-TEhCK7tG15iXyPm2f4ZuxOZsyMBEEAw",
+            "ts": 1792745906929,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -48,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-api: fix the /health \"documentation\" link and its endpoint list",
-    "updatedAt": 1792547523330,
+    "updatedAt": 1792745906929,
     "votes": 0
 }
