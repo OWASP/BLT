@@ -54,6 +54,17 @@
             "sig": "Q_11PQHQZyoXtJFpWvo-jVx293BTroGrnLGXwWYjPY5UdkSapeos86mC3Rhfcg-RrgcGUio2vbqNW4JVXHTdDg",
             "ts": 1792656742445,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "FTSqIIVcAz6yrEUfHk8wm1rr_FLa2bBVWJKeRKZCwcQ",
+            "authorName": "navodit",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1792735764517",
+            "sig": "1v2cAIldcaiv96H2eWAmb1JmhSPEBEdPjmHtDWWoHuJgAKImkI5wKYQUynltSUlHkV86cYGx3SOBoTkb8C8jBA",
+            "ts": 1792735764517,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -70,6 +81,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cron: parseCron rejects day-of-week ranges ending in 7 (e.g. \"1-7\")",
-    "updatedAt": 1792656742445,
+    "updatedAt": 1792735764517,
     "votes": 0
 }
