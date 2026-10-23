@@ -19,18 +19,18 @@ void main() async {
         Provider<StorageService>.value(value: storageService),
         Provider<BrokerService>.value(value: brokerService),
       ],
-      child: const SelfEraseApp(),
+      child: const BLTVanishApp(),
     ),
   );
 }
 
-class SelfEraseApp extends StatelessWidget {
-  const SelfEraseApp({super.key});
+class BLTVanishApp extends StatelessWidget {
+  const BLTVanishApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SelfErase',
+      title: 'BLT Vanish',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

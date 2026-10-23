@@ -62,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SelfErase'),
+        title: const Text('BLT Vanish'),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
@@ -153,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         _userData != null
                             ? 'Welcome back, ${_userData!.firstName}!'
-                            : 'Welcome to SelfErase',
+                            : 'Welcome to BLT Vanish',
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       const SizedBox(height: 4),
@@ -407,7 +407,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Your data never leaves this device. SelfErase uses end-to-end encryption to keep your personal information secure.',
+              'Your data never leaves this device. BLT Vanish uses end-to-end encryption to keep your personal information secure.',
               style: TextStyle(color: Colors.grey[700]),
             ),
           ],
@@ -419,7 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showAboutDialog(BuildContext context) {
     showAboutDialog(
       context: context,
-      applicationName: 'SelfErase',
+      applicationName: 'BLT Vanish',
       applicationVersion: '1.0.0',
       applicationIcon: const Icon(Icons.security, size: 48, color: Colors.deepPurple),
       applicationLegalese: '© 2025 OWASP BLT Project\n\nLicensed under AGPL-3.0',
