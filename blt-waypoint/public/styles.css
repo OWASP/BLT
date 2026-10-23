@@ -143,7 +143,6 @@ main.wrap { flex: 1; padding-top: 20px; padding-bottom: 32px; }
 .stat-rate { font: inherit; text-align: left; color: inherit; cursor: pointer; display: flex; flex-wrap: wrap; column-gap: 10px; }
 .stat-rate:hover { border-color: var(--border-strong); }
 .stat-rate b { display: inline-flex; align-items: center; gap: 4px; }
-.stat-rate b i { font-size: 12px; margin: 0; }
 .stat-rate span { flex-basis: 100%; }
 .stat-rate .t-gold i { color: var(--gold); }
 .stat-rate .t-silver i { color: var(--silver); }
@@ -155,7 +154,12 @@ main.wrap { flex: 1; padding-top: 20px; padding-bottom: 32px; }
   border: 1px solid transparent; font: inherit; font-size: 11.5px; font-weight: 700; white-space: nowrap; line-height: 1;
 }
 button.medal { cursor: pointer; }
-.medal i { font-size: 11px; }
+.mdl { flex: none; display: inline-block; vertical-align: -3px; }
+.mdl .rib-l { fill: #dc2626; }
+.mdl .rib-r { fill: #b91c1c; }
+.mdl.gold .coin { fill: #eab308; } .mdl.gold .rim { fill: #facc15; } .mdl.gold .star { fill: #a16207; }
+.mdl.silver .coin { fill: #94a3b8; } .mdl.silver .rim { fill: #cbd5e1; } .mdl.silver .star { fill: #64748b; }
+.mdl.bronze .coin { fill: #c2410c; } .mdl.bronze .rim { fill: #fb923c; } .mdl.bronze .star { fill: #9a3412; }
 .medal-s { font-weight: 500; opacity: .8; font-variant-numeric: tabular-nums; }
 .medal.gold { background: var(--gold-soft); color: var(--gold); border-color: var(--gold-ring); }
 .medal.silver { background: var(--silver-soft); color: var(--silver); border-color: var(--silver-ring); }

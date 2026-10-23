@@ -219,12 +219,20 @@
     gold: 'It is looked after: the BLT theme, a contributing guide, recent commits, several contributors and triaged issues.',
   };
 
+  // A small ribbon-and-coin medal in the tier's colours (styles.css: .mdl).
+  function medalSvg(tier, size = 16) {
+    return `<svg class="mdl ${tier}" width="${size}" height="${size}" viewBox="0 0 16 16" aria-hidden="true">`
+      + '<path class="rib-l" d="M4.2 0h3.3l1.6 5.2-2.9 1.5z"/><path class="rib-r" d="M8.5 0h3.3L9.6 6.7 6.9 5.2z"/>'
+      + '<circle class="coin" cx="8" cy="10.2" r="5.2"/><circle class="rim" cx="8" cy="10.2" r="3.6"/>'
+      + '<path class="star" d="m8 7.9.7 1.4 1.5.2-1.1 1 .3 1.5L8 11.3l-1.4.7.3-1.5-1.1-1 1.5-.2z"/></svg>';
+  }
+
   function medal(tier, score, folder) {
     if (!TIERS[tier]) return '<span class="faint" title="Repository configuration, not rated">–</span>';
     const label = `${TIERS[tier]}${Number.isFinite(score) ? ` · ${score}%` : ''}`;
     const attrs = folder ? ` type="button" data-rate="${esc(folder)}" title="${esc(label)}: see what ${esc(folder)} needs for gold"` : '';
     const tag = folder ? 'button' : 'span';
-    return `<${tag} class="medal ${tier}"${attrs}><i class="fa-solid fa-medal" aria-hidden="true"></i><span class="medal-t">${TIERS[tier]}</span>${Number.isFinite(score) && tier !== 'gold' ? `<span class="medal-s">${score}%</span>` : ''}</${tag}>`;
+    return `<${tag} class="medal ${tier}"${attrs}>${medalSvg(tier)}<span class="medal-t">${TIERS[tier]}</span>${Number.isFinite(score) && tier !== 'gold' ? `<span class="medal-s">${score}%</span>` : ''}</${tag}>`;
   }
 
   // One dialog for every rating: a project's checklist, or (no project) how ratings work.
@@ -357,7 +365,7 @@
         stat('fa-code-pull-request', num(sum('prs')), 'Open PRs'),
         stat('fa-code-commit', num(sum('c30')), 'Commits 30d', 'Commits in the last 30 days, all folders'),
         `<button type="button" class="stat stat-rate" data-how title="How ratings work">${Object.keys(TIERS).map(t =>
-          `<b class="t-${t}" title="${TIERS[t]}"><i class="fa-solid fa-medal" aria-hidden="true"></i>${num(projects.filter(p => p.tier === t).length)}</b>`).join('')}<span><i class="fa-solid fa-circle-info" aria-hidden="true"></i>Gold · silver · bronze</span></button>`,
+          `<b class="t-${t}" title="${TIERS[t]}">${medalSvg(t, 18)}${num(projects.filter(p => p.tier === t).length)}</b>`).join('')}<span><i class="fa-solid fa-circle-info" aria-hidden="true"></i>Gold · silver · bronze</span></button>`,
       ].join('');
     }
 
@@ -372,7 +380,7 @@
         const n = count(p => (key === 'live' ? !!p.live : p[key] > 0));
         return `<button type="button" class="chip" data-toggle="${key}" aria-pressed="${state.toggles.has(key)}"><i class="fa-solid ${icon}" aria-hidden="true"></i>${label} <span class="n">${n}</span></button>`;
       });
-      const tierChips = Object.keys(TIERS).map(t => `<button type="button" class="chip" data-tier="${t}" aria-pressed="${state.tier === t}"><i class="fa-solid fa-medal medal-i ${t}" aria-hidden="true"></i>${TIERS[t]} <span class="n">${count(p => p.tier === t)}</span></button>`);
+      const tierChips = Object.keys(TIERS).map(t => `<button type="button" class="chip" data-tier="${t}" aria-pressed="${state.tier === t}">${medalSvg(t, 14)}${TIERS[t]} <span class="n">${count(p => p.tier === t)}</span></button>`);
       filtersEl.innerHTML = statusChips.join('') + '<span class="sep" aria-hidden="true"></span>' + toggleChips.join('') +
         '<span class="sep" aria-hidden="true"></span>' + tierChips.join('') +
         '<button type="button" class="chip ghost" data-how title="How ratings work"><i class="fa-regular fa-circle-question" aria-hidden="true"></i>Ratings</button>';
@@ -806,7 +814,7 @@
       return `<a class="shot" href="${esc(s.live)}" target="_blank" rel="noopener noreferrer" title="Open ${esc(s.live)}">
         <span class="thumb">${shotImg(s.shot, s.name) || placeholder('pending')}</span>
         <span class="shot-body">${symbol(s.folder, s.name, 'lg')}
-          <span class="txt"><b>${esc(s.name)}</b><span class="host">${esc(host(s.live))}</span></span>${when}</span>
+          <span class="txt"><b>${esc(s.name)}${s.tier ? ` <span title="${TIERS[s.tier]}">${medalSvg(s.tier, 14)}</span>` : ''}</b><span class="host">${esc(host(s.live))}</span></span>${when}</span>
       </a>`;
     }
 
@@ -845,7 +853,7 @@
       const map = new Map();
       (forge && forge.repos || []).forEach(r => {
         const live = liveUrl(r);
-        if (r && r.folder && live) map.set(r.folder, { folder: r.folder, name: r.name || r.folder, live });
+        if (r && r.folder && live) map.set(r.folder, { folder: r.folder, name: r.name || r.folder, live, tier: r.rating && TIERS[r.rating.tier] ? r.rating.tier : '' });
       });
       Object.entries(shots ? shots.shots : {}).forEach(([folder, shot]) => {
         const site = map.get(folder) || { folder, name: folder, live: safeUrl(shot.live_url) };

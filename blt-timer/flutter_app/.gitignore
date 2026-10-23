@@ -1,0 +1,24 @@
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Native builds
+*.so
+*.o
+linux/*.so
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# Misc
+*.log
+.DS_Store
+_codeql_detected_source_root
