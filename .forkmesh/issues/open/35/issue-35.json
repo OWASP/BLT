@@ -1,6 +1,7 @@
 {
     "assignees": [
-        "dahahanish"
+        "dahahanish",
+        "himaneeesh"
     ],
     "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
     "authorName": "gitlab-import[bot]",
@@ -127,6 +128,17 @@
             "sig": "QfbA6JszrMU9sTcwJcgngvHjHoXJyjmvTeFj8lWzuc9w-qdrOF1yfSBDcqx5KzaWeKzVwM2yoi9IgOM33U_gAA",
             "ts": 1792690162209,
             "type": "claim"
+        },
+        {
+            "assignee": "himaneeesh",
+            "author": "qqE-1kxevm_0FmZdXm0zGrUSJqSDMH8FpslKgZ1oF6A",
+            "authorName": "himaneeesh",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1792741617690-1p6y7j4",
+            "sig": "ofKguQf8T7HRErZjWTpFU4QDcEpzwxgdPkkj00fgN50g-CibeVtS298hu8Vcx-XERFd9G456PDusDwGnWesXAg",
+            "ts": 1792741617690,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -141,6 +153,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-toasty: Build Slack Notification Bot",
-    "updatedAt": 1792690162209,
+    "updatedAt": 1792741617690,
     "votes": 0
 }
