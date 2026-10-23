@@ -138,6 +138,17 @@
             "sig": "gMfvIyJRoYFVUxjVu5DmEKb4Qcb-uV-d_Qm-ZDT3Vk3PG9fJqyBkA_pM64q4vUUHDirvEo-VFpQYpmpjZ6wiAQ",
             "ts": 1792735653740,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@navodit you're unassigned from this issue. It's open for others now; comment `/assign` to take it again. \u003c!-- blt-assign:5f80b713dade80bdac20 --\u003e",
+            "id": "actions-1792735653842-4TyK2gHg",
+            "sig": "Gxy5zArz9O6-ZJ0xrj-iNVuj5_Rc_OpePuQsahGnN6TY1uPCaHvBbwvkhdZYnVOi0VEgC6PZvSWx2p4I-Az4CA",
+            "ts": 1792735653842,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -152,6 +163,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-newsletter: fix: mobile responsiveness",
-    "updatedAt": 1792735653740,
+    "updatedAt": 1792735653842,
     "votes": 0
 }
