@@ -205,6 +205,12 @@ def pull_entry(pull):
     }
 
 
+def old_folders(root, folder, aliases):
+    """Aliases that name a former folder of this project: lower-case blt-* names with no folder now."""
+    return [a for a in aliases if a != folder and a == a.lower() and a.startswith("blt-")
+            and not os.path.isdir(os.path.join(root, a))]
+
+
 def build(client, root=ROOT, now=None, max_pages=MAX_PAGES, domains=None):
     """The forge_data.json payload. Raises ledger.DeadlineExceeded when the budget runs out."""
     now = now or datetime.now(timezone.utc)
@@ -233,9 +239,21 @@ def build(client, root=ROOT, now=None, max_pages=MAX_PAGES, domains=None):
 
     since = now - timedelta(days=max(WINDOWS))
     repos = []
-    for folder, name, _ in projects:
+    for folder, name, aliases in projects:
         commits = ledger.history(client, folder, since=since, max_pages=max_pages)
         truncated = len(commits) >= max_pages * ledger.HISTORY_PAGE
+        # A renamed or merged folder keeps its old folder names as aliases (blt-timer-web ->
+        # blt-timer); path history doesn't follow renames, so add theirs.
+        seen = {c.get("hash") for c in commits}
+        olds = old_folders(root, folder, aliases)
+        for old in olds:
+            for c in ledger.history(client, old, since=since, max_pages=max_pages):
+                if c.get("hash") not in seen:
+                    seen.add(c.get("hash"))
+                    commits.append(c)
+        if olds:
+            commits.sort(key=lambda c: ledger.iso_to_dt(c.get("date")) or datetime.min.replace(tzinfo=timezone.utc),
+                         reverse=True)
         info = folder_info(root, folder)
         stats = commit_stats(commits, now, truncated)
         folder_issues = sorted(issues_by_folder.get(folder, []), key=lambda i: i["updated_at"] or "", reverse=True)

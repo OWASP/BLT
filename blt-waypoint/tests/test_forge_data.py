@@ -117,6 +117,18 @@ class GeneratorTest(unittest.TestCase):
         # History stopped at the first commit older than 365 days (one call per folder).
         self.assertEqual([p for op, p in client.calls if op == "history"][0][0], ("path", "blt-leaf"))
 
+    def test_old_folder_history_is_merged(self):
+        with open(os.path.join(self.root, "scripts", "routing", "projects.tsv"), "a") as f:
+            f.write("blt-timer\tBLT-Timer\tBLT-Timer-Web,blt-timer-web,blt-leaf\n")
+        os.makedirs(os.path.join(self.root, "blt-timer"))
+        client = FakeClient({"blt-timer": [commit(1, 1)], "blt-timer-web": [commit(2, 5, "bob"), commit(1, 1)],
+                             "blt-leaf": [commit(9, 3)]})
+        timer = [r for r in gen.build(client, root=self.root, now=NOW)["repos"] if r["folder"] == "blt-timer"][0]
+        # blt-timer-web is a former folder; blt-leaf still exists, so it is not merged in.
+        self.assertEqual(timer["commits_30d"], 2)
+        self.assertEqual(timer["contributor_count"], 2)
+        self.assertEqual(timer["latest_commit"]["message"], "c1")
+
     def test_history_page_cap_marks_truncation(self):
         many = [commit(n, n * 0.1) for n in range(1, 200)]
         data = gen.build(FakeClient({"blt-leaf": many}), root=self.root, now=NOW, max_pages=2)
@@ -147,7 +159,7 @@ class UrlTest(unittest.TestCase):
         self.assertEqual(forge_urls.rewrite_text(text, index),
                          "see https://git.owaspblt.org/BLT/tree/main/blt-legacy and "
                          "https://git.owaspblt.org/BLT/tree/main/blt-toasty or https://git.owaspblt.org/BLT")
-        self.assertEqual(forge_urls.resolve(".github", index), "dot_github")
+        self.assertEqual(forge_urls.resolve("BLT-Timer-Flutter", index), "blt-timer")
         self.assertEqual(forge_urls.resolve("BLT-Github-Sportscaster", index), "blt-gitcaster")
 
 
