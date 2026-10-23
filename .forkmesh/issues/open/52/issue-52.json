@@ -78,6 +78,17 @@
             "sig": "hCel7c2ZoOb5sxc9lUCnTYKvTAzikGfC6bu8ZQ5gxjJci3I3PS6FeQJNhHUwigwbaVNkqYPG6KZwBXUTAKAEBg",
             "ts": 1792735784721,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@navodit you're assigned to this issue. Please open a pull request for it within 24 hours. Without a pull request or an update from you here for 24 hours, you'll be unassigned (after a warning). If you stop working on it, comment `/unassign` so someone else can pick it up. \u003c!-- blt-assign:7dd6b9971c33feb82765 --\u003e",
+            "id": "actions-1792735784848-WJhLF6Kb",
+            "sig": "08GpWSwDP5om4_xQEXg8DSTqEAC_d3KI0fbEWO-Gr2lYWcBeHy77mGI33MvG9pvw5xqCwpAytfRex7N93bK_Cg",
+            "ts": 1792735784848,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -94,6 +105,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cron: parseCron rejects day-of-week ranges ending in 7 (e.g. \"1-7\")",
-    "updatedAt": 1792735784721,
+    "updatedAt": 1792735784848,
     "votes": 0
 }
