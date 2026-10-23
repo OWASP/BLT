@@ -596,6 +596,8 @@ def build_payload(bugs, now=None):
     org_set = set()
     for bug in bugs:
         login = bug["user"]["login"]
+        if login.endswith("[bot]"):  # task issues filed by bots are not community reports
+            continue
         entry = counts.setdefault(login, {"count": 0, "avatar_url": bug["user"]["avatar_url"],
                                           "profile_url": bug["user"]["profile_url"]})
         entry["count"] += 1

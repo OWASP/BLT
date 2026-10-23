@@ -32,6 +32,25 @@
             "sig": "srUFJMd5eHugsJUzZG25hJAMjev53xRuUIXWfaGpkSHqjeO7smd63YnNXeyCPfj4VkToCgm0v5YQsmAe3Ft7AA",
             "ts": 1792782010892,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "Done: blt-pages now has a Contributing section in its README, which was the last check it missed, so it rates gold on Waypoint from the next daily refresh.",
+            "id": "blt-tasks-comment-213-1792785692197",
+            "sig": "miwwGbnsZThnV3MEZZ8d3p9YG-IjCpDVN7rM1FGVHsOnpIlCrLwonTQWyPRQtlumkk0ECLYnrNXHcpkT-g4IDg",
+            "ts": 1792785692197,
+            "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-status-213-1792785692197",
+            "sig": "PafD3u9pLHHPLXglitChOCkT5cifbIR5m4PlPoJSn_WgJAh5u_zYbgXYvPqpYp8pVIW823dXGw6JUxeIMOb-Dw",
+            "status": "closed",
+            "ts": 1792785692198,
+            "type": "status"
         }
     ],
     "labels": [
@@ -46,8 +65,8 @@
     "progress": 0,
     "schema": "forkmesh-issue-v1",
     "startDate": 0,
-    "status": "open",
+    "status": "closed",
     "title": "blt-pages: reach the gold standard (silver today, 1 step)",
-    "updatedAt": 1792782010892,
+    "updatedAt": 1792785692198,
     "votes": 0
 }
