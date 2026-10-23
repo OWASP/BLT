@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "vanshika2720"
+    ],
     "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
     "authorName": "gitlab-import[bot]",
     "bountyAddress": "",
@@ -69,6 +71,17 @@
             "target": "actions-1792477881438-CmP5OC7y",
             "ts": 1792482111829,
             "type": "delete"
+        },
+        {
+            "assignee": "vanshika2720",
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1792774804188-168mtrc",
+            "sig": "jbHfLkWf74IfprOKry7E9Jch4OeMNjkHT8cwt0sV_071u274hg4hExx-REZb4kFVb6ecCepyn58NVlqXS-tQDA",
+            "ts": 1792774804188,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -82,6 +95,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cli: Replace free-text Severity and Bug Type fields with cycle-able selectors",
-    "updatedAt": 1792482111829,
+    "updatedAt": 1792774804188,
     "votes": 0
 }
