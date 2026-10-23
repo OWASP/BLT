@@ -55,6 +55,17 @@
             "sig": "WLBxT3GNZy1e4LAuAY7zKitZaoUwU8kbCRbxWMLbGQ7e5thVyGlHKhsuM2ztUUgnPlcJeZYke-lMUM41G0HcAg",
             "ts": 1792766879302,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@preetam you're assigned to this issue. Please open a pull request for it within 24 hours. Without a pull request or an update from you here for 24 hours, you'll be unassigned (after a warning). If you stop working on it, comment `/unassign` so someone else can pick it up. \u003c!-- blt-assign:0e3f881b5af0566590cd --\u003e",
+            "id": "actions-1792766879520-teFhITJQ",
+            "sig": "lf5QqYqL6DJa1nXxS137qQrQmqlystzyVlIUPMCRRZSJHs_qDDPQ6oUBtfcmUZomkJiODgstG2pFdkvvQzfICw",
+            "ts": 1792766879520,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -70,6 +81,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-gitcaster: make channel pills and filter chips keyboard-accessible and label the AI fields",
-    "updatedAt": 1792766879302,
+    "updatedAt": 1792766879520,
     "votes": 0
 }
