@@ -101,6 +101,17 @@
             "sig": "yHSYwIpux3pDLuggheah_wPmT9QzsokP25ELLYq2j6DicD96GQUdBdMx__wXR9823HCzl3XqGV8PiHMVVZQVDg",
             "ts": 1792745616900,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "authorVerified": true,
+            "body": "Raised a PR for this #13",
+            "id": "comment-web-1792750101428",
+            "sig": "ECuOB1iU4Woxh7ZM8YKWaHwyAP9ytqK9J-TGSMXV22KOE3az8uwo8IWPxAmp89EtH2RkBFgVYyD1hsqvj0V7AQ",
+            "ts": 1792750101428,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -114,6 +125,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: Follow-up from \"feat: add macOS platform build configuration\"",
-    "updatedAt": 1792745616900,
+    "updatedAt": 1792750101428,
     "votes": 0
 }
