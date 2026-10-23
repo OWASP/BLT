@@ -31,6 +31,25 @@
             "sig": "e_RYsxUb0voZFYm3qKydE5JV7Q7wJ3C1_1DfE1BJBUGzdepft5PdVodtO04c25tgaV6nd-iLXSWzzEfGSu6XAQ",
             "ts": 1792782010906,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "blt-vanish-flutter was an older copy of `blt-vanish/flutter_app` (which has the monitor, security center and credential tools it lacked), so the folder is deleted and this checklist no longer applies.",
+            "id": "blt-tasks-comment-220-1792783958217",
+            "sig": "ElskC3QR5kB1IWyrq7MVR34tjWNPrRjWXDIAz-W-YKAYH3iRmfp4AL8Urx9qAy4wUAe_kT5c-LmA470NQBCEBg",
+            "ts": 1792783958217,
+            "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-status-220-1792783958217",
+            "sig": "Vn-sjfx5Y-yxJNeCrJs1-w4TRMoxvtww7KFeh1GiFg-8p93tIL8Wdx2R1qvGrOcEluGxIa3R5tjlvPoxJ43GDQ",
+            "status": "closed",
+            "ts": 1792783958218,
+            "type": "status"
         }
     ],
     "labels": [
@@ -44,8 +63,8 @@
     "progress": 0,
     "schema": "forkmesh-issue-v1",
     "startDate": 0,
-    "status": "open",
+    "status": "closed",
     "title": "blt-vanish-flutter: reach the gold standard (bronze today, 2 steps)",
-    "updatedAt": 1792782010906,
+    "updatedAt": 1792783958218,
     "votes": 0
 }

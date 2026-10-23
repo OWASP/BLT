@@ -37,13 +37,11 @@ blt-profiles	node	node --test 'test/*.test.mjs'
 blt-safecloak	python	npm_install && pip install -r requirements-dev.txt && python -m pytest tests/ -q --ignore=tests/test_browser_js.py --ignore=tests/test_video_chat.py --ignore=tests/test_three_client_chat.py
 blt-sammich	python	pip install pytest pytest-asyncio && python -m pytest tests/ -q
 blt-sizzle	python	pip install pytest && python -m pytest tests/ -q
-blt-timer-flutter	flutter	flutter pub get && flutter test
-blt-timer-web	python	pip install pytest && python -m pytest tests/ -q
+blt-timer	python	pip install pytest && python -m pytest tests/ -q
 blt-toasty	python	pip install --group dev && python -m pytest -q
 blt-tomato	node	python3 -m py_compile .github/scripts/funding/owasp_funding_yml_scraper.py && python3 -m unittest discover -s test -p 'test_*.py' && node --test 'test/*.test.mjs'
 blt-university	node	npm_install && npm test
 blt-vanish	python	cd cloudflare_workers && python -m compileall -q src
-blt-vanish-flutter	flutter	flutter pub get && flutter test
 blt-waypoint	python	python -m unittest discover -s tests -p 'test_*.py' && node --test 'tests/*.test.mjs'
 blt-zero	python	pip install pytest==8.3.3 pytest-asyncio==0.24.0 cryptography==46.0.5 && PYTHONPATH=. python -m pytest tests/ -q
 my-gsoc-tool	node	npm test

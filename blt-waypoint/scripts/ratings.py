@@ -30,7 +30,7 @@ from datetime import datetime, timedelta, timezone
 
 TIERS = ("bronze", "silver", "gold")
 # Repository configuration, not projects: shown on Waypoint without a rating.
-NOT_RATED = {"coderabbit", "dot_github"}
+NOT_RATED = {"coderabbit"}
 GOLD_LABEL = "gold-standard"
 STALE_ISSUE_DAYS = 60
 ACTIVE_DAYS = 90

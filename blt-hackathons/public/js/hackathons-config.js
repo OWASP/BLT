@@ -57,17 +57,14 @@ const OWASP_BLT_PROJECT_FOLDERS = [
     "blt-sammich",
     "blt-sizzle",
     "blt-start",
-    "blt-timer-flutter",
-    "blt-timer-web",
+    "blt-timer",
     "blt-toasty",
     "blt-tomato",
     "blt-university",
     "blt-vanish",
-    "blt-vanish-flutter",
     "blt-waypoint",
     "blt-zero",
     "coderabbit",
-    "dot_github",
     "my-gsoc-tool",
 ];
 

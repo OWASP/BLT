@@ -60,7 +60,7 @@ EVENT_FILE = re.compile(r"^\d+-[A-Za-z0-9_-]+\.md$")
 BOT_NAMES = frozenset({"owasp-blt-actions", "forkmesh", "dependabot", "github-actions", "renovate",
                        "actions-user", "coderabbitai", "coderabbit", "copilot", "sentry-autofix"})
 BOT_SUFFIXES = ("[bot]", "-bot", "_bot")
-EXTRA_PROJECTS = ("my-gsoc-tool", "coderabbit", "dot_github")
+EXTRA_PROJECTS = ("my-gsoc-tool", "coderabbit")
 SHARED = "(shared)"
 
 # (status, parsed JSON or None)

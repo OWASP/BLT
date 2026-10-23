@@ -303,7 +303,7 @@ For blt-hackathons, run the workflow by hand.
 `ci.yml` runs the same `scripts/ci/tests.tsv` commands as before, but some projects cannot run on
 this server:
 
-- Flutter projects (`blt-flutter`, `blt-netguardian-client`, `blt-timer-flutter`, `blt-vanish-flutter`)
+- Flutter projects (`blt-flutter`, `blt-netguardian-client`, `blt-timer/flutter_app`)
   and `blt-cli` (Rust) are reported as skipped.
 - `blt-mcp` requires Python 3.12; its `tests.tsv` row installs with `--ignore-requires-python`, so it runs on the server's 3.13 (the OAuth and SSE tests need loopback connections).
 - `blt-legacy` (formerly `blt-core`) passes only if xvfb, Chromium and libmemcached are installed, and that needs sudo.

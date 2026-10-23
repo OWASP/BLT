@@ -63,7 +63,7 @@ class RatingsTest(unittest.TestCase):
         self.assertEqual(leaf["gold_issue"], "u2")
 
     def test_bronze_and_not_applicable(self):
-        data = self.payload(row("blt-x", live_url=None, description=""), row("dot_github"))
+        data = self.payload(row("blt-x", live_url=None, description=""), row("coderabbit"))
         x, config = data["repos"]
         self.assertEqual(x["rating"]["tier"], "bronze")
         for need in ("readme", "description", "license", "logo", "tests", "deploy", "live", "theme", "setup"):

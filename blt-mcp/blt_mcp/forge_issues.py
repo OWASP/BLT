@@ -18,7 +18,7 @@ DEFAULT_URL = "https://git.owaspblt.org"
 OWNER, REPO = "owasp-blt", "BLT"
 BLOB_BATCH = 50
 CACHE_SECONDS = 300
-EXTRA_FOLDERS = ("my-gsoc-tool", "coderabbit", "dot_github")
+EXTRA_FOLDERS = ("my-gsoc-tool", "coderabbit")
 TITLE_PREFIX = re.compile(r"^\s*(?:\[([A-Za-z0-9_.-]+)\]|([A-Za-z0-9_.-]+)\s*:)")
 
 _cache: dict = {}

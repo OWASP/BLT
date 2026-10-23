@@ -48,16 +48,13 @@ blt-safecloak	BLT-SafeCloak	SafeCloak
 blt-sammich	BLT-Sammich	slack-machine
 blt-sizzle	BLT-Sizzle	Sizzle
 blt-start	BLT-Start	
-blt-timer-flutter	BLT-Timer-Flutter	
-blt-timer-web	BLT-Timer-Web	Fresh,BLT-Timer
+blt-timer	BLT-Timer	Fresh,BLT-Timer-Web,blt-timer-web,BLT-Timer-Flutter,blt-timer-flutter
 blt-toasty	BLT-Toasty	Toasty
 blt-tomato	BLT-Tomato	
 blt-university	BLT-University	
-blt-vanish	BLT-Vanish	BLT-Vanish-Web,SelfErase,BLT-Personal-Privacy-Protection
-blt-vanish-flutter	BLT-Vanish-Flutter	
+blt-vanish	BLT-Vanish	BLT-Vanish-Web,SelfErase,BLT-Personal-Privacy-Protection,BLT-Vanish-Flutter,blt-vanish-flutter
 blt-waypoint	BLT-Waypoint	owasp-blt.github.io
 blt-zero	BLT-Zero	
 coderabbit	coderabbit	
-dot_github	dot_github	.github
 my-gsoc-tool	MY-GSOC-TOOL	
--	-	BLT-Claw,BLT-team,BLT-sandbox,BLT-Website,OWASP-BLT-Lyte
+-	-	BLT-Claw,BLT-team,BLT-sandbox,BLT-Website,OWASP-BLT-Lyte,dot_github,.github

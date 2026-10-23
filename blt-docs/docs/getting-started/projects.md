@@ -93,17 +93,14 @@ Projects without a public URL in the previous table must not be assigned a guess
 | BLT Sammich | [blt-sammich](https://git.owaspblt.org/BLT/BLT-Sammich) |
 | BLT Sizzle | [blt-sizzle](https://git.owaspblt.org/BLT/BLT-Sizzle) |
 | BLT Start | [blt-start](https://git.owaspblt.org/BLT/BLT-Start) |
-| BLT Timer Flutter | [blt-timer-flutter](https://git.owaspblt.org/BLT/BLT-Timer-Flutter) |
-| BLT Timer Web | [blt-timer-web](https://git.owaspblt.org/BLT/BLT-Timer-Web) |
+| BLT Timer | [blt-timer](https://git.owaspblt.org/BLT/BLT-Timer) |
 | BLT Toasty | [blt-toasty](https://git.owaspblt.org/BLT/BLT-Toasty) |
 | BLT Tomato | [blt-tomato](https://git.owaspblt.org/BLT/BLT-Tomato) |
 | BLT University | [blt-university](https://git.owaspblt.org/BLT/BLT-University) |
 | BLT Vanish | [blt-vanish](https://git.owaspblt.org/BLT/BLT-Vanish) |
-| BLT Vanish Flutter | [blt-vanish-flutter](https://git.owaspblt.org/BLT/BLT-Vanish-Flutter) |
 | BLT Waypoint | [blt-waypoint](https://git.owaspblt.org/BLT/BLT-Waypoint) |
 | BLT Zero | [blt-zero](https://git.owaspblt.org/BLT/BLT-Zero) |
 | coderabbit | [coderabbit](https://git.owaspblt.org/BLT/coderabbit) |
-| dot_github | [dot_github](https://git.owaspblt.org/BLT/dot_github) |
 | MY-GSOC-TOOL | [my-gsoc-tool](https://git.owaspblt.org/BLT/MY-GSOC-TOOL) |
 
 ## Link maintenance policy

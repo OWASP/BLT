@@ -32,6 +32,25 @@
             "sig": "YwLzI3Bepdgm6V0Tf-H8yrMEneyXn7m8aVsVSGoFtn6X72pRM6_2cApmQm6JyxWUHiev7TgBC5IruSSFYGwVDg",
             "ts": 1792782010902,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "blt-timer-flutter has moved into `blt-timer/flutter_app` (BLT-Timer-Web and BLT-Timer-Flutter are now one project, blt-timer), so this checklist no longer applies. What blt-timer still needs for gold is tracked on Waypoint.",
+            "id": "blt-tasks-comment-218-1792783958217",
+            "sig": "A7of_3OlXiJHD3v3pR2lhxUraJrjGb0JXqx9IbmIo2PH1D5x34LhtRPxZZlNyzdh8gh4IhATHJtp0b37lYybDg",
+            "ts": 1792783958217,
+            "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-status-218-1792783958217",
+            "sig": "eUNwFuXsRpcjgvqMER9_6hHqLRqWXEI_sTge4Zpw5loxC20u6Z48zGFsInvfUHu4KGJTNo4MM2_WKHd5w2taCA",
+            "status": "closed",
+            "ts": 1792783958218,
+            "type": "status"
         }
     ],
     "labels": [
@@ -46,8 +65,8 @@
     "progress": 0,
     "schema": "forkmesh-issue-v1",
     "startDate": 0,
-    "status": "open",
+    "status": "closed",
     "title": "blt-timer-flutter: reach the gold standard (bronze today, 1 step)",
-    "updatedAt": 1792782010902,
+    "updatedAt": 1792783958218,
     "votes": 0
 }
