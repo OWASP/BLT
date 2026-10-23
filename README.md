@@ -121,11 +121,11 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 <!-- WAITING-PRS-START -->
 ## ⏳ Pull Requests Waiting for Review (10 open, 4 new contributors)
 
-*Last updated: 2026-10-23 19:27 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
+*Last updated: 2026-10-23 20:05 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
 
 | Contributor | Waiting | Pull requests |
 |---|---|---|
-| [navodit](https://git.owaspblt.org/@navodit) 🌱 **new contributor** | 3 | [#5](https://git.owaspblt.org/BLT/pull/5) Fix mobile sidebar: add toggle button, outside-click close, auto-close on nav select, and <br>[#11](https://git.owaspblt.org/BLT/pull/11) Fix day-of-week range parsing to allow values ending in 7<br>[#14](https://git.owaspblt.org/BLT/pull/14) Fix /health endpoint to build endpoint map dynamically from router |
+| [navodit](https://git.owaspblt.org/@navodit) 🌱 **new contributor** | 3 | [#5](https://git.owaspblt.org/BLT/pull/5) Fix mobile sidebar: add toggle button, outside-click close, auto-close on nav select, and…<br>[#11](https://git.owaspblt.org/BLT/pull/11) Fix day-of-week range parsing to allow values ending in 7<br>[#14](https://git.owaspblt.org/BLT/pull/14) Fix /health endpoint to build endpoint map dynamically from router |
 | [dahahanish](https://git.owaspblt.org/@dahahanish) 🌱 **new contributor** | 1 | [#9](https://git.owaspblt.org/BLT/pull/9) blt-toasty: notify Slack when Toasty finishes triage (#35) |
 | [himaneeesh](https://git.owaspblt.org/@himaneeesh) 🌱 **new contributor** | 1 | [#12](https://git.owaspblt.org/BLT/pull/12) blt-toasty: notify BLT Chat about terminal triage outcomes |
 | [preetam](https://git.owaspblt.org/@preetam) 🌱 **new contributor** | 1 | [#17](https://git.owaspblt.org/BLT/pull/17) Fix accessibility issues for channel pills, preset chips, and input labels |
