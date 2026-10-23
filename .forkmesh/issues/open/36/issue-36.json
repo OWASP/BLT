@@ -79,6 +79,17 @@
             "target": "comment-web-1792477815520",
             "ts": 1792745563174,
             "type": "delete"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1792745586544",
+            "sig": "Pr1nOGlbVRM_uLs8i1q545r_8nulApFOabfX17926KOffNbzyrwE-J5Y7Kjh6wB5jPF9oFP3KNrSgLMekbHuCg",
+            "ts": 1792745586544,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -92,6 +103,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: Follow-up from \"feat: add macOS platform build configuration\"",
-    "updatedAt": 1792745563174,
+    "updatedAt": 1792745586544,
     "votes": 0
 }
