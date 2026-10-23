@@ -1,6 +1,7 @@
 /* BLT Waypoint: one script for the three pages (body[data-page] = dashboard | issues | screenshots).
    Data:
-     forge_data.json         every folder of the monorepo on git.owaspblt.org (daily): repos[], open_issues[], generated_at
+     forge_data.json         every folder of the monorepo on git.owaspblt.org (daily): repos[], open_issues[], generated_at,
+                             rating_criteria[]; each repo has rating { tier, score, met, missing, na } and gold_issue
      screenshots/index.json  daily captures of the live sites: { generated_at, shots: { <folder>: { url, captured_at, live_url } } };
                              may 404 until the first capture runs, then every page shows "screenshot pending". */
 (function () {
@@ -209,6 +210,62 @@
     return `<div class="stat"${title ? ` title="${esc(title)}"` : ''}><b>${esc(value)}</b><span><i class="fa-solid ${icon}" aria-hidden="true"></i>${esc(label)}</span></div>`;
   }
 
+  /* ---------------- ratings (scripts/ratings.py) ---------------- */
+  const TIERS = { gold: 'Gold', silver: 'Silver', bronze: 'Bronze' };
+  const TIER_RANK = { gold: 3, silver: 2, bronze: 1 };
+  const TIER_NOTE = {
+    bronze: 'The basics: a README, a description, a licence and a logo.',
+    silver: 'It runs: tests in CI, an automatic deploy, a live site and steps to run it.',
+    gold: 'It is looked after: the BLT theme, a contributing guide, recent commits, several contributors and triaged issues.',
+  };
+
+  function medal(tier, score, folder) {
+    if (!TIERS[tier]) return '<span class="faint" title="Repository configuration, not rated">–</span>';
+    const label = `${TIERS[tier]}${Number.isFinite(score) ? ` · ${score}%` : ''}`;
+    const attrs = folder ? ` type="button" data-rate="${esc(folder)}" title="${esc(label)}: see what ${esc(folder)} needs for gold"` : '';
+    const tag = folder ? 'button' : 'span';
+    return `<${tag} class="medal ${tier}"${attrs}><i class="fa-solid fa-medal" aria-hidden="true"></i><span class="medal-t">${TIERS[tier]}</span>${Number.isFinite(score) && tier !== 'gold' ? `<span class="medal-s">${score}%</span>` : ''}</${tag}>`;
+  }
+
+  // One dialog for every rating: a project's checklist, or (no project) how ratings work.
+  function ratingDialog(criteria, p) {
+    let dlg = $('#rating-dlg');
+    if (!dlg) {
+      dlg = document.createElement('dialog');
+      dlg.id = 'rating-dlg';
+      dlg.className = 'dlg';
+      dlg.addEventListener('click', e => { if (e.target === dlg || e.target.closest('[data-close]')) dlg.close(); });
+      document.body.append(dlg);
+    }
+    const rating = p && p.rating;
+    const state = id => (!rating ? '' : rating.met.includes(id) ? 'met' : rating.missing.includes(id) ? 'missing' : 'na');
+    const sections = ['bronze', 'silver', 'gold'].map(tier => {
+      const items = criteria.filter(c => c.tier === tier).map(c => {
+        const st = state(c.id);
+        const icon = st === 'met' ? 'fa-circle-check' : st === 'missing' ? 'fa-circle-xmark' : st === 'na' ? 'fa-circle-minus' : 'fa-circle';
+        const fix = !rating || st === 'missing' ? `<p>${esc(c.fix).replace(/`([^`]+)`/g, '<code>$1</code>')}</p>` : '';
+        const na = st === 'na' ? ' <span class="faint">(does not apply)</span>' : '';
+        return `<li class="crit ${st}"><i class="fa-solid ${icon}" aria-hidden="true"></i><div><b>${esc(c.label)}</b>${na}${fix}</div></li>`;
+      }).join('');
+      return `<section><h3>${medal(tier)}<span>${esc(TIER_NOTE[tier])}</span></h3><ul>${items}</ul></section>`;
+    }).join('');
+    const issue = p && safeUrl(p.r.gold_issue);
+    const head = p
+      ? `<div class="dlg-id">${symbol(p.folder, p.name, 'lg')}<div><h2>${esc(p.name)}</h2><span class="mono faint">${esc(p.folder)}/</span></div>${medal(rating.tier, rating.score)}</div>
+         <div class="meter" role="img" aria-label="${rating.score}% of the checklist met"><span class="${rating.tier}" style="width:${Math.max(0, Math.min(100, rating.score))}%"></span></div>
+         <p class="muted">${rating.tier === 'gold' ? 'Meets the whole BLT gold standard.' : `${rating.missing.length} step${rating.missing.length === 1 ? '' : 's'} to the gold standard.`}</p>`
+      : `<div class="dlg-id"><div><h2>How ratings work</h2></div></div>
+         <p class="muted">Every project is checked daily against one checklist, read from its folder in the monorepo and from the forge. A project is <b>gold</b> when it meets every check that applies to it, <b>silver</b> when it meets all the bronze and silver checks, and <b>bronze</b> otherwise. Site checks apply only to projects that deploy to Cloudflare.</p>`;
+    const foot = p
+      ? `<a class="btn primary" href="${esc(issue || issuesUrl(p.r))}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-circle-dot" aria-hidden="true"></i>${issue ? 'Gold-standard issue' : 'Project issues'}</a>`
+      : `<a class="btn" href="${FORGE}/issues?label=gold-standard" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-circle-dot" aria-hidden="true"></i>All gold-standard issues</a>`;
+    dlg.innerHTML = `<div class="dlg-in" role="document">
+      <button type="button" class="dlg-x" data-close aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      ${head}<div class="crits">${sections}</div>
+      <div class="dlg-foot">${foot}<button type="button" class="btn" data-close>Close</button></div></div>`;
+    dlg.showModal();
+  }
+
   /* ================================================================ */
   /*  DASHBOARD                                                        */
   /* ================================================================ */
@@ -227,6 +284,7 @@
       c30: { dir: -1, get: p => p.c30 },
       c365: { dir: -1, get: p => p.c365 },
       people: { dir: -1, get: p => p.people },
+      rating: { dir: -1, get: p => p.rank * 1000 + p.score },
     };
     const STATUS = [
       ['all', 'All', null],
@@ -245,6 +303,7 @@
       q: p0.get('q') || '',
       status: STATUS.some(s => s[0] === p0.get('status')) ? p0.get('status') : 'all',
       toggles: new Set((p0.get('has') || '').split(',').filter(t => TOGGLES.some(x => x[0] === t))),
+      tier: TIERS[p0.get('tier')] ? p0.get('tier') : '',
       sort: SORTS[p0.get('sort')] ? p0.get('sort') : (SORTS[store.get('waypoint-sort')] ? store.get('waypoint-sort') : 'last'),
       dir: 0,
       view: p0.get('view') || store.get('waypoint-view', matchMedia('(max-width: 720px)').matches ? 'cards' : 'table'),
@@ -255,13 +314,19 @@
     sortSel.value = state.sort;
 
     let projects = [];
+    let criteria = [];
 
     function toProject(r, shots) {
       const last = ts(r.last_commit_at) ?? ts(r.pushed_at);
       const days = last == null ? Infinity : (NOW - last) / DAY;
       const live = liveUrl(r);
+      const rating = r.rating && TIERS[r.rating.tier] ? r.rating : null;
       return {
         r,
+        rating,
+        tier: rating ? rating.tier : '',
+        rank: rating ? TIER_RANK[rating.tier] : 0,
+        score: rating ? +rating.score || 0 : 0,
         folder: r.folder,
         name: r.name || r.folder,
         desc: r.description || '',
@@ -291,6 +356,8 @@
         stat('fa-circle-dot', num(issues), 'Open issues'),
         stat('fa-code-pull-request', num(sum('prs')), 'Open PRs'),
         stat('fa-code-commit', num(sum('c30')), 'Commits 30d', 'Commits in the last 30 days, all folders'),
+        `<button type="button" class="stat stat-rate" data-how title="How ratings work">${Object.keys(TIERS).map(t =>
+          `<b class="t-${t}" title="${TIERS[t]}"><i class="fa-solid fa-medal" aria-hidden="true"></i>${num(projects.filter(p => p.tier === t).length)}</b>`).join('')}<span><i class="fa-solid fa-circle-info" aria-hidden="true"></i>Gold · silver · bronze</span></button>`,
       ].join('');
     }
 
@@ -305,7 +372,10 @@
         const n = count(p => (key === 'live' ? !!p.live : p[key] > 0));
         return `<button type="button" class="chip" data-toggle="${key}" aria-pressed="${state.toggles.has(key)}"><i class="fa-solid ${icon}" aria-hidden="true"></i>${label} <span class="n">${n}</span></button>`;
       });
-      filtersEl.innerHTML = statusChips.join('') + '<span class="sep" aria-hidden="true"></span>' + toggleChips.join('');
+      const tierChips = Object.keys(TIERS).map(t => `<button type="button" class="chip" data-tier="${t}" aria-pressed="${state.tier === t}"><i class="fa-solid fa-medal medal-i ${t}" aria-hidden="true"></i>${TIERS[t]} <span class="n">${count(p => p.tier === t)}</span></button>`);
+      filtersEl.innerHTML = statusChips.join('') + '<span class="sep" aria-hidden="true"></span>' + toggleChips.join('') +
+        '<span class="sep" aria-hidden="true"></span>' + tierChips.join('') +
+        '<button type="button" class="chip ghost" data-how title="How ratings work"><i class="fa-regular fa-circle-question" aria-hidden="true"></i>Ratings</button>';
     }
 
     function visible() {
@@ -314,6 +384,7 @@
       return projects
         .filter(p => state.status === 'all' || p.status === state.status)
         .filter(p => [...state.toggles].every(t => (t === 'live' ? !!p.live : p[t] > 0)))
+        .filter(p => !state.tier || p.tier === state.tier)
         .filter(p => words.every(w => p.text.includes(w)))
         .sort((a, b) => {
           const x = get(a), y = get(b);
@@ -362,6 +433,7 @@
               </div>
             </div>
           </td>
+          <td class="c-rate">${medal(p.tier, p.score, p.rating ? p.folder : '')}</td>
           <td class="c-site">${p.live
             ? `<div class="site">${thumb(p.live, p.shot, p.name)}<a class="host" href="${esc(p.live)}" target="_blank" rel="noopener noreferrer" title="${esc(p.live)}">${esc(p.liveHost)}</a></div>`
             : `<span class="faint">–</span>`}</td>
@@ -375,6 +447,7 @@
       return `<div class="panel"><table class="tbl">
         <thead><tr>
           ${th('name', 'Project', '')}
+          ${th('rating', 'Rating', 'c-rate w-rate')}
           <th scope="col" class="c-site w-site">Live site</th>
           ${th('last', 'Last commit', 'w-last')}
           ${th('c30', '30d', 'num w-n c-30d')}
@@ -395,7 +468,7 @@
         <div class="card-top">
           ${thumb(p.live, p.shot, p.name)}
           <div class="card-id">
-            <div class="row">${symbol(p.folder, p.name)}<h2><a href="${esc(folderUrl(p.folder))}" target="_blank" rel="noopener noreferrer">${esc(p.name)}</a></h2></div>
+            <div class="row">${symbol(p.folder, p.name)}<h2><a href="${esc(folderUrl(p.folder))}" target="_blank" rel="noopener noreferrer">${esc(p.name)}</a></h2>${p.rating ? medal(p.tier, p.score, p.folder) : ''}</div>
             <span class="mono faint">${esc(p.folder)}/</span>
             ${p.live ? `<a class="host ellipsis" href="${esc(p.live)}" target="_blank" rel="noopener noreferrer">${esc(p.liveHost)} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:9px" aria-hidden="true"></i></a>` : '<span class="none">No live site</span>'}
           </div>
@@ -418,6 +491,7 @@
       $$('.seg [data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === state.view)));
       $$('[data-status]', filtersEl).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.status === state.status)));
       $$('[data-toggle]', filtersEl).forEach(b => b.setAttribute('aria-pressed', String(state.toggles.has(b.dataset.toggle))));
+      $$('[data-tier]', filtersEl).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tier === state.tier)));
       const list = visible();
       const filteredOut = list.length !== projects.length;
       countEl.innerHTML = `${list.length} of ${projects.length} projects${filteredOut ? ' · <button type="button" data-clear>Clear filters</button>' : ''}`;
@@ -433,6 +507,7 @@
         q: state.q,
         status: state.status === 'all' ? '' : state.status,
         has: [...state.toggles].join(','),
+        tier: state.tier,
         sort: state.sort === 'last' ? '' : state.sort,
       });
     }
@@ -441,6 +516,7 @@
       state.q = ''; search.value = '';
       state.status = 'all';
       state.toggles.clear();
+      state.tier = '';
       render();
     }
 
@@ -459,6 +535,8 @@
       if (!b) return;
       if (b.dataset.status) state.status = b.dataset.status;
       if (b.dataset.toggle) state.toggles[state.toggles.has(b.dataset.toggle) ? 'delete' : 'add'](b.dataset.toggle);
+      if (b.dataset.tier) state.tier = state.tier === b.dataset.tier ? '' : b.dataset.tier;
+      if (b.dataset.how != null) { ratingDialog(criteria); return; }
       render();
     });
     $$('.seg [data-view]').forEach(b => b.addEventListener('click', () => {
@@ -466,6 +544,11 @@
       store.set('waypoint-view', state.view);
       render();
     }));
+    document.addEventListener('click', e => {
+      const rate = e.target.closest('[data-rate]');
+      if (rate) { const p = projects.find(x => x.folder === rate.dataset.rate); if (p && p.rating) ratingDialog(criteria, p); }
+      else if (e.target.closest('#stats [data-how]')) ratingDialog(criteria);
+    });
     results.addEventListener('click', e => {
       const b = e.target.closest('th button[data-sort]');
       if (!b) return;
@@ -478,6 +561,7 @@
       try {
         const [data, shots] = await Promise.all([loadForge(), loadShots()]);
         projects = (data.repos || []).filter(r => r && r.folder).map(r => toProject(r, shots));
+        criteria = Array.isArray(data.rating_criteria) ? data.rating_criteria : [];
         showFreshness(data.generated_at);
         renderStats(data);
         renderFilters();

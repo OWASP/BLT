@@ -12,6 +12,8 @@ Replaces the gitlab.com/owasp-blt reader. One repository row per project folder 
 - description, website, topics: ``<folder>/.forkmesh/info.json`` where present (read from the
   checkout), else the description in data/github_archive.json (the archived GitHub record).
 - README size and wrangler.toml presence: from the checkout.
+- rating: gold, silver or bronze against the checklist in scripts/ratings.py, and gold_issue, the
+  folder's open issue labelled ``gold-standard``.
 - live_url: the custom domain of the folder's Worker (scripts/live_sites.py; Cloudflare's domain
   list when CLOUDFLARE_API_TOKEN is set, else the wrangler.toml routes), else the info.json website.
 
@@ -30,6 +32,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import forge_urls  # noqa: E402
 import live_sites  # noqa: E402
+import ratings  # noqa: E402
 
 ROOT = forge_urls.ROOT
 sys.path.insert(0, os.path.join(ROOT, "scripts", "forkmesh"))
@@ -278,7 +281,7 @@ def build(client, root=ROOT, now=None, max_pages=MAX_PAGES, domains=None):
             **stats,
         })
 
-    return {
+    return ratings.apply({
         "generated_at": iso(now),
         "source": "forge",
         "org": "BLT",
@@ -296,7 +299,7 @@ def build(client, root=ROOT, now=None, max_pages=MAX_PAGES, domains=None):
         },
         "repos": repos,
         "open_issues": sorted(open_issues, key=lambda i: i["updated_at"] or "", reverse=True),
-    }
+    }, root, now)
 
 
 def main():
