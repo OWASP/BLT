@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "preetam"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -12,7 +14,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\n`public/index.html` channel pills and preset chips are `<span>`s with click handlers (`public/sportscaster.js`), unreachable by keyboard. `#ai-api-key` and `#ai-model` have no labels, and the key field is `type=\"text\"` while the GitHub token field is `type=\"password\"`.\n\n## What to do\n\n1. Turn the spans into `<button type=\"button\" aria-pressed>` (keep the classes) and toggle `aria-pressed` in the handlers.\n2. Add labels; make the key field `type=\"password\" autocomplete=\"off\"`.\n3. Use `role=\"group\" aria-labelledby` for chip groups.\n\n## Acceptance criteria\n\n- [ ] Tab and Enter/Space switch channels and filters\n- [ ] Every input has an accessible name\n- [ ] Selected state announced\n\n## How to test locally\n\n```bash\npython3 -m http.server 8080 --directory blt-gitcaster/public\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\n`public/index.html` channel pills and preset chips are `\u003cspan\u003e`s with click handlers (`public/sportscaster.js`), unreachable by keyboard. `#ai-api-key` and `#ai-model` have no labels, and the key field is `type=\"text\"` while the GitHub token field is `type=\"password\"`.\n\n## What to do\n\n1. Turn the spans into `\u003cbutton type=\"button\" aria-pressed\u003e` (keep the classes) and toggle `aria-pressed` in the handlers.\n2. Add labels; make the key field `type=\"password\" autocomplete=\"off\"`.\n3. Use `role=\"group\" aria-labelledby` for chip groups.\n\n## Acceptance criteria\n\n- [ ] Tab and Enter/Space switch channels and filters\n- [ ] Every input has an accessible name\n- [ ] Selected state announced\n\n## How to test locally\n\n```bash\npython3 -m http.server 8080 --directory blt-gitcaster/public\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-174",
             "sig": "j4ueHhPsLKm3xJMphvxA7Nup0If17d_SgR188FlXL8yfA3rPeA9oe14ryk100U0vRcpfVWhhAC6gafkjd5iCBQ",
             "title": "blt-gitcaster: make channel pills and filter chips keyboard-accessible and label the AI fields",
@@ -31,6 +33,39 @@
             "sig": "uIOyc6r8YxzZ6bpiBOc1w47hWhG_pN3aE-GV7dbFA0Im15Fw6xiSdnkzj3u2ORb-37DeBvLA4v95L4decRqTAg",
             "ts": 1792547524600,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1792766863317",
+            "sig": "iF9B-bQOgCgIQgqU2gmuMwZpy_IptYrVPX1h5eBm-NScGYLhCxcGpdFoUckvx_n75tZ2Cvvt4i06KY2AgcajDQ",
+            "ts": 1792766863317,
+            "type": "comment"
+        },
+        {
+            "assignee": "preetam",
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "actions-1792766879302-9hMBJ-FO",
+            "sig": "WLBxT3GNZy1e4LAuAY7zKitZaoUwU8kbCRbxWMLbGQ7e5thVyGlHKhsuM2ztUUgnPlcJeZYke-lMUM41G0HcAg",
+            "ts": 1792766879302,
+            "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@preetam you're assigned to this issue. Please open a pull request for it within 24 hours. Without a pull request or an update from you here for 24 hours, you'll be unassigned (after a warning). If you stop working on it, comment `/unassign` so someone else can pick it up. \u003c!-- blt-assign:0e3f881b5af0566590cd --\u003e",
+            "id": "actions-1792766879520-teFhITJQ",
+            "sig": "lf5QqYqL6DJa1nXxS137qQrQmqlystzyVlIUPMCRRZSJHs_qDDPQ6oUBtfcmUZomkJiODgstG2pFdkvvQzfICw",
+            "ts": 1792766879520,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -46,6 +81,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-gitcaster: make channel pills and filter chips keyboard-accessible and label the AI fields",
-    "updatedAt": 1792547524600,
+    "updatedAt": 1792766879520,
     "votes": 0
 }

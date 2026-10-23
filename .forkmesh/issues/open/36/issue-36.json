@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "vanshika2720"
+    ],
     "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
     "authorName": "gitlab-import[bot]",
     "bountyAddress": "",
@@ -112,6 +114,17 @@
             "sig": "ECuOB1iU4Woxh7ZM8YKWaHwyAP9ytqK9J-TGSMXV22KOE3az8uwo8IWPxAmp89EtH2RkBFgVYyD1hsqvj0V7AQ",
             "ts": 1792750101428,
             "type": "comment"
+        },
+        {
+            "assignee": "vanshika2720",
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1792768434773-vpyhm8",
+            "sig": "TRW0xYItwc9TCYEx-s_DAkRWBbpiuzB1tOUuqvuQruO1vwqu4wFqu_IfqyhdPxnTloCwfxS7Hvc2rKy0-5rSDw",
+            "ts": 1792768434773,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -125,6 +138,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: Follow-up from \"feat: add macOS platform build configuration\"",
-    "updatedAt": 1792750101428,
+    "updatedAt": 1792768434773,
     "votes": 0
 }

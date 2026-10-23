@@ -5,8 +5,9 @@ name: "blt-waypoint: Refresh Data"
 # /forge_data.json and the old /gitlab_data.json. Nothing is committed and nothing is redeployed.
 # About 200 anonymous requests, bounded by FORGE_BUDGET_SECONDS so a run cannot hold the single
 # runner; when the budget runs out nothing is written and KV keeps the previous data.
-# The main_data files derive from the committed github_data.json and are committed with it
-# (python scripts/generate_main_data.py; the tests check they are current), so they are not here.
+# Each project's live_url comes from Cloudflare's Workers custom domains (scripts/live_sites.py),
+# so this step gets the API token too. Each row also gets its gold/silver/bronze rating
+# (scripts/ratings.py), read from the checkout. Screenshots are a separate job (blt-waypoint--screenshots).
 on:
   schedule:
     - cron: "29 6 * * *"
@@ -16,6 +17,9 @@ on:
     paths:
       - blt-waypoint/scripts/generate_forge_data.py
       - blt-waypoint/scripts/forge_urls.py
+      - blt-waypoint/scripts/ratings.py
+      - scripts/ci/tests.tsv
+      - scripts/deploy/projects.tsv
       - scripts/routing/projects.tsv
 permissions:
   contents: read
@@ -30,6 +34,8 @@ jobs:
       - name: Generate forge_data.json
         env:
           FORGE_BUDGET_SECONDS: "420"
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: python3 scripts/generate_forge_data.py
       - name: Write it to KV
         env:

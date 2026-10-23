@@ -1,0 +1,38 @@
+name: "blt-waypoint: Screenshots"
+# Captures each project's live site with Cloudflare Browser Rendering
+# (blt-waypoint/scripts/capture_screenshots.py) and writes screenshots/<folder>.jpg and
+# screenshots/index.json to the blt-waypoint Worker's KV, which serves them at /screenshots/*.
+# Runs after "blt-waypoint: Refresh Data" (06:29) and reads the live_url of each project from the
+# forge_data.json that job just published. About 15 s per site; SCREENSHOT_BUDGET_SECONDS bounds
+# the run, and a site that fails keeps yesterday's image. Nothing is committed or redeployed.
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  screenshots:
+    runs-on: runner
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: blt-waypoint
+    steps:
+      - name: Read today's project data
+        run: |
+          mkdir -p .shots
+          curl -fsS --retry 3 https://waypoint.owaspblt.org/forge_data.json -o .shots/forge_data.json
+      - name: Capture the live sites
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          FORGE_DATA_OUT: .shots/forge_data.json
+          SCREENSHOT_OUT: .shots/out
+          SCREENSHOT_BUDGET_SECONDS: "1200"
+        run: python3 scripts/capture_screenshots.py
+      - name: Write them to KV
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: ../scripts/worker-data/kv-put.sh . .shots/out .shots/out/screenshots/*.jpg .shots/out/screenshots/index.json

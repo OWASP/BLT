@@ -131,7 +131,7 @@ def labels(issue):
 def issue_projects(issue):
     """Folders an issue belongs to: labels ``blt-x`` / ``project:blt-x``, else its title prefix."""
     found = [name for name in fs.label_projects(issue.get("labels")) if name.startswith("blt-") or name in
-             ("my-gsoc-tool", "coderabbit", "dot_github")]
+             ("my-gsoc-tool", "coderabbit")]
     if found:
         return found
     prefix = fs.title_project(issue.get("title"))

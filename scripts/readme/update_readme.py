@@ -6,6 +6,9 @@ Sections are delimited by <!-- NAME-START --> / <!-- NAME-END --> markers:
   PROJECTS      one row per project folder: name, description, live site
   CONTRIBUTORS  everyone with a commit in any project, by commit count (see contributors.py; it also
                 writes .forkmesh/contributors/: avatars, contributors.json and a lookup cache)
+  WAITING-PRS   open pull requests on git.owaspblt.org, new contributors first (people with no
+                commit in any project and no merged pull request); kept as it is when the forge
+                can't be read (--offline skips it)
   DEPLOY        one row per Cloudflare deploy, from scripts/deploy/projects.tsv
   BLOG-POSTS    latest posts from dev.to/owaspblt (only with --blog; needs network)
 
@@ -42,7 +45,6 @@ DESCRIPTIONS = {
     "blt-action": "GitHub Action that automates issue and pull request management: self-assignment, unassignment of stale issues and contributor prompts.",
     "blt-autopatch": "Automated patching: proposes fixes for detected security issues.",
     "blt-sammich": "Slack bot for the OWASP BLT community: GitHub activity, contributor stats, reminders and project discovery.",
-    "dot_github": "Organization profile README and the scripts that refresh its blog posts and contributor wall.",
 }
 
 
@@ -185,6 +187,52 @@ def contributors_section(offline=False):
     )
 
 
+def waiting_section(people):
+    """Open pull requests on the forge, grouped by author, new contributors first. None when the
+    forge can't be read, so the old section is kept."""
+    sys.path.insert(0, os.path.join(ROOT, "scripts", "forkmesh"))
+    import ledger
+
+    try:
+        pulls = ledger.pulls(ledger.client(seconds=60))
+    except Exception as error:  # network or ledger trouble: keep the previous section
+        print(f"waiting pull requests: {error}", file=sys.stderr)
+        return None
+    known = {str(v).lower() for p in people for v in (p.get("login"), p.get("name"), p.get("github")) if v}
+    merged = {str(p.get("authorName") or "").lower() for p in pulls if str(p.get("status")).lower() == "merged"}
+    authors = {}
+    for pull in pulls:
+        if str(pull.get("status") or "open").lower() == "open":
+            authors.setdefault(str(pull.get("authorName") or "unknown"), []).append(pull)
+    if not authors:
+        return ("## ⏳ Pull Requests Waiting for Review\n\n"
+                f"*Last updated: {now()} — no open pull requests on git.owaspblt.org.*")
+
+    def shorten(text, n):
+        return text if len(text) <= n else text[:n - 1].rstrip() + "…"
+
+    def is_new(name):
+        return name.lower() not in known and name.lower() not in merged
+
+    order = sorted(authors, key=lambda a: (not is_new(a), -len(authors[a]), a.lower()))
+    rows = ["| Contributor | Waiting | Pull requests |", "|---|---|---|"]
+    for name in order:
+        prs = sorted(authors[name], key=lambda p: int(p.get("number") or 0))
+        who = f"[{name}]({ledger.profile_url(name)})" + (" 🌱 **new contributor**" if is_new(name) else "")
+        links = "<br>".join(
+            f"[#{p['number']}]({ledger.DEFAULT_URL}/BLT/pull/{p['number']}) "
+            + html.escape(shorten(str(p.get("title") or "").replace("|", "/"), 90))
+            for p in prs)
+        rows.append(f"| {who} | {len(prs)} | {links} |")
+    total = sum(len(v) for v in authors.values())
+    new = [a for a in order if is_new(a)]
+    return (
+        f"## ⏳ Pull Requests Waiting for Review ({total} open, {len(new)} new contributor{'s' if len(new) != 1 else ''})\n\n"
+        f"*Last updated: {now()} — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls),"
+        " people making their first BLT contribution first. Reviews help them most.*\n\n" + "\n".join(rows)
+    )
+
+
 def blog_section():
     import requests  # only needed for --blog
 
@@ -203,7 +251,14 @@ def blog_section():
 def main():
     text = open(README, encoding="utf-8").read()
     text = replace_section(text, "PROJECTS", projects_section())
-    text = replace_section(text, "CONTRIBUTORS", contributors_section(offline="--offline" in sys.argv))
+    offline = "--offline" in sys.argv
+    text = replace_section(text, "CONTRIBUTORS", contributors_section(offline=offline))
+    if not offline:
+        with open(os.path.join(ROOT, ".forkmesh", "contributors", "contributors.json"), encoding="utf-8") as f:
+            people = json.load(f).get("contributors") or []
+        waiting = waiting_section(people)
+        if waiting is not None:
+            text = replace_section(text, "WAITING-PRS", waiting)
     text = replace_section(text, "DEPLOY", deploy_section())
     if "--blog" in sys.argv:
         text = replace_section(text, "BLOG-POSTS", blog_section())

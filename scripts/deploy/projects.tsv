@@ -45,7 +45,7 @@ blt-safecloak	blt-safecloak	worker	-	-
 blt-sammich	blt-sammich	worker	-	-
 blt-sizzle	blt-sizzle	script	./deploy.sh	-
 blt-start	blt-start	worker	-	-
-blt-timer-web	blt-timer-web	script	./deploy.sh	-
+blt-timer	blt-timer	script	./deploy.sh	-
 blt-toasty	blt-toasty	worker	-	cd frontend && npm ci && npm run build
 blt-tomato	blt-tomato	worker	-	-
 blt-university	blt-university	worker	-	-

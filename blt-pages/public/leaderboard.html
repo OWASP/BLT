@@ -31,10 +31,10 @@
                     colors: {
                         primary: '#dc2626',
                         'primary-hover': '#B91C1C',
-                        'neutral-border': '#E5E5E5',
+                        'neutral-border': '#e5e7eb',
                         'dark-base': '#030712',
                         'dark-surface': '#111827',
-                        'active-bg': '#feeae9'
+                        'active-bg': '#fef2f2'
                     },
                     fontFamily: {
                         sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif']
@@ -60,14 +60,14 @@
 
         :root {
             --blt-primary: #dc2626;
-            --blt-border: #E5E5E5;
+            --blt-border: #e5e7eb;
             --blt-surface: #ffffff;
-            --blt-background: #f8fafc;
+            --blt-background: #f9fafb;
         }
 
         .dark {
-            --blt-primary: #EF4444;
-            --blt-border: #374151;
+            --blt-primary: #f87171;
+            --blt-border: #1f2937;
             --blt-surface: #111827;
             --blt-background: #030712;
         }
@@ -81,7 +81,7 @@
             background: var(--blt-surface);
             border: 1px solid var(--blt-border);
             box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-            transition: all 0.3s ease;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
         blt-nav:not(:defined) { display: block; min-height: 61px; }
         blt-nav:not(:defined) > * { display: none; }
@@ -157,7 +157,7 @@
                     </svg>
                 </div>
                 <input type="text" id="leaderboard-search"
-                    class="block w-full rounded-xl border border-neutral-border bg-white py-2.5 pl-10 pr-3 leading-5 placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-dark-surface dark:text-white sm:text-sm"
+                    class="block w-full rounded-xl border border-neutral-border bg-white py-2.5 pl-10 pr-3 leading-5 placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-800 dark:bg-dark-surface dark:text-white sm:text-sm"
                     placeholder="Search collaborators..." />
             </div>
             <p id="leaderboard-updated" class="text-sm text-gray-500 dark:text-gray-400">Updated Oct 18, 2026</p>
@@ -173,11 +173,11 @@
                     Top Reporters
                 </h2>
                 <div
-                    class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+                    class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-800 dark:bg-dark-surface">
                     <table class="w-full table-auto">
                         <thead>
                             <tr
-                                class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                                class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-400">
                                 <th scope="col" class="w-16 px-4 py-3 text-center">Rank</th>
                                 <th scope="col" class="px-4 py-3 text-left">Reporter</th>
                                 <th scope="col" class="hidden w-28 px-4 py-3 text-right sm:table-cell">Bugs</th>
@@ -186,7 +186,7 @@
                                 </th>
                             </tr>
                         </thead>
-                        <tbody id="leaderboard-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-700">
+                        <tbody id="leaderboard-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-800">
                             <!-- SSR:leaderboard-rows --><tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400"><svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-trophy"></use></svg>No reports yet. Be the first to <a href="https://git.owaspblt.org/BLT/issues/new" class="text-primary underline hover:no-underline">report a bug</a>!</td></tr><!-- /SSR:leaderboard-rows -->
                         </tbody>
                     </table>
@@ -202,11 +202,11 @@
                     Top Commenters
                 </h2>
                 <div
-                    class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+                    class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-800 dark:bg-dark-surface">
                     <table class="w-full table-auto">
                         <thead>
                             <tr
-                                class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                                class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-400">
                                 <th scope="col" class="w-16 px-4 py-3 text-center">Rank</th>
                                 <th scope="col" class="px-4 py-3 text-left">Commenter</th>
                                 <th scope="col" class="hidden w-28 px-4 py-3 text-right sm:table-cell">Count</th>
@@ -215,7 +215,7 @@
                                 </th>
                             </tr>
                         </thead>
-                        <tbody id="commenters-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-700">
+                        <tbody id="commenters-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-800">
                             <!-- SSR:commenters-rows --><tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400"><svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-comment"></use></svg>No comments yet. Start a conversation on a <a href="https://git.owaspblt.org/BLT/issues?label=blt-pages" class="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">bug report</a>!</td></tr><!-- /SSR:commenters-rows -->
                         </tbody>
                     </table>
@@ -232,11 +232,11 @@
                 Top Domains
             </h2>
             <div
-                class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+                class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-800 dark:bg-dark-surface">
                 <table class="w-full table-auto">
                     <thead>
                         <tr
-                            class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                            class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-400">
                             <th scope="col" class="w-16 px-4 py-3 text-center">Rank</th>
                             <th scope="col" class="px-4 py-3 text-left">Domain</th>
                             <th scope="col" class="hidden w-28 px-4 py-3 text-right sm:table-cell">Reports</th>
@@ -245,7 +245,7 @@
                             </th>
                         </tr>
                     </thead>
-                    <tbody id="domains-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-700">
+                    <tbody id="domains-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-800">
                         <!-- SSR:domains-rows --><tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400"><svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-globe"></use></svg>No domain data yet. <a href="https://git.owaspblt.org/BLT/issues/new" class="text-primary underline hover:no-underline">Be the first to report a bug!</a></td></tr><!-- /SSR:domains-rows -->
                     </tbody>
                 </table>
@@ -253,7 +253,7 @@
         </section>
     </main>
 
-    <footer class="mt-16 border-t border-neutral-border bg-white py-12 dark:border-gray-700 dark:bg-dark-surface">
+    <footer class="mt-16 border-t border-neutral-border bg-white py-12 dark:border-gray-800 dark:bg-dark-surface">
         <div class="mx-auto max-w-7xl px-4 text-center text-sm text-gray-500 dark:text-gray-400">
             <p>&copy; <span id="footer-year"></span> OWASP Foundation and BLT Contributors.</p>
         </div>

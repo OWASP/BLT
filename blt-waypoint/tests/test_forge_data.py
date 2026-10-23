@@ -117,6 +117,18 @@ class GeneratorTest(unittest.TestCase):
         # History stopped at the first commit older than 365 days (one call per folder).
         self.assertEqual([p for op, p in client.calls if op == "history"][0][0], ("path", "blt-leaf"))
 
+    def test_old_folder_history_is_merged(self):
+        with open(os.path.join(self.root, "scripts", "routing", "projects.tsv"), "a") as f:
+            f.write("blt-timer\tBLT-Timer\tBLT-Timer-Web,blt-timer-web,blt-leaf\n")
+        os.makedirs(os.path.join(self.root, "blt-timer"))
+        client = FakeClient({"blt-timer": [commit(1, 1)], "blt-timer-web": [commit(2, 5, "bob"), commit(1, 1)],
+                             "blt-leaf": [commit(9, 3)]})
+        timer = [r for r in gen.build(client, root=self.root, now=NOW)["repos"] if r["folder"] == "blt-timer"][0]
+        # blt-timer-web is a former folder; blt-leaf still exists, so it is not merged in.
+        self.assertEqual(timer["commits_30d"], 2)
+        self.assertEqual(timer["contributor_count"], 2)
+        self.assertEqual(timer["latest_commit"]["message"], "c1")
+
     def test_history_page_cap_marks_truncation(self):
         many = [commit(n, n * 0.1) for n in range(1, 200)]
         data = gen.build(FakeClient({"blt-leaf": many}), root=self.root, now=NOW, max_pages=2)
@@ -147,25 +159,23 @@ class UrlTest(unittest.TestCase):
         self.assertEqual(forge_urls.rewrite_text(text, index),
                          "see https://git.owaspblt.org/BLT/tree/main/blt-legacy and "
                          "https://git.owaspblt.org/BLT/tree/main/blt-toasty or https://git.owaspblt.org/BLT")
-        self.assertEqual(forge_urls.resolve(".github", index), "dot_github")
+        self.assertEqual(forge_urls.resolve("BLT-Timer-Flutter", index), "blt-timer")
         self.assertEqual(forge_urls.resolve("BLT-Github-Sportscaster", index), "blt-gitcaster")
 
 
 class CommittedFilesTest(unittest.TestCase):
     def test_no_gitlab_project_urls(self):
-        for name in ("github_data.json", "main_data.csv", "main_data.js", "main_data.json", "forge_data.json",
-                     "index.html", "issues.html", "script.js"):
-            with open(os.path.join(PROJECT, "public", name), encoding="utf-8") as f:
-                self.assertNotIn("gitlab.com/owasp-blt", f.read(), name)
+        for path in ("data/github_archive.json", "public/forge_data.json", "public/index.html",
+                     "public/issues.html", "public/screenshots.html", "public/script.js"):
+            with open(os.path.join(PROJECT, path), encoding="utf-8") as f:
+                self.assertNotIn("gitlab.com/owasp-blt", f.read(), path)
 
-    def test_main_data_is_current(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            env = dict(os.environ, MAIN_DATA_OUT=f"{tmp}/m.csv", MAIN_DATA_JS_OUT=f"{tmp}/m.js",
-                       MAIN_DATA_JSON_OUT=f"{tmp}/m.json")
-            subprocess.run([sys.executable, "scripts/generate_main_data.py"], cwd=PROJECT, env=env, check=True)
-            for out, committed in (("m.csv", "main_data.csv"), ("m.js", "main_data.js"), ("m.json", "main_data.json")):
-                with open(f"{tmp}/{out}", encoding="utf-8") as a, open(os.path.join(PROJECT, "public", committed), encoding="utf-8") as b:
-                    self.assertEqual(a.read(), b.read(), f"{committed} is stale: run python scripts/generate_main_data.py")
+    def test_the_pages_read_only_the_forge_data(self):
+        for name in ("index.html", "issues.html", "screenshots.html", "script.js"):
+            with open(os.path.join(PROJECT, "public", name), encoding="utf-8") as f:
+                text = f.read()
+            for old in ("github_data.json", "main_data", "imgs/screenshots"):
+                self.assertNotIn(old, text, f"{name} still reads {old}")
 
     def test_forge_data_shape(self):
         with open(os.path.join(PROJECT, "public", "forge_data.json"), encoding="utf-8") as f:

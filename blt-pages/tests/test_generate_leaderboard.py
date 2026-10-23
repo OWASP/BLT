@@ -43,6 +43,13 @@ class LeaderboardTest(unittest.TestCase):
         self.assertEqual(recent["user"]["profile_url"], "https://git.owaspblt.org/@ann")
         self.assertEqual(recent["latest_comment"]["user"]["login"], "bob")
 
+    def test_bots_are_not_on_the_leaderboard(self):
+        bugs = gen.bug_reports([issue(5, "blt-pages: fix x", ["bug", "blt-pages"], author="blt-tasks[bot]"),
+                                issue(6, "[blt-pages] Broken", ["bug"], author="dee")])
+        payload = gen.build_payload(bugs, now=datetime(2026, 10, 18, tzinfo=timezone.utc))
+        self.assertEqual(payload["total_bugs"], 2)
+        self.assertEqual([e["login"] for e in payload["leaderboard"]], ["dee"])
+
     def test_pages_link_to_the_forge(self):
         html = gen.render_leaderboard_rows([]) + gen.render_commenters_rows([])
         self.assertIn("https://git.owaspblt.org/BLT/issues/new", html)

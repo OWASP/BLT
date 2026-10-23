@@ -1,7 +1,7 @@
 # OWASP BLT — Bug Reporting Platform
 
 **Live Site:** [https://pages.owaspblt.org/](https://pages.owaspblt.org/)<br>
-**Source Code:** [https://git.owaspblt.org/BLT/BLT-Pages](https://git.owaspblt.org/BLT/BLT-Pages)
+**Source Code:** [https://git.owaspblt.org/BLT/tree/main/blt-pages](https://git.owaspblt.org/BLT/tree/main/blt-pages)
 
 <p align="center"><img src="logo.png" alt="blt-pages logo" width="160" height="160"></p>
 
@@ -19,7 +19,7 @@ Community-powered bug-reporting platform hosted from `public/` on Cloudflare, pa
 | Feature | Description |
 |---|---|
 | 🐛 **Public bug reports** | 404/500 errors, functional, performance, typos, design, IP violations |
-| 🕶️ **Anonymous reporting** | Submit via [BLT-API](https://blt.owasp.org/api) — no account required |
+| 🕶️ **Anonymous reporting** | Submit via [BLT-API](https://api.owaspblt.org/) — no account required |
 | 🔒 **Security vulnerabilities** | Zero-log, zero-tracking via [BLT-Zero](https://zero.owaspblt.org) |
 | 🏆 **Leaderboard** | Generated from the blt-pages bug reports on git.owaspblt.org |
 | 🗳️ **Leaders** | Leadership nominations are forge issues; votes are the forge's issue votes |
@@ -83,6 +83,21 @@ Bug reports are issues on [git.owaspblt.org](https://git.owaspblt.org/BLT/issues
 <https://git.owaspblt.org/BLT/issues?label=blt-pages>.
 
 ---
+
+## Contributing
+
+Work happens on [git.owaspblt.org](https://git.owaspblt.org/BLT): fork the BLT repository, branch, and open a pull
+request that touches only `blt-pages/`. Before you open it:
+
+```bash
+git clone https://git.owaspblt.org/BLT.git && cd BLT
+python -m http.server 8080 --directory blt-pages/public   # look at your change
+scripts/ci/test.sh blt-pages                              # the tests CI runs
+```
+
+Pick up [open blt-pages issues](https://git.owaspblt.org/BLT/issues?label=blt-pages) with `/assign`, follow the
+repository's [CONTRIBUTING.md](https://git.owaspblt.org/BLT/blob/main/CONTRIBUTING.md) and
+[AI Policy](https://git.owaspblt.org/BLT/blob/main/AI_POLICY.md), and fill in the pull request's AI model field.
 
 ## License
 

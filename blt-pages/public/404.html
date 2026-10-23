@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Page not found - OWASP BLT" />
+  <meta name="description" content="This page does not exist on OWASP BLT. Head back to the homepage or report a bug." />
   <title>404 – Page Not Found · OWASP BLT</title>
   <link rel="icon" href="/static/blt-logo.svg" type="image/svg+xml" />
 
@@ -29,10 +29,10 @@
           colors: {
             primary: '#dc2626',
             'primary-hover': '#B91C1C',
-            'neutral-border': '#E5E5E5',
+            'neutral-border': '#e5e7eb',
             'dark-base': '#030712',
             'dark-surface': '#111827',
-            'active-bg': '#feeae9'
+            'active-bg': '#fef2f2'
           },
           fontFamily: {
             sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif']
@@ -44,25 +44,19 @@
       }
     };
   </script>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
 
   <style>
+    .fa-icon { display: inline-block; height: 1em; width: auto; aspect-ratio: 1; vertical-align: -0.125em; fill: currentColor; overflow: visible; }
     :root {
       --blt-primary: #dc2626;
-      --blt-border: #E5E5E5;
+      --blt-border: #e5e7eb;
       --blt-surface: #ffffff;
-      --blt-background: #f8fafc;
+      --blt-background: #f9fafb;
     }
 
     .dark {
-      --blt-primary: #EF4444;
-      --blt-border: #374151;
+      --blt-primary: #f87171;
+      --blt-border: #1f2937;
       --blt-surface: #111827;
       --blt-background: #030712;
     }
@@ -71,34 +65,18 @@
       background: var(--blt-background);
       transition: background-color 0.3s ease;
     }
-
-    .hero-glow {
-      background:
-        radial-gradient(circle at 18% 8%, rgba(225, 1, 1, 0.14), transparent 40%),
-        radial-gradient(circle at 78% 0%, rgba(225, 1, 1, 0.1), transparent 28%),
-        linear-gradient(to bottom, #ffffff 0%, #f8fafc 70%);
-      transition: background 0.3s ease;
-    }
-
-    .dark .hero-glow {
-      background:
-        radial-gradient(circle at 18% 8%, rgba(239, 68, 68, 0.12), transparent 40%),
-        radial-gradient(circle at 78% 0%, rgba(239, 68, 68, 0.08), transparent 28%),
-        linear-gradient(to bottom, #111827 0%, #030712 70%);
-    }
-
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #f3f4f6; }
-    .dark ::-webkit-scrollbar-track { background: #1F2937; }
-    ::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 999px; }
-    .dark ::-webkit-scrollbar-thumb { background: #EF4444; }
     blt-nav:not(:defined) { display: block; min-height: 61px; }
     blt-nav:not(:defined) > * { display: none; }
   </style>
 </head>
 
 <body class="flex min-h-screen flex-col font-sans text-gray-900 antialiased dark:bg-dark-base dark:text-gray-100">
-  <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[420px] hero-glow"></div>
+  <svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true">
+    <symbol id="fa-bug" viewBox="0 0 576 512">
+    <path fill="currentColor" d="M192 96c0-53 43-96 96-96s96 43 96 96l0 3.6c0 15.7-12.7 28.4-28.4 28.4l-135.1 0c-15.7 0-28.4-12.7-28.4-28.4l0-3.6zm345.6 12.8c10.6 14.1 7.7 34.2-6.4 44.8l-97.8 73.3c5.3 8.9 9.3 18.7 11.8 29.1l98.8 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-96 0 0 32c0 2.6-.1 5.3-.2 7.9l83.4 62.5c14.1 10.6 17 30.7 6.4 44.8s-30.7 17-44.8 6.4l-63.1-47.3c-23.2 44.2-66.5 76.2-117.7 83.9L312 280c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 230.2c-51.2-7.7-94.5-39.7-117.7-83.9L83.2 473.6c-14.1 10.6-34.2 7.7-44.8-6.4s-7.7-34.2 6.4-44.8l83.4-62.5c-.1-2.6-.2-5.2-.2-7.9l0-32-96 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l98.8 0c2.5-10.4 6.5-20.2 11.8-29.1L44.8 153.6c-14.1-10.6-17-30.7-6.4-44.8s30.7-17 44.8-6.4L192 184c12.3-5.1 25.8-8 40-8l112 0c14.2 0 27.7 2.8 40 8l108.8-81.6c14.1-10.6 34.2-7.7 44.8 6.4z"/>
+  </symbol>
+    <symbol id="fa-house" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3 2 12h3v8h6v-6h2v6h6v-8h3z"/></symbol>
+  </svg>
 
   <blt-nav project="blt-pages" name="Pages" current="auto" data-sticky>
     <a href="/#features">Features</a>
@@ -117,7 +95,7 @@
 
       <!-- Icon -->
       <div class="mx-auto -mt-6 mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-active-bg dark:bg-red-950/30">
-        <i class="fa-solid fa-bug text-2xl text-primary dark:text-red-400" aria-hidden="true"></i>
+        <svg class="fa-icon text-2xl text-primary dark:text-red-400" aria-hidden="true"><use href="#fa-bug"></use></svg>
       </div>
 
       <h1 class="mb-3 text-3xl font-extrabold text-gray-900 dark:text-gray-100 sm:text-4xl">Page not found</h1>
@@ -130,22 +108,22 @@
       <div class="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
         <a
           href="/"
-          class="inline-flex w-full items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:w-auto"
+          class="inline-flex w-full items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:w-auto"
         >
-          <i class="fa-solid fa-house mr-2 text-xs" aria-hidden="true"></i>Go to Homepage
+          <svg class="fa-icon mr-2 text-xs" aria-hidden="true"><use href="#fa-house"></use></svg>Go to Homepage
         </a>
         <a
-          href="/report-bug.html"
-          class="inline-flex w-full items-center justify-center rounded-xl border border-neutral-border bg-white px-6 py-3 text-sm font-bold text-gray-700 shadow-sm transition hover:border-primary hover:text-primary dark:border-gray-600 dark:bg-dark-surface dark:text-gray-300 dark:hover:border-red-500 dark:hover:text-red-400 sm:w-auto"
+          href="https://git.owaspblt.org/BLT/issues/new" target="_blank" rel="noopener noreferrer"
+          class="inline-flex w-full items-center justify-center rounded-lg border border-neutral-border bg-white px-6 py-3 text-sm font-bold text-gray-700 shadow-sm transition hover:border-primary hover:text-primary dark:border-gray-700 dark:bg-dark-surface dark:text-gray-300 dark:hover:border-red-500 dark:hover:text-red-400 sm:w-auto"
         >
-          <i class="fa-solid fa-bug mr-2 text-xs" aria-hidden="true"></i>Report a Bug
+          <svg class="fa-icon mr-2 text-xs" aria-hidden="true"><use href="#fa-bug"></use></svg>Report a Bug
         </a>
       </div>
     </div>
   </main>
 
   <!-- Footer -->
-  <footer class="border-t border-neutral-border bg-white dark:border-gray-700 dark:bg-dark-surface">
+  <footer class="border-t border-neutral-border bg-white dark:border-gray-800 dark:bg-dark-surface">
     <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-6 sm:flex-row sm:px-6 lg:px-8">
       <p class="text-xs text-gray-400 dark:text-gray-500">&copy; <span id="footer-year"></span> OWASP Foundation and BLT Contributors · AGPLv3</p>
       <a href="/" class="text-xs text-red-600 hover:underline dark:text-red-400">Back to OWASP BLT</a>
@@ -163,8 +141,8 @@
       }
     });
   </script>
-  <script src="js/config.js"></script>
-  <script src="js/analytics.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/analytics.js"></script>
   <!-- These synchronous scripts execute in order, so bltCapture is available here.
        The dark_mode_toggled call above is inside a click handler so it also only
        runs after analytics.js has been parsed and executed. -->

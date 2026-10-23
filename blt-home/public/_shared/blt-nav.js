@@ -112,7 +112,7 @@
     ["BLT-Waypoint", "https://waypoint.owaspblt.org/", "blt-waypoint.svg"],
     ["BLT-Dash", "https://dash.owaspblt.org/", "blt-dash.svg"],
     ["BLT-Sizzle", "https://sizzle.owaspblt.org/", "blt-sizzle.svg"],
-    ["BLT-Timer", "https://timer.owaspblt.org/", "blt-timer-web.svg"],
+    ["BLT-Timer", "https://timer.owaspblt.org/", "blt-timer.svg"],
     ["BLT-Ketchup", "https://ketchup.owaspblt.org/", "blt-ketchup.svg"],
     ["BLT-SafeCloak", "https://safecloak.owaspblt.org/", "blt-safecloak.svg"],
     ["BLT-Vanish", "https://vanish.owaspblt.org/", "blt-vanish.svg"],

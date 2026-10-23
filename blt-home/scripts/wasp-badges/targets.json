@@ -89,8 +89,8 @@
   "blt-start": [
     "blt-start/public/logo.svg"
   ],
-  "blt-timer-web": [
-    "blt-timer-web/public/assets/logo.svg"
+  "blt-timer": [
+    "blt-timer/public/assets/logo.svg"
   ],
   "blt-tomato": [
     "blt-tomato/public/logo.svg"
@@ -101,9 +101,6 @@
   ],
   "blt-vanish": [
     "blt-vanish/web_client/assets/blt-vanish-logo.svg"
-  ],
-  "blt-waypoint": [
-    "blt-waypoint/public/imgs/project-logos-v2/BLT-Waypoint.svg"
   ],
   "blt-zero": [
     "blt-zero/static/blt-zero-logo.svg"

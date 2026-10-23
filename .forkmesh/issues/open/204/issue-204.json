@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792782010873,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nBLT-GSOC (`blt-gsoc/`) is rated **Bronze** on [Waypoint](https://waypoint.owaspblt.org/?q=blt-gsoc): it meets 93% of the checklist that applies to it. Waypoint rates every BLT project daily against the same checklist (`blt-waypoint/scripts/ratings.py`): **bronze** is the basics, **silver** means it runs, **gold** means it is looked after. This issue lists what is left for gold.\n\n## What to do\n\n### Bronze (the basics: a README, a description, a licence and a logo)\n\n- **Licence file.** Add a LICENSE file to the folder (most BLT projects are AGPL-3.0; copy the repository root's LICENSE).\n\n## Acceptance criteria\n\n- [ ] Licence file\n- [ ] Waypoint shows `blt-gsoc` as Gold after the next daily refresh\n\n## How to test locally\n\n```bash\ncurl -s https://waypoint.owaspblt.org/forge_data.json -o /tmp/forge_data.json\npython3 blt-waypoint/scripts/ratings.py /tmp/forge_data.json --report | grep -w blt-gsoc\nscripts/ci/test.sh blt-gsoc\n```\n\nThe report reads your checkout, so it shows the new rating before the change is merged.",
+            "id": "blt-tasks-issue-204",
+            "sig": "23MDMQwMfs43G5G6ZO4dpXUMp0ZAA3wST7CGa2hcrIcNqyhrDvEbgZ3AQuK7JZoV40nO2ZA0-ZUKCI893BhfCw",
+            "title": "blt-gsoc: reach the gold standard (bronze today, 1 step)",
+            "ts": 1792782010873,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-204",
+            "labels": [
+                "blt-gsoc",
+                "gold-standard",
+                "enhancement",
+                "good first issue"
+            ],
+            "sig": "8ozYKKKARyJcXRo1P8ghfFoQoWRktpKQwjBT5CZWzksM9iiOnQRDZloVhl_euis64vksIqCt5mAHV5OFsRsdBg",
+            "ts": 1792782010874,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-gsoc",
+        "gold-standard",
+        "enhancement",
+        "good first issue"
+    ],
+    "milestone": "",
+    "number": 204,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-gsoc: reach the gold standard (bronze today, 1 step)",
+    "updatedAt": 1792782010874,
+    "votes": 0
+}

@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792782010855,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nBLT-CVE (`blt-cve/`) is rated **Bronze** on [Waypoint](https://waypoint.owaspblt.org/?q=blt-cve): it meets 93% of the checklist that applies to it. Waypoint rates every BLT project daily against the same checklist (`blt-waypoint/scripts/ratings.py`): **bronze** is the basics, **silver** means it runs, **gold** means it is looked after. This issue lists what is left for gold.\n\n## What to do\n\n### Silver (it runs: tests in CI, an automatic deploy, a live site and steps to run it)\n\n- **README shows how to run it.** Add a \"Run locally\" (or Install / Getting started) section to the README with the exact commands in a code block, including how to run the tests.\n\n## Notes\n\n- The docs are linked as raw `.md` files; render them as pages.\n- `public/assets/blt-cve-hero.png` is no longer used by the page and can go.\n\n## Acceptance criteria\n\n- [ ] README shows how to run it\n- [ ] Waypoint shows `blt-cve` as Gold after the next daily refresh\n\n## How to test locally\n\n```bash\ncurl -s https://waypoint.owaspblt.org/forge_data.json -o /tmp/forge_data.json\npython3 blt-waypoint/scripts/ratings.py /tmp/forge_data.json --report | grep -w blt-cve\nscripts/ci/test.sh blt-cve\n```\n\nThe report reads your checkout, so it shows the new rating before the change is merged.",
+            "id": "blt-tasks-issue-195",
+            "sig": "3rPEC48civQRKs4I3u4SuMVR_F5SmEioFEk2M9ycgVZgBysNuWCXz4ROdnD9eO5YtMdK_kyCaaBMqcEWRFwwCg",
+            "title": "blt-cve: reach the gold standard (bronze today, 1 step)",
+            "ts": 1792782010855,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-195",
+            "labels": [
+                "blt-cve",
+                "gold-standard",
+                "enhancement",
+                "good first issue"
+            ],
+            "sig": "SvDAoQeJ6kSlcUVEP6LVJbzCSpqCIGNjtMQ2C3Sg1MBCPA08lw9WQp7hyKoP1WRptRiUE12bMWeb1zGMsaE9DA",
+            "ts": 1792782010856,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-cve",
+        "gold-standard",
+        "enhancement",
+        "good first issue"
+    ],
+    "milestone": "",
+    "number": 195,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-cve: reach the gold standard (bronze today, 1 step)",
+    "updatedAt": 1792782010856,
+    "votes": 0
+}

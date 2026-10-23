@@ -10,8 +10,12 @@ Replaces the gitlab.com/owasp-blt reader. One repository row per project folder 
 - issues and pull requests: the forge ledgers, attributed to folders by label (``<folder>`` or
   ``project:<folder>``), else by title prefix (``[<folder>]`` / ``<folder>:``).
 - description, website, topics: ``<folder>/.forkmesh/info.json`` where present (read from the
-  checkout), else the description in public/github_data.json.
+  checkout), else the description in data/github_archive.json (the archived GitHub record).
 - README size and wrangler.toml presence: from the checkout.
+- rating: gold, silver or bronze against the checklist in scripts/ratings.py, and gold_issue, the
+  folder's open issue labelled ``gold-standard``.
+- live_url: the custom domain of the folder's Worker (scripts/live_sites.py; Cloudflare's domain
+  list when CLOUDFLARE_API_TOKEN is set, else the wrangler.toml routes), else the info.json website.
 
 Stars, forks, languages, releases, tags, branches and repository size do not exist per folder:
 those fields are null. FORGE_BUDGET_SECONDS (default 300) bounds the run; when it runs out the
@@ -27,6 +31,8 @@ from datetime import datetime, timedelta, timezone
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import forge_urls  # noqa: E402
+import live_sites  # noqa: E402
+import ratings  # noqa: E402
 
 ROOT = forge_urls.ROOT
 sys.path.insert(0, os.path.join(ROOT, "scripts", "forkmesh"))
@@ -34,7 +40,7 @@ import ledger  # noqa: E402
 
 PROJECT = os.path.dirname(HERE)
 OUT = os.getenv("FORGE_DATA_OUT", os.path.join(PROJECT, "public", "forge_data.json"))
-GITHUB_DATA = os.path.join(PROJECT, "public", "github_data.json")
+GITHUB_DATA = os.path.join(PROJECT, "data", "github_archive.json")
 BUDGET = float(os.getenv("FORGE_BUDGET_SECONDS", "300"))
 MAX_PAGES = int(os.getenv("FORGE_HISTORY_PAGES", "20"))
 WINDOWS = (30, 90, 365)
@@ -199,7 +205,13 @@ def pull_entry(pull):
     }
 
 
-def build(client, root=ROOT, now=None, max_pages=MAX_PAGES):
+def old_folders(root, folder, aliases):
+    """Aliases that name a former folder of this project: lower-case blt-* names with no folder now."""
+    return [a for a in aliases if a != folder and a == a.lower() and a.startswith("blt-")
+            and not os.path.isdir(os.path.join(root, a))]
+
+
+def build(client, root=ROOT, now=None, max_pages=MAX_PAGES, domains=None):
     """The forge_data.json payload. Raises ledger.DeadlineExceeded when the budget runs out."""
     now = now or datetime.now(timezone.utc)
     index = forge_urls.folder_index(root)
@@ -207,6 +219,7 @@ def build(client, root=ROOT, now=None, max_pages=MAX_PAGES):
     folders = {folder for folder, _, _ in projects}
     names = {folder: name for folder, name, _ in projects}
     fallback = github_descriptions(index)
+    sites = live_sites.live_urls(root, sorted(folders), domains)
 
     open_issues, issues_by_folder = [], {}
     for issue in ledger.issues(client):
@@ -226,9 +239,21 @@ def build(client, root=ROOT, now=None, max_pages=MAX_PAGES):
 
     since = now - timedelta(days=max(WINDOWS))
     repos = []
-    for folder, name, _ in projects:
+    for folder, name, aliases in projects:
         commits = ledger.history(client, folder, since=since, max_pages=max_pages)
         truncated = len(commits) >= max_pages * ledger.HISTORY_PAGE
+        # A renamed or merged folder keeps its old folder names as aliases (blt-timer-web ->
+        # blt-timer); path history doesn't follow renames, so add theirs.
+        seen = {c.get("hash") for c in commits}
+        olds = old_folders(root, folder, aliases)
+        for old in olds:
+            for c in ledger.history(client, old, since=since, max_pages=max_pages):
+                if c.get("hash") not in seen:
+                    seen.add(c.get("hash"))
+                    commits.append(c)
+        if olds:
+            commits.sort(key=lambda c: ledger.iso_to_dt(c.get("date")) or datetime.min.replace(tzinfo=timezone.utc),
+                         reverse=True)
         info = folder_info(root, folder)
         stats = commit_stats(commits, now, truncated)
         folder_issues = sorted(issues_by_folder.get(folder, []), key=lambda i: i["updated_at"] or "", reverse=True)
@@ -244,6 +269,7 @@ def build(client, root=ROOT, now=None, max_pages=MAX_PAGES):
             "issues_url": f"{forge_urls.WEB_URL}/issues?label={folder}",
             "description": info.get("description") or fallback.get(folder),
             "homepage": info.get("website"),
+            "live_url": sites.get(folder) or info.get("website"),
             "topics": info.get("topics") or [],
             "private": False,
             "fork": False,
@@ -255,7 +281,7 @@ def build(client, root=ROOT, now=None, max_pages=MAX_PAGES):
             "open_issues_count": len(folder_issues),
             "open_pr_count": len(open_pulls),
             "readme_chars": readme_chars(root, folder),
-            "has_wrangler_toml": os.path.isfile(os.path.join(root, folder, "wrangler.toml")),
+            "has_wrangler_toml": bool(live_sites.wrangler_path(root, folder)),
             "has_pages": False,
             "latest_issue": folder_issues[0] if folder_issues else None,
             "latest_pr": pull_entry(folder_pulls[0]) if folder_pulls else None,
@@ -273,7 +299,7 @@ def build(client, root=ROOT, now=None, max_pages=MAX_PAGES):
             **stats,
         })
 
-    return {
+    return ratings.apply({
         "generated_at": iso(now),
         "source": "forge",
         "org": "BLT",
@@ -291,13 +317,13 @@ def build(client, root=ROOT, now=None, max_pages=MAX_PAGES):
         },
         "repos": repos,
         "open_issues": sorted(open_issues, key=lambda i: i["updated_at"] or "", reverse=True),
-    }
+    }, root, now)
 
 
 def main():
     client = ledger.client(seconds=BUDGET)
     try:
-        payload = build(client)
+        payload = build(client, domains=live_sites.cloudflare_domains())
     except ledger.DeadlineExceeded:
         print(f"forge data: time budget of {BUDGET:.0f}s spent after {client.requests} request(s); "
               f"keeping the previous data", file=sys.stderr)

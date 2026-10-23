@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Settings | BLT Timer</title>
+    <meta name="description" content="Manage BLT Timer profile and account settings." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/theme-init.js"></script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  </head>
+  <body class="min-h-screen bg-slate-50 font-sans text-slate-950 antialiased" data-dashboard-page="settings">
+    <blt-nav project="blt-timer" name="Timer" data-sticky>
+      <button id="logout-button" type="button" slot="actions">Log out</button>
+    </blt-nav>
+    <div id="dashboard-root"></div>
+    <script type="module" src="/settings-page.js"></script>
+  </body>
+</html>

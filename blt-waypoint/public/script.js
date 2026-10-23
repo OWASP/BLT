@@ -1,1776 +1,886 @@
-/* ------------------------------------------------------------------ */
-/*  CONSTANTS & STATE                                                   */
-/* ------------------------------------------------------------------ */
-const ORG  = 'OWASP-BLT';
-const API  = 'https://api.github.com';
-const PER_PAGE = 100;            // max allowed by GitHub API
-const MAX_LANGUAGES_DISPLAYED = 12; // sidebar language filter cap
-const APP_VERSION = 'v0.3.0';
-const DATA_SOURCES = {
-  main: {
-    label: 'Main',
-    file: 'main_data.csv',
-    fallbackFile: 'main_data.json',
-    type: 'csv',
-  },
-  github: {
-    label: 'GitHub',
-    file: 'github_data.json',
-    orgUrl: 'https://git.owaspblt.org/BLT',
-    generatedBy: 'archived GitHub record from',
-  },
-  // Per-folder data of the monorepo on git.owaspblt.org (scripts/generate_forge_data.py, daily,
-  // served from KV). Stars, forks, languages, releases, branches and sizes do not exist per folder.
-  forge: {
-    label: 'Forge',
-    file: 'forge_data.json',
-    orgUrl: 'https://git.owaspblt.org/BLT',
-    generatedBy: 'generated daily from git.owaspblt.org at',
-  },
-};
-const FORGE_WEB = 'https://git.owaspblt.org/BLT';
+/* BLT Waypoint: one script for the three pages (body[data-page] = dashboard | issues | screenshots).
+   Data:
+     forge_data.json         every folder of the monorepo on git.owaspblt.org (daily): repos[], open_issues[], generated_at,
+                             rating_criteria[]; each repo has rating { tier, score, met, missing, na } and gold_issue
+     screenshots/index.json  daily captures of the live sites: { generated_at, shots: { <folder>: { url, captured_at, live_url } } };
+                             may 404 until the first capture runs, then every page shows "screenshot pending". */
+(function () {
+  'use strict';
 
-// Project board URLs sourced from https://git.owaspblt.org/BLT/dot_github/blob/main/scripts/project_urls.json
-const PROJECT_URLS = {
-  'BLT':                          'https://github.com/orgs/OWASP-BLT/projects/2',
-  'BLT-Flutter':                  'https://github.com/orgs/OWASP-BLT/projects/60',
-  'BLT-Extension':                'https://github.com/orgs/OWASP-BLT/projects/59',
-  'BLT-Lettuce':                  'https://github.com/orgs/OWASP-BLT/projects/65',
-  'BLT-Sammich':                  'https://github.com/orgs/OWASP-BLT/projects/55',
-  'BLT-Github-Sportscaster':      'https://github.com/orgs/OWASP-BLT/projects/63',
-  'BLT-NetGuardian':              'https://github.com/orgs/OWASP-BLT/projects/81',
-  'BLT-Rewards':                  'https://github.com/orgs/OWASP-BLT/projects/70',
-  'BLT-Toasty':                   'https://github.com/orgs/OWASP-BLT/projects/54',
-  'BLT-Leaf':                     'https://github.com/orgs/OWASP-BLT/projects/83',
-  'BLT-Hackathons':               'https://github.com/orgs/OWASP-BLT/projects/47',
-  'BLT-Personal-Privacy-Protection': 'https://github.com/orgs/OWASP-BLT/projects/73',
-  'BLT-Panini':                   'https://github.com/orgs/OWASP-BLT/projects/78',
-  'BLT-Sizzle':                   'https://github.com/orgs/OWASP-BLT/projects/76',
-  'BLT-API':                      'https://github.com/orgs/OWASP-BLT/projects/80',
-  'BLT-Newsletter':               'https://github.com/orgs/OWASP-BLT/projects/78',
-};
+  const FORGE = 'https://git.owaspblt.org/BLT';
+  const DATA_URL = 'forge_data.json';
+  const SHOTS_URL = 'screenshots/index.json';
+  const SYMBOLS = 'https://owaspblt.org/_home/symbols/';
+  const DAY = 864e5;
+  const NOW = Date.now();
 
-const LANG_COLORS = {
-  Python:'#3572A5', JavaScript:'#f1e05a', TypeScript:'#2b7489', HTML:'#e34c26',
-  CSS:'#563d7c', Shell:'#89e051', Java:'#b07219', Go:'#00ADD8', Ruby:'#701516',
-  PHP:'#4F5D95', 'C++':'#f34b7d', C:'#555555', Rust:'#dea584', Kotlin:'#F18E33',
-  Swift:'#F05138', Dart:'#00B4AB', Vue:'#41b883', Dockerfile:'#384d54',
-};
+  /* ---------------- helpers ---------------- */
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-let allRepos   = [];
-let filtered   = [];
-let currentSort   = localStorage.getItem('blt-sort') || 'updated_at';
-let currentFilter = 'all';
-let currentLang   = '';
-let currentSearch = '';
-let currentLabel  = '';
-let currentView   = 'table';
-let tableSortCol  = localStorage.getItem('blt-table-sort-col') || 'updated_at';
-let tableSortDir  = localStorage.getItem('blt-table-sort-dir') || 'desc';
-let allLabels     = [];
-let currentDataSource = 'main';
-
-/* ------------------------------------------------------------------ */
-/*  DARK MODE                                                           */
-/* ------------------------------------------------------------------ */
-// The theme is applied before paint by theme-init.js and toggled from the BLT top bar.
-
-/* ------------------------------------------------------------------ */
-/*  UTILITY HELPERS                                                     */
-/* ------------------------------------------------------------------ */
-function formatNumber(n) {
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
-  return n;
-}
-
-function formatSize(kb) {
-  if (!kb) return '—';
-  if (kb < 1024) return kb + ' KB';
-  if (kb < 1024 * 1024) return (kb / 1024).toFixed(1) + ' MB';
-  return (kb / (1024 * 1024)).toFixed(1) + ' GB';
-}
-
-function timeAgo(dateStr) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const secs = Math.floor(diff / 1000);
-  if (secs < 60)   return 'just now';
-  if (secs < 3600) return Math.floor(secs / 60) + 'm ago';
-  if (secs < 86400)return Math.floor(secs / 3600) + 'h ago';
-  if (secs < 2592000) return Math.floor(secs / 86400) + 'd ago';
-  if (secs < 31536000) return Math.floor(secs / 2592000) + 'mo ago';
-  return Math.floor(secs / 31536000) + 'y ago';
-}
-
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-function sparklineSVG(data, width = 80, height = 20, className = 'text-brand opacity-70') {
-  if (!data || data.length < 2) return '';
-  const max = Math.max(...data, 1);
-  const step = width / (data.length - 1);
-  const pts = data.map((v, i) => {
-    const x = (i * step).toFixed(1);
-    const y = (height - (v / max) * (height - 2) - 1).toFixed(1);
-    return `${x},${y}`;
-  }).join(' ');
-  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="sparkline ${className}" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="${pts}"/></svg>`;
-}
-
-/* ------------------------------------------------------------------ */
-/*  PROJECT MATURITY SCORE (0 – 100)                                   */
-/*  Weighted formula using available repo fields:                       */
-/*    commits       25 pts  (saturates at 1,000 commits)               */
-/*    contributors  20 pts  (saturates at 10 contributors)             */
-/*    stars         15 pts  (saturates at 100 stars)                   */
-/*    readme docs   15 pts  (saturates at 5,000 chars)                 */
-/*    forks         10 pts  (saturates at 50 forks)                    */
-/*    recent activity 10 pts (commits in last 4 weeks, sat. at 20)     */
-/*    topics         5 pts  (saturates at 5 topics)                    */
-/* ------------------------------------------------------------------ */
-function maturityScore(r) {
-  let score = 0;
-  score += Math.min((r.total_commits || 0) / 1000, 1) * 25;
-  score += Math.min(((r.contributors || []).length) / 10, 1) * 20;
-  score += Math.min((r.stargazers_count || 0) / 100, 1) * 15;
-  score += Math.min((r.readme_chars || 0) / 5000, 1) * 15;
-  score += Math.min((r.forks_count || 0) / 50, 1) * 10;
-  const recentCommits = (r.weekly_commits || []).slice(-4).reduce((a, b) => a + b, 0);
-  score += Math.min(recentCommits / 20, 1) * 10;
-  score += Math.min(((r.topics || []).length) / 5, 1) * 5;
-  return Math.round(score);
-}
-
-function maturityMeta(score) {
-  if (score >= 75) return { label: 'Mature',     color: 'text-green-700 dark:text-green-400',   bg: 'bg-green-50 dark:bg-green-900/30' };
-  if (score >= 50) return { label: 'Beta',       color: 'text-blue-700 dark:text-blue-400',     bg: 'bg-blue-50 dark:bg-blue-900/30' };
-  if (score >= 25) return { label: 'Alpha',      color: 'text-yellow-700 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-900/30' };
-  return              { label: 'Incubating', color: 'text-gray-500 dark:text-gray-400',     bg: 'bg-gray-100 dark:bg-gray-700' };
-}
-
-function updateDataSourceTabs() {
-  document.querySelectorAll('.data-source-tab').forEach(tab => {
-    const isActive = tab.dataset.source === currentDataSource;
-    tab.setAttribute('aria-selected', String(isActive));
-    tab.setAttribute('aria-current', isActive ? 'page' : 'false');
-    tab.classList.toggle('ring-2', isActive);
-    tab.classList.toggle('ring-offset-1', isActive);
-    tab.classList.toggle('dark:ring-offset-gray-900', isActive);
-    tab.classList.toggle('ring-brand', isActive && currentDataSource === 'github');
-    tab.classList.toggle('ring-green-500', isActive && currentDataSource === 'forge');
-    tab.classList.toggle('ring-gray-500', isActive && currentDataSource === 'main');
-    tab.classList.toggle('shadow-sm', isActive);
-    tab.classList.toggle('scale-[1.03]', isActive);
-    tab.classList.toggle('font-bold', isActive);
-    tab.classList.toggle('opacity-60', !isActive);
-    tab.classList.toggle('grayscale', !isActive);
-  });
-}
-
-function resetDataSourceFilters(source) {
-  currentSearch = '';
-  currentFilter = 'all';
-  currentLang = '';
-  currentLabel = '';
-
-  if (source === 'github' || source === 'forge') {
-    currentView = 'table';
-    localStorage.setItem('blt-view', currentView);
+  function esc(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
-  const searchInput = document.getElementById('search-input');
-  const labelSearchInput = document.getElementById('label-search-input');
-  const filterMobile = document.getElementById('filter-select-mobile');
-  const labelDropdown = document.getElementById('label-dropdown');
-  if (searchInput) searchInput.value = '';
-  if (labelSearchInput) labelSearchInput.value = '';
-  if (filterMobile) filterMobile.value = 'all';
-  if (labelDropdown) labelDropdown.classList.add('hidden');
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.filter === 'all'));
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.lang === ''));
-  document.querySelectorAll('.label-option').forEach(b => b.classList.remove('nav-active', 'text-brand'));
-  updateViewButtons();
-}
-
-function repoDisplayName(r) {
-  if (String(r.name || '').toLowerCase() === 'blt-waypoint') return 'BLT-Waypoint';
-  return r.name;
-}
-
-function repoDescription(r) {
-  if (String(r.name || '').toLowerCase() === 'blt-waypoint') {
-    return 'OWASP BLT project directory and deployment waypoint';
-  }
-  return r.description || '';
-}
-
-function isOrgMetaRepo(r) {
-  return ['.github', 'dot_github'].includes(String(r.name || '').toLowerCase());
-}
-
-function orgMetaRepoLast(a, b) {
-  if (isOrgMetaRepo(a) === isOrgMetaRepo(b)) return 0;
-  return isOrgMetaRepo(a) ? 1 : -1;
-}
-
-// Canonical project artwork from https://blt-logo.vercel.app/. Every PNG is
-// normalized to a 512×512 transparent canvas. Projects without a published
-// mark use the core BLT logo instead of a broken image.
-const PROJECT_LOGOS = {
-  '.github': 'project-logos/.github.svg',
-  'blt': 'project-logos-v2/BLT-Core.svg',
-  'blt-core': 'project-logos-v2/BLT-Core.svg',
-  'blt-legacy': 'project-logos-v2/BLT-Legacy.svg',
-  'dot_github': 'project-logos/.github.svg',
-  'blt-gitcaster': 'canonical-logos/github-sport-caster.png',
-  'blt-vanish': 'canonical-logos/blt-vanish.png',
-  'blt-autopatch': 'project-logos-v2/BLT-Autopatch.svg',
-  'blt-action': 'canonical-logos/blt-action.png',
-  'blt-api': 'canonical-logos/blt-api.png',
-  'blt-bacon': 'canonical-logos/blt-bacon.png',
-  'blt-byte': 'canonical-logos/blt-bytes.png',
-  'blt-cve': 'canonical-logos/blt-cve.png',
-  'blt-design': 'canonical-logos/blt-design.png',
-  'blt-design-contest': 'project-logos-v2/BLT-Design-Contest.svg',
-  'blt-dash': 'project-logos-v2/BLT-Dash.svg',
-  'blt-docs': 'canonical-logos/blt-docs.png',
-  'blt-extension': 'canonical-logos/blt-extension.png',
-  'blt-github-sportscaster': 'canonical-logos/github-sport-caster.png',
-  'blt-gsoc': 'canonical-logos/blt-gsoc.png',
-  'blt-hackathon': 'canonical-logos/blt-hackathon.png',
-  'blt-hackathons': 'canonical-logos/blt-hackathon.png',
-  'blt-jobs': 'canonical-logos/blt-jobs.png',
-  'blt-ketchup': 'project-logos-v2/BLT-Ketchup.svg',
-  'blt-leaf': 'canonical-logos/blt-leaf.png',
-  'blt-mcp': 'canonical-logos/blt-mcp.png',
-  'blt-monitor': 'project-logos/BLT-Monitor.svg',
-  'blt-netguardian': 'canonical-logos/blt-netguardian.png',
-  'blt-netguardian-client': 'project-logos/BLT-NetGuardian-Client.svg',
-  'blt-newsletter': 'canonical-logos/blt-newletter.png',
-  'blt-next': 'canonical-logos/blt-next.png',
-  'blt-nexus': 'project-logos-v2/BLT-Nexus.svg',
-  'blt-ossh': 'canonical-logos/blt-ossh.png',
-  'blt-owasp-bumper': 'canonical-logos/blt-bumper.png',
-  'blt-owasp-metadata': 'project-logos/BLT-OWASP-metadata.svg',
-  'blt-owasp-projects': 'project-logos/BLT-OWASP-Projects.svg',
-  'blt-owasp-wich': 'canonical-logos/blt-wich.png',
-  'blt-panini': 'project-logos/BLT-Panini.svg',
-  'blt-pages': 'canonical-logos/blt-pages.png',
-  'blt-pool': 'project-logos-v2/BLT-Pool.svg',
-  'blt-preflight': 'canonical-logos/blt-preflight.png',
-  'blt-safecloak': 'canonical-logos/blt-safecloack.png',
-  'blt-sammich': 'canonical-logos/blt-sammich.png',
-  'blt-sizzle': 'canonical-logos/sizzle.png',
-  'blt-start': 'project-logos-v2/BLT-Start.svg',
-  'blt-toasty': 'project-logos/BLT-Toasty.svg',
-  'blt-timer-flutter': 'canonical-logos/blt-timer.png',
-  'blt-timer-web': 'canonical-logos/blt-timer.png',
-  'blt-tomato': 'canonical-logos/blt-tomato.png',
-  'blt-university': 'canonical-logos/blt-university.png',
-  'blt-vanish-flutter': 'canonical-logos/blt-vanish.png',
-  'blt-vanish-web': 'canonical-logos/blt-vanish.png',
-  'blt-waypoint': 'project-logos-v2/BLT-Waypoint.svg',
-  'blt-zero': 'canonical-logos/blt-zero.png',
-  'blt-cli': 'project-logos-v2/BLT-CLI.svg',
-  'blt-enforcement': 'project-logos-v2/BLT-Enforcement.svg',
-  'blt-flutter': 'project-logos/BLT-Flutter.svg',
-  'blt-ideas': 'project-logos/BLT-Ideas.svg',
-  'blt-lettuce': 'project-logos/BLT-Lettuce.svg',
-  'blt-profiles': 'project-logos-v2/BLT-Profiles.svg',
-  'blt-rewards': 'project-logos-v2/BLT-Rewards.svg',
-  'coderabbit': 'project-logos-v2/CodeRabbit.svg',
-  'my-gsoc-tool': 'canonical-logos/blt-gsoc-tool.png',
-};
-
-function projectLogoPath(r) {
-  const filename = PROJECT_LOGOS[String(r.folder || '').toLowerCase()] || PROJECT_LOGOS[String(r.name || '').toLowerCase()];
-  return filename ? `./imgs/${filename}` : './imgs/project-logos-v2/BLT-Core.svg';
-}
-
-function projectLogoHTML(r, classes = 'h-9 w-9') {
-  const path = projectLogoPath(r);
-  return `<span class="${classes} shrink-0 rounded-full overflow-hidden flex items-center justify-center"><img src="${escapeHtml(path)}" alt="${escapeHtml(repoDisplayName(r))} logo" class="h-full w-full object-contain" loading="lazy" /></span>`;
-}
-
-// Forge URLs of a project folder (rows of every source carry `folder` or a folder html_url).
-function repoFolder(r) {
-  if (r.folder) return r.folder;
-  const match = /^https:\/\/git\.owaspblt\.org\/BLT\/tree\/main\/([^/?#]+)/.exec(r.html_url || '');
-  return match ? match[1] : '';
-}
-
-function repoLinks(r) {
-  const folder = repoFolder(r);
-  if (!folder) {
-    const base = r.html_url || '';
-    return { repo: base, issues: `${base}/issues`, newIssue: `${base}/issues/new`, pulls: `${base}/pulls`, commits: `${base}/commits`, stars: `${base}/stargazers`, forks: `${base}/forks`, branches: `${base}/branches` };
-  }
-  const repo = `${FORGE_WEB}/tree/main/${folder}`;
-  return {
-    repo,
-    issues: `${FORGE_WEB}/issues?label=${encodeURIComponent(folder)}`,
-    newIssue: `${FORGE_WEB}/issues/new`,
-    pulls: `${FORGE_WEB}/pulls`,
-    commits: repo,
-    stars: '',
-    forks: '',
-    branches: '',
-  };
-}
-
-// A stat that links when the forge has a page for it, else plain text.
-function statLink(url, cls, title, inner) {
-  return url
-    ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(title)}" class="${cls}">${inner}</a>`
-    : `<span title="${escapeHtml(title)}">${inner}</span>`;
-}
-
-function hasValue(v) {
-  return v !== null && v !== undefined;
-}
-
-function updateVersionLabel() {
-  const label = document.getElementById('version-label');
-  if (label) label.textContent = APP_VERSION;
-}
-
-const CLOUDFLARE_LIVE_SITES = {
-  'blt-action': 'https://action.owaspblt.org/',
-  'blt-api': 'https://api.owaspblt.org/',
-  'blt-autopatch': 'https://autopatch.owaspblt.org/',
-  'blt-byte': 'https://byte.owaspblt.org/',
-  'blt-cli': 'https://cli.owaspblt.org/',
-  'blt-cve': 'https://cve.owaspblt.org/',
-  'blt-dash': 'https://dash.owaspblt.org/',
-  'blt-design': 'https://design.owaspblt.org/',
-  'blt-design-contest': 'https://contest.owaspblt.org/',
-  'blt-docs': 'https://docs.owaspblt.org/',
-  'blt-enforcement': 'https://enforcement.owaspblt.org/',
-  'blt-extension': 'https://extension.owaspblt.org/',
-  'blt-flutter': 'https://flutter.owaspblt.org/',
-  'blt-github-sportscaster': 'https://gitcaster.owaspblt.org/',
-  'blt-gitcaster': 'https://gitcaster.owaspblt.org/',
-  'blt-gsoc': 'https://gsoc.owaspblt.org/',
-  'blt-hackerhouse': 'https://hackerhouse.owaspblt.org/',
-  'blt-hackathons': 'https://hackathons.owaspblt.org/',
-  'blt-ideas': 'https://ideas.owaspblt.org/',
-  'blt-jobs': 'https://jobs.owaspblt.org/',
-  'blt-ketchup': 'https://ketchup.owaspblt.org/',
-  'blt-leaf': 'https://leaf.owaspblt.org/',
-  'blt-lettuce': 'https://lettuce.owaspblt.org/',
-  'blt-mcp': 'https://mcp.owaspblt.org/',
-  'blt-mayo': 'https://mayo.owaspblt.org/',
-  'blt-monitor': 'https://monitor.owaspblt.org/',
-  'blt-netguardian': 'https://netguardian.owaspblt.org/',
-  'blt-newsletter': 'https://newsletter.owaspblt.org/',
-  'blt-next': 'https://next.owaspblt.org/',
-  'blt-nexus': 'https://nexus.owaspblt.org/',
-  'blt-ossh': 'https://ossh.owaspblt.org/',
-  'blt-owasp-bumper': 'https://bumper.owaspblt.org/',
-  'blt-owasp-metadata': 'https://metadata.owaspblt.org/',
-  'blt-owasp-projects': 'https://projects.owaspblt.org/',
-  'blt-owasp-wich': 'https://wich.owaspblt.org/',
-  'blt-pages': 'https://pages.owaspblt.org/',
-  'blt-panini': 'https://panini.owaspblt.org/',
-  'blt-pool': 'https://pool.owaspblt.org/',
-  'blt-preflight': 'https://preflight.owaspblt.org/',
-  'blt-profiles': 'https://profiles.owaspblt.org/',
-  'blt-rewards': 'https://rewards.owaspblt.org/',
-  'blt-safecloak': 'https://safecloak.owaspblt.org/',
-  'blt-sammich': 'https://sammich.owaspblt.org/',
-  'blt-sizzle': 'https://sizzle.owaspblt.org/',
-  'blt-start': 'https://start.owaspblt.org/',
-  'blt-timer-web': 'https://timer.owaspblt.org/',
-  'blt-toasty': 'https://toasty.owaspblt.org/',
-  'blt-tomato': 'https://tomato.owaspblt.org/',
-  'blt-university': 'https://university.owaspblt.org/',
-  'blt-vanish': 'https://vanish.owaspblt.org/',
-  'blt-vanish-web': 'https://vanish.owaspblt.org/',
-  'blt-waypoint': 'https://waypoint.owaspblt.org/',
-  'blt-zero': 'https://zero.owaspblt.org/',
-  'my-gsoc-tool': 'https://gsoc-tool.owaspblt.org/',
-};
-
-function liveSiteMeta(r) {
-  const liveUrl = CLOUDFLARE_LIVE_SITES[String(r.name || '').toLowerCase()] || r.homepage;
-  if (!liveUrl) {
-    return {
-      url: '',
-      label: 'No live site',
-      classes: 'text-gray-300 dark:text-gray-600',
-      icon: 'fa-solid fa-minus',
-    };
+  // A timestamp in ms, or null for missing / placeholder dates (the forge sometimes reports 1970).
+  function ts(value) {
+    if (!value) return null;
+    const t = Date.parse(value);
+    return Number.isFinite(t) && t > Date.UTC(2005, 0, 1) ? t : null;
   }
 
-  let host = '';
-  try {
-    host = new URL(liveUrl).hostname.toLowerCase();
-  } catch (e) {
-    host = '';
-  }
-
-  const isGitHubPage = host === 'github.io' || host.endsWith('.github.io') || host === 'github.owaspblt.org';
-  const isOwaspBlt = host === 'owaspblt.org' || host.endsWith('.owaspblt.org');
-  if (isGitHubPage) {
-    return {
-      url: liveUrl,
-      label: 'GitHub Pages',
-      classes: 'text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/30 ring-red-200 dark:ring-red-800',
-      icon: 'fa-brands fa-github',
-    };
-  }
-  if (isOwaspBlt) {
-    return {
-      url: liveUrl,
-      label: 'owaspblt.org',
-      classes: 'text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 ring-green-200 dark:ring-green-800',
-      icon: 'fa-solid fa-globe',
-    };
-  }
-  return {
-    url: liveUrl,
-    label: 'Live site',
-    classes: 'text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 ring-gray-200 dark:ring-gray-700',
-    icon: 'fa-solid fa-arrow-up-right-from-square',
-  };
-}
-
-function parseCsv(text) {
-  const rows = [];
-  let row = [];
-  let value = '';
-  let inQuotes = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    const next = text[i + 1];
-
-    if (char === '"') {
-      if (inQuotes && next === '"') {
-        value += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (char === ',' && !inQuotes) {
-      row.push(value);
-      value = '';
-    } else if ((char === '\n' || char === '\r') && !inQuotes) {
-      if (char === '\r' && next === '\n') i++;
-      row.push(value);
-      if (row.some(cell => cell.trim() !== '')) rows.push(row);
-      row = [];
-      value = '';
-    } else {
-      value += char;
+  function ago(value) {
+    const t = typeof value === 'number' ? value : ts(value);
+    if (t == null) return '';
+    const s = Math.max(0, (NOW - t) / 1000);
+    if (s < 60) return 'just now';
+    const units = [[60, 'min'], [24, 'h'], [30, 'd'], [12, 'mo'], [Infinity, 'y']];
+    let n = s / 60;
+    for (const [size, label] of units) {
+      if (n < size) return `${Math.floor(n)}${label === 'min' ? ' min' : label} ago`;
+      n /= size;
     }
+    return '';
   }
 
-  if (value || row.length) {
-    row.push(value);
-    if (row.some(cell => cell.trim() !== '')) rows.push(row);
+  function fullDate(value) {
+    const t = typeof value === 'number' ? value : ts(value);
+    if (t == null) return '';
+    return new Date(t).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
   }
 
-  return rows;
-}
+  const num = n => (Number.isFinite(n) ? n.toLocaleString() : '–');
 
-function csvToMainPayload(text) {
-  const rows = parseCsv(text);
-  if (!rows.length) return { generated_at: '', source: 'main', org: ORG, repos: [] };
+  function host(url) {
+    try { return new URL(url).host.replace(/^www\./, ''); } catch (e) { return ''; }
+  }
 
-  const headers = rows[0].map(header => header.trim());
-  const repos = rows.slice(1).map(cells => {
-    const raw = {};
-    headers.forEach((header, index) => {
-      raw[header] = (cells[index] || '').trim();
-    });
+  function safeUrl(url) {
+    return /^https?:\/\//i.test(String(url || '')) ? url : '';
+  }
 
-    return {
-      id: raw.id ? Number(raw.id) : undefined,
-      name: raw.name,
-      full_name: raw.full_name,
-      html_url: raw.html_url,
-      description: raw.description,
-      homepage: raw.homepage || null,
-      topics: raw.topics ? raw.topics.split('|').map(t => t.trim()).filter(Boolean) : [],
-      language: raw.language || null,
-      fork: (raw.fork || '').toLowerCase() === 'true',
-      archived: (raw.archived || '').toLowerCase() === 'true',
-      updated_at: raw.updated_at,
-      folder: raw.folder || '',
-    };
-  }).filter(repo => repo.name);
-
-  return {
-    generated_at: '',
-    source: 'main',
-    org: ORG,
-    repos,
+  const store = {
+    get(key, fallback) { try { return localStorage.getItem(key) ?? fallback; } catch (e) { return fallback; } },
+    set(key, value) { try { localStorage.setItem(key, value); } catch (e) { /* private mode */ } },
   };
-}
 
-async function fetchSnapshotPayload(source) {
-  if (source.type === 'csv' && window.BLT_MAIN_DATA_CSV) {
-    const payload = csvToMainPayload(window.BLT_MAIN_DATA_CSV);
-    if (!payload.repos || payload.repos.length === 0) {
-      throw new Error('Embedded main_data.js did not contain repository rows');
+  function debounce(fn, wait) {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+  }
+
+  const params = () => new URLSearchParams(location.search);
+
+  function setParams(values) {
+    const p = params();
+    for (const [k, v] of Object.entries(values)) {
+      if (v === '' || v == null || v === false) p.delete(k); else p.set(k, v);
     }
-    return payload;
+    const q = p.toString();
+    history.replaceState(null, '', q ? `?${q}` : location.pathname);
   }
 
-  const resp = await fetch(`${source.file}?t=${Date.now()}`);
-  if (!resp.ok) {
-    throw new Error(`${source.file} returned HTTP ${resp.status}`);
+  async function getJson(url) {
+    const resp = await fetch(url, { cache: 'no-cache' });
+    if (!resp.ok) throw new Error(`${url}: HTTP ${resp.status}`);
+    return resp.json();
   }
 
-  const payload = source.type === 'csv'
-    ? csvToMainPayload(await resp.text())
-    : await resp.json();
+  const loadForge = () => getJson(DATA_URL);
 
-  if (!payload.repos || payload.repos.length === 0) {
-    throw new Error(`${source.file} did not contain repository rows`);
-  }
-
-  return payload;
-}
-
-async function fetchFallbackSnapshotPayload(source) {
-  if (!source.fallbackFile) throw new Error('No fallback snapshot configured');
-
-  const resp = await fetch(`${source.fallbackFile}?t=${Date.now()}`);
-  if (!resp.ok) {
-    throw new Error(`${source.fallbackFile} returned HTTP ${resp.status}`);
-  }
-
-  const payload = await resp.json();
-  if (!payload.repos || payload.repos.length === 0) {
-    throw new Error(`${source.fallbackFile} did not contain repository rows`);
-  }
-
-  return payload;
-}
-
-/* ------------------------------------------------------------------ */
-/*  GITHUB API FETCH (paginated)                                        */
-/* ------------------------------------------------------------------ */
-async function fetchAllPages(url) {
-  const results = [];
-  let page = 1;
-  while (true) {
-    const sep = url.includes('?') ? '&' : '?';
-    const resp = await fetch(`${url}${sep}per_page=${PER_PAGE}&page=${page}`, {
-      headers: { 'Accept': 'application/vnd.github+json' }
-    });
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({ message: 'Failed to parse error response' }));
-      throw new Error(err.message || `HTTP ${resp.status}`);
-    }
-    const data = await resp.json();
-    if (!Array.isArray(data) || data.length === 0) break;
-    results.push(...data);
-    if (data.length < PER_PAGE) break;
-    page++;
-  }
-  return results;
-}
-
-/* ------------------------------------------------------------------ */
-/*  LOAD REPOS                                                          */
-/* ------------------------------------------------------------------ */
-
-/**
- * Try to load a pre-baked data snapshot. GitHub is the default source and
- * falls back to live GitHub API calls if its snapshot is missing.
- */
-async function loadRepos() {
-  const errorEl = document.getElementById('error-state');
-  if (errorEl) errorEl.classList.add('hidden');
-  updateDataSourceTabs();
-
-  const source = DATA_SOURCES[currentDataSource] || DATA_SOURCES.github;
-
-  // Track whether the snapshot was successfully fetched and parsed so that any
-  // downstream processing error is not silently swallowed and the live-API
-  // fallback is not invoked when the snapshot was actually available.
-  let snapshotLoaded = false;
-
-  try {
-    // Attempt to load the pre-generated snapshot first.
-    // Add a cache-buster so the browser fetches the latest version.
-    let payload;
-    let loadedFile = source.file;
+  // Screenshot index, or null while it does not exist yet (404) or cannot be read.
+  async function loadShots() {
     try {
-      payload = await fetchSnapshotPayload(source);
-    } catch (primaryErr) {
-      if (!source.fallbackFile) throw primaryErr;
-      console.warn(`${source.file} not available, falling back to ${source.fallbackFile}:`, primaryErr.message);
-      payload = await fetchFallbackSnapshotPayload(source);
-      loadedFile = source.fallbackFile;
+      const data = await getJson(SHOTS_URL);
+      return data && typeof data.shots === 'object' && data.shots ? data : null;
+    } catch (e) {
+      return null;
     }
-    snapshotLoaded = true;
-    allRepos = payload.repos || [];
-    buildLangFilter(allRepos);
-    buildLabelFilter(allRepos);
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) searchInput.placeholder = `Search ${allRepos.length} repositories…`;
-    
-    // Pre-calculate expensive metrics
-    allRepos.forEach(r => {
-      r._maturityScore = maturityScore(r);
-      r._maturityMeta = maturityMeta(r._maturityScore);
-    });
-
-    applyFilters();
-    const generatedAt = payload.generated_at
-      ? new Date(payload.generated_at).toLocaleString()
-      : 'unknown';
-    const footerTs = document.getElementById('footer-ts');
-    if (footerTs) {
-      if (source.type === 'csv') {
-        const loadedFromEmbeddedCsv = loadedFile === source.file && window.BLT_MAIN_DATA_CSV;
-        footerTs.innerHTML =
-          `${source.label} data loaded from ${loadedFromEmbeddedCsv ? 'embedded CSV cache' : loadedFile === source.file ? 'editable CSV' : 'fallback JSON'}` +
-          ` &nbsp;·&nbsp; <a href="${loadedFile}" class="text-brand hover:underline" target="_blank" rel="noopener">${loadedFile}</a>`;
-      } else {
-        footerTs.innerHTML =
-          `${source.label} data ${source.generatedBy || 'generated at'} <strong>${generatedAt}</strong>` +
-          ` &nbsp;·&nbsp; <a href="${loadedFile}" class="text-brand hover:underline" target="_blank" rel="noopener">${loadedFile}</a>` +
-          (source.orgUrl ? ` &nbsp;·&nbsp; <a href="${source.orgUrl}" class="text-brand hover:underline" target="_blank" rel="noopener">${source.label} org</a>` : '');
-      }
-    }
-    return;
-  } catch (err) {
-    if (snapshotLoaded) {
-      // The snapshot was available but processing/rendering failed - surface the
-      // error directly rather than falling through to the live-API path where
-      // the same failure would repeat and produce a confusing error message.
-      console.error('Repository render error:', err);
-      showError('Failed to render repository data. Please try refreshing the page.');
-      return;
-    }
-    if (currentDataSource !== 'github') {
-      console.error(`${source.file} not available:`, err);
-      showError(`Unable to load ${source.label} repository data. Please try again later.`);
-      return;
-    }
-    // GitHub snapshot not available yet (action may not have run) - fall through to live API
-    console.warn(`${source.file} not available, falling back to live API:`, err.message);
   }
 
-  // Fallback: fetch live from the GitHub REST API
-  try {
-    const repos = await fetchAllPages(`${API}/orgs/${ORG}/repos`);
-    allRepos = repos;
-    buildLangFilter(repos);
-    buildLabelFilter(repos);
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) searchInput.placeholder = `Search ${allRepos.length} repositories…`;
-    
-    // Pre-calculate expensive metrics
-    allRepos.forEach(r => {
-      r._maturityScore = maturityScore(r);
-      r._maturityMeta = maturityMeta(r._maturityScore);
-    });
+  /* ---------------- project bits ---------------- */
+  const shortName = r => String(r.name || r.folder || '').replace(/^(OWASP-)?BLT-/i, '') || r.folder;
 
-    applyFilters();
-    const footerTs = document.getElementById('footer-ts');
-    if (footerTs) {
-      footerTs.textContent =
-        'Live data fetched at ' + new Date().toLocaleString() +
-        ` (${source.file} not yet available - action may not have run)`;
-    }
-  } catch (err) {
-    console.error('Failed to load repositories:', err);
-    showError('Unable to load repositories. Please try again later.');
+  // The project's live site: live_url from its wrangler.toml custom domain. Until the data carries
+  // live_url, the folder's info.json website (homepage) stands in.
+  function liveUrl(r) {
+    if (!r) return '';
+    return safeUrl(Object.prototype.hasOwnProperty.call(r, 'live_url') ? r.live_url : r.homepage);
   }
-}
 
-/* ------------------------------------------------------------------ */
-/*  ISSUE COUNT HELPER                                                  */
-/* ------------------------------------------------------------------ */
+  function folderUrl(folder) { return `${FORGE}/tree/main/${encodeURIComponent(folder)}`; }
+  function issuesUrl(r) { return safeUrl(r.issues_url) || `${FORGE}/issues?label=${encodeURIComponent(r.folder)}`; }
 
-/** Returns the number of real open issues (excluding PRs) for a repo. */
-function repoIssueCount(r) {
-  // Forge rows count issues only; GitHub's open_issues_count included pull requests.
-  if (r.folder && hasValue(r.commits_365d)) return r.open_issues_count || 0;
-  return Math.max(0, (r.open_issues_count || 0) - (r.open_pr_count || 0));
-}
+  // The project's round symbol (the one the shared top bar shows) over a monogram. The monogram stays
+  // when a folder has no symbol, even where the browser blocks the 404 without an error event.
+  function symbol(folder, name, cls = '') {
+    const letter = esc((String(name || folder).replace(/^(OWASP-)?BLT-/i, '')[0] || '?').toUpperCase());
+    const img = folder ? `<img src="${SYMBOLS}${encodeURIComponent(folder)}.svg" alt="" loading="lazy" decoding="async" data-sym />` : '';
+    return `<span class="sym ${cls}" data-l="${letter}" aria-hidden="true">${img}</span>`;
+  }
 
-/* ------------------------------------------------------------------ */
-/*  LANGUAGE FILTER SIDEBAR                                             */
-/* ------------------------------------------------------------------ */
-function buildLangFilter(repos) {
-  const langCount = {};
-  repos.forEach(r => { if (r.language) langCount[r.language] = (langCount[r.language] || 0) + 1; });
+  // Symbols and screenshots settle without inline handlers.
+  document.addEventListener('load', event => {
+    const img = event.target;
+    if (img instanceof HTMLImageElement && img.dataset.sym != null) img.parentElement.classList.add('ok');
+  }, true);
+  document.addEventListener('error', event => {
+    const img = event.target;
+    if (!(img instanceof HTMLImageElement)) return;
+    if (img.dataset.sym != null) {
+      img.remove();
+    } else if (img.dataset.shot != null) {
+      img.closest('.thumb')?.insertAdjacentHTML('beforeend', placeholder('pending'));
+      img.remove();
+    }
+  }, true);
 
-  const sorted = Object.entries(langCount).sort((a, b) => b[1] - a[1]).slice(0, MAX_LANGUAGES_DISPLAYED);
+  function placeholder(kind) {
+    const [icon, text] = kind === 'none' ? ['fa-regular fa-window-maximize', 'No live site'] : ['fa-regular fa-image', 'Screenshot pending'];
+    return `<span class="ph" title="${text}"><i class="${icon}" aria-hidden="true"></i><span class="ph-t">${text}</span></span>`;
+  }
 
-  const list = document.getElementById('lang-list');
-  if (!list) return;
-  list.innerHTML = `
-    <li>
-      <button data-lang="" class="lang-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors nav-active">
-        All languages
-      </button>
-    </li>
-  ` + sorted.map(([lang, count]) => `
-    <li>
-      <button data-lang="${escapeHtml(lang)}" class="lang-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between">
-        <span>
-          <span class="lang-dot" style="background:${LANG_COLORS[lang] || '#8b949e'}"></span>${escapeHtml(lang)}
-        </span>
-        <span class="text-xs text-gray-400">${count}</span>
-      </button>
-    </li>
-  `).join('');
+  // The capture's image URL (served by the worker at /screenshots/<folder>.jpg), or '' when there is none.
+  function shotUrl(shot) {
+    if (!shot || typeof shot.url !== 'string' || !shot.url) return '';
+    try { return safeUrl(new URL(shot.url, location.href).href); } catch (e) { return ''; }
+  }
 
-  list.querySelectorAll('.lang-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentLang = btn.dataset.lang;
-      list.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('nav-active', 'text-brand'));
-      btn.classList.add('nav-active');
-      applyFilters();
+  function shotImg(shot, name) {
+    const src = shotUrl(shot);
+    return src
+      ? `<img src="${esc(src)}" alt="${esc(name)} home page" loading="lazy" decoding="async" width="${+shot.width || 1280}" height="${+shot.height || 800}" data-shot />`
+      : '';
+  }
+
+  // A thumbnail of the live site: the daily capture, "pending" until it exists, "no live site" without one.
+  function thumb(live, shot, name) {
+    const inner = shotImg(shot, name) || placeholder(live ? 'pending' : 'none');
+    return live
+      ? `<a class="thumb" href="${esc(live)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">${inner}</a>`
+      : `<span class="thumb" aria-hidden="true">${inner}</span>`;
+  }
+
+  function sparkline(weeks, w = 78, h = 16) {
+    if (!Array.isArray(weeks) || !weeks.length) return '';
+    const max = Math.max(...weeks, 1);
+    const step = w / weeks.length;
+    const bar = Math.max(1, step - 1);
+    const bars = weeks.map((v, i) => {
+      const bh = v > 0 ? Math.max(2, Math.round(Math.sqrt(v / max) * h)) : 1;
+      return `<rect x="${(i * step).toFixed(1)}" y="${h - bh}" width="${bar.toFixed(1)}" height="${bh}" rx="0.5"${v > 0 ? '' : ' class="zero" fill="currentColor"'}/>`;
+    }).join('');
+    const total = weeks.reduce((a, b) => a + b, 0);
+    return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="currentColor" role="img" aria-label="${total} commits in the last ${weeks.length} weeks"><title>${total} commits in ${weeks.length} weeks</title>${bars}</svg>`;
+  }
+
+  /* ---------------- freshness: header chip and footer ---------------- */
+  function showFreshness(generatedAt, what = 'Data') {
+    const t = ts(generatedAt);
+    if (t == null) return;
+    const stale = NOW - t > 2 * DAY;
+    $$('[data-fresh]').forEach(el => {
+      el.hidden = false;
+      el.classList.toggle('stale', stale);
+      el.title = `${what} generated ${fullDate(t)}; it refreshes once a day`;
+      el.innerHTML = `<span class="pulse" aria-hidden="true"></span>Updated ${esc(ago(t))} · daily`;
     });
-  });
-}
-
-/* ------------------------------------------------------------------ */
-/*  LABEL FILTER SIDEBAR                                                */
-/* ------------------------------------------------------------------ */
-function buildLabelFilter(repos) {
-  // Extract all unique labels from topics
-  const labelCount = {};
-  repos.forEach(r => {
-    (r.topics || []).forEach(label => {
-      labelCount[label] = (labelCount[label] || 0) + 1;
-    });
-  });
-
-  // Sort by count
-  allLabels = Object.entries(labelCount)
-    .sort((a, b) => b[1] - a[1])
-    .map(([label, count]) => ({ label, count }));
-
-  // Initialize label search input
-  const searchInput = document.getElementById('label-search-input');
-  const dropdown = document.getElementById('label-dropdown');
-  const labelList = document.getElementById('label-list');
-  if (!searchInput || !dropdown || !labelList) return;
-
-  function renderLabelDropdown(filteredLabels = allLabels) {
-    labelList.innerHTML = filteredLabels.map(({ label, count }) => `
-      <li>
-        <button
-          data-label="${escapeHtml(label)}"
-          class="label-option w-full text-left px-3 py-2 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between border-b border-gray-100 dark:border-gray-700 last:border-b-0"
-        >
-          <span class="text-gray-700 dark:text-gray-300 truncate">${escapeHtml(label)}</span>
-          <span class="text-xs text-gray-400 ml-2 flex-shrink-0">${count}</span>
-        </button>
-      </li>
-    `).join('');
-
-    // Add click listeners to label options
-    labelList.querySelectorAll('.label-option').forEach(btn => {
-      btn.addEventListener('click', () => {
-        currentLabel = btn.dataset.label;
-        searchInput.value = currentLabel;
-        dropdown.classList.add('hidden');
-        document.querySelectorAll('.label-option').forEach(b => b.classList.remove('nav-active', 'text-brand'));
-        btn.classList.add('nav-active', 'text-brand');
-        applyFilters();
-      });
+    $$('[data-foot]').forEach(el => {
+      el.innerHTML = `Data from <a href="${FORGE}" target="_blank" rel="noopener noreferrer">git.owaspblt.org</a>, last refreshed <time datetime="${esc(new Date(t).toISOString())}">${esc(fullDate(t))}</time>. It updates daily.`;
     });
   }
 
-  // Initial render
-  renderLabelDropdown();
-
-  // Search input listener
-  searchInput.addEventListener('input', e => {
-    const query = e.target.value.toLowerCase().trim();
-    if (query === '') {
-      renderLabelDropdown();
-      dropdown.classList.add('hidden');
-      if (currentLabel) {
-        currentLabel = '';
-        applyFilters();
-      }
-    } else {
-      const filtered = allLabels.filter(({ label }) =>
-        label.toLowerCase().includes(query)
-      );
-
-      if (filtered.length > 0) {
-        renderLabelDropdown(filtered);
-        dropdown.classList.remove('hidden');
-      } else {
-        labelList.innerHTML = `
-          <li class="px-3 py-2 text-xs text-gray-400 dark:text-gray-500 italic">
-            No labels found
-          </li>
-        `;
-        dropdown.classList.remove('hidden');
-      }
-    }
-  });
-
-  // Focus listener to show dropdown
-  searchInput.addEventListener('focus', () => {
-    if (allLabels.length > 0) {
-      renderLabelDropdown();
-      dropdown.classList.remove('hidden');
-    }
-  });
-
-  // Click outside to close dropdown
-  document.addEventListener('click', (e) => {
-    if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
-      dropdown.classList.add('hidden');
-    }
-  });
-}
-
-/* ------------------------------------------------------------------ */
-/*  FILTER & SORT                                                       */
-/* ------------------------------------------------------------------ */
-function applyFilters() {
-  let repos = [...allRepos];
-
-  // Type filter
-  if (currentFilter === 'fork')     repos = repos.filter(r => r.fork);
-  else if (currentFilter === 'source')   repos = repos.filter(r => !r.fork && !r.archived);
-  else if (currentFilter === 'archived') repos = repos.filter(r => r.archived);
-
-  // Language filter
-  if (currentLang) repos = repos.filter(r => r.language === currentLang);
-
-  // Label filter
-  if (currentLabel) {
-    repos = repos.filter(r =>
-      (r.topics || []).some(t => t.toLowerCase() === currentLabel.toLowerCase())
-    );
+  function errorState(target, message, retry) {
+    target.innerHTML = `<div class="panel state error"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+      <b>Could not load the project data</b><span>${esc(message)}</span><br />
+      <button type="button" class="btn primary"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i>Retry</button></div>`;
+    $('button', target).addEventListener('click', retry);
   }
 
-  // Search
-  if (currentSearch) {
-    const q = currentSearch.toLowerCase();
-    repos = repos.filter(r =>
-      r.name.toLowerCase().includes(q) ||
-      repoDisplayName(r).toLowerCase().includes(q) ||
-      repoDescription(r).toLowerCase().includes(q) ||
-      (r.topics || []).some(t => t.toLowerCase().includes(q))
-    );
+  function emptyState(text, onClear) {
+    const wrap = document.createElement('div');
+    wrap.className = 'panel state';
+    wrap.innerHTML = `<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><b>${esc(text)}</b>
+      ${onClear ? '<button type="button" class="btn">Clear filters</button>' : ''}`;
+    if (onClear) $('button', wrap).addEventListener('click', onClear);
+    return wrap;
   }
 
-  // Sort (card view only; table view sorts in renderTableView)
-  if (currentView === 'card') {
-    repos.sort((a, b) => {
-      const metaOrder = orgMetaRepoLast(a, b);
-      if (metaOrder) return metaOrder;
-      if (currentSort === 'name') return a.name.localeCompare(b.name);
-      if (currentSort === 'updated_at' || currentSort === 'created_at')
-        return new Date(b[currentSort]) - new Date(a[currentSort]);
-      if (currentSort === 'maturity') return (b._maturityScore || 0) - (a._maturityScore || 0);
-      if (currentSort === 'latest_pr') {
-        const ta = (a.latest_pr && a.latest_pr.updated_at) ? new Date(a.latest_pr.updated_at) : null;
-        const tb = (b.latest_pr && b.latest_pr.updated_at) ? new Date(b.latest_pr.updated_at) : null;
-        if (!ta && !tb) return 0;
-        if (!ta) return 1;
-        if (!tb) return -1;
-        return tb - ta;
-      }
-      return (b[currentSort] || 0) - (a[currentSort] || 0);
-    });
+  function stat(icon, value, label, title = '') {
+    return `<div class="stat"${title ? ` title="${esc(title)}"` : ''}><b>${esc(value)}</b><span><i class="fa-solid ${icon}" aria-hidden="true"></i>${esc(label)}</span></div>`;
   }
 
-  filtered = repos;
-  renderRepos(repos);
-}
-
-/* ------------------------------------------------------------------ */
-/*  RENDER REPOS (dispatches to table or card view)                    */
-/* ------------------------------------------------------------------ */
-function renderRepos(repos) {
-  const grid  = document.getElementById('repo-grid');
-  const table = document.getElementById('repo-table');
-  const empty = document.getElementById('empty-state');
-
-  if (!grid || !table || !empty) return;
-
-  if (repos.length === 0) {
-    grid.innerHTML  = '';
-    table.innerHTML = '';
-    empty.classList.remove('hidden');
-    return;
-  }
-
-  empty.classList.add('hidden');
-
-  if (currentDataSource === 'main') {
-    grid.classList.add('hidden');
-    table.classList.remove('hidden');
-    const sidebar = document.getElementById('main-sidebar');
-    const layout = document.getElementById('main-layout');
-    const header = document.getElementById('site-toolbar');
-    if (sidebar) sidebar.classList.add('force-hidden');
-    if (layout) layout.classList.add('table-view');
-    if (header) header.classList.add('table-view-header');
-    renderMainSummaryView(repos, table);
-    return;
-  }
-
-  if (currentView === 'table') {
-    grid.classList.add('hidden');
-    table.classList.remove('hidden');
-    const sidebar = document.getElementById('main-sidebar');
-    const layout = document.getElementById('main-layout');
-    const header = document.getElementById('site-toolbar');
-    if (sidebar) sidebar.classList.add('force-hidden');
-    if (layout) layout.classList.add('table-view');
-    if (header) header.classList.add('table-view-header');
-    renderTableView(repos, table);
-  } else {
-    table.classList.add('hidden');
-    grid.classList.remove('hidden');
-    const sidebar = document.getElementById('main-sidebar');
-    const layout = document.getElementById('main-layout');
-    const header = document.getElementById('site-toolbar');
-    if (sidebar) sidebar.classList.remove('force-hidden');
-    if (layout) layout.classList.remove('table-view');
-    if (header) header.classList.remove('table-view-header');
-    
-    // Use DocumentFragment for more efficient DOM insertion
-    const fragment = document.createDocumentFragment();
-    repos.forEach(repo => {
-      const temp = document.createElement('div');
-      temp.innerHTML = repoCardHTML(repo);
-      fragment.appendChild(temp.firstElementChild);
-    });
-    grid.innerHTML = '';
-    grid.appendChild(fragment);
-
-    // Attach error handlers for screenshot images to show placeholder on load failure
-    grid.querySelectorAll('img[data-screenshot-placeholder]').forEach(img => {
-      img.addEventListener('error', function() {
-        const link = this.closest('.card-screenshot-link');
-        if (!link) return;
-        const placeholder = document.createElement('div');
-        placeholder.className = 'w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600';
-        const icon = document.createElement('i');
-        icon.className = 'fa-solid fa-image text-2xl';
-        icon.setAttribute('aria-hidden', 'true');
-        placeholder.appendChild(icon);
-        link.replaceChildren(placeholder);
-      });
-    });
-  }
-}
-
-function repoCardHTML(r) {
-  const langColor = LANG_COLORS[r.language] || '#8b949e';
-  const hasGsoc = (r.topics || []).some(t => t.toLowerCase().includes('gsoc'));
-  const topics = (r.topics || []).slice(0, 5).map(t => {
-    if (t.toLowerCase().includes('gsoc')) {
-      return `<span class="inline-block gsoc-label text-xs px-2 py-0.5 rounded-full">${escapeHtml(t)}</span>`;
-    }
-    return `<span class="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">${escapeHtml(t)}</span>`;
-  }).join('');
-
-  const archiveBadge = r.archived
-    ? `<span class="inline-block bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 text-xs px-2 py-0.5 rounded-full font-medium">Archived</span>`
-    : '';
-  const forkBadge = r.fork
-    ? `<span class="inline-block bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-2 py-0.5 rounded-full font-medium">Fork</span>`
-    : '';
-  const privateBadge = r.private
-    ? `<span class="inline-block bg-red-50 dark:bg-red-900/30 text-brand text-xs px-2 py-0.5 rounded-full font-medium">Private</span>`
-    : '';
-
-  const license = r.license ? `<span title="License" class="text-xs text-gray-400 dark:text-gray-500"><i class="fa-solid fa-scale-balanced mr-1" aria-hidden="true"></i>${escapeHtml(r.license.spdx_id)}</span>` : '';
-
-  // Contributor avatars (slightly overlapping)
-  const contributors = (r.contributors || []).filter(c => c.avatar_url).slice(0, 10);
-  const avatarStack = contributors.length
-    ? `<div class="avatar-stack" title="Top contributors: ${contributors.map(c => escapeHtml(c.login)).join(', ')}">
-        ${contributors.map(c => `<a href="${escapeHtml(c.html_url || `https://github.com/${c.login}`)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(c.avatar_url)}&amp;s=44" alt="${escapeHtml(c.login)}" title="${escapeHtml(c.login)} (${c.contributions} commits)" loading="lazy" /></a>`).join('')}
-      </div>`
-    : '';
-
-  // Activity sparkline
-  const sparkline = sparklineSVG(r.weekly_commits);
-
-  // Star history sparkline
-  const starSparkline = sparklineSVG(r.star_history, 80, 20, 'text-yellow-400 opacity-80');
-
-  // Maturity score badge (using pre-calculated values)
-  const score = r._maturityScore || 0;
-  const { label: matLabel, color: matColor, bg: matBg } = r._maturityMeta || maturityMeta(0);
-  const maturityBadge = `<span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${matBg} ${matColor}" title="Maturity score: ${score}/100"><i class="fa-solid fa-rocket" aria-hidden="true"></i>${matLabel} ${score}</span>`;
-
-  // Cloud icon for repos with wrangler.toml
-  const wranglerIcon = r.has_wrangler_toml
-    ? `<i class="fa-solid fa-cloud text-sky-500 text-xs" title="Uses Cloudflare Workers (wrangler.toml)" aria-label="Cloudflare Workers"></i>`
-    : '';
-
-  // Page/scroll icon for repos with GitHub Pages enabled
-  const pagesIcon = r.has_pages
-    ? `<i class="fa-solid fa-scroll text-purple-500 text-xs" title="GitHub Pages enabled" aria-label="GitHub Pages"></i>`
-    : '';
-
-  // Project board URL (rocket button)
-  const projectUrl = PROJECT_URLS[r.name];
-  const links = repoLinks(r);
-
-  return `
-  <article class="repo-card${hasGsoc ? ' gsoc-card' : ''} bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden flex flex-col shadow-sm" aria-label="Repository: ${escapeHtml(r.name)}">
-
-    ${r.homepage ? `
-    <!-- Screenshot thumbnail -->
-    <a href="${escapeHtml(r.homepage)}" target="_blank" rel="noopener noreferrer"
-       class="card-screenshot-link block overflow-hidden bg-gray-100 dark:bg-gray-700 shrink-0"
-       style="height:130px;" tabindex="-1" aria-hidden="true">
-      <img
-        src="./imgs/screenshots/${escapeHtml(r.name)}.png"
-        alt="Screenshot of ${escapeHtml(r.name)} website"
-        class="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-300"
-        loading="lazy"
-        data-screenshot-placeholder="1"
-      />
-    </a>
-    ` : ''}
-
-    <div class="p-5 flex flex-col gap-3 flex-1">
-
-    <!-- Header -->
-    <div class="flex items-start gap-3">
-      ${projectLogoHTML(r, 'h-11 w-11')}
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2 flex-wrap mb-1">
-          <a
-            href="${escapeHtml(links.repo)}"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="font-semibold text-brand hover:underline underline-offset-2 truncate text-sm"
-          >${escapeHtml(repoDisplayName(r))}</a>
-          ${archiveBadge}${forkBadge}${privateBadge}
-          ${maturityBadge}
-          ${wranglerIcon}${pagesIcon}
-        </div>
-        <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
-          ${escapeHtml(repoDescription(r)) || '<span class="italic">No description</span>'}
-        </p>
-      </div>
-    </div>
-
-    <!-- Topics -->
-    ${topics ? `<div class="flex flex-wrap gap-1.5">${topics}</div>` : ''}
-
-    <!-- Stats row -->
-    <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
-      ${r.language ? `
-        <span title="Primary language">
-          <span class="lang-dot" style="background:${langColor}"></span>${escapeHtml(r.language)}
-        </span>
-      ` : ''}
-      ${hasValue(r.stargazers_count) ? statLink(links.stars, 'hover:text-yellow-500 transition-colors', 'Stars', `<i class="fa-solid fa-star mr-1 text-yellow-400" aria-hidden="true"></i>${formatNumber(r.stargazers_count)}`) : ''}
-      ${hasValue(r.forks_count) ? statLink(links.forks, 'hover:text-green-600 transition-colors', 'Forks', `<i class="fa-solid fa-code-fork mr-1 text-green-500" aria-hidden="true"></i>${formatNumber(r.forks_count)}`) : ''}
-      ${statLink(links.issues, 'hover:text-brand transition-colors', 'Open issues', `<i class="fa-solid fa-circle-dot mr-1 text-brand" aria-hidden="true"></i>${formatNumber(repoIssueCount(r))}`)}
-      ${r.open_pr_count ? statLink(links.pulls, 'hover:text-teal-500 transition-colors', 'Open pull requests', `<i class="fa-solid fa-code-pull-request mr-1 text-teal-500" aria-hidden="true"></i>${formatNumber(r.open_pr_count)}`) : ''}
-      ${r.agent_pr_count ? statLink(links.pulls, 'hover:text-purple-500 transition-colors', 'Open bot/agent pull requests', `<i class="fa-solid fa-robot mr-1 text-purple-500" aria-hidden="true"></i>${formatNumber(r.agent_pr_count)}`) : ''}
-      ${r.size ? `<span title="Repository size"><i class="fa-solid fa-database mr-1 text-cyan-400" aria-hidden="true"></i>${formatSize(r.size)}</span>` : ''}
-      ${r.file_count ? `<span title="Total files (recursive)"><i class="fa-solid fa-file mr-1 text-teal-400" aria-hidden="true"></i>${formatNumber(r.file_count)} files</span>` : ''}
-      ${r.branch_count ? statLink(links.branches, 'hover:text-violet-500 transition-colors', 'Branches', `<i class="fa-solid fa-code-branch mr-1 text-violet-400" aria-hidden="true"></i>${formatNumber(r.branch_count)} branches`) : ''}
-      ${r.total_commits ? statLink(links.commits, 'hover:text-blue-500 transition-colors', 'Total commits', `<i class="fa-solid fa-code-commit mr-1 text-blue-400" aria-hidden="true"></i>${formatNumber(r.total_commits)} commits`) : ''}
-      ${hasValue(r.commits_365d) ? statLink(links.commits, 'hover:text-blue-500 transition-colors', 'Commits in the last 30 days / year (bots excluded)', `<i class="fa-solid fa-code-commit mr-1 text-blue-400" aria-hidden="true"></i>${formatNumber(r.commits_30d || 0)} / ${formatNumber(r.commits_365d)}${r.commits_truncated ? '+' : ''} commits (30d / 1y)`) : ''}
-      ${r.contributor_count ? `<span title="Distinct commit authors in the last year"><i class="fa-solid fa-users mr-1 text-indigo-400" aria-hidden="true"></i>${formatNumber(r.contributor_count)} authors</span>` : ''}
-      ${r.readme_chars ? `<span title="README character count"><i class="fa-solid fa-file-lines mr-1 text-pink-400" aria-hidden="true"></i>${formatNumber(r.readme_chars)} chars</span>` : ''}
-    </div>
-
-    <!-- Latest open issue -->
-    ${r.latest_issue ? `
-    <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="Most recent open issue">
-      <i class="fa-solid fa-circle-dot mr-1 text-brand" aria-hidden="true"></i>
-      <a href="${escapeHtml(r.latest_issue.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-brand hover:underline transition-colors truncate">
-        #${r.latest_issue.number}: ${escapeHtml(r.latest_issue.title)}
-      </a>
-    </div>` : ''}
-
-    <!-- Latest commit -->
-    ${r.latest_commit ? `
-    <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="Most recent commit">
-      <i class="fa-solid fa-code-commit mr-1 text-blue-400" aria-hidden="true"></i>
-      <a href="${escapeHtml(r.latest_commit.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors">
-        ${r.latest_commit.author_avatar ? `<img src="${escapeHtml(r.latest_commit.author_avatar)}&amp;s=20" alt="${escapeHtml(r.latest_commit.author)}" title="${escapeHtml(r.latest_commit.author)}" class="inline-block w-4 h-4 rounded-full mr-1 align-middle" loading="lazy" />` : ''}${escapeHtml(r.latest_commit.message)}
-      </a>
-      ${r.latest_commit.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${r.latest_commit.author_html_url ? `<a href="${escapeHtml(r.latest_commit.author_html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors">${escapeHtml(r.latest_commit.author)}</a>` : escapeHtml(r.latest_commit.author)}</span>` : ''}
-    </div>` : ''}
-
-    <!-- Latest PR -->
-    ${r.latest_pr ? `
-    <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="Most recent PR [${r.latest_pr.state}]">
-      ${r.latest_pr.state === 'merged'
-        ? `<i class="fa-solid fa-code-merge mr-1 text-purple-500" aria-hidden="true" title="Merged"></i>`
-        : r.latest_pr.state === 'open'
-          ? `<i class="fa-solid fa-code-pull-request mr-1 text-green-500" aria-hidden="true" title="Open"></i>`
-          : `<i class="fa-solid fa-circle-xmark mr-1 text-red-500" aria-hidden="true" title="Closed"></i>`}
-      <a href="${escapeHtml(r.latest_pr.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors">
-        ${r.latest_pr.author_avatar ? `<img src="${escapeHtml(r.latest_pr.author_avatar)}&amp;s=20" alt="${escapeHtml(r.latest_pr.author)}" title="${escapeHtml(r.latest_pr.author)}" class="inline-block w-4 h-4 rounded-full mr-1 align-middle" loading="lazy" />` : ''}#${r.latest_pr.number}: ${escapeHtml(r.latest_pr.title)}
-      </a>
-      ${r.latest_pr.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${r.latest_pr.author_html_url ? `<a href="${escapeHtml(r.latest_pr.author_html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors">${escapeHtml(r.latest_pr.author)}</a>` : escapeHtml(r.latest_pr.author)}</span>` : ''}
-    </div>` : ''}
-
-    <!-- Latest release -->
-    ${r.latest_release ? `
-    <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="Latest release">
-      <i class="fa-solid fa-tag mr-1 text-green-500" aria-hidden="true"></i>
-      <a href="${escapeHtml(r.latest_release.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-green-600 hover:underline transition-colors truncate">
-        ${escapeHtml(r.latest_release.tag_name)}${r.latest_release.name && r.latest_release.name !== r.latest_release.tag_name ? ` – ${escapeHtml(r.latest_release.name)}` : ''}
-      </a>
-    </div>` : ''}
-
-    <!-- Sparkline + avatars row -->
-    ${(sparkline || starSparkline || avatarStack) ? `
-    <div class="flex items-center justify-between gap-2">
-      ${avatarStack || '<span></span>'}
-      <div class="flex items-center gap-1.5">
-        ${starSparkline ? `<span title="Star activity (last 26 weeks)">${starSparkline}</span>` : ''}
-        ${sparkline ? `<span title="Commit activity (last 26 weeks)">${sparkline}</span>` : ''}
-      </div>
-    </div>` : ''}
-
-    <!-- Footer -->
-    <div class="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-gray-100 dark:border-gray-700">
-      <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500 flex-wrap">
-        ${license}
-        ${r.default_branch ? `<span title="Default branch"><i class="fa-solid fa-code-branch mr-1" aria-hidden="true"></i>${escapeHtml(r.default_branch)}</span>` : ''}
-      </div>
-      <span class="text-xs text-gray-400 dark:text-gray-500" title="Last updated: ${escapeHtml(r.updated_at)}">
-        <i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>${r.updated_at ? timeAgo(r.updated_at) : '—'}
-      </span>
-    </div>
-
-    <!-- Action buttons -->
-    <div class="flex gap-2 flex-wrap">
-      <a
-        href="${escapeHtml(links.repo)}"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="flex-1 text-center text-xs font-semibold px-3 py-1.5 bg-brand text-white rounded-md hover:bg-red-700 transition-colors"
-      >
-        <i class="fa-solid fa-code-branch mr-1.5" aria-hidden="true"></i>View Source
-      </a>
-      ${r.homepage ? (() => {
-        let isGithubPages = false;
-        try { const h = new URL(r.homepage).hostname; isGithubPages = h === 'github.io' || h.endsWith('.github.io'); } catch (e) { /* invalid URL */ }
-        return `
-        <a
-          href="${escapeHtml(r.homepage)}"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="flex-1 text-center text-xs font-semibold px-3 py-1.5 border border-brand text-brand rounded-md hover:bg-brand hover:text-white transition-colors"
-          title="${isGithubPages ? 'Hosted on GitHub Pages' : 'Custom domain'}"
-        >
-          <i class="${isGithubPages ? 'fa-brands fa-github' : 'fa-solid fa-globe'} mr-1.5" aria-hidden="true"></i>${isGithubPages ? 'GitHub Pages' : 'Live Site'}
-        </a>
-      `;
-      })() : `
-        <span
-          role="button"
-          aria-disabled="true"
-          class="flex-1 text-center text-xs font-semibold px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded-md cursor-not-allowed"
-          title="No live site"
-        >
-          <i class="fa-solid fa-arrow-up-right-from-square mr-1.5" aria-hidden="true"></i>Live Site
-        </span>
-      `}
-      ${projectUrl ? `
-        <a
-          href="${escapeHtml(projectUrl)}"
-          target="_blank"
-          rel="noopener noreferrer"
-          title="View Project Board"
-          class="flex-1 text-center text-xs font-semibold px-3 py-1.5 border border-brand text-brand rounded-md hover:bg-brand hover:text-white transition-colors"
-        >
-          <i class="fa-solid fa-rocket mr-1.5" aria-hidden="true"></i>Project
-        </a>
-      ` : `
-        <span
-          role="button"
-          aria-disabled="true"
-          class="flex-1 text-center text-xs font-semibold px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded-md cursor-not-allowed"
-          title="No project board"
-        >
-          <i class="fa-solid fa-rocket mr-1.5" aria-hidden="true"></i>Project
-        </span>
-      `}
-    </div>
-    <!-- Tiny action buttons -->
-    <div class="flex gap-1.5 flex-wrap">
-      <a
-        href="${escapeHtml(links.newIssue)}"
-        target="_blank"
-        rel="noopener noreferrer"
-        title="Create new issue"
-        class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand dark:hover:text-brand transition-colors"
-      >
-        <i class="fa-solid fa-circle-plus mr-1" aria-hidden="true"></i>New Issue
-      </a>
-      <a
-        href="https://github.com/${ORG}/${r.name}/agents"
-        target="_blank"
-        rel="noopener noreferrer"
-        title="Open agent tasks for this repo"
-        class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand dark:hover:text-brand transition-colors"
-      >
-        <i class="fa-solid fa-robot mr-1" aria-hidden="true"></i>Agent Task
-      </a>
-    </div>
-    </div>
-  </article>`;
-}
-
-/* ------------------------------------------------------------------ */
-/*  RENDER MAIN SUMMARY                                                 */
-/* ------------------------------------------------------------------ */
-function renderMainSummaryView(repos, container) {
-  const sorted = [...repos].sort((a, b) => orgMetaRepoLast(a, b) || a.name.localeCompare(b.name));
-
-  const rows = sorted.map((r, i) => {
-    const live = liveSiteMeta(r);
-    const links = repoLinks(r);
-    const rowBg = i % 2 === 0
-      ? 'bg-white dark:bg-gray-900'
-      : 'bg-gray-50/60 dark:bg-gray-800/60';
-    const liveCell = live.url
-      ? `<a href="${escapeHtml(live.url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ring-1 max-w-[28rem] ${live.classes}" title="${escapeHtml(live.label)}: ${escapeHtml(live.url)}"><i class="${live.icon}" aria-hidden="true"></i><span class="truncate">${escapeHtml(live.url)}</span></a>`
-      : `<span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${live.classes}"><i class="${live.icon}" aria-hidden="true"></i>${escapeHtml(live.label)}</span>`;
-    const folder = repoFolder(r);
-
-    return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
-      <td class="px-3 py-2 font-medium">
-        <div class="flex items-center gap-2">
-          ${projectLogoHTML(r, 'h-9 w-9')}
-          <div class="min-w-0">
-            <a href="${escapeHtml(links.repo)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(repoDisplayName(r))}</a>
-            ${repoDescription(r) ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-sm mt-0.5">${escapeHtml(repoDescription(r))}</p>` : ''}
-          </div>
-        </div>
-      </td>
-      <td class="px-3 py-2">${liveCell}</td>
-      <td class="px-3 py-2 whitespace-nowrap">
-        ${folder
-          ? `<a href="${escapeHtml(links.repo)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 ring-1 ring-gray-200 dark:ring-gray-700" title="${escapeHtml(links.repo)}"><i class="fa-solid fa-code-branch" aria-hidden="true"></i>${escapeHtml(folder)}</a>`
-          : `<span class="text-gray-300 dark:text-gray-600">-</span>`}
-      </td>
-    </tr>`;
-  }).join('');
-
-  container.innerHTML = `
-    <table class="border-collapse text-sm w-max">
-      <caption class="caption-top text-left px-3 pb-3 text-sm text-gray-600 dark:text-gray-300">
-        Every project is a folder of <a href="${FORGE_WEB}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline">git.owaspblt.org/BLT</a>.
-      </caption>
-      <thead class="bg-gray-50 dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700">
-        <tr>
-          <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Repository (${formatNumber(repos.length)})</th>
-          <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Live Site URL</th>
-          <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Source</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-}
-
-/* ------------------------------------------------------------------ */
-/*  RENDER TABLE VIEW                                                   */
-/* ------------------------------------------------------------------ */
-// `only` limits a column to some data sources; the forge has no stars, forks, languages,
-// releases, branches or sizes per folder, so those columns are hidden there.
-const NOT_FORGE = ['github'];
-const TABLE_COLS = [
-  { key: 'name',              label: 'Repository' },
-  { key: 'topics',            label: 'Labels'     },
-  { key: 'language',          label: 'Language',    only: NOT_FORGE },
-  { key: 'stargazers_count',  label: 'Stars',       only: NOT_FORGE },
-  { key: 'forks_count',       label: 'Forks',       only: NOT_FORGE },
-  { key: 'open_issues_count', label: 'Issues'     },
-  { key: 'open_pr_count',     label: 'PRs'        },
-  { key: 'agent_pr_count',    label: 'Agent PRs',   only: NOT_FORGE },
-  { key: 'total_commits',     label: 'Commits',     only: NOT_FORGE },
-  { key: 'commits_30d',       label: 'Commits 30d', only: ['forge'] },
-  { key: 'commits_90d',       label: 'Commits 90d', only: ['forge'] },
-  { key: 'commits_365d',      label: 'Commits 1y',  only: ['forge'] },
-  { key: 'contributor_count', label: 'Authors 1y',  only: ['forge'] },
-  { key: 'branch_count',      label: 'Branches',    only: NOT_FORGE },
-  { key: 'size',              label: 'Size',        only: NOT_FORGE },
-  { key: 'readme_chars',      label: 'README Size' },
-  { key: 'maturity',          label: 'Maturity',    only: NOT_FORGE },
-  { key: 'latest_release',    label: 'Release',     only: NOT_FORGE },
-  { key: 'latest_commit',     label: 'Last Commit' },
-  { key: 'latest_pr',         label: 'Last PR'    },
-  { key: 'updated_at',        label: 'Updated'    },
-  { key: 'latest_issue',      label: 'Latest Issue' },
-  { key: 'infra',             label: 'Infra'        },
-];
-
-function visibleTableCols() {
-  return TABLE_COLS.filter(col => !col.only || col.only.includes(currentDataSource));
-}
-
-function byDate(get) {
-  return (a, b) => {
-    const ta = get(a) ? new Date(get(a)) : null;
-    const tb = get(b) ? new Date(get(b)) : null;
-    if (!ta && !tb) return 0;
-    if (!ta) return -1;
-    if (!tb) return 1;
-    return ta - tb;
-  };
-}
-
-const EMPTY_CELL = `<span class="text-gray-300 dark:text-gray-600">—</span>`;
-
-function renderTableView(repos, container) {
-  const cols = visibleTableCols();
-  const sortCol = cols.some(c => c.key === tableSortCol) ? tableSortCol : 'updated_at';
-  const sorted = [...repos].sort((a, b) => {
-    const metaOrder = orgMetaRepoLast(a, b);
-    if (metaOrder) return metaOrder;
-    let v;
-    if (sortCol === 'name')       v = a.name.localeCompare(b.name);
-    else if (sortCol === 'maturity') v = (a._maturityScore || 0) - (b._maturityScore || 0);
-    else if (sortCol === 'updated_at' || sortCol === 'created_at' || sortCol === 'pushed_at') {
-      v = byDate(r => r[sortCol])(a, b);
-    }
-    else if (sortCol === 'open_issues_count') v = repoIssueCount(a) - repoIssueCount(b);
-    else if (sortCol === 'topics') v = (a.topics || []).length - (b.topics || []).length;
-    else if (sortCol === 'latest_release') v = byDate(r => r.latest_release && r.latest_release.published_at)(a, b);
-    else if (sortCol === 'latest_commit') v = byDate(r => r.latest_commit && r.latest_commit.date)(a, b);
-    else if (sortCol === 'latest_pr') v = byDate(r => r.latest_pr && r.latest_pr.updated_at)(a, b);
-    else if (sortCol === 'latest_issue') {
-      v = (a.latest_issue ? a.latest_issue.number : 0) - (b.latest_issue ? b.latest_issue.number : 0);
-    }
-    else v = (a[sortCol] || 0) - (b[sortCol] || 0);
-    return tableSortDir === 'asc' ? v : -v;
-  });
-
-  const sum = key => repos.reduce((s, r) => s + (r[key] || 0), 0);
-  const colTotals = {
-    name:               repos.length,
-    stargazers_count:   sum('stargazers_count'),
-    forks_count:        sum('forks_count'),
-    open_issues_count:  repos.reduce((s, r) => s + repoIssueCount(r), 0),
-    open_pr_count:      sum('open_pr_count'),
-    agent_pr_count:     sum('agent_pr_count'),
-    total_commits:      sum('total_commits'),
-    commits_30d:        sum('commits_30d'),
-    commits_90d:        sum('commits_90d'),
-    commits_365d:       sum('commits_365d'),
-    branch_count:       sum('branch_count'),
-    size:               sum('size'),
-    readme_chars:       sum('readme_chars'),
-    language:           new Set(repos.map(r => r.language).filter(Boolean)).size,
-    topics:             new Set(repos.flatMap(r => r.topics || [])).size,
+  /* ---------------- ratings (scripts/ratings.py) ---------------- */
+  const TIERS = { gold: 'Gold', silver: 'Silver', bronze: 'Bronze' };
+  const TIER_RANK = { gold: 3, silver: 2, bronze: 1 };
+  const TIER_NOTE = {
+    bronze: 'The basics: a README, a description, a licence and a logo.',
+    silver: 'It runs: tests in CI, an automatic deploy, a live site and steps to run it.',
+    gold: 'It is looked after: the BLT theme, a contributing guide, recent commits, several contributors and triaged issues.',
   };
 
-  const headerCells = cols.map(col => {
-    const isActive = sortCol === col.key;
-    const arrow = isActive ? (tableSortDir === 'asc' ? ' ▲' : ' ▼') : '';
-    const activeCls = isActive ? ' text-brand dark:text-red-400 font-bold' : '';
-    const total = colTotals[col.key];
-    const totalStr = total !== undefined ? ` (${formatNumber(total)})` : '';
-    return `<th data-col="${col.key}" class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap transition-colors${activeCls}" title="Sort by ${escapeHtml(col.label)}">${escapeHtml(col.label)}${totalStr}<span class="ml-1">${arrow}</span></th>`;
-  }).join('');
+  // A small ribbon-and-coin medal in the tier's colours (styles.css: .mdl).
+  function medalSvg(tier, size = 16) {
+    return `<svg class="mdl ${tier}" width="${size}" height="${size}" viewBox="0 0 16 16" aria-hidden="true">`
+      + '<path class="rib-l" d="M4.2 0h3.3l1.6 5.2-2.9 1.5z"/><path class="rib-r" d="M8.5 0h3.3L9.6 6.7 6.9 5.2z"/>'
+      + '<circle class="coin" cx="8" cy="10.2" r="5.2"/><circle class="rim" cx="8" cy="10.2" r="3.6"/>'
+      + '<path class="star" d="m8 7.9.7 1.4 1.5.2-1.1 1 .3 1.5L8 11.3l-1.4.7.3-1.5-1.1-1 1.5-.2z"/></svg>';
+  }
 
-  const num = 'px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums';
-  const rows = sorted.map((r, i) => {
-    const links = repoLinks(r);
-    const langColor = LANG_COLORS[r.language] || '#8b949e';
-    const score = r._maturityScore || 0;
-    const { label: matLabel, color: matColor, bg: matBg } = r._maturityMeta || maturityMeta(0);
-    const rowBg = i % 2 === 0
-      ? 'bg-white dark:bg-gray-900'
-      : 'bg-gray-50/60 dark:bg-gray-800/60';
-    const archiveBadge = r.archived
-      ? `<span class="ml-1 text-xs bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 px-1.5 rounded-full">Arc</span>`
-      : '';
-    const forkBadge = r.fork
-      ? `<span class="ml-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 rounded-full">Fork</span>`
-      : '';
-    const projectUrl = PROJECT_URLS[r.name];
-    const live = liveSiteMeta(r);
-    const topics = r.topics || [];
-    const gsocTopic = topics.find(t => t.toLowerCase().includes('gsoc'));
-    const gsocBadge = gsocTopic
-      ? `<span class="inline-block gsoc-label text-xs px-2 py-0.5 rounded-full whitespace-nowrap ml-1">${escapeHtml(gsocTopic)}</span>`
-      : '';
-    const wranglerIcon = r.has_wrangler_toml
-      ? `<i class="fa-solid fa-cloud text-sky-500 text-xs ml-1" title="Uses Cloudflare Workers (wrangler.toml)" aria-label="Cloudflare Workers"></i>`
-      : '';
-    const pagesIcon = r.has_pages
-      ? `<i class="fa-solid fa-scroll text-purple-500 text-xs ml-1" title="GitHub Pages enabled" aria-label="GitHub Pages"></i>`
-      : '';
-    const count = (key, title) => `<td class="${num}">${r[key]
-      ? statLink(links.commits, 'hover:text-blue-500 transition-colors', title, `<i class="fa-solid fa-code-commit text-blue-400 mr-1" aria-hidden="true"></i>${formatNumber(r[key])}${key === 'commits_365d' && r.commits_truncated ? '+' : ''}`)
-      : EMPTY_CELL}</td>`;
+  function medal(tier, score, folder) {
+    if (!TIERS[tier]) return '<span class="faint" title="Repository configuration, not rated">–</span>';
+    const label = `${TIERS[tier]}${Number.isFinite(score) ? ` · ${score}%` : ''}`;
+    const attrs = folder ? ` type="button" data-rate="${esc(folder)}" title="${esc(label)}: see what ${esc(folder)} needs for gold"` : '';
+    const tag = folder ? 'button' : 'span';
+    return `<${tag} class="medal ${tier}"${attrs}>${medalSvg(tier)}<span class="medal-t">${TIERS[tier]}</span>${Number.isFinite(score) && tier !== 'gold' ? `<span class="medal-s">${score}%</span>` : ''}</${tag}>`;
+  }
 
-    const cells = {
-      name: `<td class="px-3 py-2 font-medium">
-        <div class="flex items-center gap-2">
-          ${projectLogoHTML(r, 'h-9 w-9')}
-          <div class="min-w-0">
-            <div class="flex items-center gap-1 flex-wrap">
-              <a href="${escapeHtml(links.repo)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(repoDisplayName(r))}</a>${archiveBadge}${forkBadge}${gsocBadge}
-            </div>
-            ${repoDescription(r) ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs mt-0.5">${escapeHtml(repoDescription(r))}</p>` : ''}
-          </div>
-        </div>
-      </td>`,
-      topics: `<td class="px-3 py-2 text-center whitespace-nowrap text-sm tabular-nums">
-        ${topics.length > 0 ? `<span class="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">${topics.length}</span>` : EMPTY_CELL}
-      </td>`,
-      language: `<td class="px-3 py-2 whitespace-nowrap text-sm">
-        ${r.language
-          ? `<span class="lang-dot" style="background:${langColor}"></span><span class="text-gray-600 dark:text-gray-300">${escapeHtml(r.language)}</span>`
-          : EMPTY_CELL}
-      </td>`,
-      stargazers_count: `<td class="${num}">${statLink(links.stars, 'hover:text-yellow-500 transition-colors', 'Stars', `<i class="fa-solid fa-star text-yellow-400 mr-1" aria-hidden="true"></i>${formatNumber(r.stargazers_count || 0)}`)}</td>`,
-      forks_count: `<td class="${num}">${statLink(links.forks, 'hover:text-green-600 transition-colors', 'Forks', `<i class="fa-solid fa-code-fork text-green-500 mr-1" aria-hidden="true"></i>${formatNumber(r.forks_count || 0)}`)}</td>`,
-      open_issues_count: `<td class="${num}">${statLink(links.issues, 'hover:text-brand transition-colors', 'Open issues', `<i class="fa-solid fa-circle-dot text-brand mr-1" aria-hidden="true"></i>${formatNumber(repoIssueCount(r))}`)}</td>`,
-      open_pr_count: `<td class="${num}">${r.open_pr_count
-        ? statLink(links.pulls, 'hover:text-teal-500 transition-colors', 'Open pull requests', `<i class="fa-solid fa-code-pull-request text-teal-500 mr-1" aria-hidden="true"></i>${formatNumber(r.open_pr_count)}`)
-        : EMPTY_CELL}</td>`,
-      agent_pr_count: `<td class="${num}">${r.agent_pr_count
-        ? statLink(links.pulls, 'hover:text-purple-500 transition-colors', 'Open agent pull requests', `<i class="fa-solid fa-robot text-purple-500 mr-1" aria-hidden="true"></i>${formatNumber(r.agent_pr_count)}`)
-        : EMPTY_CELL}</td>`,
-      total_commits: count('total_commits', 'Total commits'),
-      commits_30d: count('commits_30d', 'Commits in the last 30 days (bots excluded)'),
-      commits_90d: count('commits_90d', 'Commits in the last 90 days (bots excluded)'),
-      commits_365d: count('commits_365d', r.commits_truncated ? 'Commits in the last year (at least; history page cap reached)' : 'Commits in the last year (bots excluded)'),
-      contributor_count: `<td class="${num}" title="${escapeHtml((r.contributors || []).map(c => c.login).join(', '))}">${r.contributor_count
-        ? `<i class="fa-solid fa-users text-indigo-400 mr-1" aria-hidden="true"></i>${formatNumber(r.contributor_count)}`
-        : EMPTY_CELL}</td>`,
-      branch_count: `<td class="${num}">${r.branch_count
-        ? statLink(links.branches, 'hover:text-violet-500 transition-colors', 'Branches', `<i class="fa-solid fa-code-branch text-violet-400 mr-1" aria-hidden="true"></i>${formatNumber(r.branch_count)}`)
-        : EMPTY_CELL}</td>`,
-      size: `<td class="${num}"><i class="fa-solid fa-database text-cyan-400 mr-1" aria-hidden="true"></i>${formatSize(r.size)}</td>`,
-      readme_chars: `<td class="${num}">${r.readme_chars ? `<i class="fa-solid fa-file-lines text-pink-400 mr-1" aria-hidden="true"></i>${formatNumber(r.readme_chars)}` : EMPTY_CELL}</td>`,
-      maturity: `<td class="px-3 py-2 whitespace-nowrap">
-        <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${matBg} ${matColor}" title="Maturity score: ${score}/100">${matLabel} ${score}</span>
-      </td>`,
-      latest_release: `<td class="px-3 py-2 whitespace-nowrap text-xs">
-        ${r.latest_release
-          ? `<a href="${escapeHtml(r.latest_release.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-green-600 transition-colors text-gray-600 dark:text-gray-300" title="Latest release${r.latest_release.published_at ? ': ' + r.latest_release.published_at : ''}"><i class="fa-solid fa-tag text-green-500 mr-1" aria-hidden="true"></i>${escapeHtml(r.latest_release.tag_name)}</a>`
-          : EMPTY_CELL}
-      </td>`,
-      latest_commit: `<td class="px-3 py-2 text-xs max-w-[16rem]">
-        ${r.latest_commit
-          ? `<a href="${escapeHtml(r.latest_commit.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors text-gray-600 dark:text-gray-300 truncate block" title="${escapeHtml(r.latest_commit.message)}${r.latest_commit.author ? ' by ' + escapeHtml(r.latest_commit.author) : ''}"><i class="fa-solid fa-code-commit text-blue-400 mr-1" aria-hidden="true"></i>${r.latest_commit.author_avatar ? `<img src="${escapeHtml(r.latest_commit.author_avatar)}&amp;s=20" alt="${escapeHtml(r.latest_commit.author)}" title="${escapeHtml(r.latest_commit.author)}" class="inline-block w-4 h-4 rounded-full mr-1 align-middle" loading="lazy" />` : ''}${escapeHtml(r.latest_commit.message)}${r.latest_commit.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${escapeHtml(r.latest_commit.author)}</span>` : ''}</a>`
-          : EMPTY_CELL}
-      </td>`,
-      latest_pr: `<td class="px-3 py-2 text-xs max-w-[16rem]">
-        ${r.latest_pr ? (() => {
-          const prState = r.latest_pr.state;
-          const prIcon = prState === 'merged'
-            ? `<i class="fa-solid fa-code-merge text-purple-500 mr-1" aria-hidden="true" title="Merged"></i>`
-            : prState === 'open'
-              ? `<i class="fa-solid fa-code-pull-request text-green-500 mr-1" aria-hidden="true" title="Open"></i>`
-              : `<i class="fa-solid fa-circle-xmark text-red-500 mr-1" aria-hidden="true" title="Closed"></i>`;
-          return `<a href="${escapeHtml(r.latest_pr.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors text-gray-600 dark:text-gray-300 truncate block" title="#${r.latest_pr.number}: ${escapeHtml(r.latest_pr.title)}${r.latest_pr.author ? ' by ' + escapeHtml(r.latest_pr.author) : ''} [${prState}]">${prIcon}${r.latest_pr.author_avatar ? `<img src="${escapeHtml(r.latest_pr.author_avatar)}&amp;s=20" alt="${escapeHtml(r.latest_pr.author)}" title="${escapeHtml(r.latest_pr.author)}" class="inline-block w-4 h-4 rounded-full mr-1 align-middle" loading="lazy" />` : ''}#${r.latest_pr.number}: ${escapeHtml(r.latest_pr.title)}${r.latest_pr.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${escapeHtml(r.latest_pr.author)}</span>` : ''}</a>`;
-        })() : EMPTY_CELL}
-      </td>`,
-      updated_at: `<td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400" title="Last updated: ${escapeHtml(r.updated_at)}">${r.updated_at ? timeAgo(r.updated_at) : '—'}</td>`,
-      latest_issue: `<td class="px-3 py-2 text-xs max-w-[14rem]">
-        ${r.latest_issue
-          ? `<a href="${escapeHtml(r.latest_issue.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-brand hover:underline transition-colors text-gray-600 dark:text-gray-300 truncate block" title="#${r.latest_issue.number}: ${escapeHtml(r.latest_issue.title)}"><i class="fa-solid fa-circle-dot text-brand mr-1" aria-hidden="true"></i>#${r.latest_issue.number}: ${escapeHtml(r.latest_issue.title)}</a>`
-          : EMPTY_CELL}
-      </td>`,
-      infra: `<td class="px-3 py-2 whitespace-nowrap text-center">
-        <div class="flex items-center justify-center gap-1.5">
-          ${wranglerIcon}${pagesIcon}${(!wranglerIcon && !pagesIcon) ? EMPTY_CELL : ''}
-        </div>
-      </td>`,
+  // One dialog for every rating: a project's checklist, or (no project) how ratings work.
+  function ratingDialog(criteria, p) {
+    let dlg = $('#rating-dlg');
+    if (!dlg) {
+      dlg = document.createElement('dialog');
+      dlg.id = 'rating-dlg';
+      dlg.className = 'dlg';
+      dlg.addEventListener('click', e => { if (e.target === dlg || e.target.closest('[data-close]')) dlg.close(); });
+      document.body.append(dlg);
+    }
+    const rating = p && p.rating;
+    const state = id => (!rating ? '' : rating.met.includes(id) ? 'met' : rating.missing.includes(id) ? 'missing' : 'na');
+    const sections = ['bronze', 'silver', 'gold'].map(tier => {
+      const items = criteria.filter(c => c.tier === tier).map(c => {
+        const st = state(c.id);
+        const icon = st === 'met' ? 'fa-circle-check' : st === 'missing' ? 'fa-circle-xmark' : st === 'na' ? 'fa-circle-minus' : 'fa-circle';
+        const fix = !rating || st === 'missing' ? `<p>${esc(c.fix).replace(/`([^`]+)`/g, '<code>$1</code>')}</p>` : '';
+        const na = st === 'na' ? ' <span class="faint">(does not apply)</span>' : '';
+        return `<li class="crit ${st}"><i class="fa-solid ${icon}" aria-hidden="true"></i><div><b>${esc(c.label)}</b>${na}${fix}</div></li>`;
+      }).join('');
+      return `<section><h3>${medal(tier)}<span>${esc(TIER_NOTE[tier])}</span></h3><ul>${items}</ul></section>`;
+    }).join('');
+    const issue = p && safeUrl(p.r.gold_issue);
+    const head = p
+      ? `<div class="dlg-id">${symbol(p.folder, p.name, 'lg')}<div><h2>${esc(p.name)}</h2><span class="mono faint">${esc(p.folder)}/</span></div>${medal(rating.tier, rating.score)}</div>
+         <div class="meter" role="img" aria-label="${rating.score}% of the checklist met"><span class="${rating.tier}" style="width:${Math.max(0, Math.min(100, rating.score))}%"></span></div>
+         <p class="muted">${rating.tier === 'gold' ? 'Meets the whole BLT gold standard.' : `${rating.missing.length} step${rating.missing.length === 1 ? '' : 's'} to the gold standard.`}</p>`
+      : `<div class="dlg-id"><div><h2>How ratings work</h2></div></div>
+         <p class="muted">Every project is checked daily against one checklist, read from its folder in the monorepo and from the forge. A project is <b>gold</b> when it meets every check that applies to it, <b>silver</b> when it meets all the bronze and silver checks, and <b>bronze</b> otherwise. Site checks apply only to projects that deploy to Cloudflare.</p>`;
+    const foot = p
+      ? `<a class="btn primary" href="${esc(issue || issuesUrl(p.r))}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-circle-dot" aria-hidden="true"></i>${issue ? 'Gold-standard issue' : 'Project issues'}</a>`
+      : `<a class="btn" href="${FORGE}/issues?label=gold-standard" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-circle-dot" aria-hidden="true"></i>All gold-standard issues</a>`;
+    dlg.innerHTML = `<div class="dlg-in" role="document">
+      <button type="button" class="dlg-x" data-close aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      ${head}<div class="crits">${sections}</div>
+      <div class="dlg-foot">${foot}<button type="button" class="btn" data-close>Close</button></div></div>`;
+    dlg.showModal();
+  }
+
+  /* ================================================================ */
+  /*  DASHBOARD                                                        */
+  /* ================================================================ */
+  function dashboard() {
+    const results = $('#results');
+    const search = $('#search');
+    const sortSel = $('#sort');
+    const filtersEl = $('#filters');
+    const countEl = $('#count');
+
+    const SORTS = {
+      last: { dir: -1, get: p => p.last ?? -Infinity },
+      name: { dir: 1, get: p => p.name.toLowerCase() },
+      issues: { dir: -1, get: p => p.issues },
+      prs: { dir: -1, get: p => p.prs },
+      c30: { dir: -1, get: p => p.c30 },
+      c365: { dir: -1, get: p => p.c365 },
+      people: { dir: -1, get: p => p.people },
+      rating: { dir: -1, get: p => p.rank * 1000 + p.score },
     };
+    const STATUS = [
+      ['all', 'All', null],
+      ['active', 'Active', 'Commit in the last 30 days'],
+      ['quiet', 'Quiet', 'Last commit 30 to 180 days ago'],
+      ['dormant', 'Dormant', 'No commit for 180 days'],
+    ];
+    const TOGGLES = [
+      ['live', 'Live site', 'fa-globe'],
+      ['issues', 'Open issues', 'fa-circle-dot'],
+      ['prs', 'Open PRs', 'fa-code-pull-request'],
+    ];
 
-    return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
-      ${cols.map(col => cells[col.key]).join('')}
-      <td class="px-3 py-2 whitespace-nowrap">
-        <div class="flex gap-1.5">
-          <a href="${escapeHtml(links.repo)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 bg-brand text-white rounded hover:bg-red-700 transition-colors" title="View source on git.owaspblt.org"><i class="fa-solid fa-code-branch" aria-hidden="true"></i></a>
-          ${live.url ? `<a href="${escapeHtml(live.url)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="${escapeHtml(live.label)}"><i class="${live.icon}" aria-hidden="true"></i></a>` : `<span role="button" aria-disabled="true" class="text-xs px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded cursor-not-allowed" title="No live site"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></span>`}
-          ${projectUrl ? `<a href="${escapeHtml(projectUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Project Board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></a>` : `<span role="button" aria-disabled="true" class="text-xs px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded cursor-not-allowed" title="No project board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></span>`}
-          <a href="${escapeHtml(links.newIssue)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="New Issue"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i></a>
-          <a href="https://github.com/${ORG}/${r.name}/agents" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="Open agent tasks for this repo"><i class="fa-solid fa-robot" aria-hidden="true"></i></a>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
+    const p0 = params();
+    const state = {
+      q: p0.get('q') || '',
+      status: STATUS.some(s => s[0] === p0.get('status')) ? p0.get('status') : 'all',
+      toggles: new Set((p0.get('has') || '').split(',').filter(t => TOGGLES.some(x => x[0] === t))),
+      tier: TIERS[p0.get('tier')] ? p0.get('tier') : '',
+      sort: SORTS[p0.get('sort')] ? p0.get('sort') : (SORTS[store.get('waypoint-sort')] ? store.get('waypoint-sort') : 'last'),
+      dir: 0,
+      view: p0.get('view') || store.get('waypoint-view', matchMedia('(max-width: 720px)').matches ? 'cards' : 'table'),
+    };
+    if (!['table', 'cards'].includes(state.view)) state.view = 'table';
+    state.dir = SORTS[state.sort].dir;
+    search.value = state.q;
+    sortSel.value = state.sort;
 
-  container.innerHTML = `
-    <table class="border-collapse text-sm w-max">
-      <thead class="bg-gray-50 dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700">
+    let projects = [];
+    let criteria = [];
+
+    function toProject(r, shots) {
+      const last = ts(r.last_commit_at) ?? ts(r.pushed_at);
+      const days = last == null ? Infinity : (NOW - last) / DAY;
+      const live = liveUrl(r);
+      const rating = r.rating && TIERS[r.rating.tier] ? r.rating : null;
+      return {
+        r,
+        rating,
+        tier: rating ? rating.tier : '',
+        rank: rating ? TIER_RANK[rating.tier] : 0,
+        score: rating ? +rating.score || 0 : 0,
+        folder: r.folder,
+        name: r.name || r.folder,
+        desc: r.description || '',
+        live,
+        liveHost: host(live),
+        last,
+        status: days <= 30 ? 'active' : days <= 180 ? 'quiet' : 'dormant',
+        issues: r.open_issues_count || 0,
+        prs: r.open_pr_count || 0,
+        c30: r.commits_30d || 0,
+        c365: r.commits_365d || 0,
+        people: r.contributor_count || 0,
+        weeks: r.weekly_commits,
+        commit: r.latest_commit,
+        shot: shots && shots.shots ? shots.shots[r.folder] : null,
+        text: [r.name, r.folder, r.description, live, r.latest_commit && r.latest_commit.message].join(' ').toLowerCase(),
+      };
+    }
+
+    function renderStats(data) {
+      const sum = key => projects.reduce((a, p) => a + p[key], 0);
+      const issues = Array.isArray(data.open_issues) ? data.open_issues.length : sum('issues');
+      $('#stats').innerHTML = [
+        stat('fa-folder', num(projects.length), 'Projects'),
+        stat('fa-bolt', num(projects.filter(p => p.status === 'active').length), 'Active', 'Projects with a commit in the last 30 days'),
+        stat('fa-globe', num(projects.filter(p => p.live).length), 'Live sites', 'Projects with a live site'),
+        stat('fa-circle-dot', num(issues), 'Open issues'),
+        stat('fa-code-pull-request', num(sum('prs')), 'Open PRs'),
+        stat('fa-code-commit', num(sum('c30')), 'Commits 30d', 'Commits in the last 30 days, all folders'),
+        `<button type="button" class="stat stat-rate" data-how title="How ratings work">${Object.keys(TIERS).map(t =>
+          `<b class="t-${t}" title="${TIERS[t]}">${medalSvg(t, 18)}${num(projects.filter(p => p.tier === t).length)}</b>`).join('')}<span><i class="fa-solid fa-circle-info" aria-hidden="true"></i>Gold · silver · bronze</span></button>`,
+      ].join('');
+    }
+
+    function renderFilters() {
+      const count = fn => projects.filter(fn).length;
+      const statusChips = STATUS.map(([key, label, title]) => {
+        const n = key === 'all' ? projects.length : count(p => p.status === key);
+        const dot = key === 'all' ? '' : `<span class="dot ${key}" aria-hidden="true"></span>`;
+        return `<button type="button" class="chip" data-status="${key}" aria-pressed="${state.status === key}"${title ? ` title="${title}"` : ''}>${dot}${label} <span class="n">${n}</span></button>`;
+      });
+      const toggleChips = TOGGLES.map(([key, label, icon]) => {
+        const n = count(p => (key === 'live' ? !!p.live : p[key] > 0));
+        return `<button type="button" class="chip" data-toggle="${key}" aria-pressed="${state.toggles.has(key)}"><i class="fa-solid ${icon}" aria-hidden="true"></i>${label} <span class="n">${n}</span></button>`;
+      });
+      const tierChips = Object.keys(TIERS).map(t => `<button type="button" class="chip" data-tier="${t}" aria-pressed="${state.tier === t}">${medalSvg(t, 14)}${TIERS[t]} <span class="n">${count(p => p.tier === t)}</span></button>`);
+      filtersEl.innerHTML = statusChips.join('') + '<span class="sep" aria-hidden="true"></span>' + toggleChips.join('') +
+        '<span class="sep" aria-hidden="true"></span>' + tierChips.join('') +
+        '<button type="button" class="chip ghost" data-how title="How ratings work"><i class="fa-regular fa-circle-question" aria-hidden="true"></i>Ratings</button>';
+    }
+
+    function visible() {
+      const words = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+      const { get } = SORTS[state.sort];
+      return projects
+        .filter(p => state.status === 'all' || p.status === state.status)
+        .filter(p => [...state.toggles].every(t => (t === 'live' ? !!p.live : p[t] > 0)))
+        .filter(p => !state.tier || p.tier === state.tier)
+        .filter(p => words.every(w => p.text.includes(w)))
+        .sort((a, b) => {
+          const x = get(a), y = get(b);
+          const c = x < y ? -1 : x > y ? 1 : 0;
+          return c * state.dir || a.name.localeCompare(b.name);
+        });
+    }
+
+    function issuesCell(p) {
+      return p.issues
+        ? `<a class="count" href="${esc(issuesUrl(p.r))}" target="_blank" rel="noopener noreferrer" title="Open issues of ${esc(p.folder)} on the forge">${p.issues}</a>`
+        : `<a class="count zero" href="${esc(issuesUrl(p.r))}" target="_blank" rel="noopener noreferrer" title="No open issues; open the issue list">0</a>`;
+    }
+
+    function prsCell(p) {
+      const latest = p.r.latest_pr && safeUrl(p.r.latest_pr.html_url);
+      return p.prs
+        ? `<a class="count" href="${esc(latest || `${FORGE}/pulls`)}" target="_blank" rel="noopener noreferrer">${p.prs}</a>`
+        : '<span class="zero">0</span>';
+    }
+
+    function lastCommit(p) {
+      if (p.last == null) return '<span class="faint">No commits</span>';
+      const c = p.commit;
+      const title = `${fullDate(p.last)}${c && c.message ? ` · ${c.message}` : ''}`;
+      return `<span title="${esc(title)}"><span class="dot ${p.status}" aria-hidden="true"></span>${esc(ago(p.last))}</span>`;
+    }
+
+    function th(key, label, cls) {
+      const sorted = state.sort === key;
+      const aria = sorted ? ` aria-sort="${state.dir > 0 ? 'ascending' : 'descending'}"` : '';
+      const arrow = sorted ? `<i class="fa-solid fa-arrow-${state.dir > 0 ? 'up' : 'down'} arrow" aria-hidden="true"></i>` : '';
+      return `<th scope="col" class="${cls}"${aria}><button type="button" data-sort="${key}">${label}${arrow}</button></th>`;
+    }
+
+    function tableHTML(list) {
+      const rows = list.map(p => `
         <tr>
-          ${headerCells}
-          <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Links</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+          <td>
+            <div class="proj">
+              ${symbol(p.folder, p.name)}
+              <div class="proj-main">
+                <div class="proj-name"><a href="${esc(folderUrl(p.folder))}" target="_blank" rel="noopener noreferrer">${esc(p.name)}</a><span class="mono">${esc(p.folder)}/</span></div>
+                <div class="proj-desc" title="${esc(p.desc)}">${esc(p.desc) || '<span class="faint">No description</span>'}</div>
+                ${p.live ? `<a class="proj-live-m" href="${esc(p.live)}" target="_blank" rel="noopener noreferrer">${esc(p.liveHost)}</a>` : ''}
+              </div>
+            </div>
+          </td>
+          <td class="c-rate">${medal(p.tier, p.score, p.rating ? p.folder : '')}</td>
+          <td class="c-site">${p.live
+            ? `<div class="site">${thumb(p.live, p.shot, p.name)}<a class="host" href="${esc(p.live)}" target="_blank" rel="noopener noreferrer" title="${esc(p.live)}">${esc(p.liveHost)}</a></div>`
+            : `<span class="faint">–</span>`}</td>
+          <td><div class="last">${lastCommit(p)}${sparkline(p.weeks)}</div></td>
+          <td class="num c-30d">${p.c30 || '<span class="zero">0</span>'}</td>
+          <td class="num c-1y">${p.c365 || '<span class="zero">0</span>'}</td>
+          <td class="num">${issuesCell(p)}</td>
+          <td class="num c-prs">${prsCell(p)}</td>
+          <td class="num c-people">${p.people || '<span class="zero">0</span>'}</td>
+        </tr>`).join('');
+      return `<div class="panel"><table class="tbl">
+        <thead><tr>
+          ${th('name', 'Project', '')}
+          ${th('rating', 'Rating', 'c-rate w-rate')}
+          <th scope="col" class="c-site w-site">Live site</th>
+          ${th('last', 'Last commit', 'w-last')}
+          ${th('c30', '30d', 'num w-n c-30d')}
+          ${th('c365', '1y', 'num w-n c-1y')}
+          ${th('issues', 'Issues', 'num w-n')}
+          ${th('prs', 'PRs', 'num w-n c-prs')}
+          ${th('people', 'People', 'num w-n c-people')}
+        </tr></thead>
+        <tbody>${rows}</tbody></table></div>`;
+    }
 
-  // Add sort click listeners to column headers
-  container.querySelectorAll('th[data-col]').forEach(th => {
-    th.addEventListener('click', () => {
-      const col = th.dataset.col;
-      if (sortCol === col) {
-        tableSortDir = tableSortDir === 'desc' ? 'asc' : 'desc';
+    function cardHTML(p) {
+      const c = p.commit;
+      const commitLine = c && c.message
+        ? `<a class="commit" href="${esc(safeUrl(c.html_url) || folderUrl(p.folder))}" target="_blank" rel="noopener noreferrer" title="${esc(c.message)}"><i class="fa-solid fa-code-commit" aria-hidden="true"></i> ${esc(c.message)}</a>`
+        : '<span class="commit faint">No commits yet</span>';
+      return `<article class="card">
+        <div class="card-top">
+          ${thumb(p.live, p.shot, p.name)}
+          <div class="card-id">
+            <div class="row">${symbol(p.folder, p.name)}<h2><a href="${esc(folderUrl(p.folder))}" target="_blank" rel="noopener noreferrer">${esc(p.name)}</a></h2>${p.rating ? medal(p.tier, p.score, p.folder) : ''}</div>
+            <span class="mono faint">${esc(p.folder)}/</span>
+            ${p.live ? `<a class="host ellipsis" href="${esc(p.live)}" target="_blank" rel="noopener noreferrer">${esc(p.liveHost)} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:9px" aria-hidden="true"></i></a>` : '<span class="none">No live site</span>'}
+          </div>
+        </div>
+        <p class="desc">${esc(p.desc) || '<span class="faint">No description</span>'}</p>
+        <dl class="facts">
+          <div><dt>Last commit</dt><dd title="${p.last != null ? `${esc(p.status)} · ${esc(fullDate(p.last))}` : 'No commits'}"><span class="dot ${p.status}" aria-hidden="true"></span> ${p.last != null ? esc(ago(p.last)) : '–'}</dd></div>
+          <div><dt>Issues</dt><dd><a href="${esc(issuesUrl(p.r))}" target="_blank" rel="noopener noreferrer">${p.issues}</a></dd></div>
+          <div><dt>PRs</dt><dd>${p.prs}</dd></div>
+          <div><dt>Commits 30d</dt><dd title="${p.c365} commits in a year">${p.c30}</dd></div>
+        </dl>
+        <div class="card-foot">${commitLine}
+          <span class="links"><a href="${esc(issuesUrl(p.r))}" target="_blank" rel="noopener noreferrer" title="Issues on the forge"><i class="fa-solid fa-circle-dot" aria-hidden="true"></i><span class="sr-only">Issues</span></a>
+          <a href="${esc(folderUrl(p.folder))}" target="_blank" rel="noopener noreferrer" title="Folder on the forge"><i class="fa-solid fa-folder-open" aria-hidden="true"></i><span class="sr-only">Folder</span></a></span>
+        </div>
+      </article>`;
+    }
+
+    function render() {
+      $$('.seg [data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === state.view)));
+      $$('[data-status]', filtersEl).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.status === state.status)));
+      $$('[data-toggle]', filtersEl).forEach(b => b.setAttribute('aria-pressed', String(state.toggles.has(b.dataset.toggle))));
+      $$('[data-tier]', filtersEl).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tier === state.tier)));
+      const list = visible();
+      const filteredOut = list.length !== projects.length;
+      countEl.innerHTML = `${list.length} of ${projects.length} projects${filteredOut ? ' · <button type="button" data-clear>Clear filters</button>' : ''}`;
+      results.textContent = '';
+      if (!list.length) {
+        results.append(emptyState('No project matches these filters', clear));
+      } else if (state.view === 'cards') {
+        results.innerHTML = `<div class="cards">${list.map(cardHTML).join('')}</div>`;
       } else {
-        tableSortDir = 'desc';
+        results.innerHTML = tableHTML(list);
       }
-      tableSortCol = col;
-      localStorage.setItem('blt-table-sort-col', tableSortCol);
-      localStorage.setItem('blt-table-sort-dir', tableSortDir);
-      renderTableView(filtered, container);
+      setParams({
+        q: state.q,
+        status: state.status === 'all' ? '' : state.status,
+        has: [...state.toggles].join(','),
+        tier: state.tier,
+        sort: state.sort === 'last' ? '' : state.sort,
+      });
+    }
+
+    function clear() {
+      state.q = ''; search.value = '';
+      state.status = 'all';
+      state.toggles.clear();
+      state.tier = '';
+      render();
+    }
+
+    function setSort(key, dir) {
+      state.sort = key;
+      state.dir = dir ?? SORTS[key].dir;
+      sortSel.value = key;
+      store.set('waypoint-sort', key);
+      render();
+    }
+
+    search.addEventListener('input', debounce(() => { state.q = search.value.trim(); render(); }, 150));
+    sortSel.addEventListener('change', () => setSort(sortSel.value));
+    filtersEl.addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      if (b.dataset.status) state.status = b.dataset.status;
+      if (b.dataset.toggle) state.toggles[state.toggles.has(b.dataset.toggle) ? 'delete' : 'add'](b.dataset.toggle);
+      if (b.dataset.tier) state.tier = state.tier === b.dataset.tier ? '' : b.dataset.tier;
+      if (b.dataset.how != null) { ratingDialog(criteria); return; }
+      render();
     });
-  });
-}
+    $$('.seg [data-view]').forEach(b => b.addEventListener('click', () => {
+      state.view = b.dataset.view;
+      store.set('waypoint-view', state.view);
+      render();
+    }));
+    document.addEventListener('click', e => {
+      const rate = e.target.closest('[data-rate]');
+      if (rate) { const p = projects.find(x => x.folder === rate.dataset.rate); if (p && p.rating) ratingDialog(criteria, p); }
+      else if (e.target.closest('#stats [data-how]')) ratingDialog(criteria);
+    });
+    results.addEventListener('click', e => {
+      const b = e.target.closest('th button[data-sort]');
+      if (!b) return;
+      const key = b.dataset.sort;
+      setSort(key, state.sort === key ? -state.dir : SORTS[key].dir);
+    });
+    countEl.addEventListener('click', e => { if (e.target.closest('[data-clear]')) clear(); });
 
-/* ------------------------------------------------------------------ */
-/*  ERROR STATE                                                         */
-/* ------------------------------------------------------------------ */
-function showError(msg) {
-  const grid = document.getElementById('repo-grid');
-  const table = document.getElementById('repo-table');
-  const errorState = document.getElementById('error-state');
-  const errorMsg = document.getElementById('error-msg');
-  if (grid) grid.innerHTML = '';
-  if (table) table.innerHTML = '';
-  if (errorState) errorState.classList.remove('hidden');
-  if (errorMsg) errorMsg.textContent = msg;
-}
-
-/* ------------------------------------------------------------------ */
-/*  EVENT LISTENERS                                                     */
-/* ------------------------------------------------------------------ */
-
-// View toggle
-function updateViewButtons() {
-  const tableBtn = document.getElementById('view-table-btn');
-  const cardBtn = document.getElementById('view-card-btn');
-  if (tableBtn) tableBtn.classList.toggle('view-btn-active', currentView === 'table');
-  if (cardBtn) cardBtn.classList.toggle('view-btn-active', currentView === 'card');
-}
-
-/** Safely add an event listener to an element selected by ID. */
-function on(id, event, handler) {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener(event, handler);
-}
-
-on('view-table-btn', 'click', () => {
-  currentView = 'table';
-  localStorage.setItem('blt-view', 'table');
-  updateViewButtons();
-  applyFilters();
-});
-
-on('view-card-btn', 'click', () => {
-  currentView = 'card';
-  localStorage.setItem('blt-view', 'card');
-  updateViewButtons();
-  applyFilters();
-});
-
-document.querySelectorAll('.data-source-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    const source = tab.dataset.source;
-    if (!DATA_SOURCES[source]) return;
-    if (source === currentDataSource) {
-      resetDataSourceFilters(source);
-      updateDataSourceTabs();
-      applyFilters();
-      return;
-    }
-    currentDataSource = source;
-    resetDataSourceFilters(source);
-    allRepos = [];
-    filtered = [];
-    updateDataSourceTabs();
-    loadRepos();
-  });
-});
-
-// Initialize button states immediately
-updateViewButtons();
-updateDataSourceTabs();
-updateVersionLabel();
-
-// Initialize sort UI to reflect stored preference
-const sortSelect = document.getElementById('sort-select');
-const sortSelectMobile = document.getElementById('sort-select-mobile');
-if (sortSelect) sortSelect.value = currentSort;
-if (sortSelectMobile) sortSelectMobile.value = currentSort;
-document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.sort === currentSort));
-
-// Search (using the new robust debounce utility)
-const debouncedApplyFilters = debounce(applyFilters, 300);
-on('search-input', 'input', e => {
-  currentSearch = e.target.value.trim();
-  debouncedApplyFilters();
-});
-
-// Sort (header select)
-on('sort-select', 'change', e => {
-  currentSort = e.target.value;
-  localStorage.setItem('blt-sort', currentSort);
-  const mob = document.getElementById('sort-select-mobile');
-  if (mob) mob.value = currentSort;
-  document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.sort === currentSort));
-  applyFilters();
-});
-
-// Sort (mobile select)
-on('sort-select-mobile', 'change', e => {
-  currentSort = e.target.value;
-  localStorage.setItem('blt-sort', currentSort);
-  const desk = document.getElementById('sort-select');
-  if (desk) desk.value = currentSort;
-  document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.sort === currentSort));
-  applyFilters();
-});
-
-// Filter (mobile select)
-on('filter-select-mobile', 'change', e => {
-  currentFilter = e.target.value;
-  document.querySelectorAll('.filter-btn').forEach(b => {
-    b.classList.toggle('nav-active', b.dataset.filter === currentFilter);
-  });
-  applyFilters();
-});
-
-// Filter buttons (sidebar)
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    currentFilter = btn.dataset.filter;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('nav-active'));
-    btn.classList.add('nav-active');
-    const mob = document.getElementById('filter-select-mobile');
-    if (mob) mob.value = currentFilter;
-    applyFilters();
-  });
-});
-
-// Sort buttons (sidebar)
-document.querySelectorAll('.sort-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    currentSort = btn.dataset.sort;
-    localStorage.setItem('blt-sort', currentSort);
-    const desk = document.getElementById('sort-select');
-    const mob = document.getElementById('sort-select-mobile');
-    if (desk) desk.value = currentSort;
-    if (mob) mob.value = currentSort;
-    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('nav-active'));
-    btn.classList.add('nav-active');
-    applyFilters();
-  });
-});
-
-// Retry button
-on('retry-btn', 'click', () => {
-  const errEl = document.getElementById('error-state');
-  const gridEl = document.getElementById('repo-grid');
-  if (errEl) errEl.classList.add('hidden');
-  if (gridEl) gridEl.innerHTML = `
-    <div class="skeleton h-48 rounded-xl"></div>
-    <div class="skeleton h-48 rounded-xl"></div>
-    <div class="skeleton h-48 rounded-xl"></div>
-  `;
-  loadRepos();
-});
-
-// Clear filters
-on('clear-btn', 'click', () => {
-  currentSearch = '';
-  currentFilter = 'all';
-  currentLang = '';
-  currentLabel = '';
-  const si = document.getElementById('search-input');
-  const lsi = document.getElementById('label-search-input');
-  const ss = document.getElementById('sort-select');
-  const fm = document.getElementById('filter-select-mobile');
-  const ld = document.getElementById('label-dropdown');
-  if (si) si.value = '';
-  if (lsi) lsi.value = '';
-  if (ss) ss.value = currentSort;
-  if (fm) fm.value = 'all';
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.filter === 'all'));
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.lang === ''));
-  document.querySelectorAll('.label-option').forEach(b => b.classList.remove('nav-active', 'text-brand'));
-  if (ld) ld.classList.add('hidden');
-  applyFilters();
-});
-
-// Clear label filter
-on('clear-label-btn', 'click', () => {
-  currentLabel = '';
-  const lsi = document.getElementById('label-search-input');
-  const ld = document.getElementById('label-dropdown');
-  if (lsi) lsi.value = '';
-  document.querySelectorAll('.label-option').forEach(b => b.classList.remove('nav-active', 'text-brand'));
-  if (ld) ld.classList.add('hidden');
-  applyFilters();
-});
-
-/* ------------------------------------------------------------------ */
-/*  RESIZING LOGIC                                                      */
-/* ------------------------------------------------------------------ */
-let resizeTimeout;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(() => {
-    const isMobile = window.innerWidth < 640;
-    const targetView = isMobile ? 'card' : 'table';
-
-    // Only auto-switch if the user hasn't explicitly set a preference in localStorage
-    // OR if we are moving into mobile and still in table view.
-    const savedView = localStorage.getItem('blt-view');
-    
-    if (!savedView) {
-      if (currentView !== targetView) {
-        currentView = targetView;
-        updateViewButtons();
-        applyFilters();
+    async function load() {
+      try {
+        const [data, shots] = await Promise.all([loadForge(), loadShots()]);
+        projects = (data.repos || []).filter(r => r && r.folder).map(r => toProject(r, shots));
+        criteria = Array.isArray(data.rating_criteria) ? data.rating_criteria : [];
+        showFreshness(data.generated_at);
+        renderStats(data);
+        renderFilters();
+        render();
+      } catch (err) {
+        $('#stats').textContent = '';
+        countEl.textContent = '';
+        errorState(results, err.message, load);
       }
-    } else if (isMobile && currentView === 'table') {
-      // Force card on mobile even if they chose table on desktop (as per user request)
-      currentView = 'card';
-      updateViewButtons();
-      applyFilters();
-    } else if (!isMobile && savedView === 'table' && currentView === 'card') {
-      // Restore table on desktop if that was their preference
-      currentView = 'table';
-      updateViewButtons();
-      applyFilters();
     }
-  }, 150);
-});
+    load();
+  }
 
-loadRepos();
+  /* ================================================================ */
+  /*  ISSUES                                                           */
+  /* ================================================================ */
+  function issuesPage() {
+    const results = $('#results');
+    const search = $('#search');
+    const projectSel = $('#project');
+    const sortSel = $('#sort');
+    const groupBtn = $('#group');
+    const labelsEl = $('#labels');
+    const countEl = $('#count');
+    const GENERAL = '_general';
+
+    const p0 = params();
+    const state = {
+      q: p0.get('q') || '',
+      project: p0.get('project') || '',
+      labels: new Set((p0.get('label') || '').split(',').filter(Boolean)),
+      sort: ['updated', 'newest', 'oldest', 'comments'].includes(p0.get('sort')) ? p0.get('sort') : 'updated',
+      group: p0.get('group') === '1',
+    };
+    search.value = state.q;
+    sortSel.value = state.sort;
+
+    let issues = [];
+    let names = {};
+    let repoByFolder = {};
+
+    function toIssue(i, folders) {
+      const labels = (i.labels || []).map(l => (typeof l === 'string' ? l : l && l.name)).filter(Boolean);
+      const folder = i.folder || labels.find(l => folders.has(l)) || '';
+      const shown = labels.filter(l => l !== folder);
+      // Titles often repeat the project ("blt-leaf: …", "[blt-leaf] …"); the project chip already says it.
+      const title = folder
+        ? String(i.title || '').replace(new RegExp(`^\\s*\\[?${folder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]?\\s*:?\\s*`, 'i'), '') || i.title
+        : i.title;
+      const user = i.user && i.user.login ? i.user.login : '';
+      return {
+        number: i.number,
+        title: title || '(no title)',
+        fullTitle: i.title || '',
+        url: safeUrl(i.html_url) || `${FORGE}/issues/${encodeURIComponent(i.number)}`,
+        folder: folder || GENERAL,
+        labels: shown,
+        user,
+        assignees: (i.assignees || []).map(a => a && a.login).filter(Boolean),
+        comments: i.comments || 0,
+        votes: i.votes || 0,
+        prs: (i.linked_prs || []).length,
+        created: ts(i.created_at),
+        updated: ts(i.updated_at) ?? ts(i.created_at),
+        text: [i.title, `#${i.number}`, user, folder, ...labels].join(' ').toLowerCase(),
+      };
+    }
+
+    const projectName = f => (f === GENERAL ? 'General' : names[f] || f);
+
+    function labelClass(l) {
+      const k = l.toLowerCase();
+      if (k === 'good first issue') return 'lbl gfi';
+      if (k === 'bug') return 'lbl bug';
+      if (k === 'hacktoberfest') return 'lbl hf';
+      return 'lbl';
+    }
+
+    function renderControls() {
+      const counts = {};
+      issues.forEach(i => { counts[i.folder] = (counts[i.folder] || 0) + 1; });
+      const folders = Object.keys(counts).sort((a, b) => (a === GENERAL) - (b === GENERAL) || projectName(a).localeCompare(projectName(b)));
+      projectSel.innerHTML = `<option value="">All projects (${issues.length})</option>` +
+        folders.map(f => `<option value="${esc(f)}">${esc(projectName(f))} (${counts[f]})</option>`).join('');
+      if (state.project && !counts[state.project]) state.project = '';
+      projectSel.value = state.project;
+
+      const labelCounts = {};
+      // Project labels are what the project picker is for; the chips offer the topic labels.
+      issues.forEach(i => i.labels.forEach(l => { if (!names[l]) labelCounts[l] = (labelCounts[l] || 0) + 1; }));
+      const top = Object.entries(labelCounts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 10);
+      state.labels.forEach(l => { if (!labelCounts[l] && !issues.some(i => i.labels.includes(l))) state.labels.delete(l); });
+      labelsEl.innerHTML = top.map(([l, n]) =>
+        `<button type="button" class="chip" data-label="${esc(l)}" aria-pressed="${state.labels.has(l)}">${esc(l)} <span class="n">${n}</span></button>`).join('');
+
+      const gfi = labelCounts['good first issue'] || 0;
+      const unassigned = issues.filter(i => !i.assignees.length).length;
+      $('#stats').innerHTML = [
+        stat('fa-circle-dot', num(issues.length), 'Open issues'),
+        stat('fa-folder', num(folders.filter(f => f !== GENERAL).length), 'Projects', 'Projects with open issues'),
+        stat('fa-seedling', num(gfi), 'Good first', 'Issues labelled good first issue'),
+        stat('fa-user-plus', num(unassigned), 'Unassigned', 'Open issues nobody is assigned to'),
+      ].join('');
+    }
+
+    function visible() {
+      const words = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+      const by = {
+        updated: (a, b) => (b.updated ?? 0) - (a.updated ?? 0),
+        newest: (a, b) => (b.created ?? 0) - (a.created ?? 0) || b.number - a.number,
+        oldest: (a, b) => (a.created ?? 0) - (b.created ?? 0) || a.number - b.number,
+        comments: (a, b) => b.comments - a.comments || (b.updated ?? 0) - (a.updated ?? 0),
+      }[state.sort];
+      return issues
+        .filter(i => !state.project || i.folder === state.project)
+        .filter(i => [...state.labels].every(l => i.labels.includes(l)))
+        .filter(i => words.every(w => i.text.includes(w)))
+        .sort(by);
+    }
+
+    function rowHTML(i, showProject) {
+      const labels = i.labels.map(l => `<span class="${labelClass(l)}">${esc(l)}</span>`).join('');
+      const proj = showProject
+        ? `<button type="button" class="proj-chip" data-project="${esc(i.folder)}" title="Only ${esc(projectName(i.folder))}">${i.folder === GENERAL ? symbol('', 'BLT') : symbol(i.folder, projectName(i.folder))}${esc(projectName(i.folder))}</button>`
+        : '';
+      const meta = [
+        `<span class="mono">#${esc(i.number)}</span>`,
+        `<span title="${esc(fullDate(i.created))}">opened ${esc(ago(i.created))}${i.user ? ` by ${esc(i.user)}` : ''}</span>`,
+        i.updated && i.updated !== i.created ? `<span class="hide-sm" title="${esc(fullDate(i.updated))}">updated ${esc(ago(i.updated))}</span>` : '',
+        i.comments ? `<span title="${i.comments} comments"><i class="fa-regular fa-comment" aria-hidden="true"></i>${i.comments}</span>` : '',
+        i.prs ? `<span title="Linked pull requests"><i class="fa-solid fa-code-pull-request" aria-hidden="true"></i>${i.prs}</span>` : '',
+        i.votes ? `<span title="Votes"><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i>${i.votes}</span>` : '',
+        i.assignees.length
+          ? `<span title="Assigned"><i class="fa-solid fa-user-check" aria-hidden="true"></i>${esc(i.assignees.join(', '))}</span>`
+          : '',
+      ].filter(Boolean).join('');
+      return `<li class="issue"><i class="fa-regular fa-circle-dot" aria-hidden="true"></i>
+        <div class="issue-body">
+          <div class="issue-title"><a href="${esc(i.url)}" target="_blank" rel="noopener noreferrer" title="${esc(i.fullTitle)}">${esc(i.title)}</a>${labels}</div>
+          <div class="issue-meta">${proj}${meta}</div>
+        </div></li>`;
+    }
+
+    function render() {
+      projectSel.value = state.project;
+      $$('[data-label]', labelsEl).forEach(b => b.setAttribute('aria-pressed', String(state.labels.has(b.dataset.label))));
+      groupBtn.setAttribute('aria-pressed', String(state.group));
+      const list = visible();
+      const filteredOut = list.length !== issues.length;
+      countEl.innerHTML = `${list.length} of ${issues.length} open issues${filteredOut ? ' · <button type="button" data-clear>Clear filters</button>' : ''}`;
+      results.textContent = '';
+      if (!list.length) {
+        results.append(issues.length ? emptyState('No issue matches these filters', clear) : emptyState('No open issues'));
+      } else if (state.group && !state.project) {
+        const groups = new Map();
+        list.forEach(i => { if (!groups.has(i.folder)) groups.set(i.folder, []); groups.get(i.folder).push(i); });
+        const ordered = [...groups.entries()].sort((a, b) => b[1].length - a[1].length || projectName(a[0]).localeCompare(projectName(b[0])));
+        results.innerHTML = `<div class="panel">${ordered.map(([f, items]) => {
+          const repo = repoByFolder[f];
+          const more = f === GENERAL ? `${FORGE}/issues` : repo ? issuesUrl(repo) : `${FORGE}/issues?label=${encodeURIComponent(f)}`;
+          return `<section><div class="group-head">${f === GENERAL ? symbol('', 'BLT') : symbol(f, projectName(f))}${esc(projectName(f))} <span class="n">${items.length}</span>
+            <a class="more" href="${esc(more)}" target="_blank" rel="noopener noreferrer">On the forge <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:9px" aria-hidden="true"></i></a></div>
+            <ul class="issues">${items.map(i => rowHTML(i, false)).join('')}</ul></section>`;
+        }).join('')}</div>`;
+      } else {
+        results.innerHTML = `<div class="panel"><ul class="issues">${list.map(i => rowHTML(i, !state.project)).join('')}</ul></div>`;
+      }
+      setParams({
+        q: state.q,
+        project: state.project,
+        label: [...state.labels].join(','),
+        sort: state.sort === 'updated' ? '' : state.sort,
+        group: state.group ? '1' : '',
+      });
+    }
+
+    function clear() {
+      state.q = ''; search.value = '';
+      state.project = '';
+      state.labels.clear();
+      render();
+    }
+
+    search.addEventListener('input', debounce(() => { state.q = search.value.trim(); render(); }, 150));
+    projectSel.addEventListener('change', () => { state.project = projectSel.value; render(); });
+    sortSel.addEventListener('change', () => { state.sort = sortSel.value; render(); });
+    groupBtn.addEventListener('click', () => { state.group = !state.group; if (state.group) state.project = ''; render(); });
+    labelsEl.addEventListener('click', e => {
+      const b = e.target.closest('[data-label]');
+      if (!b) return;
+      state.labels[state.labels.has(b.dataset.label) ? 'delete' : 'add'](b.dataset.label);
+      render();
+    });
+    results.addEventListener('click', e => {
+      const b = e.target.closest('[data-project]');
+      if (!b) return;
+      state.project = b.dataset.project;
+      state.group = false;
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    countEl.addEventListener('click', e => { if (e.target.closest('[data-clear]')) clear(); });
+
+    async function load() {
+      try {
+        const data = await loadForge();
+        const repos = (data.repos || []).filter(r => r && r.folder);
+        names = Object.fromEntries(repos.map(r => [r.folder, r.name || r.folder]));
+        repoByFolder = Object.fromEntries(repos.map(r => [r.folder, r]));
+        const folders = new Set(Object.keys(names));
+        issues = (data.open_issues || []).map(i => toIssue(i, folders));
+        showFreshness(data.generated_at);
+        renderControls();
+        render();
+      } catch (err) {
+        $('#stats').textContent = '';
+        countEl.textContent = '';
+        errorState(results, err.message, load);
+      }
+    }
+    load();
+  }
+
+  /* ================================================================ */
+  /*  SCREENSHOTS                                                      */
+  /* ================================================================ */
+  function screenshotsPage() {
+    const results = $('#results');
+    const search = $('#search');
+    const sortSel = $('#sort');
+    const countEl = $('#count');
+    const p0 = params();
+    const state = { q: p0.get('q') || '', sort: p0.get('sort') === 'captured' ? 'captured' : 'name' };
+    search.value = state.q;
+    sortSel.value = state.sort;
+    let sites = [];
+
+    function cardHTML(s) {
+      const when = s.captured != null
+        ? `<span class="when" title="Captured ${esc(fullDate(s.captured))}">${esc(ago(s.captured))}</span>`
+        : '<span class="when">pending</span>';
+      return `<a class="shot" href="${esc(s.live)}" target="_blank" rel="noopener noreferrer" title="Open ${esc(s.live)}">
+        <span class="thumb">${shotImg(s.shot, s.name) || placeholder('pending')}</span>
+        <span class="shot-body">${symbol(s.folder, s.name, 'lg')}
+          <span class="txt"><b>${esc(s.name)}${s.tier ? ` <span title="${TIERS[s.tier]}">${medalSvg(s.tier, 14)}</span>` : ''}</b><span class="host">${esc(host(s.live))}</span></span>${when}</span>
+      </a>`;
+    }
+
+    function render() {
+      const words = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+      const list = sites
+        .filter(s => words.every(w => s.text.includes(w)))
+        .sort(state.sort === 'captured'
+          ? (a, b) => (b.captured ?? 0) - (a.captured ?? 0) || a.name.localeCompare(b.name)
+          : (a, b) => a.name.localeCompare(b.name));
+      const captured = sites.filter(s => shotUrl(s.shot)).length;
+      countEl.textContent = `${list.length} of ${sites.length} live sites · ${captured} captured`;
+      results.textContent = '';
+      if (!list.length) {
+        results.append(sites.length
+          ? emptyState('No site matches this search', () => { state.q = ''; search.value = ''; render(); })
+          : emptyState('No project lists a live site yet'));
+      } else {
+        results.innerHTML = list.map(cardHTML).join('');
+      }
+      setParams({ q: state.q, sort: state.sort === 'name' ? '' : state.sort });
+    }
+
+    search.addEventListener('input', debounce(() => { state.q = search.value.trim(); render(); }, 150));
+    sortSel.addEventListener('change', () => { state.sort = sortSel.value; render(); });
+
+    async function load() {
+      const [forge, shots] = await Promise.all([loadForge().catch(() => null), loadShots()]);
+      if (!forge && !shots) {
+        countEl.textContent = '';
+        results.className = '';
+        errorState(results, 'Neither forge_data.json nor the screenshot index could be read.', () => { results.className = 'shots'; load(); });
+        return;
+      }
+      results.className = 'shots';
+      const map = new Map();
+      (forge && forge.repos || []).forEach(r => {
+        const live = liveUrl(r);
+        if (r && r.folder && live) map.set(r.folder, { folder: r.folder, name: r.name || r.folder, live, tier: r.rating && TIERS[r.rating.tier] ? r.rating.tier : '' });
+      });
+      Object.entries(shots ? shots.shots : {}).forEach(([folder, shot]) => {
+        const site = map.get(folder) || { folder, name: folder, live: safeUrl(shot.live_url) };
+        site.shot = shot;
+        if (!site.live) site.live = safeUrl(shot.live_url);
+        if (site.live) map.set(folder, site);
+      });
+      sites = [...map.values()].map(s => ({
+        ...s,
+        captured: s.shot ? ts(s.shot.captured_at) : null,
+        text: [s.name, s.folder, s.live].join(' ').toLowerCase(),
+      }));
+
+      if (shots && ts(shots.generated_at) != null) {
+        $('#sub').innerHTML = `Every BLT project with a live site. Captured once a day, last on <time datetime="${esc(shots.generated_at)}">${esc(fullDate(shots.generated_at))}</time>.`;
+      }
+      $('#notice').innerHTML = shots ? '' : `<div class="notice"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+        <span>The daily screenshot capture has not run yet, so every site shows a placeholder for now. Click a card to open the site.</span></div>`;
+      if (forge) showFreshness(forge.generated_at);
+      else if (shots) showFreshness(shots.generated_at, 'Screenshots');
+      render();
+    }
+    load();
+  }
+
+  const page = document.body.dataset.page;
+  if (page === 'dashboard') dashboard();
+  else if (page === 'issues') issuesPage();
+  else if (page === 'screenshots') screenshotsPage();
+})();

@@ -23,5 +23,5 @@ const BLT_CONFIG = {
 
   /* ── External services ── */
   BLT_ZERO_URL: "https://zero.owaspblt.org",
-  BLT_API_URL: "https://blt.owasp.org/api",
+  BLT_API_URL: "https://api.owaspblt.org",
 };

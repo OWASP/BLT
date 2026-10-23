@@ -1,0 +1,72 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792782010901,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nBLT-Timer-Flutter (`blt-timer-flutter/`) is rated **Bronze** on [Waypoint](https://waypoint.owaspblt.org/?q=blt-timer-flutter): it meets 90% of the checklist that applies to it. Waypoint rates every BLT project daily against the same checklist (`blt-waypoint/scripts/ratings.py`): **bronze** is the basics, **silver** means it runs, **gold** means it is looked after. This issue lists what is left for gold.\n\n## What to do\n\n### Bronze (the basics: a README, a description, a licence and a logo)\n\n- **Project logo.** Add `logo.svg` (and `logo.png`) to the folder, following the logo guide on design.owaspblt.org.\n\n## Acceptance criteria\n\n- [ ] Project logo\n- [ ] Waypoint shows `blt-timer-flutter` as Gold after the next daily refresh\n\n## How to test locally\n\n```bash\ncurl -s https://waypoint.owaspblt.org/forge_data.json -o /tmp/forge_data.json\npython3 blt-waypoint/scripts/ratings.py /tmp/forge_data.json --report | grep -w blt-timer-flutter\nscripts/ci/test.sh blt-timer-flutter\n```\n\nThe report reads your checkout, so it shows the new rating before the change is merged.",
+            "id": "blt-tasks-issue-218",
+            "sig": "S-FkPsUSIdtkxx_uKrOGSZoutsxlopNhFj14zFhqRD7HV4X3vDZlUak7PO99c6GZBjuMwLzWXTBVCBsSB0HpCw",
+            "title": "blt-timer-flutter: reach the gold standard (bronze today, 1 step)",
+            "ts": 1792782010901,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-218",
+            "labels": [
+                "blt-timer-flutter",
+                "gold-standard",
+                "enhancement",
+                "good first issue"
+            ],
+            "sig": "YwLzI3Bepdgm6V0Tf-H8yrMEneyXn7m8aVsVSGoFtn6X72pRM6_2cApmQm6JyxWUHiev7TgBC5IruSSFYGwVDg",
+            "ts": 1792782010902,
+            "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "blt-timer-flutter has moved into `blt-timer/flutter_app` (BLT-Timer-Web and BLT-Timer-Flutter are now one project, blt-timer), so this checklist no longer applies. What blt-timer still needs for gold is tracked on Waypoint.",
+            "id": "blt-tasks-comment-218-1792783958217",
+            "sig": "A7of_3OlXiJHD3v3pR2lhxUraJrjGb0JXqx9IbmIo2PH1D5x34LhtRPxZZlNyzdh8gh4IhATHJtp0b37lYybDg",
+            "ts": 1792783958217,
+            "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-status-218-1792783958217",
+            "sig": "eUNwFuXsRpcjgvqMER9_6hHqLRqWXEI_sTge4Zpw5loxC20u6Z48zGFsInvfUHu4KGJTNo4MM2_WKHd5w2taCA",
+            "status": "closed",
+            "ts": 1792783958218,
+            "type": "status"
+        }
+    ],
+    "labels": [
+        "blt-timer-flutter",
+        "gold-standard",
+        "enhancement",
+        "good first issue"
+    ],
+    "milestone": "",
+    "number": 218,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "closed",
+    "title": "blt-timer-flutter: reach the gold standard (bronze today, 1 step)",
+    "updatedAt": 1792783958218,
+    "votes": 0
+}

@@ -7,7 +7,9 @@
       name="description"
       content="BLT-CVE is a decentralized, machine-readable vulnerability registry for the OWASP BLT ecosystem."
     >
+    <meta name="theme-color" content="#dc2626">
     <title>BLT-CVE Registry</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <script>
       // Before first paint: the saved theme (localStorage "theme", shared with the <blt-nav> bar), else the system preference.
       (function () {
@@ -19,392 +21,387 @@
     </script>
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <style>
+      /* Tokens follow the BLT design guide: red-600 primary, neutral grays,
+         gray-950 / gray-900 / gray-800 in dark mode, system fonts, rounded-2xl cards. */
       :root {
         color-scheme: light;
-        /* owaspblt.org palette: Tailwind gray surfaces, BLT red accent */
         --bg: #f9fafb;
         --surface: #ffffff;
-        --surface-soft: #f3f4f6;
-        --ink: #111827;
+        --surface-2: #f3f4f6;
+        --border: #e5e7eb;
+        --border-strong: #d1d5db;
+        --text: #111827;
+        --text-2: #374151;
         --muted: #6b7280;
-        --line: #e5e7eb;
-        --accent: #dc2626;
-        --accent-dark: #b91c1c;
-        --link: #b91c1c;
-        --hero-from: rgba(185, 28, 28, 0.94);
-        --hero-to: rgba(17, 24, 39, 0.94);
-        --low: #15803d;
+        --brand: #dc2626;
+        --brand-hover: #b91c1c;
+        --brand-text: #b91c1c;
+        --brand-soft: #fef2f2;
+        --brand-ring: rgba(220, 38, 38, 0.28);
         --warn-bg: #fffbeb;
-        --warn-line: #fcd34d;
+        --warn-line: #fde68a;
         --warn-ink: #92400e;
-        --danger: #b91c1c;
-        --shadow: 0 18px 45px rgba(17, 24, 39, 0.08);
+        --sev-critical: #b91c1c;
+        --sev-high: #c2410c;
+        --sev-medium: #a16207;
+        --sev-low: #15803d;
+        --shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+        --shadow-lift: 0 6px 24px rgba(17, 24, 39, 0.08);
+        --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       }
 
-      :root.dark {
+      html.dark {
         color-scheme: dark;
         --bg: #030712;
         --surface: #111827;
-        --surface-soft: #1f2937;
-        --ink: #f3f4f6;
+        --surface-2: #1f2937;
+        --border: #1f2937;
+        --border-strong: #374151;
+        --text: #f9fafb;
+        --text-2: #d1d5db;
         --muted: #9ca3af;
-        --line: #1f2937;
-        --link: #f87171;
-        --hero-from: rgba(127, 29, 29, 0.92);
-        --hero-to: rgba(3, 7, 18, 0.96);
-        --warn-bg: #271a09;
-        --warn-line: rgba(180, 83, 9, 0.55);
+        --brand-text: #f87171;
+        --brand-soft: rgba(220, 38, 38, 0.14);
+        --brand-ring: rgba(248, 113, 113, 0.35);
+        --warn-bg: rgba(245, 158, 11, 0.1);
+        --warn-line: rgba(245, 158, 11, 0.35);
         --warn-ink: #fcd34d;
-        --shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+        --sev-critical: #dc2626;
+        --sev-high: #c2410c;
+        --sev-medium: #a16207;
+        --sev-low: #15803d;
+        --shadow: none;
+        --shadow-lift: 0 6px 24px rgba(0, 0, 0, 0.45);
       }
 
-      * {
-        box-sizing: border-box;
-      }
+      *, *::before, *::after { box-sizing: border-box; }
+
+      html { -webkit-text-size-adjust: 100%; overflow-x: clip; }
 
       body {
         margin: 0;
         background: var(--bg);
-        color: var(--ink);
-        font-family:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-          "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        line-height: 1.55;
+        color: var(--text);
+        font-family: var(--sans);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
       }
 
-      a {
-        color: var(--link);
-        font-weight: 700;
-        text-decoration: none;
-      }
+      blt-nav:not(:defined) { display: block; min-height: 61px; }
+      blt-nav:not(:defined) > * { display: none; }
 
-      a:hover {
-        text-decoration: underline;
-      }
+      a { color: var(--brand-text); font-weight: 600; text-decoration: none; }
+      a:hover { text-decoration: underline; text-underline-offset: 3px; }
+      a:focus-visible, .button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
 
       code {
-        background: var(--surface-soft);
-        border: 1px solid var(--line);
+        background: var(--surface-2);
+        border: 1px solid var(--border);
         border-radius: 6px;
-        color: var(--ink);
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-          "Liberation Mono", monospace;
-        font-size: 0.92em;
-        padding: 0.12rem 0.35rem;
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 0.875em;
+        padding: 0.1rem 0.35rem;
+        overflow-wrap: anywhere;
       }
 
-      .shell {
-        min-height: 100vh;
+      .wrap { margin: 0 auto; max-width: 1120px; padding: 0 1.5rem; }
+
+      /* Hero */
+      .hero { border-bottom: 1px solid var(--border); background: var(--surface); }
+      .hero .wrap { padding-top: 3.5rem; padding-bottom: 3rem; }
+
+      .badge {
+        align-items: center;
+        background: var(--brand-soft);
+        border: 1px solid var(--brand-ring);
+        border-radius: 999px;
+        color: var(--brand-text);
+        display: inline-flex;
+        font-size: 0.78rem;
+        font-weight: 700;
+        gap: 0.45rem;
+        letter-spacing: 0.02em;
+        padding: 0.25rem 0.7rem;
+      }
+      .badge::before { content: ""; width: 0.45rem; height: 0.45rem; border-radius: 999px; background: var(--brand); }
+
+      .hero h1 {
+        font-size: clamp(2.1rem, 5vw, 3.25rem);
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        line-height: 1.08;
+        margin: 1rem 0 0;
+      }
+      .hero h1 span { color: var(--brand-text); }
+
+      .hero .lead {
+        color: var(--text-2);
+        font-size: 1.1rem;
+        margin: 1rem 0 0;
+        max-width: 680px;
       }
 
-      .hero {
-        background:
-          linear-gradient(120deg, var(--hero-from), var(--hero-to)),
-          url("/assets/blt-cve-hero.png");
-        background-position: center;
-        background-size: cover;
-        color: #ffffff;
-        padding: 4.5rem 1.5rem 4rem;
-      }
-
-      .hero-inner,
-      .main {
-        margin: 0 auto;
-        max-width: 1120px;
-      }
-
-      blt-nav:not(:defined) {
-        display: block;
-        min-height: 61px;
-      }
-
-      blt-nav:not(:defined) > * {
-        display: none;
-      }
+      .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
 
       .button {
         align-items: center;
-        border: 1px solid rgba(255, 255, 255, 0.35);
-        border-radius: 8px;
-        color: #ffffff;
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        border-radius: 0.75rem;
+        color: var(--text);
         display: inline-flex;
-        min-height: 2.5rem;
-        padding: 0.55rem 0.8rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        gap: 0.5rem;
+        min-height: 2.75rem;
+        padding: 0.6rem 1.1rem;
+        transition: background-color 0.15s, border-color 0.15s;
       }
+      .button:hover { background: var(--surface-2); text-decoration: none; }
+      .button.primary { background: var(--brand); border-color: var(--brand); color: #ffffff; }
+      .button.primary:hover { background: var(--brand-hover); border-color: var(--brand-hover); }
 
-      .hero h1 {
-        font-size: clamp(2.45rem, 6vw, 5rem);
-        line-height: 0.98;
-        margin: 0;
-        max-width: 760px;
-      }
-
-      .hero p {
-        color: rgba(255, 255, 255, 0.88);
-        font-size: 1.15rem;
-        margin: 1.35rem 0 0;
-        max-width: 720px;
-      }
-
-      .actions {
+      .stats {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.8rem;
-        margin-top: 2rem;
+        gap: 0.5rem 1.75rem;
+        list-style: none;
+        margin: 2rem 0 0;
+        padding: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
       }
+      .stats strong { color: var(--text); font-family: var(--mono); font-weight: 600; }
+      .stats strong.plain { font-family: var(--sans); }
 
-      .button.primary {
-        background: #ffffff;
-        color: var(--accent-dark);
-      }
-
-      .main {
-        padding: 2rem 1.5rem 3.5rem;
-      }
+      /* Content */
+      main.wrap { padding-top: 2rem; padding-bottom: 3.5rem; }
 
       .notice {
         background: var(--warn-bg);
         border: 1px solid var(--warn-line);
-        border-radius: 8px;
+        border-radius: 1rem;
         color: var(--warn-ink);
-        margin-top: -3.2rem;
-        padding: 1rem 1.1rem;
-        box-shadow: var(--shadow);
+        display: flex;
+        gap: 0.75rem;
+        padding: 1rem 1.15rem;
       }
+      .notice svg { flex: none; margin-top: 0.15rem; }
+      .notice p { margin: 0; }
 
-      .section {
-        margin-top: 2rem;
-      }
+      .section { margin-top: 2.75rem; }
 
       .section-head {
         align-items: end;
         display: flex;
-        gap: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
         justify-content: space-between;
         margin-bottom: 1rem;
       }
 
-      h2 {
-        font-size: 1.45rem;
-        margin: 0;
-      }
+      h2 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+      .section-head p { margin: 0.25rem 0 0; }
 
-      .muted {
-        color: var(--muted);
-      }
+      .muted { color: var(--muted); }
 
-      .grid {
-        display: grid;
-        gap: 1rem;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
-
-      .endpoint,
-      .entry {
+      .card {
         background: var(--surface);
-        border: 1px solid var(--line);
+        border: 1px solid var(--border);
         border-radius: 1rem;
-        box-shadow: 0 8px 20px rgba(17, 24, 39, 0.05);
-        padding: 1rem;
+        box-shadow: var(--shadow);
       }
 
-      .endpoint h3,
-      .entry h3 {
-        font-size: 1rem;
-        margin: 0 0 0.45rem;
-      }
-
-      .endpoint p,
-      .entry p {
-        margin: 0.45rem 0 0;
-      }
-
-      .entries {
-        display: grid;
-        gap: 0.8rem;
-      }
-
+      /* Entries: one table-like card */
+      .entries { overflow: hidden; }
       .entry {
         align-items: center;
         display: grid;
-        gap: 1rem;
-        grid-template-columns: minmax(0, 1.4fr) minmax(0, 2fr) auto;
+        gap: 0.5rem 1.25rem;
+        grid-template-columns: minmax(0, 13rem) minmax(0, 1fr) auto;
+        padding: 1rem 1.25rem;
       }
+      .entry + .entry { border-top: 1px solid var(--border); }
+      .entry h3 { font-family: var(--mono); font-size: 0.95rem; font-weight: 600; margin: 0; }
+      .entry p { margin: 0; }
+      .entry .date { font-size: 0.85rem; margin-top: 0.15rem; }
+      .entry .title { color: var(--text-2); }
+      .entries > .empty { margin: 0; padding: 1.25rem; }
 
       .severity {
         border-radius: 999px;
         color: #ffffff;
         display: inline-flex;
-        font-weight: 800;
+        font-family: var(--mono);
+        font-size: 0.85rem;
+        font-weight: 700;
         justify-content: center;
-        min-width: 4.2rem;
-        padding: 0.35rem 0.65rem;
+        min-width: 3.75rem;
+        padding: 0.25rem 0.6rem;
       }
+      .severity.critical { background: var(--sev-critical); }
+      .severity.high { background: var(--sev-high); }
+      .severity.medium { background: var(--sev-medium); }
+      .severity.low { background: var(--sev-low); }
 
-      .severity.critical {
-        background: var(--danger);
-      }
+      /* Endpoints */
+      .grid { display: grid; gap: 1rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .endpoint { padding: 1.15rem 1.25rem; transition: border-color 0.15s, box-shadow 0.15s; }
+      .endpoint:hover { border-color: var(--border-strong); box-shadow: var(--shadow-lift); }
+      .endpoint h3 { font-family: var(--mono); font-size: 0.95rem; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+      .endpoint p { font-size: 0.92rem; margin: 0.4rem 0 0; }
 
-      .severity.high {
-        background: #b45c00;
-      }
-
-      .severity.medium {
-        background: #7d6a00;
-      }
-
-      .severity.low {
-        background: var(--low);
-      }
-
-      .docs {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.7rem;
-      }
-
+      /* Docs */
+      .docs { display: grid; gap: 0.75rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .docs a {
-        background: var(--surface);
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 0.65rem 0.8rem;
+        align-items: center;
+        color: var(--text);
+        display: flex;
+        justify-content: space-between;
+        padding: 0.85rem 1.1rem;
+        transition: border-color 0.15s, color 0.15s;
       }
+      .docs a::after { content: "\2192"; color: var(--muted); }
+      .docs a:hover { border-color: var(--brand-ring); color: var(--brand-text); text-decoration: none; }
 
       footer {
-        border-top: 1px solid var(--line);
+        border-top: 1px solid var(--border);
         color: var(--muted);
-        margin-top: 2.5rem;
+        font-size: 0.92rem;
+        margin-top: 3rem;
         padding-top: 1.5rem;
       }
+      footer p { margin: 0; }
 
       @media (max-width: 840px) {
-        .section-head,
-        .entry {
-          align-items: stretch;
-          display: grid;
-        }
-
-        .grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
+        .grid, .docs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .entry { grid-template-columns: minmax(0, 1fr) auto; }
+        .entry .title { grid-column: 1 / -1; grid-row: 2; }
       }
 
       @media (max-width: 560px) {
-        .hero {
-          padding: 2.5rem 1rem 3.6rem;
-        }
-
-        .main {
-          padding-left: 1rem;
-          padding-right: 1rem;
-        }
-
-        .grid {
-          grid-template-columns: 1fr;
-        }
+        .wrap { padding: 0 1rem; }
+        .hero .wrap { padding-top: 2.5rem; padding-bottom: 2.25rem; }
+        .hero .lead { font-size: 1rem; }
+        .grid { grid-template-columns: 1fr; }
+        .entry { padding: 0.9rem 1rem; }
       }
     </style>
   </head>
   <body>
-    <blt-nav project="blt-cve" name="CVE">
+    <blt-nav project="blt-cve" name="CVE" data-sticky>
       <a href="/index.json">Index</a>
       <a href="/feed.json">Feed</a>
       <a href="/docs/PROTOCOL.md">Protocol</a>
+      <a href="/schema/blt-cve-schema.json">Schema</a>
+      <a href="https://git.owaspblt.org/BLT/tree/main/blt-cve" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Contribute</a>
     </blt-nav>
-    <div class="shell">
-      <header class="hero">
-        <div class="hero-inner">
-          <h1>BLT-CVE Registry</h1>
-          <p>
-            A decentralized, federated, machine-readable vulnerability namespace
-            for the OWASP BLT ecosystem, published as static JSON on Cloudflare.
-          </p>
-          <div class="actions">
-            <a class="button primary" href="/feed.json">View JSON feed</a>
-            <a class="button" href="/schema/blt-cve-schema.json">Open schema</a>
-          </div>
-        </div>
-      </header>
 
-      <main class="main">
-        <section class="notice" aria-label="Registry notice">
+    <header class="hero">
+      <div class="wrap">
+        <span class="badge">OWASP BLT vulnerability registry</span>
+        <h1>BLT-CVE <span>Registry</span></h1>
+        <p class="lead">
+          A decentralized, federated, machine-readable vulnerability namespace
+          for the OWASP BLT ecosystem, published as static JSON on Cloudflare.
+        </p>
+        <div class="actions">
+          <a class="button primary" href="/feed.json">View JSON feed</a>
+          <a class="button" href="/schema/blt-cve-schema.json">Open schema</a>
+        </div>
+        <ul class="stats" aria-label="Registry format">
+          <li>ID format <strong>BLT-YYYY-NNNN</strong></li>
+          <li>Path <strong>/cves/YYYY/</strong></li>
+          <li>Hosting <strong class="plain">static, server-free</strong></li>
+        </ul>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="notice" aria-label="Registry notice">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <p>
           <strong>BLT IDs are not MITRE-issued CVE IDs.</strong>
           They are community-assigned identifiers within the OWASP BLT
           ecosystem. Always cross-reference official CVE sources for production
           security decisions.
-        </section>
+        </p>
+      </section>
 
-        <section class="section" aria-labelledby="entries-title">
-          <div class="section-head">
+      <section class="section" aria-labelledby="entries-title">
+        <div class="section-head">
+          <div>
+            <h2 id="entries-title">Published Entries</h2>
+            <p class="muted" id="entry-summary">Loading registry feed...</p>
+          </div>
+          <a href="/index.json">Machine index</a>
+        </div>
+        <div class="card entries" id="entries" aria-live="polite">
+          <article class="entry">
             <div>
-              <h2 id="entries-title">Published Entries</h2>
-              <p class="muted" id="entry-summary">Loading registry feed...</p>
+              <h3>Feed unavailable</h3>
+              <p class="muted date">Open <a href="/feed.json">feed.json</a> for the latest entries.</p>
             </div>
-            <a href="/index.json">Machine index</a>
-          </div>
-          <div class="entries" id="entries" aria-live="polite">
-            <article class="entry">
-              <div>
-                <h3>Feed unavailable</h3>
-                <p class="muted">Open <a href="/feed.json">feed.json</a> for the latest entries.</p>
-              </div>
-              <p class="muted">The registry data is served as static JSON.</p>
-              <span class="severity low">JSON</span>
-            </article>
-          </div>
-        </section>
+            <p class="title">The registry data is served as static JSON.</p>
+            <span class="severity low">JSON</span>
+          </article>
+        </div>
+      </section>
 
-        <section class="section" aria-labelledby="endpoints-title">
-          <div class="section-head">
-            <div>
-              <h2 id="endpoints-title">Endpoints</h2>
-              <p class="muted">Stable files for clients, mirrors, and validators.</p>
-            </div>
+      <section class="section" aria-labelledby="endpoints-title">
+        <div class="section-head">
+          <div>
+            <h2 id="endpoints-title">Endpoints</h2>
+            <p class="muted">Stable files for clients, mirrors, and validators.</p>
           </div>
-          <div class="grid">
-            <article class="endpoint">
-              <h3><a href="/index.json">/index.json</a></h3>
-              <p class="muted">Lightweight ID, path, and severity index.</p>
-            </article>
-            <article class="endpoint">
-              <h3><a href="/feed.json">/feed.json</a></h3>
-              <p class="muted">Full metadata feed with titles and dates.</p>
-            </article>
-            <article class="endpoint">
-              <h3><a href="/federation.json">/federation.json</a></h3>
-              <p class="muted">Federation manifest for mirrors.</p>
-            </article>
-            <article class="endpoint">
-              <h3><a href="/schema/blt-cve-schema.json">Schema</a></h3>
-              <p class="muted">JSON schema for registry entries.</p>
-            </article>
-          </div>
-        </section>
+        </div>
+        <div class="grid">
+          <article class="card endpoint">
+            <h3><a href="/index.json">/index.json</a></h3>
+            <p class="muted">Lightweight ID, path, and severity index.</p>
+          </article>
+          <article class="card endpoint">
+            <h3><a href="/feed.json">/feed.json</a></h3>
+            <p class="muted">Full metadata feed with titles and dates.</p>
+          </article>
+          <article class="card endpoint">
+            <h3><a href="/federation.json">/federation.json</a></h3>
+            <p class="muted">Federation manifest for mirrors.</p>
+          </article>
+          <article class="card endpoint">
+            <h3><a href="/schema/blt-cve-schema.json">Schema</a></h3>
+            <p class="muted">JSON schema for registry entries.</p>
+          </article>
+        </div>
+      </section>
 
-        <section class="section" aria-labelledby="submit-title">
-          <div class="section-head">
-            <div>
-              <h2 id="submit-title">Submit or Mirror</h2>
-              <p class="muted">
-                Entries follow <code>BLT-YYYY-NNNN</code> and live under
-                <code>/cves/YYYY/</code>.
-              </p>
-            </div>
+      <section class="section" aria-labelledby="submit-title">
+        <div class="section-head">
+          <div>
+            <h2 id="submit-title">Submit or Mirror</h2>
+            <p class="muted">
+              Entries follow <code>BLT-YYYY-NNNN</code> and live under
+              <code>/cves/YYYY/</code>.
+            </p>
           </div>
-          <div class="docs">
-            <a href="/docs/PROTOCOL.md">Protocol</a>
-            <a href="/docs/GOVERNANCE.md">Governance</a>
-            <a href="/docs/FEDERATION.md">Federation</a>
-            <a href="/docs/SECURITY.md">Security</a>
-          </div>
-        </section>
+        </div>
+        <div class="docs">
+          <a class="card" href="/docs/PROTOCOL.md">Protocol</a>
+          <a class="card" href="/docs/GOVERNANCE.md">Governance</a>
+          <a class="card" href="/docs/FEDERATION.md">Federation</a>
+          <a class="card" href="/docs/SECURITY.md">Security</a>
+        </div>
+      </section>
 
-        <footer>
+      <footer>
+        <p>
           BLT-CVE is part of the OWASP BLT initiative and is designed to remain
           forkable, static, and server-free.
-        </footer>
-      </main>
-    </div>
+        </p>
+      </footer>
+    </main>
 
     <script>
       const entriesEl = document.querySelector("#entries");
@@ -440,7 +437,7 @@
           }, last updated ${formatDate(feed.updated)}.`;
 
           if (!items.length) {
-            entriesEl.innerHTML = '<p class="muted">No entries have been published yet.</p>';
+            entriesEl.innerHTML = '<p class="muted empty">No entries have been published yet.</p>';
             return;
           }
 
@@ -462,10 +459,10 @@
                 <article class="entry">
                   <div>
                     <h3><a href="${escHtml(url.pathname)}">${escHtml(item.id)}</a></h3>
-                    <p class="muted">Published ${formatDate(item.published)}</p>
+                    <p class="muted date">Published ${formatDate(item.published)}</p>
                   </div>
-                  <p>${escHtml(item.title || "Untitled registry entry")}</p>
-                  <span class="severity ${severityClass(score)}">${label}</span>
+                  <p class="title">${escHtml(item.title || "Untitled registry entry")}</p>
+                  <span class="severity ${severityClass(score)}" title="CVSS score">${label}</span>
                 </article>
               `;
             })

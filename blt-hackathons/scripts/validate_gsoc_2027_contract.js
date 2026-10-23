@@ -11,8 +11,9 @@ const summaryPath = "public/hackathon-data/gsoc-2027-warmup-summary.json";
 
 const HACKATHONS_CONFIG = eval(`${configSource}\nHACKATHONS_CONFIG`);
 
-// The 57 gitlab.com/owasp-blt projects the event was announced with, now folders of the BLT
-// monorepo on git.owaspblt.org (owasp-blt/blt is blt-legacy, formerly blt-core).
+// The gitlab.com/owasp-blt projects the event was announced with, now folders of the BLT
+// monorepo on git.owaspblt.org (owasp-blt/blt is blt-legacy, formerly blt-core). blt-timer-web and
+// blt-timer-flutter are now blt-timer; blt-vanish-flutter and dot_github were removed.
 const requiredFolders = [
   "blt-legacy", "blt-action", "blt-api", "blt-autopatch", "blt-byte", "blt-cve", "blt-dash",
   "blt-design", "blt-design-contest", "blt-docs", "blt-enforcement", "blt-extension",
@@ -21,9 +22,9 @@ const requiredFolders = [
   "blt-netguardian", "blt-netguardian-client", "blt-newsletter", "blt-next", "blt-nexus",
   "blt-ossh", "blt-owasp-bumper", "blt-owasp-metadata", "blt-owasp-projects", "blt-owasp-wich",
   "blt-pages", "blt-panini", "blt-pool", "blt-preflight", "blt-profiles", "blt-rewards",
-  "blt-safecloak", "blt-sammich", "blt-sizzle", "blt-start", "blt-timer-flutter",
-  "blt-timer-web", "blt-toasty", "blt-tomato", "blt-university", "blt-vanish",
-  "blt-vanish-flutter", "blt-waypoint", "blt-zero", "coderabbit", "dot_github", "my-gsoc-tool",
+  "blt-safecloak", "blt-sammich", "blt-sizzle", "blt-start", "blt-timer",
+  "blt-toasty", "blt-tomato", "blt-university", "blt-vanish",
+  "blt-waypoint", "blt-zero", "coderabbit", "my-gsoc-tool",
 ];
 
 const failures = [];

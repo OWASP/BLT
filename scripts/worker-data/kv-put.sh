@@ -8,10 +8,11 @@
 # public/hackathon-data/x.json with base public -> hackathon-data/x.json), stored with
 # {"updatedAt": <now>} metadata like kv-data.js putData(). Needs CLOUDFLARE_API_TOKEN (with
 # Workers KV Storage: Edit) and CLOUDFLARE_ACCOUNT_ID. KV_PUT_DRY_RUN=1 prints the keys only;
-# KV_NAMESPACE_ID overrides the id read from wrangler.toml.
+# KV_NAMESPACE_ID overrides the id read from wrangler.toml. Images, fonts and PDFs are sent
+# base64-encoded ("base64": true) so their bytes arrive unchanged.
 set -euo pipefail
 
-[[ $# -ge 3 ]] || { sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2; }
+[[ $# -ge 3 ]] || { sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 project="$1"; base="${2%/}"; shift 2
 binding="${KV_BINDING:-DATA}"
 
@@ -40,8 +41,17 @@ for file in "$@"; do
   key="${file#"$base"/}"
   [[ "$key" != "$file" ]] || { echo "kv-put: $file is not under $base" >&2; exit 1; }
   keys+=("$key")
-  jq -n --arg key "$key" --rawfile value "$file" --arg at "$now" \
-    '{key: $key, value: $value, metadata: {updatedAt: $at}}' > "$tmp/${#keys[@]}.json"
+  case "${file##*.}" in
+    jpg|jpeg|png|webp|gif|ico|woff|woff2|pdf)
+      base64 -w0 "$file" > "$tmp/value.b64"
+      jq -n --arg key "$key" --rawfile value "$tmp/value.b64" --arg at "$now" \
+        '{key: $key, value: $value, base64: true, metadata: {updatedAt: $at}}' > "$tmp/${#keys[@]}.json"
+      ;;
+    *)
+      jq -n --arg key "$key" --rawfile value "$file" --arg at "$now" \
+        '{key: $key, value: $value, metadata: {updatedAt: $at}}' > "$tmp/${#keys[@]}.json"
+      ;;
+  esac
 done
 [[ ${#keys[@]} -gt 0 ]] || { echo "kv-put: nothing to write"; exit 0; }
 

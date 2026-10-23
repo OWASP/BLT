@@ -1,1 +1,155 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BLT Autopatch</title><style>:root{color-scheme:dark;--lime:#a3e635;--muted:#aab4c5}*{box-sizing:border-box}body{margin:0;font:16px/1.65 system-ui;background:radial-gradient(circle at 15% 15%,#29420f,transparent 35%),#090c0b;color:#f8fafc}main{max-width:900px;margin:auto;padding:9rem 1.5rem}small{color:var(--lime);font-weight:800;letter-spacing:.14em}h1{font-size:clamp(3rem,10vw,6.5rem);line-height:.9;margin:.25em 0}.lead{font-size:1.3rem;color:var(--muted);max-width:680px}.notice{margin:2.5rem 0;padding:1.25rem;border-left:4px solid var(--lime);background:#ffffff0a}.actions{display:flex;gap:1rem;flex-wrap:wrap}a{padding:.8rem 1.1rem;border-radius:.7rem;background:var(--lime);color:#142004;text-decoration:none;font-weight:800}.ghost{background:#ffffff10;color:white;border:1px solid #ffffff2b}</style><script src="https://owaspblt.org/_shared/blt-analytics.js" defer></script></head><body><main><small>OWASP BLT · PROJECT FOUNDATION</small><h1>BLT Autopatch</h1><p class="lead">A home for transparent, reviewable security patch automation in the OWASP BLT ecosystem.</p><div class="notice"><strong>Early-stage project.</strong> The repository and deployment foundation are ready; production patching behavior is not yet implemented.</div><div class="actions"><a href="https://git.owaspblt.org/BLT/BLT-Autopatch">Source code</a><a class="ghost" href="https://waypoint.owaspblt.org/">All BLT projects</a></div></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BLT Autopatch – Reviewable security patch automation</title>
+  <meta name="description" content="BLT Autopatch is an early-stage OWASP BLT project: a home for transparent, reviewable security patch automation in the BLT ecosystem." />
+  <link rel="icon" type="image/svg+xml" href="logo.svg" />
+  <script src="theme-init.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <script src="https://owaspblt.org/_shared/blt-analytics.js" defer></script>
+</head>
+<body>
+  <blt-nav project="blt-autopatch" name="Autopatch" data-sticky>
+    <a href="#status">Status</a>
+    <a href="#principles">Principles</a>
+    <a href="#develop">Develop</a>
+    <a href="https://git.owaspblt.org/BLT/issues?label=blt-autopatch" target="_blank" rel="noopener noreferrer">Issues</a>
+    <a href="https://git.owaspblt.org/BLT/tree/main/blt-autopatch" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Contribute</a>
+  </blt-nav>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <img class="hero-logo" src="logo.svg" alt="BLT Autopatch logo" width="168" height="168" />
+        <div>
+          <span class="badge"><i class="fa-solid fa-seedling" aria-hidden="true"></i> OWASP BLT · Project foundation</span>
+          <h1>BLT <span>Autopatch</span></h1>
+          <p class="lead">A home for transparent, reviewable security patch automation in the OWASP BLT ecosystem.</p>
+          <div class="actions">
+            <a class="btn primary" href="https://git.owaspblt.org/BLT/tree/main/blt-autopatch" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-code-branch" aria-hidden="true"></i> Source code</a>
+            <a class="btn" href="https://git.owaspblt.org/BLT/issues?label=blt-autopatch" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-circle-dot" aria-hidden="true"></i> Open issues</a>
+            <a class="btn" href="https://waypoint.owaspblt.org/"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> All BLT projects</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="status">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Status</h2>
+        </div>
+        <div class="notice">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          <div><strong>Early-stage project.</strong> The repository and deployment foundation are ready; production patching behavior is not yet implemented.</div>
+        </div>
+        <div class="grid three" style="margin-top:16px">
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-folder-tree" aria-hidden="true"></i></span> Repository</h3>
+            <p><span class="pill ok">Ready</span> The <code>blt-autopatch</code> folder lives in the OWASP BLT monorepo.</p>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-cloud" aria-hidden="true"></i></span> Deployment</h3>
+            <p><span class="pill ok">Ready</span> This page is served as static assets by the <code>blt-autopatch</code> Worker at <code>autopatch.owaspblt.org</code>.</p>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span> Patching</h3>
+            <p><span class="pill high">Not started</span> No patching behavior is implemented yet.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="principles">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>The goal</h2>
+          <p>Security patch automation that people can see into and sign off on.</p>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-eye" aria-hidden="true"></i></span> Transparent</h3>
+            <p>Patch automation that is open about what it changes, in the open-source OWASP BLT ecosystem.</p>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-user-check" aria-hidden="true"></i></span> Reviewable</h3>
+            <p>Patches that are proposed for review rather than applied silently.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="develop">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Develop</h2>
+          <p>The folder holds the landing page (<code>public/index.html</code>) and the Worker configuration (<code>wrangler.toml</code>). Preview and deploy it with Wrangler.</p>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <p class="code-label">Preview locally</p>
+<pre><code>git clone https://git.owaspblt.org/BLT.git
+cd BLT/blt-autopatch
+npx wrangler dev</code></pre>
+          </div>
+          <div class="card">
+            <p class="code-label">wrangler.toml</p>
+<pre><code>name = "blt-autopatch"
+
+[assets]
+directory = "./public"
+
+[[routes]]
+pattern = "autopatch.owaspblt.org"
+custom_domain = true</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="links">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Get involved</h2>
+          <p>Ideas for how Autopatch should work are welcome as issues with the <code>blt-autopatch</code> label.</p>
+        </div>
+        <div class="links">
+          <a class="card link-card" href="https://git.owaspblt.org/BLT/tree/main/blt-autopatch" target="_blank" rel="noopener noreferrer">
+            <span class="icon"><i class="fa-solid fa-code" aria-hidden="true"></i></span>
+            <div><strong>Source</strong><span>BLT/tree/main/blt-autopatch</span></div>
+          </a>
+          <a class="card link-card" href="https://git.owaspblt.org/BLT/issues?label=blt-autopatch" target="_blank" rel="noopener noreferrer">
+            <span class="icon"><i class="fa-solid fa-circle-dot" aria-hidden="true"></i></span>
+            <div><strong>Issues</strong><span>Label blt-autopatch</span></div>
+          </a>
+          <a class="card link-card" href="https://git.owaspblt.org/BLT" target="_blank" rel="noopener noreferrer">
+            <span class="icon"><i class="fa-solid fa-code-branch" aria-hidden="true"></i></span>
+            <div><strong>BLT monorepo</strong><span>git.owaspblt.org/BLT</span></div>
+          </a>
+          <a class="card link-card" href="https://waypoint.owaspblt.org/">
+            <span class="icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
+            <div><strong>All BLT projects</strong><span>waypoint.owaspblt.org</span></div>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>BLT Autopatch · part of <a href="https://owaspblt.org/">OWASP BLT</a></span>
+      <nav aria-label="Footer">
+        <a href="https://git.owaspblt.org/BLT/tree/main/blt-autopatch" target="_blank" rel="noopener noreferrer">Source</a>
+        <a href="https://git.owaspblt.org/BLT/issues?label=blt-autopatch" target="_blank" rel="noopener noreferrer">Issues</a>
+        <a href="https://waypoint.owaspblt.org/">All projects</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

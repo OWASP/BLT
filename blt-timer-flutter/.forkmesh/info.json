@@ -1,4 +1,0 @@
-{
-  "name": "BLT-Timer-Flutter",
-  "about": "Linux desktop activity tracker in Flutter: counts keyboard and mouse activity through a native X11 library and shows live charts and daily summaries, keeping raw input private."
-}

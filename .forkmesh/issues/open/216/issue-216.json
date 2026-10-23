@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792782010897,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nBLT-Rewards (`blt-rewards/`) is rated **Bronze** on [Waypoint](https://waypoint.owaspblt.org/?q=blt-rewards): it meets 93% of the checklist that applies to it. Waypoint rates every BLT project daily against the same checklist (`blt-waypoint/scripts/ratings.py`): **bronze** is the basics, **silver** means it runs, **gold** means it is looked after. This issue lists what is left for gold.\n\n## What to do\n\n### Silver (it runs: tests in CI, an automatic deploy, a live site and steps to run it)\n\n- **Tests run in CI.** Add automated tests and a row for the folder in `scripts/ci/tests.tsv`, so every pull request runs them (`scripts/ci/test.sh blt-rewards`).\n\n## Acceptance criteria\n\n- [ ] Tests run in CI\n- [ ] Waypoint shows `blt-rewards` as Gold after the next daily refresh\n\n## How to test locally\n\n```bash\ncurl -s https://waypoint.owaspblt.org/forge_data.json -o /tmp/forge_data.json\npython3 blt-waypoint/scripts/ratings.py /tmp/forge_data.json --report | grep -w blt-rewards\nscripts/ci/test.sh <your folder>\n```\n\nThe report reads your checkout, so it shows the new rating before the change is merged.",
+            "id": "blt-tasks-issue-216",
+            "sig": "-1YLjBhPBiibiVTJWR0fiKD8QVBPB6yWjkwYXsFBWfatxz3xOu8tuLDDgz-aikqFfGdpxBqaccxDmeU0g7ZLAA",
+            "title": "blt-rewards: reach the gold standard (bronze today, 1 step)",
+            "ts": 1792782010897,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-216",
+            "labels": [
+                "blt-rewards",
+                "gold-standard",
+                "enhancement"
+            ],
+            "sig": "J1TkKgst8x0AH_s9XWuDVWwiGwctu6P11ULFTbzDTc5b5KMWpG-1_rslQxLPgRurh6ftICvU6p3hoLN5tIxoCA",
+            "ts": 1792782010898,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-rewards",
+        "gold-standard",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 216,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-rewards: reach the gold standard (bronze today, 1 step)",
+    "updatedAt": 1792782010898,
+    "votes": 0
+}

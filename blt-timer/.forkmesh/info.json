@@ -1,0 +1,5 @@
+{
+  "name": "BLT-Timer",
+  "about": "Time tracking for BLT work: a web app for manual work logs and a Linux desktop activity tracker in Flutter.",
+  "website": "https://timer.owaspblt.org/"
+}
