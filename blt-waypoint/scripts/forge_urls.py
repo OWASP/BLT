@@ -2,7 +2,7 @@
 """Project folders of the monorepo and their git.owaspblt.org URLs.
 
 gitlab.com/owasp-blt is closed; every BLT project is a folder of https://git.owaspblt.org/BLT.
-``python scripts/forge_urls.py public/github_data.json`` rewrites the gitlab.com/owasp-blt
+``python scripts/forge_urls.py data/github_archive.json`` rewrites the gitlab.com/owasp-blt
 project URLs in that file to forge folder URLs (idempotent).
 """
 

@@ -23,6 +23,10 @@ const CONTENT_TYPES = {
   csv: "text/csv; charset=utf-8",
   xml: "application/xml; charset=utf-8",
   svg: "image/svg+xml",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
 };
 
 export function contentTypeFor(key) {

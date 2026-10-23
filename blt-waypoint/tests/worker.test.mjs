@@ -36,3 +36,15 @@ test("other paths are plain static assets", async () => {
   assert.equal(await (await worker.fetch(get("/index.html"), e, {})).text(), "<html>");
   assert.equal((await worker.fetch(get("/github_data.json"), e, {})).status, 404);
 });
+
+test("screenshots come from KV as JPEG, and 404 before the first capture", async () => {
+  const e = env();
+  assert.equal((await worker.fetch(get("/screenshots/blt-api.jpg"), e, {})).status, 404);
+  await e.DATA.put("screenshots/blt-api.jpg", "\xff\xd8jpeg");
+  const res = await worker.fetch(get("/screenshots/blt-api.jpg"), e, {});
+  assert.equal(res.headers.get("content-type"), "image/jpeg");
+  assert.equal(res.headers.get("x-data-source"), "kv");
+  await e.DATA.put("screenshots/index.json", "{\"shots\":{}}");
+  assert.deepEqual(await (await worker.fetch(get("/screenshots/index.json"), e, {})).json(), { shots: {} });
+  assert.equal((await worker.fetch(get("/screenshots/..%2Fforge_data.json"), e, {})).status, 404);
+});

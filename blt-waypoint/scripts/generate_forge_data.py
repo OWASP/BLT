@@ -10,8 +10,10 @@ Replaces the gitlab.com/owasp-blt reader. One repository row per project folder 
 - issues and pull requests: the forge ledgers, attributed to folders by label (``<folder>`` or
   ``project:<folder>``), else by title prefix (``[<folder>]`` / ``<folder>:``).
 - description, website, topics: ``<folder>/.forkmesh/info.json`` where present (read from the
-  checkout), else the description in public/github_data.json.
+  checkout), else the description in data/github_archive.json (the archived GitHub record).
 - README size and wrangler.toml presence: from the checkout.
+- live_url: the custom domain of the folder's Worker (scripts/live_sites.py; Cloudflare's domain
+  list when CLOUDFLARE_API_TOKEN is set, else the wrangler.toml routes), else the info.json website.
 
 Stars, forks, languages, releases, tags, branches and repository size do not exist per folder:
 those fields are null. FORGE_BUDGET_SECONDS (default 300) bounds the run; when it runs out the
@@ -27,6 +29,7 @@ from datetime import datetime, timedelta, timezone
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import forge_urls  # noqa: E402
+import live_sites  # noqa: E402
 
 ROOT = forge_urls.ROOT
 sys.path.insert(0, os.path.join(ROOT, "scripts", "forkmesh"))
@@ -34,7 +37,7 @@ import ledger  # noqa: E402
 
 PROJECT = os.path.dirname(HERE)
 OUT = os.getenv("FORGE_DATA_OUT", os.path.join(PROJECT, "public", "forge_data.json"))
-GITHUB_DATA = os.path.join(PROJECT, "public", "github_data.json")
+GITHUB_DATA = os.path.join(PROJECT, "data", "github_archive.json")
 BUDGET = float(os.getenv("FORGE_BUDGET_SECONDS", "300"))
 MAX_PAGES = int(os.getenv("FORGE_HISTORY_PAGES", "20"))
 WINDOWS = (30, 90, 365)
@@ -199,7 +202,7 @@ def pull_entry(pull):
     }
 
 
-def build(client, root=ROOT, now=None, max_pages=MAX_PAGES):
+def build(client, root=ROOT, now=None, max_pages=MAX_PAGES, domains=None):
     """The forge_data.json payload. Raises ledger.DeadlineExceeded when the budget runs out."""
     now = now or datetime.now(timezone.utc)
     index = forge_urls.folder_index(root)
@@ -207,6 +210,7 @@ def build(client, root=ROOT, now=None, max_pages=MAX_PAGES):
     folders = {folder for folder, _, _ in projects}
     names = {folder: name for folder, name, _ in projects}
     fallback = github_descriptions(index)
+    sites = live_sites.live_urls(root, sorted(folders), domains)
 
     open_issues, issues_by_folder = [], {}
     for issue in ledger.issues(client):
@@ -244,6 +248,7 @@ def build(client, root=ROOT, now=None, max_pages=MAX_PAGES):
             "issues_url": f"{forge_urls.WEB_URL}/issues?label={folder}",
             "description": info.get("description") or fallback.get(folder),
             "homepage": info.get("website"),
+            "live_url": sites.get(folder) or info.get("website"),
             "topics": info.get("topics") or [],
             "private": False,
             "fork": False,
@@ -297,7 +302,7 @@ def build(client, root=ROOT, now=None, max_pages=MAX_PAGES):
 def main():
     client = ledger.client(seconds=BUDGET)
     try:
-        payload = build(client)
+        payload = build(client, domains=live_sites.cloudflare_domains())
     except ledger.DeadlineExceeded:
         print(f"forge data: time budget of {BUDGET:.0f}s spent after {client.requests} request(s); "
               f"keeping the previous data", file=sys.stderr)

@@ -153,19 +153,17 @@ class UrlTest(unittest.TestCase):
 
 class CommittedFilesTest(unittest.TestCase):
     def test_no_gitlab_project_urls(self):
-        for name in ("github_data.json", "main_data.csv", "main_data.js", "main_data.json", "forge_data.json",
-                     "index.html", "issues.html", "script.js"):
-            with open(os.path.join(PROJECT, "public", name), encoding="utf-8") as f:
-                self.assertNotIn("gitlab.com/owasp-blt", f.read(), name)
+        for path in ("data/github_archive.json", "public/forge_data.json", "public/index.html",
+                     "public/issues.html", "public/screenshots.html", "public/script.js"):
+            with open(os.path.join(PROJECT, path), encoding="utf-8") as f:
+                self.assertNotIn("gitlab.com/owasp-blt", f.read(), path)
 
-    def test_main_data_is_current(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            env = dict(os.environ, MAIN_DATA_OUT=f"{tmp}/m.csv", MAIN_DATA_JS_OUT=f"{tmp}/m.js",
-                       MAIN_DATA_JSON_OUT=f"{tmp}/m.json")
-            subprocess.run([sys.executable, "scripts/generate_main_data.py"], cwd=PROJECT, env=env, check=True)
-            for out, committed in (("m.csv", "main_data.csv"), ("m.js", "main_data.js"), ("m.json", "main_data.json")):
-                with open(f"{tmp}/{out}", encoding="utf-8") as a, open(os.path.join(PROJECT, "public", committed), encoding="utf-8") as b:
-                    self.assertEqual(a.read(), b.read(), f"{committed} is stale: run python scripts/generate_main_data.py")
+    def test_the_pages_read_only_the_forge_data(self):
+        for name in ("index.html", "issues.html", "screenshots.html", "script.js"):
+            with open(os.path.join(PROJECT, "public", name), encoding="utf-8") as f:
+                text = f.read()
+            for old in ("github_data.json", "main_data", "imgs/screenshots"):
+                self.assertNotIn(old, text, f"{name} still reads {old}")
 
     def test_forge_data_shape(self):
         with open(os.path.join(PROJECT, "public", "forge_data.json"), encoding="utf-8") as f:
