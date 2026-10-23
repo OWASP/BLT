@@ -12,7 +12,7 @@ folder's row in forge_data.json:
 
 A project is gold when it meets every criterion that applies to it, silver when it meets every bronze
 and silver one, and bronze otherwise. The site criteria (live, readme_live, theme) and deploy apply
-only to folders that deploy to Cloudflare (a wrangler.toml); NOT_RATED folders get no rating.
+only to folders that deploy to Cloudflare (a wrangler.toml in the folder or its deploy directory); NOT_RATED folders get no rating.
 
 generate_forge_data.py adds ``rating`` (and ``gold_issue``, the open issue labelled
 ``gold-standard`` for the folder) to each row. Run this file to rate an existing forge_data.json in
@@ -26,6 +26,9 @@ import json
 import os
 import re
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import live_sites  # noqa: E402
 from datetime import datetime, timedelta, timezone
 
 TIERS = ("bronze", "silver", "gold")
@@ -128,7 +131,7 @@ def checks(root, row, now, tables):
     path = os.path.join(root, folder)
     readme = _read(os.path.join(path, "README.md"))
     files = set(os.listdir(path)) if os.path.isdir(path) else set()
-    site = "wrangler.toml" in files
+    site = bool(live_sites.wrangler_path(root, folder))
     last = _ts(row.get("last_commit_at"))
     stale = [i for i in row.get("_issues") or []
              if now - (_ts(i.get("updated_at")) or now) > timedelta(days=STALE_ISSUE_DAYS)]

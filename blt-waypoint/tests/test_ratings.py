@@ -72,6 +72,19 @@ class RatingsTest(unittest.TestCase):
         self.assertEqual(data["cumulative"]["ratings"], {"bronze": 1, "silver": 0, "gold": 0})
         self.assertEqual({c["id"] for c in data["rating_criteria"]}, {c["id"] for c in ratings.CRITERIA})
 
+    def test_wrangler_in_the_deploy_directory_counts(self):
+        os.remove(os.path.join(self.root, "blt-x", "wrangler.toml"))
+        write(self.root, "blt-x/cloudflare_workers/wrangler.toml", 'name = "blt-x"\n')
+        with open(os.path.join(self.root, "scripts/deploy/projects.tsv"), "a") as handle:
+            handle.write("blt-y\tblt-y\tworker\n")
+        with open(os.path.join(self.root, "scripts/deploy/projects.tsv")) as handle:
+            text = handle.read().replace("blt-x\tblt-x\t-", "blt-x\tblt-x/cloudflare_workers\tworker")
+        with open(os.path.join(self.root, "scripts/deploy/projects.tsv"), "w") as handle:
+            handle.write(text)
+        x = self.payload(row("blt-x", live_url=None))["repos"][0]
+        self.assertIn("live", x["rating"]["missing"])
+        self.assertNotIn("live", x["rating"]["na"])
+
     def test_site_criteria_do_not_apply_without_wrangler(self):
         os.remove(os.path.join(self.root, "blt-x", "wrangler.toml"))
         x = self.payload(row("blt-x", live_url=None))["repos"][0]

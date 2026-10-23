@@ -281,7 +281,7 @@ def build(client, root=ROOT, now=None, max_pages=MAX_PAGES, domains=None):
             "open_issues_count": len(folder_issues),
             "open_pr_count": len(open_pulls),
             "readme_chars": readme_chars(root, folder),
-            "has_wrangler_toml": os.path.isfile(os.path.join(root, folder, "wrangler.toml")),
+            "has_wrangler_toml": bool(live_sites.wrangler_path(root, folder)),
             "has_pages": False,
             "latest_issue": folder_issues[0] if folder_issues else None,
             "latest_pr": pull_entry(folder_pulls[0]) if folder_pulls else None,
