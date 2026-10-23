@@ -67,7 +67,7 @@ test("un-updated *.owaspblt.org sites get their project from the host name", () 
     JSON.parse(JSON.stringify(resolveConfig(attrs({}), "zero.owaspblt.org"))),
     { project: "blt-zero", name: "Zero", home: "/", symbol: "https://owaspblt.org/_home/symbols/blt-zero.svg" },
   );
-  assert.equal(resolveConfig(attrs({}), "timer.owaspblt.org").project, "blt-timer-web");
+  assert.equal(resolveConfig(attrs({}), "timer.owaspblt.org").project, "blt-timer");
   assert.equal(resolveConfig(attrs({}), "gsoc-tool.owaspblt.org").name, "GSoC Tool");
   assert.equal(resolveConfig(attrs({}), "unknown.example").project, null);
 });

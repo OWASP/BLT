@@ -1,4 +1,6 @@
-# BLT-Action README
+# BLT-Action
+
+<p align="center"><img src="logo.png" alt="blt-action logo" width="160" height="160"></p>
 
 ## Introduction
 

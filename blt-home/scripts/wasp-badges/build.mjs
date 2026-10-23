@@ -12,6 +12,7 @@
 //   targets.json           extra files per project that show the product logo on its site
 //                          (header/sub-nav images, SVG favicons). Always written with the badge.
 //   ../../public/_home/blt-logo.svg   the wasp (single path).
+// Also writes blt-home/public/_home/symbols/blt-home.svg, the plain wasp on the red badge.
 // Outputs, per project P: P/logo.svg, blt-home/public/_home/logos/P.svg (when the project is on
 // the homepage), every path in targets.json[P], and blt-home/public/_home/symbols/P.svg: the plain
 // symbol, without the wasp, that the shared top bar (<blt-nav>) and both apps choosers show. PNGs (P/logo.png, 512 px) are rendered from
@@ -116,6 +117,18 @@ for (const file of readdirSync(join(here, "symbols")).filter((f) => f.endsWith("
     mkdirSync(dirname(p), { recursive: true });
     writeFileSync(p, want);
     written++;
+  }
+}
+// blt-home is the OWASP BLT homepage itself: its symbol is the plain wasp on the red badge.
+const homeSymbol =
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img"><title>OWASP BLT</title>` +
+  `<circle cx="${MAIN.cx}" cy="${MAIN.cy}" r="${MAIN.r}" fill="${RED}"/>` +
+  `<svg x="11" y="11" width="42" height="42" viewBox="${waspViewBox}"><path fill="#ffffff" d="${waspPath}"/></svg></svg>\n`;
+if (!outDir) {
+  const p = join(homeSymbols, "blt-home.svg");
+  const cur = existsSync(p) ? readFileSync(p, "utf8") : null;
+  if (cur !== homeSymbol) {
+    if (check) { stale++; console.error("stale:", p); } else { writeFileSync(p, homeSymbol); written++; }
   }
 }
 if (check && stale) process.exit(1);

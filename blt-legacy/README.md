@@ -3,6 +3,8 @@
 **Live Site:** [https://legacy.owaspblt.org/](https://legacy.owaspblt.org/)<br>
 **Source Code:** [https://git.owaspblt.org/BLT/BLT-Legacy](https://git.owaspblt.org/BLT/BLT-Legacy)
 
+<p align="center"><img src="logo.png" alt="blt-legacy logo" width="160" height="160"></p>
+
 BLT Legacy is the original OWASP BLT Django app (formerly BLT-Core). It is being replaced, feature by feature, by the newer BLT projects.
 
 > [!WARNING]

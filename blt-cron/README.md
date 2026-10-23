@@ -1,6 +1,6 @@
 # BLT Cron
 
-<p align="center"><img src="logo.svg" alt="blt-cron logo" width="160" height="160"></p>
+<p align="center"><img src="logo.png" alt="blt-cron logo" width="160" height="160"></p>
 
 One Cloudflare Worker holds the account's only cron trigger (`* * * * *`) and runs every BLT Worker's scheduled job on that job's own schedule. Cloudflare's free plan allows 5 cron triggers per account; this keeps all of them in one.
 
