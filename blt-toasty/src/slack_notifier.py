@@ -13,6 +13,9 @@ Runtime notes
 * Uses the Workers ``fetch`` (``from js import fetch``) and reads the webhook
   URL from the ``SLACK_WEBHOOK_URL`` secret on ``env``.  Under CPython
   (pytest) ``fetch`` is ``None`` and tests inject a mock via ``env._fetch``.
+* The timeout is ``AbortSignal.timeout``, which runs entirely in JS.  A Python
+  ``setTimeout`` callback would be a borrowed proxy that Pyodide destroys
+  when ``setTimeout`` returns, so the abort would never fire.
 * Notifications are best effort: a missing webhook URL skips silently, and
   any delivery error is logged and swallowed so triage never fails because
   Slack is down.
@@ -24,18 +27,17 @@ import json
 import logging
 from typing import Any
 
+from forge_links import issue_url
 from rationale_builder import CWE_LABELS
 
 logger = logging.getLogger("toasty.slack_notifier")
 
 try:
-    from js import AbortController, fetch  # type: ignore[import-not-found]
+    from js import fetch  # type: ignore[import-not-found]
 except ImportError:
     fetch = None  # type: ignore[assignment]
-    AbortController = None  # type: ignore[assignment, misc]
 
 SLACK_TIMEOUT_SECONDS = 5
-ISSUE_URL_TEMPLATE = "https://git.owaspblt.org/BLT/issues/{iid}"
 MAX_DUPLICATES_SHOWN = 3
 
 # Severity tier per CWE, roughly following the impact the weakness usually
@@ -128,7 +130,7 @@ def build_payload(
     """
     duplicates = duplicates or []
     severity = severity_for_cwes(cwe_ids)
-    issue_ref = f"<{ISSUE_URL_TEMPLATE.format(iid=issue_iid)}|#{issue_iid}>" if issue_iid else "unknown issue"
+    issue_ref = f"<{issue_url(issue_iid)}|#{issue_iid}>" if issue_iid else "unknown issue"
     headline = "Toasty quarantined an issue" if quarantined else "Toasty triaged an issue"
 
     cwe_text = ", ".join(f"{c} ({CWE_LABELS.get(c, 'Unknown')})" for c in cwe_ids) or "none"
@@ -196,27 +198,20 @@ async def post_to_slack(webhook_url: str, payload: dict, env: Any) -> bool:
         "headers": {"Content-Type": "application/json"},
         "body": json.dumps(payload),
     }
-    timer_id = None
     try:
-        from js import Object, clearTimeout, setTimeout  # type: ignore[import-not-found]
+        from js import AbortSignal, Object  # type: ignore[import-not-found]
         from pyodide.ffi import to_js  # type: ignore[import-not-found]
 
-        controller = AbortController.new()
-        options["signal"] = controller.signal
-        timer_id = setTimeout(lambda: controller.abort(), SLACK_TIMEOUT_SECONDS * 1000)
+        options["signal"] = AbortSignal.timeout(SLACK_TIMEOUT_SECONDS * 1000)
         options = to_js(options, dict_converter=Object.fromEntries)
     except ImportError:
         pass  # CPython tests — the mock fetch takes the plain dict.
 
-    try:
-        response = await _fetch(webhook_url, options)
-        ok = 200 <= int(response.status) < 300
-        if not ok:
-            logger.warning("Slack webhook returned HTTP %s", response.status)
-        return ok
-    finally:
-        if timer_id is not None:
-            clearTimeout(timer_id)
+    response = await _fetch(webhook_url, options)
+    ok = 200 <= int(response.status) < 300
+    if not ok:
+        logger.warning("Slack webhook returned HTTP %s", response.status)
+    return ok
 
 
 async def notify_triage(

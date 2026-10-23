@@ -96,6 +96,13 @@ npx wrangler secret put MCP_PUBLIC_KEY --env production
 npx wrangler secret put SLACK_WEBHOOK_URL --env production
 ```
 
+*Slack notifications:* point the webhook at a **private** channel. Messages
+name the issue and its CWE before a maintainer has looked at it. Notifications
+are sent when duplicate detection finishes or an event is quarantined, and
+nothing runs the triage stages in order yet: they start once
+[#34](https://git.owaspblt.org/BLT/issues/34) (Cloudflare Queues) lands, so an
+empty channel until then is expected.
+
 For CI/CD pipelines, ensure the following repository secrets are configured:
 *   `CLOUDFLARE_API_TOKEN`
 *   `CLOUDFLARE_ACCOUNT_ID`

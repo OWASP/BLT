@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import sys
+import types
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -211,6 +212,41 @@ class TestNotifyTriage:
 
         assert await notify_triage(env, db, "evt-1") is True
         assert "*CWE*\\nnone" in json.dumps(_sent_payload(env))
+
+
+class TestWorkersRuntime:
+    @pytest.mark.asyncio
+    async def test_timeout_uses_abort_signal_not_python_timer(self):
+        """Under Pyodide the timeout must be AbortSignal.timeout, not a Python setTimeout callback."""
+        from src.slack_notifier import SLACK_TIMEOUT_SECONDS, post_to_slack
+
+        timeout_signal = object()
+        js = types.ModuleType("js")
+        js.AbortSignal = MagicMock()
+        js.AbortSignal.timeout = MagicMock(return_value=timeout_signal)
+        js.Object = MagicMock()
+        js.setTimeout = MagicMock(side_effect=AssertionError("setTimeout must not be used"))
+        ffi = types.ModuleType("pyodide.ffi")
+        ffi.to_js = MagicMock(side_effect=lambda obj, dict_converter=None: obj)
+        pyodide = types.ModuleType("pyodide")
+        pyodide.ffi = ffi
+
+        env = _Env()
+        with patch.dict(sys.modules, {"js": js, "pyodide": pyodide, "pyodide.ffi": ffi}):
+            assert await post_to_slack(WEBHOOK, {"text": "hi"}, env) is True
+
+        js.AbortSignal.timeout.assert_called_once_with(SLACK_TIMEOUT_SECONDS * 1000)
+        js.setTimeout.assert_not_called()
+        ffi.to_js.assert_called_once()
+        options = env._fetch.await_args.args[1]
+        assert options["signal"] is timeout_signal
+
+
+def test_issue_url_is_shared():
+    from src.forge_links import issue_url
+
+    assert issue_url(35) == "https://git.owaspblt.org/BLT/issues/35"
+    assert issue_url(35) in json.dumps(build_payload("evt-1", 35, [], quarantined=False))
 
 
 # ---------------------------------------------------------------------------
