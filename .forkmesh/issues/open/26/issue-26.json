@@ -149,6 +149,17 @@
             "sig": "Gxy5zArz9O6-ZJ0xrj-iNVuj5_Rc_OpePuQsahGnN6TY1uPCaHvBbwvkhdZYnVOi0VEgC6PZvSWx2p4I-Az4CA",
             "ts": 1792735653842,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "FTSqIIVcAz6yrEUfHk8wm1rr_FLa2bBVWJKeRKZCwcQ",
+            "authorName": "navodit",
+            "authorVerified": true,
+            "body": "PR raised #5 and it is approved also.",
+            "id": "comment-web-1792735729435",
+            "sig": "JI6iM9wwmEkydStNSh9IOTK-7tnvy0TOIgPTEfbLN80dAdZU2n0CcfD7FYRGt8oQS0Ah-_dErLWcLrSrzLAEBw",
+            "ts": 1792735729435,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -163,6 +174,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-newsletter: fix: mobile responsiveness",
-    "updatedAt": 1792735653842,
+    "updatedAt": 1792735729435,
     "votes": 0
 }
