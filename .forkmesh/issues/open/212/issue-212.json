@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792782010889,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nBLT-OWASP-Wich (`blt-owasp-wich/`) is rated **Bronze** on [Waypoint](https://waypoint.owaspblt.org/?q=blt-owasp-wich): it meets 93% of the checklist that applies to it. Waypoint rates every BLT project daily against the same checklist (`blt-waypoint/scripts/ratings.py`): **bronze** is the basics, **silver** means it runs, **gold** means it is looked after. This issue lists what is left for gold.\n\n## What to do\n\n### Silver (it runs: tests in CI, an automatic deploy, a live site and steps to run it)\n\n- **Tests run in CI.** Add automated tests and a row for the folder in `scripts/ci/tests.tsv`, so every pull request runs them (`scripts/ci/test.sh blt-owasp-wich`).\n\n## Acceptance criteria\n\n- [ ] Tests run in CI\n- [ ] Waypoint shows `blt-owasp-wich` as Gold after the next daily refresh\n\n## How to test locally\n\n```bash\ncurl -s https://waypoint.owaspblt.org/forge_data.json -o /tmp/forge_data.json\npython3 blt-waypoint/scripts/ratings.py /tmp/forge_data.json --report | grep -w blt-owasp-wich\nscripts/ci/test.sh <your folder>\n```\n\nThe report reads your checkout, so it shows the new rating before the change is merged.",
+            "id": "blt-tasks-issue-212",
+            "sig": "aHqKf2h_6768paqLe96yseU137U-y5bFUEl9y6-GKhEATEVAFp3e7ZH5tbF-8D_GaP9prDwpgVCeGj2n2svGDA",
+            "title": "blt-owasp-wich: reach the gold standard (bronze today, 1 step)",
+            "ts": 1792782010889,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-212",
+            "labels": [
+                "blt-owasp-wich",
+                "gold-standard",
+                "enhancement"
+            ],
+            "sig": "Ovga5Xm4gMMFnPkdBqHFSHBuRQShkN0vv37sGEvexj9iRkkABluUz1bpFnArkN-3O_XDF1ZUFZ2wFEjd79iPCA",
+            "ts": 1792782010890,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-owasp-wich",
+        "gold-standard",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 212,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-wich: reach the gold standard (bronze today, 1 step)",
+    "updatedAt": 1792782010890,
+    "votes": 0
+}

@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792782010895,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nBLT-Pool (`blt-pool/`) is rated **Silver** on [Waypoint](https://waypoint.owaspblt.org/?q=blt-pool): it meets 93% of the checklist that applies to it. Waypoint rates every BLT project daily against the same checklist (`blt-waypoint/scripts/ratings.py`): **bronze** is the basics, **silver** means it runs, **gold** means it is looked after. This issue lists what is left for gold.\n\n## What to do\n\n### Gold (it is looked after: the BLT theme, a contributing guide, recent commits, several contributors and triaged issues)\n\n- **Contributing guide.** Add CONTRIBUTING.md (or a Contributing section in the README): how to set up, test, and open a pull request on git.owaspblt.org, linking the root CONTRIBUTING.md and AI_POLICY.md.\n\n## Acceptance criteria\n\n- [ ] Contributing guide\n- [ ] Waypoint shows `blt-pool` as Gold after the next daily refresh\n\n## How to test locally\n\n```bash\ncurl -s https://waypoint.owaspblt.org/forge_data.json -o /tmp/forge_data.json\npython3 blt-waypoint/scripts/ratings.py /tmp/forge_data.json --report | grep -w blt-pool\nscripts/ci/test.sh blt-pool\n```\n\nThe report reads your checkout, so it shows the new rating before the change is merged.",
+            "id": "blt-tasks-issue-215",
+            "sig": "fWLOFQ8XzCPJlq-4Sr76ECOdUODiV1Tqd7Iy2p_S0SYaDG3ltqcCsSO804z7wcmbLbSJimEs0NBfXiEKK4IqBQ",
+            "title": "blt-pool: reach the gold standard (silver today, 1 step)",
+            "ts": 1792782010895,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-215",
+            "labels": [
+                "blt-pool",
+                "gold-standard",
+                "enhancement",
+                "good first issue"
+            ],
+            "sig": "t_UNSsPEqo7d-WU4mNbd8a88vUDKkpdjxsBjD8FEbRmTlPgc40SWHGofeJ52XCL-kKoH2RKS9A8E6fJP7WcfCQ",
+            "ts": 1792782010896,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-pool",
+        "gold-standard",
+        "enhancement",
+        "good first issue"
+    ],
+    "milestone": "",
+    "number": 215,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-pool: reach the gold standard (silver today, 1 step)",
+    "updatedAt": 1792782010896,
+    "votes": 0
+}

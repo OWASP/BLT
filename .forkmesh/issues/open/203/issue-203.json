@@ -1,0 +1,51 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792782010871,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nBLT-Gitcaster (`blt-gitcaster/`) is rated **Bronze** on [Waypoint](https://waypoint.owaspblt.org/?q=blt-gitcaster): it meets 86% of the checklist that applies to it. Waypoint rates every BLT project daily against the same checklist (`blt-waypoint/scripts/ratings.py`): **bronze** is the basics, **silver** means it runs, **gold** means it is looked after. This issue lists what is left for gold.\n\n## What to do\n\n### Silver (it runs: tests in CI, an automatic deploy, a live site and steps to run it)\n\n- **Tests run in CI.** Add automated tests and a row for the folder in `scripts/ci/tests.tsv`, so every pull request runs them (`scripts/ci/test.sh blt-gitcaster`).\n\n### Gold (it is looked after: the BLT theme, a contributing guide, recent commits, several contributors and triaged issues)\n\n- **Contributing guide.** Add CONTRIBUTING.md (or a Contributing section in the README): how to set up, test, and open a pull request on git.owaspblt.org, linking the root CONTRIBUTING.md and AI_POLICY.md.\n\n## Acceptance criteria\n\n- [ ] Tests run in CI\n- [ ] Contributing guide\n- [ ] Waypoint shows `blt-gitcaster` as Gold after the next daily refresh\n\n## How to test locally\n\n```bash\ncurl -s https://waypoint.owaspblt.org/forge_data.json -o /tmp/forge_data.json\npython3 blt-waypoint/scripts/ratings.py /tmp/forge_data.json --report | grep -w blt-gitcaster\nscripts/ci/test.sh <your folder>\n```\n\nThe report reads your checkout, so it shows the new rating before the change is merged.",
+            "id": "blt-tasks-issue-203",
+            "sig": "pvWKyyMBm7BkOasUYU2J1Tf6CSskzJu3-Tzw6QiZMqw5phWfcu1R3CTN7Zx5tWG0Lpc_Er1AJR5x1tNPN_SpCA",
+            "title": "blt-gitcaster: reach the gold standard (bronze today, 2 steps)",
+            "ts": 1792782010871,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-203",
+            "labels": [
+                "blt-gitcaster",
+                "gold-standard",
+                "enhancement"
+            ],
+            "sig": "0UqSZ99SXLW88KMilKqbmSJs57IL7xMrNsQlbfEhKrz8YAuCKhzn_BDHFsH4Oshmej5vVyi3MC_X4Qt5VAjdAA",
+            "ts": 1792782010872,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-gitcaster",
+        "gold-standard",
+        "enhancement"
+    ],
+    "milestone": "",
+    "number": 203,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-gitcaster: reach the gold standard (bronze today, 2 steps)",
+    "updatedAt": 1792782010872,
+    "votes": 0
+}

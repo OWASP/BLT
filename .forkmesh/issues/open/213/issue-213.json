@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792782010891,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nBLT-Pages (`blt-pages/`) is rated **Silver** on [Waypoint](https://waypoint.owaspblt.org/?q=blt-pages): it meets 93% of the checklist that applies to it. Waypoint rates every BLT project daily against the same checklist (`blt-waypoint/scripts/ratings.py`): **bronze** is the basics, **silver** means it runs, **gold** means it is looked after. This issue lists what is left for gold.\n\n## What to do\n\n### Gold (it is looked after: the BLT theme, a contributing guide, recent commits, several contributors and triaged issues)\n\n- **Contributing guide.** Add CONTRIBUTING.md (or a Contributing section in the README): how to set up, test, and open a pull request on git.owaspblt.org, linking the root CONTRIBUTING.md and AI_POLICY.md.\n\n## Notes\n\n- The README still points at `/BLT/BLT-Pages`, and the site footer links `/BLT/BLT-Core`; point both at the monorepo folders.\n- The committed data shows 0 bugs, domains and reporters and an empty leaderboard; check that `blt-pages--update-leaderboard` fills it.\n- The Playwright tests in `tests/` are not run in CI.\n\n## Acceptance criteria\n\n- [ ] Contributing guide\n- [ ] Waypoint shows `blt-pages` as Gold after the next daily refresh\n\n## How to test locally\n\n```bash\ncurl -s https://waypoint.owaspblt.org/forge_data.json -o /tmp/forge_data.json\npython3 blt-waypoint/scripts/ratings.py /tmp/forge_data.json --report | grep -w blt-pages\nscripts/ci/test.sh blt-pages\n```\n\nThe report reads your checkout, so it shows the new rating before the change is merged.",
+            "id": "blt-tasks-issue-213",
+            "sig": "iSJ_HW_IFzdX_9pBpOHLyOpJNLVOSWMliBLyfBo5e4k-uRkNwDdtibfrXalhjaFPoMBujDeWabNBQK_e7AmLAg",
+            "title": "blt-pages: reach the gold standard (silver today, 1 step)",
+            "ts": 1792782010891,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-213",
+            "labels": [
+                "blt-pages",
+                "gold-standard",
+                "enhancement",
+                "good first issue"
+            ],
+            "sig": "srUFJMd5eHugsJUzZG25hJAMjev53xRuUIXWfaGpkSHqjeO7smd63YnNXeyCPfj4VkToCgm0v5YQsmAe3Ft7AA",
+            "ts": 1792782010892,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-pages",
+        "gold-standard",
+        "enhancement",
+        "good first issue"
+    ],
+    "milestone": "",
+    "number": 213,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-pages: reach the gold standard (silver today, 1 step)",
+    "updatedAt": 1792782010892,
+    "votes": 0
+}

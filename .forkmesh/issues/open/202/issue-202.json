@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792782010869,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nBLT-Flutter (`blt-flutter/`) is rated **Bronze** on [Waypoint](https://waypoint.owaspblt.org/?q=blt-flutter): it meets 93% of the checklist that applies to it. Waypoint rates every BLT project daily against the same checklist (`blt-waypoint/scripts/ratings.py`): **bronze** is the basics, **silver** means it runs, **gold** means it is looked after. This issue lists what is left for gold.\n\n## What to do\n\n### Silver (it runs: tests in CI, an automatic deploy, a live site and steps to run it)\n\n- **README shows how to run it.** Add a \"Run locally\" (or Install / Getting started) section to the README with the exact commands in a code block, including how to run the tests.\n\n## Notes\n\n- The Google Play (`id=org.owasp.blt`) and App Store (`id6450837545`) links on flutter.owaspblt.org return 404, and the app's own IDs differ (Android `com.apps.blt`, iOS `com.krrishsehgal.blt`). Publish the app or replace the buttons with the release build links.\n- `release-artifacts.yml` uses the deprecated `actions/upload-artifact@v2`.\n- The README's licence link points at github.com/OWASP/BLT-Flutter; use the monorepo folder.\n\n## Acceptance criteria\n\n- [ ] README shows how to run it\n- [ ] Waypoint shows `blt-flutter` as Gold after the next daily refresh\n\n## How to test locally\n\n```bash\ncurl -s https://waypoint.owaspblt.org/forge_data.json -o /tmp/forge_data.json\npython3 blt-waypoint/scripts/ratings.py /tmp/forge_data.json --report | grep -w blt-flutter\nscripts/ci/test.sh blt-flutter\n```\n\nThe report reads your checkout, so it shows the new rating before the change is merged.",
+            "id": "blt-tasks-issue-202",
+            "sig": "bJt-OeycWGpzEmQ-SHc-rOBIIpblgsARAHz4UREPdmCMalhZfBjwC0ZVsgTxVvdYljKjId981kw_IfAWv-DyBQ",
+            "title": "blt-flutter: reach the gold standard (bronze today, 1 step)",
+            "ts": 1792782010869,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-202",
+            "labels": [
+                "blt-flutter",
+                "gold-standard",
+                "enhancement",
+                "good first issue"
+            ],
+            "sig": "I52WRcod-0wNczlbA6ewl0ThPAtQJB4ZCgIMBJFP4957gxsrMiXb0ZxjglnjwXfkm8dI6YjuvYF0I92M3YkrDQ",
+            "ts": 1792782010870,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-flutter",
+        "gold-standard",
+        "enhancement",
+        "good first issue"
+    ],
+    "milestone": "",
+    "number": 202,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-flutter: reach the gold standard (bronze today, 1 step)",
+    "updatedAt": 1792782010870,
+    "votes": 0
+}

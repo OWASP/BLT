@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792782010861,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nBLT-Design-Contest (`blt-design-contest/`) is rated **Silver** on [Waypoint](https://waypoint.owaspblt.org/?q=blt-design-contest): it meets 93% of the checklist that applies to it. Waypoint rates every BLT project daily against the same checklist (`blt-waypoint/scripts/ratings.py`): **bronze** is the basics, **silver** means it runs, **gold** means it is looked after. This issue lists what is left for gold.\n\n## What to do\n\n### Gold (it is looked after: the BLT theme, a contributing guide, recent commits, several contributors and triaged issues)\n\n- **Contributing guide.** Add CONTRIBUTING.md (or a Contributing section in the README): how to set up, test, and open a pull request on git.owaspblt.org, linking the root CONTRIBUTING.md and AI_POLICY.md.\n\n## Acceptance criteria\n\n- [ ] Contributing guide\n- [ ] Waypoint shows `blt-design-contest` as Gold after the next daily refresh\n\n## How to test locally\n\n```bash\ncurl -s https://waypoint.owaspblt.org/forge_data.json -o /tmp/forge_data.json\npython3 blt-waypoint/scripts/ratings.py /tmp/forge_data.json --report | grep -w blt-design-contest\nscripts/ci/test.sh blt-design-contest\n```\n\nThe report reads your checkout, so it shows the new rating before the change is merged.",
+            "id": "blt-tasks-issue-198",
+            "sig": "xcSJ09xWoDA7XgWxf-xX7EVyUJFNv-eqQkXuywIzBzReuduCaxCdsDvvd0ccF8cFEbhQTj78T0xwWJtxRehxAQ",
+            "title": "blt-design-contest: reach the gold standard (silver today, 1 step)",
+            "ts": 1792782010861,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-198",
+            "labels": [
+                "blt-design-contest",
+                "gold-standard",
+                "enhancement",
+                "good first issue"
+            ],
+            "sig": "p3cIBWgsIWfhflSixCqWZZzkoBmUea6W0UnhQgNJZtLF93eIWSCMCN-WyOLTgeAxeBCMCzSSmozosqY5X15qBg",
+            "ts": 1792782010862,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-design-contest",
+        "gold-standard",
+        "enhancement",
+        "good first issue"
+    ],
+    "milestone": "",
+    "number": 198,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-design-contest: reach the gold standard (silver today, 1 step)",
+    "updatedAt": 1792782010862,
+    "votes": 0
+}

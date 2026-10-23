@@ -1,0 +1,53 @@
+{
+    "assignees": [],
+    "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+    "authorName": "blt-tasks[bot]",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1792782010851,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "body": "## Context\n\nBLT-CLI (`blt-cli/`) is rated **Bronze** on [Waypoint](https://waypoint.owaspblt.org/?q=blt-cli): it meets 79% of the checklist that applies to it. Waypoint rates every BLT project daily against the same checklist (`blt-waypoint/scripts/ratings.py`): **bronze** is the basics, **silver** means it runs, **gold** means it is looked after. This issue lists what is left for gold.\n\n## What to do\n\n### Bronze (the basics: a README, a description, a licence and a logo)\n\n- **Licence file.** Add a LICENSE file to the folder (most BLT projects are AGPL-3.0; copy the repository root's LICENSE).\n\n### Silver (it runs: tests in CI, an automatic deploy, a live site and steps to run it)\n\n- **README links the live site.** Put the live site's address near the top of the README (`**Live Site:** https://cli.owaspblt.org/`).\n\n### Gold (it is looked after: the BLT theme, a contributing guide, recent commits, several contributors and triaged issues)\n\n- **Contributing guide.** Add CONTRIBUTING.md (or a Contributing section in the README): how to set up, test, and open a pull request on git.owaspblt.org, linking the root CONTRIBUTING.md and AI_POLICY.md.\n\n## Notes\n\n- The README is behind the code: it lists 4 tabs and keys `1`–`4`, but `src/app.rs` and `src/tui/input.rs` have 5 tabs (Issues, Active Hunts, BLT Stats, Logs & Events, Settings) and keys `1`–`5`, plus `/` search, Space to select, `e` export, `p`, `A` and `P`. It also doesn't mention the local scanner (`src/scanner.rs`: Trivy, Semgrep, Bandit) or the MCP watchdog (`src/watchdog.rs`). The new site (cli.owaspblt.org) follows the source.\n- The README calls `BLT_API_BASE` a fallback, but `src/main.rs:64` lets it override an explicit `--api-base`. Either fix the precedence or the docs.\n- Add `cargo test` to the README's build steps (CI already runs it).\n\n## Acceptance criteria\n\n- [ ] Licence file\n- [ ] README links the live site\n- [ ] Contributing guide\n- [ ] Waypoint shows `blt-cli` as Gold after the next daily refresh\n\n## How to test locally\n\n```bash\ncurl -s https://waypoint.owaspblt.org/forge_data.json -o /tmp/forge_data.json\npython3 blt-waypoint/scripts/ratings.py /tmp/forge_data.json --report | grep -w blt-cli\nscripts/ci/test.sh blt-cli\n```\n\nThe report reads your checkout, so it shows the new rating before the change is merged.",
+            "id": "blt-tasks-issue-193",
+            "sig": "RdbNXh99RVoe9Kir-DiDQkMBHbLSH0H2tvCjF1ZXrfrIIlJqWIW8j-svH2UYbpPCL4BdTfun1MQJCZTu3qjICQ",
+            "title": "blt-cli: reach the gold standard (bronze today, 3 steps)",
+            "ts": 1792782010851,
+            "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-labels-193",
+            "labels": [
+                "blt-cli",
+                "gold-standard",
+                "enhancement",
+                "good first issue"
+            ],
+            "sig": "6b_IDDnvYbS_FUyU_oyiPBK4Emgl43Y9NnHe2JgJOZL9t_hzmEzVoGuXXJb4WlkQlDZWbTFE1-84rnz8RehyAQ",
+            "ts": 1792782010852,
+            "type": "labels"
+        }
+    ],
+    "labels": [
+        "blt-cli",
+        "gold-standard",
+        "enhancement",
+        "good first issue"
+    ],
+    "milestone": "",
+    "number": 193,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-cli: reach the gold standard (bronze today, 3 steps)",
+    "updatedAt": 1792782010852,
+    "votes": 0
+}
