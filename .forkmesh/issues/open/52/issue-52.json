@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "navodit"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -65,6 +67,17 @@
             "sig": "1v2cAIldcaiv96H2eWAmb1JmhSPEBEdPjmHtDWWoHuJgAKImkI5wKYQUynltSUlHkV86cYGx3SOBoTkb8C8jBA",
             "ts": 1792735764517,
             "type": "comment"
+        },
+        {
+            "assignee": "navodit",
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "actions-1792735784721-z01dt1Ft",
+            "sig": "hCel7c2ZoOb5sxc9lUCnTYKvTAzikGfC6bu8ZQ5gxjJci3I3PS6FeQJNhHUwigwbaVNkqYPG6KZwBXUTAKAEBg",
+            "ts": 1792735784721,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -81,6 +94,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cron: parseCron rejects day-of-week ranges ending in 7 (e.g. \"1-7\")",
-    "updatedAt": 1792735764517,
+    "updatedAt": 1792735784721,
     "votes": 0
 }
