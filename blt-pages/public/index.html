@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
@@ -32,10 +32,10 @@
           colors: {
             primary: '#dc2626',
             'primary-hover': '#B91C1C',
-            'neutral-border': '#E5E5E5',
+            'neutral-border': '#e5e7eb',
             'dark-base': '#030712',
             'dark-surface': '#111827',
-            'active-bg': '#feeae9'
+            'active-bg': '#fef2f2'
           },
           fontFamily: {
             sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif']
@@ -70,14 +70,14 @@
     }
     :root {
       --blt-primary: #dc2626;
-      --blt-border: #E5E5E5;
+      --blt-border: #e5e7eb;
       --blt-surface: #ffffff;
-      --blt-background: #f8fafc;
+      --blt-background: #f9fafb;
     }
 
     .dark {
-      --blt-primary: #EF4444;
-      --blt-border: #374151;
+      --blt-primary: #f87171;
+      --blt-border: #1f2937;
       --blt-surface: #111827;
       --blt-background: #030712;
     }
@@ -87,33 +87,12 @@
       transition: background-color 0.3s ease;
     }
 
-    .hero-glow {
-      background:
-        radial-gradient(circle at 18% 8%, rgba(225, 1, 1, 0.14), transparent 40%),
-        radial-gradient(circle at 78% 0%, rgba(225, 1, 1, 0.1), transparent 28%),
-        linear-gradient(to bottom, #ffffff 0%, #f8fafc 70%);
-      transition: background 0.3s ease;
-    }
-
-    .dark .hero-glow {
-      background:
-        radial-gradient(circle at 18% 8%, rgba(239, 68, 68, 0.12), transparent 40%),
-        radial-gradient(circle at 78% 0%, rgba(239, 68, 68, 0.08), transparent 28%),
-        linear-gradient(to bottom, #111827 0%, #030712 70%);
-    }
-
     .surface-card {
       background: var(--blt-surface);
       border: 1px solid var(--blt-border);
       box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-      transition: all 0.3s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
     }
-
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #f3f4f6; }
-    .dark ::-webkit-scrollbar-track { background: #1F2937; }
-    ::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 999px; }
-    .dark ::-webkit-scrollbar-thumb { background: #EF4444; }
     blt-nav:not(:defined) { display: block; min-height: 61px; }
     blt-nav:not(:defined) > * { display: none; }
   </style>
@@ -200,7 +179,6 @@
     <path fill="currentColor" d="M357.2 48L427.8 48 273.6 224.2 455 464 313 464 201.7 318.6 74.5 464 3.8 464 168.7 275.5-5.2 48 140.4 48 240.9 180.9 357.2 48zM332.4 421.8l39.1 0-252.4-333.8-42 0 255.3 333.8z"/>
   </symbol>
 </svg>
-  <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[500px] hero-glow"></div>
 
   <blt-nav project="blt-pages" name="Pages" current="auto" data-sticky>
     <a href="#features">Features</a>
@@ -232,7 +210,7 @@
             <div class="mt-8 flex flex-wrap items-center gap-3">
               <a
                 href="https://git.owaspblt.org/BLT/issues/new" target="_blank" rel="noopener noreferrer"
-                class="inline-flex items-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+                class="inline-flex items-center rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
               >
                 <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-bug"></use></svg>Start reporting
               </a>
@@ -240,17 +218,17 @@
                 href="https://zero.owaspblt.org"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="inline-flex items-center rounded-md border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white"
+                class="inline-flex items-center rounded-lg border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white"
               >
                 <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-lock"></use></svg>Use BLT-Zero
               </a>
             </div>
 
-            <dl class="mt-9 grid max-w-2xl grid-cols-3 gap-4 rounded-2xl border border-neutral-border bg-white p-5 shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+            <dl class="mt-9 grid max-w-2xl grid-cols-3 gap-4 rounded-2xl border border-neutral-border bg-white p-5 shadow-soft dark:border-gray-800 dark:bg-dark-surface">
               <div>
                 <dd id="stat-total-bugs" class="text-2xl font-extrabold text-primary dark:text-red-400">0</dd>
                 <dt class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">Bugs reported</dt>
-                <div class="mt-1.5 flex items-center gap-2 text-xs">
+                <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
                   <span class="flex items-center gap-1">
                     <span class="h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
                     <span id="stat-open-bugs" class="text-green-700 dark:text-green-400">0</span>
@@ -263,7 +241,7 @@
                   </span>
                 </div>
               </div>
-              <div class="border-x border-neutral-border px-3 dark:border-gray-700">
+              <div class="border-x border-neutral-border px-3 dark:border-gray-800">
                 <dd id="stat-domains" class="text-2xl font-extrabold text-primary dark:text-red-400">0</dd>
                 <dt class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">Domains</dt>
               </div>
@@ -372,7 +350,7 @@
               <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">License violations</span>
             </div>
 
-            <label class="mb-6 flex cursor-pointer items-start gap-3 rounded-lg border border-neutral-border p-3 dark:border-gray-700">
+            <label class="mb-6 flex cursor-pointer items-start gap-3 rounded-lg border border-neutral-border p-3 dark:border-gray-800">
               <input
                 id="anonymous-toggle"
                 type="checkbox"
@@ -388,7 +366,7 @@
             <a
               id="report-bug-btn"
               href="https://git.owaspblt.org/BLT/issues/new" target="_blank" rel="noopener noreferrer"
-              class="mt-auto inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+              class="mt-auto inline-flex items-center justify-center rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
             >
               <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-arrow-right"></use></svg>
               <span class="btn-label">Report a bug</span>
@@ -415,7 +393,7 @@
               <span role="listitem" class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/30 dark:text-green-400"><svg class="fa-icon mr-1" aria-hidden="true"><use href="#fa-check"></use></svg>Encrypted transport</span>
             </div>
 
-            <div class="mb-6 rounded-lg border border-neutral-border bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+            <div class="mb-6 rounded-lg border border-neutral-border bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
               <svg class="fa-icon mr-2 text-primary dark:text-red-400" aria-hidden="true"><use href="#fa-circle-info"></use></svg>
               Only the report ID and status are visible to the organization. Sensitive vulnerability payloads are not stored in the receiving server.
             </div>
@@ -424,7 +402,7 @@
               href="https://zero.owaspblt.org"
               target="_blank"
               rel="noopener noreferrer"
-              class="mt-auto inline-flex items-center justify-center rounded-md border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white"
+              class="mt-auto inline-flex items-center justify-center rounded-lg border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white"
             >
               <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-lock"></use></svg>Report vulnerability
             </a>
@@ -447,7 +425,7 @@
             href="https://git.owaspblt.org/BLT/issues?label_name[]=bug&sort=desc"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center rounded-md border border-primary px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white"
+            class="inline-flex items-center rounded-lg border border-primary px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white"
           >
             View all reports
           </a>
@@ -507,7 +485,7 @@
           </div>
           <a href="https://git.owaspblt.org/BLT/issues/new" target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700">
+            class="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700">
             <svg class="fa-icon mr-2" aria-hidden="true">
               <use href="#fa-plus"></use>
             </svg>Submit report
@@ -517,9 +495,9 @@
         <div id="homepage-leaderboard-grid" class="grid gap-6 lg:grid-cols-3">
           <!-- Reporters -->
           <div
-            class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+            class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-800 dark:bg-dark-surface">
             <h3
-              class="px-4 py-3 border-b border-neutral-border bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 flex items-center gap-2">
+              class="px-4 py-3 border-b border-neutral-border bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-900 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-100 flex items-center gap-2">
               <svg class="fa-icon text-primary" aria-hidden="true">
                 <use href="#fa-trophy"></use>
               </svg>
@@ -527,7 +505,7 @@
             </h3>
             <input type="hidden" id="homepage-leaderboard-limit" value="5">
             <table class="w-full table-fixed compact-table" aria-label="Bug reporter leaderboard">
-              <tbody id="leaderboard-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-700">
+              <tbody id="leaderboard-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-800">
                 <!-- SSR:leaderboard-rows -->
               </tbody>
             </table>
@@ -535,16 +513,16 @@
 
           <!-- Commenters -->
           <div
-            class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+            class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-800 dark:bg-dark-surface">
             <h3
-              class="px-4 py-3 border-b border-neutral-border bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 flex items-center gap-2">
+              class="px-4 py-3 border-b border-neutral-border bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-900 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-100 flex items-center gap-2">
               <svg class="fa-icon text-primary" aria-hidden="true">
                 <use href="#fa-comments"></use>
               </svg>
               Top Commenters
             </h3>
             <table class="w-full table-fixed compact-table" aria-label="Top commenters leaderboard">
-              <tbody id="commenters-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-700">
+              <tbody id="commenters-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-800">
                 <!-- SSR:commenters-rows -->
               </tbody>
             </table>
@@ -552,16 +530,16 @@
 
           <!-- Domains -->
           <div
-            class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+            class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-800 dark:bg-dark-surface">
             <h3
-              class="px-4 py-3 border-b border-neutral-border bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 flex items-center gap-2">
+              class="px-4 py-3 border-b border-neutral-border bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-900 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-100 flex items-center gap-2">
               <svg class="fa-icon text-primary" aria-hidden="true">
                 <use href="#fa-globe"></use>
               </svg>
               Top Domains
             </h3>
             <table class="w-full table-fixed compact-table" aria-label="Top reported domains leaderboard">
-              <tbody id="domains-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-700">
+              <tbody id="domains-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-800">
                 <!-- SSR:domains-rows -->
               </tbody>
             </table>
@@ -570,7 +548,7 @@
 
         <div class="mt-8 text-center">
           <a href="leaderboard.html"
-            class="inline-flex items-center rounded-md border border-primary px-6 py-3 text-base font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white">
+            class="inline-flex items-center rounded-lg border border-primary px-6 py-3 text-base font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white">
             <svg class="fa-icon mr-2" aria-hidden="true">
               <use href="#fa-trophy"></use>
             </svg>
@@ -585,7 +563,7 @@
 
   </main>
 
-  <footer class="border-t border-neutral-border bg-white dark:border-gray-700 dark:bg-dark-surface">
+  <footer class="border-t border-neutral-border bg-white dark:border-gray-800 dark:bg-dark-surface">
     <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <div class="mb-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         <div>
@@ -593,11 +571,11 @@
             <img
               src="./static/blt-logo.svg"
               alt="BLT logo"
-              class="h-8 w-8 rounded-md object-contain"
+              class="h-8 w-8 rounded-lg object-contain"
               style="background-color:transparent"
               onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"
             />
-            <span class="hidden h-8 w-8 items-center justify-center rounded-md bg-primary text-xs font-extrabold text-white">B</span>
+            <span class="hidden h-8 w-8 items-center justify-center rounded-lg bg-primary text-xs font-extrabold text-white">B</span>
             <span class="font-bold text-gray-900 dark:text-gray-100">OWASP BLT</span>
           </div>
           <p class="text-sm leading-relaxed text-gray-500 dark:text-gray-400">An OWASP Foundation project focused on open, practical bug reporting workflows.</p>
@@ -635,7 +613,7 @@
         </div>
       </div>
 
-      <div class="flex flex-col items-center justify-between gap-3 border-t border-neutral-border pt-6 sm:flex-row dark:border-gray-700">
+      <div class="flex flex-col items-center justify-between gap-3 border-t border-neutral-border pt-6 sm:flex-row dark:border-gray-800">
         <p class="text-xs text-gray-400 dark:text-gray-500">&copy; <span id="footer-year"></span> OWASP Foundation and BLT Contributors.</p>
         <div class="flex items-center gap-4">
           <a href="https://git.owaspblt.org/BLT" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition hover:text-primary dark:text-gray-500 dark:hover:text-red-400" aria-label="OWASP BLT on git.owaspblt.org">

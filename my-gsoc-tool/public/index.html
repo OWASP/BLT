@@ -3,25 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GSoC Student Dashboard</title>
+    <meta name="description" content="A Google Summer of Code student dashboard: project, contributions, blog posts, mentor feedback, weekly updates and milestones in one page.">
+    <title>GSoC Student Dashboard | OWASP BLT</title>
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
     <script src="theme-init.js"></script>
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <blt-nav project="my-gsoc-tool" name="GSoC Tool">
+    <blt-nav project="my-gsoc-tool" name="GSoC Tool" data-sticky>
         <a href="#contributions">Contributions</a>
         <a href="#blog">Blog</a>
         <a href="#mentors">Mentors</a>
         <a href="#updates">Updates</a>
         <a href="#milestones">Milestones</a>
+        <a href="https://git.owaspblt.org/BLT/tree/main/my-gsoc-tool" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source Code</a>
     </blt-nav>
-    <div class="container">
+    <main class="container">
         <!-- Header Section -->
         <header class="dashboard-header">
             <div class="header-content">
-                <img id="student-avatar" class="avatar" src="" alt="Student Avatar">
+                <img id="student-avatar" class="avatar" src="assets/images/sample-avatar.svg" alt="Student avatar">
                 <div class="header-info">
                     <h1 id="student-name">Loading...</h1>
                     <p id="student-bio" class="bio">GSoC Contributor</p>
@@ -81,7 +84,7 @@
                     <div id="slack-channels" class="channel-list">
                         <!-- Dynamic slack channel info -->
                     </div>
-                    <a id="slack-link" href="#" class="btn-primary" target="_blank" style="display: none;">
+                    <a id="slack-link" href="#" class="btn-primary" target="_blank" rel="noopener noreferrer" hidden>
                         <i class="fab fa-slack"></i> Join Slack Workspace
                     </a>
                 </div>
@@ -93,7 +96,7 @@
                 <div id="blog-posts" class="blog-list">
                     <!-- Dynamic blog posts -->
                 </div>
-                <a id="blog-link" href="#" class="btn-secondary" target="_blank" style="display: none;">
+                <a id="blog-link" href="#" class="btn-secondary" target="_blank" rel="noopener noreferrer" hidden>
                     <i class="fas fa-external-link-alt"></i> View Full Blog
                 </a>
             </section>
@@ -122,7 +125,7 @@
             <!-- Milestones & Achievements -->
             <section class="card milestones-section" id="milestones">
                 <h2><i class="fas fa-trophy"></i> Milestones & Achievements</h2>
-                <div id="milestones" class="milestone-list">
+                <div id="milestone-list" class="milestone-list">
                     <!-- Dynamic milestones -->
                 </div>
             </section>
@@ -133,7 +136,7 @@
             <p>GSoC Student Dashboard | Generated automatically via GitHub Actions</p>
             <p>Last updated: <span id="last-updated">-</span></p>
         </footer>
-    </div>
+    </main>
 
     <script src="dashboard.js"></script>
 </body>

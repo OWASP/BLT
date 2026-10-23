@@ -225,7 +225,7 @@ def render_leaderboard_rows(leaderboard):
             f'<a href="{profile_url}" target="_blank" rel="noopener noreferrer" '
             f'class="flex items-center gap-3 group min-w-0">'
             f'<img src="{avatar_url}" alt="{login}&#039;s avatar" '
-            f'class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" '
+            f'class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-800 flex-shrink-0" '
             f'loading="lazy" />'
             f'<span class="font-medium text-gray-900 dark:text-white group-hover:text-primary '
             f'transition-colors truncate min-w-0 flex-1">{login}</span></a>'
@@ -276,7 +276,7 @@ def render_commenters_rows(commenters):
             f'<a href="{profile_url}" target="_blank" rel="noopener noreferrer" '
             f'class="flex items-center gap-3 group min-w-0">'
             f'<img src="{avatar_url}" alt="{login}&#039;s avatar" '
-            f'class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" '
+            f'class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-800 flex-shrink-0" '
             f'loading="lazy" />'
             f'<span class="font-medium text-gray-900 dark:text-white group-hover:text-primary '
             f'transition-colors truncate min-w-0 flex-1">{login}</span></a>'
@@ -409,11 +409,11 @@ def render_recent_bugs(bugs):
             c_body = esc(re.sub(r"\s+", " ", (bug["latest_comment"].get("body") or "")).strip())
             c_label = "1 comment" if comment_count == 1 else f"{fmt(comment_count)} comments"
             comment_html = (
-                f'<div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700">'
+                f'<div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-800">'
                 f'<div class="flex items-start gap-2">'
                 f'<a href="{c_profile}" target="_blank" rel="noopener noreferrer" class="flex-shrink-0">'
                 f'<img src="{c_avatar}" alt="{c_login}&#039;s avatar" '
-                f'class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700" '
+                f'class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-800" '
                 f'loading="lazy" /></a>'
                 f'<div class="min-w-0 flex-1">'
                 f'<p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{c_body}</p>'
@@ -424,7 +424,7 @@ def render_recent_bugs(bugs):
             )
         elif isinstance(comment_count, int) and comment_count == 0:
             comment_html = (
-                f'<div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700">'
+                f'<div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-800">'
                 f'<a href="{esc(bug["html_url"])}" target="_blank" rel="noopener noreferrer" '
                 f'class="inline-flex items-center gap-1 text-xs text-primary hover:underline">'
                 f'<svg class="fa-icon text-xs" aria-hidden="true"><use href="#fa-comment"></use></svg>'
@@ -432,19 +432,19 @@ def render_recent_bugs(bugs):
             )
 
         cards.append(
-            f'<div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 '
+            f'<div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-800 '
             f'rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col">'
             f'{img_html}'
             f'<h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1">'
             f'<a href="{esc(bug["html_url"])}" target="_blank" rel="noopener noreferrer" '
             f'class="hover:text-primary transition-colors">{favicon_html}{esc(bug["title"])}</a></h3>'
             f'<div class="flex items-center justify-between gap-3 mt-auto pt-3 '
-            f'border-t border-neutral-border dark:border-gray-700 flex-wrap">'
+            f'border-t border-neutral-border dark:border-gray-800 flex-wrap">'
             f'<div class="flex items-center gap-3">'
             f'<a href="{profile_url}" target="_blank" rel="noopener noreferrer" '
             f'class="flex items-center gap-2 group">'
             f'<img src="{avatar_url}" alt="{login}&#039;s avatar" '
-            f'class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700" '
+            f'class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-800" '
             f'loading="lazy" />'
             f'<span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">'
             f'{login}</span></a>{reactions_html}</div>'

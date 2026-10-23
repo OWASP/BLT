@@ -296,7 +296,7 @@ function nomineeCard(nom, canVote, maxVotes, showVotes) {
   return `<div class="surface-card rounded-xl p-4 mb-3">
     <div class="flex items-center gap-3 mb-2">
       <img src="${escHtml(nom.nominee_avatar || avatarFor(nom.nominee_login))}"
-           alt="${escHtml(nom.nominee_login)}" class="w-9 h-9 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy"
+           alt="${escHtml(nom.nominee_login)}" class="w-9 h-9 rounded-full border border-neutral-border dark:border-gray-800" loading="lazy"
            data-fallback-login="${escHtml(nom.nominee_login)}" />
       <div class="min-w-0 flex-1">
         <a href="${escHtml(profileFor(nom.nominee_login))}" target="_blank" rel="noopener noreferrer"
@@ -334,33 +334,33 @@ function openNominationForm(electionId) {
     <form id="nomination-form" class="space-y-4">
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="nom-role">Role</label>
-        <select id="nom-role" class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+        <select id="nom-role" class="w-full rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
           ${roleOptions}
         </select>
       </div>
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="nom-nominee">Nominee username on git.owaspblt.org</label>
         <input id="nom-nominee" type="text" value=""
-          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="username" />
         <p class="text-xs text-gray-400 mt-1">Enter your own username to self-nominate.</p>
       </div>
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="nom-statement">Statement / Manifesto</label>
         <textarea id="nom-statement" rows="4"
-          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
           placeholder="Why should the community elect this person? What will they contribute as Lead/Co-Lead?"></textarea>
       </div>
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="nom-skills">Skills (comma-separated)</label>
         <input id="nom-skills" type="text"
-          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="JavaScript, Security, Documentation" />
       </div>
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="nom-contributions">Prior Contributions</label>
         <input id="nom-contributions" type="text"
-          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="e.g. 10 merged PRs, 5 issues resolved" />
       </div>
       <div class="flex gap-3 pt-2">
@@ -369,7 +369,7 @@ function openNominationForm(electionId) {
           Submit Nomination
         </button>
         <button type="button" id="nom-cancel"
-          class="rounded-xl border border-neutral-border dark:border-gray-600 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+          class="rounded-xl border border-neutral-border dark:border-gray-700 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
           Cancel
         </button>
       </div>
@@ -525,14 +525,14 @@ function openDirectNominationForm(preselectedProjectId) {
       ${anonNote}
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-project">Project / Repo</label>
-        <select id="dn-project" class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+        <select id="dn-project" class="w-full rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
           <option value="">— select a project —</option>
           ${projectOptions}
         </select>
       </div>
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-role">Role</label>
-        <select id="dn-role" class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+        <select id="dn-role" class="w-full rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
           <option value="Lead">Lead</option>
           <option value="Co-Lead">Co-Lead</option>
         </select>
@@ -540,26 +540,26 @@ function openDirectNominationForm(preselectedProjectId) {
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-nominee">Nominee username on git.owaspblt.org</label>
         <input id="dn-nominee" type="text" value="${nomineeDefault}"
-          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="username" />
         <p class="text-xs text-gray-400 mt-1">Enter your own username to self-nominate.</p>
       </div>
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-statement">Statement / Manifesto</label>
         <textarea id="dn-statement" rows="4"
-          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
           placeholder="Why should the community elect this person? What will they contribute as Lead/Co-Lead?"></textarea>
       </div>
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-skills">Skills (comma-separated)</label>
         <input id="dn-skills" type="text"
-          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="JavaScript, Security, Documentation" />
       </div>
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-contributions">Prior Contributions</label>
         <input id="dn-contributions" type="text"
-          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="e.g. 10 merged PRs, 5 issues resolved" />
       </div>
       <div class="flex gap-3 pt-2">
@@ -568,7 +568,7 @@ function openDirectNominationForm(preselectedProjectId) {
           Copy and open an issue on git.owaspblt.org
         </button>
         <button type="button" id="dn-cancel"
-          class="rounded-xl border border-neutral-border dark:border-gray-600 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+          class="rounded-xl border border-neutral-border dark:border-gray-700 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
           Cancel
         </button>
       </div>
@@ -659,7 +659,7 @@ function renderProjects() {
         <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${p.active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}">${p.active ? 'Active' : 'Inactive'}</span>
       </div>
       <div class="flex flex-wrap gap-2">${leadersHtml}</div>
-      <div class="flex items-center justify-between gap-3 flex-wrap pt-1 border-t border-neutral-border dark:border-gray-700">
+      <div class="flex items-center justify-between gap-3 flex-wrap pt-1 border-t border-neutral-border dark:border-gray-800">
         <a href="${escHtml(p.repo_url || '#')}" target="_blank" rel="noopener noreferrer"
            class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-primary transition-colors">
           <svg class="fa-icon" aria-hidden="true"><use href="#fa-code-branch"></use></svg>View Source

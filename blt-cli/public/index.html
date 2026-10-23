@@ -1,6 +1,234 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BLT CLI — Security work from your terminal</title><style>:root{color-scheme:dark;--cyan:#22d3ee;--muted:#a8b3c7}*{box-sizing:border-box}body{margin:0;font:16px/1.65 system-ui;background:linear-gradient(145deg,#07131a,#07090e 55%);color:#f8fafc}main{max-width:960px;margin:auto;padding:7rem 1.5rem}.terminal{padding:1rem 1.2rem;background:#020406;border:1px solid #164e63;border-radius:1rem;box-shadow:0 0 70px #0891b225}small{color:var(--cyan);font-weight:800;letter-spacing:.14em}h1{font-size:clamp(3rem,10vw,6.5rem);line-height:.9;margin:.25em 0}.lead{font-size:1.3rem;color:var(--muted);max-width:720px}.actions{display:flex;gap:1rem;flex-wrap:wrap;margin:2rem 0}a{padding:.8rem 1.1rem;border-radius:.7rem;background:var(--cyan);color:#06222a;text-decoration:none;font-weight:800}.ghost{background:#ffffff0a;color:white;border:1px solid #ffffff2b}pre{overflow:auto;color:#a5f3fc}h2{margin-top:3rem}</style><script src="https://owaspblt.org/_shared/blt-analytics.js" defer></script></head><body><main><small>OWASP BLT · RUST TUI</small><h1>BLT CLI</h1><p class="lead">Triage issues, explore hunts and statistics, submit vulnerabilities, and run AI-assisted analysis from a fast Ratatui terminal interface.</p><div class="actions"><a href="https://git.owaspblt.org/BLT/BLT-CLI">Source code</a><a class="ghost" href="https://waypoint.owaspblt.org/">All BLT projects</a></div><h2>Build and run</h2><div class="terminal"><pre><code>$ git clone https://git.owaspblt.org/BLT.git
-$ cd blt-cli
-$ cargo run --release
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BLT CLI – Security work from your terminal</title>
+  <meta name="description" content="BLT CLI is a Rust terminal interface for OWASP BLT: triage issues, explore bug bounty hunts and statistics, submit vulnerabilities, and run AI-assisted analysis through BLT-MCP." />
+  <link rel="icon" type="image/svg+xml" href="logo.svg" />
+  <script src="theme-init.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <script src="https://owaspblt.org/_shared/blt-analytics.js" defer></script>
+</head>
+<body>
+  <blt-nav project="blt-cli" name="CLI" data-sticky>
+    <a href="#features">Features</a>
+    <a href="#install">Install</a>
+    <a href="#usage">Usage</a>
+    <a href="#shortcuts">Shortcuts</a>
+    <a href="https://git.owaspblt.org/BLT/issues?label=blt-cli" target="_blank" rel="noopener noreferrer">Issues</a>
+    <a href="https://git.owaspblt.org/BLT/tree/main/blt-cli" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Contribute</a>
+  </blt-nav>
 
-# Optional API override
-$ cargo run --release -- --api-base https://api.owaspblt.org</code></pre></div></main></body></html>
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <img class="hero-logo" src="logo.svg" alt="BLT CLI logo" width="168" height="168" />
+        <div>
+          <span class="badge"><i class="fa-solid fa-terminal" aria-hidden="true"></i> OWASP BLT · Rust TUI</span>
+          <h1>BLT <span>CLI</span></h1>
+          <p class="lead">Triage issues, explore hunts and statistics, submit vulnerabilities, and run AI-assisted analysis from a fast Ratatui terminal interface.</p>
+          <div class="actions">
+            <a class="btn primary" href="#install"><i class="fa-solid fa-download" aria-hidden="true"></i> Build and run</a>
+            <a class="btn" href="https://git.owaspblt.org/BLT/tree/main/blt-cli" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-code-branch" aria-hidden="true"></i> Source code</a>
+            <a class="btn" href="https://waypoint.owaspblt.org/"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> All BLT projects</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>What it is</h2>
+          <p><code>blt-cli</code> is a terminal user interface client for the OWASP Bug Logging Tool (BLT) ecosystem, built in Rust with Ratatui and Crossterm. It gives developers keyboard-driven dashboards for triaging issues, tracking bounty hunts, viewing statistics and working with the BLT-MCP server.</p>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-plug" aria-hidden="true"></i></span> Standalone mode</h3>
+            <p>Connects directly to the REST endpoints of the BLT API (default <code>https://api.owaspblt.org</code>).</p>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-robot" aria-hidden="true"></i></span> MCP mode</h3>
+            <p>Acts as an MCP host, spawning the Python <code>blt-mcp</code> server in a subprocess to invoke its protocol tools.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Features</h2>
+          <p>Tabs for Issues, Active Hunts, BLT Stats, Logs &amp; Events and Settings.</p>
+        </div>
+        <div class="grid three">
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-table-columns" aria-hidden="true"></i></span> Ecosystem dashboards</h3>
+            <p>Tab-based views for browsing issues, hunts, statistics, logs and configuration.</p>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span> Interactive triage</h3>
+            <p>Update issue statuses with human-in-the-loop safeguards while network calls run in the background.</p>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span> Bulk triage</h3>
+            <p>Select several issues at once and move them to Open, In Review or Resolved in one step.</p>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></span> Search and filter</h3>
+            <p>Filter issues and hunts instantly with an inline, interactive search overlay.</p>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></span> Audit and event log</h3>
+            <p>A Logs &amp; Events tab tracks agent and human actions and background syncs. State persists across restarts and exports to <code>blt_export.log</code>.</p>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-bug" aria-hidden="true"></i></span> Vulnerability submission</h3>
+            <p>Submit new vulnerability reports from an interactive multi-field form, pre-filled when launched from a hunt.</p>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-crosshairs" aria-hidden="true"></i></span> Bounty hunts hub</h3>
+            <p>Browse active bug bounty hunts with their rules and rewards, then report against a specific target.</p>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-trophy" aria-hidden="true"></i></span> Leaderboard</h3>
+            <p>See the top contributors and their accrued bacon in the statistics dashboard.</p>
+          </div>
+          <div class="card">
+            <h3><span class="icon"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></span> AI-assisted triage</h3>
+            <p>Run an MCP analysis tool on a vulnerability for real-time suggestions and duplicate checks.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="install">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Build and run</h2>
+          <p>Requires Rust and Cargo, installed with <a href="https://rustup.rs/" target="_blank" rel="noopener noreferrer">rustup.rs</a>. The crate lives in the <code>blt-cli</code> folder of the BLT monorepo.</p>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <p class="code-label">Quick start</p>
+<pre><code><span class="p">$ </span>git clone https://git.owaspblt.org/BLT.git
+<span class="p">$ </span>cd blt-cli
+<span class="p">$ </span>cargo run --release
+
+<span class="c"># Optional API override</span>
+<span class="p">$ </span>cargo run --release -- --api-base https://api.owaspblt.org</code></pre>
+          </div>
+          <div class="card">
+            <p class="code-label">Checks and release build</p>
+<pre><code><span class="c"># Formatting and clippy static analysis</span>
+<span class="p">$ </span>cargo fmt --check
+<span class="p">$ </span>cargo clippy -- -D warnings
+
+<span class="c"># Tests</span>
+<span class="p">$ </span>cargo test
+
+<span class="c"># Optimized release binary</span>
+<span class="p">$ </span>cargo build --release</code></pre>
+            <p>The binary is written to <code>./target/release/blt-cli</code> (<code>blt-cli.exe</code> on Windows).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="usage">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Flags and options</h2>
+          <p>Values can also come from the environment or a local <code>.env</code> file.</p>
+        </div>
+<pre><code><span class="c"># Spawn the Python MCP server subprocess to invoke protocol tools</span>
+<span class="p">$ </span>blt-cli --mcp-path ../blt_mcp/server.py
+
+<span class="c"># Query a custom or staging BLT REST API base</span>
+<span class="p">$ </span>blt-cli --api-base https://staging.owaspblt.org</code></pre>
+        <div class="table-wrap" style="margin-top:16px">
+          <table>
+            <thead><tr><th scope="col">Flag</th><th scope="col">Short</th><th scope="col">Environment</th><th scope="col">Description</th><th scope="col">Default</th></tr></thead>
+            <tbody>
+              <tr><td><code>--mcp-path</code></td><td><code>-m</code></td><td><code>BLT_MCP_PATH</code></td><td>Path used to spawn the local Python MCP server.</td><td>None</td></tr>
+              <tr><td><code>--api-base</code></td><td><code>-a</code></td><td><code>BLT_API_BASE</code></td><td>Base URL of the unified BLT REST API.</td><td><code>https://api.owaspblt.org</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="shortcuts">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Keyboard shortcuts</h2>
+          <p>Press <code>h</code> or <code>?</code> inside the app for the quick legend.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Key</th><th scope="col">Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>Tab</code> / <code>Shift+Tab</code></td><td>Move between tabs or form fields.</td></tr>
+              <tr><td><code>1</code> – <code>5</code></td><td>Jump to Issues, Active Hunts, BLT Stats, Logs &amp; Events, Settings.</td></tr>
+              <tr><td><code>↑</code> / <code>↓</code>, <code>k</code> / <code>j</code></td><td>Scroll lists.</td></tr>
+              <tr><td><code>/</code></td><td>Open the search and filter overlay.</td></tr>
+              <tr><td><code>Space</code></td><td>Select or deselect an issue for bulk triage.</td></tr>
+              <tr><td><code>t</code></td><td>Triage the selected issue (or the bulk selection).</td></tr>
+              <tr><td><code>s</code></td><td>Open the Submit Vulnerability form (pre-filled from Hunt Details).</td></tr>
+              <tr><td><code>a</code></td><td>Run AI-assisted MCP analysis on the selected vulnerability.</td></tr>
+              <tr><td><code>e</code></td><td>Export the session log to <code>blt_export.log</code> (Logs &amp; Events tab).</td></tr>
+              <tr><td><code>Enter</code></td><td>Confirm a modal or open details, such as Hunt Details.</td></tr>
+              <tr><td><code>Esc</code></td><td>Dismiss popups, modals and forms.</td></tr>
+              <tr><td><code>h</code> / <code>?</code></td><td>Toggle the help overlay.</td></tr>
+              <tr><td><code>q</code> / <code>Ctrl+C</code></td><td>Quit and restore the terminal.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="links">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Get involved</h2>
+          <p>BLT CLI is part of the OWASP BLT monorepo. Issues and pull requests are welcome.</p>
+        </div>
+        <div class="links">
+          <a class="card link-card" href="https://git.owaspblt.org/BLT/tree/main/blt-cli" target="_blank" rel="noopener noreferrer">
+            <span class="icon"><i class="fa-solid fa-code" aria-hidden="true"></i></span>
+            <div><strong>Source</strong><span>BLT/tree/main/blt-cli</span></div>
+          </a>
+          <a class="card link-card" href="https://git.owaspblt.org/BLT/issues?label=blt-cli" target="_blank" rel="noopener noreferrer">
+            <span class="icon"><i class="fa-solid fa-circle-dot" aria-hidden="true"></i></span>
+            <div><strong>Issues</strong><span>Label blt-cli</span></div>
+          </a>
+          <a class="card link-card" href="https://git.owaspblt.org/BLT/blob/main/blt-cli/README.md" target="_blank" rel="noopener noreferrer">
+            <span class="icon"><i class="fa-solid fa-book" aria-hidden="true"></i></span>
+            <div><strong>README</strong><span>Full reference</span></div>
+          </a>
+          <a class="card link-card" href="https://waypoint.owaspblt.org/">
+            <span class="icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
+            <div><strong>All BLT projects</strong><span>waypoint.owaspblt.org</span></div>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>BLT CLI · part of <a href="https://owaspblt.org/">OWASP BLT</a></span>
+      <nav aria-label="Footer">
+        <a href="https://git.owaspblt.org/BLT/tree/main/blt-cli" target="_blank" rel="noopener noreferrer">Source</a>
+        <a href="https://git.owaspblt.org/BLT/issues?label=blt-cli" target="_blank" rel="noopener noreferrer">Issues</a>
+        <a href="https://waypoint.owaspblt.org/">All projects</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

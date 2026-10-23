@@ -211,7 +211,7 @@ function renderGitHubStats(data) {
             </div>
         `).join('');
     } else {
-        contributionList.innerHTML = '<p style="color: var(--text-secondary);">No contributions data available yet. The GitHub Actions workflow will populate this automatically.</p>';
+        contributionList.innerHTML = '<p class="empty-note">No contributions data available yet. The GitHub Actions workflow will populate this automatically.</p>';
     }
 }
 
@@ -228,12 +228,12 @@ function renderSlackInfo(config) {
             </div>
         `).join('');
     } else {
-        slackChannels.innerHTML = '<p style="color: var(--text-secondary);">Configure your Slack channels in config.json</p>';
+        slackChannels.innerHTML = '<p class="empty-note">Configure your Slack channels in config.json</p>';
     }
 
     if (config.slack.workspaceUrl) {
         slackLink.href = config.slack.workspaceUrl;
-        slackLink.style.display = 'inline-block';
+        slackLink.hidden = false;
     }
 }
 
@@ -254,12 +254,12 @@ function renderBlogPosts(posts, config) {
             </div>
         `).join('');
     } else {
-        blogList.innerHTML = '<p style="color: var(--text-secondary);">No blog posts yet. Add your posts to data/blog-posts.json</p>';
+        blogList.innerHTML = '<p class="empty-note">No blog posts yet. Add your posts to data/blog-posts.json</p>';
     }
 
     if (config.student.blog) {
         blogLink.href = config.student.blog;
-        blogLink.style.display = 'inline-block';
+        blogLink.hidden = false;
     }
 }
 
@@ -300,7 +300,7 @@ function renderMentorInfo(config, feedback) {
 
     if (displayMentors.length === 0) {
         mentorDetails.innerHTML =
-            '<p style="color: var(--text-secondary);">Mentor information not configured.</p>';
+            '<p class="empty-note">Mentor information not configured.</p>';
     } else {
         mentorDetails.innerHTML = displayMentors
             .map((mentor, index) => {
@@ -315,10 +315,10 @@ function renderMentorInfo(config, feedback) {
                 const isPlaceholder =
                     mentor.isPlaceholder || index >= mentors.length || hasDefaultPlaceholderName;
                 const placeholderStyle = isPlaceholder
-                    ? 'style=\"opacity: 0.6; font-style: italic;\"'
+                    ? 'data-placeholder=\"true\"'
                     : '';
                 const blankIndicator = isPlaceholder
-                    ? '<span style=\"color: var(--text-secondary); font-size: 0.85em; font-weight: normal;\">(blank)</span>'
+                    ? '<span class=\"blank-note\">(blank)</span>'
                     : '';
 
                 return `
@@ -372,7 +372,7 @@ function renderMentorInfo(config, feedback) {
             .join('');
     } else {
         feedbackList.innerHTML =
-            '<p style="color: var(--text-secondary);">No feedback yet. Feedback will appear here as your mentor provides input.</p>';
+            '<p class="empty-note">No feedback yet. Feedback will appear here as your mentor provides input.</p>';
     }
 }
 
@@ -390,13 +390,13 @@ function renderWeeklyUpdates(updates) {
             </div>
         `).join('');
     } else {
-        timeline.innerHTML = '<p style="color: var(--text-secondary);">No weekly updates yet. Add your updates to data/weekly-updates.json</p>';
+        timeline.innerHTML = '<p class="empty-note">No weekly updates yet. Add your updates to data/weekly-updates.json</p>';
     }
 }
 
 // Render milestones
 function renderMilestones(milestones) {
-    const milestoneList = document.getElementById('milestones');
+    const milestoneList = document.getElementById('milestone-list');
     if (milestones && milestones.length > 0) {
         milestoneList.innerHTML = milestones.map(milestone => `
             <div class="milestone-item">
@@ -413,7 +413,7 @@ function renderMilestones(milestones) {
             </div>
         `).join('');
     } else {
-        milestoneList.innerHTML = '<p style="color: var(--text-secondary);">No milestones yet. Add your achievements to data/milestones.json</p>';
+        milestoneList.innerHTML = '<p class="empty-note">No milestones yet. Add your achievements to data/milestones.json</p>';
     }
 }
 

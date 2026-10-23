@@ -89,7 +89,7 @@
         ? `<div class="ambassadors-label">Ambassadors</div>
            <div class="ambassadors-list">${project.ambassadors.map(renderAmbassador).join("")}</div>`
         : `<div class="ambassadors-label">No ambassadors yet</div>
-           <p style="font-size:0.83rem;color:var(--text-muted)">Be the first to represent this project!</p>`;
+           <p class="ambassadors-empty">Be the first to represent this project!</p>`;
   
       const bltLink = bltUrl
         ? `<a href="${bltUrl}" class="card-link" target="_blank" rel="noopener noreferrer" aria-label="View ${name} on BLT">

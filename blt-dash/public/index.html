@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BLT-Dash: a one-page cybersecurity heads-up dashboard covering programme areas, NIST CSF maturity, business alignment, tooling and team skills." />
+  <meta name="theme-color" content="#dc2626" />
   <title>Cyber Security Dashboard - BLT-Dash</title>
   <link rel="icon" href="logo.svg" type="image/svg+xml" />
   <script>
+    // Before first paint: the saved theme (localStorage "theme", shared with the <blt-nav> bar), else the system preference.
     (function () {
       var saved = null;
       try { saved = localStorage.getItem('theme'); } catch (e) {}
@@ -15,408 +18,378 @@
   </script>
   <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
   <style>
-    /* ─── Reset & Base ──────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     blt-nav:not(:defined) { display: block; min-height: 61px; }
+    blt-nav:not(:defined) > * { display: none; }
 
-    /* Tokens follow owaspblt.org: gray/white surfaces, BLT red (#dc2626) accent, system fonts,
-       dark mode via html.dark (set by the pre-paint script below and the BLT top bar). */
+    /* ─── Tokens ─────────────────────────────────────────────────────────
+       BLT design guide: red-600 primary, neutral grays, gray-950 / gray-900 / gray-800
+       in dark mode (never white borders), system fonts, rounded-2xl cards.
+       The five NIST CSF functions keep their own hue so the maturity row reads at a glance. */
     :root {
-      --bg:          #f9fafb;
-      --bg2:         #ffffff;
-      --bg3:         #f3f4f6;
-      --border:      #e5e7eb;
-      --border2:     #e5e7eb;
-      --text:        #111827;
-      --muted:       #6b7280;
-      --accent:      #dc2626;
-      --hover-bg:    #fef2f2;
-      --green:       #16a34a;
-      --green-dim:   #22c55e;
-      --green-dark:  #dcfce7;
-      --green-bg:    #f0fdf4;
-      --cyan:        #dc2626;
-      --cyan-dim:    #6b7280;
-      --blue:        #d1d5db;
-      --blue-dim:    #f3f4f6;
-      --yellow:      #ca8a04;
-      --yellow-dim:  #eab308;
-      --yellow-bg:   #fefce8;
-      --red:         #dc2626;
-      --red-dim:     #fee2e2;
-      --red-text:    #991b1b;
-      --red-bg:      #fef2f2;
-      --orange:      #ea580c;
-      --white:       #111827;
-      --tile-bg:     #f9fafb;
-      --tile-border: #e5e7eb;
-      --section-title: #dc2626;
-      --font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color-scheme: light;
+      --bg: #f9fafb;
+      --surface: #ffffff;
+      --surface-2: #f3f4f6;
+      --tile: #f9fafb;
+      --border: #e5e7eb;
+      --border-strong: #d1d5db;
+      --text: #111827;
+      --text-2: #374151;
+      --muted: #6b7280;
+      --brand: #dc2626;
+      --brand-hover: #b91c1c;
+      --brand-text: #b91c1c;
+      --brand-soft: #fef2f2;
+      --brand-ring: rgba(220, 38, 38, .35);
+      --ok: #16a34a;
+      --ok-text: #15803d;
+      --ok-soft: #f0fdf4;
+      --ok-ring: rgba(22, 163, 74, .35);
+      --warn: #d97706;
+      --warn-text: #b45309;
+      --warn-soft: #fffbeb;
+      --alert: #dc2626;
+      --alert-soft: #fef2f2;
+
+      --fn-identify: #2563eb;  --fn-identify-text: #1d4ed8;  --fn-identify-soft: #eff6ff;
+      --fn-protect:  #16a34a;  --fn-protect-text:  #15803d;  --fn-protect-soft:  #f0fdf4;
+      --fn-detect:   #d97706;  --fn-detect-text:   #b45309;  --fn-detect-soft:   #fffbeb;
+      --fn-respond:  #dc2626;  --fn-respond-text:  #b91c1c;  --fn-respond-soft:  #fef2f2;
+      --fn-recover:  #0d9488;  --fn-recover-text:  #0f766e;  --fn-recover-soft:  #f0fdfa;
+
+      --map-ocean: #f3f4f6;
+      --map-grid: #e5e7eb;
+      --map-land: #e5e7eb;
+      --map-land-2: #d1d5db;
+      --map-stroke: #9ca3af;
+
+      --shadow: 0 1px 2px rgba(17, 24, 39, .05);
+      --radius: 1rem;
+      --radius-sm: .625rem;
+      --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     html.dark {
       color-scheme: dark;
-      --bg:          #030712;
-      --bg2:         #111827;
-      --bg3:         #1f2937;
-      --border:      #1f2937;
-      --border2:     #1f2937;
-      --text:        #f3f4f6;
-      --muted:       #9ca3af;
-      --accent:      #f87171;
-      --hover-bg:    rgba(127, 29, 29, 0.25);
-      --green:       #4ade80;
-      --green-dim:   #16a34a;
-      --green-dark:  rgba(20, 83, 45, 0.45);
-      --green-bg:    rgba(20, 83, 45, 0.3);
-      --cyan:        #f87171;
-      --cyan-dim:    #9ca3af;
-      --blue:        #374151;
-      --blue-dim:    #1f2937;
-      --yellow:      #facc15;
-      --yellow-dim:  #a16207;
-      --yellow-bg:   rgba(113, 63, 18, 0.3);
-      --red:         #ef4444;
-      --red-dim:     rgba(127, 29, 29, 0.5);
-      --red-text:    #fecaca;
-      --red-bg:      rgba(127, 29, 29, 0.3);
-      --orange:      #fb923c;
-      --white:       #f3f4f6;
-      --tile-bg:     #030712;
-      --tile-border: #1f2937;
-      --section-title: #f87171;
+      --bg: #030712;
+      --surface: #111827;
+      --surface-2: #1f2937;
+      --tile: #0b1220;
+      --border: #1f2937;
+      --border-strong: #374151;
+      --text: #f9fafb;
+      --text-2: #d1d5db;
+      --muted: #9ca3af;
+      --brand-text: #f87171;
+      --brand-soft: rgba(220, 38, 38, .14);
+      --brand-ring: rgba(248, 113, 113, .45);
+      --ok: #4ade80;
+      --ok-text: #4ade80;
+      --ok-soft: rgba(34, 197, 94, .12);
+      --ok-ring: rgba(74, 222, 128, .4);
+      --warn: #fbbf24;
+      --warn-text: #fbbf24;
+      --warn-soft: rgba(245, 158, 11, .12);
+      --alert: #f87171;
+      --alert-soft: rgba(220, 38, 38, .16);
+
+      --fn-identify: #60a5fa;  --fn-identify-text: #93c5fd;  --fn-identify-soft: rgba(59, 130, 246, .14);
+      --fn-protect:  #4ade80;  --fn-protect-text:  #86efac;  --fn-protect-soft:  rgba(34, 197, 94, .13);
+      --fn-detect:   #fbbf24;  --fn-detect-text:   #fcd34d;  --fn-detect-soft:   rgba(245, 158, 11, .13);
+      --fn-respond:  #f87171;  --fn-respond-text:  #fca5a5;  --fn-respond-soft:  rgba(220, 38, 38, .16);
+      --fn-recover:  #2dd4bf;  --fn-recover-text:  #5eead4;  --fn-recover-soft:  rgba(20, 184, 166, .13);
+
+      --map-ocean: #0b1220;
+      --map-grid: #1f2937;
+      --map-land: #1f2937;
+      --map-land-2: #273244;
+      --map-stroke: #4b5563;
+
+      --shadow: none;
     }
 
-    html, body {
-      width: 100%; height: 100%;
+    /* ─── Base ───────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; overflow-x: clip; scroll-behavior: smooth; }
+    [id] { scroll-margin-top: 76px; }
+    body {
+      margin: 0;
+      min-height: 100vh;
       background: var(--bg);
       color: var(--text);
-      font-family: var(--font);
-      overflow-x: hidden;
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
-    /* 11px base on body only, so rem-sized UI (the BLT top bar) keeps the browser default */
-    body { font-size: 11px; }
 
+    /* ─── Page header ───────────────────────────────────────────────── */
+    .page-head {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem .75rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: .75rem 1.5rem;
+    }
+    .page-head h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 3vw, 1.85rem);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1.15;
+    }
+    .page-head p { margin: .3rem 0 0; color: var(--muted); max-width: 60ch; }
+    .head-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; }
+    .clock {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .35rem .75rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--text-2);
+      white-space: nowrap;
+    }
+    .clock::before { content: ""; width: .5rem; height: .5rem; border-radius: 999px; background: var(--ok); }
+    .legend { display: flex; flex-wrap: wrap; gap: .35rem .85rem; margin: 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--muted); }
+    .legend li { display: inline-flex; align-items: center; gap: .4rem; }
+    .legend i { width: .7rem; height: .7rem; border-radius: 3px; border: 1.5px solid; display: inline-block; }
+    .legend .l-active i { border-color: var(--ok); background: var(--ok-soft); }
+    .legend .l-watch i  { border-color: var(--warn); background: var(--warn-soft); }
+    .legend .l-alert i  { border-color: var(--alert); background: var(--alert-soft); }
 
-    /* ─── Layout ──────────────────────────────────────────────────────── */
+    /* ─── Layout ─────────────────────────────────────────────────────── */
     .dashboard {
-      position: relative; z-index: 1;
+      max-width: 1600px;
+      margin: 0 auto;
       display: grid;
-      grid-template-rows: auto auto auto;
-      gap: 4px;
-      padding: 4px;
-      min-height: calc(100vh - 61px); /* under the BLT top bar */
+      gap: 12px;
+      padding: 0 1rem 2rem;
     }
+    .top-row { display: grid; gap: 12px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .mid-row { display: grid; gap: 12px; grid-template-columns: minmax(260px, 320px) minmax(0, 1fr); }
+    .bot-row { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr); }
 
-    /* Top row: 4 quadrant panels */
-    .top-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr;
-      gap: 4px;
-    }
-
-    /* Middle row: world-map panel + NIST scores */
-    .mid-row {
-      display: grid;
-      grid-template-columns: 280px 1fr;
-      gap: 4px;
-    }
-
-    /* Bottom row: 3 panels */
-    .bot-row {
-      display: grid;
-      grid-template-columns: 1fr 2fr 1fr;
-      gap: 4px;
-    }
-
-    /* ─── Panel ─────────────────────────────────────────────────────── */
+    /* ─── Panel ──────────────────────────────────────────────────────── */
     .panel {
-      background: var(--bg2);
-      border: 1px solid var(--border2);
-      border-radius: 3px;
-      padding: 6px;
-      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      min-width: 0;
     }
-
-    .panel-title {
-      font-size: 10px;
+    .panel-title, .bot-title {
+      display: flex; align-items: center; gap: .5rem;
+      margin: 0 0 12px;
+      font-size: 12px;
       font-weight: 700;
-      letter-spacing: 2px;
-      color: var(--cyan);
-      text-align: center;
+      letter-spacing: .06em;
       text-transform: uppercase;
-      margin-bottom: 6px;
-      padding-bottom: 4px;
-      border-bottom: 1px solid var(--border2);
+      color: var(--text-2);
+    }
+    .panel-title::before, .bot-title::before {
+      content: ""; flex: none;
+      width: 4px; height: 14px; border-radius: 2px;
+      background: var(--brand);
     }
 
-    /* ─── Icon grid ─────────────────────────────────────────────────── */
-    .icon-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 3px;
-    }
-    .icon-grid.cols4 { grid-template-columns: repeat(4, 1fr); }
-    .icon-grid.cols6 { grid-template-columns: repeat(6, 1fr); }
-    .icon-grid.cols7 { grid-template-columns: repeat(7, 1fr); }
+    /* ─── Icon grid ──────────────────────────────────────────────────── */
+    .icon-grid { display: grid; gap: 6px; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .icon-grid.cols4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .icon-grid.cols6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .icon-grid.cols7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 
     .tile {
-      background: var(--tile-bg);
-      border: 1px solid var(--tile-border);
-      border-radius: 2px;
-      padding: 4px 2px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      min-height: 52px;
-      cursor: pointer;
-      transition: border-color .15s, background .15s;
-    }
-    .tile:hover {
-      border-color: var(--accent);
-      background: var(--hover-bg);
-    }
-    .tile.highlight {
-      border-color: var(--green);
-      box-shadow: 0 0 6px var(--green-dark);
-    }
-    .tile.highlight-yellow {
-      border-color: var(--yellow);
-      background: var(--yellow-bg);
-    }
-    .tile.highlight-red {
-      border-color: var(--red);
-      background: var(--red-bg);
-    }
-    .tile.highlight-green {
-      border-color: var(--green);
-      background: var(--green-bg);
-    }
-    .tile.active {
-      background: var(--green-bg);
-      border-color: var(--green);
-    }
-
-    .tile-icon {
-      font-size: 18px;
-      line-height: 1;
-      color: var(--green);
-    }
-    .tile-label {
-      font-size: 6.5px;
-      text-align: center;
-      color: var(--cyan-dim);
-      letter-spacing: 0.3px;
-      line-height: 1.2;
-      text-transform: uppercase;
-      max-width: 44px;
-    }
-
-    /* Threat tiles with different icon colors */
-    .threat-panel .tile-icon { color: var(--cyan); }
-
-    /* ─── World Map Panel ───────────────────────────────────────────── */
-    .map-panel {
+      position: relative;
+      background: var(--tile);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 4px 7px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
+      gap: 5px;
+      min-height: 68px;
+      min-width: 0;
+      cursor: pointer;
+      transition: border-color .2s, background-color .2s, box-shadow .2s;
     }
-    .dash-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text);
+    .tile:hover { border-color: var(--brand-ring); background: var(--brand-soft); }
+    .tile.highlight       { border-color: var(--ok); }
+    .tile.highlight-green,
+    .tile.active          { border-color: var(--ok); background: var(--ok-soft); }
+    .tile.highlight-yellow{ border-color: var(--warn); background: var(--warn-soft); }
+    .tile.highlight-red,
+    .tile.alert           { border-color: var(--alert); background: var(--alert-soft); }
+    .tile.active::after, .tile.alert::after {
+      content: ""; position: absolute; top: 5px; right: 5px;
+      width: 6px; height: 6px; border-radius: 999px;
+      background: var(--ok);
+    }
+    .tile.alert::after { background: var(--alert); }
+
+    .tile-icon { font-size: 19px; line-height: 1.1; color: var(--text-2); }
+    .tile-label {
+      font-size: 10.5px;
+      font-weight: 500;
+      line-height: 1.25;
       text-align: center;
-      margin-bottom: 8px;
-      letter-spacing: 1px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+      hyphens: auto;
     }
+    .tile:hover .tile-label, .tile.active .tile-label, .tile.alert .tile-label,
+    .tile[class*="highlight-"] .tile-label { color: var(--text-2); }
 
-    .world-map-container {
-      position: relative;
-      width: 100%;
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* Live-data flash (driven by the script below) */
+    .tile.flash { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-ring); }
+
+    /* Pulse for active / alert tiles */
+    @keyframes pulse-ok    { 0%, 100% { box-shadow: 0 0 0 0 var(--ok-ring); }    50% { box-shadow: 0 0 0 4px var(--ok-ring); } }
+    @keyframes pulse-alert { 0%, 100% { box-shadow: 0 0 0 0 var(--brand-ring); } 50% { box-shadow: 0 0 0 4px var(--brand-ring); } }
+    .tile.active { animation: pulse-ok 2.4s ease-in-out infinite; }
+    .tile.alert  { animation: pulse-alert 1.8s ease-in-out infinite; }
+
+    /* ─── World map panel ────────────────────────────────────────────── */
+    .map-panel { display: flex; flex-direction: column; }
+    .world-map-container { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; }
+    .world-map-svg { display: block; width: 100%; height: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+    .map-ocean { fill: var(--map-ocean); }
+    .map-grid  { stroke: var(--map-grid); }
+    .map-land  { fill: var(--map-land); stroke: var(--map-stroke); stroke-width: 1; }
+    .map-land.minor { fill: var(--map-land-2); stroke-width: .8; }
+    .map-link  { stroke: var(--muted); stroke-width: 1; fill: none; opacity: .55; }
+    .ping-a { --ping: var(--brand); }
+    .ping-b { --ping: var(--fn-identify); }
+    .ping-c { --ping: var(--warn); }
+    .ping .ring { fill: none; stroke: var(--ping); stroke-width: 1.5; }
+    .ping .dot  { fill: var(--ping); }
+    .overall {
+      position: absolute; right: 8px; bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 10px 6px 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
     }
+    .overall span { font-size: 11px; font-weight: 600; color: var(--muted); line-height: 1.2; }
+    .overall .ring-bg { fill: none; stroke: var(--surface-2); }
+    .overall .ring-fg { fill: none; stroke: var(--ok); }
+    .overall text { fill: var(--text); font-family: var(--mono); font-weight: 700; }
+    .map-caption { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
 
-    .world-map-svg {
-      width: 100%;
-      max-width: 260px;
-      opacity: 0.85;
-      filter: drop-shadow(0 0 8px rgba(0,255,65,0.3));
-    }
-
-    .score-circle {
-      position: absolute;
-      bottom: 20px;
-      right: 10px;
-      width: 70px;
-      height: 70px;
-    }
-
-    /* ─── NIST Scores Panel ─────────────────────────────────────────── */
-    .nist-panel {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .nist-scores-row {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-
+    /* ─── NIST CSF panel ─────────────────────────────────────────────── */
+    .nist-panel { display: flex; flex-direction: column; }
+    .nist-scores-row { display: grid; gap: 10px; grid-template-columns: repeat(5, minmax(0, 1fr)); }
     .nist-col {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
+      --fn: var(--fn-identify); --fn-text: var(--fn-identify-text); --fn-soft: var(--fn-identify-soft);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      min-width: 0;
+      padding: 12px 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--tile);
     }
+    .nist-col.fn-protect { --fn: var(--fn-protect); --fn-text: var(--fn-protect-text); --fn-soft: var(--fn-protect-soft); }
+    .nist-col.fn-detect  { --fn: var(--fn-detect);  --fn-text: var(--fn-detect-text);  --fn-soft: var(--fn-detect-soft); }
+    .nist-col.fn-respond { --fn: var(--fn-respond); --fn-text: var(--fn-respond-text); --fn-soft: var(--fn-respond-soft); }
+    .nist-col.fn-recover { --fn: var(--fn-recover); --fn-text: var(--fn-recover-text); --fn-soft: var(--fn-recover-soft); }
 
-    .nist-label {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-align: center;
-      color: var(--cyan);
-      text-transform: uppercase;
-    }
-
-    /* Hexagonal score badge */
-    .hex-score {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 80px;
-      height: 80px;
-    }
-
-    .hex-score svg { position: absolute; top: 0; left: 0; }
-
-    .hex-value {
-      position: relative;
-      z-index: 1;
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -1px;
-    }
-    .hex-value.blue  { color: var(--cyan); }
-    .hex-value.green { color: var(--green); }
-    .hex-value.yellow { color: var(--yellow); }
-    .hex-value.red   { color: var(--red); }
-
-    /* Gauge arc */
-    .gauge-wrap {
-      width: 80px;
-      display: flex;
-      justify-content: center;
-    }
-
-    /* Score item lists */
-    .nist-items {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      width: 100%;
-    }
-
+    .nist-label { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--fn-text); }
+    .hex-score { position: relative; display: flex; align-items: center; justify-content: center; width: 80px; height: 80px; }
+    .hex-score svg { position: absolute; inset: 0; }
+    .hex-outer { fill: var(--fn-soft); stroke: var(--fn); stroke-width: 2.5; }
+    .hex-inner { fill: none; stroke: var(--fn); stroke-width: 1; opacity: .35; }
+    .hex-value { position: relative; font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: -.02em; color: var(--fn-text); }
+    .gauge-wrap { display: flex; justify-content: center; }
+    .gauge-track { fill: none; stroke: var(--surface-2); stroke-width: 6; }
+    .gauge-arc   { fill: none; stroke: var(--fn); stroke-width: 4; stroke-linecap: round; }
+    .gauge-dot   { fill: var(--fn); }
+    .nist-items { display: flex; flex-direction: column; gap: 4px; width: 100%; }
     .nist-item {
-      font-size: 7px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.25;
       text-align: center;
-      padding: 4px 4px;
-      border-radius: 2px;
-      text-transform: uppercase;
-      line-height: 1.2;
-    }
-    .nist-item.blue  { background: var(--blue-dim);   color: var(--white); border: 1px solid var(--blue); }
-    .nist-item.green { background: var(--green-dark); color: var(--green); border: 1px solid var(--green-dim); }
-    .nist-item.yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow-dim); }
-    .nist-item.red   { background: var(--red-dim);   color: var(--red-text);     border: 1px solid var(--red); }
-    .nist-item.gr    { background: var(--green-bg); color: var(--green);  border: 1px solid var(--green-dim); }
-
-    /* ─── Bottom panels ─────────────────────────────────────────────── */
-    .bot-title {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      color: var(--cyan);
-      text-align: center;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-      padding-bottom: 4px;
-      border-bottom: 1px solid var(--border2);
+      padding: 5px 6px;
+      border-radius: 6px;
+      background: var(--fn-soft);
+      color: var(--text-2);
+      border: 1px solid transparent;
     }
 
-    /* Skill maturity: colored tiles */
-    .skill-tile {
-      background: var(--tile-bg);
-      border: 1px solid var(--tile-border);
-      border-radius: 2px;
-      padding: 3px 2px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      min-height: 46px;
+    /* ─── Responsive ─────────────────────────────────────────────────── */
+    @media (max-width: 1280px) {
+      .top-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .bot-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .bot-row > .panel:nth-child(2) { grid-column: 1 / -1; grid-row: 1; }
     }
-
-
-    /* Corner decorations */
-    .corner-tl, .corner-tr, .corner-bl, .corner-br {
-      position: absolute;
-      width: 10px; height: 10px;
-      border-color: var(--cyan-dim);
-      border-style: solid;
-      opacity: 0.5;
+    @media (max-width: 960px) {
+      .mid-row { grid-template-columns: minmax(0, 1fr); }
+      .map-panel .world-map-container { max-width: 560px; width: 100%; margin: 0 auto; }
+      .nist-scores-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
-    .corner-tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
-    .corner-tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
-    .corner-bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
-    .corner-br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
-
-    /* Pulse animation for active/alert tiles */
-    @keyframes pulse-green {
-      0%, 100% { box-shadow: 0 0 3px var(--green-dark); }
-      50% { box-shadow: 0 0 10px var(--green); }
+    @media (max-width: 720px) {
+      .top-row, .bot-row { grid-template-columns: minmax(0, 1fr); }
+      .bot-row > .panel:nth-child(2) { grid-row: auto; }
+      .icon-grid, .icon-grid.cols4, .icon-grid.cols6, .icon-grid.cols7 {
+        grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+      }
+      .nist-scores-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
-    @keyframes pulse-red {
-      0%, 100% { box-shadow: 0 0 3px var(--red-dim); }
-      50% { box-shadow: 0 0 10px var(--red); }
+    @media (max-width: 400px) {
+      .page-head { padding-top: 1.1rem; }
+      .panel { padding: 12px; }
+      .icon-grid, .icon-grid.cols4, .icon-grid.cols6, .icon-grid.cols7 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .tile-label { font-size: 10px; }
     }
-    .tile.active { animation: pulse-green 2s ease-in-out infinite; }
-    .tile.alert  { animation: pulse-red  1.5s ease-in-out infinite; }
-
-    /* Threat panel tile overrides */
-    .threat-panel .tile { min-height: 46px; }
-
-    /* Responsive shrink for very small viewports */
-    @media (max-width: 900px) {
-      .top-row, .bot-row { grid-template-columns: 1fr 1fr; }
-      .mid-row { grid-template-columns: 1fr; }
-      .nist-scores-row { grid-template-columns: repeat(3, 1fr); }
+    @media (prefers-reduced-motion: reduce) {
+      .tile.active, .tile.alert { animation: none; }
+      .tile { transition: none; }
     }
   </style>
 </head>
 <body>
-<blt-nav project="blt-dash" name="Dash"></blt-nav>
+<blt-nav project="blt-dash" name="Dash" data-sticky>
+  <a href="#programme">Programme</a>
+  <a href="#nist">NIST CSF</a>
+  <a href="#alignment">Alignment</a>
+  <a href="#tooling">Tooling</a>
+  <a href="https://git.owaspblt.org/BLT/tree/main/blt-dash" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Contribute</a>
+</blt-nav>
 
-<div class="dashboard">
+<header class="page-head">
+  <div>
+    <h1>Cyber Security Dashboard</h1>
+    <p>One heads-up view of the security programme: governance, engineering, threat response, NIST CSF maturity, business alignment, tooling and team skills.</p>
+  </div>
+  <div class="head-meta">
+    <ul class="legend" aria-label="Tile legend">
+      <li class="l-active"><i></i>Active</li>
+      <li class="l-watch"><i></i>Needs attention</li>
+      <li class="l-alert"><i></i>Alert</li>
+    </ul>
+    <span class="clock" id="clock" aria-live="off">--:--:-- UTC</span>
+  </div>
+</header>
+
+<main class="dashboard">
 
   <!-- ═══════════════════════════ TOP ROW ════════════════════════════ -->
-  <div class="top-row">
+  <section class="top-row" id="programme" aria-label="Programme areas">
 
     <!-- ADMINISTRATIVE -->
     <div class="panel">
-      <div class="corner-tl"></div><div class="corner-tr"></div>
-      <div class="corner-bl"></div><div class="corner-br"></div>
-      <div class="panel-title">Administrative</div>
+      <h2 class="panel-title">Administrative</h2>
       <div class="icon-grid">
         <div class="tile active"><span class="tile-icon">♟</span><span class="tile-label">Strategy</span></div>
         <div class="tile"><span class="tile-icon">🎯</span><span class="tile-label">Mission &amp; Vision</span></div>
@@ -448,9 +421,7 @@
 
     <!-- RISK & COMPLIANCE -->
     <div class="panel">
-      <div class="corner-tl"></div><div class="corner-tr"></div>
-      <div class="corner-bl"></div><div class="corner-br"></div>
-      <div class="panel-title">Risk &amp; Compliance</div>
+      <h2 class="panel-title">Risk &amp; Compliance</h2>
       <div class="icon-grid">
         <div class="tile"><span class="tile-icon">🔒</span><span class="tile-label">Business Continuity</span></div>
         <div class="tile"><span class="tile-icon">🛡</span><span class="tile-label">Cyber Resilience</span></div>
@@ -482,9 +453,7 @@
 
     <!-- ENGINEERING & ARCHITECT -->
     <div class="panel">
-      <div class="corner-tl"></div><div class="corner-tr"></div>
-      <div class="corner-bl"></div><div class="corner-br"></div>
-      <div class="panel-title">Engineering &amp; Architect</div>
+      <h2 class="panel-title">Engineering &amp; Architect</h2>
       <div class="icon-grid cols4">
         <div class="tile"><span class="tile-icon">🔧</span><span class="tile-label">Dev SecOps</span></div>
         <div class="tile"><span class="tile-icon">🗝</span><span class="tile-label">Key Mgmt</span></div>
@@ -511,10 +480,8 @@
 
     <!-- THREAT & RESPONSE -->
     <div class="panel threat-panel">
-      <div class="corner-tl"></div><div class="corner-tr"></div>
-      <div class="corner-bl"></div><div class="corner-br"></div>
-      <div class="panel-title">Threat &amp; Response</div>
-      <div class="icon-grid cols5">
+      <h2 class="panel-title">Threat &amp; Response</h2>
+      <div class="icon-grid">
         <div class="tile highlight"><span class="tile-icon">🎣</span><span class="tile-label">Phishing</span></div>
         <div class="tile alert"><span class="tile-icon">💰</span><span class="tile-label">Ransomware</span></div>
         <div class="tile"><span class="tile-icon">🔐</span><span class="tile-label">Security</span></div>
@@ -538,31 +505,21 @@
       </div>
     </div>
 
-  </div><!-- /top-row -->
+  </section><!-- /top-row -->
 
   <!-- ═══════════════════════════ MID ROW ═════════════════════════════ -->
   <div class="mid-row">
 
     <!-- World Map + Title -->
     <div class="panel map-panel">
-      <div class="dash-title">Cyber Security Dashboard</div>
+      <h2 class="panel-title">Global Threat Map</h2>
       <div class="world-map-container">
         <!-- SVG World Map (simplified continents) -->
-        <svg class="world-map-svg" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#003300" stop-opacity="0.8"/>
-              <stop offset="100%" stop-color="#001100" stop-opacity="0.1"/>
-            </radialGradient>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="2" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
+        <svg class="world-map-svg" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="World map with active incident pings in North America, Europe and Asia">
           <!-- Ocean -->
-          <rect width="800" height="450" fill="#020d1a"/>
+          <rect class="map-ocean" width="800" height="450"/>
           <!-- Grid lines -->
-          <g stroke="#0a2040" stroke-width="0.5" opacity="0.5">
+          <g class="map-grid" stroke-width="1">
             <line x1="0" y1="90" x2="800" y2="90"/>
             <line x1="0" y1="180" x2="800" y2="180"/>
             <line x1="0" y1="270" x2="800" y2="270"/>
@@ -576,239 +533,199 @@
             <line x1="700" y1="0" x2="700" y2="450"/>
           </g>
           <!-- North America -->
-          <path d="M80,60 L180,40 L220,50 L240,80 L230,120 L200,140 L190,170 L170,180 L150,200 L120,220 L100,240 L80,230 L60,200 L50,160 L60,120 Z"
-                fill="#006600" stroke="#00ff41" stroke-width="1" opacity="0.8" filter="url(#glow)"/>
+          <path class="map-land" d="M80,60 L180,40 L220,50 L240,80 L230,120 L200,140 L190,170 L170,180 L150,200 L120,220 L100,240 L80,230 L60,200 L50,160 L60,120 Z"/>
           <!-- Greenland -->
-          <path d="M230,20 L270,15 L290,30 L280,55 L250,60 L230,50 Z"
-                fill="#004d00" stroke="#00cc33" stroke-width="0.8" opacity="0.6"/>
+          <path class="map-land minor" d="M230,20 L270,15 L290,30 L280,55 L250,60 L230,50 Z"/>
           <!-- South America -->
-          <path d="M150,250 L200,240 L230,260 L240,300 L230,340 L210,380 L180,410 L160,390 L140,360 L130,310 L140,280 Z"
-                fill="#006600" stroke="#00ff41" stroke-width="1" opacity="0.8" filter="url(#glow)"/>
+          <path class="map-land" d="M150,250 L200,240 L230,260 L240,300 L230,340 L210,380 L180,410 L160,390 L140,360 L130,310 L140,280 Z"/>
           <!-- Europe -->
-          <path d="M350,50 L400,40 L430,50 L440,70 L430,90 L410,100 L380,95 L360,85 L345,70 Z"
-                fill="#006600" stroke="#00ff41" stroke-width="1" opacity="0.8" filter="url(#glow)"/>
+          <path class="map-land" d="M350,50 L400,40 L430,50 L440,70 L430,90 L410,100 L380,95 L360,85 L345,70 Z"/>
           <!-- Africa -->
-          <path d="M360,110 L410,100 L440,120 L450,160 L440,210 L420,260 L400,300 L370,310 L350,290 L340,250 L335,200 L340,150 Z"
-                fill="#006600" stroke="#00ff41" stroke-width="1" opacity="0.8" filter="url(#glow)"/>
+          <path class="map-land" d="M360,110 L410,100 L440,120 L450,160 L440,210 L420,260 L400,300 L370,310 L350,290 L340,250 L335,200 L340,150 Z"/>
           <!-- Asia -->
-          <path d="M440,40 L560,30 L650,40 L700,60 L720,90 L700,120 L650,130 L600,140 L560,150 L520,160 L480,150 L450,130 L430,100 L435,70 Z"
-                fill="#006600" stroke="#00ff41" stroke-width="1" opacity="0.8" filter="url(#glow)"/>
+          <path class="map-land" d="M440,40 L560,30 L650,40 L700,60 L720,90 L700,120 L650,130 L600,140 L560,150 L520,160 L480,150 L450,130 L430,100 L435,70 Z"/>
           <!-- Middle East -->
-          <path d="M450,130 L490,120 L520,130 L530,160 L510,180 L480,185 L455,170 Z"
-                fill="#005500" stroke="#00cc33" stroke-width="0.8" opacity="0.7"/>
+          <path class="map-land minor" d="M450,130 L490,120 L520,130 L530,160 L510,180 L480,185 L455,170 Z"/>
           <!-- Australia -->
-          <path d="M580,270 L650,260 L690,280 L700,320 L680,360 L640,370 L600,360 L570,330 L565,300 Z"
-                fill="#006600" stroke="#00ff41" stroke-width="1" opacity="0.8" filter="url(#glow)"/>
-          <!-- Scan / pulse circles -->
-          <circle cx="130" cy="150" r="8" fill="none" stroke="#00ff41" stroke-width="1.5" opacity="0.9"/>
-          <circle cx="130" cy="150" r="4" fill="#00ff41" opacity="0.8">
-            <animate attributeName="r" values="4;14;4" dur="2s" repeatCount="indefinite"/>
-            <animate attributeName="opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite"/>
-          </circle>
-          <circle cx="380" cy="70" r="6" fill="none" stroke="#00e5ff" stroke-width="1" opacity="0.8"/>
-          <circle cx="380" cy="70" r="3" fill="#00e5ff" opacity="0.7">
-            <animate attributeName="r" values="3;12;3" dur="2.5s" repeatCount="indefinite"/>
-            <animate attributeName="opacity" values="0.7;0;0.7" dur="2.5s" repeatCount="indefinite"/>
-          </circle>
-          <circle cx="600" cy="80" r="5" fill="none" stroke="#ffd700" stroke-width="1" opacity="0.7"/>
-          <circle cx="600" cy="80" r="2.5" fill="#ffd700" opacity="0.6">
-            <animate attributeName="r" values="2.5;10;2.5" dur="3s" repeatCount="indefinite"/>
-            <animate attributeName="opacity" values="0.6;0;0.6" dur="3s" repeatCount="indefinite"/>
-          </circle>
+          <path class="map-land" d="M580,270 L650,260 L690,280 L700,320 L680,360 L640,370 L600,360 L570,330 L565,300 Z"/>
           <!-- Connecting lines -->
-          <line x1="130" y1="150" x2="380" y2="70" stroke="#00e5ff" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.4"/>
-          <line x1="380" y1="70" x2="600" y2="80" stroke="#00e5ff" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.4"/>
-          <line x1="130" y1="150" x2="600" y2="80" stroke="#00ff41" stroke-width="0.5" stroke-dasharray="2,6" opacity="0.3"/>
+          <line class="map-link" x1="130" y1="150" x2="380" y2="70" stroke-dasharray="4,4"/>
+          <line class="map-link" x1="380" y1="70" x2="600" y2="80" stroke-dasharray="4,4"/>
+          <line class="map-link" x1="130" y1="150" x2="600" y2="80" stroke-dasharray="2,6"/>
+          <!-- Incident pings -->
+          <g class="ping ping-a">
+            <circle class="ring" cx="130" cy="150" r="8"/>
+            <circle class="dot" cx="130" cy="150" r="4">
+              <animate attributeName="r" values="4;14;4" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.9;0;0.9" dur="2s" repeatCount="indefinite"/>
+            </circle>
+          </g>
+          <g class="ping ping-b">
+            <circle class="ring" cx="380" cy="70" r="6"/>
+            <circle class="dot" cx="380" cy="70" r="3">
+              <animate attributeName="r" values="3;12;3" dur="2.5s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.9;0;0.9" dur="2.5s" repeatCount="indefinite"/>
+            </circle>
+          </g>
+          <g class="ping ping-c">
+            <circle class="ring" cx="600" cy="80" r="5"/>
+            <circle class="dot" cx="600" cy="80" r="2.5">
+              <animate attributeName="r" values="2.5;11;2.5" dur="3s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.9;0;0.9" dur="3s" repeatCount="indefinite"/>
+            </circle>
+          </g>
         </svg>
         <!-- Overall Score -->
-        <div style="position:absolute; bottom:10px; right:10px;">
-          <svg width="80" height="80" viewBox="0 0 80 80">
-            <defs>
-              <radialGradient id="scoreGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#002200"/>
-                <stop offset="100%" stop-color="#000800"/>
-              </radialGradient>
-            </defs>
-            <!-- Outer ring -->
-            <circle cx="40" cy="40" r="36" fill="url(#scoreGrad)" stroke="#00ff41" stroke-width="2"/>
-            <!-- Tick marks -->
-            <g stroke="#00cc33" stroke-width="1" opacity="0.5">
-              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(0 40 40)"/>
-              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(30 40 40)"/>
-              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(60 40 40)"/>
-              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(90 40 40)"/>
-              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(120 40 40)"/>
-              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(150 40 40)"/>
-              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(180 40 40)"/>
-              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(210 40 40)"/>
-              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(240 40 40)"/>
-              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(270 40 40)"/>
-              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(300 40 40)"/>
-              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(330 40 40)"/>
-            </g>
-            <!-- Arc progress (95/100 = 342°) -->
-            <circle cx="40" cy="40" r="32" fill="none" stroke="#00ff41" stroke-width="3"
-                    stroke-dasharray="190 10000"
-                    stroke-dashoffset="-48"
-                    stroke-linecap="round" opacity="0.8"/>
-            <!-- Score text -->
-            <text x="40" y="45" text-anchor="middle" font-family="'Courier New',monospace"
-                  font-size="22" font-weight="700" fill="#00ff41">95</text>
+        <div class="overall">
+          <svg width="52" height="52" viewBox="0 0 80 80" role="img" aria-label="Overall score 95 out of 100">
+            <circle class="ring-bg" cx="40" cy="40" r="32" stroke-width="7"/>
+            <!-- Arc progress (95/100) -->
+            <circle class="ring-fg" cx="40" cy="40" r="32" stroke-width="7"
+                    stroke-dasharray="191 201" stroke-linecap="round"
+                    transform="rotate(-90 40 40)"/>
+            <text x="40" y="48" text-anchor="middle" font-size="24">95</text>
           </svg>
+          <span>Overall<br>score</span>
         </div>
       </div>
+      <p class="map-caption">Active incident pings and links between regional SOCs.</p>
     </div>
 
     <!-- NIST Framework Scores -->
-    <div class="panel nist-panel">
-      <div class="panel-title">NIST Cybersecurity Framework — Maturity Scores</div>
+    <section class="panel nist-panel" id="nist" aria-labelledby="nist-title">
+      <h2 class="panel-title" id="nist-title">NIST Cybersecurity Framework — Maturity Scores</h2>
       <div class="nist-scores-row">
 
         <!-- IDENTIFY -->
-        <div class="nist-col">
-          <div class="nist-label" style="color:#00e5ff">Identify</div>
+        <div class="nist-col fn-identify">
+          <div class="nist-label">Identify</div>
           <div class="hex-score">
-            <svg width="80" height="80" viewBox="0 0 80 80">
-              <polygon points="40,4 72,22 72,58 40,76 8,58 8,22"
-                       fill="#040f1e" stroke="#0060cc" stroke-width="2.5"/>
-              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25"
-                       fill="none" stroke="#0040aa" stroke-width="1" opacity="0.5"/>
+            <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true">
+              <polygon class="hex-outer" points="40,4 72,22 72,58 40,76 8,58 8,22"/>
+              <polygon class="hex-inner" points="40,10 66,25 66,55 40,70 14,55 14,25"/>
             </svg>
-            <span class="hex-value blue">4.00</span>
+            <span class="hex-value">4.00</span>
           </div>
           <div class="gauge-wrap">
-            <svg width="70" height="36" viewBox="0 0 70 36">
-              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#0d2040" stroke-width="6"/>
-              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#0060cc" stroke-width="4"
-                    stroke-dasharray="94 100" stroke-linecap="round"/>
-              <circle cx="35" cy="35" r="3" fill="#00e5ff"/>
+            <svg width="70" height="38" viewBox="0 0 70 38" aria-hidden="true">
+              <path class="gauge-track" d="M5,35 A30,30 0 0,1 65,35"/>
+              <path class="gauge-arc" d="M5,35 A30,30 0 0,1 65,35" stroke-dasharray="94 100"/>
+              <circle class="gauge-dot" cx="35" cy="35" r="3"/>
             </svg>
           </div>
           <div class="nist-items">
-            <div class="nist-item blue">Asset Management</div>
-            <div class="nist-item blue">Business Environment</div>
-            <div class="nist-item blue">Governance</div>
-            <div class="nist-item blue">Risk Assessment</div>
-            <div class="nist-item blue">Risk Management Strategy</div>
-            <div class="nist-item blue">Supply Chain Risk Management</div>
+            <div class="nist-item">Asset Management</div>
+            <div class="nist-item">Business Environment</div>
+            <div class="nist-item">Governance</div>
+            <div class="nist-item">Risk Assessment</div>
+            <div class="nist-item">Risk Management Strategy</div>
+            <div class="nist-item">Supply Chain Risk Management</div>
           </div>
         </div>
 
         <!-- PROTECT -->
-        <div class="nist-col">
-          <div class="nist-label" style="color:#00ff41">Protect</div>
+        <div class="nist-col fn-protect">
+          <div class="nist-label">Protect</div>
           <div class="hex-score">
-            <svg width="80" height="80" viewBox="0 0 80 80">
-              <polygon points="40,4 72,22 72,58 40,76 8,58 8,22"
-                       fill="#040f0a" stroke="#00aa22" stroke-width="2.5"/>
-              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25"
-                       fill="none" stroke="#007718" stroke-width="1" opacity="0.5"/>
+            <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true">
+              <polygon class="hex-outer" points="40,4 72,22 72,58 40,76 8,58 8,22"/>
+              <polygon class="hex-inner" points="40,10 66,25 66,55 40,70 14,55 14,25"/>
             </svg>
-            <span class="hex-value green">4.00</span>
+            <span class="hex-value">4.00</span>
           </div>
           <div class="gauge-wrap">
-            <svg width="70" height="36" viewBox="0 0 70 36">
-              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#0d2010" stroke-width="6"/>
-              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#00cc33" stroke-width="4"
-                    stroke-dasharray="94 100" stroke-linecap="round"/>
-              <circle cx="35" cy="35" r="3" fill="#00ff41"/>
+            <svg width="70" height="38" viewBox="0 0 70 38" aria-hidden="true">
+              <path class="gauge-track" d="M5,35 A30,30 0 0,1 65,35"/>
+              <path class="gauge-arc" d="M5,35 A30,30 0 0,1 65,35" stroke-dasharray="94 100"/>
+              <circle class="gauge-dot" cx="35" cy="35" r="3"/>
             </svg>
           </div>
           <div class="nist-items">
-            <div class="nist-item green">Access Control</div>
-            <div class="nist-item green">Awareness &amp; Training</div>
-            <div class="nist-item green">Data Security</div>
-            <div class="nist-item green">Info Protection &amp; Procedures</div>
-            <div class="nist-item green">Maintenance</div>
-            <div class="nist-item green">Protective Technology</div>
+            <div class="nist-item">Access Control</div>
+            <div class="nist-item">Awareness &amp; Training</div>
+            <div class="nist-item">Data Security</div>
+            <div class="nist-item">Info Protection &amp; Procedures</div>
+            <div class="nist-item">Maintenance</div>
+            <div class="nist-item">Protective Technology</div>
           </div>
         </div>
 
         <!-- DETECT -->
-        <div class="nist-col">
-          <div class="nist-label" style="color:#ffd700">Detect</div>
+        <div class="nist-col fn-detect">
+          <div class="nist-label">Detect</div>
           <div class="hex-score">
-            <svg width="80" height="80" viewBox="0 0 80 80">
-              <polygon points="40,4 72,22 72,58 40,76 8,58 8,22"
-                       fill="#100d00" stroke="#cc9900" stroke-width="2.5"/>
-              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25"
-                       fill="none" stroke="#997700" stroke-width="1" opacity="0.5"/>
+            <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true">
+              <polygon class="hex-outer" points="40,4 72,22 72,58 40,76 8,58 8,22"/>
+              <polygon class="hex-inner" points="40,10 66,25 66,55 40,70 14,55 14,25"/>
             </svg>
-            <span class="hex-value yellow">4.00</span>
+            <span class="hex-value">4.00</span>
           </div>
           <div class="gauge-wrap">
-            <svg width="70" height="36" viewBox="0 0 70 36">
-              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#201800" stroke-width="6"/>
-              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#ccaa00" stroke-width="4"
-                    stroke-dasharray="94 100" stroke-linecap="round"/>
-              <circle cx="35" cy="35" r="3" fill="#ffd700"/>
+            <svg width="70" height="38" viewBox="0 0 70 38" aria-hidden="true">
+              <path class="gauge-track" d="M5,35 A30,30 0 0,1 65,35"/>
+              <path class="gauge-arc" d="M5,35 A30,30 0 0,1 65,35" stroke-dasharray="94 100"/>
+              <circle class="gauge-dot" cx="35" cy="35" r="3"/>
             </svg>
           </div>
           <div class="nist-items">
-            <div class="nist-item yellow">Anomalies &amp; Events</div>
-            <div class="nist-item yellow">Continuous Monitoring</div>
-            <div class="nist-item yellow">Detection Processes</div>
+            <div class="nist-item">Anomalies &amp; Events</div>
+            <div class="nist-item">Continuous Monitoring</div>
+            <div class="nist-item">Detection Processes</div>
           </div>
         </div>
 
         <!-- RESPOND -->
-        <div class="nist-col">
-          <div class="nist-label" style="color:#ff4444">Respond</div>
+        <div class="nist-col fn-respond">
+          <div class="nist-label">Respond</div>
           <div class="hex-score">
-            <svg width="80" height="80" viewBox="0 0 80 80">
-              <polygon points="40,4 72,22 72,58 40,76 8,58 8,22"
-                       fill="#140000" stroke="#cc0000" stroke-width="2.5"/>
-              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25"
-                       fill="none" stroke="#990000" stroke-width="1" opacity="0.5"/>
+            <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true">
+              <polygon class="hex-outer" points="40,4 72,22 72,58 40,76 8,58 8,22"/>
+              <polygon class="hex-inner" points="40,10 66,25 66,55 40,70 14,55 14,25"/>
             </svg>
-            <span class="hex-value red">4.00</span>
+            <span class="hex-value">4.00</span>
           </div>
           <div class="gauge-wrap">
-            <svg width="70" height="36" viewBox="0 0 70 36">
-              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#200000" stroke-width="6"/>
-              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#cc0000" stroke-width="4"
-                    stroke-dasharray="94 100" stroke-linecap="round"/>
-              <circle cx="35" cy="35" r="3" fill="#ff3333"/>
+            <svg width="70" height="38" viewBox="0 0 70 38" aria-hidden="true">
+              <path class="gauge-track" d="M5,35 A30,30 0 0,1 65,35"/>
+              <path class="gauge-arc" d="M5,35 A30,30 0 0,1 65,35" stroke-dasharray="94 100"/>
+              <circle class="gauge-dot" cx="35" cy="35" r="3"/>
             </svg>
           </div>
           <div class="nist-items">
-            <div class="nist-item red">Response &amp; Planning</div>
-            <div class="nist-item red">Response Communications</div>
-            <div class="nist-item red">Analysis</div>
-            <div class="nist-item red">Mitigation</div>
-            <div class="nist-item red">Response Improvements</div>
+            <div class="nist-item">Response &amp; Planning</div>
+            <div class="nist-item">Response Communications</div>
+            <div class="nist-item">Analysis</div>
+            <div class="nist-item">Mitigation</div>
+            <div class="nist-item">Response Improvements</div>
           </div>
         </div>
 
         <!-- RECOVER -->
-        <div class="nist-col">
-          <div class="nist-label" style="color:#00ff41">Recover</div>
+        <div class="nist-col fn-recover">
+          <div class="nist-label">Recover</div>
           <div class="hex-score">
-            <svg width="80" height="80" viewBox="0 0 80 80">
-              <polygon points="40,4 72,22 72,58 40,76 8,58 8,22"
-                       fill="#001800" stroke="#00bb00" stroke-width="2.5"/>
-              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25"
-                       fill="none" stroke="#008800" stroke-width="1" opacity="0.5"/>
+            <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true">
+              <polygon class="hex-outer" points="40,4 72,22 72,58 40,76 8,58 8,22"/>
+              <polygon class="hex-inner" points="40,10 66,25 66,55 40,70 14,55 14,25"/>
             </svg>
-            <span class="hex-value green">4.00</span>
+            <span class="hex-value">4.00</span>
           </div>
           <div class="gauge-wrap">
-            <svg width="70" height="36" viewBox="0 0 70 36">
-              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#001400" stroke-width="6"/>
-              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#00cc33" stroke-width="4"
-                    stroke-dasharray="94 100" stroke-linecap="round"/>
-              <circle cx="35" cy="35" r="3" fill="#00ff41"/>
+            <svg width="70" height="38" viewBox="0 0 70 38" aria-hidden="true">
+              <path class="gauge-track" d="M5,35 A30,30 0 0,1 65,35"/>
+              <path class="gauge-arc" d="M5,35 A30,30 0 0,1 65,35" stroke-dasharray="94 100"/>
+              <circle class="gauge-dot" cx="35" cy="35" r="3"/>
             </svg>
           </div>
           <div class="nist-items">
-            <div class="nist-item gr">Recovery Planning</div>
-            <div class="nist-item gr">Recovery Improvements</div>
-            <div class="nist-item gr">Recovery Communications</div>
+            <div class="nist-item">Recovery Planning</div>
+            <div class="nist-item">Recovery Improvements</div>
+            <div class="nist-item">Recovery Communications</div>
           </div>
         </div>
 
       </div><!-- /nist-scores-row -->
-    </div><!-- /nist-panel -->
+    </section><!-- /nist-panel -->
 
   </div><!-- /mid-row -->
 
@@ -817,9 +734,7 @@
 
     <!-- Business Function Alignment -->
     <div class="panel">
-      <div class="corner-tl"></div><div class="corner-tr"></div>
-      <div class="corner-bl"></div><div class="corner-br"></div>
-      <div class="bot-title">Business Function Alignment</div>
+      <h2 class="bot-title" id="alignment">Business Function Alignment</h2>
       <div class="icon-grid cols4">
         <div class="tile"><span class="tile-icon">💰</span><span class="tile-label">Finance</span></div>
         <div class="tile"><span class="tile-icon">👥</span><span class="tile-label">Human Resources</span></div>
@@ -842,9 +757,7 @@
 
     <!-- Critical Control / Tool Optimization -->
     <div class="panel">
-      <div class="corner-tl"></div><div class="corner-tr"></div>
-      <div class="corner-bl"></div><div class="corner-br"></div>
-      <div class="bot-title">Critical Control / Tool Optimization</div>
+      <h2 class="bot-title" id="tooling">Critical Control / Tool Optimization</h2>
       <div class="icon-grid cols7">
         <div class="tile highlight-yellow"><span class="tile-icon">🔒</span><span class="tile-label">Privacy SaaS</span></div>
         <div class="tile"><span class="tile-icon">🧱</span><span class="tile-label">Other Firewalls</span></div>
@@ -879,9 +792,7 @@
 
     <!-- Skill Maturity -->
     <div class="panel">
-      <div class="corner-tl"></div><div class="corner-tr"></div>
-      <div class="corner-bl"></div><div class="corner-br"></div>
-      <div class="bot-title">Skill Maturity</div>
+      <h2 class="bot-title">Skill Maturity</h2>
       <div class="icon-grid cols4">
         <div class="tile"><span class="tile-icon">🧠</span><span class="tile-label">Pen Testing</span></div>
         <div class="tile"><span class="tile-icon">📱</span><span class="tile-label">Mobile App Security</span></div>
@@ -900,26 +811,25 @@
 
   </div><!-- /bot-row -->
 
-</div><!-- /dashboard -->
+</main><!-- /dashboard -->
 
 <script>
   // Animate tiles randomly to simulate live data
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function animateTiles() {
     const tiles = document.querySelectorAll('.tile');
     const randomTile = tiles[Math.floor(Math.random() * tiles.length)];
-    randomTile.style.borderColor = 'var(--accent)';
-    randomTile.style.boxShadow = '0 0 6px var(--red-dim)';
-    setTimeout(() => {
-      randomTile.style.borderColor = '';
-      randomTile.style.boxShadow = '';
-    }, 800);
+    randomTile.classList.add('flash');
+    setTimeout(() => randomTile.classList.remove('flash'), 800);
   }
-  setInterval(animateTiles, 400);
+  setInterval(animateTiles, reduceMotion ? 2000 : 400);
 
-  // Update timestamp
+  // Update timestamp (page clock and tab title)
+  const clockEl = document.getElementById('clock');
   function updateTime() {
     const now = new Date();
     const ts = now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+    if (clockEl) clockEl.textContent = ts;
     document.title = 'Cyber Security Dashboard — ' + ts;
   }
   updateTime();
