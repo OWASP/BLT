@@ -91,7 +91,7 @@ npx wrangler secret put GITLAB_WEBHOOK_SECRET --env production
 # RS256 public key (SPKI PEM) required for JWT verification
 npx wrangler secret put MCP_PUBLIC_KEY --env production
 
-# Optional: Slack incoming webhook for triage notifications (CWE, severity,
+# Optional: Slack incoming webhook for triage notifications (CWE, est. severity,
 # quarantine status, duplicates; never titles or report text). Unset = off.
 npx wrangler secret put SLACK_WEBHOOK_URL --env production
 ```
