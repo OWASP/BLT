@@ -16,7 +16,7 @@ BROKERS = [
             "steps": [
                 "Visit the opt-out page",
                 "Search for your listing",
-                'Click "Remove this listing"',
+                "Click 'Remove this listing'",
                 "Enter your email for confirmation",
                 "Verify via email link",
             ],
