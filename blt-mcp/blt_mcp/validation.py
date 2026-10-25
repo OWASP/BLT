@@ -97,8 +97,12 @@ TOOL_SCHEMAS = {
         },
     },
     "create_bug": {
-        "required": ["title", "description"],
+        "required": ["url", "title", "description"],
         "properties": {
+            "url": {
+                "type": str,
+                "description": "The vulnerable URL being reported.",
+            },
             "title": {"type": str, "description": "The title of the bug."},
             "description": {
                 "type": str,

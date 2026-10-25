@@ -180,7 +180,11 @@ def test_tool_schemas():
 
         # Verify create_bug schema
         create_bug_tool = next(t for t in tools if t["name"] == "create_bug")
-        assert create_bug_tool["inputSchema"]["required"] == ["title", "description"]
+        assert create_bug_tool["inputSchema"]["required"] == [
+            "url",
+            "title",
+            "description",
+        ]
 
         # Verify update_bug schema
         update_bug_tool = next(t for t in tools if t["name"] == "update_bug")
@@ -381,6 +385,42 @@ def test_submit_issue_blank_description():
             process.wait()
 
 
+def test_create_bug_missing_url():
+    """Test that create_bug rejects requests missing the required 'url' field."""
+    process = _init_server_process()
+    try:
+        process.stdin.write(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "create_bug",
+                        "arguments": {
+                            "title": "SQLi in query param",
+                            "description": "Found injection vulnerability",
+                        },
+                    },
+                }
+            )
+            + "\n"
+        )
+        process.stdin.flush()
+
+        response = read_jsonrpc_response(process, 2)
+        assert "error" in response
+        assert response["error"]["code"] == -32602
+        assert "Missing required parameter: 'url'" in response["error"]["message"]
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+
+
 def test_tool_confirmation_flow():
     """Test that write operations fail without the confirmed flag."""
     cmd = [sys.executable, "-m", "blt_mcp.server"]
@@ -451,6 +491,7 @@ def test_tool_confirmation_flow():
                     "params": {
                         "name": "create_bug",
                         "arguments": {
+                            "url": "https://example.com/vuln",
                             "title": "Valid title v2",
                             "description": "Valid description v2",
                         },
