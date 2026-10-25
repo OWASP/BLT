@@ -103,6 +103,10 @@ def calculate_review_status(reviews_data):
             # Safely access user field - can be null for deleted accounts
             user = review.get('user')
             if user and user.get('login'):
+                # A comment-only review doesn't change the reviewer's approval
+                # or change-request state, so it must not overwrite it.
+                if review.get('state') == 'COMMENTED':
+                    continue
                 latest_reviews[user['login']] = review['state']
 
         # Determine overall status: changes_requested takes precedence over approved
