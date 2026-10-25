@@ -120,12 +120,6 @@ Tools enable AI agents to perform actions:
 - Maps to: POST /bugs
 - Note: The BLT API does not natively support a `title` field; the server prepends the title to the `description` payload.
 
-#### add_comment
-- Purpose: Add comments to issues
-- Required: issue_id, comment_text
-- Optional: confirmed (set to `true` for execution)
-- Maps to: POST /bugs/{id}/comments
-
 #### summarize_issue_context
 - Purpose: Generate a structured summary of an issue's context (title, status, description, comments)
 - Required: issue_id

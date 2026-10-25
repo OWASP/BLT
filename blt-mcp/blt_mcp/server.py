@@ -14,7 +14,6 @@ Key Offerings:
   - `blt://good-first-issues`: Open 'good first issue' issues from the git.owaspblt.org issue ledger.
 - **V1 Tools**:
   - `submit_issue`: Submits a new bug report to the OWASP BLT platform (requires confirmation).
-  - `add_comment`: Adds a discussion comment to an existing bug (requires confirmation).
   - `summarize_issue_context`: Generates a formatted text summary of an issue's context.
   - `triage_vulnerability`: Integrates with Cloudflare Workers AI (Llama 3) to analyze, categorize, and prioritize issues.
   - `draft_vision_issue`: Uses Cloudflare Vision AI (LLaVA) to draft bug reports from local screenshot image files.
@@ -254,44 +253,6 @@ async def submit_issue(
         logger.error(f"Failed to submit issue: {e}")
         raise RuntimeError(f"Failed to submit issue: {e}") from e
 
-
-@mcp.tool()
-async def add_comment(issue_id: str, comment_text: str, confirmed: bool = False) -> str:
-    """
-    Add a comment to an existing BLT issue.
-
-    Args:
-        issue_id: The ID of the issue to comment on.
-        comment_text: The text of the comment.
-        confirmed: Set to true to confirm execution of this write operation.
-    """
-    if not confirmed:
-        logger.warning("Write operation 'add_comment' blocked: confirmation required.")
-        raise ValueError(
-            "Write operation requires confirmation. Please set 'confirmed': true to proceed."
-        )
-
-    logger.info("Write operation 'add_comment' confirmed. Proceeding to execution.")
-    ai_metadata = generate_ai_metadata("add_comment")
-
-    logger.info(f"Adding comment to issue: {issue_id}")
-    payload = {"content": comment_text, "metadata": ai_metadata}
-
-    headers = {
-        "X-AI-Generated": "true",
-        "X-AI-Source": "BLT-MCP",
-        "X-AI-Timestamp": ai_metadata["timestamp"],
-    }
-
-    try:
-        response = await server_base.http_client.post(
-            f"/bugs/{issue_id}/comments", json=payload, headers=headers
-        )
-        response.raise_for_status()
-        return f"Successfully added comment to issue {issue_id}"
-    except Exception as e:
-        logger.error(f"Failed to add comment: {e}")
-        raise RuntimeError(f"Failed to add comment: {e}") from e
 
 
 @mcp.tool()

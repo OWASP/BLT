@@ -7,7 +7,7 @@ write confirmations, and tool execution logic on the MCP server.
 Test Scenarios:
 - `test_tools_list`: Verifies that all V1 and V2 tools are registered and returned by the server.
 - `test_tool_schemas`: Verifies that inputSchemas for tools match requirements (e.g. required fields for
-  `submit_issue`, `add_comment`, `auth_signup`, `create_bug`, etc.).
+  `submit_issue`, `auth_signup`, `create_bug`, etc.).
 - `test_submit_issue_missing_url`, `test_submit_issue_invalid_label_type`, `test_submit_issue_blank_description`:
   Checks that the custom stdin interception validation middleware rejects invalid parameters with a `code: -32602` error.
 - `test_tool_confirmation_flow`: Verifies that write operations (like `submit_issue` and `create_bug`) fail
@@ -75,7 +75,6 @@ def test_tools_list():
         tools = response["result"]["tools"]
         tool_names = [t["name"] for t in tools]
         assert "submit_issue" in tool_names
-        assert "add_comment" in tool_names
         assert "auth_signup" in tool_names
         assert "auth_signin" in tool_names
         assert "create_bug" in tool_names
@@ -151,14 +150,6 @@ def test_tool_schemas():
         assert "labels" in properties
         assert "assignee" in properties
         assert submit_tool["inputSchema"]["required"] == ["url", "title", "description"]
-
-        # Verify add_comment schema (Issue #13)
-        comment_tool = next(t for t in tools if t["name"] == "add_comment")
-        properties = comment_tool["inputSchema"]["properties"]
-        assert "issue_id" in properties
-        assert "comment_text" in properties
-        assert "confirmed" in properties
-        assert comment_tool["inputSchema"]["required"] == ["issue_id", "comment_text"]
 
         # Verify summarize_issue_context schema (Issue #14)
         summary_tool = next(t for t in tools if t["name"] == "summarize_issue_context")
