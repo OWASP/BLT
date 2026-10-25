@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "arnavghai19"
+    ],
     "author": "VJAr5lCdBD4mHhE9xI32zT-lIIkXDt6C3dZdu7JLqZ0",
     "authorName": "arnavghai19",
     "bountyAddress": "",
@@ -30,6 +32,17 @@
             "sig": "jUrRjU3Nz1Ssudzlj9L9GxR7CGIMtR6GxtliXsVXcgcd5_zMvEIrrjhuN7xy6mnVX5o97_nogbfyIR_AwmzXDg",
             "ts": 1792906804457,
             "type": "comment"
+        },
+        {
+            "assignee": "arnavghai19",
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "actions-1792906818355-scWqsg9s",
+            "sig": "wCzN3l8UVRgOkHmqfUSJyHCpEEON_egkD6CbK-mSwEGJs_gUCc7e-n5Ld47eSot7z0qIA14E06S4ywnzoO5QDw",
+            "ts": 1792906818355,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -41,6 +54,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-leaf: COMMENTED reviews incorrectly overwrite approval and change-request status",
-    "updatedAt": 1792906804457,
+    "updatedAt": 1792906818355,
     "votes": 0
 }
