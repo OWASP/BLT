@@ -33,7 +33,11 @@ async def handle_health(
             "stats": "/stats",
             "leaderboard": "/leaderboard",
             "contributors": "/contributors",
-            "repos": "/repos"
+            "repos": "/repos",
+            "jobs": "/v2/jobs",
+            "hackathons": "/v2/hackathons",
+            "routes": "/routes",
+            "auth": "/auth"
         },
         "links": {
             "github": "https://git.owaspblt.org/BLT/BLT-Core",
