@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "hrinkar01"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -12,7 +14,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\n`docs/superpowers/plans/2026-08-20-blt-documentation-modernization.md` isn't in the nav but is still built into the public site, with gitlab.com API commands. `mkdocs.yml` has `repo_name: owasp-blt/blt-docs` and a 2024 copyright.\n\n## What to do\n\n1. Add `exclude_docs: superpowers/` to `mkdocs.yml` (or move the file out of `docs/`).\n2. Set `repo_name: BLT/blt-docs` and update the year.\n\n## Acceptance criteria\n\n- [ ] No `site/superpowers/` after a build\n- [ ] Header/footer show current names\n- [ ] Strict build passes\n\n## How to test locally\n\n```bash\ncd blt-docs && uvx --with-requirements requirements.txt mkdocs build --strict\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\n`docs/superpowers/plans/2026-08-20-blt-documentation-modernization.md` isn't in the nav but is still built into the public site, with gitlab.com API commands. `mkdocs.yml` has `repo_name: owasp-blt/blt-docs` and a 2024 copyright.\n\n## What to do\n\n1. Add `exclude_docs: superpowers/` to `mkdocs.yml` (or move the file out of `docs/`).\n2. Set `repo_name: BLT/blt-docs` and update the year.\n\n## Acceptance criteria\n\n- [ ] No `site/superpowers/` after a build\n- [ ] Header/footer show current names\n- [ ] Strict build passes\n\n## How to test locally\n\n```bash\ncd blt-docs \u0026\u0026 uvx --with-requirements requirements.txt mkdocs build --strict\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-185",
             "sig": "3XJNQHi9uluOZZTCi64hk1AOcsOuWW4MQgaEBC0_0BXlVfWXlgAw4j2ijNZfhJObPGpQAlGgb9eU1KghrWIkAQ",
             "title": "blt-docs: stop publishing the internal superpowers/ plan and fix GitLab-era metadata",
@@ -32,6 +34,17 @@
             "sig": "z-fnXaH6kuSagIv7qsBTjEcTsqBbuFxNGuSQ0jlghkjWpUgu5LWt8IhjV9MkWuGRN9Vb3sAvhT1lKFBSzwnTAw",
             "ts": 1792547524710,
             "type": "labels"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1792943644737-ug4a7c",
+            "sig": "owo2MqQfKuYUXdRVP-Dt7RsNV9pm_zq_lfwa4XMaTGfLmWAbrqNXc1MNxO1WWCXmwlyb50LLv2kKp9eoM0GkDQ",
+            "ts": 1792943644737,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -48,6 +61,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-docs: stop publishing the internal superpowers/ plan and fix GitLab-era metadata",
-    "updatedAt": 1792547524710,
+    "updatedAt": 1792943644737,
     "votes": 0
 }
