@@ -67,7 +67,29 @@ pub enum FormField {
     Screenshot,
 }
 
-#[derive(Clone, Debug, Default)]
+/// Severity choices, in cycle order. These strings are sent to the API as-is.
+pub const SEVERITY_OPTIONS: [&str; 4] = ["Critical", "High", "Medium", "Low"];
+
+/// Bug type choices, in cycle order. These strings are sent to the API as-is.
+pub const BUG_TYPE_OPTIONS: [&str; 7] = [
+    "XSS",
+    "SQL Injection",
+    "CSRF",
+    "IDOR",
+    "Authentication Bypass",
+    "Information Disclosure",
+    "Other",
+];
+
+/// Selection a new form starts with, so the API never receives an empty severity.
+pub const DEFAULT_SEVERITY: &str = "Medium";
+/// Selection a new form starts with; `Other` avoids claiming a specific class.
+pub const DEFAULT_BUG_TYPE: &str = "Other";
+
+/// Keyboard hint shown next to an active selector field.
+pub const SELECTOR_HINT: &str = "←/→ or ↑/↓ to change";
+
+#[derive(Clone, Debug)]
 pub struct VulnerabilityForm {
     pub title: String,
     pub url: String,
@@ -112,7 +134,56 @@ pub fn strip_markdown(text: &str) -> String {
         .join("\n")
 }
 
+impl Default for VulnerabilityForm {
+    fn default() -> Self {
+        Self {
+            title: String::new(),
+            url: String::new(),
+            severity: DEFAULT_SEVERITY.to_string(),
+            bug_type: DEFAULT_BUG_TYPE.to_string(),
+            description: String::new(),
+            steps_to_reproduce: String::new(),
+            screenshot_path: String::new(),
+            active_field: FormField::default(),
+            cursor: None,
+        }
+    }
+}
+
+/// Returns the fixed choices for a selector field, or `None` for free-text fields.
+pub fn selector_options(field: &FormField) -> Option<&'static [&'static str]> {
+    match field {
+        FormField::Severity => Some(&SEVERITY_OPTIONS),
+        FormField::BugType => Some(&BUG_TYPE_OPTIONS),
+        _ => None,
+    }
+}
+
 impl VulnerabilityForm {
+    /// Returns true if the active field is a selector rather than free text.
+    pub fn is_selector_active(&self) -> bool {
+        selector_options(&self.active_field).is_some()
+    }
+
+    /// Moves the active selector to the next (`forward`) or previous option, wrapping at the ends.
+    /// Does nothing when the active field is free text.
+    pub fn cycle_selector(&mut self, forward: bool) {
+        let Some(options) = selector_options(&self.active_field) else {
+            return;
+        };
+        let last = options.len() - 1;
+        let current = options
+            .iter()
+            .position(|o| *o == self.field_value(&self.active_field));
+        let next = match (current, forward) {
+            (Some(i), true) => (i + 1) % options.len(),
+            (Some(i), false) => i.checked_sub(1).unwrap_or(last),
+            (None, true) => 0,
+            (None, false) => last,
+        };
+        *self.active_field_mut() = options[next].to_string();
+    }
+
     /// Returns a mutable reference to the string backing the currently active field.
     pub fn active_field_mut(&mut self) -> &mut String {
         match self.active_field {
@@ -211,6 +282,9 @@ impl VulnerabilityForm {
 
     /// Inserts `c` at the cursor and moves the cursor past it.
     pub fn insert_char(&mut self, c: char) {
+        if self.is_selector_active() {
+            return;
+        }
         let pos = self.cursor_pos();
         let field = self.active_field_mut();
         let at = byte_index(field, pos);
@@ -220,6 +294,9 @@ impl VulnerabilityForm {
 
     /// Deletes the character before the cursor.
     pub fn backspace(&mut self) {
+        if self.is_selector_active() {
+            return;
+        }
         let pos = self.cursor_pos();
         if pos == 0 {
             return;
@@ -230,9 +307,17 @@ impl VulnerabilityForm {
         self.set_cursor(pos - 1);
     }
 
-    /// Returns the field's text for display, with a `█` cursor if it is the active field.
+    /// Returns the field's text for display. Selectors show `[value]` (plus a key hint when active);
+    /// text fields show a `█` cursor if they are the active field.
     pub fn display_text(&self, field: &FormField) -> String {
         let text = self.field_value(field);
+        if selector_options(field).is_some() {
+            return if *field == self.active_field {
+                format!("[{}]  {}", text, SELECTOR_HINT)
+            } else {
+                format!("[{}]", text)
+            };
+        }
         if *field != self.active_field {
             return text.to_string();
         }
@@ -879,5 +964,162 @@ mod tests {
         // A position saved for another field is ignored.
         form.cursor = Some((FormField::Title, 1));
         assert_eq!(form.cursor_pos(), 9);
+    }
+
+    fn form_on(field: FormField) -> VulnerabilityForm {
+        VulnerabilityForm {
+            active_field: field,
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn test_selector_option_lists() {
+        assert_eq!(SEVERITY_OPTIONS, ["Critical", "High", "Medium", "Low"]);
+        assert_eq!(
+            BUG_TYPE_OPTIONS,
+            [
+                "XSS",
+                "SQL Injection",
+                "CSRF",
+                "IDOR",
+                "Authentication Bypass",
+                "Information Disclosure",
+                "Other"
+            ]
+        );
+        assert!(SEVERITY_OPTIONS.contains(&DEFAULT_SEVERITY));
+        assert!(BUG_TYPE_OPTIONS.contains(&DEFAULT_BUG_TYPE));
+    }
+
+    #[test]
+    fn test_form_defaults() {
+        let form = VulnerabilityForm::default();
+        assert_eq!(form.severity, "Medium");
+        assert_eq!(form.bug_type, "Other");
+        assert_eq!(form.display_text(&FormField::Severity), "[Medium]");
+        assert_eq!(form.display_text(&FormField::BugType), "[Other]");
+    }
+
+    #[test]
+    fn test_severity_cycles_forward_and_wraps() {
+        let mut form = form_on(FormField::Severity);
+        form.severity = "Critical".to_string();
+        let mut seen = vec![];
+        for _ in 0..5 {
+            form.cycle_selector(true);
+            seen.push(form.severity.clone());
+        }
+        assert_eq!(seen, ["High", "Medium", "Low", "Critical", "High"]);
+    }
+
+    #[test]
+    fn test_severity_cycles_backward_and_wraps() {
+        let mut form = form_on(FormField::Severity);
+        form.severity = "Critical".to_string();
+        let mut seen = vec![];
+        for _ in 0..5 {
+            form.cycle_selector(false);
+            seen.push(form.severity.clone());
+        }
+        assert_eq!(seen, ["Low", "Medium", "High", "Critical", "Low"]);
+    }
+
+    #[test]
+    fn test_bug_type_cycles_forward_and_wraps() {
+        let mut form = form_on(FormField::BugType);
+        form.bug_type = "XSS".to_string();
+        let mut seen = vec![];
+        for _ in 0..BUG_TYPE_OPTIONS.len() {
+            form.cycle_selector(true);
+            seen.push(form.bug_type.clone());
+        }
+        assert_eq!(
+            seen,
+            [
+                "SQL Injection",
+                "CSRF",
+                "IDOR",
+                "Authentication Bypass",
+                "Information Disclosure",
+                "Other",
+                "XSS"
+            ]
+        );
+    }
+
+    #[test]
+    fn test_bug_type_cycles_backward_and_wraps() {
+        let mut form = form_on(FormField::BugType);
+        form.bug_type = "XSS".to_string();
+        form.cycle_selector(false);
+        assert_eq!(form.bug_type, "Other");
+        form.cycle_selector(false);
+        assert_eq!(form.bug_type, "Information Disclosure");
+        form.cycle_selector(true);
+        form.cycle_selector(true);
+        assert_eq!(form.bug_type, "XSS");
+    }
+
+    #[test]
+    fn test_selector_state_always_valid() {
+        let mut form = form_on(FormField::Severity);
+        for step in 0..50 {
+            form.cycle_selector(step % 3 != 0);
+            assert!(SEVERITY_OPTIONS.contains(&form.severity.as_str()));
+        }
+        form.active_field = FormField::BugType;
+        for step in 0..50 {
+            form.cycle_selector(step % 3 != 0);
+            assert!(BUG_TYPE_OPTIONS.contains(&form.bug_type.as_str()));
+        }
+    }
+
+    #[test]
+    fn test_selector_recovers_from_unknown_value() {
+        let mut form = form_on(FormField::Severity);
+        form.severity = "bogus".to_string();
+        form.cycle_selector(true);
+        assert_eq!(form.severity, "Critical");
+        form.severity = "bogus".to_string();
+        form.cycle_selector(false);
+        assert_eq!(form.severity, "Low");
+    }
+
+    #[test]
+    fn test_cycle_only_affects_active_selector() {
+        let mut form = form_on(FormField::Title);
+        form.cycle_selector(true);
+        assert_eq!(form.severity, "Medium");
+        assert_eq!(form.bug_type, "Other");
+        assert_eq!(form.title, "");
+
+        form.active_field = FormField::Severity;
+        form.cycle_selector(true);
+        assert_eq!(form.severity, "Low");
+        assert_eq!(form.bug_type, "Other");
+    }
+
+    #[test]
+    fn test_selectors_reject_text_editing() {
+        let mut form = form_on(FormField::Severity);
+        form.insert_char('x');
+        form.backspace();
+        assert_eq!(form.severity, "Medium");
+        form.active_field = FormField::BugType;
+        form.insert_char('x');
+        form.backspace();
+        assert_eq!(form.bug_type, "Other");
+    }
+
+    #[test]
+    fn test_selector_display_shows_hint_only_when_active() {
+        let mut form = form_on(FormField::BugType);
+        form.bug_type = "Authentication Bypass".to_string();
+        assert_eq!(
+            form.display_text(&FormField::BugType),
+            "[Authentication Bypass]  ←/→ or ↑/↓ to change"
+        );
+        assert_eq!(form.display_text(&FormField::Severity), "[Medium]");
     }
 }

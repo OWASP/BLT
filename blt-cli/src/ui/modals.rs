@@ -390,7 +390,7 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
         Block::default()
             .borders(Borders::ALL)
             .border_style(sev_style)
-            .title(" Severity (Critical / High / Medium / Low) "),
+            .title(" Severity "),
     );
     f.render_widget(sev_p, left_chunks[2]);
 
@@ -407,7 +407,7 @@ pub fn draw_submit_form_modal(f: &mut Frame, app: &App, rect: Rect) {
         Block::default()
             .borders(Borders::ALL)
             .border_style(type_style)
-            .title(" Vulnerability Category / Type "),
+            .title(" Bug Type "),
     );
     f.render_widget(type_p, left_chunks[3]);
 
