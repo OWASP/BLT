@@ -484,16 +484,14 @@ async def test_summarize_issue_context_logic():
                 "title": "SQL Injection in Login Form",
                 "status": "open",
                 "description": "Found a SQL injection vulnerability in the username field.",
+                "comments": [
+                    {
+                        "content": "I confirmed this vulnerability.",
+                        "author": "security_researcher",
+                    },
+                    {"content": "Working on a fix now.", "author": "developer_bob"},
+                ],
             }
-        ),
-        "/bugs/123/comments": json.dumps(
-            [
-                {
-                    "content": "I confirmed this vulnerability.",
-                    "author": "security_researcher",
-                },
-                {"content": "Working on a fix now.", "author": "developer_bob"},
-            ]
         ),
     }
 
@@ -537,13 +535,11 @@ async def test_summarize_issue_context_regression():
         res = await summarize_issue_context_impl(inv_id, dummy_fetch)
         assert f"Error: Invalid issue ID '{inv_id}'." in res
 
-    # 2. Test URL-encoded IDs with exact fetch path assertions
+    # 2. Test URL-encoded IDs and assert no separate comments endpoint request is made
     called_paths = []
 
     async def mock_fetch_encoded(path, context=None):
         called_paths.append(path)
-        if "/comments" in path:
-            return "[]"
         return json.dumps(
             {"title": "Encoded Issue", "status": "open", "description": "Desc"}
         )
@@ -552,27 +548,23 @@ async def test_summarize_issue_context_regression():
         "123 spaces", mock_fetch_encoded
     )
     assert "/bugs/123%20spaces" in called_paths
-    assert "/bugs/123%20spaces/comments" in called_paths
+    assert not any("comments" in p for p in called_paths)
     assert "Issue ID: 123 spaces" in summary_encoded
 
-    # 3. Test comments-fetch failure distinguishing from empty list
-    # Scenario A: Comments fetch throws an exception (should yield "Comments unavailable")
-    async def mock_fetch_comments_fail(path, context=None):
-        if "comments" in path:
-            raise RuntimeError("DB Error")
+    # 3. Test comments states without querying 404 comments endpoint
+    # Scenario A: Bug has no comments key / None -> yields "Comments unavailable (not supported)."
+    async def mock_fetch_no_comments(path, context=None):
         return json.dumps(
             {"title": "Title A", "status": "open", "description": "Desc A"}
         )
 
-    summary_fail = await summarize_issue_context_impl("123", mock_fetch_comments_fail)
-    assert "Comments:\nComments unavailable (failed to retrieve)." in summary_fail
+    summary_no_comments = await summarize_issue_context_impl("123", mock_fetch_no_comments)
+    assert "Comments:\nComments unavailable (not supported)." in summary_no_comments
 
-    # Scenario B: Comments fetch returns empty list (should yield "No comments.")
+    # Scenario B: Bug has empty comments list -> yields "No comments."
     async def mock_fetch_comments_empty(path, context=None):
-        if "comments" in path:
-            return "[]"
         return json.dumps(
-            {"title": "Title B", "status": "open", "description": "Desc B"}
+            {"title": "Title B", "status": "open", "description": "Desc B", "comments": []}
         )
 
     summary_empty = await summarize_issue_context_impl("123", mock_fetch_comments_empty)

@@ -65,22 +65,13 @@ async def summarize_issue_context_impl(
             or "No description provided."
         )
 
-        # Fetch comments - either from issue_data if present, or from the comments endpoint
+        # Comments endpoint is not supported by BLT-API; read from issue_data if present
         comments = issue_data.get("comments")
-        if comments is None:
-            try:
-                comments_raw = await fetch_fn(
-                    f"/bugs/{safe_id}/comments", f"comments for issue {issue_id}"
-                )
-                comments = json.loads(comments_raw)
-            except Exception as e:  # noqa: BLE001
-                logger.warning(f"Failed to fetch comments for issue {issue_id}: {e}")
-                comments = None  # Preserve unavailable state distinct from empty
 
         # Format comments
         comments_formatted = ""
         if comments is None:
-            comments_formatted = "Comments unavailable (failed to retrieve)."
+            comments_formatted = "Comments unavailable (not supported)."
         elif isinstance(comments, list) and len(comments) > 0:
             formatted_list = []
             for c in comments:
