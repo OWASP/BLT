@@ -81,6 +81,7 @@ async def auth_signin(email: str, password: str) -> str:
 
 @mcp.tool()
 async def create_bug(
+    url: str,
     title: str,
     description: str,
     repo_id: str | None = None,
@@ -90,6 +91,15 @@ async def create_bug(
 ) -> str:
     """
     Create a new bug report in v2 API.
+
+    Args:
+        url: The vulnerable URL being reported.
+        title: Title of the bug/vulnerability.
+        description: A detailed description of the bug or vulnerability.
+        repo_id: Optional ID of the repository.
+        labels: Optional list of labels.
+        assignee: Optional username of the assignee.
+        confirmed: Set to true to confirm execution of this write operation.
     """
     if not confirmed:
         raise ValueError(
@@ -98,7 +108,12 @@ async def create_bug(
 
     logger.info(f"Creating v2 bug: {title}")
     ai_metadata = generate_ai_metadata("create_bug")
-    payload = {"title": title, "description": description, "metadata": ai_metadata}
+    payload = {
+        "url": url,
+        "title": title,
+        "description": description,
+        "metadata": ai_metadata,
+    }
     if repo_id is not None:
         payload["repo_id"] = repo_id
     if labels is not None:
