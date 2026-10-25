@@ -3,8 +3,10 @@ site_url: https://docs.owaspblt.org/
 site_description: Official documentation for OWASP Bug Logging Tool (BLT)
 site_author: OWASP BLT Team
 repo_url: https://git.owaspblt.org/BLT/BLT-Docs
-repo_name: owasp-blt/blt-docs
+repo_name: BLT/blt-docs
 edit_uri: ""
+exclude_docs: |
+  superpowers/
 
 theme:
   name: material
@@ -115,7 +117,7 @@ extra:
       name: BLT Website
   generator: false
 
-copyright: Copyright &copy; 2024 OWASP Foundation
+copyright: Copyright &copy; 2026 OWASP Foundation
 
 nav:
   - Home: index.md
