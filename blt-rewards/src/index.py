@@ -10,6 +10,20 @@ BACON_MINT_ADDRESS = "mntjJdXMvLkALMnyYFsdvxUnFXjLzLPpiNQwQSC58BL"
 # Default public Solana RPC URL; override via SOLANA_RPC_URL environment variable
 DEFAULT_SOLANA_RPC_URL = "https://api.mainnet-beta.solana.com"
 
+def build_response(body, status=200, headers=None):
+    """Build a Response with options correctly converted to a JS object.
+
+    Response.new() is a JS binding, and passing it a plain Python dict for
+    options silently drops keys like `status` during the Python-to-JS
+    conversion — the response always comes back 200. Wrapping the options
+    with Object.fromEntries() (the pattern already used for fetch() calls
+    in this file) makes the status and headers apply correctly.
+    """
+    options = [['status', status]]
+    if headers:
+        options.append(['headers', Object.fromEntries(list(headers.items()))])
+    return Response.new(body, Object.fromEntries(options))
+
 
 async def on_fetch(request, env):
     """Main request handler"""
@@ -25,29 +39,21 @@ async def on_fetch(request, env):
 
     # Handle CORS preflight
     if request.method == 'OPTIONS':
-        return Response.new('', {'headers': cors_headers})
+        return build_response('', 200, cors_headers)
 
-    # Redirect root path to index.html
-    # Static assets are served directly by Cloudflare's asset handling configured in wrangler.toml
-    if path == '/':
-        return Response.new('', {
-            'status': 302,
-            'headers': {
-                **cors_headers,
-                'Location': '/index.html'
-            }
-        })
 
     if path in ('/api/sol-balance', '/api/token-supply'):
         # API routes only accept GET
         if request.method != 'GET':
-            return Response.new(
+            return build_response(
                 json.dumps({'error': 'Method Not Allowed'}),
-                {'status': 405, 'headers': {
+                405,
+                {
                     **cors_headers,
                     'Content-Type': 'application/json',
                     'Allow': 'GET, OPTIONS',
-                }}
+                    'Cache-Control': 'no-store',
+                }
             )
 
         # Return the SOL wallet balance using Solana's public JSON-RPC API
@@ -57,10 +63,19 @@ async def on_fetch(request, env):
         # Return the BACON token total supply using Solana's public JSON-RPC API
         return await handle_token_supply(env, cors_headers)
 
-    # All other routes (including /index.html and other static files)
-    # are handled by Cloudflare's static asset serving
-    # Return None to let Cloudflare serve the static asset
-    return None
+    # Path doesn't match a known API route, and Cloudflare's static asset
+    # handling didn't serve it either (otherwise this code wouldn't run) —
+    # so it's a genuinely unknown path. Return 404 instead of letting it
+    # fall through as an unhandled error.
+    return build_response(
+        json.dumps({'error': 'Page Not Found'}),
+        404,
+        {
+            **cors_headers,
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store',
+        }
+    )
 
 
 async def handle_sol_balance(env, cors_headers):
@@ -68,16 +83,22 @@ async def handle_sol_balance(env, cors_headers):
     wallet_address = getattr(env, 'SOLANA_WALLET_ADDRESS', None)
     rpc_url = getattr(env, 'SOLANA_RPC_URL', None) or DEFAULT_SOLANA_RPC_URL
 
-    response_headers = {
+    success_headers = {
         **cors_headers,
         'Content-Type': 'application/json',
         'Cache-Control': 'public, max-age=30',
     }
+    error_headers = {
+        **cors_headers,
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+    }
 
     if not wallet_address:
-        return Response.new(
+        return build_response(
             json.dumps({'balance': None, 'error': 'SOLANA_WALLET_ADDRESS not configured'}),
-            {'status': 500, 'headers': response_headers}
+            500,
+            error_headers
         )
 
     try:
@@ -100,31 +121,35 @@ async def handle_sol_balance(env, cors_headers):
         )
 
         if not rpc_response.ok:
-            return Response.new(
+            return build_response(
                 json.dumps({'balance': None, 'error': 'Solana RPC error: HTTP {}'.format(rpc_response.status)}),
-                {'status': 502, 'headers': response_headers}
+                502,
+                error_headers
             )
 
         rpc_data = await rpc_response.json()
         # Check for an RPC-level error response
         rpc_error = getattr(rpc_data, 'error', None)
         if rpc_error:
-            return Response.new(
+            return build_response(
                 json.dumps({'balance': None, 'error': str(rpc_error)}),
-                {'status': 502, 'headers': response_headers}
+                502,
+                error_headers
             )
         # rpc_data.result.value is the balance in lamports
         lamports = rpc_data.result.value
         sol_balance = lamports / 1_000_000_000
 
-        return Response.new(
+        return build_response(
             json.dumps({'balance': sol_balance, 'address': wallet_address}),
-            {'headers': response_headers}
+            200,
+            success_headers
         )
     except Exception:
-        return Response.new(
+        return build_response(
             json.dumps({'balance': None, 'error': 'Internal error'}),
-            {'status': 500, 'headers': response_headers}
+            500,
+            error_headers
         )
 
 
@@ -132,10 +157,15 @@ async def handle_token_supply(env, cors_headers):
     """Fetch and return the BACON token total supply from the Solana public RPC."""
     rpc_url = getattr(env, 'SOLANA_RPC_URL', None) or DEFAULT_SOLANA_RPC_URL
 
-    response_headers = {
+    success_headers = {
         **cors_headers,
         'Content-Type': 'application/json',
         'Cache-Control': 'public, max-age=30',
+    }
+    error_headers = {
+        **cors_headers,
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
     }
 
     try:
@@ -158,28 +188,32 @@ async def handle_token_supply(env, cors_headers):
         )
 
         if not rpc_response.ok:
-            return Response.new(
+            return build_response(
                 json.dumps({'supply': None, 'error': 'Solana RPC error: HTTP {}'.format(rpc_response.status)}),
-                {'status': 502, 'headers': response_headers}
+                502,
+                error_headers
             )
 
         rpc_data = await rpc_response.json()
         # Check for an RPC-level error response
         rpc_error = getattr(rpc_data, 'error', None)
         if rpc_error:
-            return Response.new(
+            return build_response(
                 json.dumps({'supply': None, 'error': str(rpc_error)}),
-                {'status': 502, 'headers': response_headers}
+                502,
+                error_headers
             )
         # rpc_data.result.value.uiAmountString is the exact human-readable total supply
         supply = rpc_data.result.value.uiAmountString
 
-        return Response.new(
+        return build_response(
             json.dumps({'supply': supply, 'mint': BACON_MINT_ADDRESS}),
-            {'headers': response_headers}
+            200,
+            success_headers
         )
     except Exception:
-        return Response.new(
+        return build_response(
             json.dumps({'supply': None, 'error': 'Internal error'}),
-            {'status': 500, 'headers': response_headers}
+            500,
+            error_headers
         )
