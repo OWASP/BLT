@@ -43,6 +43,17 @@
             "sig": "wCzN3l8UVRgOkHmqfUSJyHCpEEON_egkD6CbK-mSwEGJs_gUCc7e-n5Ld47eSot7z0qIA14E06S4ywnzoO5QDw",
             "ts": 1792906818355,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@arnavghai19 you're assigned to this issue. Please open a pull request for it within 24 hours. Without a pull request or an update from you here for 24 hours, you'll be unassigned (after a warning). If you stop working on it, comment `/unassign` so someone else can pick it up. \u003c!-- blt-assign:f6af128a12c83e97678c --\u003e",
+            "id": "actions-1792906818497-od15KA6G",
+            "sig": "MrJUt_LX5aFH5TRWGnRmdooC9OQDTMuAsNrpgiNk_N5ZcUirK1MkftvssEa_eO9Ty-DBoMVDkTASKjhKnBS5Cw",
+            "ts": 1792906818497,
+            "type": "comment"
         }
     ],
     "labels": [],
@@ -54,6 +65,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-leaf: COMMENTED reviews incorrectly overwrite approval and change-request status",
-    "updatedAt": 1792906818355,
+    "updatedAt": 1792906818497,
     "votes": 0
 }
