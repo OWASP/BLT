@@ -39,6 +39,22 @@ def test_does_not_modify_input():
     assert payload == {"password": "hunter2"}
 
 
+def test_redacts_in_mixed_nested_collections():
+    payload = {"groups": [[{"secret": "s"}], {"inner": [{"token": "t"}]}, "plain", 3]}
+    assert redact_payload(payload) == {
+        "groups": [[{"secret": "[REDACTED]"}], {"inner": [{"token": "[REDACTED]"}]}, "plain", 3]
+    }
+
+
+def test_sensitive_key_with_list_value_is_redacted_whole():
+    assert redact_payload({"token": ["a", "b"]}) == {"token": "[REDACTED]"}
+
+
+@pytest.mark.parametrize("payload", [{}, {"items": []}, {"auth": {}}])
+def test_empty_collections_are_unchanged(payload):
+    assert redact_payload(payload) == payload
+
+
 # Only exact key names are matched, so these variants currently leak.
 @pytest.mark.xfail(reason="access_token is not an exact match for 'token'", strict=True)
 def test_access_token_is_redacted():
