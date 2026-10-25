@@ -32,6 +32,7 @@ blt-panini	node	python3 -m py_compile scripts/update_slack_apps.py && node --tes
 blt-pool	python	pip install pytest && python -m compileall -q src/worker.py src/services && python -m pytest test_worker.py test_forge_leaderboard.py -q
 blt-preflight	python	pip install -r requirements.txt -e . && python -m pytest -q
 blt-profiles	node	node --test 'test/*.test.mjs'
+blt-rewards	python	pip install pytest pytest-asyncio && python -m pytest tests/ -q
 # blt-safecloak: the Playwright tests need Chromium's system packages (sudo) and a 127.0.0.1 server, which the
 # runner sandbox doesn't allow. Run them locally: python -m playwright install chromium --with-deps && python -m pytest tests/
 blt-safecloak	python	npm_install && pip install -r requirements-dev.txt && python -m pytest tests/ -q --ignore=tests/test_browser_js.py --ignore=tests/test_video_chat.py --ignore=tests/test_three_client_chat.py

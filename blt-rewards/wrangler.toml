@@ -11,6 +11,7 @@ ENVIRONMENT = "production"
 # No Python file I/O needed - Cloudflare handles static asset serving
 [assets]
 directory = "./public"
+not_found_handling = "none"
 
 # Development environment configuration
 [env.dev]
