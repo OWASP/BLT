@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "owasp-marquina"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -32,6 +34,17 @@
             "sig": "pQCfxK-qcMnGew-ZjUlKJtXkJiox6nijjzw6n7sGbn1ys9fWBdlLmFlFr8VecNYLsbbmzIjAqQs1goqaqPNbCg",
             "ts": 1792547523600,
             "type": "labels"
+        },
+        {
+            "assignee": "owasp-marquina",
+            "author": "SDGRl2pWA4LQfxCX-son7AShrtzI9j9fDXQRG0Duig4",
+            "authorName": "owasp-marquina",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1792910300232-8l29w7",
+            "sig": "fs0cLzOl68HWhgoiZhoEyQxhnWP17okmw-acZXD4FS-GSwxh9AxHXubmOatYfvR7IT1HgRdawrH1nZ_Tvo_UAA",
+            "ts": 1792910300232,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -48,6 +61,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-netguardian: add unit tests for payload_redact.py",
-    "updatedAt": 1792547523600,
+    "updatedAt": 1792910300232,
     "votes": 0
 }
