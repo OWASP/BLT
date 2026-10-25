@@ -31,6 +31,17 @@
             "sig": "GRmF1SMb29YFYcdEkLeTx4DrghY5bsaZ53MbPOjUiIKGYKjhD1QAeONKKzeL7FzhBgvaDSisehmWkZ424ILtBQ",
             "ts": 1792547523620,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "body": "@assign",
+            "id": "comment-web-1792951967004",
+            "sig": "o82S5_R9h8SEE2CbMFKhttJyzA5E87OK9kHmfJRiXfhM9VsJSqmBbEHEKXNFwBjX7dldotvyWLj2raTtFcWGDA",
+            "ts": 1792951967004,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -46,6 +57,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-netguardian: remove the GitHub Pages deploy docs and the dead Deploy button",
-    "updatedAt": 1792547523620,
+    "updatedAt": 1792951967004,
     "votes": 0
 }
