@@ -45,6 +45,17 @@
             "sig": "owo2MqQfKuYUXdRVP-Dt7RsNV9pm_zq_lfwa4XMaTGfLmWAbrqNXc1MNxO1WWCXmwlyb50LLv2kKp9eoM0GkDQ",
             "ts": 1792943644737,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "PR raised for this issue: [#22](https://git.owaspblt.org/BLT/pull/22)",
+            "id": "comment-web-1792955345600",
+            "sig": "-EiflrU9I-4T-anUDxnPp-UL90KqRQjIwFL5UCFWjo1QoFouCIBcLyZep43e7N5AQlIg1tJYsUiPhHbxFohiDQ",
+            "ts": 1792955345600,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -61,6 +72,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-docs: stop publishing the internal superpowers/ plan and fix GitLab-era metadata",
-    "updatedAt": 1792943644737,
+    "updatedAt": 1792955345600,
     "votes": 0
 }
