@@ -28,7 +28,6 @@ Access BLT data through standardized URIs:
 ### Tools
 Perform actions on BLT:
 - **submit_issue** - Report new bugs and vulnerabilities directly to the platform
-- **add_comment** - Add comments to issues
 - **triage_vulnerability** - Use Cloudflare Workers AI to automatically triage vulnerability severity
 - **draft_vision_issue** - Process screenshots through Cloudflare AI and draft issue reports
 

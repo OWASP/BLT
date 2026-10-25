@@ -12,7 +12,7 @@ Key Offerings:
   - Automatically translates rejected payloads into dummy `ping` messages to prevent the MCP subprocess loop from crashing.
 
 Schemas Defined:
-- Includes schemas for `submit_issue`, `add_comment`, `summarize_issue_context`, `triage_vulnerability`, `draft_vision_issue`,
+- Includes schemas for `submit_issue`, `summarize_issue_context`, `triage_vulnerability`, `draft_vision_issue`,
   and the entire set of V2 write tools.
 """
 
@@ -48,20 +48,6 @@ TOOL_SCHEMAS = {
                 "type": str,
                 "description": "Optional username of the assignee for the issue.",
             },
-            "confirmed": {
-                "type": bool,
-                "description": "Must be set to true to execute this write operation.",
-            },
-        },
-    },
-    "add_comment": {
-        "required": ["issue_id", "comment_text"],
-        "properties": {
-            "issue_id": {
-                "type": str,
-                "description": "The ID of the issue to comment on.",
-            },
-            "comment_text": {"type": str, "description": "The text of the comment."},
             "confirmed": {
                 "type": bool,
                 "description": "Must be set to true to execute this write operation.",

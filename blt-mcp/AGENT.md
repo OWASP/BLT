@@ -37,12 +37,6 @@ Analyze a vulnerability description using Cloudflare Workers AI (Llama 3.1) to a
 *   **Arguments**:
     *   `prompt` (string, required): Contextual description of the issue to analyze.
 
-### `add_comment`
-Add comments or feedback to a specific bug report.
-*   **Arguments**:
-    *   `issue_id` (string, required): Target bug report ID.
-    *   `text` (string, required): The comment content.
-
 ---
 
 ## 3. Prompts & Workflows
