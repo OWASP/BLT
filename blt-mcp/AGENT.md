@@ -57,11 +57,14 @@ You can load structured prompt templates to guide your interaction with the user
 
 ## 4. Best Practices for AI Agents
 
-1.  **Authentication Fallback**: 
-    If `BLT_API_KEY` is not explicitly set by the user, the MCP server automatically falls back to a **static public showcase API key**. In this mode, you have **read-only** access to sample data. If you attempt a write/mutation action (like updating a bug status or submitting a comment) and receive a `401 Unauthorized` response, politely ask the user to authenticate by running:
-    ```bash
-    uv run -m blt_mcp.cli auth login
-    ```
+1.  **Authentication Reality & Key Types**: 
+    *   **Public Showcase Key**: If `BLT_API_KEY` is not explicitly set, the MCP server automatically falls back to a **static public showcase API key**. This key provides access to public read-only endpoints (such as `blt://v2/bugs`, `blt://v2/repos`, and `blt://v2/stats`).
+    *   **User API Key (`blt_live_...`) Required for Jobs & Hackathons**: The backend BLT-API strictly requires a user-owned API key (`blt_live_...` associated with an active account) for **all jobs and hackathons endpoints**, including read resources (`blt://v2/jobs`, `blt://v2/jobs/stats`, `blt://v2/hackathons`, `blt://v2/hackathons/{slug}`) and mutation tools (`create_job`, `update_job`, `record_job_view`, `create_hackathon`, `update_hackathon`, `register_hackathon_participant`).
+    *   **Handling 401 Unauthorized**: Calling jobs or hackathons endpoints using the showcase key returns `401 Unauthorized: User API key required`. **Do not repeatedly retry these tools or resources** if operating under the showcase key. Inform the user that a personal user key is required, which can be configured via:
+        ```bash
+        uv run -m blt_mcp.cli auth login
+        ```
+        or by setting `BLT_API_KEY=blt_live_...` in the `.env` configuration.
 2.  **Rate Limiting**:
     Be mindful of high-volume queries. Group your requests or reuse fetched resource data when performing bulk triage tasks.
 3.  **Vulnerability Data Handling**:
