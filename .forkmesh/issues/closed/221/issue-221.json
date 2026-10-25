@@ -54,6 +54,16 @@
             "sig": "MrJUt_LX5aFH5TRWGnRmdooC9OQDTMuAsNrpgiNk_N5ZcUirK1MkftvssEa_eO9Ty-DBoMVDkTASKjhKnBS5Cw",
             "ts": 1792906818497,
             "type": "comment"
+        },
+        {
+            "author": "-7tB7mhX5UNhZXr0OcnqC3EygNekX6xMFWLwB3s7tGk",
+            "authorName": "donnieblt",
+            "authorVerified": true,
+            "id": "status-web-1792907648415-of2b42",
+            "sig": "xtWs0N1IOZ5aif-xFne6y27vwbszTOlQHa_gq9WAjknApeXri_6ybE1sPV-nFjST4QjnCFeI7AgzUbq12nsXCg",
+            "status": "closed",
+            "ts": 1792907648415,
+            "type": "status"
         }
     ],
     "labels": [],
@@ -63,8 +73,8 @@
     "progress": 0,
     "schema": "forkmesh-issue-v1",
     "startDate": 0,
-    "status": "open",
+    "status": "closed",
     "title": "blt-leaf: COMMENTED reviews incorrectly overwrite approval and change-request status",
-    "updatedAt": 1792906818497,
+    "updatedAt": 1792907648415,
     "votes": 0
 }
