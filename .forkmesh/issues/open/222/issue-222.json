@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "EqNbJ81Ib7tk86tkz55_EDo4gCk4z8HvrLf8ewzPc5c",
+    "authorName": "dahahanish",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1793020728816,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "EqNbJ81Ib7tk86tkz55_EDo4gCk4z8HvrLf8ewzPc5c",
+            "authorName": "dahahanish",
+            "authorVerified": true,
+            "body": "WHAT HAPPENS\nOpening chat from the dashboard sidebar (https://git.owaspblt.org/chat) stays at \"Waiting to connect…\" forever and shows \"Log in as a user to join the room\", even when signed in. Reproduced with two different signed-in users.\n\nBoth texts are the static placeholders in app/public/chat.html, so chat.js never runs at all.\n\nCAUSE\nchat.js imports ./fmm/fmm-local.js, and chat-group-calls.js imports ./fmm/fmm-call.js and ./fmm/fmm-e2ee.js (added 2026-10-21). On the live site those three files are not served as JavaScript:\n\n  https://git.owaspblt.org/fmm/fmm-local.js  -\u003e 404 (text/html)\n  https://git.owaspblt.org/fmm/fmm-call.js   -\u003e 404\n  https://git.owaspblt.org/fmm/fmm-e2ee.js   -\u003e 404\n  https://app.forkmesh.com/fmm/fmm-local.js  -\u003e 200 but text/html (a repository page)\n\nEvery other module in chat.js's import graph returns 200 text/javascript. A failed static import aborts the whole module, so chat.js never executes.\n\napp/wrangler.toml run_worker_first sends \"/*/*\" to the Worker so /\u003cowner\u003e/\u003crepo\u003e reaches the repository router; static folders are exempted one by one (\"!/assets/*\", \"!/office/*\", \"!/favicon/*\", \"!/dashboard-plugins/*\"). app/public/fmm/ has no such exclusion, so /fmm/\u003cfile\u003e.js is treated as repository \"\u003cfile\u003e.js\" owned by \"fmm\".\n\nEXPECTED\n/chat connects for signed-in users; /fmm/*.js is served from Assets as text/javascript.\n\nFIX\nAdd \"!/fmm/*\" to run_worker_first in app/wrangler.toml (the self-hosted Caddy routes are generated from the same list), plus a test that walks the import graph of every top-level app/public module and fails if an imported file is missing or would be routed to the Worker. I have this ready on a branch.\n\nAFFECTED\nWeb chat (/chat) on git.owaspblt.org and app.forkmesh.com; group calls (chat-group-calls.js) too.",
+            "id": "open-web-1793020728816",
+            "sig": "wqtQhkJVMx0nZjmX1b03No6ZMTWHXa96EuVazX6pnFd1CgVhD-r5Q2b5Na5-BJKijSYZwV-s8vIT7TWOe8jJAw",
+            "title": "Web chat never starts: /fmm/*.js modules are routed to the repository router (404)",
+            "ts": 1793020728816,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 222,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "Web chat never starts: /fmm/*.js modules are routed to the repository router (404)",
+    "updatedAt": 1793020728816,
+    "votes": 0
+}
