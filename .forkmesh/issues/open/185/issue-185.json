@@ -65,6 +65,17 @@
             "sig": "7XAoNuKHAnLZD7cfAQqubHvSw2NIINu2KeDlf-0Lvkq9_dEdgQ0xnlC1n1B8NYg8Wslf__f3fXtTmRtFG32CBA",
             "ts": 1792987656357,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "PR Merged!\n\nhttps://git.owaspblt.org/BLT/pull/22",
+            "id": "comment-web-1792987708564",
+            "sig": "WFL7MIOiN6A7bImw-aAZXLddM_gCDdqycVof6U0fy71nVGAquv0o99_9l-62A959WIlK_HKipnxp2TVxU4X4Cw",
+            "ts": 1792987708564,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -81,6 +92,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-docs: stop publishing the internal superpowers/ plan and fix GitLab-era metadata",
-    "updatedAt": 1792987656357,
+    "updatedAt": 1792987708564,
     "votes": 0
 }
