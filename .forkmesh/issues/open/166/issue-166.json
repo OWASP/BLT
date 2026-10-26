@@ -31,6 +31,17 @@
             "sig": "xHbuTX-0kXXRc3juRG58mh2CZUekAcz8B84CU71dRc8__Gs6F1ISUqgaQF37tRCWFOgZ_BarpW0VkFweukXRBA",
             "ts": 1792547524520,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "xP8W3X91Iym28V8rRGc5g9kJmYCRBUiCSI1sKA7ZQvM",
+            "authorName": "ojaswa",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1793023903864",
+            "sig": "10DOHuFExoLxh835tVqBjlBz1BKvT-uoAQbvCaQ0uQ9yC1cFHUQ9yl85LOv0VUEETqoObAUuDPVc0Ci1-EveAw",
+            "ts": 1793023903864,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -46,6 +57,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cve: add unit tests for validate_cves.py and build_index.py",
-    "updatedAt": 1792547524520,
+    "updatedAt": 1793023903864,
     "votes": 0
 }
