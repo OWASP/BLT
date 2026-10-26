@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "hrinkar01"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -56,6 +54,17 @@
             "sig": "-EiflrU9I-4T-anUDxnPp-UL90KqRQjIwFL5UCFWjo1QoFouCIBcLyZep43e7N5AQlIg1tJYsUiPhHbxFohiDQ",
             "ts": 1792955345600,
             "type": "comment"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1792987656357-3ul8l9",
+            "sig": "7XAoNuKHAnLZD7cfAQqubHvSw2NIINu2KeDlf-0Lvkq9_dEdgQ0xnlC1n1B8NYg8Wslf__f3fXtTmRtFG32CBA",
+            "ts": 1792987656357,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -72,6 +81,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-docs: stop publishing the internal superpowers/ plan and fix GitLab-era metadata",
-    "updatedAt": 1792955345600,
+    "updatedAt": 1792987656357,
     "votes": 0
 }
