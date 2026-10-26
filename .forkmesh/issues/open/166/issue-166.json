@@ -55,6 +55,17 @@
             "sig": "FiTsfKV7qOgUKe_6_95QYE4kflDNnr8I5lhGwnlfcDFBrOELvHZxcw2dWTyoeEkYPj0NxSSzC844hZdT9qsACA",
             "ts": 1793023920651,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@ojaswa you're assigned to this issue. Please open a pull request for it within 24 hours. Without a pull request or an update from you here for 24 hours, you'll be unassigned (after a warning). If you stop working on it, comment `/unassign` so someone else can pick it up. \u003c!-- blt-assign:51c4ea0d50aada260b97 --\u003e",
+            "id": "actions-1793023920776--LaDSLTC",
+            "sig": "bni--CRq3HcNjVZQ9dO3jtcJbeNbn1sv2BxC-9JjFA76Fqho0N1nmREWeA-HIv_8GB78U7oSNny-lBSDbqqyBA",
+            "ts": 1793023920776,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -70,6 +81,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cve: add unit tests for validate_cves.py and build_index.py",
-    "updatedAt": 1793023920651,
+    "updatedAt": 1793023920776,
     "votes": 0
 }
