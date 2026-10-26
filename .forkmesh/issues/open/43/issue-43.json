@@ -12,7 +12,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\n`website/templates/includes/header.html` is on every page. Several buttons contain only a Font Awesome icon, so screen readers announce them as just \"button\".\n\n## What to do\n\n1. In `header.html`: add `aria-label` to the search submit (about L669), `#notificationButton` (about L753) and the `organizations-btn` dropdown (about L672, its text is hidden on mobile). Use `{% trans %}` for the labels.\n2. Add `aria-hidden=\"true\"` to the decorative `<i>` icons.\n3. Add `aria-haspopup` and toggle `aria-expanded` on `organizations-btn` in the existing dropdown JS (the mega-menu button at L28 already does this; copy it).\n\n## Acceptance criteria\n\n- [ ] The search, notification and organisations buttons have accessible names\n- [ ] Decorative icons are `aria-hidden`\n- [ ] `aria-expanded` follows the dropdown state\n- [ ] Lighthouse \"Buttons have an accessible name\" passes on the home page\n\n## How to test locally\n\n```bash\ncd blt-core && uv sync && uv run python manage.py runserver   # then check the header in DevTools > Accessibility\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\n`website/templates/includes/header.html` is on every page. Several buttons contain only a Font Awesome icon, so screen readers announce them as just \"button\".\n\n## What to do\n\n1. In `header.html`: add `aria-label` to the search submit (about L669), `#notificationButton` (about L753) and the `organizations-btn` dropdown (about L672, its text is hidden on mobile). Use `{% trans %}` for the labels.\n2. Add `aria-hidden=\"true\"` to the decorative `\u003ci\u003e` icons.\n3. Add `aria-haspopup` and toggle `aria-expanded` on `organizations-btn` in the existing dropdown JS (the mega-menu button at L28 already does this; copy it).\n\n## Acceptance criteria\n\n- [ ] The search, notification and organisations buttons have accessible names\n- [ ] Decorative icons are `aria-hidden`\n- [ ] `aria-expanded` follows the dropdown state\n- [ ] Lighthouse \"Buttons have an accessible name\" passes on the home page\n\n## How to test locally\n\n```bash\ncd blt-core \u0026\u0026 uv sync \u0026\u0026 uv run python manage.py runserver   # then check the header in DevTools \u003e Accessibility\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-43",
             "sig": "IqspacNJ5TsnxGTHwRZDciN2jX4vuTpsCYnKUc5CJ95Sb8RkrfFbmiGiUli9e6-WrIsQwoD3mFuBXx5xe14ECQ",
             "title": "blt-core: add accessible names to the icon-only buttons in the site header",
@@ -46,6 +46,17 @@
             "sig": "ZU1v7LAi9CSTreNQpNk7fLGQOLhMOJ7xzYYY1ld-mpfY49Hen4mgFgQ6GHQeN6cHEWVJiRuNEPzV43onU0fjCA",
             "ts": 1792550467208,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1793029412315",
+            "sig": "J_92hqy326g-gfiP_9DjTkhIUijG6IoiA86w2aUsNhdEsWM7dzC1nWZOiP0l1G_2Ag-45QRbfMcQ-eL8_6lhAw",
+            "ts": 1793029412315,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -62,6 +73,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: add accessible names to the icon-only buttons in the site header",
-    "updatedAt": 1792550467208,
+    "updatedAt": 1793029412315,
     "votes": 0
 }
