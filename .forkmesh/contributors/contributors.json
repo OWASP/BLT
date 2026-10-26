@@ -269,9 +269,9 @@
   {
    "slug": "s3dfx-cyber",
    "name": "Savio Dsouza",
-   "login": "S3DFX-CYBER",
-   "profile": "https://github.com/S3DFX-CYBER",
-   "source": "github",
+   "login": "s3dfx-cyber",
+   "profile": "https://git.owaspblt.org/@s3dfx-cyber",
+   "source": "instance",
    "github": "S3DFX-CYBER",
    "gitlab": "saviodsouza8a",
    "commits": 164,
@@ -290,7 +290,7 @@
    ],
    "avatar": ".forkmesh/contributors/s3dfx-cyber.png",
    "avatar_kind": "downloaded",
-   "avatar_checked": "2026-10-18"
+   "avatar_checked": "2026-10-26"
   },
   {
    "slug": "sarthak5598",
@@ -485,8 +485,8 @@
    "slug": "ananya-in-tech",
    "name": "Ananya",
    "login": "ananya-in-tech",
-   "profile": "https://github.com/ananya-in-tech",
-   "source": "github",
+   "profile": "https://git.owaspblt.org/@ananya-in-tech",
+   "source": "instance",
    "github": "ananya-in-tech",
    "gitlab": null,
    "commits": 89,
@@ -503,7 +503,7 @@
    ],
    "avatar": ".forkmesh/contributors/ananya-in-tech.png",
    "avatar_kind": "downloaded",
-   "avatar_checked": "2026-10-18"
+   "avatar_checked": "2026-10-26"
   },
   {
    "slug": "rinkitadhana",
