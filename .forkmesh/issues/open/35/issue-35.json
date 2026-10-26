@@ -1,6 +1,5 @@
 {
     "assignees": [
-        "dahahanish",
         "himaneeesh"
     ],
     "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
@@ -150,6 +149,17 @@
             "sig": "YTDd27lsjUg8vPiQIwcrPkLNnPa78OJQ8fhkmPv0zRpFanGdN19md1reur3-SqWChyJQWcTwdNlsHkAKAKB7BQ",
             "ts": 1793020868443,
             "type": "comment"
+        },
+        {
+            "assignee": "dahahanish",
+            "author": "EqNbJ81Ib7tk86tkz55_EDo4gCk4z8HvrLf8ewzPc5c",
+            "authorName": "dahahanish",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1793020877761-17wrqai",
+            "sig": "Xlhb1_svQ5OZ7k4cB-1Q7JvkN1UYsdalwhiSD9Sex2bfyTx-QT1rj626tySPGk-Vrc4nUlVGxKXNEUTHuc_RCA",
+            "ts": 1793020877761,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -164,6 +174,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-toasty: Build Slack Notification Bot",
-    "updatedAt": 1793020868443,
+    "updatedAt": 1793020877761,
     "votes": 0
 }
