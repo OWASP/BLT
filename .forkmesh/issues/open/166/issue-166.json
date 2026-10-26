@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "ojaswa"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -42,6 +44,17 @@
             "sig": "10DOHuFExoLxh835tVqBjlBz1BKvT-uoAQbvCaQ0uQ9yC1cFHUQ9yl85LOv0VUEETqoObAUuDPVc0Ci1-EveAw",
             "ts": 1793023903864,
             "type": "comment"
+        },
+        {
+            "assignee": "ojaswa",
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "actions-1793023920651-YIgpDtHZ",
+            "sig": "FiTsfKV7qOgUKe_6_95QYE4kflDNnr8I5lhGwnlfcDFBrOELvHZxcw2dWTyoeEkYPj0NxSSzC844hZdT9qsACA",
+            "ts": 1793023920651,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -57,6 +70,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cve: add unit tests for validate_cves.py and build_index.py",
-    "updatedAt": 1793023903864,
+    "updatedAt": 1793023920651,
     "votes": 0
 }
