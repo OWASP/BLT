@@ -1,4 +1,5 @@
 {% load custom_tags %}
+{% load i18n %}
 {% get_current_template as current_template %}
 {% get_current_url_path as current_url_path %}
 {% get_page_views current_url_path 30 as page_views %}
@@ -35,8 +36,11 @@
         <div class="flex justify-between items-center">
             <div class="flex items-center">
                 <button id="upvoteBtn"
+                        type="button"
+                        aria-label="{% trans 'Upvote this page' %}"
                         class="text-gray-600 dark:text-gray-400 hover:text-[#e74c3c] focus:outline-none mr-2">
                     <svg xmlns="http://www.w3.org/2000/svg"
+                         aria-hidden="true"
                          class="h-5 w-5"
                          viewBox="0 0 20 20"
                          fill="currentColor">
@@ -50,8 +54,11 @@
             </div>
             <div class="flex items-center">
                 <button id="downvoteBtn"
+                        type="button"
+                        aria-label="{% trans 'Downvote this page' %}"
                         class="text-gray-600 dark:text-gray-400 hover:text-[#e74c3c] focus:outline-none mr-2">
                     <svg xmlns="http://www.w3.org/2000/svg"
+                         aria-hidden="true"
                          class="h-5 w-5"
                          viewBox="0 0 20 20"
                          fill="currentColor">

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load i18n %}
 {% load gravatar %}
 {% load custom_tags %}
 {% block title %}Home - Gamified Crowd-Sourced QA Testing{% endblock %}
@@ -27,8 +28,10 @@
                     <span class="ml-2 px-2 py-1 bg-[#e74c3c] text-white text-xs rounded-full">DEBUG=True</span>
                 </div>
                 <button id="toggle-dev-panel"
+                        type="button"
+                        aria-label="{% trans 'Toggle local mode panel' %}"
                         class="text-gray-400 dark:text-gray-600 hover:text-white">
-                    <i class="fas fa-chevron-up"></i>
+                    <i class="fas fa-chevron-up" aria-hidden="true"></i>
                 </button>
             </div>
             <div id="dev-panel-content">
