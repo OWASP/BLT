@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "nachiket"
+    ],
     "author": "Ma6IqwAvvF6fx9M14fqxrwLGw8I2d8jlxBbXE5oaZZs",
     "authorName": "nachiket",
     "bountyAddress": "",
@@ -30,6 +32,17 @@
             "sig": "zPs4PkGDXnKTqffp_a_2Z5-7J3I6ARLcrNPb_PRD5Ncry-LF5pJH6yxj--6zVuPKUXcFMYtnPGZv_kXtxEmTAA",
             "ts": 1793124963121,
             "type": "comment"
+        },
+        {
+            "assignee": "nachiket",
+            "author": "Ma6IqwAvvF6fx9M14fqxrwLGw8I2d8jlxBbXE5oaZZs",
+            "authorName": "nachiket",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1793124966939-q5v9gs",
+            "sig": "nw3IqM9AisQ73ijqhhg5MNNUczbHTLHFTCMZMmpwTT7iZQ2hzPCxctFZ16qrXBULn9IK0WG2d1kaQEu3mlHnCQ",
+            "ts": 1793124966939,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -41,6 +54,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Integrating BLT-NetGuardian with BLT-MCP and BLT-CLI",
-    "updatedAt": 1793124963121,
+    "updatedAt": 1793124966939,
     "votes": 0
 }
