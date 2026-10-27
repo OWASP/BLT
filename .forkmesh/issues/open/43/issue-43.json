@@ -92,6 +92,17 @@
             "sig": "PoJia_CP6wzSrNaY_K73tonG3bGqtkwrvixZzKhAbZhx-kj3qJaM_WvzmIesyw7w3oTVG5wwyx_vkymIKSS6DQ",
             "ts": 1793095247151,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "body": "I have raised PR #36 for this issue!!",
+            "id": "comment-web-1793100333718",
+            "sig": "vu9mc_yxQlonJTUqXvnpFqegzX3VCoK7BjteUKTgQ5n_dH8UXWG5Uzso2Cxoirc1lrRChvmi6XlQpDn9i9RmDg",
+            "ts": 1793100333718,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -108,6 +119,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: add accessible names to the icon-only buttons in the site header",
-    "updatedAt": 1793095247151,
+    "updatedAt": 1793100333718,
     "votes": 0
 }
