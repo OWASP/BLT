@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "Ma6IqwAvvF6fx9M14fqxrwLGw8I2d8jlxBbXE5oaZZs",
+    "authorName": "nachiket",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1793124926006,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "Ma6IqwAvvF6fx9M14fqxrwLGw8I2d8jlxBbXE5oaZZs",
+            "authorName": "nachiket",
+            "authorVerified": true,
+            "body": "# [Proposal] Integrating BLT-NetGuardian with BLT-MCP and BLT-CLI\n\n## Overview\n\n**BLT-NetGuardian** continuously maps the web perimeter through distributed domain crawling, detecting security misconfigurations (such as missing CSP, weak HSTS, server version disclosure, and TLS flaws) and ingesting HMAC-signed findings (`ztr-finding-1`) into Cloudflare D1.\n\nCurrently, NetGuardian operates in isolation: scans rely on a desktop Flutter GUI, and triaging requires manual human review on a web dashboard. \n\nThis proposal bridges **NetGuardian** with **BLT-MCP** and **BLT-CLI**:\n\n### 1. What NetGuardian Provides\n* **Continuous Discovery Queue**: Live feed of discovered domains and targets needing security inspection.\n* **Verified Perimeter Findings**: Cryptographically signed findings containing raw HTTP headers, SSL metadata, and `security.txt` references.\n\n### 2. How We Will Use It in BLT-MCP\n* **Expose Findings to AI Agents**: Surface `netguardian://findings` and `netguardian://queue` as MCP resources.\n* **Automated Triage \u0026 Deduplication**: Allow AI agents running via MCP to analyze raw headers, filter false positives, and evaluate severity against OWASP standards.\n* **Automated Bug Promotion**: Provide an MCP tool for agents to redact sensitive data and convert verified NetGuardian findings directly into official BLT issues/bug bounties.\n\n### 3. How We Will Use It in BLT-CLI\n* **Headless Rust Scanning Node**: Introduce `blt-cli netguardian run-node`, enabling lightweight, high-performance scanning on servers, CI pipelines, or background daemons without requiring a GUI.\n* **Cockpit Triage**: Allow maintainers to inspect and triage NetGuardian findings directly within the terminal UI.",
+            "id": "open-web-1793124926006",
+            "sig": "Hcr6l-F9JtjyCXw8VGKveDjBaYayffvRBmkFHMWlshkDwZbVa39icNedRKXos0S5BcheXuyuJHykxd-lL9rNDA",
+            "title": "Integrating BLT-NetGuardian with BLT-MCP and BLT-CLI",
+            "ts": 1793124926006,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 223,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "Integrating BLT-NetGuardian with BLT-MCP and BLT-CLI",
+    "updatedAt": 1793124926006,
+    "votes": 0
+}
