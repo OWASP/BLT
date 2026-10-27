@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "namrata"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -53,6 +55,17 @@
             "sig": "kimliLN5kCJQFdrnD48VWvB9PdjaH8X18YF3JSYd8P6PQ7kP11k4eWlaK28Wf4XM98K5RoLQsRCs5vNIiZQMAQ",
             "ts": 1793098027925,
             "type": "comment"
+        },
+        {
+            "assignee": "namrata",
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1793099171702-wx7ab",
+            "sig": "5Re6Bs8XAQ4z6xUl2qYmgxHpenborXaJOJLUuhbu5KDYF2FxWReBCHMqZe1in-bfKi7NON4T0DjQCx9AMG71Cg",
+            "ts": 1793099171702,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -68,6 +81,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cve: make the documented BLT-YYYY-DRAFT submission pass validation",
-    "updatedAt": 1793098027925,
+    "updatedAt": 1793099171702,
     "votes": 0
 }
