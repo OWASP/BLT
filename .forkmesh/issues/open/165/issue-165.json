@@ -31,6 +31,17 @@
             "sig": "kSqyO97GUkdAXg9WWM2tcoBTyZRrBS-wz3CX-vExbOrAm5_Sjf1KXFTkJQ8Z6_isAXXhfb36CjR2qJnI09N0AQ",
             "ts": 1792547524510,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1793098001854",
+            "sig": "POubC8A9Ep2SiL_652rxUKavU0-R9MOTA8XwUFcB4aaIF308dwmNGACXKdulYomZaxRHf1oGIVmKUiZsPd9uDg",
+            "ts": 1793098001854,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -46,6 +57,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cve: make the documented BLT-YYYY-DRAFT submission pass validation",
-    "updatedAt": 1792547524510,
+    "updatedAt": 1793098001854,
     "votes": 0
 }
