@@ -44,6 +44,17 @@
             "sig": "PkcVjvIgW5aHRcztKlJg2jscqwiKzpHmPaL2V_csUSN_g_7tdjsZJcvhutc8qL5082oRjaZe3Od1hhiwx95dCA",
             "ts": 1793036287866,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "Unlinked pull request #34",
+            "id": "comment-web-1793080379268",
+            "sig": "vcmdV_AsDKd1ogAlyemyZ7BpuIs6twl_O2rrVggrQ6MMVXIJPDiUX2v_WTcbLyw_-M1R3EhbGITmGTpUvcLbBg",
+            "ts": 1793080379268,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -59,6 +70,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-tomato: fix the BLT entry and main-branch repos in the funding lookup",
-    "updatedAt": 1793036287866,
+    "updatedAt": 1793080379268,
     "votes": 0
 }
