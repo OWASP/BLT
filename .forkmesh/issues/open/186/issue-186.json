@@ -43,6 +43,17 @@
             "sig": "-xadRUbWEAjeYKRbEA_CoQ1KS2B-MwoNl_zKG23Zk17YSodyDHCCNjvo-pDJJ_FRQaBt8IT5F7lifSVRrl07Dg",
             "ts": 1792648221921,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "PR Merged!\n\nhttps://git.owaspblt.org/BLT/pull/7",
+            "id": "comment-web-1793166332477",
+            "sig": "jCHHhxltAopWLNv1c4K_5JZzVwsg4c_xzmUFPzb9eoAnLNBe48CkLk4wYkdej2yPeDbkDFLfUDd-wwG5HmCCBw",
+            "ts": 1793166332477,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -59,6 +70,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-docs: use \"pull request\" instead of \"merge request\" and add blt-cron to the project map",
-    "updatedAt": 1792648221921,
+    "updatedAt": 1793166332477,
     "votes": 0
 }
