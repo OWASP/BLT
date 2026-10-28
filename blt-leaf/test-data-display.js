@@ -67,8 +67,13 @@ async function waitForEndpoint(url, timeoutMs = 25000) {
 async function startRuntimeServer() {
   const port = 8788;
   const baseUrl = `http://127.0.0.1:${port}`;
-  const cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-  const args = ['wrangler', 'dev', '--local', '--ip', '127.0.0.1', '--port', String(port), '--log-level', 'error'];
+  // Node won't spawn npx.cmd on Windows without a shell (spawn EINVAL), and a
+  // shell would leave wrangler running after kill(). On Windows, run wrangler's
+  // own script with this Node binary; other platforms still use npx.
+  const isWindows = process.platform === 'win32';
+  const cmd = isWindows ? process.execPath : 'npx';
+  const wrangler = isWindows ? path.join(__dirname, 'node_modules', 'wrangler', 'bin', 'wrangler.js') : 'wrangler';
+  const args = [wrangler, 'dev', '--local', '--ip', '127.0.0.1', '--port', String(port), '--log-level', 'error'];
 
   const child = spawn(cmd, args, {
     cwd: __dirname,
