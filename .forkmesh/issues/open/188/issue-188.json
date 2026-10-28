@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "hiralmodi"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -56,6 +54,17 @@
             "sig": "l5YtO5DDoXHL_PNRwzg5se5aeDi1nsEOqwEPjUPRfTDw6ywccbP10HkPLLM_Llt6BxYrkw1Djuyd49wvkRYoCg",
             "ts": 1793018973981,
             "type": "claim"
+        },
+        {
+            "assignee": "hiralmodi",
+            "author": "z8umhj46U08jgUGw9mp2y-DMtqQIANQ7fXaMUtEJzEY",
+            "authorName": "hiralmodi",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1793175977360-b15n2e",
+            "sig": "d-8K3Fwh6c9j_7y7aT8yCxcy1k2--CYToZ-7zOxawI6sFi7JYIGHIuy6d9O6ubygnfjLuC66AR3-ijm54fdiCw",
+            "ts": 1793175977360,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -72,6 +81,6 @@
     "startDate": 0,
     "status": "open",
     "title": "coderabbit: fix the README, which says the folder has no configuration",
-    "updatedAt": 1793018973981,
+    "updatedAt": 1793175977360,
     "votes": 0
 }
