@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "granger"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -86,6 +88,17 @@
             "sig": "XoV2VCn2jyzPp3iSQDMawhCTaYtuzrPbpsTUoduxRqulPe0EHQI8XZMf_kYKaLc0Yq6I3KqokkjIuAtFOLNtCA",
             "ts": 1793173121271,
             "type": "comment"
+        },
+        {
+            "assignee": "granger",
+            "author": "1IjcdW9JCaXjDBlKkyQReX4pPsdod5yjrnO8WZhfwh0",
+            "authorName": "granger",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1793173134076-8h2oxi",
+            "sig": "bptabB0PsanoUw7Gut9CfAJxu2PFNAqH0ztT81syJAd6XXiPFJMWMESiqTxyi2mraU6OGeOkbIer9w3h9QZrDQ",
+            "ts": 1793173134076,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -101,6 +114,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cve: make the documented BLT-YYYY-DRAFT submission pass validation",
-    "updatedAt": 1793173121271,
+    "updatedAt": 1793173134076,
     "votes": 0
 }
