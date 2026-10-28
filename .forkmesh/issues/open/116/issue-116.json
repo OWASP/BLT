@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "namrata"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -42,6 +44,17 @@
             "sig": "LQImOPTsOlnpj74Vpgt38gYpsjuFcGoMD4d_XNV4gR8zrbw3Ty9VTziVO5FOks0zOeUL5XD28kr9BWvh0WkzAw",
             "ts": 1793183650078,
             "type": "comment"
+        },
+        {
+            "assignee": "namrata",
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "actions-1793183678524-6Zl5VlId",
+            "sig": "wOKRAhDLDQ_OHtqWsWbDbyL94wFNi0QpaykZoq6IVKmwCeIT7FZiVCQIM-TgsbHAzadV0MMIhjfHjYZenc3ZCw",
+            "ts": 1793183678524,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -57,6 +70,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-monitor: add unit tests for history storage, validation and sharding in worker.py",
-    "updatedAt": 1793183650078,
+    "updatedAt": 1793183678524,
     "votes": 0
 }
