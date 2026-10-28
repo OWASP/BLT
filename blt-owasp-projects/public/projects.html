@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Project Matrix</title>
+    <title>OWASP Project Repositories</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="theme-init.js"></script>
@@ -91,6 +91,7 @@
         <a href="issues.html">Issues</a>
         <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Projects" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source code</a>
     </blt-nav>
+    <h1>OWASP Project Repositories</h1>
     <table id="projects" class="display">
         <thead>
             <tr>
@@ -165,19 +166,17 @@
 
         async function loadRepoStatus() {
             const response = await fetch('www_project_repos.json');
-            const projects = await response.json();
-            return projects;
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
         }
 
-        (async function () {
-            const projects = await loadRepoStatus();
-            const projectsData = generateProjectData(projects);
-
+        function renderProjects(projectsData, emptyMessage) {
             $(document).ready(function () {
                 $('#projects').DataTable({
                     "data": projectsData,
                     "pageLength": 300,
                     "responsive": true,
+                    "language": { "emptyTable": emptyMessage || "No data yet." },
                     "columns": [
                         { "data": "project_name" },
                         {
@@ -214,6 +213,20 @@
                     "order": [[2, "desc"]]
                 });
             });
+        }
+
+        (async function () {
+            try {
+                const projects = await loadRepoStatus();
+                if (!Array.isArray(projects) || projects.length === 0) {
+                    renderProjects([], "No data yet.");
+                    return;
+                }
+                renderProjects(generateProjectData(projects));
+            } catch (err) {
+                console.error('Failed to load project repositories:', err);
+                renderProjects([], "Unable to load project repositories. Please try again later.");
+            }
         })();
     </script>
 </body>
