@@ -65,6 +65,17 @@
             "sig": "d-8K3Fwh6c9j_7y7aT8yCxcy1k2--CYToZ-7zOxawI6sFi7JYIGHIuy6d9O6ubygnfjLuC66AR3-ijm54fdiCw",
             "ts": 1793175977360,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "z8umhj46U08jgUGw9mp2y-DMtqQIANQ7fXaMUtEJzEY",
+            "authorName": "hiralmodi",
+            "authorVerified": true,
+            "body": "PR Merged! https://git.owaspblt.org/BLT/pull/31",
+            "id": "comment-web-1793176011446",
+            "sig": "jruRMN2oXWs3vj0cS6pHZMWptcXwfaMsKKjy2c0yMKbewMzlwCL85bty1aRDZzoT38gcgWEUXTysrKcYrV6FDQ",
+            "ts": 1793176011446,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -81,6 +92,6 @@
     "startDate": 0,
     "status": "open",
     "title": "coderabbit: fix the README, which says the folder has no configuration",
-    "updatedAt": 1793175977360,
+    "updatedAt": 1793176011446,
     "votes": 0
 }
