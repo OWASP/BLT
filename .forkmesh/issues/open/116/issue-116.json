@@ -31,6 +31,17 @@
             "sig": "nooi6sq77mS_czTIz_kuKhEdYmZdnfQI0eODlbHGZKiEvmcaEx0yVBcYdLre4LEfKoB1jC_L-DfM_EdS0lHZCA",
             "ts": 1792547524020,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1793183650078",
+            "sig": "LQImOPTsOlnpj74Vpgt38gYpsjuFcGoMD4d_XNV4gR8zrbw3Ty9VTziVO5FOks0zOeUL5XD28kr9BWvh0WkzAw",
+            "ts": 1793183650078,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -46,6 +57,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-monitor: add unit tests for history storage, validation and sharding in worker.py",
-    "updatedAt": 1792547524020,
+    "updatedAt": 1793183650078,
     "votes": 0
 }
