@@ -27,6 +27,25 @@ test("cron matching", () => {
   assert.ok(cronMatches("0 9 * * 1-5", at("2026-10-19T09:00:00Z")));
   assert.ok(!cronMatches("0 9 * * 1-5", at("2026-10-18T09:00:00Z")));
   assert.ok(cronMatches("0 0 * * 7", at("2026-10-18T00:00:00Z")));
+  assert.ok(cronMatches("0 0 * * 1-7", at("2026-10-18T00:00:00Z")));
+  assert.ok(cronMatches("0 0 * * 5-7", at("2026-10-18T00:00:00Z")));
+  assert.ok(cronMatches("0 0 * * */7", at("2026-10-18T00:00:00Z")));
+  // 2026-10-19 is a Monday, not a Sunday — these should NOT match a range ending in 7
+  assert.ok(!cronMatches("0 0 * * 5-7", at("2026-10-19T00:00:00Z")));
+  assert.ok(!cronMatches("0 0 * * */7", at("2026-10-19T00:00:00Z")));
+  // 0 and 7 are aliases for Sunday, not two separate weekday values
+  assert.deepStrictEqual(parseCron("0 0 * * 1-7").weekday, new Set([0, 1, 2, 3, 4, 5, 6]));
+  assert.deepStrictEqual(parseCron("0 0 * * 5-7").weekday, new Set([0, 5, 6]));
+  // 7 is the inclusive upper edge of the weekday domain; 8 is still out of range
+  assert.throws(() => parseCron("0 0 * * 8"));
+  // a step over a range that crosses the Sunday alias (7->0) still lands on the right days
+  assert.deepStrictEqual(parseCron("0 0 * * 1-7/2").weekday, new Set([0, 1, 3, 5]));
+  // 7-0 is an inverted range (lo > hi) and must still be rejected, same as before the alias fix
+  assert.throws(() => parseCron("0 0 * * 7-0"));
+  // a single-value range using the alias (7-7) folds to just Sunday
+  assert.deepStrictEqual(parseCron("0 0 * * 7-7").weekday, new Set([0]));
+  // 0 and 7 together in a list are the same day, not two entries
+  assert.deepStrictEqual(parseCron("0 0 * * 0,7").weekday, new Set([0]));
   assert.ok(cronMatches("30 1 1,15 * *", at("2026-10-15T01:30:00Z")));
   assert.throws(() => parseCron("* * * *"));
   assert.throws(() => parseCron("61 * * * *"));
