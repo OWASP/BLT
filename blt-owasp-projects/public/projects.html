@@ -215,7 +215,7 @@
             });
         }
 
-        (async function () {
+        async function initializeProjects() {
             try {
                 const projects = await loadRepoStatus();
                 if (!Array.isArray(projects) || projects.length === 0) {
@@ -227,7 +227,11 @@
                 console.error('Failed to load project repositories:', err);
                 renderProjects([], "Unable to load project repositories. Please try again later.");
             }
-        })();
+        }
+
+        if (typeof $ === 'function') {
+            $(document).ready(initializeProjects);
+        }
     </script>
 </body>
 </html>
