@@ -99,6 +99,17 @@
             "sig": "bptabB0PsanoUw7Gut9CfAJxu2PFNAqH0ztT81syJAd6XXiPFJMWMESiqTxyi2mraU6OGeOkbIer9w3h9QZrDQ",
             "ts": 1793173134076,
             "type": "claim"
+        },
+        {
+            "assignee": "granger",
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "actions-1793173137500-ekXMEzrB",
+            "sig": "Pn4IIwSL1a952DgQyO8OA7KhxciZfNEk5hz8fRcMqM6jBmTsOETvzPZk-m_jGnMgmwBqzeBUz9fQFVlpo4_JBA",
+            "ts": 1793173137500,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -114,6 +125,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cve: make the documented BLT-YYYY-DRAFT submission pass validation",
-    "updatedAt": 1793173134076,
+    "updatedAt": 1793173137500,
     "votes": 0
 }
