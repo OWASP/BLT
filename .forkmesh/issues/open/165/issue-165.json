@@ -75,6 +75,17 @@
             "sig": "-jnGbPEFAGGuAZDpNAx6EKcJVEZc2JbF4kl0tdh4IZdKQhMO56dh50-W3TK3_ydKlyYiRpURqQQnF1zqNMrPAQ",
             "ts": 1793099180379,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "1IjcdW9JCaXjDBlKkyQReX4pPsdod5yjrnO8WZhfwh0",
+            "authorName": "granger",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1793173121271",
+            "sig": "XoV2VCn2jyzPp3iSQDMawhCTaYtuzrPbpsTUoduxRqulPe0EHQI8XZMf_kYKaLc0Yq6I3KqokkjIuAtFOLNtCA",
+            "ts": 1793173121271,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -90,6 +101,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cve: make the documented BLT-YYYY-DRAFT submission pass validation",
-    "updatedAt": 1793099180379,
+    "updatedAt": 1793173121271,
     "votes": 0
 }
