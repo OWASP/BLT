@@ -76,6 +76,16 @@
             "sig": "jruRMN2oXWs3vj0cS6pHZMWptcXwfaMsKKjy2c0yMKbewMzlwCL85bty1aRDZzoT38gcgWEUXTysrKcYrV6FDQ",
             "ts": 1793176011446,
             "type": "comment"
+        },
+        {
+            "author": "-7tB7mhX5UNhZXr0OcnqC3EygNekX6xMFWLwB3s7tGk",
+            "authorName": "donnieblt",
+            "authorVerified": true,
+            "id": "status-web-1793178155477-bgw0xx",
+            "sig": "eHByrTZPLb4xKruXWNDfJVfWiJMOQi53hKQHDwzGkgsZTYh9n_0Z-6X_s9yIFbKsNndpWYSXeknsSnDgCxcBDg",
+            "status": "closed",
+            "ts": 1793178155477,
+            "type": "status"
         }
     ],
     "labels": [
@@ -90,8 +100,8 @@
     "progress": 0,
     "schema": "forkmesh-issue-v1",
     "startDate": 0,
-    "status": "open",
+    "status": "closed",
     "title": "coderabbit: fix the README, which says the folder has no configuration",
-    "updatedAt": 1793176011446,
+    "updatedAt": 1793178155477,
     "votes": 0
 }
