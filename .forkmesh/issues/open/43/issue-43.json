@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "namrata"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -103,6 +101,17 @@
             "sig": "vu9mc_yxQlonJTUqXvnpFqegzX3VCoK7BjteUKTgQ5n_dH8UXWG5Uzso2Cxoirc1lrRChvmi6XlQpDn9i9RmDg",
             "ts": 1793100333718,
             "type": "comment"
+        },
+        {
+            "assignee": "namrata",
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1793183619433-1jy9wx0",
+            "sig": "LoPzTBhHP5KqMa9N4Pdfm_9OH9bYUxyzeKOhYs8ceVXvxM6V1TowGikUQBg4zwHeDU8RxetKFDRAmUmO8v-QCQ",
+            "ts": 1793183619433,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -119,6 +128,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: add accessible names to the icon-only buttons in the site header",
-    "updatedAt": 1793100333718,
+    "updatedAt": 1793183619433,
     "votes": 0
 }
