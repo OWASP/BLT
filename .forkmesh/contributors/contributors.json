@@ -2147,8 +2147,8 @@
    "slug": "vanshika2720",
    "name": "Vanshika",
    "login": "vanshika2720",
-   "profile": "https://github.com/vanshika2720",
-   "source": "github",
+   "profile": "https://git.owaspblt.org/@vanshika2720",
+   "source": "instance",
    "github": "vanshika2720",
    "gitlab": null,
    "commits": 5,
@@ -2164,7 +2164,7 @@
    ],
    "avatar": ".forkmesh/contributors/vanshika2720.png",
    "avatar_kind": "downloaded",
-   "avatar_checked": "2026-10-20"
+   "avatar_checked": "2026-10-28"
   },
   {
    "slug": "pixawna",

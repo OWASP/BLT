@@ -5,16 +5,19 @@
    "dahahanish",
    "donnieblt",
    "himaneeesh",
+   "hiralmodi",
    "hrinkar01",
    "khush173",
    "nachiket",
+   "namrata",
    "navodit",
+   "ojaswa",
    "owasp-marquina",
    "preetam",
    "psamuelvijay",
    "vanshika2720"
   ],
-  "checked": "2026-10-26"
+  "checked": "2026-10-28"
  },
  "github_email": {
   "00beb61bb0c7efa4": {
@@ -1771,7 +1774,7 @@
    "exists": false
   },
   "charlieamadeus": {
-   "checked": "2026-10-20",
+   "checked": "2026-10-28",
    "exists": false
   },
   "cicada0007": {
@@ -1944,7 +1947,7 @@
    "exists": false
   },
   "hsay123": {
-   "checked": "2026-10-20",
+   "checked": "2026-10-28",
    "exists": false
   },
   "hurrrsh": {
@@ -1960,7 +1963,7 @@
    "exists": false
   },
   "iloveshe": {
-   "checked": "2026-10-20",
+   "checked": "2026-10-28",
    "exists": false
   },
   "itsarthak": {
@@ -1968,7 +1971,7 @@
    "exists": false
   },
   "izhaan60": {
-   "checked": "2026-10-20",
+   "checked": "2026-10-28",
    "exists": false
   },
   "jajodiaraghav": {
@@ -1980,7 +1983,7 @@
    "exists": false
   },
   "jesscode-theredumption": {
-   "checked": "2026-10-20",
+   "checked": "2026-10-28",
    "exists": false
   },
   "jigyasurajput": {
@@ -2064,7 +2067,7 @@
    "exists": false
   },
   "makeepan-dev": {
-   "checked": "2026-10-20",
+   "checked": "2026-10-28",
    "exists": false
   },
   "manahil-afzal": {
@@ -2156,7 +2159,7 @@
    "exists": false
   },
   "nishat30": {
-   "checked": "2026-10-20",
+   "checked": "2026-10-28",
    "exists": false
   },
   "nithinskumar866": {
@@ -2316,7 +2319,7 @@
    "exists": false
   },
   "riya-jain-here": {
-   "checked": "2026-10-20",
+   "checked": "2026-10-28",
    "exists": false
   },
   "roboneet": {
@@ -2377,7 +2380,7 @@
    "exists": false
   },
   "saurabhyadav0": {
-   "checked": "2026-10-20",
+   "checked": "2026-10-28",
    "exists": false
   },
   "sharanyaa30": {
@@ -2413,7 +2416,7 @@
    "exists": false
   },
   "shushmitaaaa": {
-   "checked": "2026-10-20",
+   "checked": "2026-10-28",
    "exists": false
   },
   "sid22": {
@@ -2545,8 +2548,9 @@
    "exists": false
   },
   "vanshika2720": {
-   "checked": "2026-10-20",
-   "exists": false
+   "checked": "2026-10-28",
+   "exists": true,
+   "name": "vanshika2720"
   },
   "vanta722": {
    "checked": "2026-10-26",
@@ -2601,7 +2605,7 @@
    "exists": false
   },
   "yashspidey": {
-   "checked": "2026-10-20",
+   "checked": "2026-10-28",
    "exists": false
   },
   "yashvardhanvashistha": {
