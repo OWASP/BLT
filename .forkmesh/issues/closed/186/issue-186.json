@@ -54,6 +54,16 @@
             "sig": "jCHHhxltAopWLNv1c4K_5JZzVwsg4c_xzmUFPzb9eoAnLNBe48CkLk4wYkdej2yPeDbkDFLfUDd-wwG5HmCCBw",
             "ts": 1793166332477,
             "type": "comment"
+        },
+        {
+            "author": "-7tB7mhX5UNhZXr0OcnqC3EygNekX6xMFWLwB3s7tGk",
+            "authorName": "donnieblt",
+            "authorVerified": true,
+            "id": "status-web-1793166748432-uiifii",
+            "sig": "6x1JsxiOOZSZG89fS8jsDNKsPHvHkyJjLu96n2ZMNu6cI-dfTvZjXKXE1tfoh16-fTQenlOT4FR-PQm1KfYrAg",
+            "status": "closed",
+            "ts": 1793166748432,
+            "type": "status"
         }
     ],
     "labels": [
@@ -68,8 +78,8 @@
     "progress": 0,
     "schema": "forkmesh-issue-v1",
     "startDate": 0,
-    "status": "open",
+    "status": "closed",
     "title": "blt-docs: use \"pull request\" instead of \"merge request\" and add blt-cron to the project map",
-    "updatedAt": 1793166332477,
+    "updatedAt": 1793166748432,
     "votes": 0
 }
