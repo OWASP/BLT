@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "VJAr5lCdBD4mHhE9xI32zT-lIIkXDt6C3dZdu7JLqZ0",
+    "authorName": "arnavghai19",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1793218485380,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "VJAr5lCdBD4mHhE9xI32zT-lIIkXDt6C3dZdu7JLqZ0",
+            "authorName": "arnavghai19",
+            "authorVerified": true,
+            "body": "## Description\n\nThe BLT-Leaf data display test runner may fail on Windows when attempting to start the local Wrangler development server. It currently spawns `npx.cmd` directly, which can result in a `spawn EINVAL` error because Node.js does not reliably spawn Windows command scripts without a shell.\n\nUsing a shell to work around this can also complicate termination of the Wrangler process after the tests finish.\n\n### Expected Behavior\nThe data display test runner should start the local Wrangler server successfully on Windows and clean up the child process when testing is complete.\n\n### Proposed Solution\nUse `process.execPath` to invoke Wrangler's JavaScript entry point directly on Windows. Preserve the existing `npx wrangler` behavior on Linux and macOS.\n\n### Verification\nThe proposed fix was tested on Windows with Node.js v22.11.0:\n- Python unit tests: 11 passed\n- HTML escape test: passed\n- Data display and runtime authentication tests: 94 passed\n\nThe tests were run individually because `npm test` could not find the `python3` command in the local Git Bash environment.",
+            "id": "open-web-1793218485380",
+            "sig": "e_VbuhdA_kmeK__50Hv9l7HESMOE3SNXKHmPTK99LeKIpoNfydhjgOpL9yxKDh4ZPnHfC1C6A69xqiTWQ8l7BA",
+            "title": "Windows: BLT-Leaf data display tests cannot spawn npx.cmd",
+            "ts": 1793218485380,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 224,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "Windows: BLT-Leaf data display tests cannot spawn npx.cmd",
+    "updatedAt": 1793218485380,
+    "votes": 0
+}
