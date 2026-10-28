@@ -55,6 +55,17 @@
             "sig": "wOKRAhDLDQ_OHtqWsWbDbyL94wFNi0QpaykZoq6IVKmwCeIT7FZiVCQIM-TgsbHAzadV0MMIhjfHjYZenc3ZCw",
             "ts": 1793183678524,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@namrata you're assigned to this issue. Please open a pull request for it within 24 hours. Without a pull request or an update from you here for 24 hours, you'll be unassigned (after a warning). If you stop working on it, comment `/unassign` so someone else can pick it up. \u003c!-- blt-assign:1017e611a823a36164de --\u003e",
+            "id": "actions-1793183678628-a0SD44OZ",
+            "sig": "BbHNw4McEjLxqM_9unXSsa1RmhMaFQ9INDnjXp6OTIfsE4SRfkfTojxna1axd8bRhel01yaRPzMwIHUHSGwQBQ",
+            "ts": 1793183678628,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -70,6 +81,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-monitor: add unit tests for history storage, validation and sharding in worker.py",
-    "updatedAt": 1793183678524,
+    "updatedAt": 1793183678628,
     "votes": 0
 }
