@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "hrinkar01"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -12,10 +14,10 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\nSecurity-sweep leftover. `pyproject.toml:36` pins `cffi>=1.17.1,<2`, which nothing imports. From cryptography 46 on, cryptography needs `cffi>=2`, so this stale cap holds the transitive cryptography (via `pyjwt[crypto]` and `atproto`) at **43.0.3** in `uv.lock`, which has open advisories. `aiohttp` is locked at 3.12.9 (pyproject:58, used only in `website/consumers.py`) and `pillow` at 12.1.1 (pyproject:43); both have newer releases with fixes.\n\n## What to do\n\n1. Remove the `cffi` line from `blt-core/pyproject.toml` (or change it to `cffi>=2`).\n2. Run `uv lock --upgrade-package cffi --upgrade-package cryptography --upgrade-package aiohttp --upgrade-package pillow`.\n3. Keep Pillow below 13 in this PR (12.3.x). Raising the cap is a follow-up after reading the 13.0 notes for ImageFont/ImageDraw API removals (used in `website/utils.py`, `views/issue.py`, `views/project.py`).\n4. Check that `bitcash`/`coincurve` (pyproject:96) still resolve.\n\n## Acceptance criteria\n\n- [ ] `uv.lock` has cryptography >= 46, cffi >= 2, aiohttp >= 3.14 and pillow >= 12.3\n- [ ] `uv sync --locked` succeeds\n- [ ] The full Django test suite passes, including the badge/image views\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-core   # heavy: needs ~3 GB RAM\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\nSecurity-sweep leftover. `pyproject.toml:36` pins `cffi\u003e=1.17.1,\u003c2`, which nothing imports. From cryptography 46 on, cryptography needs `cffi\u003e=2`, so this stale cap holds the transitive cryptography (via `pyjwt[crypto]` and `atproto`) at **43.0.3** in `uv.lock`, which has open advisories. `aiohttp` is locked at 3.12.9 (pyproject:58, used only in `website/consumers.py`) and `pillow` at 12.1.1 (pyproject:43); both have newer releases with fixes.\n\n## What to do\n\n1. Remove the `cffi` line from `blt-core/pyproject.toml` (or change it to `cffi\u003e=2`).\n2. Run `uv lock --upgrade-package cffi --upgrade-package cryptography --upgrade-package aiohttp --upgrade-package pillow`.\n3. Keep Pillow below 13 in this PR (12.3.x). Raising the cap is a follow-up after reading the 13.0 notes for ImageFont/ImageDraw API removals (used in `website/utils.py`, `views/issue.py`, `views/project.py`).\n4. Check that `bitcash`/`coincurve` (pyproject:96) still resolve.\n\n## Acceptance criteria\n\n- [ ] `uv.lock` has cryptography \u003e= 46, cffi \u003e= 2, aiohttp \u003e= 3.14 and pillow \u003e= 12.3\n- [ ] `uv sync --locked` succeeds\n- [ ] The full Django test suite passes, including the badge/image views\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-core   # heavy: needs ~3 GB RAM\n```\n\n---\nSize: **M**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-41",
             "sig": "ljNHWsOvKjnXMqVmAC0OM8ixkUMvJJZhoVz6D_D-xTi7DPBZpua4qu_yUOcyKhLMmF9XiSpIw_d6XHzuQpWkDA",
-            "title": "blt-core: drop the unused `cffi<2` pin and upgrade cryptography, aiohttp and pillow",
+            "title": "blt-core: drop the unused `cffi\u003c2` pin and upgrade cryptography, aiohttp and pillow",
             "ts": 1792547523269,
             "type": "open"
         },
@@ -44,6 +46,17 @@
             "sig": "qxIMHSQMpEcQpUUH-R4miGmIHoAfIo_IWh0eRCIiF3eUPLRYWP3hrTtEPAQ-MbJG0EmO4fmL3CgSUG3H3kP2Cg",
             "ts": 1792550467206,
             "type": "labels"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1793261334560-zzi77k",
+            "sig": "cmm8p8inNCsjPGXjT6puEsgyAaZ1LzRsZ7ROmFb8ppX48WFahSJJO9a2wBneWAVFW-0Q0Bts_LclvlzooRF_AA",
+            "ts": 1793261334560,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -58,7 +71,7 @@
     "schema": "forkmesh-issue-v1",
     "startDate": 0,
     "status": "open",
-    "title": "blt-core: drop the unused `cffi<2` pin and upgrade cryptography, aiohttp and pillow",
-    "updatedAt": 1792550467206,
+    "title": "blt-core: drop the unused `cffi\u003c2` pin and upgrade cryptography, aiohttp and pillow",
+    "updatedAt": 1793261334560,
     "votes": 0
 }
