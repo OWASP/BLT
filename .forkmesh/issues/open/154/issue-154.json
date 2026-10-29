@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "hrinkar01"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -66,6 +64,17 @@
             "sig": "rY5R0LanNosUL8suidpEe2FWz3R6ilx0t97MaKnBCT0Yj00L0hHhLw1djm66St1hrJDvebQ23vDX6tcynPbQAQ",
             "ts": 1793080391328,
             "type": "comment"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1793257647302-vnjmom",
+            "sig": "SyBEwS2O9D8dQV0irffU7XqOnaRZ__roOwAe0pXSBKztnqoMS1hA9PX-E0Ss8D_iHeWjShoF3oYbp3upWqGYBA",
+            "ts": 1793257647302,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -81,6 +90,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-tomato: fix the BLT entry and main-branch repos in the funding lookup",
-    "updatedAt": 1793080391328,
+    "updatedAt": 1793257647302,
     "votes": 0
 }
