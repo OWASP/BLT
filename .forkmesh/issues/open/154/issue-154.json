@@ -86,6 +86,17 @@
             "sig": "015tK_baBzbV5kqNTHPk21MyEZ5sxA-wo04pdeYqAXyQp6zTclkfr3UrSRBxhYXnJmCs3Rz_aRoKLXuoh-E3Aw",
             "ts": 1793257648495,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "PR Raised! \n\nhttps://git.owaspblt.org/BLT/pull/34",
+            "id": "comment-web-1793257672150",
+            "sig": "Na3VgDiJGyUYCXIO0QLTf62AAuCCxizaqYtnY3aJkPfpiWYWekVNVX7gFzKwncbup4YFEyFji5YXa_xJbCygBg",
+            "ts": 1793257672150,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -101,6 +112,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-tomato: fix the BLT entry and main-branch repos in the funding lookup",
-    "updatedAt": 1793257648495,
+    "updatedAt": 1793257672150,
     "votes": 0
 }
