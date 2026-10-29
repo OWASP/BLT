@@ -121,6 +121,17 @@
             "sig": "bmQh5dkUpLPwqKkKICDn9w2Xsi-VUk3i_CAo3eH2VhUPuvTn9Ul41vluhB_9fPYQYu-9nYwogWx771XpTvkaAA",
             "ts": 1793173137668,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "1IjcdW9JCaXjDBlKkyQReX4pPsdod5yjrnO8WZhfwh0",
+            "authorName": "granger",
+            "authorVerified": true,
+            "body": "Linked pull request #40",
+            "id": "comment-web-1793304934959",
+            "sig": "dVot-6GlbHb9oB1s-lLC2ZklQqvw_HoaR77VDAy_Q2E0hEOmnmyZPfAyLzkw3IDyquqMWf4I85kOEQZGr1bPAA",
+            "ts": 1793304934959,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -136,6 +147,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-cve: make the documented BLT-YYYY-DRAFT submission pass validation",
-    "updatedAt": 1793173137668,
+    "updatedAt": 1793304934959,
     "votes": 0
 }
