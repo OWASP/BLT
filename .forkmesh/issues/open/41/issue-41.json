@@ -57,6 +57,17 @@
             "sig": "cmm8p8inNCsjPGXjT6puEsgyAaZ1LzRsZ7ROmFb8ppX48WFahSJJO9a2wBneWAVFW-0Q0Bts_LclvlzooRF_AA",
             "ts": 1793261334560,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "PR Raised!\n\nhttps://git.owaspblt.org/BLT/pull/47",
+            "id": "comment-web-1793265292677",
+            "sig": "7O2lLn95Y_CPR1u5EDAXG-B3Lh1v_2dOjAlpNihyu35RkW4A6e-iRxWRboynGi9W-zdTOogrEK5SKGpNVyRsAA",
+            "ts": 1793265292677,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -72,6 +83,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: drop the unused `cffi\u003c2` pin and upgrade cryptography, aiohttp and pillow",
-    "updatedAt": 1793261334560,
+    "updatedAt": 1793265292677,
     "votes": 0
 }
