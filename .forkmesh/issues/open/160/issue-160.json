@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "hiralmodi"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -12,7 +14,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\n`public/js/config.js` has `PROJECT_PATH: \"owasp-blt/blt-pages\"` (GitLab era) and `ISSUE_TEMPLATE`, which nothing reads. `@fontsource/manrope` in package.json isn't used (fonts are vendored). `playwright.config.js` runs `python` instead of `python3`.\n\n## What to do\n\n1. Delete the dead keys, remove the dependency (update package-lock.json), and use `python3` in the webServer command.\n\n## Acceptance criteria\n\n- [ ] No unused config keys\n- [ ] `npm ci && npm test` still works\n- [ ] Unit tests pass\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-pages\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\n`public/js/config.js` has `PROJECT_PATH: \"owasp-blt/blt-pages\"` (GitLab era) and `ISSUE_TEMPLATE`, which nothing reads. `@fontsource/manrope` in package.json isn't used (fonts are vendored). `playwright.config.js` runs `python` instead of `python3`.\n\n## What to do\n\n1. Delete the dead keys, remove the dependency (update package-lock.json), and use `python3` in the webServer command.\n\n## Acceptance criteria\n\n- [ ] No unused config keys\n- [ ] `npm ci \u0026\u0026 npm test` still works\n- [ ] Unit tests pass\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-pages\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-160",
             "sig": "ugMS1iesb2hxlvQnPeERU8ZBTLFUyQ5ThFsxWe8hcHuppiWYmyLt8mwBz_BOPqskFUUNNEc3nDE9eDU1Hv_mCg",
             "title": "blt-pages: remove dead config keys and the unused @fontsource dependency",
@@ -32,6 +34,17 @@
             "sig": "u6I1vcMOezZKA1yYniGZCtpCTYf4a-CK8YesgaJKY2WAOCnCg-EiLWGVvL5e_v8zSv-nxsoMz0PsT-ZjPLPlAQ",
             "ts": 1792547524460,
             "type": "labels"
+        },
+        {
+            "assignee": "hiralmodi",
+            "author": "z8umhj46U08jgUGw9mp2y-DMtqQIANQ7fXaMUtEJzEY",
+            "authorName": "hiralmodi",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1793345477438-7l0sd2",
+            "sig": "-9tnNhyyXGVNsryaOUSvaE0KA7OwY97XORfyv8REQmmmLlwzGB0TDB5vZmqeJoaKuhFY1wm-gFvVBed4RDV_Cg",
+            "ts": 1793345477438,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -48,6 +61,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-pages: remove dead config keys and the unused @fontsource dependency",
-    "updatedAt": 1792547524460,
+    "updatedAt": 1793345477438,
     "votes": 0
 }
