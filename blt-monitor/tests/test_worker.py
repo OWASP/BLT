@@ -13,7 +13,7 @@ class FakeKV:
     async def get(self, key):
         return self.data.get(key)
 
-    async def put(self, key, value):
+    async def put(self, key, value, **kwargs):
         self.data[key] = value
 
 
@@ -31,6 +31,28 @@ def _env(token="token", history=None):
     env = types.SimpleNamespace(INGEST_TOKEN=token)
     setattr(env, "blt-monitor-history", FakeKV(history))
     return env
+
+
+def test_append_history_rejects_wrong_token():
+    worker = _load_worker()
+    entry = worker.Default(env=_env(token="token"))
+    request = types.SimpleNamespace(headers={"Authorization": "Bearer wrong-token"})
+
+    response = asyncio.run(entry.append_history(request, "site"))
+
+    assert response.status == 401
+    assert json.loads(response.body)["error"] == "Unauthorized"
+
+
+def test_append_history_rejects_missing_authorization_header():
+    worker = _load_worker()
+    entry = worker.Default(env=_env(token="token"))
+    request = types.SimpleNamespace(headers={})
+
+    response = asyncio.run(entry.append_history(request, "site"))
+
+    assert response.status == 401
+    assert json.loads(response.body)["error"] == "Unauthorized"
 
 
 def test_append_history_rejects_invalid_status_or_negative_duration():
@@ -63,12 +85,13 @@ def test_add_history_entry_keeps_last_30_entries():
 
 def test_load_histories_returns_empty_dict_for_corrupt_json():
     worker = _load_worker()
-    env = _env(history={"histories:0": "{not valid json"})
+    shard = 0
+    key = worker.Default.histories_key(shard)
+    env = _env(history={key: "{not valid json"})
 
-    histories = asyncio.run(worker.Default(env).load_histories(0, env))
+    histories = asyncio.run(worker.Default(env).load_histories(shard, env))
 
     assert histories == {}
-
 
 def test_check_monitor_marks_missing_keyword_as_failure_on_200():
     worker = _load_worker()
@@ -82,6 +105,7 @@ def test_check_monitor_marks_missing_keyword_as_failure_on_200():
 
 
 def test_check_monitor_accepts_cloudflare_captcha_as_success():
+    # A Cloudflare CAPTCHA indicates the site is reachable, even though the expected application keyword is unavailable.
     worker = _load_worker()
     worker.fetch = AsyncMock(
         return_value=FakeResponse(
@@ -97,10 +121,19 @@ def test_check_monitor_accepts_cloudflare_captcha_as_success():
     assert result["keyword_status"] == "not_found"
 
 
-def test_monitor_shard_is_stable_and_bounded():
+def test_monitor_shard_is_stable_and_distributed():
     worker = _load_worker()
-    shard = worker.Default.monitor_shard("example-site")
 
+    # stability + bounded
+    shard = worker.Default.monitor_shard("example-site")
     assert isinstance(shard, int)
     assert 0 <= shard < worker.HISTORY_SHARDS
-    assert shard == worker.Default.monitor_shard("example-site")
+    assert shard == 0
+
+    assert worker.Default.monitor_shard("other-site") == 2
+
+    # distribution
+    distinct_shards = {
+        worker.Default.monitor_shard(f"site-{i}") for i in range(50)
+    }
+    assert len(distinct_shards) > 1
