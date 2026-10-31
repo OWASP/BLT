@@ -32,6 +32,17 @@
             "sig": "Hahi905P-J7Q2irOIYn8L_lYAt1wuXI2L16yrwtCdjwoI-C8WvYsygoP8Feea9rkf24Qd4nhauiKnJa7RXKgCA",
             "ts": 1792547523680,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "NkGmX0ic_si2qXAkdhO5tdjAkFV4Q1oXf77lVCR98RQ",
+            "authorName": "prabhat1",
+            "authorVerified": true,
+            "body": "Submitted PR #53: https://git.owaspblt.org/BLT/pull/53",
+            "id": "comment-web-1793446786301",
+            "sig": "v6s21bNNwRykApNT_ahDuw7lv42-GIvG3AeSqvYGlFlnvt0JX-g0RK4YKgnXCccGUsBKypbOXtR_xF1CShefAA",
+            "ts": 1793446786301,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -48,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-start: use the forge's `?label=` filter for the \"good first issue\" links",
-    "updatedAt": 1792547523680,
+    "updatedAt": 1793446786301,
     "votes": 0
 }
