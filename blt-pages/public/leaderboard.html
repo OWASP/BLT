@@ -121,6 +121,10 @@
             <path fill="currentColor"
                 d="M351.9 280l-190.9 0c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zM160.9 232l190.9 0C349 167.5 334.7 108.1 314.4 64.6 303 40.2 290.7 22.8 279.3 12.2 268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4zm-48 0C116.4 146.4 138.5 66.9 170.8 14.7 78.7 47.3 10.9 131.2 1.5 232l111.4 0zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3L1.5 280zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3l-111.4 0zm111.4-48C501.9 131.2 434.1 47.3 342 14.7 374.3 66.9 396.4 146.4 399.9 232l111.4 0z" />
         </symbol>
+        <symbol id="fa-comment" viewBox="0 0 512 512">
+            <path fill="currentColor"
+                d="M512 240c0 132.5-114.6 240-256 240-37.1 0-72.3-7.4-104.1-20.7L33.5 510.1c-9.4 4-20.2 1.7-27.1-5.8S-2 485.8 2.8 476.8l48.8-92.2C19.2 344.3 0 294.3 0 240 0 107.5 114.6 0 256 0S512 107.5 512 240z" />
+        </symbol>
         <symbol id="fa-comments" viewBox="0 0 576 512">
             <path fill="currentColor"
                 d="M384 144c0 97.2-86 176-192 176-26.7 0-52.1-5-75.2-14L35.2 349.2c-9.3 4.9-20.7 3.2-28.2-4.2s-9.2-18.9-4.2-28.2l35.6-67.2C14.3 220.2 0 183.6 0 144 0 46.8 86-32 192-32S384 46.8 384 144zm0 368c-94.1 0-172.4-62.1-188.8-144 120-1.5 224.3-86.9 235.8-202.7 83.3 19.2 145 88.3 145 170.7 0 39.6-14.3 76.2-38.4 105.6l35.6 67.2c4.9 9.3 3.2 20.7-4.2 28.2s-18.9 9.2-28.2 4.2L459.2 498c-23.1 9-48.5 14-75.2 14z" />
@@ -187,7 +191,7 @@
                             </tr>
                         </thead>
                         <tbody id="leaderboard-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-800">
-                            <!-- SSR:leaderboard-rows --><tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400"><svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-trophy"></use></svg>No reports yet. Be the first to <a href="https://git.owaspblt.org/BLT/issues/new" class="text-primary underline hover:no-underline">report a bug</a>!</td></tr><!-- /SSR:leaderboard-rows -->
+                            <!-- SSR:leaderboard-rows --><tr><td colspan="4" class="py-12 text-gray-500 dark:text-gray-400"><div class="flex flex-col items-center justify-center text-center gap-2"><svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true"><use href="#fa-trophy"></use></svg><p>No reports yet. Be the first to <a href="https://git.owaspblt.org/BLT/issues/new" class="text-primary underline hover:no-underline">report a bug</a>!</p></div></td></tr><!-- /SSR:leaderboard-rows -->
                         </tbody>
                     </table>
                 </div>
@@ -216,7 +220,7 @@
                             </tr>
                         </thead>
                         <tbody id="commenters-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-800">
-                            <!-- SSR:commenters-rows --><tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400"><svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-comment"></use></svg>No comments yet. Start a conversation on a <a href="https://git.owaspblt.org/BLT/issues?label=blt-pages" class="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">bug report</a>!</td></tr><!-- /SSR:commenters-rows -->
+                            <!-- SSR:commenters-rows --><tr><td colspan="4" class="py-12 text-gray-500 dark:text-gray-400"><div class="flex flex-col items-center justify-center text-center gap-2"><svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true"><use href="#fa-comment"></use></svg><p>No comments yet. Start a conversation on a <a href="https://git.owaspblt.org/BLT/issues?label=blt-pages" class="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">bug report</a>!</p></div></td></tr><!-- /SSR:commenters-rows -->
                         </tbody>
                     </table>
                 </div>
@@ -246,7 +250,7 @@
                         </tr>
                     </thead>
                     <tbody id="domains-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-800">
-                        <!-- SSR:domains-rows --><tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400"><svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-globe"></use></svg>No domain data yet. <a href="https://git.owaspblt.org/BLT/issues/new" class="text-primary underline hover:no-underline">Be the first to report a bug!</a></td></tr><!-- /SSR:domains-rows -->
+                        <!-- SSR:domains-rows --><tr><td colspan="4" class="py-12 text-gray-500 dark:text-gray-400"><div class="flex flex-col items-center justify-center text-center gap-2"><svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true"><use href="#fa-globe"></use></svg><p>No domain data yet. <a href="https://git.owaspblt.org/BLT/issues/new" class="text-primary underline hover:no-underline">Be the first to report a bug!</a></p></div></td></tr><!-- /SSR:domains-rows -->
                     </tbody>
                 </table>
             </div>
