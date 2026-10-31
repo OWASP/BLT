@@ -119,25 +119,26 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 <!-- CONTRIBUTORS-END -->
 
 <!-- WAITING-PRS-START -->
-## ⏳ Pull Requests Waiting for Review (22 open, 7 new contributors)
+## ⏳ Pull Requests Waiting for Review (24 open, 7 new contributors)
 
-*Last updated: 2026-10-30 06:17 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
+*Last updated: 2026-10-31 06:17 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
 
 | Contributor | Waiting | Pull requests |
 |---|---|---|
 | [granger](https://git.owaspblt.org/@granger) 🌱 **new contributor** | 2 | [#40](https://git.owaspblt.org/BLT/pull/40) fix: validate BLT-CVE drafts without publishing them<br>[#48](https://git.owaspblt.org/BLT/pull/48) feat(blt-api): add organization-scoped public jobs API |
 | [himaneeesh](https://git.owaspblt.org/@himaneeesh) 🌱 **new contributor** | 2 | [#12](https://git.owaspblt.org/BLT/pull/12) blt-toasty: notify BLT Chat about terminal triage outcomes<br>[#42](https://git.owaspblt.org/BLT/pull/42) blt-owasp-projects: handle dashboard loading states |
 | [namrata](https://git.owaspblt.org/@namrata) 🌱 **new contributor** | 2 | [#36](https://git.owaspblt.org/BLT/pull/36) fix(accessibility): add names to icon-only controls<br>[#43](https://git.owaspblt.org/BLT/pull/43) Add worker regression tests for BLT Monitor (#116) |
+| [prabhat1](https://git.owaspblt.org/@prabhat1) 🌱 **new contributor** | 2 | [#49](https://git.owaspblt.org/BLT/pull/49) blt-start: make the advertised dark mode work (add a theme toggle)<br>[#51](https://git.owaspblt.org/BLT/pull/51) blt-start: add CI tests to reach gold standard |
 | [dahahanish](https://git.owaspblt.org/@dahahanish) 🌱 **new contributor** | 1 | [#9](https://git.owaspblt.org/BLT/pull/9) blt-toasty: notify Slack when Toasty finishes triage (#35) |
 | [ojaswa](https://git.owaspblt.org/@ojaswa) 🌱 **new contributor** | 1 | [#32](https://git.owaspblt.org/BLT/pull/32) blt-cve: add unit tests for validation and indexing, guard null severity (#166) |
 | [owasp-marquina](https://git.owaspblt.org/@owasp-marquina) 🌱 **new contributor** | 1 | [#20](https://git.owaspblt.org/BLT/pull/20) blt-netguardian: add unit tests for payload_redact |
-| [prabhat1](https://git.owaspblt.org/@prabhat1) 🌱 **new contributor** | 1 | [#49](https://git.owaspblt.org/BLT/pull/49) blt-start: make the advertised dark mode work (add a theme toggle) |
 | [navodit](https://git.owaspblt.org/@navodit) | 3 | [#5](https://git.owaspblt.org/BLT/pull/5) Fix mobile sidebar: add toggle button, outside-click close, auto-close on nav select, and…<br>[#11](https://git.owaspblt.org/BLT/pull/11) Fix day-of-week range parsing to allow values ending in 7<br>[#14](https://git.owaspblt.org/BLT/pull/14) Fix /health endpoint to build endpoint map dynamically from router |
 | [hrinkar01](https://git.owaspblt.org/@hrinkar01) | 2 | [#34](https://git.owaspblt.org/BLT/pull/34) blt-tomato: support custom funding_url and default_branch for funding files<br>[#47](https://git.owaspblt.org/BLT/pull/47) blt-legacy: drop unused cffi pin and upgrade cryptography, aiohttp and pillow |
 | [nachiket](https://git.owaspblt.org/@nachiket) | 2 | [#25](https://git.owaspblt.org/BLT/pull/25) blt-api: allow public read access for jobs and hackathons GET endpoints<br>[#37](https://git.owaspblt.org/BLT/pull/37) feat(blt-cli): implement ztr-finding-1 JCS canonicalization and HMAC signing engine |
 | [preetam](https://git.owaspblt.org/@preetam) | 2 | [#17](https://git.owaspblt.org/BLT/pull/17) Fix accessibility issues for channel pills, preset chips, and input labels<br>[#30](https://git.owaspblt.org/BLT/pull/30) test: add Slack app updater unit tests |
 | [vanshika2720](https://git.owaspblt.org/@vanshika2720) | 2 | [#3](https://git.owaspblt.org/BLT/pull/3) blt-next: serve leaderboard from BLT-API instead of hardcoded data<br>[#15](https://git.owaspblt.org/BLT/pull/15) blt-mcp: sync AGENT.md with tool definitions |
 | [arnavghai19](https://git.owaspblt.org/@arnavghai19) | 1 | [#46](https://git.owaspblt.org/BLT/pull/46) fix(blt-leaf): launch Wrangler correctly on Windows |
+| [hiralmodi](https://git.owaspblt.org/@hiralmodi) | 1 | [#50](https://git.owaspblt.org/BLT/pull/50) blt-pages: remove dead config keys, unused @fontsource dependency, and use python3 in pla… |
 <!-- WAITING-PRS-END -->
 
 <!-- DEPLOY-START -->
