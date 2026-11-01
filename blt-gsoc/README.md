@@ -33,7 +33,8 @@ BLT-GSOC/
 ├── images/
 │   └── gsoc.png       # GSoC logo
 ├── js/
-│   └── gsoc_pr_report.js  # Analytics scripts
+│   ├── gsoc2026_stats.js  # GSoC statistics script
+│   └── theme.js           # Theme toggle logic
 ├── worker/            # Worker: serves the site, refreshes data into KV
 ├── README.md          # This file
 ├── CHANGELOG.md       # Version history
