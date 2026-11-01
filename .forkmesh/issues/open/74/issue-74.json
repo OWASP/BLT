@@ -67,6 +67,16 @@
             "sig": "jpva68-ILudFxYZ8KISd66RPlx1PaIj_G76mKlqHMweE8c0Yrax8bxA25uzSUULJ6B7ETjFyLubKQSAHEP2xBQ",
             "ts": 1793559724439,
             "type": "comment"
+        },
+        {
+            "author": "Hq3ScFNWV2kELU_o5f1ApiQT5WpGQCdRKEebtlDzhfk",
+            "authorName": "emmanuelmj",
+            "authorVerified": true,
+            "id": "delete-web-1793559732622-1u2a6sl",
+            "sig": "jIR9OKkruAqpUxdTGsBVNrh6Rpq3A4NjJryDYpx34Bk-xXSFn9mLZ1wgQOC3mzFt5JqHuqHOS7yaW0NDJTsAAg",
+            "target": "comment-web-1793559705930",
+            "ts": 1793559732622,
+            "type": "delete"
         }
     ],
     "labels": [
@@ -83,6 +93,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-netguardian: add unit tests for payload_redact.py",
-    "updatedAt": 1793559724439,
+    "updatedAt": 1793559732622,
     "votes": 0
 }
