@@ -427,9 +427,9 @@
    "source": "github",
    "github": "ojaswa072",
    "gitlab": "ojaswa072",
-   "commits": 118,
+   "commits": 119,
    "first": "2026-02-23",
-   "last": "2026-10-20",
+   "last": "2026-10-26",
    "projects": [
     "BLT-Toasty",
     "BLT-SafeCloak",
@@ -437,6 +437,7 @@
     "BLT-API",
     "BLT",
     "BLT-GSOC",
+    "BLT-CVE",
     "BLT-Pool",
     "BLT-Rewards"
    ],
