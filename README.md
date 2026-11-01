@@ -119,16 +119,16 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 <!-- CONTRIBUTORS-END -->
 
 <!-- WAITING-PRS-START -->
-## ⏳ Pull Requests Waiting for Review (24 open, 7 new contributors)
+## ⏳ Pull Requests Waiting for Review (28 open, 7 new contributors)
 
-*Last updated: 2026-10-31 06:17 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
+*Last updated: 2026-11-01 06:17 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
 
 | Contributor | Waiting | Pull requests |
 |---|---|---|
-| [granger](https://git.owaspblt.org/@granger) 🌱 **new contributor** | 2 | [#40](https://git.owaspblt.org/BLT/pull/40) fix: validate BLT-CVE drafts without publishing them<br>[#48](https://git.owaspblt.org/BLT/pull/48) feat(blt-api): add organization-scoped public jobs API |
+| [granger](https://git.owaspblt.org/@granger) 🌱 **new contributor** | 4 | [#40](https://git.owaspblt.org/BLT/pull/40) fix: validate BLT-CVE drafts without publishing them<br>[#48](https://git.owaspblt.org/BLT/pull/48) feat(blt-api): add organization-scoped public jobs API<br>[#54](https://git.owaspblt.org/BLT/pull/54) fix(blt-api): update /health documentation link to /dashboard and verify route resolution…<br>[#55](https://git.owaspblt.org/BLT/pull/55) fix(blt-pages): center icons and wrap empty-state summary cards on leaderboard |
+| [prabhat1](https://git.owaspblt.org/@prabhat1) 🌱 **new contributor** | 4 | [#49](https://git.owaspblt.org/BLT/pull/49) blt-start: make the advertised dark mode work (add a theme toggle)<br>[#51](https://git.owaspblt.org/BLT/pull/51) blt-start: add CI tests to reach gold standard<br>[#52](https://git.owaspblt.org/BLT/pull/52) blt-start: fix good first issue links and local setup instructions<br>[#53](https://git.owaspblt.org/BLT/pull/53) blt-start: fix good first issue links and local setup instructions |
 | [himaneeesh](https://git.owaspblt.org/@himaneeesh) 🌱 **new contributor** | 2 | [#12](https://git.owaspblt.org/BLT/pull/12) blt-toasty: notify BLT Chat about terminal triage outcomes<br>[#42](https://git.owaspblt.org/BLT/pull/42) blt-owasp-projects: handle dashboard loading states |
 | [namrata](https://git.owaspblt.org/@namrata) 🌱 **new contributor** | 2 | [#36](https://git.owaspblt.org/BLT/pull/36) fix(accessibility): add names to icon-only controls<br>[#43](https://git.owaspblt.org/BLT/pull/43) Add worker regression tests for BLT Monitor (#116) |
-| [prabhat1](https://git.owaspblt.org/@prabhat1) 🌱 **new contributor** | 2 | [#49](https://git.owaspblt.org/BLT/pull/49) blt-start: make the advertised dark mode work (add a theme toggle)<br>[#51](https://git.owaspblt.org/BLT/pull/51) blt-start: add CI tests to reach gold standard |
 | [dahahanish](https://git.owaspblt.org/@dahahanish) 🌱 **new contributor** | 1 | [#9](https://git.owaspblt.org/BLT/pull/9) blt-toasty: notify Slack when Toasty finishes triage (#35) |
 | [ojaswa](https://git.owaspblt.org/@ojaswa) 🌱 **new contributor** | 1 | [#32](https://git.owaspblt.org/BLT/pull/32) blt-cve: add unit tests for validation and indexing, guard null severity (#166) |
 | [owasp-marquina](https://git.owaspblt.org/@owasp-marquina) 🌱 **new contributor** | 1 | [#20](https://git.owaspblt.org/BLT/pull/20) blt-netguardian: add unit tests for payload_redact |
