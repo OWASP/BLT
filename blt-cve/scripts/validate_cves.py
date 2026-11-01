@@ -33,10 +33,12 @@ def load_schema():
         return json.load(f)
 
 
-def collect_cve_files():
+def collect_cve_files(cves_dir=CVES_DIR):
     """Yield (year_folder, filepath) for every .json file under public/cves."""
-    for year in sorted(os.listdir(CVES_DIR)):
-        year_dir = os.path.join(CVES_DIR, year)
+    if not os.path.isdir(cves_dir):
+        return
+    for year in sorted(os.listdir(cves_dir)):
+        year_dir = os.path.join(cves_dir, year)
         if not os.path.isdir(year_dir):
             continue
         for fname in sorted(os.listdir(year_dir)):
@@ -44,15 +46,18 @@ def collect_cve_files():
                 yield year, os.path.join(year_dir, fname)
 
 
-def validate():
+def validate(cves_dir=CVES_DIR):
     schema = load_schema()
     validator = jsonschema.Draft7Validator(schema)
 
     errors = []
     seen_ids = {}
 
-    for year_folder, filepath in collect_cve_files():
-        rel = os.path.relpath(filepath, REPO_ROOT)
+    for year_folder, filepath in collect_cve_files(cves_dir=cves_dir):
+        try:
+            rel = os.path.relpath(filepath, REPO_ROOT)
+        except ValueError:
+            rel = filepath
 
         # Load JSON
         try:

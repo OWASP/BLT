@@ -20,13 +20,13 @@ FEED_PATH = os.path.join(PUBLIC_DIR, "feed.json")
 BASE_URL = os.environ.get("BLT_CVE_BASE_URL", "https://cve.owaspblt.org").rstrip("/")
 
 
-def collect_entries():
+def collect_entries(cves_dir=CVES_DIR):
     """Return a list of (id, path, entry_dict) sorted by ID."""
     entries = []
-    if not os.path.isdir(CVES_DIR):
+    if not os.path.isdir(cves_dir):
         return entries
-    for year in sorted(os.listdir(CVES_DIR)):
-        year_dir = os.path.join(CVES_DIR, year)
+    for year in sorted(os.listdir(cves_dir)):
+        year_dir = os.path.join(cves_dir, year)
         if not os.path.isdir(year_dir):
             continue
         for fname in sorted(os.listdir(year_dir)):
@@ -54,7 +54,7 @@ def build_index(entries, now_ts):
             {
                 "id": eid,
                 "path": rel,
-                "severity": entry.get("severity", {}).get("cvss_score"),
+                "severity": (entry.get("severity") or {}).get("cvss_score"),
             }
             for eid, rel, entry in entries
         ],
@@ -72,7 +72,7 @@ def build_feed(entries, now_ts):
                 "title": entry.get("title", ""),
                 "published": entry.get("published", ""),
                 "modified": entry.get("modified", ""),
-                "severity": entry.get("severity", {}).get("cvss_score"),
+                "severity": (entry.get("severity") or {}).get("cvss_score"),
                 "url": f"{BASE_URL}{rel}",
             }
             for eid, rel, entry in entries
