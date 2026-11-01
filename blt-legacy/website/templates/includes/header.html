@@ -53,105 +53,105 @@
                                     <li>
                                         <a href="{% url 'organizations' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'organizations' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-building w-5 mr-2 {% if request.resolver_match.url_name == 'organizations' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-building w-5 mr-2 {% if request.resolver_match.url_name == 'organizations' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Organizations
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'register_organization' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'register_organization' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-plus w-5 mr-2 {% if request.resolver_match.url_name == 'register_organization' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-plus w-5 mr-2 {% if request.resolver_match.url_name == 'register_organization' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Register Organization
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'domains' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'domains' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-globe w-5 mr-2 {% if request.resolver_match.url_name == 'domains' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-globe w-5 mr-2 {% if request.resolver_match.url_name == 'domains' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Domains
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'map' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'map' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-map-marker-alt w-5 mr-2 {% if request.resolver_match.url_name == 'map' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-map-marker-alt w-5 mr-2 {% if request.resolver_match.url_name == 'map' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Map
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'feed' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'feed' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-rss w-5 mr-2 {% if request.resolver_match.url_name == 'feed' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-rss w-5 mr-2 {% if request.resolver_match.url_name == 'feed' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Feed
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'hackathons' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'hackathons' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-trophy w-5 mr-2 {% if request.resolver_match.url_name == 'hackathons' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-trophy w-5 mr-2 {% if request.resolver_match.url_name == 'hackathons' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Hackathons
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'public_job_list' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'public_job_list' or request.resolver_match.url_name == 'job_detail' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-briefcase w-5 mr-2 {% if request.resolver_match.url_name == 'public_job_list' or request.resolver_match.url_name == 'job_detail' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-briefcase w-5 mr-2 {% if request.resolver_match.url_name == 'public_job_list' or request.resolver_match.url_name == 'job_detail' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Jobs
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'issues' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'issues' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-bug w-5 mr-2 {% if request.resolver_match.url_name == 'issues' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-bug w-5 mr-2 {% if request.resolver_match.url_name == 'issues' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Bugs
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'github_issues' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'github_issues' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-bug w-5 mr-2 {% if request.resolver_match.url_name == 'github_issues' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-bug w-5 mr-2 {% if request.resolver_match.url_name == 'github_issues' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Issues
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'sizzle' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'sizzle' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-fire w-5 mr-2 {% if request.resolver_match.url_name == 'sizzle' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-fire w-5 mr-2 {% if request.resolver_match.url_name == 'sizzle' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Time Logs
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'checkIN' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'checkIN' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-user-check w-5 mr-2 {% if request.resolver_match.url_name == 'checkIN' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-user-check w-5 mr-2 {% if request.resolver_match.url_name == 'checkIN' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Check-In
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'scoreboard' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'scoreboard' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-trophy w-5 mr-2 {% if request.resolver_match.url_name == 'scoreboard' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-trophy w-5 mr-2 {% if request.resolver_match.url_name == 'scoreboard' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Scoreboard
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'hunts' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'hunts' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-bug w-5 mr-2 {% if request.resolver_match.url_name == 'hunts' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-bug w-5 mr-2 {% if request.resolver_match.url_name == 'hunts' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Bounties
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'reported_ips_list' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'reported_ips_list' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-exclamation-triangle w-5 mr-2 {% if request.resolver_match.url_name == 'reported_ips_list' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-exclamation-triangle w-5 mr-2 {% if request.resolver_match.url_name == 'reported_ips_list' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Reported IPs
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'trademark_search' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'trademark_search' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-registered w-5 mr-2 {% if request.resolver_match.url_name == 'trademark_search' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-registered w-5 mr-2 {% if request.resolver_match.url_name == 'trademark_search' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Trademarks
                                         </a>
                                     </li>
@@ -161,21 +161,21 @@
                                     <li>
                                         <a href="{% url 'similarity_scan' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'similarity_scan' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-clone w-5 mr-2 {% if request.resolver_match.url_name == 'similarity_scan' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-clone w-5 mr-2 {% if request.resolver_match.url_name == 'similarity_scan' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             SimilarityScan
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'rooms_list' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'rooms_list' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-door-open w-5 mr-2 {% if request.resolver_match.url_name == 'rooms_list' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-door-open w-5 mr-2 {% if request.resolver_match.url_name == 'rooms_list' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Rooms
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'video_call' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'video_call' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-video w-5 mr-2 {% if request.resolver_match.url_name == 'video_call' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-video w-5 mr-2 {% if request.resolver_match.url_name == 'video_call' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Video Call
                                         </a>
                                     </li>
@@ -183,7 +183,7 @@
                                         <a href="https://panini.owaspblt.org/"
                                            target="_blank"
                                            class="flex items-center transition-colors text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800">
-                                            <i class="fas fa-ban w-5 mr-2 text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c]"></i>
+                                            <i class="fas fa-ban w-5 mr-2 text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c]" aria-hidden="true"></i>
                                             Banned Apps
                                         </a>
                                     </li>
@@ -196,49 +196,49 @@
                                     <li>
                                         <a href="{% url 'project_list' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'project_list' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-box w-5 mr-2 {% if request.resolver_match.url_name == 'project_list' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-box w-5 mr-2 {% if request.resolver_match.url_name == 'project_list' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Projects
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'repo_list' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'repo_list' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fab fa-github w-5 mr-2 {% if request.resolver_match.url_name == 'repo_list' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fab fa-github w-5 mr-2 {% if request.resolver_match.url_name == 'repo_list' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Repositories
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'BiddingData' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'BiddingData' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-money-bill-wave w-5 mr-2 {% if request.resolver_match.url_name == 'BiddingData' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-money-bill-wave w-5 mr-2 {% if request.resolver_match.url_name == 'BiddingData' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Bid on Issues
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'blt-tomato' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'blt-tomato' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-seedling w-5 mr-2 {% if request.resolver_match.url_name == 'blt-tomato' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-seedling w-5 mr-2 {% if request.resolver_match.url_name == 'blt-tomato' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Funding
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'bacon' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'bacon' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-coins w-5 mr-2 {% if request.resolver_match.url_name == 'bacon' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-coins w-5 mr-2 {% if request.resolver_match.url_name == 'bacon' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             BACON (coin)
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'bacon_requests' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'bacon_requests' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-hands-helping w-5 mr-2 {% if request.resolver_match.url_name == 'bacon_requests' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-hands-helping w-5 mr-2 {% if request.resolver_match.url_name == 'bacon_requests' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Bacon Requests
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'gsoc_pr_report' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'gsoc_pr_report' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-code-pull-request w-5 mr-2 {% if request.resolver_match.url_name == 'gsoc_pr_report' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-code-pull-request w-5 mr-2 {% if request.resolver_match.url_name == 'gsoc_pr_report' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             GSOC PR Reports
                                         </a>
                                     </li>
@@ -248,70 +248,70 @@
                                     <li>
                                         <a href="{% url 'users' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'users' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-user-friends w-5 mr-2 {% if request.resolver_match.url_name == 'users' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-user-friends w-5 mr-2 {% if request.resolver_match.url_name == 'users' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Users
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'messaging' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'messaging' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-envelope w-5 mr-2 {% if request.resolver_match.url_name == 'messaging' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-envelope w-5 mr-2 {% if request.resolver_match.url_name == 'messaging' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Messaging
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'user_challenges' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'user_challenges' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-flag-checkered w-5 mr-2 {% if request.resolver_match.url_name == 'user_challenges' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-flag-checkered w-5 mr-2 {% if request.resolver_match.url_name == 'user_challenges' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Challenges
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'staking_home' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'staking_home' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-coins w-5 mr-2 {% if request.resolver_match.url_name == 'staking_home' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-coins w-5 mr-2 {% if request.resolver_match.url_name == 'staking_home' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Staking
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'leaderboard_global' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'leaderboard_global' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-medal w-5 mr-2 {% if request.resolver_match.url_name == 'leaderboard_global' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-medal w-5 mr-2 {% if request.resolver_match.url_name == 'leaderboard_global' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Leaderboard
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'contributors' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'contributors' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-laptop-code w-5 mr-2 {% if request.resolver_match.url_name == 'contributors' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-laptop-code w-5 mr-2 {% if request.resolver_match.url_name == 'contributors' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Contributors
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'deletions' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'deletions' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-trash-alt w-5 mr-2 {% if request.resolver_match.url_name == 'deletions' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-trash-alt w-5 mr-2 {% if request.resolver_match.url_name == 'deletions' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Takedowns
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'badges' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'badges' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-certificate w-5 mr-2 {% if request.resolver_match.url_name == 'badges' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-certificate w-5 mr-2 {% if request.resolver_match.url_name == 'badges' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Badges
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'adventure_list' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'adventure_list' or request.resolver_match.url_name == 'adventure_detail' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-rocket w-5 mr-2 {% if request.resolver_match.url_name == 'adventure_list' or request.resolver_match.url_name == 'adventure_detail' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-rocket w-5 mr-2 {% if request.resolver_match.url_name == 'adventure_list' or request.resolver_match.url_name == 'adventure_detail' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Adventures
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'reminder_settings' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'reminder_settings' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-bell w-5 mr-2 {% if request.resolver_match.url_name == 'reminder_settings' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-bell w-5 mr-2 {% if request.resolver_match.url_name == 'reminder_settings' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Reminder Settings
                                         </a>
                                     </li>
@@ -321,7 +321,7 @@
                                       method="post"
                                       class="flex items-center">
                                     {% csrf_token %}
-                                    <i class="fas fa-globe-americas w-5 mr-2 text-gray-700 dark:text-gray-300"></i>
+                                    <i class="fas fa-globe-americas w-5 mr-2 text-gray-700 dark:text-gray-300" aria-hidden="true"></i>
                                     <select name="language"
                                             onchange="this.form.submit()"
                                             class="form-select w-full text-gray-700 dark:text-gray-300 hover:text-[#e74c3c] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md">
@@ -343,28 +343,28 @@
                                     <li>
                                         <a href="{% url 'team_overview' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'team_overview' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-users w-5 mr-2 {% if request.resolver_match.url_name == 'team_overview' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-users w-5 mr-2 {% if request.resolver_match.url_name == 'team_overview' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Teams
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'team_challenges' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'team_challenges' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-flag-checkered w-5 mr-2 {% if request.resolver_match.url_name == 'team_challenges' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-flag-checkered w-5 mr-2 {% if request.resolver_match.url_name == 'team_challenges' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Team Challenges
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'team_leaderboard' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'team_leaderboard' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-medal w-5 mr-2 {% if request.resolver_match.url_name == 'team_leaderboard' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-medal w-5 mr-2 {% if request.resolver_match.url_name == 'team_leaderboard' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Team Leaderboard
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'team_member_leaderboard' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'team_member_leaderboard' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-user-friends w-5 mr-2 {% if request.resolver_match.url_name == 'team_member_leaderboard' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-user-friends w-5 mr-2 {% if request.resolver_match.url_name == 'team_member_leaderboard' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Team Member Leaderboard
                                         </a>
                                     </li>
@@ -374,33 +374,33 @@
                                     <li>
                                         <a href="{% url 'about' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'about' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-info-circle w-5 mr-2 {% if request.resolver_match.url_name == 'about' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-info-circle w-5 mr-2 {% if request.resolver_match.url_name == 'about' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             About Us
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'features' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'features' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fa-solid fa-gear w-5 mr-2 {% if request.resolver_match.url_name == 'features' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fa-solid fa-gear w-5 mr-2 {% if request.resolver_match.url_name == 'features' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Features
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'sponsor' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'sponsor' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-handshake w-5 mr-2 {% if request.resolver_match.url_name == 'sponsor' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-handshake w-5 mr-2 {% if request.resolver_match.url_name == 'sponsor' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Sponsorships
                                         </a>
                                     </li>
                                     <li>
                                         <a href="https://owasp.org/www-project-bug-logging-tool/"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-shield-alt w-5 mr-2"></i>OWASP Project</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-shield-alt w-5 mr-2" aria-hidden="true"></i>OWASP Project</a>
                                     </li>
                                     <li>
                                         <a href="{% url 'donate' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'donate' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-donate w-5 mr-2 {% if request.resolver_match.url_name == 'donate' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-donate w-5 mr-2 {% if request.resolver_match.url_name == 'donate' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Donations
                                         </a>
                                     </li>
@@ -410,19 +410,19 @@
                                     <li>
                                         <a href="https://www.figma.com/file/2lfEZKvqcb4WxRPYEwJqeE/OWASP-BLT?type=design&node-id=0%3A1&mode=design&t=Hy0GZXlVxBPHQMxr-1"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fab fa-figma w-5 mr-2"></i>Design</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fab fa-figma w-5 mr-2" aria-hidden="true"></i>Design</a>
                                     </li>
                                     <li>
                                         <a href="{% url 'style_guide' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'style_guide' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-palette w-5 mr-2 {% if request.resolver_match.url_name == 'style_guide' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-palette w-5 mr-2 {% if request.resolver_match.url_name == 'style_guide' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Style Guide
                                         </a>
                                     </li>
                                     <li>
                                         <a href="https://git.owaspblt.org/BLT/BLT-Core/blob/main/website/templates{{ current_template }}"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-edit w-5 mr-2"></i>Edit this page</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-edit w-5 mr-2" aria-hidden="true"></i>Edit this page</a>
                                     </li>
                                 </ul>
                             </div>
@@ -433,37 +433,37 @@
                                     <li>
                                         <a href="{% url 'contribution_guidelines' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'contribution_guidelines' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-hands-helping w-5 mr-2 {% if request.resolver_match.url_name == 'contribution_guidelines' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-hands-helping w-5 mr-2 {% if request.resolver_match.url_name == 'contribution_guidelines' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Contribute
                                         </a>
                                     </li>
                                     <li>
                                         <a href="https://github.com/OWASP/BLT/blob/main/Setup.md"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-book w-5 mr-2"></i>Documentation</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-book w-5 mr-2" aria-hidden="true"></i>Documentation</a>
                                     </li>
                                     <li>
                                         <a href="/swagger/"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-cogs w-5 mr-2"></i>Developer API</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-cogs w-5 mr-2" aria-hidden="true"></i>Developer API</a>
                                     </li>
                                     <li>
                                         <a href="{% url 'education' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'education' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-tv w-5 mr-2 {% if request.resolver_match.url_name == 'education' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-tv w-5 mr-2 {% if request.resolver_match.url_name == 'education' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Education
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'simulation_dashboard' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'simulation_dashboard' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-flask w-5 mr-2 {% if request.resolver_match.url_name == 'simulation_dashboard' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-flask w-5 mr-2 {% if request.resolver_match.url_name == 'simulation_dashboard' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Security Labs
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'ossh_home' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'ossh_home' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-hat-wizard w-5 mr-2 {% if request.resolver_match.url_name == 'ossh_home' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-hat-wizard w-5 mr-2 {% if request.resolver_match.url_name == 'ossh_home' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Open Source Sorting Hat
                                         </a>
                                     </li>
@@ -472,21 +472,21 @@
                                            target="_blank"
                                            rel="noopener noreferrer"
                                            class="flex items-center transition-colors text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800">
-                                            <i class="fas fa-sun w-5 mr-2 "></i>
+                                            <i class="fas fa-sun w-5 mr-2 " aria-hidden="true"></i>
                                             GSOC
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'roadmap' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'roadmap' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-road w-5 mr-2 {% if request.resolver_match.url_name == 'roadmap' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-road w-5 mr-2 {% if request.resolver_match.url_name == 'roadmap' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Roadmap
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'submit-roadmap-pr' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'submit-roadmap-pr' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-code-branch w-5 mr-2 {% if request.resolver_match.url_name == 'submit-roadmap-pr' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-code-branch w-5 mr-2 {% if request.resolver_match.url_name == 'submit-roadmap-pr' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Submit PR for review
                                         </a>
                                     </li>
@@ -496,37 +496,37 @@
                                     <li>
                                         <a href="https://github.com/OWASP/BLT"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fab fa-github w-5 mr-2"></i>Source Code</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fab fa-github w-5 mr-2" aria-hidden="true"></i>Source Code</a>
                                     </li>
                                     <li>
                                         <a href="https://git.owaspblt.org/BLT/BLT-Core"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-code-branch w-5 mr-2"></i>BLT Core</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-code-branch w-5 mr-2" aria-hidden="true"></i>BLT Core</a>
                                     </li>
                                     <li>
                                         <a href="https://git.owaspblt.org/BLT/BLT-Flutter"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-mobile-alt w-5 mr-2"></i>BLT Flutter</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-mobile-alt w-5 mr-2" aria-hidden="true"></i>BLT Flutter</a>
                                     </li>
                                     <li>
                                         <a href="https://git.owaspblt.org/BLT/BLT-Extension"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-puzzle-piece w-5 mr-2"></i>BLT Extension</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-puzzle-piece w-5 mr-2" aria-hidden="true"></i>BLT Extension</a>
                                     </li>
                                     <li>
                                         <a href="https://git.owaspblt.org/BLT/BLT-Action"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-play-circle w-5 mr-2"></i>BLT Action</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-play-circle w-5 mr-2" aria-hidden="true"></i>BLT Action</a>
                                     </li>
                                     <li>
                                         <a href="https://git.owaspblt.org/BLT/BLT-Rewards"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-coins w-5 mr-2"></i>BLT BACON</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-coins w-5 mr-2" aria-hidden="true"></i>BLT BACON</a>
                                     </li>
                                     <li>
                                         <a href="https://git.owaspblt.org/BLT/BLT-Lettuce"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-leaf w-5 mr-2"></i>BLT Lettuce</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fas fa-leaf w-5 mr-2" aria-hidden="true"></i>BLT Lettuce</a>
                                     </li>
                                 </ul>
                             </div>
@@ -537,12 +537,12 @@
                                     <li>
                                         <a href="https://apps.apple.com/us/app/owasp-blt/id6448071954"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fab fa-apple w-5 mr-2"></i>iPhone App</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fab fa-apple w-5 mr-2" aria-hidden="true"></i>iPhone App</a>
                                     </li>
                                     <li>
                                         <a href="{% url 'extension' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'extension' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-puzzle-piece w-5 mr-2 {% if request.resolver_match.url_name == 'extension' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-puzzle-piece w-5 mr-2 {% if request.resolver_match.url_name == 'extension' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Chrome Extension
                                         </a>
                                     </li>
@@ -552,26 +552,26 @@
                                     <li>
                                         <a href="https://x.com/owasp_blt"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fab fa-x-twitter w-5 mr-2"></i>Twitter</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fab fa-x-twitter w-5 mr-2" aria-hidden="true"></i>Twitter</a>
                                     </li>
                                     <li>
                                         <a href="https://www.facebook.com/groups/owaspfoundation/"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fab fa-facebook w-5 mr-2"></i>Facebook</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fab fa-facebook w-5 mr-2" aria-hidden="true"></i>Facebook</a>
                                     </li>
                                     <li>
                                         <a href="https://dev.to/owaspblt"
                                            target="_blank"
                                            rel="noopener noreferrer"
                                            class="flex items-center text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                                            <i class="fas fa-blog w-5 mr-2 text-gray-500 dark:text-gray-400"></i>
+                                            <i class="fas fa-blog w-5 mr-2 text-gray-500 dark:text-gray-400" aria-hidden="true"></i>
                                             Blog
                                         </a>
                                     </li>
                                     <li>
                                         <a href="https://owasp.org/slack/invite"
                                            target="_blank"
-                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fab fa-slack w-5 mr-2"></i>Slack</a>
+                                           class="flex items-center text-gray-700 dark:text-gray-300 hover:text-[#e74c3c]"><i class="fab fa-slack w-5 mr-2" aria-hidden="true"></i>Slack</a>
                                     </li>
                                 </ul>
                                 <h3 class="text-sm font-semibold text-[#e74c3c] uppercase mt-6 mb-4">Site Info</h3>
@@ -579,49 +579,49 @@
                                     <li>
                                         <a href="{% url 'sitemap' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'sitemap' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-sitemap w-5 mr-2 {% if request.resolver_match.url_name == 'sitemap' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-sitemap w-5 mr-2 {% if request.resolver_match.url_name == 'sitemap' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Sitemap
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'status_page' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'status_page' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-check-circle w-5 mr-2 {% if request.resolver_match.url_name == 'status_page' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-check-circle w-5 mr-2 {% if request.resolver_match.url_name == 'status_page' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Status
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'stats' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'stats' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-chart-line w-5 mr-2 {% if request.resolver_match.url_name == 'stats' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-chart-line w-5 mr-2 {% if request.resolver_match.url_name == 'stats' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Stats
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'stats_dashboard' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'stats_dashboard' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-chart-bar w-5 mr-2 {% if request.resolver_match.url_name == 'stats_dashboard' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-chart-bar w-5 mr-2 {% if request.resolver_match.url_name == 'stats_dashboard' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Stats Dashboard
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'template_list' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'template_list' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-list w-5 mr-2 {% if request.resolver_match.url_name == 'template_list' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-list w-5 mr-2 {% if request.resolver_match.url_name == 'template_list' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Template List
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'website_stats' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'website_stats' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-chart-line w-5 mr-2 {% if request.resolver_match.url_name == 'website_stats' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-chart-line w-5 mr-2 {% if request.resolver_match.url_name == 'website_stats' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Website Stats
                                         </a>
                                     </li>
                                     <li>
                                         <a href="{% url 'terms' %}"
                                            class="flex items-center transition-colors {% if request.resolver_match.url_name == 'terms' %} text-[#e74c3c] bg-[#feeae9] dark:bg-red-900/30 hover:bg-[#feeae9] dark:hover:bg-red-900/30 hover:text-[#e74c3c] cursor-default {% else %} text-gray-700 dark:text-gray-200 hover:text-[#e74c3c] dark:hover:text-[#e74c3c] hover:bg-gray-100 dark:hover:bg-gray-800 {% endif %} ">
-                                            <i class="fas fa-file-contract w-5 mr-2 {% if request.resolver_match.url_name == 'terms' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} "></i>
+                                            <i class="fas fa-file-contract w-5 mr-2 {% if request.resolver_match.url_name == 'terms' %} text-[#e74c3c] {% else %} text-gray-500 dark:text-gray-400 group-hover:text-[#e74c3c] {% endif %} " aria-hidden="true"></i>
                                             Terms
                                         </a>
                                     </li>
@@ -666,15 +666,18 @@
                         {% with request.resolver_match.url_name as url_name %}
                             {% if url_name != 'home' %}
                                 <div class="relative border-l-2 border-red-500 flex">
-                                    <button type="submit">
-                                        <i class="fa-solid fa-arrow-right mx-2 text-red-500"></i>
+                                    <button type="submit" aria-label="{% trans 'Search' %}">
+                                        <i class="fa-solid fa-arrow-right mx-2 text-red-500" aria-hidden="true"></i>
                                     </button>
                                     <button id="organizations-btn"
                                             type="button"
+                                            aria-label="{% trans 'Filter search results by type' %}"
+                                            aria-haspopup="true"
+                                            aria-expanded="false"
                                             class="flex items-center h-full px-4 text-gray-700 dark:text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200 focus:outline-none">
-                                        <i id="selected-icon" class="fas fa-check mr-2 text-red-500"></i>
+                                        <i id="selected-icon" class="fas fa-check mr-2 text-red-500" aria-hidden="true"></i>
                                         <span id="selected-filter" class="hidden md:inline">{% trans "All" %}</span>
-                                        <i class="fa fa-chevron-down ml-2 text-red-500 text-sm"></i>
+                                        <i class="fa fa-chevron-down ml-2 text-red-500 text-sm" aria-hidden="true"></i>
                                     </button>
                                     <div id="organizations-dropdown"
                                          class="z-50 hidden absolute bg-white dark:bg-gray-800 top-full left-0 w-max mt-2 rounded-lg shadow-xl border">
@@ -682,49 +685,49 @@
                                             <li>
                                                 <button data-value="all"
                                                         class="block px-2 py-1 rounded filter-option hover:bg-gray-700 transition-colors duration-200">
-                                                    <i class="fa fa-check mr-2 text-red-500"></i>
+                                                    <i class="fa fa-check mr-2 text-red-500" aria-hidden="true"></i>
                                                     {% trans "All" %}
                                                 </button>
                                             </li>
                                             <li>
                                                 <button data-value="organizations"
                                                         class="block px-2 py-1 rounded filter-option hover:bg-gray-700 transition-colors duration-200">
-                                                    <i class="fa fa-building fa-fw mr-2 text-red-500"></i>
+                                                    <i class="fa fa-building fa-fw mr-2 text-red-500" aria-hidden="true"></i>
                                                     {% trans "Organizations" %}
                                                 </button>
                                             </li>
                                             <li>
                                                 <button data-value="issues"
                                                         class="block px-2 py-1 rounded filter-option hover:bg-gray-700 transition-colors duration-200">
-                                                    <i class="fa fa-bug fa-fw mr-2 text-red-500"></i>
+                                                    <i class="fa fa-bug fa-fw mr-2 text-red-500" aria-hidden="true"></i>
                                                     {% trans "Issues" %}
                                                 </button>
                                             </li>
                                             <li>
                                                 <button data-value="domains"
                                                         class="block px-2 py-1 rounded filter-option hover:bg-gray-700 transition-colors duration-200">
-                                                    <i class="fa fa-globe fa-fw mr-2 text-red-500"></i>
+                                                    <i class="fa fa-globe fa-fw mr-2 text-red-500" aria-hidden="true"></i>
                                                     {% trans "Domains" %}
                                                 </button>
                                             </li>
                                             <li>
                                                 <button data-value="users"
                                                         class="block px-2 py-1 rounded filter-option hover:bg-gray-700 transition-colors duration-200">
-                                                    <i class="fa fa-user-group fa-fw mr-2 text-red-500"></i>
+                                                    <i class="fa fa-user-group fa-fw mr-2 text-red-500" aria-hidden="true"></i>
                                                     {% trans "Users" %}
                                                 </button>
                                             </li>
                                             <li>
                                                 <button data-value="projects"
                                                         class="block px-2 py-1 rounded filter-option hover:bg-gray-700 transition-colors duration-200">
-                                                    <i class="fa fa-box fa-fw mr-2 text-red-500">
+                                                    <i class="fa fa-box fa-fw mr-2 text-red-500" aria-hidden="true">
                                                     </i> {% trans "Projects" %}
                                                 </button>
                                             </li>
                                             <li>
                                                 <button data-value="repos"
                                                         class="block px-2 py-1 rounded filter-option hover:bg-gray-700 transition-colors duration-200">
-                                                    <i class="fa-brands fa-github fa-fw mr-2 text-red-500"></i>
+                                                    <i class="fa-brands fa-github fa-fw mr-2 text-red-500" aria-hidden="true"></i>
                                                     {% trans "Repos" %}
                                                 </button>
                                             </li>
@@ -734,13 +737,13 @@
                             {% endif %}
                         {% endwith %}
                     </form>
-                    <i class="fa fa-search absolute left-4 text-red-500 z-10 my-auto text-lg"></i>
+                    <i class="fa fa-search absolute left-4 text-red-500 z-10 my-auto text-lg" aria-hidden="true"></i>
                 </div>
             </div>
             <!-- Mobile Search Button -->
             <button class="p-2 text-red-500 sm:hidden"
                     onclick="toggleMobileSearch()"
-                    aria-label="Toggle mobile search"
+                    aria-label="{% trans 'Toggle mobile search' %}"
                     type="button">
                 <i class="fa fa-search text-3xl" aria-hidden="true"></i>
             </button>
@@ -751,8 +754,9 @@
                     {% include "dark_mode_toggle.html" %}
                     <div class="relative">
                         <button id="notificationButton"
+                                aria-label="{% trans 'Notifications' %}"
                                 class="relative py-2.5 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
-                            <i class="fa fa-bell fa-lg text-zinc-700 dark:text-zinc-300"></i>
+                            <i class="fa fa-bell fa-lg text-zinc-700 dark:text-zinc-300" aria-hidden="true"></i>
                             <!-- Badge is hidden by default -->
                             <span id="unreadCount"
                                   class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 hidden">
@@ -801,64 +805,64 @@
                             <li>
                                 <a href="{% url 'account_profile' %}"
                                    class="flex items-center gap-1.5 py-2 px-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md hover:text-[#e74c3c] dark:hover:text-[#e74c3c] transition-colors duration-200 font-medium">
-                                    <i class="fa fa-user fa-fw"></i> {% trans "User Profile" %}
+                                    <i class="fa fa-user fa-fw" aria-hidden="true"></i> {% trans "User Profile" %}
                                 </a>
                             </li>
                             {% if user.is_superuser %}
                                 <li>
                                     <a href="{% url 'admin:index' %}"
                                        class="flex items-center gap-1.5 py-2 px-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md hover:text-[#e74c3c] dark:hover:text-[#e74c3c] transition-colors duration-200 font-medium">
-                                        <i class="fa fa-cogs fa-fw"></i> {% trans "Admin Dashboard" %}
+                                        <i class="fa fa-cogs fa-fw" aria-hidden="true"></i> {% trans "Admin Dashboard" %}
                                     </a>
                                 </li>
                             {% endif %}
                             <li>
                                 <a href="{% url 'start_hunt' %}"
                                    class="flex items-center gap-1.5 py-2 px-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md hover:text-[#e74c3c] dark:hover:text-[#e74c3c] transition-colors duration-200 font-medium">
-                                    <i class="fa fa-play fa-fw"></i> {% trans "Start a Bug Bounty" %}
+                                    <i class="fa fa-play fa-fw" aria-hidden="true"></i> {% trans "Start a Bug Bounty" %}
                                 </a>
                             </li>
                             <li>
                                 <a href="{% url 'social' %}"
                                    class="flex items-center gap-1.5 py-2 px-3 hover:bg-gray-100 rounded-md hover:text-[#e74c3c] transition-colors duration-200 font-medium">
-                                    <i class="fa fa-share fa-fw"></i> {% trans "Social" %}
+                                    <i class="fa fa-share fa-fw" aria-hidden="true"></i> {% trans "Social" %}
                                 </a>
                             </li>
                             <li>
                                 <a href="{% url 'reminder_settings' %}"
                                    class="flex items-center gap-1.5 py-2 px-3 hover:bg-gray-100 rounded-md hover:text-[#e74c3c] transition-colors duration-200 font-medium">
-                                    <i class="fas fa-bell w-5"></i> {% trans "Reminder Settings" %}
+                                    <i class="fas fa-bell w-5" aria-hidden="true"></i> {% trans "Reminder Settings" %}
                                 </a>
                             </li>
                             <li>
                                 <a href="{% url 'account_change_password' %}"
                                    class="flex items-center gap-1.5 py-2 px-3 hover:bg-gray-100 rounded-md hover:text-[#e74c3c] transition-colors duration-200 font-medium">
-                                    <i class="fa fa-gear fa-fw"></i> {% trans "Change Password" %}
+                                    <i class="fa fa-gear fa-fw" aria-hidden="true"></i> {% trans "Change Password" %}
                                 </a>
                             </li>
                             <li>
                                 <a href="{% url 'invite' %}"
                                    class="flex items-center gap-1.5 py-2 px-3 hover:bg-gray-100 rounded-md hover:text-[#e74c3c] transition-colors duration-200 font-medium">
-                                    <i class="fa fa-paper-plane fa-fw"></i> {% trans "Invite an Organization" %}
+                                    <i class="fa fa-paper-plane fa-fw" aria-hidden="true"></i> {% trans "Invite an Organization" %}
                                 </a>
                             </li>
                             <li>
                                 <a href="{% url 'organization_view' %}"
                                    class="flex items-center gap-1.5 py-2 px-3 hover:bg-gray-100 rounded-md hover:text-[#e74c3c] transition-colors duration-200 font-medium">
-                                    <i class="fa fa-building fa-fw"></i> {% trans "View Organization" %}
+                                    <i class="fa fa-building fa-fw" aria-hidden="true"></i> {% trans "View Organization" %}
                                 </a>
                             </li>
                             <li>
                                 <a href="{% url 'organization_dashboard' %}"
                                    class="flex items-center gap-1.5 py-2 px-3 hover:bg-gray-100 rounded-md hover:text-[#e74c3c] transition-colors duration-200 font-medium">
-                                    <i class="fa fa-gauge fa-fw"></i> {% trans "Organization Dashboard" %}
+                                    <i class="fa fa-gauge fa-fw" aria-hidden="true"></i> {% trans "Organization Dashboard" %}
                                 </a>
                             </li>
                             <li class="border my-2 w-full"></li>
                             <li>
                                 <a class="flex items-center gap-1.5 py-3 px-4 bg-[#e74c3c] hover:bg-[#c0392b] hover:text-white rounded-md text-white transition-colors duration-200 font-bold"
                                    href="{% url 'account_logout' %}?next={{ request.path }}">
-                                    <i class="fa fa-sign-out fa-fw"></i> {% trans "Logout" %}
+                                    <i class="fa fa-sign-out fa-fw" aria-hidden="true"></i> {% trans "Logout" %}
                                 </a>
                             </li>
                         </ul>
@@ -882,8 +886,9 @@
                     </div>
                     <!-- Log in icon -->
                     <a href="{% url 'account_login' %}?next={{ request.path }}"
+                       aria-label="{% trans 'Log in' %}"
                        class="block lg:hidden m-2">
-                        <i class="fa fa-user text-4xl text-red-500"></i>
+                        <i class="fa fa-user text-4xl text-red-500" aria-hidden="true"></i>
                     </a>
                 </div>
             {% endif %}
@@ -894,7 +899,7 @@
          class="hidden sm:hidden md:hidden lg:hidden w-full px-4 py-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 transition-colors">
         <form action="{% url 'search' %}" method="get" class="flex items-center">
             <div class="relative flex-1">
-                <i class="fa fa-search absolute text-xl left-3 top-1/2 -translate-y-1/2 text-[#e74c3c]"></i>
+                <i class="fa fa-search absolute text-xl left-3 top-1/2 -translate-y-1/2 text-[#e74c3c]" aria-hidden="true"></i>
                 <input type="text"
                        name="query"
                        placeholder="Search here..."
@@ -902,7 +907,7 @@
                 <input type="hidden" name="type" id="mobile-filter-type" value="all">
             </div>
             <button type="submit"
-                    aria-label="Search"
+                    aria-label="{% trans 'Search' %}"
                     class="ml-2 py-3 px-4 bg-[#e74c3c] text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-[#e74c3c] focus:ring-offset-2">
                 <i class="fa fa-search text-xl" aria-hidden="true"></i>
             </button>
@@ -1046,6 +1051,7 @@
                     e.stopPropagation();
     
                     const isHidden = organizationsDropdown.classList.toggle('hidden');
+                    organizationsBtn.setAttribute('aria-expanded', String(!isHidden));
     
                     if (!isHidden) {
                         const btnRect = organizationsBtn.getBoundingClientRect();
@@ -1066,6 +1072,7 @@
                     if (!organizationsBtn.contains(e.target) && !organizationsDropdown.contains(e.target)) {
                         organizationsDropdown.classList.add('hidden');
                         organizationsDropdown.style.display = 'none';
+                        organizationsBtn.setAttribute('aria-expanded', 'false');
                     }
                 });
             }
@@ -1093,6 +1100,7 @@
                         if (organizationsDropdown) {
                             organizationsDropdown.classList.add('hidden');
                             organizationsDropdown.style.display = 'none';
+                            organizationsBtn.setAttribute('aria-expanded', 'false');
                         }
                     });
                 });
@@ -1349,8 +1357,8 @@
                                 <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">${escapeHtml(searchTypeDisplay)}</span>
                             </div>
                         </a>
-                        <button type="button" class="ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-1" onclick="deleteSearchItem(event, ${searchId})" title="Delete this search">
-                            <i class="fa fa-times text-xs"></i>
+                        <button type="button" class="ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-1" onclick="deleteSearchItem(event, ${searchId})" title="Delete this search" aria-label="{% trans 'Delete this search' %}">
+                            <i class="fa fa-times text-xs" aria-hidden="true"></i>
                         </button>
                     </div>
                 `;
@@ -1526,12 +1534,14 @@
 
                     const deleteButton = document.createElement("button");
                     deleteButton.className = "delete-notification p-1 text-gray-400 dark:text-gray-600 hover:text-red-500 transition-colors";
+                    deleteButton.setAttribute("aria-label", "{% trans 'Delete notification' %}");
                     const notificationId = parseInt(notification.id, 10);
                     if (!Number.isNaN(notificationId)) {
                         deleteButton.setAttribute("data-notification-id", String(notificationId));
                     }
                     const deleteIcon = document.createElement("i");
                     deleteIcon.className = "fa fa-times";
+                    deleteIcon.setAttribute("aria-hidden", "true");
                     deleteButton.appendChild(deleteIcon);
 
                     notificationItem.append(iconWrap, body, deleteButton);
@@ -1570,15 +1580,15 @@
         function getNotificationIcon(type) {
             switch (type) {
                 case "alert":
-                    return '<i class="fa fa-exclamation-circle text-red-500 fa-lg"></i>';
+                    return '<i class="fa fa-exclamation-circle text-red-500 fa-lg" aria-hidden="true"></i>';
                 case "reminder":
-                    return '<i class="fa fa-clock text-yellow-500 fa-lg"></i>';
+                    return '<i class="fa fa-clock text-yellow-500 fa-lg" aria-hidden="true"></i>';
                 case "promo":
-                    return '<i class="fa fa-tag text-green-500 fa-lg"></i>';
+                    return '<i class="fa fa-tag text-green-500 fa-lg" aria-hidden="true"></i>';
                 case "reward":
-                    return '<i class="fa fa-gift text-purple-500 fa-lg"></i>';
+                    return '<i class="fa fa-gift text-purple-500 fa-lg" aria-hidden="true"></i>';
                 default:
-                    return '<i class="fa fa-info-circle text-blue-500 fa-lg"></i>';
+                    return '<i class="fa fa-info-circle text-blue-500 fa-lg" aria-hidden="true"></i>';
             }
         }
 
