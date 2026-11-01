@@ -56,6 +56,17 @@
             "sig": "MmU-NzxoPkT6myda_1qjcilQta_ChkeTRhv8TEEUK4TSl2jThVTUsf63UtcEue9P_eVPNGFXFnhGF9VPRJVMAw",
             "ts": 1793559705930,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@emmanuelmj this issue is already assigned to @owasp-marquina. Please pick another issue. \u003c!-- blt-assign-refused:emmanuelmj --\u003e \u003c!-- blt-assign:7e4ac7813587686724c9 --\u003e",
+            "id": "actions-1793559724439-vgaPcAGe",
+            "sig": "jpva68-ILudFxYZ8KISd66RPlx1PaIj_G76mKlqHMweE8c0Yrax8bxA25uzSUULJ6B7ETjFyLubKQSAHEP2xBQ",
+            "ts": 1793559724439,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -72,6 +83,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-netguardian: add unit tests for payload_redact.py",
-    "updatedAt": 1793559705930,
+    "updatedAt": 1793559724439,
     "votes": 0
 }
