@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "fable98"
+    ],
     "author": "1IjcdW9JCaXjDBlKkyQReX4pPsdod5yjrnO8WZhfwh0",
     "authorName": "granger",
     "bountyAddress": "",
@@ -19,6 +21,17 @@
             "title": "[UI] Empty-state icons in Leaderboard cards are misaligned and pushed against the left border",
             "ts": 1793476043082,
             "type": "open"
+        },
+        {
+            "assignee": "fable98",
+            "author": "Pfi10AIKv0VQcEC6TF3UU8yLyZYJWE3M_j2gym0UtYQ",
+            "authorName": "fable98",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1793522973142-zujtix",
+            "sig": "al3Om2UupH8PJgHL0Xe0Oc9-emjTQtEyDAQ0SG1K6FUJnz_gPcUJHQ60iq5V3kcBfQvpSar7rpDBpcDQxX1EDA",
+            "ts": 1793522973142,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -30,6 +43,6 @@
     "startDate": 0,
     "status": "open",
     "title": "[UI] Empty-state icons in Leaderboard cards are misaligned and pushed against the left border",
-    "updatedAt": 1793476043082,
+    "updatedAt": 1793522973142,
     "votes": 0
 }
