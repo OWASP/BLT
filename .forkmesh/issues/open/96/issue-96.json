@@ -32,6 +32,17 @@
             "sig": "0fbTA2WTvzg92xf2BjdaGZZUopgfCb-QKHmCD9mIxtzzupSfdYLnzH-unjDQVo6_dqxFktpL3aP6QvzRqDMPAQ",
             "ts": 1792547523820,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "NkGmX0ic_si2qXAkdhO5tdjAkFV4Q1oXf77lVCR98RQ",
+            "authorName": "prabhat1",
+            "authorVerified": true,
+            "body": "Submitted PR #57: https://git.owaspblt.org/BLT/pull/57",
+            "id": "comment-web-1793555396927",
+            "sig": "hm4LIOnaPiZmfqs1By7hyurh5_ePrWBGw4SVDKUnsP6gqD3_zVua84EnYrkAXQkU1_CCg3M3_0ixqrHwPu42Bg",
+            "ts": 1793555396927,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -48,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-gsoc: delete the unused js/gsoc_pr_report.js copy and the stale scripts/build_static.sh",
-    "updatedAt": 1792547523820,
+    "updatedAt": 1793555396927,
     "votes": 0
 }
