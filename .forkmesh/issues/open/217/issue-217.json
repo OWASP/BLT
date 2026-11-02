@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "nikhil"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -12,7 +14,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\nBLT-Start (`blt-start/`) is rated **Bronze** on [Waypoint](https://waypoint.owaspblt.org/?q=blt-start): it meets 93% of the checklist that applies to it. Waypoint rates every BLT project daily against the same checklist (`blt-waypoint/scripts/ratings.py`): **bronze** is the basics, **silver** means it runs, **gold** means it is looked after. This issue lists what is left for gold.\n\n## What to do\n\n### Silver (it runs: tests in CI, an automatic deploy, a live site and steps to run it)\n\n- **Tests run in CI.** Add automated tests and a row for the folder in `scripts/ci/tests.tsv`, so every pull request runs them (`scripts/ci/test.sh blt-start`).\n\n## Acceptance criteria\n\n- [ ] Tests run in CI\n- [ ] Waypoint shows `blt-start` as Gold after the next daily refresh\n\n## How to test locally\n\n```bash\ncurl -s https://waypoint.owaspblt.org/forge_data.json -o /tmp/forge_data.json\npython3 blt-waypoint/scripts/ratings.py /tmp/forge_data.json --report | grep -w blt-start\nscripts/ci/test.sh <your folder>\n```\n\nThe report reads your checkout, so it shows the new rating before the change is merged.",
+            "body": "## Context\n\nBLT-Start (`blt-start/`) is rated **Bronze** on [Waypoint](https://waypoint.owaspblt.org/?q=blt-start): it meets 93% of the checklist that applies to it. Waypoint rates every BLT project daily against the same checklist (`blt-waypoint/scripts/ratings.py`): **bronze** is the basics, **silver** means it runs, **gold** means it is looked after. This issue lists what is left for gold.\n\n## What to do\n\n### Silver (it runs: tests in CI, an automatic deploy, a live site and steps to run it)\n\n- **Tests run in CI.** Add automated tests and a row for the folder in `scripts/ci/tests.tsv`, so every pull request runs them (`scripts/ci/test.sh blt-start`).\n\n## Acceptance criteria\n\n- [ ] Tests run in CI\n- [ ] Waypoint shows `blt-start` as Gold after the next daily refresh\n\n## How to test locally\n\n```bash\ncurl -s https://waypoint.owaspblt.org/forge_data.json -o /tmp/forge_data.json\npython3 blt-waypoint/scripts/ratings.py /tmp/forge_data.json --report | grep -w blt-start\nscripts/ci/test.sh \u003cyour folder\u003e\n```\n\nThe report reads your checkout, so it shows the new rating before the change is merged.",
             "id": "blt-tasks-issue-217",
             "sig": "VoJaoknr6dBSkBBJwfKE40WgdZleUq5yBl4MOyyu3IlAg2iO9IkFb3RPpPsIAXoTBAedvMai8UlxcPdWA5aRAQ",
             "title": "blt-start: reach the gold standard (bronze today, 1 step)",
@@ -31,6 +33,17 @@
             "sig": "JFSR6gM8WPgK4gJHcoyaveDf2-MYB13gl4t97RU5pNpcDZLeSnrd_d9UjOUQ1xznZ64Y2pJig7YYA1amnyofAg",
             "ts": 1792782010900,
             "type": "labels"
+        },
+        {
+            "assignee": "nikhil",
+            "author": "1GHbuBrUUxD-_o_ANDkOOSA8nASzYKTCrTIKtIrPym0",
+            "authorName": "nikhil",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1793593677822-trquvz",
+            "sig": "gNK7fZWgkRDyDnUBrahSOgHjjFlJTtvKe89SEsEenzRLQ4-8zYE8tJIucfPdelLOZ9Ek2uuYkwM3GCKO0sIuCQ",
+            "ts": 1793593677822,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -46,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-start: reach the gold standard (bronze today, 1 step)",
-    "updatedAt": 1792782010900,
+    "updatedAt": 1793593677822,
     "votes": 0
 }
