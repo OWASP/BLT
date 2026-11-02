@@ -62,6 +62,8 @@ def test_append_history_rejects_invalid_status_or_negative_duration():
     for payload, expected_error in [
         ({"datetime": "2026-01-01T00:00:00Z", "duration_ms": -1, "status": "success", "keyword_status": "found"}, "Invalid duration"),
         ({"datetime": "2026-01-01T00:00:00Z", "duration_ms": 25, "status": "unknown", "keyword_status": "found"}, "Invalid status"),
+        ({"datetime": "2026-01-01T00:00:00Z", "duration_ms": 25, "status": "success", "keyword_status": "unknown"},
+        "Invalid keyword status"),
     ]:
         request = types.SimpleNamespace(
             headers={"Authorization": "Bearer token"},
@@ -92,6 +94,7 @@ def test_load_histories_returns_empty_dict_for_corrupt_json():
     histories = asyncio.run(worker.Default(env).load_histories(shard, env))
 
     assert histories == {}
+
 
 def test_check_monitor_marks_missing_keyword_as_failure_on_200():
     worker = _load_worker()
