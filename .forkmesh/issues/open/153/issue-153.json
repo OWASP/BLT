@@ -55,6 +55,17 @@
             "sig": "qEbx2otqu9rTNEPV45NNMFbVe2J10yNugnrOzQFSDrs3hY7oHuraDtIPfgNI0K_5vnS-QVG-U5ji39r1rr97AA",
             "ts": 1793635524753,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@namrata you're assigned to this issue. Please open a pull request for it within 24 hours. Without a pull request or an update from you here for 24 hours, you'll be unassigned (after a warning). If you stop working on it, comment `/unassign` so someone else can pick it up. \u003c!-- blt-assign:81321fbe085ce21eaa4d --\u003e",
+            "id": "actions-1793635524953-UT8TXMTq",
+            "sig": "PV-uCDLf7oa9_yE2JXJB3xiIuR96thGCG288iLHole0CJJ3lud2Whay3zahGe3_bx5cyOIbUr4ca3Qtdrc-MBQ",
+            "ts": 1793635524953,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -70,6 +81,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-tomato: turn FUNDING.yml platform entries into real donate URLs",
-    "updatedAt": 1793635524753,
+    "updatedAt": 1793635524953,
     "votes": 0
 }
