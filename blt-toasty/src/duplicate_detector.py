@@ -32,6 +32,7 @@ from typing import Any
 from errors import LLMUnavailableError
 from llm_client import call_llm
 from redaction_engine import assert_redacted_before_downstream
+from slack_notifier import notify_triage
 from summarizer import truncate_to_token_budget
 from vectorize_client import find_duplicates
 
@@ -335,6 +336,7 @@ async def detect_duplicates(
     )
 
     if not raw_matches:
+        await notify_triage(env, db, event_id)
         return DuplicateDetectionResult(
             event_id=event_id,
             candidates=[],
@@ -429,6 +431,14 @@ async def detect_duplicates(
         overall_method = "retrieval_plus_llm"
     else:
         overall_method = "retrieval_only"
+
+    # ── Notify maintainers: triage is complete ────────────────────────────
+    await notify_triage(
+        env,
+        db,
+        event_id,
+        duplicates=[{"event_id": c.event_id, "score": c.similarity_score} for c in confirmed],
+    )
 
     return DuplicateDetectionResult(
         event_id=event_id,

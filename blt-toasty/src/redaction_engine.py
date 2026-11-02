@@ -92,8 +92,8 @@ async def redact(text: str, env: Any, event_id: str, db: Any) -> RedactionResult
 
     Args:
         text: Raw report text (may contain Markdown).
-        env: Cloudflare Worker environment bindings (unused by native
-            engine but kept for interface compatibility).
+        env: Cloudflare Worker environment bindings (unused by the native
+            engine; passed on so quarantines can notify Slack).
         event_id: The triage event ID in D1.
         db: A Cloudflare D1 database handle exposing ``execute(sql, params)``.
 
@@ -135,7 +135,7 @@ async def redact(text: str, env: Any, event_id: str, db: Any) -> RedactionResult
                 types = ", ".join(sorted({m["entity_type"] for m in residual}))
                 reason = f"Residual PII after Markdown stripping: {len(residual)} entities ({types})"
                 logger.warning("Quarantining event %s: %s", event_id, reason)
-                await _quarantine_event(db, event_id, reason)
+                await _quarantine_event(db, event_id, reason, env)
                 raise RedactionFailedError(
                     f"Residual PII found for event {event_id}",
                     event_id=event_id,
@@ -149,7 +149,7 @@ async def redact(text: str, env: Any, event_id: str, db: Any) -> RedactionResult
                     f"Entity {match['entity_type']} at [{match['start']}:{match['end']}] "
                     f"has confidence {match['confidence']:.2f} < threshold {_CONFIDENCE_THRESHOLD}"
                 )
-                await _quarantine_event(db, event_id, reason)
+                await _quarantine_event(db, event_id, reason, env)
                 raise RedactionFailedError(
                     f"Confidence below threshold for event {event_id}: {reason}",
                     event_id=event_id,
@@ -179,7 +179,7 @@ async def redact(text: str, env: Any, event_id: str, db: Any) -> RedactionResult
         # Catch-all safety net — quarantine and fail closed.
         reason = f"Unexpected error during redaction: {type(exc).__name__}: {exc}"
         logger.error("Fail-closed redaction triggered for event %s: %s", event_id, reason)
-        await _quarantine_event(db, event_id, reason)
+        await _quarantine_event(db, event_id, reason, env)
         await _transition_state(db, event_id, "redaction_failed")
         raise RedactionFailedError(
             f"Redaction failed for event {event_id}",
@@ -288,13 +288,13 @@ async def _store_redaction_audit(db: Any, event_id: str, redaction_map: list[dic
         await db.batch(queries)
 
 
-async def _quarantine_event(db: Any, event_id: str, reason: str) -> None:
+async def _quarantine_event(db: Any, event_id: str, reason: str, env: Any = None) -> None:
     """Mark an event as quarantined in D1."""
     from state_machine import quarantine_event
 
-    # redaction happens before vectorization, so there is no vector to delete
-    # we pass env=None which safely skips vector deletion while preserving the audit trail
-    await quarantine_event(db, event_id, reason, env=None, has_vector=False)
+    # redaction happens before vectorization, so there is no vector to delete;
+    # has_vector=False skips vector deletion, and env is only used to notify Slack
+    await quarantine_event(db, event_id, reason, env=env, has_vector=False)
 
 
 async def _transition_state(db: Any, event_id: str, new_status: str) -> None:

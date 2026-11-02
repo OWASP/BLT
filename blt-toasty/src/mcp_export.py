@@ -13,6 +13,7 @@ from js import Date
 
 from auth import verify_agent_jwt
 from errors import AuditIncompleteError, JWTExpiredError, JWTInvalidError
+from forge_links import issue_url
 from rationale_builder import audit_completeness_check
 from js import Response, Headers
 
@@ -111,7 +112,7 @@ async def get_triage_record(event_id: str, db: Any) -> dict:
 
     # Construct the JSON export contract (Version 1.0)
     issue_iid_str = str(issue_iid) if issue_iid else "unknown"
-    source_ref = f"https://git.owaspblt.org/BLT/issues{issue_iid_str}"
+    source_ref = issue_url(issue_iid_str)
 
     cwe_hints = []
     if rationale_row:

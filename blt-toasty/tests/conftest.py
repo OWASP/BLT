@@ -112,3 +112,81 @@ def mock_analytics():
     analytics = MagicMock()
     analytics.writeDataPoint = MagicMock()
     return analytics
+
+
+class SQLiteD1:
+    """In-memory stand-in for a Cloudflare D1 binding, backed by real SQLite.
+
+    Applies the project's migrations, then runs every statement for real, so
+    tests assert on query results and table contents instead of matching SQL
+    text.  Supports the subset of the D1 API the Worker uses:
+    ``prepare(sql).bind(*args)`` with ``first()``, ``run()`` and ``all()``,
+    plus ``batch()``.  ``statements`` records each executed SQL string.
+    """
+
+    class _Meta:
+        def __init__(self, changes):
+            self.changes = changes
+
+    class _Result:
+        def __init__(self, changes=0, results=None):
+            self.meta = SQLiteD1._Meta(changes)
+            self.results = results or []
+
+    class _Statement:
+        def __init__(self, db, sql, args=()):
+            self._db, self.sql, self.args = db, sql, args
+
+        def bind(self, *args):
+            return SQLiteD1._Statement(self._db, self.sql, args)
+
+        def _execute(self):
+            self._db.statements.append(self.sql)
+            return self._db.conn.execute(self.sql, self.args)
+
+        async def first(self):
+            row = self._execute().fetchone()
+            return dict(row) if row is not None else None
+
+        async def all(self):
+            return SQLiteD1._Result(results=[dict(r) for r in self._execute().fetchall()])
+
+        async def run(self):
+            return SQLiteD1._Result(changes=self._execute().rowcount)
+
+    def __init__(self):
+        import sqlite3
+
+        self.conn = sqlite3.connect(":memory:")
+        self.conn.row_factory = sqlite3.Row
+        self.statements = []
+        migrations = os.path.join(_root_dir, "migrations")
+        for name in sorted(f for f in os.listdir(migrations) if f[:4].isdigit() and f.endswith(".sql")):
+            with open(os.path.join(migrations, name), encoding="utf-8") as fh:
+                self.conn.executescript(fh.read())
+
+    def prepare(self, sql):
+        return SQLiteD1._Statement(self, sql)
+
+    async def batch(self, statements):
+        return [await s.run() for s in statements]
+
+    def add_event(self, event_id, *, issue_iid=35, status="pending", quarantine_reason=None):
+        self.conn.execute(
+            "INSERT INTO triage_events (id, delivery_id, gitlab_event, project_id, issue_iid, raw_payload_hash, "
+            "status, quarantine_reason) VALUES (?, ?, 'Issue Hook', 1, ?, 'hash', ?, ?)",
+            (event_id, f"delivery-{event_id}", issue_iid, status, quarantine_reason),
+        )
+
+    def add_summary(self, event_id, *, cwe_hints="[]", executive_summary="summary", reviewer_pack=None):
+        self.conn.execute(
+            "INSERT INTO triage_summaries (id, triage_event_id, executive_summary, reviewer_pack, cwe_hints, "
+            "model_used) VALUES (?, ?, ?, ?, ?, 'test-model')",
+            (f"sum-{event_id}", event_id, executive_summary, reviewer_pack, cwe_hints),
+        )
+
+
+@pytest.fixture
+def sqlite_d1():
+    """A fresh SQLite-backed D1 with all migrations applied."""
+    return SQLiteD1()
