@@ -312,7 +312,8 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = Path(__file__).resolve().parent / "data"
 PROJECT_DATA = load_json_file(DATA_DIR / "projects.json")
 REPO_DATA = load_json_file(DATA_DIR / "repos.json")
-APP_VERSION = load_text_file(ROOT_DIR / "VERSION") or "unknown"
+# The version comes from APP_VERSION in wrangler.toml [vars]; see app_version().
+APP_VERSION = "unknown"
 
 # Welcome texts live in src/data/message-<team_id>-team_join.md (one source per workspace).
 
