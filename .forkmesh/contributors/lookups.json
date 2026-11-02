@@ -86,6 +86,14 @@
    "checked": "2026-10-18",
    "login": "giftidris4-spec"
   },
+  "4a2d56cec36e8b1e": {
+   "checked": "2026-11-02",
+   "login": "a-googler"
+  },
+  "4c80c4eb23e58a56": {
+   "checked": "2026-11-02",
+   "login": "prabhat0264"
+  },
   "4dea79519d494e7c": {
    "checked": "2026-10-18",
    "login": "Aashik1701"
@@ -344,6 +352,12 @@
    "checked": "2026-10-18",
    "id": 104075461,
    "login": "1010varun"
+  },
+  "a-googler": {
+   "checked": "2026-11-02",
+   "gone": true,
+   "id": null,
+   "login": "a-googler"
   },
   "aarush289": {
    "checked": "2026-10-18",
@@ -1139,6 +1153,11 @@
    "checked": "2026-10-18",
    "id": 163632958,
    "login": "Piyushrathoree"
+  },
+  "prabhat0264": {
+   "checked": "2026-11-02",
+   "id": 324412302,
+   "login": "prabhat0264"
   },
   "prachi9506": {
    "checked": "2026-10-18",
@@ -2261,6 +2280,10 @@
   },
   "piyushrathoree": {
    "checked": "2026-10-26",
+   "exists": false
+  },
+  "prabhat0264": {
+   "checked": "2026-11-02",
    "exists": false
   },
   "prachi9506": {
