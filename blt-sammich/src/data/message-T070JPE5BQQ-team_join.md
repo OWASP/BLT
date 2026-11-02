@@ -21,5 +21,3 @@ We're thrilled to have you here! Whether you're new to OWASP or a long-time cont
 * *#learning*: Share and find resources to expand your knowledge in the field of application security.
 
 We're excited to see the amazing contributions you'll make. If you have any questions or need assistance, don't hesitate to ask. Let's work together to make software security visible and improve the security of the software we all rely on.
-
-Welcome aboard! :rocket:

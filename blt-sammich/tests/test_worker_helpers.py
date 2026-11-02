@@ -1941,7 +1941,7 @@ def test_slack_api_send_ephemeral_adds_tracking_branding_block():
     assert "tid=tid-123" in image_element["image_url"]
     assert "ch=C123" in image_element["image_url"]
     assert "u=U123" in image_element["image_url"]
-    assert captured["payload"]["blocks"][-1]["elements"][1]["text"] == "Welcome aboard"
+    assert captured["payload"]["blocks"][-1]["elements"][1]["text"] == "Welcome aboard! :rocket:"
 
 
 def test_blt_welcome_command_sends_welcome_dm():

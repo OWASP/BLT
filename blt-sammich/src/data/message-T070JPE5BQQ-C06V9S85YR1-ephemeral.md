@@ -17,5 +17,3 @@ We're excited to have you join us! This workspace is a place to connect, collabo
 * *#resources*: Share and discover useful materials.
 
 We're glad you're here! If you have questions or need help, just ask. Let's build something great together.
-
-Welcome! :rocket:

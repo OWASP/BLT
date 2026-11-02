@@ -32,5 +32,3 @@ We're thrilled to have you here! Whether you're new to OWASP or a long-time cont
 * <#C04T2N9US>: learning resources and application security questions.
 
 We're excited to see the amazing contributions you'll make. Let's work together to make software security visible and improve the security of the software we all rely on.
-
-Welcome aboard! :rocket:

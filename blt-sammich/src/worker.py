@@ -529,7 +529,7 @@ def build_blt_branding_block(
                 "image_url": "{0}/logo-hit?{1}".format(app_base_url(env), logo_query),
                 "alt_text": "OWASP BLT",
             },
-            {"type": "mrkdwn", "text": "Welcome aboard"},
+            {"type": "mrkdwn", "text": "Welcome aboard! :rocket:"},
         ],
     }
 
