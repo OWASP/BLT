@@ -19,6 +19,15 @@
             "title": "forge: allow authors to edit their own pull-request comments",
             "ts": 1793619540960,
             "type": "open"
+        },
+        {
+            "author": "FTSqIIVcAz6yrEUfHk8wm1rr_FLa2bBVWJKeRKZCwcQ",
+            "authorName": "navodit",
+            "authorVerified": true,
+            "id": "vote-web-1793621936866-ldn1x3",
+            "sig": "UeS-TKIMMT3Pw9Q3hn53MaHyjB6feXh6kxqoptl2K_WH4HoP7qtHTzYt_I8q7x1rSQjfpP_D_khhKJ09OJ1qAg",
+            "ts": 1793621936866,
+            "type": "vote"
         }
     ],
     "labels": [],
@@ -30,6 +39,6 @@
     "startDate": 0,
     "status": "open",
     "title": "forge: allow authors to edit their own pull-request comments",
-    "updatedAt": 1793619540960,
-    "votes": 0
+    "updatedAt": 1793621936866,
+    "votes": 1
 }
