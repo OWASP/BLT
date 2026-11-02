@@ -32,6 +32,17 @@
             "sig": "WBialF2fdu2hFpDEBgDAvVIESU5Jg9Idw2Vhkqf-wEjtT9rL8KgUgpXy_9KC7Ut93am68QC7QliRLmR0hwZhAw",
             "ts": 1792547523670,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "NkGmX0ic_si2qXAkdhO5tdjAkFV4Q1oXf77lVCR98RQ",
+            "authorName": "prabhat1",
+            "authorVerified": true,
+            "body": "@donnieblt Fix pushed and updated in PR #49: https://git.owaspblt.org/BLT/pull/49",
+            "id": "comment-web-1793594742975",
+            "sig": "-ojMR2PNFy17iBPymn-A3y0Bxb4Y0ZDGIXiGLxRBqVhm21j1yFixSsBK3pFu0KqrkysmU7QIuwMNsfnPzA5oCQ",
+            "ts": 1793594742975,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -48,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-start: make the advertised dark mode work (add a theme toggle)",
-    "updatedAt": 1792547523670,
+    "updatedAt": 1793594742975,
     "votes": 0
 }
