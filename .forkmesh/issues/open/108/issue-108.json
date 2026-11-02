@@ -67,6 +67,17 @@
             "sig": "TSPcD39Um6mz9Ek9Kfp3Aj4VTcOWQ1Rdrfee261AbAZthIf0TCPGucV3yhW8t9Uu5gYfN0Hr8QuYJCeNhHsoCg",
             "ts": 1793559944725,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@emmanuelmj there's been no pull request or comment from you here for 18 hours. If you're still working on this issue, please comment with an update or open a pull request; otherwise you'll be unassigned in about 6 hours so someone else can pick it up. \u003c!-- blt-assign-stale-warning:emmanuelmj:1793559944574 --\u003e",
+            "id": "actions-1793627597183-pKXo7p-p",
+            "sig": "gdm4qqfqxV9ziTYtHV6mcaCJi9QMFYPMhfRDg5QBt_h_wPuezVsSdb_ogExhZkZk8b5mm6GH3mTEx3tOCa6zAw",
+            "ts": 1793627597183,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -83,6 +94,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-next: clean up README leftovers and wrong setup steps",
-    "updatedAt": 1793559944725,
+    "updatedAt": 1793627597183,
     "votes": 0
 }
