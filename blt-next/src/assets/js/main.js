@@ -609,10 +609,12 @@ if (document.readyState === 'loading') {
 
 const rowsPerPage = 5;
 let currentPage = 1;
-let totalResearchers = 3500;
+let totalResearchers = 0;
 
 function updateLeaderboardPagination() {
   const rows = document.querySelectorAll("#leaderboard-body .leaderboard-row");
+  const meta = document.getElementById("leaderboard-meta");
+  totalResearchers = meta ? parseInt(meta.dataset.total, 10) || rows.length : rows.length;
 
   const start = (currentPage - 1) * rowsPerPage;
   const end = start + rowsPerPage;
@@ -628,9 +630,10 @@ function updateLeaderboardPagination() {
   const info = document.getElementById("pagination-info");
 
   if (info) {
-    const displayStart = start + 1;
-    const displayEnd = Math.min(end, totalResearchers);
-    info.textContent = `Showing ${displayStart}-${displayEnd} of ${totalResearchers} researchers`;
+    const loaded = rows.length;
+    const displayStart = loaded ? start + 1 : 0;
+    const displayEnd = Math.min(end, loaded);
+    info.textContent = `Showing ${displayStart}-${displayEnd} of ${totalResearchers.toLocaleString()} researchers`;
   }
 }
 
@@ -667,7 +670,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.getElementById("next-page")?.addEventListener("click", () => {
-  const maxPage = Math.ceil(totalResearchers / rowsPerPage);
+  const maxPage = Math.ceil(document.querySelectorAll("#leaderboard-body .leaderboard-row").length / rowsPerPage);
   if (currentPage < maxPage) {
     currentPage++;
     updateLeaderboardPagination();

@@ -17,6 +17,8 @@ ALLOWED_ORIGINS = [
     'http://localhost:8000',
 ]
 
+LEADERBOARD_PAGE_SIZE = 100
+
 FRONTEND_SECURITY_HEADERS = {
     'X-Content-Type-Options': 'nosniff',
     'Strict-Transport-Security': 'max-age=31536000',
@@ -116,14 +118,6 @@ STATS = {
     'projects_protected': '892',
 }
 
-LEADERBOARD = [
-    {'rank': 1, 'username': 'redteam_ria', 'points': 12840, 'bugs': 84, 'rewards': '$1,840'},
-    {'rank': 2, 'username': 'payload_paul', 'points': 11720, 'bugs': 73, 'rewards': '$1,610'},
-    {'rank': 3, 'username': 'edge_case_emi', 'points': 10950, 'bugs': 68, 'rewards': '$1,470'},
-    {'rank': 4, 'username': 'headers_hari', 'points': 9820, 'bugs': 61, 'rewards': '$1,250'},
-    {'rank': 5, 'username': 'cipher_sam', 'points': 8750, 'bugs': 55, 'rewards': '$1,090'},
-]
-
 PROJECTS = [
     {
         'name': 'OWASP BLT',
@@ -178,6 +172,14 @@ def avatar_initials(username):
     if len(parts) == 1:
         return parts[0][:2].upper()
     return (parts[0][0] + parts[1][0]).upper()
+
+
+def _safe_int(value, default=0):
+    """int(value), or default when value is missing or not a number (BLT-API data is not trusted)."""
+    try:
+        return int(value)
+    except (TypeError, ValueError, OverflowError):
+        return default
 
 # ===================================
 # Route Handlers
@@ -679,6 +681,18 @@ async def handle_bugs_list(request, env=None):
     return await list_bug_reports(request, env)
 
 
+async def fetch_leaderboard(env):
+    """Fetch the global leaderboard from BLT-API.
+
+    Returns (entries, total). Raises on a network or non-2xx failure.
+    """
+    status, payload = await call_blt_api(env, 'GET', f'/leaderboard?per_page={LEADERBOARD_PAGE_SIZE}')
+    if status != 200 or not isinstance(payload, dict):
+        raise RuntimeError(f"BLT-API returned {status}")
+    entries = [entry for entry in (payload.get('data') or []) if isinstance(entry, dict)]
+    total = (payload.get('pagination') or {}).get('total', len(entries))
+    return entries, total
+
 async def handle_leaderboard(request, env=None):
     """Handle /api/leaderboard endpoint.
 
@@ -686,28 +700,52 @@ async def handle_leaderboard(request, env=None):
     column header and table shell, and swaps this markup into #leaderboard-body
     via HTMX, so the rows must match its Tailwind grid layout
     (columns: rank / researcher / bugs / points / rewards).
+
+    Rankings come from BLT-API. It does not report per-user bug counts or
+    rewards yet, so those cells show a dash. The total number of researchers is
+    exposed to the page through the #leaderboard-meta element.
     """
-    rows = ""
-    for idx, item in enumerate(LEADERBOARD):
+    origin = request.headers.get('Origin')
+    try:
+        entries, total = await fetch_leaderboard(env)
+    except Exception:
+        return handle_html_response(
+            '<div class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">Unable to load the leaderboard right now. Please try again later.</div>',
+            origin=origin,
+        )
+
+    if not entries:
+        return handle_html_response(
+            '<div class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">No researchers on the leaderboard yet.</div>',
+            origin=origin,
+        )
+
+    rows = f'<div id="leaderboard-meta" data-total="{_safe_int(total, len(entries))}" hidden></div>'
+    for idx, item in enumerate(entries):
+        rank = idx + 1
+        raw_username = str(item.get('username') or 'unknown')
+        username = html_escape(raw_username)
+        initials = html_escape(avatar_initials(raw_username))
+        points = _safe_int(item.get('total_score'))
         color = AVATAR_COLORS[idx % len(AVATAR_COLORS)]
-        if item['rank'] == 1:
+        if rank == 1:
             rank_cell = '<div class="text-center"><i class="fa-solid fa-crown text-yellow-400 text-sm" aria-hidden="true"></i></div>'
         else:
-            rank_cell = f'<div class="text-center text-sm font-bold text-gray-400 dark:text-gray-500">{item["rank"]}</div>'
+            rank_cell = f'<div class="text-center text-sm font-bold text-gray-400 dark:text-gray-500">{rank}</div>'
 
         rows += f"""
         <div class="leaderboard-row grid grid-cols-[44px_1fr_80px_80px_80px] items-center px-4 py-3.5 border-b border-[#E5E5E5] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
             {rank_cell}
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full {color} text-xs font-bold flex items-center justify-center shrink-0">{avatar_initials(item['username'])}</div>
-                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{item['username']}</span>
+                <div class="w-8 h-8 rounded-full {color} text-xs font-bold flex items-center justify-center shrink-0">{initials}</div>
+                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{username}</span>
             </div>
-            <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">{item['bugs']}</div>
-            <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">{item['points']:,}</div>
-            <div class="text-center text-sm text-gray-500 dark:text-gray-400">{item.get('rewards', 'N/A')}</div>
+            <div class="text-center text-sm text-gray-400 dark:text-gray-500">&mdash;</div>
+            <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">{points:,}</div>
+            <div class="text-center text-sm text-gray-400 dark:text-gray-500">&mdash;</div>
         </div>
         """
-    return handle_html_response(rows, origin=request.headers.get('Origin'))
+    return handle_html_response(rows, origin=origin)
 
 async def handle_projects(request, env=None):
     """Handle /api/projects endpoint.
