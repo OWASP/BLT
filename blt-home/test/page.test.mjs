@@ -166,7 +166,11 @@ test("analytics: first-party, private by default, nothing third-party", () => {
   assert.match(js, /nav\.globalPrivacyControl === true/);
   assert.match(js, /doNotTrack/);
   assert.ok(js.indexOf("globalPrivacyControl") < js.indexOf("createElement("), "privacy check runs before the SDK loads");
-  for (const opt of ["autocapture", "heatmaps", "sessionRecording", "surveys", "captureErrors"]) {
+  // Clicks, heatmaps and error reports are on; session recordings and surveys stay off.
+  for (const opt of ["autocapture", "heatmaps", "captureErrors"]) {
+    assert.match(js, new RegExp(`\\b${opt}: true,`), opt);
+  }
+  for (const opt of ["sessionRecording", "surveys"]) {
     assert.match(js, new RegExp(`\\b${opt}: false,`), opt);
   }
   assert.match(js, /maskUrlQuery: true/);

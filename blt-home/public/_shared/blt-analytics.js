@@ -5,12 +5,14 @@
 //   <script src="https://owaspblt.org/_shared/blt-analytics.js" defer></script>
 // Opt a page out with data-analytics="off" on that tag or on the blt-nav.js tag.
 //
-// What is sent: pageviews, page leaves (time on page, scroll depth) and web vitals, to the
+// What is sent: pageviews, page leaves (time on page, scroll depth), web vitals, clicks (for
+// the click and heatmap views) and uncaught JavaScript errors, to the
 // "OWASP BLT sites" project of the Analytics package on git.owaspblt.org. Query strings and
 // #fragments are stripped from every URL and referrer. No cookies; the SDK keeps an anonymous
 // visitor id and its send queue in this site's localStorage. Nothing loads at all when the
 // browser sends Do Not Track or Global Privacy Control, or on localhost.
-// No autocapture, heatmaps, session recordings, surveys or error reports.
+// No session recordings or surveys. Typed input values are never sent; mark an element with
+// data-fm-no-capture to keep its clicks out.
 //
 // Pages can send their own events with window.bltTrack(name, properties); calls made before
 // the SDK has loaded are queued (also those made to a page's own stub, see below), and calls
@@ -63,11 +65,11 @@
         capturePageview: true,
         capturePageleave: true,
         capturePerformance: true,
-        autocapture: false,
-        heatmaps: false,
+        autocapture: true,
+        heatmaps: true,
         sessionRecording: false,
         surveys: false,
-        captureErrors: false,
+        captureErrors: true,
         respectDoNotTrack: true,
         maskUrlQuery: true,
       });

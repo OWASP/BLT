@@ -26,7 +26,11 @@ SECURITY_HEADERS: Dict[str, str] = {
     'Referrer-Policy':
     'strict-origin-when-cross-origin',
     'Content-Security-Policy-Report-Only':
-    ("default-src 'self'; base-uri 'self'; object-src 'none'; "
+    ("default-src 'self'; "
+     "script-src 'self' https://owaspblt.org https://git.owaspblt.org; "
+     "connect-src 'self' https://git.owaspblt.org; "
+     "img-src 'self' data: https://owaspblt.org; "
+     "base-uri 'self'; object-src 'none'; "
      "frame-ancestors 'none'; form-action 'self'"),
 }
 
@@ -36,7 +40,9 @@ def security_headers() -> Dict[str, str]:
     Return security headers that should be present on every response.
 
     CSP is report-only here to avoid breaking existing inline assets while
-    still surfacing violations during testing and monitoring. No reporting
+    still surfacing violations during testing and monitoring. The shared top bar
+    (owaspblt.org/_shared) and the forge's analytics SDK and event endpoint
+    (git.owaspblt.org) are allowed, so enforcing it later keeps them working. No reporting
     endpoint is configured, so violations stay local to browser/devtools logs.
     """
     return SECURITY_HEADERS.copy()
