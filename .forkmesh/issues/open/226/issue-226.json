@@ -28,6 +28,15 @@
             "sig": "UeS-TKIMMT3Pw9Q3hn53MaHyjB6feXh6kxqoptl2K_WH4HoP7qtHTzYt_I8q7x1rSQjfpP_D_khhKJ09OJ1qAg",
             "ts": 1793621936866,
             "type": "vote"
+        },
+        {
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "id": "vote-web-1793632326051-1x6rhdc",
+            "sig": "9lA79-rO8NM3mkTOFtp5n_5wynN7Nutpx3xAfNUR1s_qPAYTUPKdWNes2L8EaWFXlG2M4zuzaWM8QCLE8xgtAg",
+            "ts": 1793632326051,
+            "type": "vote"
         }
     ],
     "labels": [],
@@ -39,6 +48,6 @@
     "startDate": 0,
     "status": "open",
     "title": "forge: allow authors to edit their own pull-request comments",
-    "updatedAt": 1793621936866,
-    "votes": 1
+    "updatedAt": 1793632326051,
+    "votes": 2
 }
