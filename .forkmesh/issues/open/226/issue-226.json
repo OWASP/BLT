@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "s3hhVb22t037OCG2vjJx291ljjPDh7-mX6PliP4yDAI",
+    "authorName": "himaneeesh",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1793619540960,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s3hhVb22t037OCG2vjJx291ljjPDh7-mX6PliP4yDAI",
+            "authorName": "himaneeesh",
+            "authorVerified": true,
+            "body": "When I post a comment on a pull request, there is no Edit option available for my own comment.\n\nThis makes it impossible to correct formatting, typos, or incomplete information without posting a second comment.\n\nExpected behavior:\nAuthors should see an Edit action for their own pull-request comments.\n\nActual behavior:\nNo Edit action is available, including when hovering over the comment.",
+            "id": "open-web-1793619540960",
+            "sig": "p4oh_iYvW2C6fOVKQnHr61uwSQAW1lY16jYCtUzr_FatlhqRsnJiMrBr0cyKF-zR7xZI0OOFkwa4naGNqV4lDw",
+            "title": "forge: allow authors to edit their own pull-request comments",
+            "ts": 1793619540960,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 226,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "forge: allow authors to edit their own pull-request comments",
+    "updatedAt": 1793619540960,
+    "votes": 0
+}
