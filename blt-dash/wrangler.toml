@@ -9,6 +9,7 @@ ENVIRONMENT = "production"
 # Configure assets (static files)
 [assets]
 directory = "./public"
+binding = "ASSETS"
 
 [observability]
 enabled = false
