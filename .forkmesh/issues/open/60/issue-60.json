@@ -75,6 +75,17 @@
             "sig": "sRSuSNxbUm9Vz5elpQYXk7EqQ2c42EBMlvOmYSPaTGy2H6iVp77BTGp4aiGdfl31TXZb5Y24iVeavf1j1qSqCw",
             "ts": 1793671260166,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "lJIMl3X9dy_EhiCbSdL9jZqcxWjH-P4q6v3bQQr2J_4",
+            "authorName": "emmanuelmj",
+            "authorVerified": true,
+            "body": "Apologies for the noise",
+            "id": "comment-web-1793678116524",
+            "sig": "JeQPObB45MG2tn-o5sOOvcGVAMkn7i3O5ClbXviIK3XjWcf4gBlQRonEZyHWouTjuSmBi9WqLbr7CYNlCNa2Ag",
+            "ts": 1793678116524,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -90,6 +101,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: add pytest unit tests for the Python Worker and run them in CI",
-    "updatedAt": 1793671260166,
+    "updatedAt": 1793678116524,
     "votes": 0
 }
