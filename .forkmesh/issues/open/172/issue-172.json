@@ -45,6 +45,17 @@
             "sig": "rC814wSG9l1Oj-faK9aJxIVZfQmCAk2qCkRgdnPkcK9RI5CRq7RvQhE8lEsmszbVvdFCXWvsM6G5UaE4j14fCA",
             "ts": 1793728012753,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@emmanuelmj you can't be assigned to this issue because you are already assigned to #108. Please open a pull request for it, or comment `/unassign` there, before taking another issue. \u003c!-- blt-assign-refused:emmanuelmj --\u003e \u003c!-- blt-assign:0cc2abddfaf1306df933 --\u003e",
+            "id": "actions-1793728031404-elFwtU51",
+            "sig": "64W7WbGNZLhyWureLCx8X1O53leK-_N_BnKNsYYASjOiAdL6SFDYOGyYQ0_1oUnuOOczhpyLBJU1rnqpCm-WCQ",
+            "ts": 1793728031404,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -63,6 +74,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: fix the `cd` path after `git clone` in the blt-dash, blt-rewards and blt-gitcaster READMEs",
-    "updatedAt": 1793728012753,
+    "updatedAt": 1793728031404,
     "votes": 0
 }
