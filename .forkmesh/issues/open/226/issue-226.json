@@ -37,6 +37,15 @@
             "sig": "9lA79-rO8NM3mkTOFtp5n_5wynN7Nutpx3xAfNUR1s_qPAYTUPKdWNes2L8EaWFXlG2M4zuzaWM8QCLE8xgtAg",
             "ts": 1793632326051,
             "type": "vote"
+        },
+        {
+            "author": "g4zKzd5qI2ZOHVQpfCK_wlazIkZ8L6fuW1YkXn09xsE",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "id": "vote-web-1793684677573-1ujliyq",
+            "sig": "1dXYQdfWMnmGjIw35kt9HKFPka1IOOZA3jwUDtajUGREYwshyyQFC19gIlIXLH4TqLK7SSMOYLD-zRYxoykSDA",
+            "ts": 1793684677573,
+            "type": "vote"
         }
     ],
     "labels": [],
@@ -48,6 +57,6 @@
     "startDate": 0,
     "status": "open",
     "title": "forge: allow authors to edit their own pull-request comments",
-    "updatedAt": 1793632326051,
-    "votes": 2
+    "updatedAt": 1793684677573,
+    "votes": 3
 }
