@@ -44,6 +44,17 @@
             "sig": "k5KRndP37-LhUm5MGhW-1yYm6A6jYMdWClO0JpG8qGWfSDKUjPVnvC_1FquElJ3okvviYWZE1-AYSowjdapiBw",
             "ts": 1793707492735,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "Unlinked pull request #65",
+            "id": "comment-web-1793711549016",
+            "sig": "A06W6lKfHheG9w1Dhxis_AGidByvc8Dk-nw4nvsJB_B4EVDtL8NyBu2Z2QUxWO29rvZtsUKpU0WJtIKzl141CQ",
+            "ts": 1793711549016,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -59,6 +70,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: make /dash serve the dashboard instead of the \"Please configure assets\" placeholder",
-    "updatedAt": 1793707492735,
+    "updatedAt": 1793711549016,
     "votes": 0
 }
