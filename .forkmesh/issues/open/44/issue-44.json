@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "psamuelvijay"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -114,6 +112,17 @@
             "sig": "yZ0ynYS3B2ecyehNktFzqzPVtiS53z_mPTqiUbKKgdbaaMmE7tuJtWEd_IEAxF2yPVHG5RQJoAJyX-9kl0FZBQ",
             "ts": 1793724622699,
             "type": "comment"
+        },
+        {
+            "assignee": "psamuelvijay",
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "actions-1793724639590-o0n2Ktba",
+            "sig": "kV6PKnEXwVGTmorJgS5mArMCCdoOMaDUDZ2Qk1UZkvk75OSF9SsJeyN_WWxGFrSVKTpg3oeHGNRVa5XDQs7tBg",
+            "ts": 1793724639590,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -130,6 +139,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: add tests for the /api/ossh/catalog/ endpoint",
-    "updatedAt": 1793724622699,
+    "updatedAt": 1793724639590,
     "votes": 0
 }
