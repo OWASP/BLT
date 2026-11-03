@@ -119,9 +119,9 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 <!-- CONTRIBUTORS-END -->
 
 <!-- WAITING-PRS-START -->
-## ⏳ Pull Requests Waiting for Review (21 open, 2 new contributors)
+## ⏳ Pull Requests Waiting for Review (22 open, 2 new contributors)
 
-*Last updated: 2026-11-02 15:53 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
+*Last updated: 2026-11-03 06:18 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
 
 | Contributor | Waiting | Pull requests |
 |---|---|---|
@@ -135,6 +135,7 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 | [himaneeesh](https://git.owaspblt.org/@himaneeesh) | 1 | [#58](https://git.owaspblt.org/BLT/pull/58) blt-owasp-projects: follow up dashboard loading-state polish |
 | [hiralmodi](https://git.owaspblt.org/@hiralmodi) | 1 | [#50](https://git.owaspblt.org/BLT/pull/50) blt-pages: remove dead config keys, unused @fontsource dependency, and use python3 in pla… |
 | [namrata](https://git.owaspblt.org/@namrata) | 1 | [#43](https://git.owaspblt.org/BLT/pull/43) Add worker regression tests for BLT Monitor (#116) |
+| [owasp-marquina](https://git.owaspblt.org/@owasp-marquina) | 1 | [#61](https://git.owaspblt.org/BLT/pull/61) blt-netguardian: tighten payload_redact tests from #20 review |
 | [preetam](https://git.owaspblt.org/@preetam) | 1 | [#17](https://git.owaspblt.org/BLT/pull/17) Fix accessibility issues for channel pills, preset chips, and input labels |
 | [vanshika2720](https://git.owaspblt.org/@vanshika2720) | 1 | [#15](https://git.owaspblt.org/BLT/pull/15) blt-mcp: sync AGENT.md with tool definitions |
 <!-- WAITING-PRS-END -->
