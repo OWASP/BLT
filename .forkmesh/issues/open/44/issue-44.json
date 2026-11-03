@@ -123,6 +123,17 @@
             "sig": "kV6PKnEXwVGTmorJgS5mArMCCdoOMaDUDZ2Qk1UZkvk75OSF9SsJeyN_WWxGFrSVKTpg3oeHGNRVa5XDQs7tBg",
             "ts": 1793724639590,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@psamuelvijay you're unassigned from this issue. It's open for others now; comment `/assign` to take it again. \u003c!-- blt-assign:5409943ce7e76298b4df --\u003e",
+            "id": "actions-1793724639728-Obe2wYL_",
+            "sig": "BRhumnxumaFMoHk2Z9nXjELn7-dR86azPrw_4W2692ghiTDpOesk96nRY-99ZvQklFpUIDkWxJQAmqPYcISMDA",
+            "ts": 1793724639728,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -139,6 +150,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: add tests for the /api/ossh/catalog/ endpoint",
-    "updatedAt": 1793724639590,
+    "updatedAt": 1793724639728,
     "votes": 0
 }
