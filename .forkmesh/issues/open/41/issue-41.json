@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "hrinkar01"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -68,6 +66,17 @@
             "sig": "7O2lLn95Y_CPR1u5EDAXG-B3Lh1v_2dOjAlpNihyu35RkW4A6e-iRxWRboynGi9W-zdTOogrEK5SKGpNVyRsAA",
             "ts": 1793265292677,
             "type": "comment"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1793702954104-nx9nyo",
+            "sig": "DcIqE4D6pu92NWdakSacy-75OQl5k0yst-rbGlKp6Kbt6pH1beqq5iaKOiKdDuVjHcWrMM4zZMTyabf1oDJiBA",
+            "ts": 1793702954104,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -83,6 +92,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: drop the unused `cffi\u003c2` pin and upgrade cryptography, aiohttp and pillow",
-    "updatedAt": 1793265292677,
+    "updatedAt": 1793702954104,
     "votes": 0
 }
