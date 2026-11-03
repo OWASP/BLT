@@ -101,6 +101,18 @@
             "target": "comment-web-1793670973193",
             "ts": 1793677915570,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "lJIMl3X9dy_EhiCbSdL9jZqcxWjH-P4q6v3bQQr2J_4",
+            "authorName": "emmanuelmj",
+            "authorVerified": true,
+            "body": "PR raised at https://git.owaspblt.org/BLT/pull/60",
+            "id": "edit-web-1793678034101-1oz2tod",
+            "sig": "7l25HAJj__DTOGA_876XdGaGBi3VUE5kcKDwDmkTa4ec4AkiN-zoVtbsyOtjHD7Dk_EGaRKFneOX5e6QcvnZDQ",
+            "target": "comment-web-1793670973193",
+            "ts": 1793678034101,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -117,6 +129,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-next: clean up README leftovers and wrong setup steps",
-    "updatedAt": 1793677915570,
+    "updatedAt": 1793678034101,
     "votes": 0
 }
