@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "hrinkar01"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -12,7 +14,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\n`src/index.py` strips a `/dash` prefix, then checks `hasattr(env, 'ASSETS')`, but `wrangler.toml` `[assets]` has no `binding = \"ASSETS\"`, so `/dash` returns placeholder HTML. Even with a binding, the original request (not the stripped path) is passed on. Confirm with `curl -i localhost:8787/dash` first.\n\n## What to do\n\n1. Add `binding = \"ASSETS\"` under `[assets]`.\n2. Fetch the rewritten URL from ASSETS, or drop the `/dash` handling and redirect to `/`.\n3. Remove the placeholder HTML.\n\n## Acceptance criteria\n\n- [ ] `/dash` and `/dash/` show the dashboard or redirect to `/`\n- [ ] Unknown paths return 404\n\n## How to test locally\n\n```bash\ncd blt-dash && npx wrangler dev   # curl -i localhost:8787/dash\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\n`src/index.py` strips a `/dash` prefix, then checks `hasattr(env, 'ASSETS')`, but `wrangler.toml` `[assets]` has no `binding = \"ASSETS\"`, so `/dash` returns placeholder HTML. Even with a binding, the original request (not the stripped path) is passed on. Confirm with `curl -i localhost:8787/dash` first.\n\n## What to do\n\n1. Add `binding = \"ASSETS\"` under `[assets]`.\n2. Fetch the rewritten URL from ASSETS, or drop the `/dash` handling and redirect to `/`.\n3. Remove the placeholder HTML.\n\n## Acceptance criteria\n\n- [ ] `/dash` and `/dash/` show the dashboard or redirect to `/`\n- [ ] Unknown paths return 404\n\n## How to test locally\n\n```bash\ncd blt-dash \u0026\u0026 npx wrangler dev   # curl -i localhost:8787/dash\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-170",
             "sig": "k4-Q1X1jypLZCwz7a641coN-Z14q-jk0FxPKO5-eskpysOQFRMh3QigVCQrGaQK08vkp0uiGpLaduQ51ILwAAA",
             "title": "blt-dash: make /dash serve the dashboard instead of the \"Please configure assets\" placeholder",
@@ -31,6 +33,17 @@
             "sig": "GG1eDvw26kG4MprJkP5oqfF5sZHvNhDfxqhgv1mXl4c433o2iStpzD_LVgllTIoIZOdGSxRh6wb-izQelaB7Cg",
             "ts": 1792547524560,
             "type": "labels"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1793707492735-brriwt",
+            "sig": "k5KRndP37-LhUm5MGhW-1yYm6A6jYMdWClO0JpG8qGWfSDKUjPVnvC_1FquElJ3okvviYWZE1-AYSowjdapiBw",
+            "ts": 1793707492735,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -46,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: make /dash serve the dashboard instead of the \"Please configure assets\" placeholder",
-    "updatedAt": 1792547524560,
+    "updatedAt": 1793707492735,
     "votes": 0
 }
