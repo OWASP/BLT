@@ -78,6 +78,17 @@
             "sig": "gdm4qqfqxV9ziTYtHV6mcaCJi9QMFYPMhfRDg5QBt_h_wPuezVsSdb_ogExhZkZk8b5mm6GH3mTEx3tOCa6zAw",
             "ts": 1793627597183,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "lJIMl3X9dy_EhiCbSdL9jZqcxWjH-P4q6v3bQQr2J_4",
+            "authorName": "emmanuelmj",
+            "authorVerified": true,
+            "body": "PR raised at #60",
+            "id": "comment-web-1793670973193",
+            "sig": "jRum7wBTjtvzvsT222SIM3fmHq2Z-Norg1ftet5yTlL-SUFeYMPqU7nmWStm4kui7VnB1ZCkI9YQVHD6z4tgDg",
+            "ts": 1793670973193,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -94,6 +105,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-next: clean up README leftovers and wrong setup steps",
-    "updatedAt": 1793627597183,
+    "updatedAt": 1793670973193,
     "votes": 0
 }
