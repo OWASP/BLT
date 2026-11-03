@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "namrata"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -110,6 +108,17 @@
             "sig": "WezYTigxuEHTcIujSFrvq981BG5_1RL7F0Hh9vRj26bqT7VswM9DaHb9mDg0lqOQtywB4C88XdWjcBkJ6XoiBg",
             "ts": 1793717775707,
             "type": "comment"
+        },
+        {
+            "assignee": "namrata",
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1793717782192-elmvm0",
+            "sig": "Bbc2hxtMnkalGNLV8NR2kNzN3IguelgFpXlPnuv8zZxha8WDMGUYWG5W_Q9j-zZ9p3XY0n7tJA8GNABPGsqMAg",
+            "ts": 1793717782192,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -125,6 +134,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-tomato: turn FUNDING.yml platform entries into real donate URLs",
-    "updatedAt": 1793717775707,
+    "updatedAt": 1793717782192,
     "votes": 0
 }
