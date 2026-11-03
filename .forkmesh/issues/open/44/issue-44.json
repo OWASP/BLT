@@ -103,6 +103,17 @@
             "sig": "87iwOGZp1QxR8bShXk8VDs0xc-oaqFTtXIwa7DHwrt-bx8KSFpwKJ8E8pW8IiXTalpc09WPHfYVbxYL9jKVeCg",
             "ts": 1792678760380,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "gKYk725y-DlKjRB7i6nng7fXWReWZOGMBHLdNYPIxRI",
+            "authorName": "psamuelvijay",
+            "authorVerified": true,
+            "body": "/unassign",
+            "id": "comment-web-1793724622699",
+            "sig": "yZ0ynYS3B2ecyehNktFzqzPVtiS53z_mPTqiUbKKgdbaaMmE7tuJtWEd_IEAxF2yPVHG5RQJoAJyX-9kl0FZBQ",
+            "ts": 1793724622699,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -119,6 +130,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: add tests for the /api/ossh/catalog/ endpoint",
-    "updatedAt": 1792678760380,
+    "updatedAt": 1793724622699,
     "votes": 0
 }
