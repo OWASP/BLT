@@ -75,6 +75,17 @@
             "sig": "W9_AL1TaW9VaMBNqjlwlchM3zLN1gN3hWOGN1lDs-K1GjOA8ER9SeMrMV317G9I5uTgsSSThNZJ0Y7Pr9J7MDw",
             "ts": 1793681595936,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@nikhil you've been unassigned from this issue because there was no pull request or update for 24 hours. It's open for others now; comment `/assign` to take it again. \u003c!-- blt-assign-stale:nikhil:1793593722563 --\u003e",
+            "id": "actions-1793681596012-5UGgEpfd",
+            "sig": "GOw4zfQ6jnp750c3uSp-XES3pGvKq62feBUZRdSFpDh563tyBgaTcaisvBihg4J6D8XTY07zq1H4DAdTrEh7Dg",
+            "ts": 1793681596012,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -90,6 +101,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-start: reach the gold standard (bronze today, 1 step)",
-    "updatedAt": 1793681595936,
+    "updatedAt": 1793681596012,
     "votes": 0
 }
