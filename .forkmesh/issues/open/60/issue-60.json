@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "emmanuelmj"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -66,6 +64,17 @@
             "sig": "8WK2iUu_X1CX-Anx1FLzs0mfkjHaHtj2gq-TuLHX_DdfbYXOYihNI5mai-caTPebRBxNa6cDHkuKh3vyENiLCg",
             "ts": 1793671079022,
             "type": "claim"
+        },
+        {
+            "assignee": "emmanuelmj",
+            "author": "lJIMl3X9dy_EhiCbSdL9jZqcxWjH-P4q6v3bQQr2J_4",
+            "authorName": "emmanuelmj",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1793671260166-xbgbgj",
+            "sig": "sRSuSNxbUm9Vz5elpQYXk7EqQ2c42EBMlvOmYSPaTGy2H6iVp77BTGp4aiGdfl31TXZb5Y24iVeavf1j1qSqCw",
+            "ts": 1793671260166,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -81,6 +90,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: add pytest unit tests for the Python Worker and run them in CI",
-    "updatedAt": 1793671079022,
+    "updatedAt": 1793671260166,
     "votes": 0
 }
