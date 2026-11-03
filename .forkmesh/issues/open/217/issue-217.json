@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "nikhil"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -66,6 +64,17 @@
             "sig": "FED46laeZ2DXIbiQrONs2cDBxwIc-K2-KWTfiNbkFzNTnUY7lZOxTrTXPQolwQLXmvwSDXZGVHuqtodTKCTEAg",
             "ts": 1793659995012,
             "type": "comment"
+        },
+        {
+            "assignee": "nikhil",
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "actions-1793681595936-gOd0gha0",
+            "sig": "W9_AL1TaW9VaMBNqjlwlchM3zLN1gN3hWOGN1lDs-K1GjOA8ER9SeMrMV317G9I5uTgsSSThNZJ0Y7Pr9J7MDw",
+            "ts": 1793681595936,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -81,6 +90,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-start: reach the gold standard (bronze today, 1 step)",
-    "updatedAt": 1793659995012,
+    "updatedAt": 1793681595936,
     "votes": 0
 }
