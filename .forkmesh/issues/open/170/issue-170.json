@@ -55,6 +55,17 @@
             "sig": "A06W6lKfHheG9w1Dhxis_AGidByvc8Dk-nw4nvsJB_B4EVDtL8NyBu2Z2QUxWO29rvZtsUKpU0WJtIKzl141CQ",
             "ts": 1793711549016,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "PR raised!\n\nhttps://git.owaspblt.org/BLT/pull/66",
+            "id": "comment-web-1793714929908",
+            "sig": "CdodlWDZf7DMVt-jtg0QOnlvrD-UoziRjwo1gFxYw9TtELVvhQrY98YW5ZLVq8Lc0UjuB1TwAa0BptSV7KULBQ",
+            "ts": 1793714929908,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -70,6 +81,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: make /dash serve the dashboard instead of the \"Please configure assets\" placeholder",
-    "updatedAt": 1793711549016,
+    "updatedAt": 1793714929908,
     "votes": 0
 }
