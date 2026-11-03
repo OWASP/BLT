@@ -99,6 +99,17 @@
             "sig": "18RVfRci2AprBi3KuQ3WdUzyLwFCYSTykde6geSXg7ZauYFZ0-sW9bvT5LrGEzHpU07Lp-HuYJy_oe0BYiXyDw",
             "ts": 1793651793231,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "body": "I have raised PR #67!!",
+            "id": "comment-web-1793717775707",
+            "sig": "WezYTigxuEHTcIujSFrvq981BG5_1RL7F0Hh9vRj26bqT7VswM9DaHb9mDg0lqOQtywB4C88XdWjcBkJ6XoiBg",
+            "ts": 1793717775707,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -114,6 +125,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-tomato: turn FUNDING.yml platform entries into real donate URLs",
-    "updatedAt": 1793651793231,
+    "updatedAt": 1793717775707,
     "votes": 0
 }
