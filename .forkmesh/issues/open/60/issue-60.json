@@ -99,6 +99,17 @@
             "sig": "_3Q6y2KvXqDFZ_5JnZbv459nTESRr7a_ThSKPefLC2ZOublJ1EKfRMWJO6u6hoDZXuuHrBKEuItyVuuNEWHPDg",
             "ts": 1793813890917,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "vhmrWJyasPcAdt7sjiyAzB9Fyqfn-2crwat3uk4-Zk0",
+            "authorName": "lahama-blt",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1793814146777",
+            "sig": "yZMMVYd9GuNW_Gfpm9snUnODr7xO0xLHAnkwho_mvhWo6bAdeme1e1srvKE9UhdWS0nu247kySAQMTv8HHb4Cw",
+            "ts": 1793814146777,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -114,6 +125,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: add pytest unit tests for the Python Worker and run them in CI",
-    "updatedAt": 1793813890917,
+    "updatedAt": 1793814146777,
     "votes": 0
 }
