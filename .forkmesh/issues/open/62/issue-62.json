@@ -56,6 +56,17 @@
             "sig": "HWJROQKQkimkfmRQ5qPKxlnADit-zXTCmMQf8OAIwMJxr_68gREvPNhqYR4epGMW30QH8rhtSZYsLvOmMFYmBQ",
             "ts": 1793815643170,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@lahama-blt you're assigned to this issue. Please open a pull request for it within 24 hours. Without a pull request or an update from you here for 24 hours, you'll be unassigned (after a warning). If you stop working on it, comment `/unassign` so someone else can pick it up. \u003c!-- blt-assign:f078cb9df194fdd354d7 --\u003e",
+            "id": "actions-1793815643370-AxD1z62J",
+            "sig": "_KyPP7Gei-V1XBdZn5ruU6IfjMwCUUfcDIGNChXp9rGw7xcKmLuKwd3veCZdSu3CNIB3qFnLc5uBpr6xP0EYAQ",
+            "ts": 1793815643370,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -72,6 +83,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: fix wrong setup and test commands in CONTRIBUTING.md",
-    "updatedAt": 1793815643170,
+    "updatedAt": 1793815643370,
     "votes": 0
 }
