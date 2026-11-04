@@ -110,6 +110,17 @@
             "sig": "yZMMVYd9GuNW_Gfpm9snUnODr7xO0xLHAnkwho_mvhWo6bAdeme1e1srvKE9UhdWS0nu247kySAQMTv8HHb4Cw",
             "ts": 1793814146777,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@lahama-blt you are already assigned to this issue. \u003c!-- blt-assign-refused:lahama-blt --\u003e \u003c!-- blt-assign:5a331956c8ddfc88f131 --\u003e",
+            "id": "actions-1793814160867-gJ7IdPzi",
+            "sig": "0wCHyywgDFT9V_6_dKh4mBASwMV4Gq1fEfFWOM4H-WJ9hll3Gs7vU7-QJB8xo2_ZyXRL8Y8S8KhCO79ICAhjAQ",
+            "ts": 1793814160867,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -125,6 +136,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: add pytest unit tests for the Python Worker and run them in CI",
-    "updatedAt": 1793814146777,
+    "updatedAt": 1793814160867,
     "votes": 0
 }
