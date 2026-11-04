@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "lahama-blt"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -43,6 +45,17 @@
             "sig": "E2wBVYtbNcY6l-ZFjhMCHNfdz3BG6Hfdbvx0wMilwH3Dhr7AljbRVYaxcrPOHi-BAa0fT2R9Q83hgiAygGNgDw",
             "ts": 1793815621765,
             "type": "comment"
+        },
+        {
+            "assignee": "lahama-blt",
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "actions-1793815643170-noh0WBec",
+            "sig": "HWJROQKQkimkfmRQ5qPKxlnADit-zXTCmMQf8OAIwMJxr_68gREvPNhqYR4epGMW30QH8rhtSZYsLvOmMFYmBQ",
+            "ts": 1793815643170,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -59,6 +72,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: fix wrong setup and test commands in CONTRIBUTING.md",
-    "updatedAt": 1793815621765,
+    "updatedAt": 1793815643170,
     "votes": 0
 }
