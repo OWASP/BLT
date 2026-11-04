@@ -121,6 +121,17 @@
             "sig": "0wCHyywgDFT9V_6_dKh4mBASwMV4Gq1fEfFWOM4H-WJ9hll3Gs7vU7-QJB8xo2_ZyXRL8Y8S8KhCO79ICAhjAQ",
             "ts": 1793814160867,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "vhmrWJyasPcAdt7sjiyAzB9Fyqfn-2crwat3uk4-Zk0",
+            "authorName": "lahama-blt",
+            "authorVerified": true,
+            "body": "I noticed that PR #21 by Preetam already implemented and merged the requirements for this issue, including the pytest suite and CI integration. I had claimed the issue without noticing the linked merged PR. Apologies for the duplicate assignment. I'll release it.",
+            "id": "comment-web-1793815477794",
+            "sig": "Q_4O96H5fRNjnhwWqus_2tvB3gOAX1z3cXdUo0QvubTg6OWywqfbn6O2HehMAn3AMNRUt7UWEqdIJiFm1ZsUBg",
+            "ts": 1793815477794,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -136,6 +147,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: add pytest unit tests for the Python Worker and run them in CI",
-    "updatedAt": 1793814160867,
+    "updatedAt": 1793815477794,
     "votes": 0
 }
