@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "himaneeesh"
+    ],
     "author": "s3hhVb22t037OCG2vjJx291ljjPDh7-mX6PliP4yDAI",
     "authorName": "himaneeesh",
     "bountyAddress": "",
@@ -69,6 +71,17 @@
             "target": "comment-web-1793791875841",
             "ts": 1793791905309,
             "type": "edit"
+        },
+        {
+            "assignee": "himaneeesh",
+            "author": "s3hhVb22t037OCG2vjJx291ljjPDh7-mX6PliP4yDAI",
+            "authorName": "himaneeesh",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1793808288462-qm9xsf",
+            "sig": "bYkv3C2S1Q99wBf-6luipPwfldbzJeNN-MOn37X47ksylj2Q-CqvEQM4IKgNGBem2D-tLQEVR7R137r3CH_uDw",
+            "ts": 1793808288462,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -80,6 +93,6 @@
     "startDate": 0,
     "status": "open",
     "title": "forge: allow authors to edit their own pull-request comments",
-    "updatedAt": 1793791905309,
+    "updatedAt": 1793808288462,
     "votes": 3
 }
