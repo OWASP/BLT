@@ -46,6 +46,17 @@
             "sig": "1dXYQdfWMnmGjIw35kt9HKFPka1IOOZA3jwUDtajUGREYwshyyQFC19gIlIXLH4TqLK7SSMOYLD-zRYxoykSDA",
             "ts": 1793684677573,
             "type": "vote"
+        },
+        {
+            "attachments": [],
+            "author": "s3hhVb22t037OCG2vjJx291ljjPDh7-mX6PliP4yDAI",
+            "authorName": "himaneeesh",
+            "authorVerified": true,
+            "body": "Edit- Issue focuses on how to allow changing description of a post contributor authored.",
+            "id": "comment-web-1793791875841",
+            "sig": "GgdKDLVkgMxGTT_6R-eDr-xjky2MbZUT1I8AO1V2BbEycgXVq3RJm4FP2rMKfLwJjoJNvTfSOWudZVwdkchNCQ",
+            "ts": 1793791875841,
+            "type": "comment"
         }
     ],
     "labels": [],
@@ -57,6 +68,6 @@
     "startDate": 0,
     "status": "open",
     "title": "forge: allow authors to edit their own pull-request comments",
-    "updatedAt": 1793684677573,
+    "updatedAt": 1793791875841,
     "votes": 3
 }
