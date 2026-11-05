@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "emmanuelmj"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -80,6 +78,17 @@
             "sig": "nOVCcOMuMrwCKxCVC-25cFME76oDLVwQ8JJZ06IcxYJAs8Rn2yvl_o2Buc6SXKvqp86mlLP7PvqnR1BYk0HrCA",
             "ts": 1793881942984,
             "type": "comment"
+        },
+        {
+            "assignee": "emmanuelmj",
+            "author": "Hq3ScFNWV2kELU_o5f1ApiQT5WpGQCdRKEebtlDzhfk",
+            "authorName": "emmanuelmj",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1793882044360-v8bmyb",
+            "sig": "PfvqJnJLhoE1T-tcLMDd8cc4lke7-Q79vXTbmqMbhVvZg7B-EIOnwm57cukJMwXDIn_5Uu4OzKQEj4YW35SlCg",
+            "ts": 1793882044360,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -98,6 +107,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: fix the `cd` path after `git clone` in the blt-dash, blt-rewards and blt-gitcaster READMEs",
-    "updatedAt": 1793881942984,
+    "updatedAt": 1793882044360,
     "votes": 0
 }
