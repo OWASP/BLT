@@ -63,6 +63,17 @@
             "sig": "JvbELj5P94AX6m8AJ_ma1YXunHrcuBaZ_0FsH1mZHPmZ_igWKQwEleniADNNAavfKvWbfiBz7AzIojBDOsymCA",
             "ts": 1793656395917,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "VJAr5lCdBD4mHhE9xI32zT-lIIkXDt6C3dZdu7JLqZ0",
+            "authorName": "arnavghai19",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1793884891872",
+            "sig": "NdBj3CmVkEnbaU-MSWhOW1toOSgoh3fGU2Gge8mHVBu5kBn6ZOtoLWR8UvBuYpNYPNGdA2gon1-zfbd5W7K3AA",
+            "ts": 1793884891872,
+            "type": "comment"
         }
     ],
     "labels": [],
@@ -74,6 +85,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Web chat never starts: /fmm/*.js modules are routed to the repository router (404)",
-    "updatedAt": 1793656395917,
+    "updatedAt": 1793884891872,
     "votes": 0
 }
