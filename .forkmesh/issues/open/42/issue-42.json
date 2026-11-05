@@ -57,6 +57,17 @@
             "sig": "ZRJoOaobSzY2A9w7GZ7qmUcVg_V2Ox4fVmMEMbenKJLWQtCwwe-ptgZ57nveKTVU1xOiTgAG8IDWAOTQZQNHDg",
             "ts": 1793881511979,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "body": "I have raised the PR #72",
+            "id": "comment-web-1793907575940",
+            "sig": "JIsQYYiAT4F3rue0x1Z-5yywLMakXqJ4IQNE8EEZ_iCXkPcjFc3yY_r4F1Hyw6xhZwLZIXQgXUTrl9TCc3zeDA",
+            "ts": 1793907575940,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -72,6 +83,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: replace deprecated bleach (django-bleach) with nh3 for GitHub issue bodies",
-    "updatedAt": 1793881511979,
+    "updatedAt": 1793907575940,
     "votes": 0
 }
