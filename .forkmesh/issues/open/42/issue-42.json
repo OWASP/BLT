@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "namrata"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -68,6 +66,17 @@
             "sig": "JIsQYYiAT4F3rue0x1Z-5yywLMakXqJ4IQNE8EEZ_iCXkPcjFc3yY_r4F1Hyw6xhZwLZIXQgXUTrl9TCc3zeDA",
             "ts": 1793907575940,
             "type": "comment"
+        },
+        {
+            "assignee": "namrata",
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1793907583209-m7dhep",
+            "sig": "A7s-GLXljU54AL_--EmmVCR_1Zj9HSQS8HtUvsomLX3VaqhLGYF1MJ2BaVfmWCAA00KIDBuHoRLQwZvO7pqGAA",
+            "ts": 1793907583209,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -83,6 +92,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: replace deprecated bleach (django-bleach) with nh3 for GitHub issue bodies",
-    "updatedAt": 1793907575940,
+    "updatedAt": 1793907583209,
     "votes": 0
 }
