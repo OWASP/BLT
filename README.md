@@ -119,14 +119,15 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 <!-- CONTRIBUTORS-END -->
 
 <!-- WAITING-PRS-START -->
-## ⏳ Pull Requests Waiting for Review (24 open, 2 new contributors)
+## ⏳ Pull Requests Waiting for Review (25 open, 3 new contributors)
 
-*Last updated: 2026-11-04 06:17 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
+*Last updated: 2026-11-05 06:17 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
 
 | Contributor | Waiting | Pull requests |
 |---|---|---|
 | [granger](https://git.owaspblt.org/@granger) 🌱 **new contributor** | 4 | [#48](https://git.owaspblt.org/BLT/pull/48) feat(blt-api): add organization-scoped public jobs API<br>[#54](https://git.owaspblt.org/BLT/pull/54) fix(blt-api): update /health documentation link to /dashboard and verify route resolution…<br>[#55](https://git.owaspblt.org/BLT/pull/55) fix(blt-pages): center icons and wrap empty-state summary cards on leaderboard<br>[#62](https://git.owaspblt.org/BLT/pull/62) fix(blt-cve): support draft CVE submissions |
 | [emmanuelmj](https://git.owaspblt.org/@emmanuelmj) 🌱 **new contributor** | 1 | [#60](https://git.owaspblt.org/BLT/pull/60) blt-next: clean up README and fix setup steps |
+| [lahama-blt](https://git.owaspblt.org/@lahama-blt) 🌱 **new contributor** | 1 | [#70](https://git.owaspblt.org/BLT/pull/70) docs(blt-vanish): fix setup and test commands |
 | [hrinkar01](https://git.owaspblt.org/@hrinkar01) | 3 | [#34](https://git.owaspblt.org/BLT/pull/34) blt-tomato: support custom funding_url and default_branch for funding files<br>[#47](https://git.owaspblt.org/BLT/pull/47) blt-legacy: drop unused cffi pin and upgrade cryptography, aiohttp and pillow<br>[#66](https://git.owaspblt.org/BLT/pull/66) blt-dash: add ASSETS binding and redirect /dash and /dash/ to root |
 | [navodit](https://git.owaspblt.org/@navodit) | 3 | [#5](https://git.owaspblt.org/BLT/pull/5) Fix mobile sidebar: add toggle button, outside-click close, auto-close on nav select, and…<br>[#11](https://git.owaspblt.org/BLT/pull/11) Fix day-of-week range parsing to allow values ending in 7<br>[#14](https://git.owaspblt.org/BLT/pull/14) Fix /health endpoint to build endpoint map dynamically from router |
 | [prabhat1](https://git.owaspblt.org/@prabhat1) | 3 | [#49](https://git.owaspblt.org/BLT/pull/49) blt-start: make the advertised dark mode work (add a theme toggle)<br>[#51](https://git.owaspblt.org/BLT/pull/51) blt-start: add CI tests to reach gold standard<br>[#52](https://git.owaspblt.org/BLT/pull/52) blt-start: fix good first issue links and local setup instructions |
