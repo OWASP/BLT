@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "arnavghai19"
-    ],
+    "assignees": [],
     "author": "VJAr5lCdBD4mHhE9xI32zT-lIIkXDt6C3dZdu7JLqZ0",
     "authorName": "arnavghai19",
     "bountyAddress": "",
@@ -54,6 +52,17 @@
             "sig": "52BurOf7A1k_qQA-TPkJ3c2njklEBZdBVSD-LOLHWLGY7asJ14UkP0eK56W5jXckt_Wh3uSCG4z1KHBDp_Q6Ag",
             "ts": 1793623867336,
             "type": "comment"
+        },
+        {
+            "assignee": "arnavghai19",
+            "author": "VJAr5lCdBD4mHhE9xI32zT-lIIkXDt6C3dZdu7JLqZ0",
+            "authorName": "arnavghai19",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1793888553344-dbg5nw",
+            "sig": "IYnNWD0gRDqrj5lT1M21FCQ9GfoKomJdvzIIZIFV-afQsb2Y8SE7kdPd5tfoOHSGxRTOzWNyY2hYK3f9wp44BQ",
+            "ts": 1793888553344,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -65,6 +74,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Windows: BLT-Leaf data display tests cannot spawn npx.cmd",
-    "updatedAt": 1793623867336,
+    "updatedAt": 1793888553344,
     "votes": 0
 }
