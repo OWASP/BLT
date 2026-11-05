@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "emmanuelmj"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -113,6 +111,17 @@
             "target": "comment-web-1793670973193",
             "ts": 1793678034101,
             "type": "edit"
+        },
+        {
+            "assignee": "emmanuelmj",
+            "author": "shGX3dQR9Rrobo7sHWc0ZYZ9XbxHHpyGvbsuopBXKWk",
+            "authorName": "emmanuelmj",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1793854380526-1y0fjah",
+            "sig": "Ma1wMNPgLYOcX0f8fik7I9s4NUeVZ2t7BUXwAeqXl2V_NADRroiIkMH7m6XOryLpoT2Ee9yCYVEPsrQlmwa2Aw",
+            "ts": 1793854380526,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -129,6 +138,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-next: clean up README leftovers and wrong setup steps",
-    "updatedAt": 1793678034101,
+    "updatedAt": 1793854380526,
     "votes": 0
 }
