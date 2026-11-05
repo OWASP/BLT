@@ -69,6 +69,17 @@
             "sig": "uSOArTjHTrB8DiJDEGxZU1TzB2CtRJFTMU7_53dQui8fYCbX0mXGKwAD1VsMzZzBNsxjs4a7xKCPT9RdTs5LBw",
             "ts": 1793854640489,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "Hq3ScFNWV2kELU_o5f1ApiQT5WpGQCdRKEebtlDzhfk",
+            "authorName": "emmanuelmj",
+            "authorVerified": true,
+            "body": "PR raised at: https://git.owaspblt.org/BLT/pull/71",
+            "id": "comment-web-1793881942984",
+            "sig": "nOVCcOMuMrwCKxCVC-25cFME76oDLVwQ8JJZ06IcxYJAs8Rn2yvl_o2Buc6SXKvqp86mlLP7PvqnR1BYk0HrCA",
+            "ts": 1793881942984,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -87,6 +98,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: fix the `cd` path after `git clone` in the blt-dash, blt-rewards and blt-gitcaster READMEs",
-    "updatedAt": 1793854640489,
+    "updatedAt": 1793881942984,
     "votes": 0
 }
