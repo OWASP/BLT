@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "namrata"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -12,7 +14,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\nSecurity-sweep leftover. `pyproject.toml:69` pulls in `django-bleach` only to get **bleach 5.0.1** (2022, deprecated upstream). bleach is used in exactly one module: `website/views/issue.py:21` (`from bleach import clean`), called at about lines 2914 and 3119 to sanitise rendered GitHub issue bodies. `django_bleach` isn't in `INSTALLED_APPS` and no template uses its filter. This touches HTML sanitising, so it needs a careful reviewer even though the diff is small.\n\n## What to do\n\n1. Add `nh3` and remove `django-bleach` from `blt-core/pyproject.toml`; run `uv lock`.\n2. Rewrite both `clean(...)` calls as `nh3.clean(html, tags=set(...), attributes={...})` with the **same** allowlists.\n3. Add a test that feeds `<script>`, `onerror=` attributes and `javascript:` links through both code paths and checks they are removed.\n\n## Acceptance criteria\n\n- [ ] No `bleach` in `pyproject.toml` or `uv.lock`\n- [ ] Both call sites use nh3 with unchanged allowlists\n- [ ] New sanitiser test passes\n- [ ] Full suite passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-core\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\nSecurity-sweep leftover. `pyproject.toml:69` pulls in `django-bleach` only to get **bleach 5.0.1** (2022, deprecated upstream). bleach is used in exactly one module: `website/views/issue.py:21` (`from bleach import clean`), called at about lines 2914 and 3119 to sanitise rendered GitHub issue bodies. `django_bleach` isn't in `INSTALLED_APPS` and no template uses its filter. This touches HTML sanitising, so it needs a careful reviewer even though the diff is small.\n\n## What to do\n\n1. Add `nh3` and remove `django-bleach` from `blt-core/pyproject.toml`; run `uv lock`.\n2. Rewrite both `clean(...)` calls as `nh3.clean(html, tags=set(...), attributes={...})` with the **same** allowlists.\n3. Add a test that feeds `\u003cscript\u003e`, `onerror=` attributes and `javascript:` links through both code paths and checks they are removed.\n\n## Acceptance criteria\n\n- [ ] No `bleach` in `pyproject.toml` or `uv.lock`\n- [ ] Both call sites use nh3 with unchanged allowlists\n- [ ] New sanitiser test passes\n- [ ] Full suite passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-core\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-42",
             "sig": "KPXkPYplJ4zGvW5E80RFK7GukMZc0gdomhqUc_to1izNXn0jdI0D5UI_MxuHPxk5kzJWp9HYg3fV3iZssRXnBA",
             "title": "blt-core: replace deprecated bleach (django-bleach) with nh3 for GitHub issue bodies",
@@ -44,6 +46,17 @@
             "sig": "YSFYUbhCFbRy_u8iHpsTW0Ju5-biUITUiQKkK6SETtpHkViJ-OhLCQaz52HVh0ENLeaOerABXOI5pyPx79JNBA",
             "ts": 1792550467207,
             "type": "labels"
+        },
+        {
+            "assignee": "namrata",
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1793881511979-a3tg5n",
+            "sig": "ZRJoOaobSzY2A9w7GZ7qmUcVg_V2Ox4fVmMEMbenKJLWQtCwwe-ptgZ57nveKTVU1xOiTgAG8IDWAOTQZQNHDg",
+            "ts": 1793881511979,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -59,6 +72,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: replace deprecated bleach (django-bleach) with nh3 for GitHub issue bodies",
-    "updatedAt": 1792550467207,
+    "updatedAt": 1793881511979,
     "votes": 0
 }
