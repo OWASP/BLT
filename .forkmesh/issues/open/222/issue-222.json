@@ -110,6 +110,17 @@
             "target": "comment-web-1793884891872",
             "ts": 1793888616758,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "VJAr5lCdBD4mHhE9xI32zT-lIIkXDt6C3dZdu7JLqZ0",
+            "authorName": "arnavghai19",
+            "authorVerified": true,
+            "body": "Hey, I investigated issue #222 and traced the likely cause to the ForkMesh app's Worker asset-routing configuration rather than the BLT monorepo.\n\nI noticed you mentioned having a fix ready on a branch. Would you mind sharing the branch or PR so I can review the implementation and help with testing or any remaining work?\n\nI'd prefer to build on your existing work rather than duplicate it.",
+            "id": "comment-web-1793889875130",
+            "sig": "SNjK1z504rpgoRQZl3oBp1ghBcWX-YpRj_kRrG3CIa1sQNRM0JDxRSx2PR2yOmp_Z56ChXi1jw-m35n84x9cDA",
+            "ts": 1793889875130,
+            "type": "comment"
         }
     ],
     "labels": [],
@@ -121,6 +132,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Web chat never starts: /fmm/*.js modules are routed to the repository router (404)",
-    "updatedAt": 1793888616758,
+    "updatedAt": 1793889875130,
     "votes": 0
 }
