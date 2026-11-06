@@ -119,9 +119,9 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 <!-- CONTRIBUTORS-END -->
 
 <!-- WAITING-PRS-START -->
-## ⏳ Pull Requests Waiting for Review (27 open, 3 new contributors)
+## ⏳ Pull Requests Waiting for Review (30 open, 3 new contributors)
 
-*Last updated: 2026-11-06 06:17 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
+*Last updated: 2026-11-06 22:28 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
 
 | Contributor | Waiting | Pull requests |
 |---|---|---|
@@ -132,12 +132,12 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 | [namrata](https://git.owaspblt.org/@namrata) | 3 | [#43](https://git.owaspblt.org/BLT/pull/43) Add worker regression tests for BLT Monitor (#116)<br>[#67](https://git.owaspblt.org/BLT/pull/67) fix(blt-tomato): turn FUNDING.yml platform entries into real donate URLs and add accessib…<br>[#72](https://git.owaspblt.org/BLT/pull/72) x(blt-legacy): replace deprecated bleach with nh3 for HTML sanitization |
 | [navodit](https://git.owaspblt.org/@navodit) | 3 | [#5](https://git.owaspblt.org/BLT/pull/5) Fix mobile sidebar: add toggle button, outside-click close, auto-close on nav select, and…<br>[#11](https://git.owaspblt.org/BLT/pull/11) Fix day-of-week range parsing to allow values ending in 7<br>[#14](https://git.owaspblt.org/BLT/pull/14) Fix /health endpoint to build endpoint map dynamically from router |
 | [prabhat1](https://git.owaspblt.org/@prabhat1) | 3 | [#49](https://git.owaspblt.org/BLT/pull/49) blt-start: make the advertised dark mode work (add a theme toggle)<br>[#51](https://git.owaspblt.org/BLT/pull/51) blt-start: add CI tests to reach gold standard<br>[#52](https://git.owaspblt.org/BLT/pull/52) blt-start: fix good first issue links and local setup instructions |
+| [preetam](https://git.owaspblt.org/@preetam) | 3 | [#17](https://git.owaspblt.org/BLT/pull/17) Fix accessibility issues for channel pills, preset chips, and input labels<br>[#75](https://git.owaspblt.org/BLT/pull/75) fix(my-gsoc-tool): use anonymous profile defaults<br>[#76](https://git.owaspblt.org/BLT/pull/76) chore(blt-timer): remove unused dashboard script |
+| [himaneeesh](https://git.owaspblt.org/@himaneeesh) | 2 | [#58](https://git.owaspblt.org/BLT/pull/58) blt-owasp-projects: follow up dashboard loading-state polish<br>[#73](https://git.owaspblt.org/BLT/pull/73) fix(design): restore include script loading |
 | [nachiket](https://git.owaspblt.org/@nachiket) | 2 | [#25](https://git.owaspblt.org/BLT/pull/25) blt-api: allow public read access for jobs and hackathons GET endpoints<br>[#37](https://git.owaspblt.org/BLT/pull/37) feat(blt-cli): implement ztr-finding-1 JCS canonicalization and HMAC signing engine |
 | [arnavghai19](https://git.owaspblt.org/@arnavghai19) | 1 | [#46](https://git.owaspblt.org/BLT/pull/46) fix(blt-leaf): launch Wrangler correctly on Windows |
-| [himaneeesh](https://git.owaspblt.org/@himaneeesh) | 1 | [#58](https://git.owaspblt.org/BLT/pull/58) blt-owasp-projects: follow up dashboard loading-state polish |
 | [hiralmodi](https://git.owaspblt.org/@hiralmodi) | 1 | [#50](https://git.owaspblt.org/BLT/pull/50) blt-pages: remove dead config keys, unused @fontsource dependency, and use python3 in pla… |
 | [owasp-marquina](https://git.owaspblt.org/@owasp-marquina) | 1 | [#61](https://git.owaspblt.org/BLT/pull/61) blt-netguardian: tighten payload_redact tests from #20 review |
-| [preetam](https://git.owaspblt.org/@preetam) | 1 | [#17](https://git.owaspblt.org/BLT/pull/17) Fix accessibility issues for channel pills, preset chips, and input labels |
 | [vanshika2720](https://git.owaspblt.org/@vanshika2720) | 1 | [#15](https://git.owaspblt.org/BLT/pull/15) blt-mcp: sync AGENT.md with tool definitions |
 <!-- WAITING-PRS-END -->
 
