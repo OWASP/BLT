@@ -121,7 +121,7 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 <!-- WAITING-PRS-START -->
 ## ⏳ Pull Requests Waiting for Review (30 open, 3 new contributors)
 
-*Last updated: 2026-11-06 22:28 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
+*Last updated: 2026-11-06 22:43 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
 
 | Contributor | Waiting | Pull requests |
 |---|---|---|
@@ -129,7 +129,7 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 | [emmanuelmj](https://git.owaspblt.org/@emmanuelmj) 🌱 **new contributor** | 2 | [#60](https://git.owaspblt.org/BLT/pull/60) blt-next: clean up README and fix setup steps<br>[#71](https://git.owaspblt.org/BLT/pull/71) blt-dash, blt-rewards, blt-gitcaster: fix cd paths in READMEs |
 | [lahama-blt](https://git.owaspblt.org/@lahama-blt) 🌱 **new contributor** | 1 | [#70](https://git.owaspblt.org/BLT/pull/70) docs(blt-vanish): fix setup and test commands |
 | [hrinkar01](https://git.owaspblt.org/@hrinkar01) | 3 | [#34](https://git.owaspblt.org/BLT/pull/34) blt-tomato: support custom funding_url and default_branch for funding files<br>[#47](https://git.owaspblt.org/BLT/pull/47) blt-legacy: drop unused cffi pin and upgrade cryptography, aiohttp and pillow<br>[#66](https://git.owaspblt.org/BLT/pull/66) blt-dash: add ASSETS binding and redirect /dash and /dash/ to root |
-| [namrata](https://git.owaspblt.org/@namrata) | 3 | [#43](https://git.owaspblt.org/BLT/pull/43) Add worker regression tests for BLT Monitor (#116)<br>[#67](https://git.owaspblt.org/BLT/pull/67) fix(blt-tomato): turn FUNDING.yml platform entries into real donate URLs and add accessib…<br>[#72](https://git.owaspblt.org/BLT/pull/72) x(blt-legacy): replace deprecated bleach with nh3 for HTML sanitization |
+| [namrata](https://git.owaspblt.org/@namrata) | 3 | [#43](https://git.owaspblt.org/BLT/pull/43) Add worker regression tests for BLT Monitor (#116)<br>[#72](https://git.owaspblt.org/BLT/pull/72) x(blt-legacy): replace deprecated bleach with nh3 for HTML sanitization<br>[#77](https://git.owaspblt.org/BLT/pull/77) fix(blt-tomato): restore platform donation links and accessible names |
 | [navodit](https://git.owaspblt.org/@navodit) | 3 | [#5](https://git.owaspblt.org/BLT/pull/5) Fix mobile sidebar: add toggle button, outside-click close, auto-close on nav select, and…<br>[#11](https://git.owaspblt.org/BLT/pull/11) Fix day-of-week range parsing to allow values ending in 7<br>[#14](https://git.owaspblt.org/BLT/pull/14) Fix /health endpoint to build endpoint map dynamically from router |
 | [prabhat1](https://git.owaspblt.org/@prabhat1) | 3 | [#49](https://git.owaspblt.org/BLT/pull/49) blt-start: make the advertised dark mode work (add a theme toggle)<br>[#51](https://git.owaspblt.org/BLT/pull/51) blt-start: add CI tests to reach gold standard<br>[#52](https://git.owaspblt.org/BLT/pull/52) blt-start: fix good first issue links and local setup instructions |
 | [preetam](https://git.owaspblt.org/@preetam) | 3 | [#17](https://git.owaspblt.org/BLT/pull/17) Fix accessibility issues for channel pills, preset chips, and input labels<br>[#75](https://git.owaspblt.org/BLT/pull/75) fix(my-gsoc-tool): use anonymous profile defaults<br>[#76](https://git.owaspblt.org/BLT/pull/76) chore(blt-timer): remove unused dashboard script |
