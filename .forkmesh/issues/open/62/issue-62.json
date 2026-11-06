@@ -78,6 +78,17 @@
             "sig": "El4SPYRddrKRG9F2afOVhmDF12gFtFSRFL9qTJNkriKulcUHJ3_LjpLnrxqf5Sg5u8p2zooyOOJnGxpTHFhBCA",
             "ts": 1793815715057,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "SGh0ruiiSbMr6HnnBX9nyTbCrQaWVYtZs6sxfr4JSRg",
+            "authorName": "lahama-blt",
+            "authorVerified": true,
+            "body": "submitted PR: #70",
+            "id": "comment-web-1793928490355",
+            "sig": "T2pUnX7ky6yrxbfbndRZ_p948Fy1dFd37ZwC40d_C9rPAE66nVlwXI8hOLPz4f1n2Xph1IKKhUjDTke4-6NdBg",
+            "ts": 1793928490355,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -94,6 +105,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: fix wrong setup and test commands in CONTRIBUTING.md",
-    "updatedAt": 1793815715057,
+    "updatedAt": 1793928490355,
     "votes": 0
 }
