@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "preetam"
+    ],
     "author": "INxr7QLX02Q-G3QLtmSnSTTRzatgK2PlWA27JdvomTA",
     "authorName": "ananya-in-tech",
     "bountyAddress": "",
@@ -19,6 +21,17 @@
             "title": "Fix the MY-GSOC-TOOL with anonymous values to the input attributes",
             "ts": 1793973047916,
             "type": "open"
+        },
+        {
+            "assignee": "preetam",
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1793985918471-1lca9ud",
+            "sig": "eX13L9VYsCgAL6n43gR9diZedBE4vAwe9lEooTq9gvz23iBYIvZHNfiZbd8NNKprm09Yd-jh8IC5eAngZ7kxBA",
+            "ts": 1793985918471,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -30,6 +43,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Fix the MY-GSOC-TOOL with anonymous values to the input attributes",
-    "updatedAt": 1793973047916,
+    "updatedAt": 1793985918471,
     "votes": 0
 }
