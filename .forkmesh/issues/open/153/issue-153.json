@@ -119,6 +119,16 @@
             "sig": "Bbc2hxtMnkalGNLV8NR2kNzN3IguelgFpXlPnuv8zZxha8WDMGUYWG5W_Q9j-zZ9p3XY0n7tJA8GNABPGsqMAg",
             "ts": 1793717782192,
             "type": "claim"
+        },
+        {
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "id": "delete-web-1794004813232-14xi320",
+            "sig": "-ogtS-lIp8Op9_hgZNVqNqNx0UTb8tJmcBnQ6z3fBrvw5CxNf9UKfUsbZuA6Hlv5EciE1Wtel9qXCyjOI6AcDg",
+            "target": "comment-web-1793717775707",
+            "ts": 1794004813232,
+            "type": "delete"
         }
     ],
     "labels": [
@@ -134,6 +144,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-tomato: turn FUNDING.yml platform entries into real donate URLs",
-    "updatedAt": 1793717782192,
+    "updatedAt": 1794004813232,
     "votes": 0
 }
