@@ -22,6 +22,9 @@ export const JOBS = [
   // New OWASP www-project repositories to #project-new-projects: hourly at :41. A run is 1 GitHub
   // request, 1 KV read, and only when something is new, 2 raw index.md reads per repository and 1 Slack post.
   { name: "blt-owasp-projects", binding: "OWASP_PROJECTS", cron: "41 * * * *", task: "new-projects" },
+  // New OWASP issues to Slack (SLACK_NEW_ISSUES_WEBHOOK): hourly at :43. 1 GitHub search, 1 KV read,
+  // and 1 Slack post only when something is new.
+  { name: "blt-owasp-issues", binding: "OWASP_PROJECTS", cron: "43 * * * *", task: "new-issues" },
 ];
 // blt-gsoc-progress (task "progress", 23:07-23:11) was removed on 2026-10-18: GSoC 2026 coding
 // ended on 17 Aug. The task code and its KV data stay, so /data/progress.json keeps the final state.

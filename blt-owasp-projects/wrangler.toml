@@ -1,7 +1,8 @@
 # Static site (public/) plus a Worker (worker/index.js) that serves the dashboard data files from KV
 # (binding DATA). The workflow .forkmesh/blt-owasp-projects--refresh-data.yml (daily) writes those
 # keys; nothing is committed to git. blt-cron calls /__scheduled hourly for the new-project Slack
-# alert (worker/new-projects.js; secrets CRON_SECRET, SLACK_WEBHOOK_URL, optional GH_API_TOKEN).
+# alert (worker/new-projects.js) and the new-issue alert (worker/new-issues.js); secrets CRON_SECRET,
+# SLACK_WEBHOOK_URL, SLACK_NEW_ISSUES_WEBHOOK, optional GH_API_TOKEN.
 name = "blt-owasp-projects"
 main = "worker/index.js"
 compatibility_date = "2026-06-06"

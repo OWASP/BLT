@@ -62,6 +62,13 @@ workflow: blt-cron calls `POST /__scheduled` (task `new-projects`) hourly at :41
 (ids kept in KV under `state:new-project-ids`; the first run only records them). Worker secrets:
 `CRON_SECRET` (the same as blt-cron's), `SLACK_WEBHOOK_URL` and, optionally, `GH_API_TOKEN`.
 
+New issues across the OWASP organization go to Slack the same way: task `new-issues`, hourly at :43,
+`worker/new-issues.js` (one GitHub search for the 100 newest issues, state in
+`state:new-issue-ids`, the first run only records them). It posts to the `SLACK_NEW_ISSUES_WEBHOOK`
+Worker secret; without it the task keeps its state current and posts nothing.
+`scripts/fetch_issues.py` still builds `issues.json` daily; the workflow gives it no webhook, so it
+posts nothing.
+
 ## Cloudflare
 
 `wrangler.toml` deploys a Worker (`worker/index.js`) with `public/` as its static assets, and binds
