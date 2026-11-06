@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "preetam"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -32,6 +34,17 @@
             "sig": "hF35frlKVfTo3HTWKhsZM8CH0lNefdZD7ApfA-RlCmez12Xfs3eR4ihp_AiHEKjh1JyncOEjQ-T1CqL6Dw_AAw",
             "ts": 1792547524080,
             "type": "labels"
+        },
+        {
+            "assignee": "preetam",
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1793995015259-16dgxkw",
+            "sig": "ztXgxppxT0Pwmx4cKcAx6DPYPYqCDMlt_PGvm6SEGJKWbqYZxMdyC4nFYXaX-kYUapq0PrJu11oT0oWZjggjDA",
+            "ts": 1793995015259,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -48,6 +61,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-timer-web: remove the dead public/dashboard.js left over from the dashboard split",
-    "updatedAt": 1792547524080,
+    "updatedAt": 1793995015259,
     "votes": 0
 }
