@@ -47,3 +47,7 @@ service = "hackerhouse"
 [[services]]
 binding = "SAMMICH"
 service = "blt-sammich"
+
+[[services]]
+binding = "OWASP_PROJECTS"
+service = "blt-owasp-projects"

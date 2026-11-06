@@ -13,6 +13,7 @@ Some Workers refresh data into Workers KV instead of having a workflow commit it
 | my-gsoc-tool | my-gsoc-tool | 00:03 | all (`contributions`, `forks`) |
 | hackerhouse | hackerhouse | every 5 minutes (:02, :07, ...) | forge poll (git.owaspblt.org commits, issues, pulls) |
 | blt-sammich | blt-sammich | every 5 minutes (:04, :09, ...) | send due `/setreminder` reminders |
+| blt-owasp-projects | blt-owasp-projects | hourly at :41 | `new-projects`: new OWASP www-project repositories to #project-new-projects on Slack |
 | blt-pool-leaderboard | blt-github-app (pool) | every 20 minutes (:06, :26, :46) | `forge-leaderboard`: git.owaspblt.org pulls ledger into the PR leaderboard |
 
 The GSoC 2026 progress job (`blt-gsoc-progress`, task `progress`) was turned off on 2026-10-18 because GSoC 2026 coding ended on 17 Aug. blt-gsoc still has the `progress` task and its KV data, so the progress page shows the final state; it can be run by hand (see `docs/workflows.md`).

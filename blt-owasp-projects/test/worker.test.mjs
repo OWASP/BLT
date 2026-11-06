@@ -35,7 +35,7 @@ test("pages are plain static assets", async () => {
 test("wrangler.toml runs the Worker first for exactly the data paths", () => {
   const toml = readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
   const listed = [...toml.match(/run_worker_first = \[([^\]]*)\]/)[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
-  assert.deepEqual(listed, DATA_PATHS);
+  assert.deepEqual(listed, [...DATA_PATHS, "/__scheduled"]);
   assert.match(toml, /^main = "worker\/index\.js"$/m);
   assert.match(toml, /binding = "DATA"\nid = "[0-9a-f]{32}"/);
 });

@@ -56,6 +56,12 @@ The workflow needs the Actions secrets `GH_API_TOKEN`, `CLOUDFLARE_API_TOKEN` (W
 Storage: Edit) and `CLOUDFLARE_ACCOUNT_ID`. `.forkmesh/blt-owasp-projects--sweep-repos.yml` is a
 manual, notification-only job (`SLACK_WEBHOOK_URL_SWEEP`).
 
+New `www-project-*` repositories are posted to #project-new-projects on Slack by the Worker, not the
+workflow: blt-cron calls `POST /__scheduled` (task `new-projects`) hourly at :41, and
+`worker/new-projects.js` lists the 100 newest OWASP repositories and posts the ones it has not seen
+(ids kept in KV under `state:new-project-ids`; the first run only records them). Worker secrets:
+`CRON_SECRET` (the same as blt-cron's), `SLACK_WEBHOOK_URL` and, optionally, `GH_API_TOKEN`.
+
 ## Cloudflare
 
 `wrangler.toml` deploys a Worker (`worker/index.js`) with `public/` as its static assets, and binds
