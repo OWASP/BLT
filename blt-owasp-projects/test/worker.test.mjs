@@ -40,7 +40,17 @@ test("wrangler.toml runs the Worker first for exactly the data paths", () => {
   assert.match(toml, /binding = "DATA"\nid = "[0-9a-f]{32}"/);
 });
 
-test("refresh-kv.sh seeds live data and writes only good, changed files", () => {
+// refresh-kv.sh needs jq (its header says so); without it every check fails and nothing is seeded.
+const hasJq = (() => {
+  try {
+    execFileSync("jq", ["--version"], { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
+test("refresh-kv.sh seeds live data and writes only good, changed files", { skip: !hasJq && "jq is not installed" }, () => {
   const dir = mkdtempSync(join(tmpdir(), "owasp-projects-kv-"));
   try {
     const bin = join(dir, "bin");
