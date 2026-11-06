@@ -1,3 +1,245 @@
 {
-  "assignmentHours": 24
+  "assignmentHours": 24,
+  "smartTags": {
+    "blt-next": {
+      "title": "BLT-Next",
+      "url": "https://next.owaspblt.org/",
+      "description": "The next-generation BLT web app, in development."
+    },
+    "blt-pages": {
+      "title": "BLT-Pages",
+      "url": "https://pages.owaspblt.org/",
+      "description": "Public bug reports and the reporter leaderboard."
+    },
+    "blt-zero": {
+      "title": "BLT-Zero",
+      "url": "https://zero.owaspblt.org/",
+      "description": "Encrypted, zero-trust vulnerability disclosure."
+    },
+    "blt-extension": {
+      "title": "BLT-Extension",
+      "url": "https://extension.owaspblt.org/",
+      "description": "Capture a page and report a bug from your browser."
+    },
+    "blt-flutter": {
+      "title": "BLT-Flutter",
+      "url": "https://flutter.owaspblt.org/",
+      "description": "The BLT app for phones and desktops."
+    },
+    "blt-cve": {
+      "title": "BLT-CVE",
+      "url": "https://cve.owaspblt.org/",
+      "description": "A verifiable, machine-readable vulnerability registry."
+    },
+    "blt-toasty": {
+      "title": "BLT-Toasty",
+      "url": "https://toasty.owaspblt.org/",
+      "description": "AI triage and responsible-disclosure assistant."
+    },
+    "blt-netguardian": {
+      "title": "BLT-NetGuardian",
+      "url": "https://netguardian.owaspblt.org/",
+      "description": "Signed findings, domain crawls and org triage."
+    },
+    "blt-rewards": {
+      "title": "BLT-Rewards",
+      "url": "https://rewards.owaspblt.org/",
+      "description": "BACON, the token reward for contributions."
+    },
+    "blt-pool": {
+      "title": "BLT-Pool",
+      "url": "https://pool.owaspblt.org/",
+      "description": "Mentor directory and monthly PR leaderboard."
+    },
+    "blt-hackathons": {
+      "title": "BLT-Hackathons",
+      "url": "https://hackathons.owaspblt.org/",
+      "description": "Contribution events with leaderboards and prizes."
+    },
+    "blt-gsoc": {
+      "title": "BLT-GSoC",
+      "url": "https://gsoc.owaspblt.org/",
+      "description": "Google Summer of Code with OWASP BLT."
+    },
+    "my-gsoc-tool": {
+      "title": "MY-GSOC-TOOL",
+      "url": "https://gsoc-tool.owaspblt.org/",
+      "description": "A dashboard of a GSoC student's whole journey."
+    },
+    "blt-nexus": {
+      "title": "BLT-Nexus",
+      "url": "https://nexus.owaspblt.org/",
+      "description": "The BLT Ambassador program."
+    },
+    "blt-profiles": {
+      "title": "BLT-Profiles",
+      "url": "https://profiles.owaspblt.org/",
+      "description": "Directory of security researchers and mentors."
+    },
+    "blt-jobs": {
+      "title": "BLT-Jobs",
+      "url": "https://jobs.owaspblt.org/",
+      "description": "A Git-native security job board."
+    },
+    "blt-newsletter": {
+      "title": "BLT-Newsletter",
+      "url": "https://newsletter.owaspblt.org/",
+      "description": "News and updates from OWASP BLT."
+    },
+    "blt-lettuce": {
+      "title": "BLT-Lettuce",
+      "url": "https://lettuce.owaspblt.org/",
+      "description": "Slack bot for welcomes and project discovery."
+    },
+    "blt-sammich": {
+      "title": "BLT-Sammich",
+      "url": "https://sammich.owaspblt.org/",
+      "description": "Slack bot for activity, stats and reminders."
+    },
+    "blt-design-contest": {
+      "title": "BLT-Design-Contest",
+      "url": "https://contest.owaspblt.org/",
+      "description": "Community design contests and showcase."
+    },
+    "blt-hackerhouse": {
+      "title": "BLT-HackerHouse",
+      "url": "https://hackerhouse.owaspblt.org/",
+      "description": "Real-time view of contributor activity."
+    },
+    "blt-gitcaster": {
+      "title": "BLT-Gitcaster",
+      "url": "https://gitcaster.owaspblt.org/",
+      "description": "A live leaderboard of repos, with commentary."
+    },
+    "blt-api": {
+      "title": "BLT-API",
+      "url": "https://api.owaspblt.org/",
+      "description": "REST API for bugs, users, domains and more."
+    },
+    "blt-mcp": {
+      "title": "BLT-MCP",
+      "url": "https://mcp.owaspblt.org/",
+      "description": "MCP server that gives AI agents access to BLT."
+    },
+    "blt-leaf": {
+      "title": "BLT-Leaf",
+      "url": "https://leaf.owaspblt.org/",
+      "description": "Check whether a pull request is ready to merge."
+    },
+    "blt-preflight": {
+      "title": "BLT-Preflight",
+      "url": "https://preflight.owaspblt.org/",
+      "description": "Security guidance before you open a pull request."
+    },
+    "blt-monitor": {
+      "title": "BLT-Monitor",
+      "url": "https://monitor.owaspblt.org/",
+      "description": "Uptime and content checks for BLT sites."
+    },
+    "blt-waypoint": {
+      "title": "BLT-Waypoint",
+      "url": "https://waypoint.owaspblt.org/",
+      "description": "Live dashboard of every BLT project."
+    },
+    "blt-dash": {
+      "title": "BLT-Dash",
+      "url": "https://dash.owaspblt.org/",
+      "description": "A one-page cybersecurity dashboard for companies."
+    },
+    "blt-sizzle": {
+      "title": "BLT-Sizzle",
+      "url": "https://sizzle.owaspblt.org/",
+      "description": "Async daily check-ins for teams."
+    },
+    "blt-timer": {
+      "title": "BLT-Timer",
+      "url": "https://timer.owaspblt.org/",
+      "description": "Minimal manual work logs."
+    },
+    "blt-ketchup": {
+      "title": "BLT-Ketchup",
+      "url": "https://ketchup.owaspblt.org/",
+      "description": "Shared workspace for pentest teams."
+    },
+    "blt-safecloak": {
+      "title": "BLT-SafeCloak",
+      "url": "https://safecloak.owaspblt.org/",
+      "description": "Private peer-to-peer video and voice chat."
+    },
+    "blt-vanish": {
+      "title": "BLT-Vanish",
+      "url": "https://vanish.owaspblt.org/",
+      "description": "Find and remove your personal data online."
+    },
+    "blt-enforcement": {
+      "title": "BLT-Enforcement",
+      "url": "https://enforcement.owaspblt.org/",
+      "description": "IP and trademark defense tools."
+    },
+    "blt-panini": {
+      "title": "BLT-Panini",
+      "url": "https://panini.owaspblt.org/",
+      "description": "Banned apps worldwide and Slack app ratings."
+    },
+    "blt-owasp-bumper": {
+      "title": "BLT-OWASP-Bumper",
+      "url": "https://bumper.owaspblt.org/",
+      "description": "Every OWASP GitHub repository, charted."
+    },
+    "blt-owasp-projects": {
+      "title": "BLT-OWASP-Projects",
+      "url": "https://projects.owaspblt.org/",
+      "description": "Status and open issues of OWASP projects."
+    },
+    "blt-owasp-metadata": {
+      "title": "BLT-OWASP-Metadata",
+      "url": "https://metadata.owaspblt.org/",
+      "description": "Unified data on OWASP projects and chapters."
+    },
+    "blt-owasp-wich": {
+      "title": "BLT-OWASP-Wich",
+      "url": "https://wich.owaspblt.org/",
+      "description": "Check a repository against OWASP practices."
+    },
+    "blt-tomato": {
+      "title": "BLT-Tomato",
+      "url": "https://tomato.owaspblt.org/",
+      "description": "OWASP projects that are seeking funding."
+    },
+    "blt-university": {
+      "title": "BLT-University",
+      "url": "https://university.owaspblt.org/",
+      "description": "Short security courses with browser labs."
+    },
+    "blt-docs": {
+      "title": "BLT-Docs",
+      "url": "https://docs.owaspblt.org/",
+      "description": "Guides for users and contributors."
+    },
+    "blt-start": {
+      "title": "BLT-Start",
+      "url": "https://start.owaspblt.org/",
+      "description": "The start page for new contributors."
+    },
+    "blt-ossh": {
+      "title": "BLT-OSSH",
+      "url": "https://ossh.owaspblt.org/",
+      "description": "Find open-source projects that fit your skills."
+    },
+    "blt-byte": {
+      "title": "BLT-Byte",
+      "url": "https://byte.owaspblt.org/",
+      "description": "AI assistant for bug bounty research."
+    },
+    "blt-ideas": {
+      "title": "BLT-Ideas",
+      "url": "https://ideas.owaspblt.org/",
+      "description": "Proposals for future BLT projects."
+    },
+    "blt-design": {
+      "title": "BLT-Design",
+      "url": "https://design.owaspblt.org/",
+      "description": "The BLT design system: colors, type, components."
+    }
+  }
 }
